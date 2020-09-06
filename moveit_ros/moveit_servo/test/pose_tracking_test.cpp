@@ -124,9 +124,6 @@ TEST_F(PoseTrackingFixture, OutgoingMsgTest)
   target_pose.pose.position.x = 0.2;
   target_pose.pose.position.y = 0.2;
   target_pose.pose.position.z = 0.2;
-  target_pose.pose.orientation.x = 0;
-  target_pose.pose.orientation.y = 0;
-  target_pose.pose.orientation.z = 0;
   target_pose.pose.orientation.w = 1;
 
   // Republish the target pose in a new thread, as if the target is moving

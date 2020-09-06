@@ -241,8 +241,8 @@ void PoseTracking::targetPoseCallback(const geometry_msgs::PoseStampedConstPtr& 
   target_pose_ = *msg;
   if (target_pose_.header.frame_id != planning_frame_)
   {
-    auto target_to_planning_frame =
-        transform_buffer_.lookupTransform(planning_frame_, target_pose_.header.frame_id, ros::Time(0), ros::Duration(0.1));
+    auto target_to_planning_frame = transform_buffer_.lookupTransform(planning_frame_, target_pose_.header.frame_id,
+                                                                      ros::Time(0), ros::Duration(0.1));
     tf2::doTransform(target_pose_, target_pose_, target_to_planning_frame);
   }
   target_pose_.header.stamp = ros::Time::now();

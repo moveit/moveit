@@ -100,15 +100,14 @@ int main(int argc, char** argv)
   // Run the servo node C++ interface in a new timer to ensure a constant outgoing message rate.
   moveit_servo::PoseTracking tracker(planning_scene_monitor, "servo_server");
 
-
   ros::Publisher target_pose_pub =
-        nh.advertise<geometry_msgs::PoseStamped>("/servo_server/target_pose", 1 /* queue */, true /* latch */);
+      nh.advertise<geometry_msgs::PoseStamped>("/servo_server/target_pose", 1 /* queue */, true /* latch */);
 
   // Subscribe to servo status (and log it when it changes)
   StatusMonitor status_monitor(nh, "servo_server/status");
 
-  Eigen::Vector3d lin_tol{0.01, 0.01, 0.01};
-  double rot_tol = 0.1; 
+  Eigen::Vector3d lin_tol{ 0.01, 0.01, 0.01 };
+  double rot_tol = 0.1;
 
   geometry_msgs::PoseStamped target_pose;
   target_pose.header.frame_id = "base_link";
@@ -116,19 +115,15 @@ int main(int argc, char** argv)
   target_pose.pose.position.x = 0.3;
   target_pose.pose.position.y = 0;
   target_pose.pose.position.z = 0.3;
-  target_pose.pose.orientation.x = 0;
-  target_pose.pose.orientation.y = 0;
-  target_pose.pose.orientation.z = 0;
   target_pose.pose.orientation.w = 1.0;
-
 
   target_pose_pub.publish(target_pose);
 
-  std::thread move_to_pose_thread([&tracker, &lin_tol, &rot_tol]{tracker.moveToPose(lin_tol, rot_tol);});
+  std::thread move_to_pose_thread([&tracker, &lin_tol, &rot_tol] { tracker.moveToPose(lin_tol, rot_tol); });
 
   ros::Rate loop_rate(50);
 
-  for (size_t i=0; i<1000; ++i)
+  for (size_t i = 0; i < 1000; ++i)
   {
     // target_pose_pub.publish(target_pose);
 
@@ -138,6 +133,5 @@ int main(int argc, char** argv)
   tracker.stopMotion();
   move_to_pose_thread.join();
 
-
-  return 0;
+  return EXIT_SUCCESS;
 }
