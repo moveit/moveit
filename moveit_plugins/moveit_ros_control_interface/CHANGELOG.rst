@@ -4,13 +4,12 @@ Changelog for package moveit_ros_control_interface
 
 1.1.0 (2020-09-04)
 ------------------
-* [feature] optional cpp version setting (`#2166 <https://github.com/ros-planning/moveit/issues/2166>`_)
+* [feature] Optional cpp version setting (`#2166 <https://github.com/ros-planning/moveit/issues/2166>`_)
 * [feature] Remove support for Indigo's ros_control (`#2128 <https://github.com/ros-planning/moveit/issues/2128>`_)
 * [feature] Add support for pos_vel_controllers and pos_vel_acc_controllers (`#1806 <https://github.com/ros-planning/moveit/issues/1806>`_)
 * [fix] Various fixes for upcoming Noetic release (`#2180 <https://github.com/ros-planning/moveit/issues/2180>`_)
 * [fix] Fix compiler warnings (`#1773 <https://github.com/ros-planning/moveit/issues/1773>`_)
-* [fix] Clang tidy fix `modernize-loop-convert` to entire code base (`#1419 <https://github.com/ros-planning/moveit/issues/1419>`_)
-* [maint] Bump version to upcoming Noetic release: 1.1.0 (`#2123 <https://github.com/ros-planning/moveit/issues/2123>`_)
+* [maint] clang-tidy-fix `modernize-loop-convert` to entire code base (`#1419 <https://github.com/ros-planning/moveit/issues/1419>`_)
 * [maint] Switch from include guards to pragma once (`#1615 <https://github.com/ros-planning/moveit/issues/1615>`_)
 * [maint] Remove ! from MoveIt name (`#1590 <https://github.com/ros-planning/moveit/issues/1590>`_)
 * Contributors: Dave Coleman, Henning Kayser, Jonathan Binney, Robert Haschke, Sandro Magalhães, Sean Yen, Tyler Weaver, Yu, Yan

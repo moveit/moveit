@@ -4,18 +4,16 @@ Changelog for package moveit_simple_controller_manager
 
 1.1.0 (2020-09-04)
 ------------------
-* [feature] optional cpp version setting (`#2166 <https://github.com/ros-planning/moveit/issues/2166>`_)
+* [feature] Optional cpp version setting (`#2166 <https://github.com/ros-planning/moveit/issues/2166>`_)
 * [feature] Allow different controllers for execution `#1832 <https://github.com/ros-planning/moveit/issues/1832>`_)
 * [feature] ControllerManager: wait for done-callback (`#1783 <https://github.com/ros-planning/moveit/issues/1783>`_)
 * [feature] Use CMAKE_CXX_STANDARD to enforce c++14 for portability (`#1607 <https://github.com/ros-planning/moveit/issues/1607>`_)
 * [fix] Various fixes for upcoming Noetic release (`#2180 <https://github.com/ros-planning/moveit/issues/2180>`_)
-* [fix] clang-tidy fixes (`#2050 <https://github.com/ros-planning/moveit/issues/2050>`_)
 * [fix] Fix errors: catkin_lint 1.6.7 (`#1987 <https://github.com/ros-planning/moveit/issues/1987>`_)
 * [fix] Fix compiler warnings (`#1773 <https://github.com/ros-planning/moveit/issues/1773>`_)
 * [fix] Fix binary artifact install locations. (`#1575 <https://github.com/ros-planning/moveit/issues/1575>`_)
 * [fix] add missing space to log (`#1477 <https://github.com/ros-planning/moveit/issues/1477>`_)
-* [fix] Clang tidy fix `modernize-loop-convert` to entire code base (`#1419 <https://github.com/ros-planning/moveit/issues/1419>`_)
-* [maint] Bump version to upcoming Noetic release: 1.1.0 (`#2123 <https://github.com/ros-planning/moveit/issues/2123>`_)
+* [maint] clang-tidy fixes (`#2050 <https://github.com/ros-planning/moveit/issues/2050>`_, `#1419 <https://github.com/ros-planning/moveit/issues/1419>`_)
 * [maint] Switch from include guards to pragma once (`#1615 <https://github.com/ros-planning/moveit/issues/1615>`_)
 * [maint] Remove ! from MoveIt name (`#1590 <https://github.com/ros-planning/moveit/issues/1590>`_)
 * Contributors: Dave Coleman, Henning Kayser, Jonathan Binney, Leroy Rügemer, Robert Haschke, Sean Yen, Tyler Weaver, Yu, Yan, llach

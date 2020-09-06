@@ -6,7 +6,6 @@ Changelog for package moveit_plugins
 ------------------
 * [feature] Use standard cmake text for metapackages (`#1620 <https://github.com/ros-planning/moveit/issues/1620>`_)
 * [feature] Use CMAKE_CXX_STANDARD to enforce c++14 for portability (`#1607 <https://github.com/ros-planning/moveit/issues/1607>`_)
-* [maint] Bump version to upcoming Noetic release: 1.1.0 (`#2123 <https://github.com/ros-planning/moveit/issues/2123>`_)
 * [maint] Remove ! from MoveIt name (`#1590 <https://github.com/ros-planning/moveit/issues/1590>`_)
 * Contributors: Dave Coleman, Jonathan Binney, Robert Haschke, Sean Yen, Tyler Weaver
 

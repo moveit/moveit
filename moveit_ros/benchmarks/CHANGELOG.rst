@@ -8,9 +8,8 @@ Changelog for package moveit_ros_benchmarks
 * [feature] Support benchmarking of full planning pipelines (`#1531 <https://github.com/ros-planning/moveit/issues/1531>`_)
 * [fix] Various fixes for upcoming Noetic release (`#2180 <https://github.com/ros-planning/moveit/issues/2180>`_)
 * [fix] Fix plot details, correcting xlabels positions and cleaning the graph (`#1658 <https://github.com/ros-planning/moveit/issues/1658>`_) (`#1668 <https://github.com/ros-planning/moveit/issues/1668>`_)
-* [maint] optional cpp version setting (`#2166 <https://github.com/ros-planning/moveit/issues/2166>`_)
-* [maint] Bump version to upcoming Noetic release: 1.1.0 (`#2123 <https://github.com/ros-planning/moveit/issues/2123>`_)
-* [maint] clang-tidy fixes (`#2050 <https://github.com/ros-planning/moveit/issues/2050>`_) (`#2004 <https://github.com/ros-planning/moveit/issues/2004>`_)
+* [maint] Optional cpp version setting (`#2166 <https://github.com/ros-planning/moveit/issues/2166>`_)
+* [maint] clang-tidy fixes (`#2050 <https://github.com/ros-planning/moveit/issues/2050>`_, `#2004 <https://github.com/ros-planning/moveit/issues/2004>`_, `#1419 <https://github.com/ros-planning/moveit/issues/1419>`_)
 * [maint] Fix usage of panda_moveit_config (`#1904 <https://github.com/ros-planning/moveit/issues/1904>`_)
 * [maint] Replace namespaces robot_state and robot_model with moveit::core (`#1924 <https://github.com/ros-planning/moveit/issues/1924>`_)
 * [maint] Fix compiler warnings (`#1773 <https://github.com/ros-planning/moveit/issues/1773>`_)
@@ -18,7 +17,6 @@ Changelog for package moveit_ros_benchmarks
 * [maint] Cleanup launch + config files (`#1631 <https://github.com/ros-planning/moveit/issues/1631>`_)
 * [maint] Switch from include guards to pragma once (`#1615 <https://github.com/ros-planning/moveit/issues/1615>`_)
 * [maint] Remove ! from MoveIt name (`#1590 <https://github.com/ros-planning/moveit/issues/1590>`_)
-* [maint] Clang tidy fix `modernize-loop-convert` to entire code base (`#1419 <https://github.com/ros-planning/moveit/issues/1419>`_)
 * Contributors: Ayush Garg, Dave Coleman, Henning Kayser, Jonathan Binney, Mahmoud Ahmed Selim, Markus Vieth, Michael Görner, Robert Haschke, Sean Yen, Tyler Weaver, Yu, Yan
 
 1.0.6 (2020-08-19)

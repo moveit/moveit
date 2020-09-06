@@ -6,13 +6,12 @@ Changelog for package chomp_interface
 ------------------
 * [feature] Replace $(find xacro)/xacro -> xacro (`#2282 <https://github.com/ros-planning/moveit/issues/2282>`_)
 * [feature] Start new joint_state_publisher_gui on param use_gui (`#2257 <https://github.com/ros-planning/moveit/issues/2257>`_)
-* [feature] optional cpp version setting (`#2166 <https://github.com/ros-planning/moveit/issues/2166>`_)
-* [feature] change API of ChompPlanner::solve() to not use message
+* [feature] Optional cpp version setting (`#2166 <https://github.com/ros-planning/moveit/issues/2166>`_)
+* [feature] Change API of ChompPlanner::solve() to not use message
 * [fix] Various fixes for upcoming Noetic release (`#2180 <https://github.com/ros-planning/moveit/issues/2180>`_)
 * [fix] clang-tidy fixes (`#2050 <https://github.com/ros-planning/moveit/issues/2050>`_)
 * [fix] Fix compiler warnings (`#1773 <https://github.com/ros-planning/moveit/issues/1773>`_)
-* [fix] small fixes to chomp planner (`#1407 <https://github.com/ros-planning/moveit/issues/1407>`_)
-* [maint] Bump version to upcoming Noetic release: 1.1.0 (`#2123 <https://github.com/ros-planning/moveit/issues/2123>`_)
+* [fix] Small fixes to chomp planner (`#1407 <https://github.com/ros-planning/moveit/issues/1407>`_)
 * [maint] Replace namespaces robot_state and robot_model with moveit::core (`#1924 <https://github.com/ros-planning/moveit/issues/1924>`_)
 * [maint] Add Missing License (`#1779 <https://github.com/ros-planning/moveit/issues/1779>`_)
 * [maint] Switch from include guards to pragma once (`#1615 <https://github.com/ros-planning/moveit/issues/1615>`_)
