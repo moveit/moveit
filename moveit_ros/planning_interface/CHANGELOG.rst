@@ -2,6 +2,92 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.0 (2020-09-04)
+------------------
+* [feature] Use Eigen::Transform::linear() instead of rotation() (`#1964 <https://github.com/ros-planning/moveit/issues/1964>`_)
+* [feature] move_group pick place test (`#2031 <https://github.com/ros-planning/moveit/issues/2031>`_)
+* [feature] Check for grasp service - general cleanup MGI (`#2077 <https://github.com/ros-planning/moveit/issues/2077>`_)
+* [feature] Integration test to defend subframe tutorial (`#1757 <https://github.com/ros-planning/moveit/issues/1757>`_)
+* [feature] Release Python GIL for C++ calls (`#1947 <https://github.com/ros-planning/moveit/issues/1947>`_)
+* [feature] Add default velocity/acceleration scaling factors (`#1890 <https://github.com/ros-planning/moveit/issues/1890>`_)
+* [feature] Improve move_group_interface's const correctness (`#1715 <https://github.com/ros-planning/moveit/issues/1715>`_)
+* [feature] Add get_jacobian_matrix to moveit_commander (`#1501 <https://github.com/ros-planning/moveit/issues/1501>`_)
+* [feature] Add named frames to CollisionObjects (`#1439 <https://github.com/ros-planning/moveit/issues/1439>`_)
+* [feature] Added GILRelease to pick and place (`#2272 <https://github.com/ros-planning/moveit/issues/2272>`_)
+* [feature] Add missing variants of place from list of PlaceLocations and Poses in the python interface (`#2231 <https://github.com/ros-planning/moveit/issues/2231>`_)
+* [fix] Various fixes for upcoming Noetic release (`#2180 <https://github.com/ros-planning/moveit/issues/2180>`_)
+* [fix] Resolve PSI lock-up in RViz display (`#1951 <https://github.com/ros-planning/moveit/issues/1951>`_)
+* [fix] Fix flaky moveit_cpp test (`#1781 <https://github.com/ros-planning/moveit/issues/1781>`_)
+* [fix] Fix compiler warnings (`#1773 <https://github.com/ros-planning/moveit/issues/1773>`_)
+* [maint] Fix a parameter mix-up in moveit_cpp loading (`#2187 <https://github.com/ros-planning/moveit/issues/2187>`_)
+* [maint] Optional cpp version setting (`#2166 <https://github.com/ros-planning/moveit/issues/2166>`_)
+* [maint] update dependencies for python3 in noetic (`#2131 <https://github.com/ros-planning/moveit/issues/2131>`_)
+* [maint] clang-tidy fixes (`#2050 <https://github.com/ros-planning/moveit/issues/2050>`_, `#1586 <https://github.com/ros-planning/moveit/issues/1586>`_, `#1419 <https://github.com/ros-planning/moveit/issues/1419>`_)
+* [maint] Fix some clang tidy issues (`#2004 <https://github.com/ros-planning/moveit/issues/2004>`_)
+* [maint] export  moveit_py_bindings_tools library (`#1970 <https://github.com/ros-planning/moveit/issues/1970>`_)
+* [maint] Fix usage of panda_moveit_config (`#1904 <https://github.com/ros-planning/moveit/issues/1904>`_)
+* [maint] Replace namespaces robot_state and robot_model with moveit::core (`#1924 <https://github.com/ros-planning/moveit/issues/1924>`_)
+* [maint] Fix typo in cmake file (`#1857 <https://github.com/ros-planning/moveit/issues/1857>`_)
+* [maint] Reduce console output warnings (`#1845 <https://github.com/ros-planning/moveit/issues/1845>`_)
+* [maint] Switch from include guards to pragma once (`#1615 <https://github.com/ros-planning/moveit/issues/1615>`_)
+* [maint] Remove ! from MoveIt name (`#1590 <https://github.com/ros-planning/moveit/issues/1590>`_)
+* [maint] improve [get|set]JointValueTarget in python wrapper (`#858 <https://github.com/ros-planning/moveit/issues/858>`_)
+* [maint] moveit_commander.MoveGroupInterface.plan() to better align with C++ MoveGroup::plan() (`#790 <https://github.com/ros-planning/moveit/issues/790>`_)
+* Contributors: AndyZe, Ayush Garg, Bence Magyar, Bjar Ne, Dave Coleman, Felix von Drigalski, Gerard Canal, Guilhem Saurel, Henning Kayser, Jafar Abdi, JafarAbdi, Jere Liukkonen, Jonathan Binney, Kunal Tyagi, Luca Rinelli, Mahmoud Ahmed Selim, Markus Vieth, Martin Pecka, Masaki Murooka, Michael Ferguson, Michael Görner, Niklas Fiedler, Robert Haschke, Ryosuke Tajima, Sean Yen, Tyler Weaver, Yeshwanth, Yu, Yan, mvieth, v4hn
+
+1.0.6 (2020-08-19)
+------------------
+* [maint]   Adapt repository for splitted moveit_resources layout (`#2199 <https://github.com/ros-planning/moveit/issues/2199>`_)
+* [maint]   Migrate to clang-format-10, Fix warnings
+* [maint]   Optimize includes (`#2229 <https://github.com/ros-planning/moveit/issues/2229>`_)
+* [feature] Exposed parameter wait_for_servers and getPlannerId() API in MoveGroup's Python API (`#2201 <https://github.com/ros-planning/moveit/issues/2201>`_)
+* Contributors: Gerard Canal, Markus Vieth, Robert Haschke, Michael Görner
+
+1.0.5 (2020-07-08)
+------------------
+* [maint]   Remove dependency on panda_moveit_config (#2194 <https://github.com/ros-planning/moveit/issues/2194>`_, #2197 <https://github.com/ros-planning/moveit/issues/2197>`_)
+* [maint]   Adapt linking to eigenpy (`#2118 <https://github.com/ros-planning/moveit/issues/2118>`_)
+* [maint]   Replace robot_model and robot_state namespaces with moveit::core (`#2135 <https://github.com/ros-planning/moveit/issues/2135>`_)
+* [feature] PlanningComponent: Load plan_request_params (`#2033 <https://github.com/ros-planning/moveit/issues/2033>`_)
+* [feature] MoveItCpp: a high-level C++ planning API (`#1656 <https://github.com/ros-planning/moveit/issues/1656>`_)
+* [fix]     Validate action client pointer before access
+* [fix]     Wait and check for the grasp service
+* [maint]   Add tests for move_group interface (`#1995 <https://github.com/ros-planning/moveit/issues/1995>`_)
+* Contributors: AndyZe, Henning Kayser, Jafar Abdi, Michael Görner, Robert Haschke, Tyler Weaver, Yeshwanth
+
+1.0.4 (2020-05-30)
+------------------
+
+1.0.3 (2020-04-26)
+------------------
+* [feature] `MoveGroupInterface`: Add execution methods for moveit_msgs::RobotTrajectory (`#1955 <https://github.com/ros-planning/moveit/issues/1955>`_)
+* [feature] Allow to instantiate a `PlanningSceneInterface` w/ and w/o a running `move_group` node
+* [fix]     Release Python `GIL` for C++ calls (`#1947 <https://github.com/ros-planning/moveit/issues/1947>`_)
+* [feature] Expose reference_point_position parameter in getJacobian() (`#1595 <https://github.com/ros-planning/moveit/issues/1595>`_)
+* [feature] `MoveGroupInterface`: Expose `constructPickGoal` and `constructPlaceGoal` (`#1498 <https://github.com/ros-planning/moveit/issues/1498>`_)
+* [feature] `python MoveGroupInterface`: Added custom time limit for `wait_for_servers()` (`#1444 <https://github.com/ros-planning/moveit/issues/1444>`_)
+* [maint]   Apply clang-tidy fix to entire code base (`#1394 <https://github.com/ros-planning/moveit/issues/1394>`_)
+* [maint]   Fix errors: catkin_lint 1.6.7 (`#1987 <https://github.com/ros-planning/moveit/issues/1987>`_)
+* [maint]   Improve Python 3 compatibility (`#1870 <https://github.com/ros-planning/moveit/issues/1870>`_)
+  * Replaced StringIO with BytesIO for python msg serialization
+  * Use py_bindings_tools::ByteString as byte-based serialization buffer on C++ side
+* [feature] Export moveit_py_bindings_tools library
+* [maint]   Fix various build issues on Windows
+  * Use `.pyd` as the output suffix for Python module on Windows. (`#1637 <https://github.com/ros-planning/moveit/issues/1637>`_)
+  * Favor ros::Duration.sleep over sleep. (`#1634 <https://github.com/ros-planning/moveit/issues/1634>`_)
+  * Fix binary artifact install locations. (`#1575 <https://github.com/ros-planning/moveit/issues/1575>`_)
+* [maint]   Use CMAKE_CXX_STANDARD to enforce c++14 (`#1607 <https://github.com/ros-planning/moveit/issues/1607>`_)
+* [maint]   Updated deprecation method: MOVEIT_DEPRECATED -> [[deprecated]] (`#1748 <https://github.com/ros-planning/moveit/issues/1748>`_)
+* [maint]   `eigenpy`: switched to system package (`#1737 <https://github.com/ros-planning/moveit/issues/1737>`_)
+* [featue]  `PlanningSceneInterface`: wait for its two services
+* [feature] Select time parametrization algorithm in retime_trajectory (`#1508 <https://github.com/ros-planning/moveit/issues/1508>`_)
+* Contributors: Bjar Ne, Felix von Drigalski, Kunal Tyagi, Luca Rinelli, Masaki Murooka, Michael Görner, Niklas Fiedler, Robert Haschke, Sean Yen, Yu, Yan, mvieth, v4hn
+
+1.0.2 (2019-06-28)
+------------------
+* [maintenance] Removed unnecessary null pointer checks on deletion (`#1410 <https://github.com/ros-planning/moveit/issues/1410>`_)
+* Contributors: Mahmoud Ahmed Selim
+
 1.0.1 (2019-03-08)
 ------------------
 * [improve] Apply clang tidy fix to entire code base (Part 1) (`#1366 <https://github.com/ros-planning/moveit/issues/1366>`_)
@@ -91,7 +177,7 @@ Changelog for package moveit_ros_planning_interface
 
 0.9.5 (2017-03-08)
 ------------------
-* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_ 
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
 * [enhancement] Remove "catch (...)" instances, catch std::exception instead of std::runtime_error (`#445 <https://github.com/ros-planning/moveit/issues/445>`_)
 * [enhancement][MoveGroup] Add getLinkNames function (`#440 <https://github.com/ros-planning/moveit/issues/440>`_)
 * Contributors: Bence Magyar, Dave Coleman

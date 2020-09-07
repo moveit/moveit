@@ -1,6 +1,6 @@
 <launch>
 
-  <!-- TrajOpt Plugin for MoveIt! -->
+  <!-- TrajOpt Plugin for MoveIt -->
   <arg name="planning_plugin" value="trajopt_interface/TrajOptPlanner" />
 
   <!-- The request adapters (plugins) used when planning with TrajOpt.
