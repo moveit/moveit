@@ -22,9 +22,9 @@ env:
 jobs:
   fast_finish: true
   include:
-    - env: TEST="clang-format catkin_lint" ROS_DISTRO=noetic
+    - env: TEST="clang-format catkin_lint"
     - env: TEST=code-coverage
-    - env: ROS_DISTRO=noetic
+    - env: ROS_DISTRO=noetic ROS_REPO=ros-testing
     - env: ROS_DISTRO=melodic
     - compiler: clang
       # test_ikfast_plugins takes ~10 minutes: include here to keep the main jobs shorter

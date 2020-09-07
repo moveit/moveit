@@ -32,7 +32,3 @@
     local-name: panda_moveit_config
     uri: https://github.com/ros-planning/panda_moveit_config.git
     version: melodic-devel
-- git:
-    local-name: srdfdom
-    uri: https://github.com/ros-planning/srdfdom.git
-    version: noetic-devel
