@@ -1240,7 +1240,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
   config_data_->group_meta_data_[group_name].kinematics_solver_search_resolution_ = kinematics_resolution_double;
   config_data_->group_meta_data_[group_name].kinematics_solver_timeout_ = kinematics_timeout_double;
   config_data_->group_meta_data_[group_name].kinematics_parameters_file_ = kinematics_parameters_file;
-  config_data_->group_meta_data_[group_name].default_planner_ = default_planner;
+  config_data_->group_meta_data_[group_name].default_planner_ = (default_planner == "None" ? "" : default_planner);
   config_data_->changes |= MoveItConfigData::GROUP_KINEMATICS;
 
   // Reload main screen table
