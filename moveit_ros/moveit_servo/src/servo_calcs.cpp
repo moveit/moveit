@@ -681,7 +681,6 @@ double ServoCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& co
 void ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
 {
   Eigen::ArrayXd velocity = delta_theta / parameters_.publish_period;
-  const Eigen::ArrayXd acceleration = (velocity - prev_joint_velocity_) / parameters_.publish_period;
 
   std::size_t joint_delta_index = 0;
   // Track the smallest velocity scaling factor required, across all joints
