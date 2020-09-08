@@ -30,6 +30,7 @@ publish_joint_accelerations: false
 ## MoveIt properties
 move_group_name:  manipulator  # Often 'manipulator' or 'arm'
 planning_frame: world  # The MoveIt planning frame. Often 'base_link' or 'world'
+ee_frame_name: ee_link # The name of the end effector link, used to return the EE pose
 
 ## Stopping behaviour
 incoming_command_timeout:  0.1  # Stop servoing if X seconds elapse without a new command

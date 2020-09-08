@@ -89,7 +89,7 @@ int8_t PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance, con
   while ((!haveRecentTargetPose(DEFAULT_POSE_TIMEOUT) || !haveRecentEndEffectorPose(DEFAULT_POSE_TIMEOUT)) &&
          ((ros::Time::now() - start_time).toSec() < DEFAULT_POSE_TIMEOUT))
   {
-    if (servo_->getCommandFrameTransform(end_effector_transform_))
+    if (servo_->getEEFrameTransform(end_effector_transform_))
     {
       end_effector_transform_stamp_ = ros::Time::now();
     }
@@ -114,7 +114,7 @@ int8_t PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance, con
     }
 
     // Attempt to update robot pose
-    if (servo_->getCommandFrameTransform(end_effector_transform_))
+    if (servo_->getEEFrameTransform(end_effector_transform_))
     {
       end_effector_transform_stamp_ = ros::Time::now();
     }
@@ -337,5 +337,10 @@ void PoseTracking::getPIDErrors(double& x_error, double& y_error, double& z_erro
   cartesian_position_pids_.at(1).getCurrentPIDErrors(&y_error, &dummy1, &dummy2);
   cartesian_position_pids_.at(2).getCurrentPIDErrors(&z_error, &dummy1, &dummy2);
   cartesian_orientation_pids_.at(0).getCurrentPIDErrors(&orientation_error, &dummy1, &dummy2);
+}
+
+bool PoseTracking::getEEFrameTransform(geometry_msgs::TransformStamped& transform)
+{
+  return servo_->getEEFrameTransform(transform);
 }
 }  // namespace moveit_servo

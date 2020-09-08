@@ -37,6 +37,7 @@
  *******************************************************************************/
 
 #include <std_msgs/Int8.h>
+#include <geometry_msgs/TransformStamped.h>
 
 #include <moveit_servo/servo.h>
 #include <moveit_servo/pose_tracking.h>
@@ -71,8 +72,9 @@ private:
 };
 
 /**
- * Instantiate the C++ servo node interface.
- * Send some Cartesian commands, then some joint commands.
+ * Instantiate the pose tracking interface.
+ * Send a pose slightly different from the starting pose
+ * Then keep updating the target pose a little bit
  */
 int main(int argc, char** argv)
 {
@@ -97,9 +99,10 @@ int main(int argc, char** argv)
       false /* skip octomap monitor */);
   planning_scene_monitor->startStateMonitor();
 
-  // Run the servo node C++ interface in a new timer to ensure a constant outgoing message rate.
+  // Create the pose tracker
   moveit_servo::PoseTracking tracker(planning_scene_monitor, "servo_server");
 
+  // Make a publisher for sending pose commands
   ros::Publisher target_pose_pub =
       nh.advertise<geometry_msgs::PoseStamped>("/servo_server/target_pose", 1 /* queue */, true /* latch */);
 
@@ -109,27 +112,41 @@ int main(int argc, char** argv)
   Eigen::Vector3d lin_tol{ 0.01, 0.01, 0.01 };
   double rot_tol = 0.1;
 
-  geometry_msgs::PoseStamped target_pose;
-  target_pose.header.frame_id = "base_link";
-  target_pose.header.stamp = ros::Time::now();
-  target_pose.pose.position.x = 0.3;
-  target_pose.pose.position.y = 0;
-  target_pose.pose.position.z = 0.3;
-  target_pose.pose.orientation.w = 1.0;
+  // Get the current EE transform
+  geometry_msgs::TransformStamped current_ee_tf;
+  tracker.getEEFrameTransform(current_ee_tf);
 
+  // Convert it to a Pose
+  geometry_msgs::PoseStamped target_pose;
+  target_pose.header.frame_id = current_ee_tf.header.frame_id;
+  target_pose.pose.position.x = current_ee_tf.transform.translation.x;
+  target_pose.pose.position.y = current_ee_tf.transform.translation.y;
+  target_pose.pose.position.z = current_ee_tf.transform.translation.z;
+  target_pose.pose.orientation = current_ee_tf.transform.rotation;
+
+  // Modify it a little bit
+  target_pose.pose.position.x += 0.1;
+
+  // Publish target pose
+  target_pose.header.stamp = ros::Time::now();
   target_pose_pub.publish(target_pose);
 
+  // Run the pose tracking in a new thread
   std::thread move_to_pose_thread([&tracker, &lin_tol, &rot_tol] { tracker.moveToPose(lin_tol, rot_tol); });
 
   ros::Rate loop_rate(50);
-
-  for (size_t i = 0; i < 1000; ++i)
+  for (size_t i = 0; i < 500; ++i)
   {
-    // target_pose_pub.publish(target_pose);
+    // Modify the pose target a little bit each cycle
+    // This is a dynamic pose target
+    target_pose.pose.position.z += 0.0004;
+    target_pose.header.stamp = ros::Time::now();
+    target_pose_pub.publish(target_pose);
 
     loop_rate.sleep();
   }
 
+  // Make sure the tracker is stopped and clean up
   tracker.stopMotion();
   move_to_pose_thread.join();
 

@@ -69,6 +69,33 @@ bool isNonZero(const control_msgs::JointJog& msg)
   };
   return !all_zeros;
 }
+
+// Helper function for converting Eigen::Isometry3d to geometry_msgs/TransformStamped
+geometry_msgs::TransformStamped convertIsometryToTransform(const Eigen::Isometry3d& eigen_tf,
+                                                           const std::string& parent_frame,
+                                                           const std::string& child_frame)
+{
+  geometry_msgs::TransformStamped output;
+  Eigen::Vector3d eigen_translation = eigen_tf.translation();
+
+  // Fill in the translations directly
+  output.transform.translation.x = eigen_translation[0];
+  output.transform.translation.y = eigen_translation[1];
+  output.transform.translation.z = eigen_translation[2];
+
+  // Use Eigen to convert rotation to quaternion and fill in
+  Eigen::Quaterniond quat(eigen_tf.rotation());
+  output.transform.rotation.x = quat.x();
+  output.transform.rotation.y = quat.y();
+  output.transform.rotation.z = quat.z();
+  output.transform.rotation.w = quat.w();
+
+  // Fill in rest of TF info
+  output.header.frame_id = parent_frame;
+  output.child_frame_id = child_frame;
+
+  return output;
+}
 }  // namespace
 
 // Constructor for the class that handles servoing calculations
@@ -177,6 +204,15 @@ void ServoCalcs::start()
   last_sent_command_ = initial_joint_trajectory;
 
   timer_ = nh_.createTimer(period_, &ServoCalcs::run, this);
+
+  // TODO(adamp or andyz): after rebasing on upstream master, update this section. Maybe put the tf updates in a tiny
+  // function by themselves
+  sensor_msgs::JointStateConstPtr latest_joint_state = joint_state_subscriber_->getLatest();
+  kinematic_state_->setVariableValues(*latest_joint_state);
+  tf_moveit_to_ee_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
+                           kinematic_state_->getGlobalLinkTransform(parameters_.ee_frame_name);
+  tf_moveit_to_robot_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
+                                  kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
 }
 
 void ServoCalcs::run(const ros::TimerEvent& timer_event)
@@ -228,6 +264,11 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
   // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
   tf_moveit_to_robot_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
                                   kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
+
+  // Calculate the transform from MoveIt planning frame to End Effector frame
+  // Calculate this transform to ensure it is available via C++ API
+  tf_moveit_to_ee_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
+                           kinematic_state_->getGlobalLinkTransform(parameters_.ee_frame_name);
 
   have_nonzero_command_ = have_nonzero_twist_stamped_ || have_nonzero_joint_command_;
 
@@ -399,6 +440,12 @@ bool ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
     {
       translation_vector = tf_moveit_to_robot_cmd_frame_.linear() * translation_vector;
       angular_vector = tf_moveit_to_robot_cmd_frame_.linear() * angular_vector;
+    }
+    else if (cmd.header.frame_id == parameters_.ee_frame_name)
+    {
+      // If the frame is the EE frame, we already have that transform as well
+      translation_vector = tf_moveit_to_ee_frame_.linear() * translation_vector;
+      angular_vector = tf_moveit_to_ee_frame_.linear() * angular_vector;
     }
     else
     {
@@ -977,6 +1024,42 @@ bool ServoCalcs::getCommandFrameTransform(Eigen::Isometry3d& transform)
 
   // All zeros means the transform wasn't initialized, so return false
   return !transform.matrix().isZero(0);
+}
+
+bool ServoCalcs::getCommandFrameTransform(geometry_msgs::TransformStamped& transform)
+{
+  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
+  // All zeros means the transform wasn't initialized, so return false
+  if (tf_moveit_to_robot_cmd_frame_.matrix().isZero(0))
+  {
+    return false;
+  }
+
+  transform = convertIsometryToTransform(tf_moveit_to_robot_cmd_frame_, parameters_.planning_frame,
+                                         parameters_.robot_link_command_frame);
+  return true;
+}
+
+bool ServoCalcs::getEEFrameTransform(Eigen::Isometry3d& transform)
+{
+  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
+  transform = tf_moveit_to_ee_frame_;
+
+  // All zeros means the transform wasn't initialized, so return false
+  return !transform.matrix().isZero(0);
+}
+
+bool ServoCalcs::getEEFrameTransform(geometry_msgs::TransformStamped& transform)
+{
+  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
+  // All zeros means the transform wasn't initialized, so return false
+  if (tf_moveit_to_ee_frame_.matrix().isZero(0))
+  {
+    return false;
+  }
+
+  transform = convertIsometryToTransform(tf_moveit_to_ee_frame_, parameters_.planning_frame, parameters_.ee_frame_name);
+  return true;
 }
 
 void ServoCalcs::twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg)

@@ -72,6 +72,17 @@ public:
    * @return true if a valid transform was available
    */
   bool getCommandFrameTransform(Eigen::Isometry3d& transform);
+  bool getCommandFrameTransform(geometry_msgs::TransformStamped& transform);
+
+  /**
+   * Get the End Effector link transform.
+   * The transform from the MoveIt planning frame to EE link
+   *
+   * @param transform the transform that will be calculated
+   * @return true if a valid transform was available
+   */
+  bool getEEFrameTransform(Eigen::Isometry3d& transform);
+  bool getEEFrameTransform(geometry_msgs::TransformStamped& transform);
 
   /** \brief Get the parameters used by servo node. */
   const ServoParameters& getParameters() const;

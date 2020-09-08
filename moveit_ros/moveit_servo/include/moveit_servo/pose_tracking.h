@@ -114,6 +114,15 @@ public:
 
   void getPIDErrors(double& x_error, double& y_error, double& z_error, double& orientation_error);
 
+  /**
+   * Get the End Effector link transform.
+   * The transform from the MoveIt planning frame to EE link
+   *
+   * @param transform the transform that will be calculated
+   * @return true if a valid transform was available
+   */
+  bool getEEFrameTransform(geometry_msgs::TransformStamped& transform);
+
 private:
   /** \brief Load ROS parameters for controller settings. */
   void readROSParams();

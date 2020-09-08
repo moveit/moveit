@@ -103,6 +103,7 @@ bool Servo::readParameters()
                                     parameters_.hard_stop_singularity_threshold);
   error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/move_group_name", parameters_.move_group_name);
   error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/planning_frame", parameters_.planning_frame);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/ee_frame_name", parameters_.ee_frame_name);
   error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/use_gazebo", parameters_.use_gazebo);
   error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/joint_limit_margin", parameters_.joint_limit_margin);
   error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/command_out_topic", parameters_.command_out_topic);
@@ -301,6 +302,21 @@ void Servo::setPaused(bool paused)
 bool Servo::getCommandFrameTransform(Eigen::Isometry3d& transform)
 {
   return servo_calcs_->getCommandFrameTransform(transform);
+}
+
+bool Servo::getCommandFrameTransform(geometry_msgs::TransformStamped& transform)
+{
+  return servo_calcs_->getEEFrameTransform(transform);
+}
+
+bool Servo::getEEFrameTransform(Eigen::Isometry3d& transform)
+{
+  return servo_calcs_->getEEFrameTransform(transform);
+}
+
+bool Servo::getEEFrameTransform(geometry_msgs::TransformStamped& transform)
+{
+  return servo_calcs_->getEEFrameTransform(transform);
 }
 
 const ServoParameters& Servo::getParameters() const

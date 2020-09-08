@@ -49,6 +49,7 @@
 #include <std_srvs/Empty.h>
 #include <control_msgs/JointJog.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <trajectory_msgs/JointTrajectory.h>
 
 // moveit_servo
@@ -82,6 +83,17 @@ public:
    * @return true if a valid transform was available
    */
   bool getCommandFrameTransform(Eigen::Isometry3d& transform);
+  bool getCommandFrameTransform(geometry_msgs::TransformStamped& transform);
+
+  /**
+   * Get the End Effector link transform.
+   * The transform from the MoveIt planning frame to EE link
+   *
+   * @param transform the transform that will be calculated
+   * @return true if a valid transform was available
+   */
+  bool getEEFrameTransform(Eigen::Isometry3d& transform);
+  bool getEEFrameTransform(geometry_msgs::TransformStamped& transform);
 
   /** \brief Pause or unpause processing servo commands while keeping the timers alive */
   void setPaused(bool paused);
@@ -282,6 +294,7 @@ private:
   // latest_state_mutex_ is used to protect the state below it
   mutable std::mutex latest_state_mutex_;
   Eigen::Isometry3d tf_moveit_to_robot_cmd_frame_;
+  Eigen::Isometry3d tf_moveit_to_ee_frame_;
   geometry_msgs::TwistStampedConstPtr latest_twist_stamped_;
   control_msgs::JointJogConstPtr latest_joint_cmd_;
   ros::Time latest_twist_command_stamp_ = ros::Time(0.);
