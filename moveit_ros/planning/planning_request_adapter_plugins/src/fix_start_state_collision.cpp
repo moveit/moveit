@@ -47,6 +47,7 @@ class FixStartStateCollision : public planning_request_adapter::PlanningRequestA
 public:
   static const std::string DT_PARAM_NAME;
   static const std::string JIGGLE_PARAM_NAME;
+  static const std::string DISTANCE_PARAM_NAME;
   static const std::string ATTEMPTS_PARAM_NAME;
 
   FixStartStateCollision() : planning_request_adapter::PlanningRequestAdapter()
@@ -70,6 +71,16 @@ public:
     }
     else
       ROS_INFO_STREAM("Param '" << JIGGLE_PARAM_NAME << "' was set to " << jiggle_fraction_);
+
+    if (!nh.getParam(DISTANCE_PARAM_NAME, max_jiggle_distance_squared_))
+    {
+      max_jiggle_distance_squared_ = 0.02;
+      ROS_INFO_STREAM("Param '" << DISTANCE_PARAM_NAME
+                                << "' was not set. Using default value: " << max_jiggle_distance_squared_);
+    }
+    else
+      ROS_INFO_STREAM("Param '" << DISTANCE_PARAM_NAME << "' was set to " << max_jiggle_distance_squared_);
+    max_jiggle_distance_squared_ = pow(max_jiggle_distance_squared_, 2);  // Square the rosparam
 
     if (!nh.getParam(ATTEMPTS_PARAM_NAME, sampling_attempts_))
     {
@@ -115,36 +126,85 @@ public:
       planning_scene->checkCollision(vcreq, vcres, start_state);
 
       if (creq.group_name.empty())
-        ROS_INFO("Start state appears to be in collision");
+        ROS_INFO("Start state appears to be in collision. Attempting to fix.");
       else
-        ROS_INFO_STREAM("Start state appears to be in collision with respect to group " << creq.group_name);
+        ROS_INFO_STREAM("Start state appears to be in collision with respect to group " << creq.group_name
+                                                                                        << ". Attempting to fix.");
 
-      moveit::core::RobotStatePtr prefix_state(new moveit::core::RobotState(start_state));
-      random_numbers::RandomNumberGenerator& rng = prefix_state->getRandomNumberGenerator();
+      moveit::core::RobotStatePtr original_state(new moveit::core::RobotState(start_state));
+      random_numbers::RandomNumberGenerator& rng = original_state->getRandomNumberGenerator();
 
       const std::vector<const moveit::core::JointModel*>& jmodels =
           planning_scene->getRobotModel()->hasJointModelGroup(req.group_name) ?
               planning_scene->getRobotModel()->getJointModelGroup(req.group_name)->getJointModels() :
               planning_scene->getRobotModel()->getJointModels();
 
+      // Record cartesian pose of every link to ensure no sudden movements will occur
+      std::vector<const moveit::core::LinkModel*> link_models;
+      link_models.resize(jmodels.size());
+      for (std::size_t i = 0; i < jmodels.size(); ++i)
+        link_models[i] = jmodels[i]->getChildLinkModel();
+
+      // Also record end effector link pose if one is set
+      if (!req.goal_constraints[0].position_constraints.empty())
+        link_models.push_back(start_state.getLinkModel(req.goal_constraints[0].position_constraints[0].link_name));
+      else if (!req.goal_constraints[0].orientation_constraints.empty())
+        link_models.push_back(start_state.getLinkModel(req.goal_constraints[0].orientation_constraints[0].link_name));
+
+      EigenSTL::vector_Isometry3d original_link_poses;
+      original_link_poses.resize(link_models.size());
+      Eigen::Isometry3d new_link_pose;
+
+      for (std::size_t i = 0; i < link_models.size(); ++i)
+        original_link_poses[i] = start_state.getGlobalLinkTransform(link_models[i]);
+
+      double dist, max_dist;
+      double local_jiggle_fraction_ = jiggle_fraction_;
       bool found = false;
       for (int c = 0; !found && c < sampling_attempts_; ++c)
       {
+        // Change each joint slightly ("jiggle")
         for (std::size_t i = 0; !found && i < jmodels.size(); ++i)
         {
           std::vector<double> sampled_variable_values(jmodels[i]->getVariableCount());
-          const double* original_values = prefix_state->getJointPositions(jmodels[i]);
+          const double* original_values = original_state->getJointPositions(jmodels[i]);
           jmodels[i]->getVariableRandomPositionsNearBy(rng, &sampled_variable_values[0], original_values,
                                                        jmodels[i]->getMaximumExtent() * jiggle_fraction_);
           start_state.setJointPositions(jmodels[i], sampled_variable_values);
-          collision_detection::CollisionResult cres;
-          planning_scene->checkCollision(creq, cres, start_state);
-          if (!cres.collision)
+        }
+
+        // Confirm that no links move far after jiggling
+        max_dist = -1;
+        bool euclidean_distance_ok = true;
+        for (std::size_t i = 0; !found && i < link_models.size(); ++i)
+        {
+          new_link_pose = start_state.getGlobalLinkTransform(link_models[i]);
+          dist = pow(new_link_pose.translation().x() - original_link_poses[i].translation().x(), 2) +
+                 pow(new_link_pose.translation().y() - original_link_poses[i].translation().y(), 2) +
+                 pow(new_link_pose.translation().z() - original_link_poses[i].translation().z(), 2);
+
+          if (dist > max_dist)
+            max_dist = dist;
+          if (dist > max_jiggle_distance_squared_)
           {
-            found = true;
-            ROS_INFO("Found a valid state near the start state at distance %lf after %d attempts",
-                     prefix_state->distance(start_state), c);
+            // Reduce jiggle fraction if it caused excessive movement
+            local_jiggle_fraction_ = local_jiggle_fraction_ * ((sampling_attempts_ - 2) / sampling_attempts_);
+            euclidean_distance_ok = false;
+            break;
           }
+        }
+        if (!euclidean_distance_ok)
+          continue;
+
+        // Check changed state for collision
+        collision_detection::CollisionResult cres;
+        planning_scene->checkCollision(creq, cres, start_state);
+        if (!cres.collision)
+        {
+          found = true;
+          ROS_INFO_STREAM("Start state fixed successfully. Found valid state at cumulative joint distance "
+                          << original_state->distance(start_state) << " and max euclidean distance " << sqrt(max_dist)
+                          << " after " << c << " attempts");
         }
       }
 
@@ -159,7 +219,7 @@ public:
           // prefix to the computed trajectory)
           res.trajectory_->setWayPointDurationFromPrevious(0, std::min(max_dt_offset_,
                                                                        res.trajectory_->getAverageSegmentDuration()));
-          res.trajectory_->addPrefixWayPoint(prefix_state, 0.0);
+          res.trajectory_->addPrefixWayPoint(original_state, 0.0);
           // we add a prefix point, so we need to bump any previously added index positions
           for (std::size_t& added_index : added_path_index)
             added_index++;
@@ -169,9 +229,11 @@ public:
       }
       else
       {
-        ROS_WARN("Unable to find a valid state nearby the start state (using jiggle fraction of %lf and %u sampling "
-                 "attempts). Passing the original planning request to the planner.",
-                 jiggle_fraction_, sampling_attempts_);
+        ROS_WARN_STREAM("Unable to find a valid state nearby the start state (using jiggle fraction of "
+                        << jiggle_fraction_ << ", max euclidean distance of " << sqrt(max_jiggle_distance_squared_)
+                        << " and " << sampling_attempts_
+                        << " sampling "
+                           "attempts). Passing the unchanged planning request to the planner.");
         return planner(planning_scene, req, res);
       }
     }
@@ -188,11 +250,13 @@ public:
 private:
   double max_dt_offset_;
   double jiggle_fraction_;
+  double max_jiggle_distance_squared_;
   int sampling_attempts_;
 };
 
 const std::string FixStartStateCollision::DT_PARAM_NAME = "start_state_max_dt";
 const std::string FixStartStateCollision::JIGGLE_PARAM_NAME = "jiggle_fraction";
+const std::string FixStartStateCollision::DISTANCE_PARAM_NAME = "max_jiggle_distance";
 const std::string FixStartStateCollision::ATTEMPTS_PARAM_NAME = "max_sampling_attempts";
 }  // namespace default_planner_request_adapters
 
