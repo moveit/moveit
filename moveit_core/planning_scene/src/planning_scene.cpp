@@ -955,16 +955,17 @@ void PlanningScene::saveGeometryToStream(std::ostream& out) const
       collision_detection::CollisionEnv::ObjectConstPtr obj = world_->getObject(id);
       if (obj)
       {
-        out << "* " << id << std::endl;
-        out << obj->shapes_.size() << std::endl;
+        out << "* " << id << std::endl;  // New object start
+        // Write object pose
+        writePoseToText(out, obj->pose_);
+
+        // Write shapes and shape poses
+        out << obj->shapes_.size() << std::endl;  // Number of shapes
         for (std::size_t j = 0; j < obj->shapes_.size(); ++j)
         {
           shapes::saveAsText(obj->shapes_[j].get(), out);
           // shape_poses_ is valid isometry by contract
-          out << obj->shape_poses_[j].translation().x() << " " << obj->shape_poses_[j].translation().y() << " "
-              << obj->shape_poses_[j].translation().z() << std::endl;
-          Eigen::Quaterniond r(obj->shape_poses_[j].linear());
-          out << r.x() << " " << r.y() << " " << r.z() << " " << r.w() << std::endl;
+          writePoseToText(out, obj->shape_poses_[j]);
           if (hasObjectColor(id))
           {
             const std_msgs::ColorRGBA& c = getObjectColor(id);
@@ -972,6 +973,14 @@ void PlanningScene::saveGeometryToStream(std::ostream& out) const
           }
           else
             out << "0 0 0 0" << std::endl;
+        }
+
+        // Write subframes
+        out << obj->subframe_poses_.size() << std::endl;  // Number of subframes
+        for (auto& pose_pair : obj->subframe_poses_)
+        {
+          out << pose_pair.first << std::endl;     // Subframe name
+          writePoseToText(out, pose_pair.second);  // Subframe pose
         }
       }
     }
@@ -991,6 +1000,7 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Isomet
     return false;
   }
   std::getline(in, name_);
+  Eigen::Isometry3d pose;  // Transient
   do
   {
     std::string marker;
@@ -1000,16 +1010,27 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Isomet
       ROS_ERROR_NAMED(LOGNAME, "Bad input stream when loading marker in scene geometry");
       return false;
     }
-    if (marker == "*")
+    if (marker == "*")  // Start of new object
     {
-      std::string ns;
-      std::getline(in, ns);
+      std::string object_id;
+      std::getline(in, object_id);
       if (!in.good() || in.eof())
       {
-        ROS_ERROR_NAMED(LOGNAME, "Bad input stream when loading ns in scene geometry");
+        ROS_ERROR_NAMED(LOGNAME, "Bad input stream when loading object_id in scene geometry");
         return false;
       }
-      boost::algorithm::trim(ns);
+      boost::algorithm::trim(object_id);
+
+      // Read in object pose
+      if (!readPoseFromText(in, pose))
+      {
+        ROS_ERROR_NAMED(LOGNAME, "Failed to read object pose from scene file");
+        return false;
+      }
+      pose = offset * pose;  // Transform pose by input pose offset
+      world_->setObjectPose(object_id, pose);
+
+      // Read in shapes
       unsigned int shape_count;
       in >> shape_count;
       for (std::size_t i = 0; i < shape_count && in.good() && !in.eof(); ++i)
@@ -1020,15 +1041,9 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Isomet
           ROS_ERROR_NAMED(LOGNAME, "Failed to load shape from scene file");
           return false;
         }
-        double x, y, z, rx, ry, rz, rw;
-        if (!(in >> x >> y >> z))
+        if (!readPoseFromText(in, pose))
         {
-          ROS_ERROR_NAMED(LOGNAME, "Improperly formatted translation in scene geometry file");
-          return false;
-        }
-        if (!(in >> rx >> ry >> rz >> rw))
-        {
-          ROS_ERROR_NAMED(LOGNAME, "Improperly formatted rotation in scene geometry file");
+          ROS_ERROR_NAMED(LOGNAME, "Failed to read pose from scene file");
           return false;
         }
         float r, g, b, a;
@@ -1039,10 +1054,7 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Isomet
         }
         if (shape)
         {
-          Eigen::Isometry3d pose = Eigen::Translation3d(x, y, z) * Eigen::Quaterniond(rw, rx, ry, rz);
-          // Transform pose by input pose offset
-          pose = offset * pose;
-          world_->addToObject(ns, shape, pose);
+          world_->addToObject(object_id, shape, pose);
           if (r > 0.0f || g > 0.0f || b > 0.0f || a > 0.0f)
           {
             std_msgs::ColorRGBA color;
@@ -1050,10 +1062,27 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Isomet
             color.g = g;
             color.b = b;
             color.a = a;
-            setObjectColor(ns, color);
+            setObjectColor(object_id, color);
           }
         }
       }
+
+      // Read in subframes
+      moveit::core::FixedTransformsMap subframes;
+      unsigned int subframe_count;
+      in >> subframe_count;
+      for (std::size_t i = 0; i < subframe_count && in.good() && !in.eof(); ++i)
+      {
+        std::string subframe_name;
+        in >> subframe_name;
+        if (!readPoseFromText(in, pose))
+        {
+          ROS_ERROR_NAMED(LOGNAME, "Failed to read subframe pose from scene file");
+          return false;
+        }
+        subframes[subframe_name] = pose;
+      }
+      world_->setSubframesOfObject(object_id, subframes);
     }
     else if (marker == ".")
     {
@@ -1066,6 +1095,30 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Isomet
       return false;
     }
   } while (true);
+}
+
+bool PlanningScene::readPoseFromText(std::istream& in, Eigen::Isometry3d& pose) const
+{
+  double x, y, z, rx, ry, rz, rw;
+  if (!(in >> x >> y >> z))
+  {
+    ROS_ERROR_NAMED(LOGNAME, "Improperly formatted translation in scene geometry file");
+    return false;
+  }
+  if (!(in >> rx >> ry >> rz >> rw))
+  {
+    ROS_ERROR_NAMED(LOGNAME, "Improperly formatted rotation in scene geometry file");
+    return false;
+  }
+  pose = Eigen::Translation3d(x, y, z) * Eigen::Quaterniond(rw, rx, ry, rz);
+  return true;
+}
+
+void PlanningScene::writePoseToText(std::ostream& out, const Eigen::Isometry3d& pose) const
+{
+  out << pose.translation().x() << " " << pose.translation().y() << " " << pose.translation().z() << std::endl;
+  Eigen::Quaterniond r(pose.linear());
+  out << r.x() << " " << r.y() << " " << r.z() << " " << r.w() << std::endl;
 }
 
 void PlanningScene::setCurrentState(const moveit_msgs::RobotState& state)
