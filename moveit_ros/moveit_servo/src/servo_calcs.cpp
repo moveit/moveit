@@ -262,6 +262,9 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
   // Do servoing calculations only if the robot should move, for efficiency
   // Create new outgoing joint trajectory command message
   auto joint_trajectory = moveit::util::make_shared_from_pool<trajectory_msgs::JointTrajectory>();
+  joint_trajectory->header.frame_id = parameters_.planning_frame;
+  joint_trajectory->header.stamp = ros::Time::now();
+  joint_trajectory->joint_names = internal_joint_state_.name;
 
   // Prioritize cartesian servoing above joint servoing
   // Only run commands if not stale and nonzero
@@ -566,10 +569,6 @@ void ServoCalcs::calculateJointVelocities(sensor_msgs::JointState& joint_state, 
 void ServoCalcs::composeJointTrajMessage(const sensor_msgs::JointState& joint_state,
                                          trajectory_msgs::JointTrajectory& joint_trajectory) const
 {
-  joint_trajectory.header.frame_id = parameters_.planning_frame;
-  joint_trajectory.header.stamp = ros::Time::now();
-  joint_trajectory.joint_names = joint_state.name;
-
   trajectory_msgs::JointTrajectoryPoint point;
   point.time_from_start = ros::Duration(parameters_.publish_period);
   if (parameters_.publish_joint_positions)
@@ -796,12 +795,10 @@ bool ServoCalcs::enforceSRDFPositionLimits()
 // Is handled differently for position vs. velocity control.
 void ServoCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory)
 {
-  if (joint_trajectory.points.empty())
-  {
-    joint_trajectory.points.push_back(trajectory_msgs::JointTrajectoryPoint());
-    joint_trajectory.points[0].positions.resize(num_joints_);
-    joint_trajectory.points[0].velocities.resize(num_joints_);
-  }
+  joint_trajectory.points.clear();
+  joint_trajectory.points.push_back(trajectory_msgs::JointTrajectoryPoint());
+  joint_trajectory.points[0].positions.resize(num_joints_);
+  joint_trajectory.points[0].velocities.resize(num_joints_);
 
   for (std::size_t i = 0; i < num_joints_; ++i)
   {
