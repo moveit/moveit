@@ -263,7 +263,6 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
   // Create new outgoing joint trajectory command message
   auto joint_trajectory = moveit::util::make_shared_from_pool<trajectory_msgs::JointTrajectory>();
   joint_trajectory->header.frame_id = parameters_.planning_frame;
-  joint_trajectory->header.stamp = ros::Time::now();
   joint_trajectory->joint_names = internal_joint_state_.name;
 
   // Prioritize cartesian servoing above joint servoing
@@ -796,19 +795,20 @@ bool ServoCalcs::enforceSRDFPositionLimits()
 void ServoCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory)
 {
   joint_trajectory.points.clear();
-  joint_trajectory.points.push_back(trajectory_msgs::JointTrajectoryPoint());
-  joint_trajectory.points[0].positions.resize(num_joints_);
-  joint_trajectory.points[0].velocities.resize(num_joints_);
+  joint_trajectory.points.emplace_back();
+  trajectory_msgs::JointTrajectoryPoint& point = joint_trajectory.points.front();
+  point.positions.resize(num_joints_);
+  point.velocities.resize(num_joints_);
 
   for (std::size_t i = 0; i < num_joints_; ++i)
   {
     // For position-controlled robots, can reset the joints to a known, good state
     if (parameters_.publish_joint_positions)
-      joint_trajectory.points[0].positions[i] = original_joint_state_.position[i];
+      point.positions.at(i) = original_joint_state_.position.at(i);
 
     // For velocity-controlled robots, stop
     if (parameters_.publish_joint_velocities)
-      joint_trajectory.points[0].velocities[i] = 0;
+      point.velocities.at(i) = 0;
   }
 }
 
