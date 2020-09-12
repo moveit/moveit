@@ -172,6 +172,7 @@ void MotionPlanningFrame::sceneScaleChanged(int value)
         // TODO(felixvd): Scale subframes too
         ps->getWorldNonConst()->setSubframesOfObject(scaled_object_->id_, subframes);
         setLocalSceneEdited();
+        std::cout << "DEBUG_planning_frame_plugin1" << std::endl;
         scene_marker_->processMessage(createObjectMarkerMsg(ps->getWorld()->getObject(scaled_object_->id_)));
         planning_display_->queueRenderSceneGeometry();
       }
@@ -313,7 +314,7 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
 
           if (obj->shapes_.size() == 1)
           {
-            obj_pose = obj->shape_poses_[0];  // valid isometry by contract
+            obj_pose = obj->pose_;  // valid isometry by contract
             Eigen::Vector3d xyz = obj_pose.linear().eulerAngles(0, 1, 2);
             update_scene_marker = true;  // do the marker update outside locked scope to avoid deadlock
 
@@ -380,7 +381,7 @@ void MotionPlanningFrame::updateCollisionObjectPose(bool update_marker_position)
   if (ps)
   {
     collision_detection::CollisionEnv::ObjectConstPtr obj = ps->getWorld()->getObject(sel[0]->text().toStdString());
-    if (obj && obj->shapes_.size() == 1)
+    if (obj)
     {
       Eigen::Isometry3d p;
       p.translation()[0] = ui_->object_x->value();
@@ -392,7 +393,7 @@ void MotionPlanningFrame::updateCollisionObjectPose(bool update_marker_position)
            Eigen::AngleAxisd(ui_->object_ry->value(), Eigen::Vector3d::UnitY()) *
            Eigen::AngleAxisd(ui_->object_rz->value(), Eigen::Vector3d::UnitZ()));
 
-      ps->getWorldNonConst()->moveShapeInObject(obj->id_, obj->shapes_[0], p);
+      ps->getWorldNonConst()->moveObjectAbsolute(obj->id_, p);
       planning_display_->queueRenderSceneGeometry();
       setLocalSceneEdited();
 
@@ -752,8 +753,12 @@ MotionPlanningFrame::createObjectMarkerMsg(const collision_detection::CollisionE
   Eigen::Vector3d center;
   double scale;
   shapes::computeShapeBoundingSphere(obj->shapes_[0].get(), center, scale);
-  geometry_msgs::PoseStamped shape_pose = tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
-      obj->shape_poses_[0], ros::Time(), planning_display_->getRobotModel()->getModelFrame()));
+  geometry_msgs::PoseStamped shape_pose = tf2::toMsg(
+      tf2::Stamped<Eigen::Isometry3d>(obj->pose_, ros::Time(), planning_display_->getRobotModel()->getModelFrame()));
+  // TODO(felixvd): Consider where to place the object marker.
+  //                obj->pose*obj->shape_poses_[0] is backwards compatible, sits on the visible part of
+  //                the object, and is more difficult to implement now.
+  //                obj->pose is easier to implement and make more sense.
   scale = (scale + center.cwiseAbs().maxCoeff()) * 2.0 * 1.2;  // add padding of 20% size
 
   // create an interactive marker msg for the given shape

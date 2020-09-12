@@ -87,29 +87,34 @@ public:
     /** \brief The id for this object */
     std::string id_;
 
+    /** \brief The object's pose. All shapes and subframes are defined relative to this frame.
+     *  This frame is returned when getTransform() is called with the object's name. */
+    Eigen::Isometry3d pose_;
+
     /** \brief All the shapes making up this object.
      *
-     * The pose of each Shape is stored in the corresponding element of the shape_poses_ array.
-     *
-     * @note Although the code generally supports having multiple
-     * shapes per object, there are many cases where it is better to
-     * have only a single shape per object.  For instance
-     * planning_scene::PlanningScene::getFrameTransform() will
-     * return the pose of an Object.  As defined here, the pose of a
-     * multi-shaped object is ambiguous, so getFrameTransform() just
-     * returns the pose of the first Shape in the object. */
+     * The pose of each Shape is stored in the corresponding element of the shape_poses_ array. */
     std::vector<shapes::ShapeConstPtr> shapes_;
 
-    /** \brief The poses of the corresponding entries in shapes_.
+    /** \brief The poses of the corresponding entries in shapes_, relative to the object pose.
      *
      * @copydetails shapes_ */
     EigenSTL::vector_Isometry3d shape_poses_;
 
-    /** \brief Transforms to subframes on the object.
+    /** \brief The poses of the corresponding entries in shapes_, relative to the world frame.
+     *
+     * @copydetails shapes_ */
+    EigenSTL::vector_Isometry3d global_shape_poses_;
+
+    /** \brief Transforms from the object pose to subframes on the object.
      *  Use them to define points of interest on an object to plan with
      *  (e.g. screwdriver/tip, kettle/spout, mug/base).
      */
     moveit::core::FixedTransformsMap subframe_poses_;
+
+    /** \brief Transforms from the world frame to the object subframes.
+     */
+    moveit::core::FixedTransformsMap global_subframe_poses_;
   };
 
   /** \brief Get the list of Object ids */
@@ -151,27 +156,50 @@ public:
   /** \brief Get the transform to an object or subframe with given name.
    * If name does not exist, a std::runtime_error is thrown.
    * A subframe name needs to be prefixed with the object's name separated by a slash.
+   * The transform is global (relative to the world origin).
    * The returned transform is guaranteed to be a valid isometry. */
   const Eigen::Isometry3d& getTransform(const std::string& name) const;
 
   /** \brief Get the transform to an object or subframe with given name.
    * If name does not exist, returns an identity transform and sets frame_found to false.
    * A subframe name needs to be prefixed with the object's name separated by a slash.
+   * The transform is global (relative to the world origin).
    * The returned transform is guaranteed to be a valid isometry. */
   const Eigen::Isometry3d& getTransform(const std::string& name, bool& frame_found) const;
 
+  /** \brief Get the global transform to a shape of an object with multiple shapes.
+   * shape_number is the index of the object (counting from 0) and needs to be valid. */
+  const Eigen::Isometry3d& getGlobalShapeTransform(const std::string& object_id, int shape_index) const;
+
+  /** \brief Get the global transform to a shape of an object with multiple shapes.
+   * shape_number is the index of the object (counting from 0) and needs to be valid. */
+  const EigenSTL::vector_Isometry3d& getGlobalShapeTransforms(const std::string& object_id) const;
+
+  /** \brief Add a pose and shapes to an object in the map.
+   * This function makes repeated calls to addToObjectInternal() to add the
+   * shapes one by one.*/
+  void addToObject(const std::string& object_id, const Eigen::Isometry3d& pose,
+                   const std::vector<shapes::ShapeConstPtr>& shapes, const EigenSTL::vector_Isometry3d& shape_poses);
+
   /** \brief Add shapes to an object in the map.
    * This function makes repeated calls to addToObjectInternal() to add the
-   * shapes one by one.
-   *  \note This function does NOT call the addToObject() variant that takes
-   * a single shape and a single pose as input. */
+   * shapes one by one. */
   void addToObject(const std::string& object_id, const std::vector<shapes::ShapeConstPtr>& shapes,
                    const EigenSTL::vector_Isometry3d& shape_poses);
+
+  /** \brief Add a pose and shape to an object.
+   * If the object already exists, this call will add the shape to the object
+   * at the specified pose. Otherwise, the object is created and the
+   * specified shape is added. This calls addToObjectInternal().
+   * shape_pose is defined relative to the object's pose, not to the world frame. */
+  void addToObject(const std::string& object_id, const Eigen::Isometry3d& pose, const shapes::ShapeConstPtr& shape,
+                   const Eigen::Isometry3d& shape_pose);
 
   /** \brief Add a shape to an object.
    * If the object already exists, this call will add the shape to the object
    * at the specified pose. Otherwise, the object is created and the
-   * specified shape is added. This calls addToObjectInternal(). */
+   * specified shape is added. This calls addToObjectInternal().
+   * shape_pose is defined relative to the object's pose, not to the world frame. */
   void addToObject(const std::string& object_id, const shapes::ShapeConstPtr& shape,
                    const Eigen::Isometry3d& shape_pose);
 
@@ -180,8 +208,16 @@ public:
   bool moveShapeInObject(const std::string& object_id, const shapes::ShapeConstPtr& shape,
                          const Eigen::Isometry3d& shape_pose);
 
-  /** \brief Move all shapes in an object according to the given transform specified in world frame */
+  /** \brief Move the object pose (thus moving all shapes and subframes in the object)
+   * according to the given transform specified in world frame.
+   * The transform is relative to and changes the object pose. It does not replace it.
+   */
   bool moveObject(const std::string& object_id, const Eigen::Isometry3d& transform);
+
+  /** \brief Move the object pose (thus moving all shapes and subframes in the object)
+   * to the given transform specified in world frame. The transform replaces the old pose.
+   */
+  bool moveObjectAbsolute(const std::string& object_id, const Eigen::Isometry3d& transform);
 
   /** \brief Remove shape from object.
    * Shape equality is verified by comparing pointers. Ownership of the
@@ -197,8 +233,11 @@ public:
    * Returns true on success and false if no such object was found. */
   bool removeObject(const std::string& object_id);
 
-  /** \brief Set subframes on an object. */
+  /** \brief Set subframes on an object. The frames are relative to the object pose. */
   bool setSubframesOfObject(const std::string& object_id, const moveit::core::FixedTransformsMap& subframe_poses);
+
+  /** \brief Set the pose of an object. The pose is specified in the world frame. */
+  bool setObjectPose(const std::string& object_id, const Eigen::Isometry3d& pose);
 
   /** \brief Clear all objects.
    * If there are no other pointers to corresponding instances of Objects,
@@ -285,6 +324,9 @@ private:
   /* Add a shape with no checking */
   virtual void addToObjectInternal(const ObjectPtr& obj, const shapes::ShapeConstPtr& shape,
                                    const Eigen::Isometry3d& shape_pose);
+
+  /** \brief Updates the global shape and subframe poses. */
+  void updateGlobalPosesInternal(ObjectPtr& obj, bool update_shape_poses = true, bool update_subframe_poses = true);
 
   /** The objects maintained in the world */
   std::map<std::string, ObjectPtr> objects_;
