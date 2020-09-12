@@ -72,29 +72,30 @@ public:
     else
       ROS_INFO_STREAM("Param '" << JIGGLE_PARAM_NAME << "' was set to " << jiggle_fraction_);
 
-    if (!nh.getParam(DISTANCE_PARAM_NAME, max_jiggle_distance_squared_))
+    if (!nh.getParam(DISTANCE_PARAM_NAME, max_jiggle_distance_))
     {
-      max_jiggle_distance_squared_ = 0.02;
+      max_jiggle_distance_ = 0.02;
       ROS_INFO_STREAM("Param '" << DISTANCE_PARAM_NAME
-                                << "' was not set. Using default value: " << max_jiggle_distance_squared_);
+                                << "' was not set. Using default value: " << max_jiggle_distance_);
     }
     else
-      ROS_INFO_STREAM("Param '" << DISTANCE_PARAM_NAME << "' was set to " << max_jiggle_distance_squared_);
-    max_jiggle_distance_squared_ = pow(max_jiggle_distance_squared_, 2);  // Square the rosparam
+      ROS_INFO_STREAM("Param '" << DISTANCE_PARAM_NAME << "' was set to " << max_jiggle_distance_);
+    max_jiggle_distance_squared_ = max_jiggle_distance_ * max_jiggle_distance_;  // Square the rosparam
 
-    if (!nh.getParam(ATTEMPTS_PARAM_NAME, sampling_attempts_))
+    if (!nh.getParam(ATTEMPTS_PARAM_NAME, max_sampling_attempts_))
     {
-      sampling_attempts_ = 100;
-      ROS_INFO_STREAM("Param '" << ATTEMPTS_PARAM_NAME << "' was not set. Using default value: " << sampling_attempts_);
+      max_sampling_attempts_ = 100;
+      ROS_INFO_STREAM("Param '" << ATTEMPTS_PARAM_NAME
+                                << "' was not set. Using default value: " << max_sampling_attempts_);
     }
     else
     {
-      if (sampling_attempts_ < 1)
+      if (max_sampling_attempts_ < 1)
       {
-        sampling_attempts_ = 1;
+        max_sampling_attempts_ = 1;
         ROS_WARN_STREAM("Param '" << ATTEMPTS_PARAM_NAME << "' needs to be at least 1.");
       }
-      ROS_INFO_STREAM("Param '" << ATTEMPTS_PARAM_NAME << "' was set to " << sampling_attempts_);
+      ROS_INFO_STREAM("Param '" << ATTEMPTS_PARAM_NAME << "' was set to " << max_sampling_attempts_);
     }
   }
 
@@ -139,18 +140,31 @@ public:
               planning_scene->getRobotModel()->getJointModelGroup(req.group_name)->getJointModels() :
               planning_scene->getRobotModel()->getJointModels();
 
-      // Record cartesian pose of every link to ensure no sudden movements will occur
+      // Record the cartesian pose of every link to ensure no sudden movements will occur.
+      // The "furthest" links are checked first, as their movement is the largest.
+
+      // Check if an end effector link is set that is not part of the robot
+      const moveit::core::LinkModel* ee_link_model;
+      if (!req.goal_constraints[0].position_constraints.empty())
+        ee_link_model = start_state.getLinkModel(req.goal_constraints[0].position_constraints[0].link_name);
+      else if (!req.goal_constraints[0].orientation_constraints.empty())
+        ee_link_model = start_state.getLinkModel(req.goal_constraints[0].orientation_constraints[0].link_name);
+
+      // Collect the links that will be checked
       std::vector<const moveit::core::LinkModel*> link_models;
       link_models.resize(jmodels.size());
-      for (std::size_t i = 0; i < jmodels.size(); ++i)
+      for (std::size_t i = jmodels.size() - 1; i > 0; --i)
         link_models[i] = jmodels[i]->getChildLinkModel();
 
-      // Also record end effector link pose if one is set
-      if (!req.goal_constraints[0].position_constraints.empty())
-        link_models.push_back(start_state.getLinkModel(req.goal_constraints[0].position_constraints[0].link_name));
-      else if (!req.goal_constraints[0].orientation_constraints.empty())
-        link_models.push_back(start_state.getLinkModel(req.goal_constraints[0].orientation_constraints[0].link_name));
+      if (std::find(link_models.begin(), link_models.end(), ee_link_model) == link_models.end())
+      {  // If the end effector is a separate link, add it to the front of the vector
+        link_models.resize(jmodels.size() + 1);
+        link_models[0] = ee_link_model;
+        for (std::size_t i = jmodels.size() - 1; i > 0; --i)
+          link_models[i + 1] = jmodels[i]->getChildLinkModel();
+      }
 
+      // Store the unchanged link positions
       EigenSTL::vector_Isometry3d original_link_poses;
       original_link_poses.resize(link_models.size());
       Eigen::Isometry3d new_link_pose;
@@ -159,9 +173,9 @@ public:
         original_link_poses[i] = start_state.getGlobalLinkTransform(link_models[i]);
 
       double dist, max_dist;
-      double local_jiggle_fraction_ = jiggle_fraction_;
+      double local_jiggle_fraction = jiggle_fraction_;
       bool found = false;
-      for (int c = 0; !found && c < sampling_attempts_; ++c)
+      for (int c = 0; !found && c < max_sampling_attempts_; ++c)
       {
         // Change each joint slightly ("jiggle")
         for (std::size_t i = 0; !found && i < jmodels.size(); ++i)
@@ -179,16 +193,14 @@ public:
         for (std::size_t i = 0; !found && i < link_models.size(); ++i)
         {
           new_link_pose = start_state.getGlobalLinkTransform(link_models[i]);
-          dist = pow(new_link_pose.translation().x() - original_link_poses[i].translation().x(), 2) +
-                 pow(new_link_pose.translation().y() - original_link_poses[i].translation().y(), 2) +
-                 pow(new_link_pose.translation().z() - original_link_poses[i].translation().z(), 2);
+          dist = (new_link_pose.translation() - original_link_poses[i].translation()).squaredNorm();
 
           if (dist > max_dist)
             max_dist = dist;
           if (dist > max_jiggle_distance_squared_)
           {
             // Reduce jiggle fraction if it caused excessive movement
-            local_jiggle_fraction_ = local_jiggle_fraction_ * ((sampling_attempts_ - 2) / sampling_attempts_);
+            local_jiggle_fraction = local_jiggle_fraction * ((max_sampling_attempts_ - 2) / max_sampling_attempts_);
             euclidean_distance_ok = false;
             break;
           }
@@ -230,10 +242,9 @@ public:
       else
       {
         ROS_WARN_STREAM("Unable to find a valid state nearby the start state (using jiggle fraction of "
-                        << jiggle_fraction_ << ", max euclidean distance of " << sqrt(max_jiggle_distance_squared_)
-                        << " and " << sampling_attempts_
-                        << " sampling "
-                           "attempts). Passing the unchanged planning request to the planner.");
+                        << jiggle_fraction_ << ", max euclidean distance of " << max_jiggle_distance_ << " and "
+                        << max_sampling_attempts_
+                        << " max sampling attempts). Passing the unchanged planning request to the planner.");
         return planner(planning_scene, req, res);
       }
     }
@@ -250,8 +261,9 @@ public:
 private:
   double max_dt_offset_;
   double jiggle_fraction_;
+  double max_jiggle_distance_;
   double max_jiggle_distance_squared_;
-  int sampling_attempts_;
+  int max_sampling_attempts_;
 };
 
 const std::string FixStartStateCollision::DT_PARAM_NAME = "start_state_max_dt";
