@@ -168,11 +168,12 @@ public:
   const Eigen::Isometry3d& getTransform(const std::string& name, bool& frame_found) const;
 
   /** \brief Get the global transform to a shape of an object with multiple shapes.
-   * shape_number is the index of the object (counting from 0) and needs to be valid. */
+   * shape_index is the index of the object (counting from 0) and needs to be valid.
+   * This function is used to construct the collision environment. */
   const Eigen::Isometry3d& getGlobalShapeTransform(const std::string& object_id, int shape_index) const;
 
-  /** \brief Get the global transform to a shape of an object with multiple shapes.
-   * shape_number is the index of the object (counting from 0) and needs to be valid. */
+  /** \brief Get the global transforms to the shapes of an object.
+   * This function is used to construct the collision environment. */
   const EigenSTL::vector_Isometry3d& getGlobalShapeTransforms(const std::string& object_id) const;
 
   /** \brief Add a pose and shapes to an object in the map.

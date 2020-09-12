@@ -1108,7 +1108,7 @@ const Eigen::Isometry3d& RobotState::getFrameInfo(const std::string& frame_id, c
   // Check if an AttachedBody has a subframe with name frame_id
   for (const std::pair<const std::string, AttachedBody*>& body : attached_body_map_)
   {
-    const auto& transform = body.second->getGlobalSubframeTransform(frame_id, &frame_found);
+    const Eigen::Isometry3d& transform = body.second->getGlobalSubframeTransform(frame_id, &frame_found);
     if (frame_found)
     {
       robot_link = body.second->getAttachedLink();
@@ -1584,7 +1584,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Is
     }
   }
 
-  // Check that no, or only one set of consistency limits have been passed in, and choose that one
+  // Check that no, or only one set of consistency limits has been passed in, and choose that one
   std::vector<double> consistency_limits;
   if (consistency_limit_sets.size() > 1)
   {

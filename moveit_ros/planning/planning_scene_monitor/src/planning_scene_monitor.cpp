@@ -605,7 +605,7 @@ bool PlanningSceneMonitor::newPlanningSceneMessage(const moveit_msgs::PlanningSc
     }
   }
 
-  // if we have a diff, try to more accuratelly determine the update type
+  // if we have a diff, try to more accurately determine the update type
   if (scene.is_diff)
   {
     bool no_other_scene_upd = (scene.name.empty() || scene.name == old_scene_name) &&
