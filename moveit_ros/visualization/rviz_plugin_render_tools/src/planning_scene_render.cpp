@@ -112,7 +112,6 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
       alpha = c.a;
     }
     for (std::size_t j = 0; j < object->shapes_.size(); ++j)
-    // TODO (felixvd): Make these shape poses global somehow
     {
       render_shapes_->renderShape(planning_scene_geometry_node_, object->shapes_[j].get(),
                                   scene->getWorld()->getGlobalShapeTransform(id, j), octree_voxel_rendering,

@@ -855,7 +855,7 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem* item)
       known_collision_objects_[item->type()].first = item_text;
       moveit::core::AttachedBody* new_ab =
           new moveit::core::AttachedBody(ab->getAttachedLink(), known_collision_objects_[item->type()].first,
-                                         ab->getShapes(), ab->getFixedTransforms(), ab->getTouchLinks(),
+                                         ab->getPose(), ab->getShapes(), ab->getShapePoses(), ab->getTouchLinks(),
                                          ab->getDetachPosture(), ab->getSubframes());
       cs.clearAttachedBody(ab->getName());
       cs.attachBody(new_ab);
