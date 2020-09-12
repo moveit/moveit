@@ -299,7 +299,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester)
   std::set<std::string> touch_links;
   trajectory_msgs::JointTrajectory empty_state;
   moveit::core::AttachedBody* attached_body = new moveit::core::AttachedBody(
-      robot_state.getLinkModel("r_gripper_palm_link"), "box", shapes, poses, touch_links, empty_state);
+      robot_state.getLinkModel("r_gripper_palm_link"), "box", poses[0], shapes, poses, touch_links, empty_state);
 
   robot_state.attachBody(attached_body);
 
@@ -314,7 +314,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester)
   shapes[0] = std::make_shared<shapes::Box>(.1, .1, .1);
 
   moveit::core::AttachedBody* attached_body_1 = new moveit::core::AttachedBody(
-      robot_state.getLinkModel("r_gripper_palm_link"), "box", shapes, poses, touch_links, empty_state);
+      robot_state.getLinkModel("r_gripper_palm_link"), "box", poses[0], shapes, poses, touch_links, empty_state);
   robot_state.attachBody(attached_body_1);
 
   res = collision_detection::CollisionResult();
