@@ -51,12 +51,12 @@
 /moveit_core/kinematics_base/                               @rhaschke @mlautman
 /moveit_core/kinematics_metrics/                            @gavanderhoorn
 /moveit_core/macros/                                        @tylerjw
-/moveit_core/planning_interface/                            @rhaschke
-/moveit_core/planning_request_adapter/                      @rhaschke
-/moveit_core/planning_scene/                                @rhaschke
+/moveit_core/planning_interface/                            @rhaschke @felixvd
+/moveit_core/planning_request_adapter/                      @rhaschke 
+/moveit_core/planning_scene/                                @rhaschke @felixvd
 /moveit_core/profiler/                                      @tylerjw
 /moveit_core/robot_model/                                   @tylerjw
-/moveit_core/robot_state/                                   @rhaschke @mlautman
+/moveit_core/robot_state/                                   @rhaschke @mlautman @felixvd
 /moveit_core/robot_trajectory/                              @mlautman
 /moveit_core/sensor_manager/                                @mlautman
 /moveit_core/trajectory_processing/                         @mlautman
@@ -75,11 +75,11 @@
 /moveit_ros/perception/	                                    @jliukkonen @RoboticsYY
 /moveit_ros/manipulation/	                            @v4hn @felixvd
 /moveit_ros/benchmarks/	                                    @henningkayser @MohmadAyman
-/moveit_ros/planning_interface/	                            @mintar @rhaschke
+/moveit_ros/planning_interface/	                            @mintar @rhaschke @felixvd
 /moveit_ros/robot_interaction/	                            @mikeferguson @rhaschke
 /moveit_ros/warehouse/	                                    @mikeferguson @dg-shadow
 /moveit_ros/move_group/	                                    @rhaschke @IanTheEngineer
-/moveit_ros/visualization/	                            @rhaschke @tylerjw @RoboticsYY
+/moveit_ros/visualization/	                            @rhaschke @tylerjw @RoboticsYY @felixvd
 
 /moveit_ros/planning/collision_plugin_loader/               @j-petit
 /moveit_ros/planning/constraint_sampler_manager_loader/     @nbbrooks
