@@ -806,8 +806,6 @@ void ServoCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory)
   point.velocities.resize(num_joints_);
 
   // Assert the following loop is safe to execute
-  assert(point.positions.size() >= num_joints_);
-  assert(point.velocities.size() >= num_joints_);
   assert(original_joint_state_.position.size() >= num_joints_);
 
   // Set the positions and velocities vectors
