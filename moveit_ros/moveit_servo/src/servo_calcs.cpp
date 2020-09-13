@@ -37,6 +37,8 @@
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  */
 
+#include <cassert>
+
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float64MultiArray.h>
 
@@ -796,22 +798,26 @@ bool ServoCalcs::enforceSRDFPositionLimits()
 // Is handled differently for position vs. velocity control.
 void ServoCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory)
 {
-  if (joint_trajectory.points.empty())
-  {
-    joint_trajectory.points.push_back(trajectory_msgs::JointTrajectoryPoint());
-    joint_trajectory.points[0].positions.resize(num_joints_);
-    joint_trajectory.points[0].velocities.resize(num_joints_);
-  }
+  // Prepare the joint trajectory message to stop the robot
+  joint_trajectory.points.clear();
+  joint_trajectory.points.emplace_back();
+  trajectory_msgs::JointTrajectoryPoint& point = joint_trajectory.points.front();
+  point.positions.resize(num_joints_);
+  point.velocities.resize(num_joints_);
 
+  // Assert the following loop is safe to execute
+  assert(original_joint_state_.position.size() >= num_joints_);
+
+  // Set the positions and velocities vectors
   for (std::size_t i = 0; i < num_joints_; ++i)
   {
     // For position-controlled robots, can reset the joints to a known, good state
     if (parameters_.publish_joint_positions)
-      joint_trajectory.points[0].positions[i] = original_joint_state_.position[i];
+      point.positions[i] = original_joint_state_.position[i];
 
     // For velocity-controlled robots, stop
     if (parameters_.publish_joint_velocities)
-      joint_trajectory.points[0].velocities[i] = 0;
+      point.velocities[i] = 0;
   }
 }
 
