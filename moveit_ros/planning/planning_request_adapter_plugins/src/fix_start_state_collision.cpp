@@ -145,10 +145,18 @@ public:
 
       // Check if an end effector link is set that is not part of the robot
       const moveit::core::LinkModel* ee_link_model;
-      if (!req.goal_constraints[0].position_constraints.empty())
-        ee_link_model = start_state.getLinkModel(req.goal_constraints[0].position_constraints[0].link_name);
-      else if (!req.goal_constraints[0].orientation_constraints.empty())
-        ee_link_model = start_state.getLinkModel(req.goal_constraints[0].orientation_constraints[0].link_name);
+      if (!req.goal_constraints.empty())
+      {
+        if (!req.goal_constraints[0].position_constraints.empty())
+          ee_link_model = start_state.getLinkModel(req.goal_constraints[0].position_constraints[0].link_name);
+        else if (!req.goal_constraints[0].orientation_constraints.empty())
+          ee_link_model = start_state.getLinkModel(req.goal_constraints[0].orientation_constraints[0].link_name);
+      }
+      else
+      {
+        ROS_ERROR("No goal constraint set; aborting FixStartStateCollision.");
+        return planner(planning_scene, req, res);
+      }
 
       // Collect the links that will be checked
       std::vector<const moveit::core::LinkModel*> link_models;
@@ -200,7 +208,8 @@ public:
           if (dist > max_jiggle_distance_squared_)
           {
             // Reduce jiggle fraction if it caused excessive movement
-            local_jiggle_fraction = local_jiggle_fraction * ((max_sampling_attempts_ - 2) / max_sampling_attempts_);
+            // This implementation is an arbitrary choice and not tested for performance. Other approaches may be more efficient.
+            local_jiggle_fraction = local_jiggle_fraction * (max_sampling_attempts_ / (max_sampling_attempts_ + 2));
             euclidean_distance_ok = false;
             break;
           }
