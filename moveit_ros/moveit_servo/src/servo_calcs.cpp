@@ -37,6 +37,8 @@
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  */
 
+#include <cassert>
+
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float64MultiArray.h>
 
@@ -262,8 +264,6 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
   // Do servoing calculations only if the robot should move, for efficiency
   // Create new outgoing joint trajectory command message
   auto joint_trajectory = moveit::util::make_shared_from_pool<trajectory_msgs::JointTrajectory>();
-  joint_trajectory->header.frame_id = parameters_.planning_frame;
-  joint_trajectory->joint_names = internal_joint_state_.name;
 
   // Prioritize cartesian servoing above joint servoing
   // Only run commands if not stale and nonzero
@@ -568,6 +568,10 @@ void ServoCalcs::calculateJointVelocities(sensor_msgs::JointState& joint_state, 
 void ServoCalcs::composeJointTrajMessage(const sensor_msgs::JointState& joint_state,
                                          trajectory_msgs::JointTrajectory& joint_trajectory) const
 {
+  joint_trajectory.header.frame_id = parameters_.planning_frame;
+  joint_trajectory.header.stamp = ros::Time::now();
+  joint_trajectory.joint_names = joint_state.name;
+
   trajectory_msgs::JointTrajectoryPoint point;
   point.time_from_start = ros::Duration(parameters_.publish_period);
   if (parameters_.publish_joint_positions)
@@ -794,21 +798,28 @@ bool ServoCalcs::enforceSRDFPositionLimits()
 // Is handled differently for position vs. velocity control.
 void ServoCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory)
 {
+  // Prepare the joint trajectory message to stop the robot
   joint_trajectory.points.clear();
   joint_trajectory.points.emplace_back();
   trajectory_msgs::JointTrajectoryPoint& point = joint_trajectory.points.front();
   point.positions.resize(num_joints_);
   point.velocities.resize(num_joints_);
 
+  // Assert the following loop is safe to execute
+  assert(point.positions.size() >= num_joints_);
+  assert(point.velocities.size() >= num_joints_);
+  assert(original_joint_state_.position.size() >= num_joints_);
+
+  // Set the positions and velocities vectors
   for (std::size_t i = 0; i < num_joints_; ++i)
   {
     // For position-controlled robots, can reset the joints to a known, good state
     if (parameters_.publish_joint_positions)
-      point.positions.at(i) = original_joint_state_.position.at(i);
+      point.positions[i] = original_joint_state_.position[i];
 
     // For velocity-controlled robots, stop
     if (parameters_.publish_joint_velocities)
-      point.velocities.at(i) = 0;
+      point.velocities[i] = 0;
   }
 }
 
