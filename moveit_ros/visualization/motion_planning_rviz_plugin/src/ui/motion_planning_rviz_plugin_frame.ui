@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>532</width>
+    <width>507</width>
     <height>389</height>
    </rect>
   </property>
@@ -26,7 +26,7 @@
       <bool>false</bool>
      </property>
      <property name="currentIndex">
-      <number>3</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="context">
       <attribute name="title">
@@ -157,6 +157,12 @@
           </item>
           <item>
            <widget class="QPushButton" name="reset_db_button">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="styleSheet">
              <string notr="true">color:red</string>
             </property>
@@ -401,7 +407,7 @@
               <item>
                <widget class="QPushButton" name="plan_and_execute_button">
                 <property name="text">
-                 <string>Plan and E&amp;xecute</string>
+                 <string>Plan &amp;&amp; E&amp;xecute</string>
                 </property>
                </widget>
               </item>
@@ -409,6 +415,9 @@
                <widget class="QPushButton" name="stop_button">
                 <property name="enabled">
                  <bool>false</bool>
+                </property>
+                <property name="toolTip">
+                 <string>Send a stop() command to the move_group.</string>
                 </property>
                 <property name="text">
                  <string>&amp;Stop</string>
@@ -538,7 +547,11 @@
              <number>6</number>
             </property>
             <item>
-             <widget class="QComboBox" name="path_constraints_combo_box"/>
+             <widget class="QComboBox" name="path_constraints_combo_box">
+              <property name="toolTip">
+               <string>Set path constraints from the database. </string>
+              </property>
+             </widget>
             </item>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_11">
@@ -596,6 +609,9 @@
               </property>
               <item>
                <widget class="QLabel" name="label_9">
+                <property name="toolTip">
+                 <string>The maximum amount of time the planner is allowed to take. This is the total amount, not the amount of time per planning attempt.</string>
+                </property>
                 <property name="text">
                  <string>Planning Time (s):</string>
                 </property>
@@ -608,6 +624,15 @@
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>40</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="decimals">
+                 <number>1</number>
                 </property>
                 <property name="maximum">
                  <double>300.000000000000000</double>
@@ -626,6 +651,9 @@
               </property>
               <item>
                <widget class="QLabel" name="label_10">
+                <property name="toolTip">
+                 <string>Maximum allowed number of planning attempts.</string>
+                </property>
                 <property name="text">
                  <string>Planning Attempts:</string>
                 </property>
@@ -638,6 +666,12 @@
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>40</width>
+                  <height>0</height>
+                 </size>
                 </property>
                 <property name="maximum">
                  <number>1000</number>
@@ -656,6 +690,9 @@
               </property>
               <item>
                <widget class="QLabel" name="label_11">
+                <property name="toolTip">
+                 <string>Velocity scaling (applied to each joint)</string>
+                </property>
                 <property name="text">
                  <string>Velocity Scaling:</string>
                 </property>
@@ -663,11 +700,17 @@
               </item>
               <item>
                <widget class="QDoubleSpinBox" name="velocity_scaling_factor">
+                <property name="minimumSize">
+                 <size>
+                  <width>40</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="maximum">
                  <double>1.000000000000000</double>
                 </property>
                 <property name="singleStep">
-                 <double>0.010000000000000</double>
+                 <double>0.100000000000000</double>
                 </property>
                 <property name="value">
                  <double>1.000000000000000</double>
@@ -683,18 +726,27 @@
               </property>
               <item>
                <widget class="QLabel" name="label_20">
+                <property name="toolTip">
+                 <string>Acceleration scaling (applied to each joint)</string>
+                </property>
                 <property name="text">
-                 <string>Acceleration Scaling:</string>
+                 <string>Accel. Scaling:</string>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QDoubleSpinBox" name="acceleration_scaling_factor">
+                <property name="minimumSize">
+                 <size>
+                  <width>40</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="maximum">
                  <double>1.000000000000000</double>
                 </property>
                 <property name="singleStep">
-                 <double>0.010000000000000</double>
+                 <double>0.100000000000000</double>
                 </property>
                 <property name="value">
                  <double>1.000000000000000</double>
@@ -704,37 +756,22 @@
              </layout>
             </item>
             <item>
-             <widget class="QCheckBox" name="allow_replanning">
-              <property name="text">
-               <string>Allow Replanning</string>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="allow_looking">
-              <property name="text">
-               <string>Allow Sensor Positioning</string>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="allow_external_program">
-              <property name="text">
-               <string>Allow External Comm.</string>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
              <widget class="QCheckBox" name="use_cartesian_path">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Check this to generate a linear path in Cartesian (3D) space</string>
+              </property>
               <property name="text">
                <string>Use Cartesian Path</string>
               </property>
@@ -745,18 +782,123 @@
             </item>
             <item>
              <widget class="QCheckBox" name="collision_aware_ik">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>If checked, a new IK solution is calculated whenever the robot state is in collision. This setting only affects the state set via the interactive marker. Planning is always aware of collisions.</string>
+              </property>
               <property name="text">
-               <string>Use Collision-Aware IK</string>
+               <string>Reset IK on collision</string>
               </property>
               <property name="checked">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QCheckBox" name="approximate_ik">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Allow approximate IK solutions</string>
+              </property>
               <property name="text">
-               <string>Allow Approx IK Solutions</string>
+               <string>Approx IK Solutions</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="allow_replanning">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Allows the robot to replan if the plan to be executed collides with the environment.</string>
+              </property>
+              <property name="text">
+               <string>Replanning</string>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="allow_looking">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Allows the robot to reposition its sensor to look around. A sensor needs to be set up and the planning algorithm has to support this, otherwise it has no effect.</string>
+              </property>
+              <property name="text">
+               <string>Sensor Positioning</string>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="allow_external_program">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Allow communication with an external program that sends an interactive marker position to control the robot.</string>
+              </property>
+              <property name="text">
+               <string>External Comm.</string>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -857,6 +999,18 @@
          <layout class="QGridLayout" name="gridLayout_14">
           <item row="0" column="2">
            <widget class="QDoubleSpinBox" name="roi_center_y">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="minimum">
              <double>-99.000000000000000</double>
             </property>
@@ -867,6 +1021,18 @@
           </item>
           <item row="1" column="1">
            <widget class="QDoubleSpinBox" name="roi_size_x">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="singleStep">
              <double>0.010000000000000</double>
             </property>
@@ -877,6 +1043,18 @@
           </item>
           <item row="1" column="3">
            <widget class="QDoubleSpinBox" name="roi_size_z">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="singleStep">
              <double>0.010000000000000</double>
             </property>
@@ -887,6 +1065,18 @@
           </item>
           <item row="1" column="2">
            <widget class="QDoubleSpinBox" name="roi_size_y">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="singleStep">
              <double>0.010000000000000</double>
             </property>
@@ -904,6 +1094,18 @@
           </item>
           <item row="0" column="1">
            <widget class="QDoubleSpinBox" name="roi_center_x">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="minimum">
              <double>-99.000000000000000</double>
             </property>
@@ -921,6 +1123,18 @@
           </item>
           <item row="0" column="3">
            <widget class="QDoubleSpinBox" name="roi_center_z">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="minimum">
              <double>-99.000000000000000</double>
             </property>
@@ -1009,6 +1223,18 @@
              <layout class="QHBoxLayout" name="horizontalLayout_16">
               <item>
                <widget class="QDoubleSpinBox" name="shape_size_x_spin_box">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>20</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="toolTip">
                  <string>x dimension</string>
                 </property>
@@ -1022,6 +1248,18 @@
               </item>
               <item>
                <widget class="QDoubleSpinBox" name="shape_size_z_spin_box">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>20</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="toolTip">
                  <string>y dimension</string>
                 </property>
@@ -1035,6 +1273,18 @@
               </item>
               <item>
                <widget class="QDoubleSpinBox" name="shape_size_y_spin_box">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>20</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="toolTip">
                  <string>z dimension</string>
                 </property>
@@ -1051,7 +1301,14 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_13">
               <item>
-               <widget class="QComboBox" name="shapes_combo_box"/>
+               <widget class="QComboBox" name="shapes_combo_box">
+                <property name="minimumSize">
+                 <size>
+                  <width>30</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="QToolButton" name="add_object_button">
@@ -1124,8 +1381,11 @@
         <layout class="QVBoxLayout" name="verticalLayout_20">
          <item>
           <widget class="QGroupBox" name="pose_scale_group_box">
+           <property name="toolTip">
+            <string>Change the pose and scale of the selected object</string>
+           </property>
            <property name="title">
-            <string>Change pose and scale of selected object</string>
+            <string>Change object pose/scale</string>
            </property>
            <layout class="QGridLayout" name="gridLayout">
             <property name="leftMargin">
@@ -1159,6 +1419,12 @@
             </item>
             <item row="1" column="1">
              <widget class="QDoubleSpinBox" name="object_x">
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="minimum">
                <double>-999.990000000000009</double>
               </property>
@@ -1172,6 +1438,12 @@
             </item>
             <item row="2" column="3">
              <widget class="QDoubleSpinBox" name="object_rz">
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="minimum">
                <double>-3.140000000000000</double>
               </property>
@@ -1185,6 +1457,12 @@
             </item>
             <item row="2" column="1">
              <widget class="QDoubleSpinBox" name="object_rx">
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="minimum">
                <double>-3.140000000000000</double>
               </property>
@@ -1198,6 +1476,12 @@
             </item>
             <item row="2" column="2">
              <widget class="QDoubleSpinBox" name="object_ry">
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="minimum">
                <double>-3.140000000000000</double>
               </property>
@@ -1211,6 +1495,12 @@
             </item>
             <item row="1" column="2">
              <widget class="QDoubleSpinBox" name="object_y">
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="minimum">
                <double>-999.990000000000009</double>
               </property>
@@ -1242,7 +1532,7 @@
                <widget class="QSlider" name="scene_scale">
                 <property name="minimumSize">
                  <size>
-                  <width>160</width>
+                  <width>40</width>
                   <height>0</height>
                  </size>
                 </property>
@@ -1280,6 +1570,12 @@
             </item>
             <item row="1" column="3">
              <widget class="QDoubleSpinBox" name="object_z">
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="minimum">
                <double>-999.990000000000009</double>
               </property>
@@ -1296,8 +1592,11 @@
          </item>
          <item>
           <widget class="QGroupBox" name="groupBox_5">
+           <property name="toolTip">
+            <string>Describes the selected object's pose, geometry and subframes.</string>
+           </property>
            <property name="title">
-            <string>Status of selected object</string>
+            <string>Object status</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_12">
             <property name="leftMargin">
@@ -1328,6 +1627,9 @@
               </property>
               <property name="textFormat">
                <enum>Qt::AutoText</enum>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
               </property>
               <property name="WordWrap" stdset="0">
                <bool>true</bool>
@@ -1371,10 +1673,16 @@
             <item>
              <widget class="QPushButton" name="publish_current_scene_button">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>40</width>
+                <height>0</height>
+               </size>
               </property>
               <property name="text">
                <string>&amp;Publish</string>
@@ -1396,6 +1704,18 @@
             </item>
             <item>
              <widget class="QPushButton" name="export_scene_geometry_text_button">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>40</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="toolTip">
                <string>Export scene geometry to a .scene file (only geometry information is preserved)</string>
               </property>
@@ -1406,6 +1726,18 @@
             </item>
             <item>
              <widget class="QPushButton" name="import_scene_geometry_text_button">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>40</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="toolTip">
                <string>Import scene geometry from a .scene file (only geometry information is preserved)</string>
               </property>
@@ -1835,8 +2167,6 @@
   <tabstop>allow_replanning</tabstop>
   <tabstop>allow_looking</tabstop>
   <tabstop>allow_external_program</tabstop>
-  <tabstop>collision_aware_ik</tabstop>
-  <tabstop>approximate_ik</tabstop>
   <tabstop>path_constraints_combo_box</tabstop>
   <tabstop>goal_tolerance</tabstop>
   <tabstop>place_button</tabstop>
