@@ -48,7 +48,7 @@
 
 namespace pick_place
 {
-MOVEIT_CLASS_FORWARD(PickPlace);
+MOVEIT_CLASS_FORWARD(PickPlace);  // Defines PickPlacePtr, ConstPtr, WeakPtr... etc
 
 class PickPlacePlanBase
 {
@@ -92,7 +92,7 @@ protected:
   moveit_msgs::MoveItErrorCodes error_code_;
 };
 
-MOVEIT_CLASS_FORWARD(PickPlan);
+MOVEIT_CLASS_FORWARD(PickPlan);  // Defines PickPlanPtr, ConstPtr, WeakPtr... etc
 
 class PickPlan : public PickPlacePlanBase
 {
@@ -101,7 +101,7 @@ public:
   bool plan(const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::PickupGoal& goal);
 };
 
-MOVEIT_CLASS_FORWARD(PlacePlan);
+MOVEIT_CLASS_FORWARD(PlacePlan);  // Defines PlacePlanPtr, ConstPtr, WeakPtr... etc
 
 class PlacePlan : public PickPlacePlanBase
 {

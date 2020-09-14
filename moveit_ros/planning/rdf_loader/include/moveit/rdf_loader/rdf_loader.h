@@ -42,7 +42,7 @@
 
 namespace rdf_loader
 {
-MOVEIT_CLASS_FORWARD(RDFLoader);
+MOVEIT_CLASS_FORWARD(RDFLoader);  // Defines RDFLoaderPtr, ConstPtr, WeakPtr... etc
 
 /** @class RDFLoader
  *  @brief Default constructor

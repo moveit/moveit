@@ -41,7 +41,7 @@
 
 namespace constraint_samplers
 {
-MOVEIT_CLASS_FORWARD(ConstraintSamplerAllocator);
+MOVEIT_CLASS_FORWARD(ConstraintSamplerAllocator);  // Defines ConstraintSamplerAllocatorPtr, ConstPtr, WeakPtr... etc
 
 class ConstraintSamplerAllocator
 {

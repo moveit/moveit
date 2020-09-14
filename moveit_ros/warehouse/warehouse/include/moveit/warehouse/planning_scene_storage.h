@@ -52,7 +52,7 @@ typedef warehouse_ros::MessageCollection<moveit_msgs::PlanningScene>::Ptr Planni
 typedef warehouse_ros::MessageCollection<moveit_msgs::MotionPlanRequest>::Ptr MotionPlanRequestCollection;
 typedef warehouse_ros::MessageCollection<moveit_msgs::RobotTrajectory>::Ptr RobotTrajectoryCollection;
 
-MOVEIT_CLASS_FORWARD(PlanningSceneStorage);
+MOVEIT_CLASS_FORWARD(PlanningSceneStorage);  // Defines PlanningSceneStoragePtr, ConstPtr, WeakPtr... etc
 
 class PlanningSceneStorage : public MoveItMessageStorage
 {

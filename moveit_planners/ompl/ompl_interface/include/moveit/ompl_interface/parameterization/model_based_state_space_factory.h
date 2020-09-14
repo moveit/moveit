@@ -42,7 +42,7 @@
 
 namespace ompl_interface
 {
-MOVEIT_CLASS_FORWARD(ModelBasedStateSpaceFactory);
+MOVEIT_CLASS_FORWARD(ModelBasedStateSpaceFactory);  // Defines ModelBasedStateSpaceFactoryPtr, ConstPtr, WeakPtr... etc
 
 class ModelBasedStateSpaceFactory
 {

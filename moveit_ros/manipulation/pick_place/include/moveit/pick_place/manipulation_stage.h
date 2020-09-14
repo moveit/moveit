@@ -42,7 +42,7 @@
 
 namespace pick_place
 {
-MOVEIT_CLASS_FORWARD(ManipulationStage);
+MOVEIT_CLASS_FORWARD(ManipulationStage);  // Defines ManipulationStagePtr, ConstPtr, WeakPtr... etc
 
 class ManipulationStage
 {

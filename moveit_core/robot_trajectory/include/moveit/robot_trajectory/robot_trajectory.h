@@ -44,7 +44,7 @@
 
 namespace robot_trajectory
 {
-MOVEIT_CLASS_FORWARD(RobotTrajectory);
+MOVEIT_CLASS_FORWARD(RobotTrajectory);  // Defines RobotTrajectoryPtr, ConstPtr, WeakPtr... etc
 
 /** \brief Maintain a sequence of waypoints and the time durations
     between these waypoints */

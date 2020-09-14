@@ -51,7 +51,7 @@ class GLRenderer;
 class SensorModel
 {
 public:
-  MOVEIT_CLASS_FORWARD(Parameters);
+  MOVEIT_CLASS_FORWARD(Parameters);  // Defines ParametersPtr, ConstPtr, WeakPtr... etc
 
   /**
    * \brief Abstract Interface defining Sensor Parameters.

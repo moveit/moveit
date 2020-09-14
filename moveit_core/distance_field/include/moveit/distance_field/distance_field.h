@@ -47,7 +47,7 @@
 
 namespace shapes
 {
-MOVEIT_CLASS_FORWARD(Shape);
+MOVEIT_CLASS_FORWARD(Shape);  // Defines ShapePtr, ConstPtr, WeakPtr... etc
 }
 namespace octomap
 {
@@ -71,7 +71,7 @@ enum PlaneVisualizationType
   YZ_PLANE
 };
 
-MOVEIT_CLASS_FORWARD(DistanceField);
+MOVEIT_CLASS_FORWARD(DistanceField);  // Defines DistanceFieldPtr, ConstPtr, WeakPtr... etc
 
 /**
  * \brief DistanceField is an abstract base class for computing

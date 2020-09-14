@@ -44,7 +44,7 @@
 
 namespace planning_scene
 {
-MOVEIT_CLASS_FORWARD(PlanningScene);
+MOVEIT_CLASS_FORWARD(PlanningScene);  // Defines PlanningScenePtr, ConstPtr, WeakPtr... etc
 }
 
 /** \brief This namespace includes the base class for MoveIt planners */
@@ -73,7 +73,7 @@ struct PlannerConfigurationSettings
 /** \brief Map from PlannerConfigurationSettings.name to PlannerConfigurationSettings */
 typedef std::map<std::string, PlannerConfigurationSettings> PlannerConfigurationMap;
 
-MOVEIT_CLASS_FORWARD(PlanningContext);
+MOVEIT_CLASS_FORWARD(PlanningContext);  // Defines PlanningContextPtr, ConstPtr, WeakPtr... etc
 
 /** \brief Representation of a particular planning context -- the planning scene and the request are known,
     solution is not yet computed. */
@@ -144,7 +144,7 @@ protected:
   MotionPlanRequest request_;
 };
 
-MOVEIT_CLASS_FORWARD(PlannerManager);
+MOVEIT_CLASS_FORWARD(PlannerManager);  // Defines PlannerManagerPtr, ConstPtr, WeakPtr... etc
 
 /** \brief Base class for a MoveIt planner */
 class PlannerManager

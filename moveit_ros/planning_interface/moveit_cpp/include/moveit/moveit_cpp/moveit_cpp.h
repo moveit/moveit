@@ -50,7 +50,7 @@ namespace moveit
 {
 namespace planning_interface
 {
-MOVEIT_CLASS_FORWARD(MoveItCpp);
+MOVEIT_CLASS_FORWARD(MoveItCpp);  // Defines MoveItCppPtr, ConstPtr, WeakPtr... etc
 
 class MoveItCpp
 {

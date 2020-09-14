@@ -46,7 +46,7 @@
 
 namespace moveit_fake_controller_manager
 {
-MOVEIT_CLASS_FORWARD(BaseFakeController);
+MOVEIT_CLASS_FORWARD(BaseFakeController);  // Defines BaseFakeControllerPtr, ConstPtr, WeakPtr... etc
 
 // common base class to all fake controllers in this package
 class BaseFakeController : public moveit_controller_manager::MoveItControllerHandle

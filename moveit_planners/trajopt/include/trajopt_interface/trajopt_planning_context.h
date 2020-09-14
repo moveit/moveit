@@ -7,7 +7,7 @@
 
 namespace trajopt_interface
 {
-MOVEIT_CLASS_FORWARD(TrajOptPlanningContext);
+MOVEIT_CLASS_FORWARD(TrajOptPlanningContext);  // Defines TrajOptPlanningContextPtr, ConstPtr, WeakPtr... etc
 
 class TrajOptPlanningContext : public planning_interface::PlanningContext
 {

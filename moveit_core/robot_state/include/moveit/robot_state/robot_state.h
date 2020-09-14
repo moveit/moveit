@@ -59,7 +59,7 @@ namespace moveit
 {
 namespace core
 {
-MOVEIT_CLASS_FORWARD(RobotState);
+MOVEIT_CLASS_FORWARD(RobotState);  // Defines RobotStatePtr, ConstPtr, WeakPtr... etc
 
 /** \brief Signature for functions that can verify that if the group \e joint_group in \e robot_state is set to \e
    joint_group_variable_values

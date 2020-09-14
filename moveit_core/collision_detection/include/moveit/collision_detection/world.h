@@ -48,12 +48,12 @@
 
 namespace shapes
 {
-MOVEIT_CLASS_FORWARD(Shape);
+MOVEIT_CLASS_FORWARD(Shape);  // Defines ShapePtr, ConstPtr, WeakPtr... etc
 }
 
 namespace collision_detection
 {
-MOVEIT_CLASS_FORWARD(World);
+MOVEIT_CLASS_FORWARD(World);  // Defines WorldPtr, ConstPtr, WeakPtr... etc
 
 /** \brief Maintain a representation of the environment */
 class World

@@ -155,7 +155,7 @@ struct ConstraintApproximationConstructionResults
   double sampling_success_rate;
 };
 
-MOVEIT_CLASS_FORWARD(ConstraintsLibrary);
+MOVEIT_CLASS_FORWARD(ConstraintsLibrary);  // Defines ConstraintsLibraryPtr, ConstPtr, WeakPtr... etc
 
 class ConstraintsLibrary
 {

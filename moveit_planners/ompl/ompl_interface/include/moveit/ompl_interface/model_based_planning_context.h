@@ -52,8 +52,8 @@ namespace ob = ompl::base;
 namespace og = ompl::geometric;
 namespace ot = ompl::tools;
 
-MOVEIT_CLASS_FORWARD(ModelBasedPlanningContext);
-MOVEIT_CLASS_FORWARD(ConstraintsLibrary);
+MOVEIT_CLASS_FORWARD(ModelBasedPlanningContext);  // Defines ModelBasedPlanningContextPtr, ConstPtr, WeakPtr... etc
+MOVEIT_CLASS_FORWARD(ConstraintsLibrary);         // Defines ConstraintsLibraryPtr, ConstPtr, WeakPtr... etc
 
 struct ModelBasedPlanningContextSpecification;
 typedef std::function<ob::PlannerPtr(const ompl::base::SpaceInformationPtr& si, const std::string& name,

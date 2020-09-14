@@ -38,19 +38,19 @@ where j indexes over DOF, and \f$c_j\f$ are the coeffs.
 */
 
 struct TermInfo;
-MOVEIT_CLASS_FORWARD(TermInfo);
+MOVEIT_CLASS_FORWARD(TermInfo);  // Defines TermInfoPtr, ConstPtr, WeakPtr... etc
 
 class TrajOptProblem;
-MOVEIT_CLASS_FORWARD(TrajOptProblem);
+MOVEIT_CLASS_FORWARD(TrajOptProblem);  // Defines TrajOptProblemPtr, ConstPtr, WeakPtr... etc
 
 struct JointPoseTermInfo;
-MOVEIT_CLASS_FORWARD(JointPoseTermInfo);
+MOVEIT_CLASS_FORWARD(JointPoseTermInfo);  // Defines JointPoseTermInfoPtr, ConstPtr, WeakPtr... etc
 
 struct CartPoseTermInfo;
-MOVEIT_CLASS_FORWARD(CartPoseTermInfo);
+MOVEIT_CLASS_FORWARD(CartPoseTermInfo);  // Defines CartPoseTermInfoPtr, ConstPtr, WeakPtr... etc
 
 struct JointVelTermInfo;
-MOVEIT_CLASS_FORWARD(JointVelTermInfo);
+MOVEIT_CLASS_FORWARD(JointVelTermInfo);  // Defines JointVelTermInfoPtr, ConstPtr, WeakPtr... etc
 
 struct ProblemInfo;
 TrajOptProblemPtr ConstructProblem(const ProblemInfo&);
