@@ -258,7 +258,7 @@ private:
   bool ok_to_publish_ = false;
   double collision_velocity_scale_ = 1.0;
 
-  std::atomic_bool stop_requested_{false};
+  std::atomic_bool stop_requested_{ false };
 
   // Use ArrayXd type to enable more coefficient-wise operations
   Eigen::ArrayXd delta_theta_;
