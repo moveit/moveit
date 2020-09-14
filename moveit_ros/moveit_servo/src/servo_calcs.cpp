@@ -213,7 +213,9 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
   }
 
   if (stop_requested_)
+  {
     return;
+  }
 
   // Update from latest state
   sensor_msgs::JointStateConstPtr latest_joint_state = joint_state_subscriber_->getLatest();
@@ -336,7 +338,7 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
     zero_velocity_count_ = 0;
   }
 
-  if (ok_to_publish_)
+  if (ok_to_publish_ && !stop_requested_)
   {
     // Put the outgoing msg in the right format
     // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).

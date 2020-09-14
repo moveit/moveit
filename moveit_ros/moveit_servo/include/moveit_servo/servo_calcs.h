@@ -252,12 +252,13 @@ private:
 
   // Status
   StatusCode status_ = StatusCode::NO_WARNING;
-  bool stop_requested_ = false;
   bool paused_ = false;
   bool twist_command_is_stale_ = false;
   bool joint_command_is_stale_ = false;
   bool ok_to_publish_ = false;
   double collision_velocity_scale_ = 1.0;
+
+  std::atomic_bool stop_requested_{false};
 
   // Use ArrayXd type to enable more coefficient-wise operations
   Eigen::ArrayXd delta_theta_;
