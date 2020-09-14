@@ -207,12 +207,13 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
   // Always update the joints and end-effector transform for 2 reasons:
   // 1) in case the getCommandFrameTransform() method is being used
   // 2) so the low-pass filters are up to date and don't cause a jump
-  while (!updateJoints() && ros::ok())
+  while (!updateJoints() && ros::ok() && !stop_requested_)
   {
-    if (stop_requested_)
-      return;
     default_sleep_rate_.sleep();
   }
+
+  if (stop_requested_)
+    return;
 
   // Update from latest state
   sensor_msgs::JointStateConstPtr latest_joint_state = joint_state_subscriber_->getLatest();
