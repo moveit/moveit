@@ -121,7 +121,7 @@ private:
    */
   void updateTransforms();
 
-  MOVEIT_CLASS_FORWARD(TransformContext);
+  MOVEIT_CLASS_FORWARD(TransformContext);  // Defines TransformContextPtr, ConstPtr, WeakPtr... etc
 
   /**
    * \brief Context Object for registered frames

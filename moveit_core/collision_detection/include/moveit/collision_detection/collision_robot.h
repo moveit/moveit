@@ -45,7 +45,7 @@
 
 namespace collision_detection
 {
-MOVEIT_CLASS_FORWARD(CollisionRobot);
+MOVEIT_CLASS_FORWARD(CollisionRobot);  // Defines CollisionRobotPtr, ConstPtr, WeakPtr... etc
 
 /** @brief This class represents a collision model of the robot and can be used for self collision checks
     (to check if the robot is in collision with itself) or in collision checks with a different robot. Collision checks

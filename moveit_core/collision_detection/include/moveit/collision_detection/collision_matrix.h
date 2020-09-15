@@ -72,7 +72,7 @@ enum Type
  * CONDITIONAL) */
 typedef boost::function<bool(collision_detection::Contact&)> DecideContactFn;
 
-MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);
+MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);  // Defines AllowedCollisionMatrixPtr, ConstPtr, WeakPtr... etc
 
 /** @class AllowedCollisionMatrix
  *  @brief Definition of a structure for the allowed collision matrix. All elements in the collision world are referred

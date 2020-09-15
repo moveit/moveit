@@ -46,7 +46,7 @@ namespace moveit
 {
 namespace core
 {
-MOVEIT_CLASS_FORWARD(Transforms);
+MOVEIT_CLASS_FORWARD(Transforms);  // Defines TransformsPtr, ConstPtr, WeakPtr... etc
 
 /// @brief Map frame names to the transformation matrix that can transform objects from the frame name to the planning
 /// frame

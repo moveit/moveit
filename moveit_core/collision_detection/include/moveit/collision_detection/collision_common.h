@@ -48,7 +48,7 @@
 
 namespace collision_detection
 {
-MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);
+MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);  // Defines AllowedCollisionMatrixPtr, ConstPtr, WeakPtr... etc
 
 /** \brief The types of bodies that are considered for collision */
 namespace BodyTypes

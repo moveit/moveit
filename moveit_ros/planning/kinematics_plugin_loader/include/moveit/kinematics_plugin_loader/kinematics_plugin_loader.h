@@ -44,7 +44,7 @@
 
 namespace kinematics_plugin_loader
 {
-MOVEIT_CLASS_FORWARD(KinematicsPluginLoader);
+MOVEIT_CLASS_FORWARD(KinematicsPluginLoader);  // Defines KinematicsPluginLoaderPtr, ConstPtr, WeakPtr... etc
 
 /** \brief Helper class for loading kinematics solvers */
 class KinematicsPluginLoader
@@ -104,7 +104,7 @@ private:
   std::string robot_description_;
   double default_search_resolution_;
 
-  MOVEIT_CLASS_FORWARD(KinematicsLoaderImpl);
+  MOVEIT_CLASS_FORWARD(KinematicsLoaderImpl);  // Defines KinematicsLoaderImplPtr, ConstPtr, WeakPtr... etc
   KinematicsLoaderImplPtr loader_;
 
   std::vector<std::string> groups_;
