@@ -174,7 +174,7 @@ private:
   std::string comment_;  // comment briefly describing what this parameter does
 };
 
-MOVEIT_CLASS_FORWARD(MoveItConfigData);
+MOVEIT_CLASS_FORWARD(MoveItConfigData);  // Defines MoveItConfigDataPtr, ConstPtr, WeakPtr... etc
 
 /** \brief This class is shared with all widgets and contains the common configuration data
     needed for generating each robot's MoveIt configuration package.

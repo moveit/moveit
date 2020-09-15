@@ -71,7 +71,7 @@ struct ConstraintEvaluationResult
   double distance; /**< \brief The distance evaluation from the constraint or constraints */
 };
 
-MOVEIT_CLASS_FORWARD(KinematicConstraint);
+MOVEIT_CLASS_FORWARD(KinematicConstraint);  // Defines KinematicConstraintPtr, ConstPtr, WeakPtr... etc
 
 /// \brief Base class for representing a kinematic constraint
 class KinematicConstraint
@@ -178,7 +178,7 @@ protected:
                                 distance computed by the decide() function  */
 };
 
-MOVEIT_CLASS_FORWARD(JointConstraint);
+MOVEIT_CLASS_FORWARD(JointConstraint);  // Defines JointConstraintPtr, ConstPtr, WeakPtr... etc
 
 /**
  * \brief Class for handling single DOF joint constraints.
@@ -331,7 +331,7 @@ protected:
   double joint_position_, joint_tolerance_above_, joint_tolerance_below_; /**< \brief Position and tolerance values*/
 };
 
-MOVEIT_CLASS_FORWARD(OrientationConstraint);
+MOVEIT_CLASS_FORWARD(OrientationConstraint);  // Defines OrientationConstraintPtr, ConstPtr, WeakPtr... etc
 
 /**
  * \brief Class for constraints on the orientation of a link
@@ -490,7 +490,7 @@ protected:
       absolute_z_axis_tolerance_; /**< \brief Storage for the tolerances */
 };
 
-MOVEIT_CLASS_FORWARD(PositionConstraint);
+MOVEIT_CLASS_FORWARD(PositionConstraint);  // Defines PositionConstraintPtr, ConstPtr, WeakPtr... etc
 
 /**
  * \brief Class for constraints on the XYZ position of a link
@@ -652,7 +652,7 @@ protected:
   const moveit::core::LinkModel* link_model_; /**< \brief The link model constraint subject */
 };
 
-MOVEIT_CLASS_FORWARD(VisibilityConstraint);
+MOVEIT_CLASS_FORWARD(VisibilityConstraint);  // Defines VisibilityConstraintPtr, ConstPtr, WeakPtr... etc
 
 /**
  * \brief Class for constraints on the visibility relationship between
@@ -852,7 +852,7 @@ protected:
   double max_range_angle_;           /**< \brief Storage for the max range angle */
 };
 
-MOVEIT_CLASS_FORWARD(KinematicConstraintSet);
+MOVEIT_CLASS_FORWARD(KinematicConstraintSet);  // Defines KinematicConstraintSetPtr, ConstPtr, WeakPtr... etc
 
 /**
  * \brief A class that contains many different constraints, and can

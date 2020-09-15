@@ -41,7 +41,7 @@
 
 namespace chomp_interface
 {
-MOVEIT_CLASS_FORWARD(CHOMPPlanningContext);
+MOVEIT_CLASS_FORWARD(CHOMPPlanningContext);  // Defines CHOMPPlanningContextPtr, ConstPtr, WeakPtr... etc
 
 class CHOMPPlanningContext : public planning_interface::PlanningContext
 {

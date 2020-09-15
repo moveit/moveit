@@ -46,7 +46,7 @@ typedef warehouse_ros::MessageWithMetadata<moveit_msgs::TrajectoryConstraints>::
     TrajectoryConstraintsWithMetadata;
 typedef warehouse_ros::MessageCollection<moveit_msgs::TrajectoryConstraints>::Ptr TrajectoryConstraintsCollection;
 
-MOVEIT_CLASS_FORWARD(TrajectoryConstraintsStorage);
+MOVEIT_CLASS_FORWARD(TrajectoryConstraintsStorage);  // Defines TrajectoryConstraintsStoragePtr, ConstPtr, WeakPtr... etc
 
 class TrajectoryConstraintsStorage : public MoveItMessageStorage
 {

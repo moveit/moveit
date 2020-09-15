@@ -53,8 +53,8 @@ class Mesh;
 
 namespace mesh_filter
 {
-MOVEIT_CLASS_FORWARD(Job);
-MOVEIT_CLASS_FORWARD(GLMesh);
+MOVEIT_CLASS_FORWARD(Job);     // Defines JobPtr, ConstPtr, WeakPtr... etc
+MOVEIT_CLASS_FORWARD(GLMesh);  // Defines GLMeshPtr, ConstPtr, WeakPtr... etc
 
 typedef unsigned int MeshHandle;
 typedef uint32_t LabelType;

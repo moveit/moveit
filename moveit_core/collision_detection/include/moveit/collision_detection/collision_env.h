@@ -45,7 +45,7 @@
 
 namespace collision_detection
 {
-MOVEIT_CLASS_FORWARD(CollisionEnv);
+MOVEIT_CLASS_FORWARD(CollisionEnv);  // Defines CollisionEnvPtr, ConstPtr, WeakPtr... etc
 
 /** \brief Provides the interface to the individual collision checking libraries. */
 class CollisionEnv

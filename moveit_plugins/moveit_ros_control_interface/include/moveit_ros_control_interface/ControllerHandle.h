@@ -41,7 +41,7 @@
 
 namespace moveit_ros_control_interface
 {
-MOVEIT_CLASS_FORWARD(ControllerHandleAllocator);
+MOVEIT_CLASS_FORWARD(ControllerHandleAllocator);  // Defines ControllerHandleAllocatorPtr, ConstPtr, WeakPtr... etc
 
 /**
  * Base class for MoveItControllerHandle allocators

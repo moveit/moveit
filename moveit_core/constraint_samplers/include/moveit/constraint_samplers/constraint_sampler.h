@@ -50,7 +50,7 @@
  */
 namespace constraint_samplers
 {
-MOVEIT_CLASS_FORWARD(ConstraintSampler);
+MOVEIT_CLASS_FORWARD(ConstraintSampler);  // Defines ConstraintSamplerPtr, ConstPtr, WeakPtr... etc
 
 /**
  * \brief ConstraintSampler is an abstract base class that allows the

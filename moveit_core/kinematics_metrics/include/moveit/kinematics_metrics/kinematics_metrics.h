@@ -41,7 +41,7 @@
 /** @brief Namespace for kinematics metrics */
 namespace kinematics_metrics
 {
-MOVEIT_CLASS_FORWARD(KinematicsMetrics);
+MOVEIT_CLASS_FORWARD(KinematicsMetrics);  // Defines KinematicsMetricsPtr, ConstPtr, WeakPtr... etc
 
 /**
  * \brief Compute different kinds of metrics for kinematics evaluation. Currently includes

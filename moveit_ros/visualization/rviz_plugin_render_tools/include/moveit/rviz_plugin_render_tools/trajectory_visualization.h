@@ -68,7 +68,7 @@ class MovableText;
 
 namespace moveit_rviz_plugin
 {
-MOVEIT_CLASS_FORWARD(TrajectoryVisualization);
+MOVEIT_CLASS_FORWARD(TrajectoryVisualization);  // Defines TrajectoryVisualizationPtr, ConstPtr, WeakPtr... etc
 
 class TrajectoryVisualization : public QObject
 {

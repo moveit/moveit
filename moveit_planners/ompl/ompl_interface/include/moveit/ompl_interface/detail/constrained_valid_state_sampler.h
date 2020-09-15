@@ -45,7 +45,7 @@ namespace ompl_interface
 {
 class ModelBasedPlanningContext;
 
-MOVEIT_CLASS_FORWARD(ValidStateSampler);
+MOVEIT_CLASS_FORWARD(ValidStateSampler);  // Defines ValidStateSamplerPtr, ConstPtr, WeakPtr... etc
 
 /** @class ValidConstrainedSampler
  *  This class defines a sampler that tries to find a valid sample that satisfies the specified constraints */
