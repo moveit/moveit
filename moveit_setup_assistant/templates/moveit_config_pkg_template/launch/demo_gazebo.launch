@@ -8,6 +8,9 @@
   <!-- By default, we are not in debug mode -->
   <arg name="debug" default="false" />
 
+  <!-- By default, we won't load or override the robot_description -->
+  <arg name="load_robot_description" default="false"/>
+
   <!--
   By default, hide joint_state_publisher's GUI
 
@@ -29,11 +32,6 @@
     <arg name="paused" value="$(arg paused)"/>
     <arg name="gazebo_gui" value="$(arg gazebo_gui)"/>
     <arg name="urdf_path" value="$(arg urdf_path)"/>
-  </include>
-
-  <!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
-  <include file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_context.launch">
-    <arg name="load_robot_description" value="false"/>
   </include>
 
   <!-- If needed, broadcast static tf for robot root -->
@@ -58,6 +56,7 @@
     <arg name="fake_execution" value="false"/>
     <arg name="info" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
+    <arg name="load_robot_description" value="$(arg load_robot_description)"/>
   </include>  
 
   <!-- Run Rviz and load the default config to see the state of the move_group node -->
