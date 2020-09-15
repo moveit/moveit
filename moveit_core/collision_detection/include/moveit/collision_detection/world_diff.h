@@ -42,7 +42,7 @@
 
 namespace collision_detection
 {
-MOVEIT_CLASS_FORWARD(WorldDiff);
+MOVEIT_CLASS_FORWARD(WorldDiff);  // Defines WorldDiffPtr, ConstPtr, WeakPtr... etc
 
 /** \brief Maintain a diff list of changes that have happened to a World. */
 class WorldDiff

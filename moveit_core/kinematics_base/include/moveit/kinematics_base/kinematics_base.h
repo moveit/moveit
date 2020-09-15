@@ -136,7 +136,7 @@ struct KinematicsResult
                                        of solutions explored. */
 };
 
-MOVEIT_CLASS_FORWARD(KinematicsBase);
+MOVEIT_CLASS_FORWARD(KinematicsBase);  // Defines KinematicsBasePtr, ConstPtr, WeakPtr... etc
 
 /**
  * @class KinematicsBase

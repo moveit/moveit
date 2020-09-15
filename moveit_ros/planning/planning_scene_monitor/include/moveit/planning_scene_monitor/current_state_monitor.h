@@ -211,7 +211,7 @@ private:
   std::shared_ptr<TFConnection> tf_connection_;
 };
 
-MOVEIT_CLASS_FORWARD(CurrentStateMonitor);
+MOVEIT_CLASS_FORWARD(CurrentStateMonitor);  // Defines CurrentStateMonitorPtr, ConstPtr, WeakPtr... etc
 }  // namespace planning_scene_monitor
 
 #endif

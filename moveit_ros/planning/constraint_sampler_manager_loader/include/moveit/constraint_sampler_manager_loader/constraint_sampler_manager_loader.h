@@ -42,7 +42,8 @@
 
 namespace constraint_sampler_manager_loader
 {
-MOVEIT_CLASS_FORWARD(ConstraintSamplerManagerLoader);
+MOVEIT_CLASS_FORWARD(
+    ConstraintSamplerManagerLoader);  // Defines ConstraintSamplerManagerLoaderPtr, ConstPtr, WeakPtr... etc
 
 class ConstraintSamplerManagerLoader
 {

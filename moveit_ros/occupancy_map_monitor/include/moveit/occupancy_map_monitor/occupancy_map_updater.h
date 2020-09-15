@@ -54,7 +54,7 @@ typedef boost::function<bool(const std::string& target_frame, const ros::Time& t
 
 class OccupancyMapMonitor;
 
-MOVEIT_CLASS_FORWARD(OccupancyMapUpdater);
+MOVEIT_CLASS_FORWARD(OccupancyMapUpdater);  // Defines OccupancyMapUpdaterPtr, ConstPtr, WeakPtr... etc
 
 /** \brief Base class for classes which update the occupancy map.
  */

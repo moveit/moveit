@@ -74,9 +74,9 @@ class MotionPlanningUI;
 
 namespace moveit_warehouse
 {
-MOVEIT_CLASS_FORWARD(PlanningSceneStorage);
-MOVEIT_CLASS_FORWARD(ConstraintsStorage);
-MOVEIT_CLASS_FORWARD(RobotStateStorage);
+MOVEIT_CLASS_FORWARD(PlanningSceneStorage);  // Defines PlanningSceneStoragePtr, ConstPtr, WeakPtr... etc
+MOVEIT_CLASS_FORWARD(ConstraintsStorage);    // Defines ConstraintsStoragePtr, ConstPtr, WeakPtr... etc
+MOVEIT_CLASS_FORWARD(RobotStateStorage);     // Defines RobotStateStoragePtr, ConstPtr, WeakPtr... etc
 }  // namespace moveit_warehouse
 
 namespace moveit_rviz_plugin
