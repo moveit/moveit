@@ -66,9 +66,8 @@ public:
              const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
              const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber);
 
-  /** \brief Start and stop the timer where we do work and publish outputs */
+  /** \brief Start the timer where we do work and publish outputs */
   void start();
-  void stop();
 
   /**
    * Get the MoveIt planning link transform.
@@ -257,8 +256,6 @@ private:
   bool joint_command_is_stale_ = false;
   bool ok_to_publish_ = false;
   double collision_velocity_scale_ = 1.0;
-
-  std::atomic_bool stop_requested_{ false };
 
   // Use ArrayXd type to enable more coefficient-wise operations
   Eigen::ArrayXd delta_theta_;

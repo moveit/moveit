@@ -94,11 +94,6 @@ void CollisionCheck::start()
   timer_ = nh_.createTimer(period_, &CollisionCheck::run, this);
 }
 
-void CollisionCheck::stop()
-{
-  timer_.stop();
-}
-
 void CollisionCheck::run(const ros::TimerEvent& timer_event)
 {
   // Log warning when the last loop duration was longer than the period
