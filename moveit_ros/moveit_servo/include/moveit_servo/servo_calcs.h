@@ -113,10 +113,10 @@ private:
   void suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory);
 
   /** \brief  Scale the delta theta to match joint velocity/acceleration limits */
-  void enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta);
+  void enforceVelLimits(Eigen::ArrayXd& delta_theta);
 
   /** \brief Avoid overshooting joint limits */
-  bool enforceSRDFPositionLimits();
+  bool enforcePositionLimits();
 
   /** \brief Possibly calculate a velocity scaling factor, due to proximity of
    * singularity and direction of motion
