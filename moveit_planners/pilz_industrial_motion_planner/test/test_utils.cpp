@@ -374,8 +374,7 @@ bool testutils::isAccelerationBounded(const trajectory_msgs::JointTrajectory& tr
       // deceleration
       if (point.velocities.at(i) * point.accelerations.at(i) <= 0)
       {
-        if (fabs(point.accelerations.at(i)) >
-            fabs(joint_limits.getLimit(trajectory.joint_names.at(i)).max_deceleration))
+        if (fabs(point.accelerations.at(i)) > fabs(joint_limits.getLimit(trajectory.joint_names.at(i)).max_deceleration))
         {
           std::cerr << "[ Fail     ] Deceleration limit violated of joint: " << trajectory.joint_names.at(i)
                     << ": Position: " << point.positions.at(i) << "; Velocity: " << point.velocities.at(i)
@@ -389,8 +388,7 @@ bool testutils::isAccelerationBounded(const trajectory_msgs::JointTrajectory& tr
       // acceleration
       else
       {
-        if (fabs(point.accelerations.at(i)) >
-            fabs(joint_limits.getLimit(trajectory.joint_names.at(i)).max_acceleration))
+        if (fabs(point.accelerations.at(i)) > fabs(joint_limits.getLimit(trajectory.joint_names.at(i)).max_acceleration))
         {
           std::cerr << "[ Fail     ] Acceleration limit violated of joint: " << trajectory.joint_names.at(i)
                     << ": Position: " << point.positions.at(i) << "; Velocity: " << point.velocities.at(i)
@@ -468,10 +466,10 @@ bool testutils::checkJointTrajectory(const trajectory_msgs::JointTrajectory& tra
   {
     if (trajectory->getWayPointDurationFromPrevious(i) <= 0.0)
     {
-      return ::testing::AssertionFailure() << "Waypoint " << (i) << " has "
-                                           << trajectory->getWayPointDurationFromPrevious(i)
-                                           << " time between itself and its predecessor."
-                                           << " Total points in trajectory: " << trajectory->getWayPointCount() << ".";
+      return ::testing::AssertionFailure()
+             << "Waypoint " << (i) << " has " << trajectory->getWayPointDurationFromPrevious(i)
+             << " time between itself and its predecessor."
+             << " Total points in trajectory: " << trajectory->getWayPointCount() << ".";
     }
   }
 
@@ -1192,8 +1190,8 @@ void testutils::checkRobotModel(const moveit::core::RobotModelConstPtr& robot_mo
   ASSERT_FALSE(robot_model->isEmpty()) << "robot model is empty";
   ASSERT_TRUE(robot_model->hasJointModelGroup(group_name)) << group_name << " is not known to robot";
   ASSERT_TRUE(robot_model->hasLinkModel(link_name)) << link_name << " is not known to robot";
-  ASSERT_TRUE(robot_state::RobotState(robot_model).knowsFrameTransform(link_name)) << "Transform of " << link_name
-                                                                                   << " is unknown";
+  ASSERT_TRUE(robot_state::RobotState(robot_model).knowsFrameTransform(link_name))
+      << "Transform of " << link_name << " is unknown";
 }
 
 ::testing::AssertionResult testutils::hasTrapezoidVelocity(std::vector<double> accelerations, const double acc_tol)
@@ -1281,8 +1279,9 @@ void testutils::checkRobotModel(const moveit::core::RobotModelConstPtr& robot_mo
   return ::testing::AssertionSuccess();
 }
 
-::testing::AssertionResult testutils::checkCartesianTranslationalPath(
-    const robot_trajectory::RobotTrajectoryConstPtr& trajectory, const std::string& link_name, const double acc_tol)
+::testing::AssertionResult
+testutils::checkCartesianTranslationalPath(const robot_trajectory::RobotTrajectoryConstPtr& trajectory,
+                                           const std::string& link_name, const double acc_tol)
 {
   // We require the following such that the test makes sense, else the traj would have a degenerated velocity profile
   EXPECT_GT(trajectory->getWayPointCount(), 9u);

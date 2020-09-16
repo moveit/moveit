@@ -59,9 +59,7 @@ protected:
 
 protected:
   ros::NodeHandle ph_{ "~" };
-  robot_model::RobotModelConstPtr robot_model_{
-    robot_model_loader::RobotModelLoader(ROBOT_DESCRIPTION_STR).getModel()
-  };
+  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(ROBOT_DESCRIPTION_STR).getModel() };
 
   std::string planning_group_;
 };

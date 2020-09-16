@@ -62,8 +62,7 @@ class CartesianConfiguration : public RobotConfiguration
 public:
   CartesianConfiguration();
 
-  CartesianConfiguration(const std::string& group_name, const std::string& link_name,
-                         const std::vector<double>& config);
+  CartesianConfiguration(const std::string& group_name, const std::string& link_name, const std::vector<double>& config);
 
   CartesianConfiguration(const std::string& group_name, const std::string& link_name, const std::vector<double>& config,
                          const moveit::core::RobotModelConstPtr& robot_model);

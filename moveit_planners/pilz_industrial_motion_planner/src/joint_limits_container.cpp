@@ -114,9 +114,8 @@ bool JointLimitsContainer::verifyVelocityLimit(const std::string& joint_name, co
 
 bool JointLimitsContainer::verifyPositionLimit(const std::string& joint_name, const double& joint_position) const
 {
-  return (
-      !(hasLimit(joint_name) && getLimit(joint_name).has_position_limits &&
-        (joint_position < getLimit(joint_name).min_position || joint_position > getLimit(joint_name).max_position)));
+  return (!(hasLimit(joint_name) && getLimit(joint_name).has_position_limits &&
+            (joint_position < getLimit(joint_name).min_position || joint_position > getLimit(joint_name).max_position)));
 }
 
 bool JointLimitsContainer::verifyPositionLimits(const std::vector<std::string>& joint_names,

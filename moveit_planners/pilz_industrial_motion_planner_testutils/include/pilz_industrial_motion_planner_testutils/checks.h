@@ -65,6 +65,6 @@ namespace pilz_industrial_motion_planner_testutils
 
   return ::testing::AssertionSuccess();
 }
-}
+}  // namespace pilz_industrial_motion_planner_testutils
 
 #endif  // CENTERAUXILIARY_H

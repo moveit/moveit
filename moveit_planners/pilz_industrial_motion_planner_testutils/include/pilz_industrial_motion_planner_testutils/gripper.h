@@ -43,6 +43,6 @@ namespace pilz_industrial_motion_planner_testutils
 class Gripper : public Ptp<JointConfiguration, JointConfiguration>
 {
 };
-}
+}  // namespace pilz_industrial_motion_planner_testutils
 
 #endif  // GRIPPER_H

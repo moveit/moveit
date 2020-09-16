@@ -139,8 +139,7 @@ private:
   static constexpr double ROBOT_STATE_EQUALITY_EPSILON = 1e-4;
 };
 
-inline void
-PlanComponentsBuilder::setBlender(std::unique_ptr<pilz_industrial_motion_planner::TrajectoryBlender> blender)
+inline void PlanComponentsBuilder::setBlender(std::unique_ptr<pilz_industrial_motion_planner::TrajectoryBlender> blender)
 {
   blender_ = std::move(blender);
 }

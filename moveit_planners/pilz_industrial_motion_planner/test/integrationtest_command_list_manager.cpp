@@ -93,9 +93,7 @@ protected:
 protected:
   // ros stuff
   ros::NodeHandle ph_{ "~" };
-  robot_model::RobotModelConstPtr robot_model_{
-    robot_model_loader::RobotModelLoader(ROBOT_DESCRIPTION_STR).getModel()
-  };
+  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(ROBOT_DESCRIPTION_STR).getModel() };
   std::shared_ptr<pilz_industrial_motion_planner::CommandListManager> manager_;
   planning_scene::PlanningScenePtr scene_;
   planning_pipeline::PlanningPipelinePtr pipeline_;

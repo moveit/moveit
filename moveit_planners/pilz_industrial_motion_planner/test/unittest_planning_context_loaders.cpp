@@ -78,8 +78,7 @@ protected:
     // Create planning context loader ptp
     try
     {
-      planning_context_loader_.reset(
-          planning_context_loader_class_loader_->createUnmanagedInstance(GetParam().front()));
+      planning_context_loader_.reset(planning_context_loader_class_loader_->createUnmanagedInstance(GetParam().front()));
     }
     catch (pluginlib::PluginlibException& ex)
     {

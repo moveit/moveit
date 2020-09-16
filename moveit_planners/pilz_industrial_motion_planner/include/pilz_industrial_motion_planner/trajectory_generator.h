@@ -67,8 +67,7 @@ CREATE_MOVEIT_ERROR_CODE_EXCEPTION(NotExactlyOneGoalConstraintGiven,
                                    moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(OnlyOneGoalTypeAllowed, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 
-CREATE_MOVEIT_ERROR_CODE_EXCEPTION(StartStateGoalStateMismatch,
-                                   moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
+CREATE_MOVEIT_ERROR_CODE_EXCEPTION(StartStateGoalStateMismatch, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(JointConstraintDoesNotBelongToGroup,
                                    moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(JointsOfGoalOutOfRange, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);

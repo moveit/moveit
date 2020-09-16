@@ -46,6 +46,6 @@ static constexpr double DEFAULT_BLEND_RADIUS{ 0.01 };
 
 static constexpr double DEFAULT_VEL_GRIPPER{ 0.5 };
 static constexpr double DEFAULT_ACC_GRIPPER{ 0.8 };
-}
+}  // namespace pilz_industrial_motion_planner_testutils
 
 #endif  // DEFAULT_VALUES_H

@@ -146,8 +146,7 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_interface::Mo
   assert(req.start_state.joint_state.name.size() == req.start_state.joint_state.position.size());
   for (const auto& joint_name : robot_model_->getJointModelGroup(req.group_name)->getActiveJointModelNames())
   {
-    auto it{ std::find(req.start_state.joint_state.name.cbegin(), req.start_state.joint_state.name.cend(),
-                       joint_name) };
+    auto it{ std::find(req.start_state.joint_state.name.cbegin(), req.start_state.joint_state.name.cend(), joint_name) };
     if (it == req.start_state.joint_state.name.cend())
     {
       std::ostringstream os;
