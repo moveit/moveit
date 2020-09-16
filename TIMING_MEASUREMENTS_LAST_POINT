@@ -1,0 +1,53 @@
+
+# with default type (interpolate)
+
+Finished  <<< pilz_industrial_motion_planner                [ 5 minutes and 1.4 seconds ]             
+[build] Summary: All 1 packages succeeded!                                                            
+[build]   Ignored:   43 packages were skipped or are blacklisted.                                     
+[build]   Warnings:  1 packages succeeded with warnings.                                              
+[build]   Abandoned: None.                                                                            
+[build]   Failed:    None.                                                                            
+[build] Runtime: 5 minutes and 1.9 seconds total.   
+
+
+# with type: last point
+
+Finished  <<< pilz_industrial_motion_planner                [ 4 minutes and 7.1 seconds ]                                                                       
+[build] Summary: All 1 packages succeeded!                                                                                                                      
+[build]   Ignored:   43 packages were skipped or are blacklisted.                                                                                               
+[build]   Warnings:  1 packages succeeded with warnings.                                                                                                        
+[build]   Abandoned: None.                                                                                                                                      
+[build]   Failed:    None.                                                                                                                                      
+[build] Runtime: 4 minutes and 7.5 seconds total.         
+
+WITH ONE FAILURE: 
+
+/home/ch/Desktop/rosunit-integrationtest_sequence_action_capability.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="16" failures="1" disabled="0" errors="0" timestamp="2020-05-28T10:26:40" time="41.068" name="AllTests">
+  <testsuite name="IntegrationTestSequenceAction" tests="16" failures="1" disabled="0" errors="0" time="41.068">
+    <testcase name="TestSendingOfEmptySequence" status="run" time="3.021" classname="IntegrationTestSequenceAction" />
+    <testcase name="TestDifferingGroupNames" status="run" time="1.813" classname="IntegrationTestSequenceAction" />
+    <testcase name="TestNegativeBlendRadius" status="run" time="1.786" classname="IntegrationTestSequenceAction" />
+    <testcase name="TestOverlappingBlendRadii" status="run" time="1.849" classname="IntegrationTestSequenceAction" />
+    <testcase name="TestTooLargeBlendRadii" status="run" time="1.8" classname="IntegrationTestSequenceAction" />
+    <testcase name="TestInvalidCmd" status="run" time="1.968" classname="IntegrationTestSequenceAction" />
+    <testcase name="TestInvalidLinkName" status="run" time="1.791" classname="IntegrationTestSequenceAction" />
+    <testcase name="TestActionServerCallbacks" status="run" time="2.803" classname="IntegrationTestSequenceAction" />
+    <testcase name="TestCancellingOfGoal" status="run" time="4.437" classname="IntegrationTestSequenceAction">
+      <failure message="/home/ch/ros/pilz_ws/src/moveit/moveit_planners/pilz_industrial_motion_planner/test/integrationtest_sequence_action_capability.cpp:424&#x0A;      Expected: res-&gt;response.error_code.val&#x0A;      Which is: 1&#x0A;To be equal to: moveit_msgs::MoveItErrorCodes::PREEMPTED&#x0A;      Which is: -7&#x0A;Error code should be preempted." type=""><![CDATA[/home/ch/ros/pilz_ws/src/moveit/moveit_planners/pilz_industrial_motion_planner/test/integrationtest_sequence_action_capability.cpp:424
+      Expected: res->response.error_code.val
+      Which is: 1
+To be equal to: moveit_msgs::MoveItErrorCodes::PREEMPTED
+      Which is: -7
+Error code should be preempted.]]></failure>
+    </testcase>
+    <testcase name="TestPlanOnlyFlag" status="run" time="2.797" classname="IntegrationTestSequenceAction" />
+    <testcase name="TestIgnoreRobotStateForPlanOnly" status="run" time="1.703" classname="IntegrationTestSequenceAction" />
+    <testcase name="TestNegativeBlendRadiusForPlanOnly" status="run" time="1.65" classname="IntegrationTestSequenceAction" />
+    <testcase name="TestIgnoreRobotState" status="run" time="2.65" classname="IntegrationTestSequenceAction" />
+    <testcase name="TestLargeRequest" status="run" time="3.551" classname="IntegrationTestSequenceAction" />
+    <testcase name="TestComplexSequenceWithoutBlending" status="run" time="3.6" classname="IntegrationTestSequenceAction" />
+    <testcase name="TestComplexSequenceWithBlending" status="run" time="3.849" classname="IntegrationTestSequenceAction" />
+  </testsuite>
+</testsuites>
