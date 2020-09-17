@@ -83,7 +83,7 @@ class MoveGroupCommander(object):
     def set_end_effector_link(self, link_name):
         """ Set the name of the link to be considered as an end effector """
         if not self._g.set_end_effector_link(link_name):
-            raise MoveItCommanderException("Unable to set end efector link")
+            raise MoveItCommanderException("Unable to set end effector link")
 
     def get_interface_description(self):
         """ Get the description of the planner interface (list of planner ids) """
@@ -219,7 +219,7 @@ class MoveGroupCommander(object):
                 if approx:
                     raise MoveItCommanderException("Error setting joint target. Does your IK solver support approximate IK?")
                 else:
-                    raise MoveItCommanderException("Error setting joint target. Is IK running?")
+                    raise MoveItCommanderException("Error setting joint target. Is the IK solver functional?")
 
         elif (hasattr(arg1, '__iter__')):
             if (arg2 is not None or arg3 is not None):
