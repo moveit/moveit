@@ -77,7 +77,7 @@ public:
 
   bool waitForFirstStatus()
   {
-    auto msg = ros::topic::waitForMessage<std_msgs::Int8>(servo_->getParameters().status_topic, nh_, ros::Duration(15));
+    auto msg = ros::topic::waitForMessage<std_msgs::Int8>(servo_->getParameters().status_topic, nh_, ros::Duration(1));
     return static_cast<bool>(msg);
   }
 
@@ -91,14 +91,14 @@ TEST_F(ServoFixture, StartStopTest)
 {
   servo_->start();
   EXPECT_TRUE(waitForFirstStatus()) << "Timeout waiting for Status message";
-  servo_->stop();
+  servo_->setPaused(true);
 
   ros::Duration(1.0).sleep();
 
   // Start and stop again
-  servo_->start();
+  servo_->setPaused(false);
   EXPECT_TRUE(waitForFirstStatus()) << "Timeout waiting for Status message";
-  servo_->stop();
+  servo_->setPaused(true);
 }
 
 TEST_F(ServoFixture, SendTwistStampedTest)
@@ -139,7 +139,7 @@ TEST_F(ServoFixture, SendTwistStampedTest)
   EXPECT_GT(received_count, num_commands - 20);
   EXPECT_GT(received_count, (unsigned)0);
   EXPECT_LT(received_count, num_commands + 20);
-  servo_->stop();
+  servo_->setPaused(true);
 }
 
 TEST_F(ServoFixture, SendJointServoTest)
@@ -179,7 +179,7 @@ TEST_F(ServoFixture, SendJointServoTest)
 
   EXPECT_GT(received_count, num_commands - 20);
   EXPECT_LT(received_count, num_commands + 20);
-  servo_->stop();
+  servo_->setPaused(true);
 }
 
 TEST_F(ServoFixture, JointVelocityEnforcementTest)
@@ -245,7 +245,7 @@ TEST_F(ServoFixture, JointVelocityEnforcementTest)
 
   EXPECT_GT(received_count, num_commands - 20);
   EXPECT_LT(received_count, num_commands + 20);
-  servo_->stop();
+  servo_->setPaused(true);
 }
 }  // namespace moveit_servo
 

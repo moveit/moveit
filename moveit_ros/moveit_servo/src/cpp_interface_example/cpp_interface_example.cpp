@@ -150,6 +150,6 @@ int main(int argc, char** argv)
     ++num_commands;
   }
 
-  servo.stop();
+  servo.setPaused(true);
   return 0;
 }
