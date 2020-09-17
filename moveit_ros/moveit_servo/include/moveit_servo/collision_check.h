@@ -68,9 +68,13 @@ public:
                  const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
                  const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber);
 
-  /** \brief start and stop the Timer */
+  ~CollisionCheck()
+  {
+    timer_.stop();
+  }
+
+  /** \brief start the Timer that regulates collision check rate */
   void start();
-  void stop();
 
   /** \brief Pause or unpause processing servo commands while keeping the timers alive */
   void setPaused(bool paused);
