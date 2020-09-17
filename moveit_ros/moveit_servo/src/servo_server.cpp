@@ -80,7 +80,7 @@ int main(int argc, char** argv)
   ros::waitForShutdown();
 
   // Stop the servo server
-  servo.stop();
+  servo.setPaused(true);
 
   return 0;
 }

@@ -179,14 +179,7 @@ void ServoCalcs::start()
   initial_joint_trajectory->points.push_back(point);
   last_sent_command_ = initial_joint_trajectory;
 
-  stop_requested_ = false;
   timer_ = nh_.createTimer(period_, &ServoCalcs::run, this);
-}
-
-void ServoCalcs::stop()
-{
-  stop_requested_ = true;
-  timer_.stop();
 }
 
 void ServoCalcs::run(const ros::TimerEvent& timer_event)
@@ -209,8 +202,6 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
   // 2) so the low-pass filters are up to date and don't cause a jump
   while (!updateJoints() && ros::ok())
   {
-    if (stop_requested_)
-      return;
     default_sleep_rate_.sleep();
   }
 
@@ -335,7 +326,7 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
     zero_velocity_count_ = 0;
   }
 
-  if (ok_to_publish_)
+  if (ok_to_publish_ && !paused_)
   {
     // Put the outgoing msg in the right format
     // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
