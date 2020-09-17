@@ -245,7 +245,7 @@ TEST_F(ServoFixture, JointVelocityEnforcementTest)
 
   EXPECT_GT(received_count, num_commands - 20);
   EXPECT_LT(received_count, num_commands + 20);
-  servo_->stop();
+  servo_->setPaused(true);
 }
 }  // namespace moveit_servo
 

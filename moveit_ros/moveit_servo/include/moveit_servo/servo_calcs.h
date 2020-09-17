@@ -66,6 +66,11 @@ public:
              const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
              const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber);
 
+  ~ServoCalcs()
+  {
+    timer_.stop();
+  }
+
   /** \brief Start the timer where we do work and publish outputs */
   void start();
 

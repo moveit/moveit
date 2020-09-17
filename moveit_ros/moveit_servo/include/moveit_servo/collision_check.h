@@ -68,6 +68,11 @@ public:
                  const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
                  const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber);
 
+  ~CollisionCheck()
+  {
+    timer_.stop();
+  }
+
   /** \brief start the Timer that regulates collision check rate */
   void start();
 
