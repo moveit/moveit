@@ -123,6 +123,10 @@ public:
    */
   bool getEEFrameTransform(geometry_msgs::TransformStamped& transform);
 
+
+  // moveit_servo::Servo instance. Public so we can access member functions like setPaused()
+  std::unique_ptr<moveit_servo::Servo> servo_;
+
 private:
   /** \brief Load ROS parameters for controller settings. */
   void readROSParams();
@@ -164,8 +168,6 @@ private:
 
   ros::Rate loop_rate_;
 
-  // moveit_servo::Servo instance
-  std::unique_ptr<moveit_servo::Servo> servo_;
   // ROS interface to Servo
   ros::Publisher twist_stamped_pub_;
 
