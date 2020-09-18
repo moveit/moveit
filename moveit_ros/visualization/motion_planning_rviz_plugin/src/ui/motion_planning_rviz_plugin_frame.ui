@@ -797,9 +797,9 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>If checked, the IK solver tried to avoid collisions when searching for the state set via the interactive marker.
+               <string>If checked, the IK solver tries to avoid collisions when searching for a start/end state set via the interactive marker.
 
-This is usually achieved by random seeing, which can flip the robot configuration (e.g. elbow up/down). Note that motion planning is always collision-aware, regardless of this checkbox.</string>
+This is usually achieved by random seeding, which can flip the robot configuration (e.g. elbow up/down). Note that motion planning is always collision-aware, regardless of this checkbox.</string>
               </property>
               <property name="text">
                <string>Collision-aware IK</string>
