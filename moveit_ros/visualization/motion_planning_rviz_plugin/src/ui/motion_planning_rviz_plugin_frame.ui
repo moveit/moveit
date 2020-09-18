@@ -417,7 +417,7 @@
                  <bool>false</bool>
                 </property>
                 <property name="toolTip">
-                 <string>Send a stop() command to the move_group.</string>
+                 <string>Stop execution by sending a stop command to the move_group.</string>
                 </property>
                 <property name="text">
                  <string>&amp;Stop</string>
@@ -549,7 +549,7 @@
             <item>
              <widget class="QComboBox" name="path_constraints_combo_box">
               <property name="toolTip">
-               <string>Set path constraints from the database. </string>
+               <string>Select path constraints from the database. </string>
               </property>
              </widget>
             </item>
@@ -610,7 +610,7 @@
               <item>
                <widget class="QLabel" name="label_9">
                 <property name="toolTip">
-                 <string>The maximum amount of time the planner is allowed to take. This is the total amount, not the amount of time per planning attempt.</string>
+                 <string>Total time allowed for planning.  Planning stops if time or number of attempts is exceeded, or goal is reached.</string>
                 </property>
                 <property name="text">
                  <string>Planning Time (s):</string>
@@ -652,7 +652,7 @@
               <item>
                <widget class="QLabel" name="label_10">
                 <property name="toolTip">
-                 <string>Maximum allowed number of planning attempts.</string>
+                 <string>Allowed number of planning attempts. Planning stops if time or number of attempts is exceeded, or goal is reached.</string>
                 </property>
                 <property name="text">
                  <string>Planning Attempts:</string>
@@ -691,7 +691,7 @@
               <item>
                <widget class="QLabel" name="label_11">
                 <property name="toolTip">
-                 <string>Velocity scaling (applied to each joint)</string>
+                 <string>Factor (between 0 and 1) that scales maximum joint velocities</string>
                 </property>
                 <property name="text">
                  <string>Velocity Scaling:</string>
@@ -727,7 +727,7 @@
               <item>
                <widget class="QLabel" name="label_20">
                 <property name="toolTip">
-                 <string>Acceleration scaling (applied to each joint)</string>
+                 <string>Factor (between 0 and 1) that scales maximum joint accelerations</string>
                 </property>
                 <property name="text">
                  <string>Accel. Scaling:</string>
@@ -770,7 +770,9 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>Check this to generate a linear path in Cartesian (3D) space</string>
+               <string>Check this to generate a linear path in Cartesian (3D) space.
+
+ This does not plan around obstacles. </string>
               </property>
               <property name="text">
                <string>Use Cartesian Path</string>
@@ -795,10 +797,12 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>If checked, a new IK solution is calculated whenever the robot state is in collision. This setting only affects the state set via the interactive marker. Planning is always aware of collisions.</string>
+               <string>If checked, the IK solver tried to avoid collisions when searching for the state set via the interactive marker.
+
+This is usually achieved by random seeing, which can flip the robot configuration (e.g. elbow up/down). Note that motion planning is always collision-aware, regardless of this checkbox.</string>
               </property>
               <property name="text">
-               <string>Reset IK on collision</string>
+               <string>Collision-aware IK</string>
               </property>
               <property name="checked">
                <bool>false</bool>
@@ -820,10 +824,35 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>Allow approximate IK solutions</string>
+               <string>Allow approximate IK solutions, which deviate from the target pose. Useful when an exact solution cannot be found, e.g. for underactuated arms or when trying to reach an unreachable target.</string>
               </property>
               <property name="text">
                <string>Approx IK Solutions</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="allow_external_program">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Allow controlling the interactive marker through ROS topics (under /rviz/moveit/marker/ ) published other nodes.</string>
+              </property>
+              <property name="text">
+               <string>External Comm.</string>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -842,7 +871,10 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>Allows the robot to replan if the plan to be executed collides with the environment.</string>
+               <string>EXPERIMENTAL: Trigger replanning if new collisions are detected during plan execution. Only works for the &quot;Plan &amp; Execute&quot; button. </string>
+              </property>
+              <property name="autoFillBackground">
+               <bool>false</bool>
               </property>
               <property name="text">
                <string>Replanning</string>
@@ -867,35 +899,10 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>Allows the robot to reposition its sensor to look around. A sensor needs to be set up and the planning algorithm has to support this, otherwise it has no effect.</string>
+               <string>EXPERIMENTAL: Allows the robot to reposition its sensor to look around to resolve apparent collisions. A sensor needs to be set up and the new measurements have to affect the collision scene, otherwise it has no effect. See tutorial.</string>
               </property>
               <property name="text">
                <string>Sensor Positioning</string>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="allow_external_program">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>30</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="toolTip">
-               <string>Allow communication with an external program that sends an interactive marker position to control the robot.</string>
-              </property>
-              <property name="text">
-               <string>External Comm.</string>
               </property>
               <property name="checked">
                <bool>false</bool>
@@ -2166,7 +2173,6 @@
   <tabstop>acceleration_scaling_factor</tabstop>
   <tabstop>allow_replanning</tabstop>
   <tabstop>allow_looking</tabstop>
-  <tabstop>allow_external_program</tabstop>
   <tabstop>path_constraints_combo_box</tabstop>
   <tabstop>goal_tolerance</tabstop>
   <tabstop>place_button</tabstop>
