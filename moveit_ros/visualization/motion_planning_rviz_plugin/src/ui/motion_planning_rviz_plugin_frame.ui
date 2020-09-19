@@ -617,6 +617,9 @@
                   <height>0</height>
                  </size>
                 </property>
+                <property name="toolTip">
+                 <string>Total time allowed for planning.  Planning stops if time or number of attempts is exceeded, or goal is reached.</string>
+                </property>
                 <property name="decimals">
                  <number>1</number>
                 </property>
@@ -659,6 +662,9 @@
                   <height>0</height>
                  </size>
                 </property>
+                <property name="toolTip">
+                 <string>Allowed number of planning attempts. Planning stops if time or number of attempts is exceeded, or goal is reached.</string>
+                </property>
                 <property name="maximum">
                  <number>1000</number>
                 </property>
@@ -677,7 +683,7 @@
               <item>
                <widget class="QLabel" name="label_11">
                 <property name="toolTip">
-                 <string>Factor (between 0 and 1) that scales maximum joint velocities</string>
+                 <string>Factor (between 0 and 1) to scale down maximum joint velocities</string>
                 </property>
                 <property name="text">
                  <string>Velocity Scaling:</string>
@@ -691,6 +697,9 @@
                   <width>40</width>
                   <height>0</height>
                  </size>
+                </property>
+                <property name="toolTip">
+                 <string>Factor (between 0 and 1) to scale down maximum joint velocities</string>
                 </property>
                 <property name="maximum">
                  <double>1.000000000000000</double>
@@ -713,7 +722,7 @@
               <item>
                <widget class="QLabel" name="label_20">
                 <property name="toolTip">
-                 <string>Factor (between 0 and 1) that scales maximum joint accelerations</string>
+                 <string>Factor (between 0 and 1) to scale down maximum joint accelerations</string>
                 </property>
                 <property name="text">
                  <string>Accel. Scaling:</string>
@@ -727,6 +736,9 @@
                   <width>40</width>
                   <height>0</height>
                  </size>
+                </property>
+                <property name="toolTip">
+                 <string>Factor (between 0 and 1) to scale down maximum joint accelerations</string>
                 </property>
                 <property name="maximum">
                  <double>1.000000000000000</double>
@@ -832,7 +844,7 @@ This is usually achieved by random seeding, which can flip the robot configurati
                </size>
               </property>
               <property name="toolTip">
-               <string>Allow controlling the interactive marker through ROS topics (under /rviz/moveit/marker/ ) published other nodes.</string>
+               <string>Allow other nodes to control start and end poses as well as planning and execution, using ROS topics (/rviz/moveit/ ).</string>
               </property>
               <property name="text">
                <string>External Comm.</string>
