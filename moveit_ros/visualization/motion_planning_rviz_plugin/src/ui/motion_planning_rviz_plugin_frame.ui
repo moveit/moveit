@@ -523,7 +523,7 @@
            <property name="sizeHint" stdset="0">
             <size>
              <width>20</width>
-             <height>6</height>
+             <height>41</height>
             </size>
            </property>
           </spacer>
@@ -552,20 +552,6 @@
                <string>Select path constraints from the database. </string>
               </property>
              </widget>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_11">
-              <item>
-               <widget class="QLabel" name="label_6">
-                <property name="text">
-                 <string>Goal Tolerance:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QDoubleSpinBox" name="goal_tolerance"/>
-              </item>
-             </layout>
             </item>
            </layout>
           </widget>
@@ -2174,7 +2160,6 @@ This is usually achieved by random seeding, which can flip the robot configurati
   <tabstop>allow_replanning</tabstop>
   <tabstop>allow_looking</tabstop>
   <tabstop>path_constraints_combo_box</tabstop>
-  <tabstop>goal_tolerance</tabstop>
   <tabstop>place_button</tabstop>
   <tabstop>roi_center_x</tabstop>
   <tabstop>roi_center_y</tabstop>
