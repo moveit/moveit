@@ -445,6 +445,9 @@
               </item>
               <item>
                <widget class="QPushButton" name="clear_octomap_button">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="text">
                  <string>Clear octomap</string>
                 </property>
