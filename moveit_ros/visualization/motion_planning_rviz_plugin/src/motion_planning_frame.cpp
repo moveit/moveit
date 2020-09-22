@@ -163,8 +163,6 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->database_host, SIGNAL(textChanged(QString)), this, SIGNAL(configChanged()));
   connect(ui_->database_port, SIGNAL(valueChanged(int)), this, SIGNAL(configChanged()));
 
-  connect(ui_->goal_tolerance, SIGNAL(valueChanged(double)), this, SIGNAL(configChanged()));
-
   connect(ui_->planning_time, SIGNAL(valueChanged(double)), this, SIGNAL(configChanged()));
   connect(ui_->planning_attempts, SIGNAL(valueChanged(int)), this, SIGNAL(configChanged()));
   connect(ui_->velocity_scaling_factor, SIGNAL(valueChanged(double)), this, SIGNAL(configChanged()));
