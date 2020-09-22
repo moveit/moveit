@@ -26,7 +26,7 @@
       <bool>false</bool>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="context">
       <attribute name="title">
@@ -96,6 +96,9 @@
             </item>
             <item>
              <widget class="moveit_rviz_plugin::MotionPlanningParamWidget" name="planner_param_treeview">
+              <property name="autoScroll">
+               <bool>false</bool>
+              </property>
               <property name="indentation">
                <number>0</number>
               </property>
