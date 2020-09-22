@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>507</width>
-    <height>389</height>
+    <height>380</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,7 +26,7 @@
       <bool>false</bool>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="context">
       <attribute name="title">
@@ -526,7 +526,7 @@
            <property name="sizeHint" stdset="0">
             <size>
              <width>20</width>
-             <height>41</height>
+             <height>32</height>
             </size>
            </property>
           </spacer>
@@ -586,7 +586,7 @@
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_10">
             <property name="spacing">
-             <number>2</number>
+             <number>1</number>
             </property>
             <property name="bottomMargin">
              <number>4</number>
