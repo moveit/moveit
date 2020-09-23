@@ -39,7 +39,6 @@ namespace
 constexpr char LOGNAME[] = "pose_tracking";
 constexpr double DEFAULT_LOOP_RATE = 100;     // Hz
 constexpr double ROS_STARTUP_WAIT = 10;       // sec
-constexpr double DEFAULT_POSE_TIMEOUT = 0.1;  // sec
 }  // namespace
 
 namespace moveit_servo
@@ -78,16 +77,17 @@ PoseTracking::PoseTracking(const planning_scene_monitor::PlanningSceneMonitorPtr
       nh_.advertise<geometry_msgs::TwistStamped>(servo_->getParameters().cartesian_command_in_topic, 1);
 }
 
-PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance, const double angular_tolerance)
+PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance, const double angular_tolerance,
+                                                const double target_pose_timeout)
 {
   // Roll back the target pose timestamp to ensure we wait for a new target pose message
-  target_pose_.header.stamp = ros::Time::now() - ros::Duration(2 * DEFAULT_POSE_TIMEOUT);
+  target_pose_.header.stamp = ros::Time::now() - ros::Duration(2 * target_pose_timeout);
 
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves (in a callback function).
   ros::Time start_time = ros::Time::now();
-  while ((!haveRecentTargetPose(DEFAULT_POSE_TIMEOUT) || !haveRecentEndEffectorPose(DEFAULT_POSE_TIMEOUT)) &&
-         ((ros::Time::now() - start_time).toSec() < DEFAULT_POSE_TIMEOUT))
+  while ((!haveRecentTargetPose(target_pose_timeout) || !haveRecentEndEffectorPose(target_pose_timeout)) &&
+         ((ros::Time::now() - start_time).toSec() < target_pose_timeout))
   {
     if (servo_->getEEFrameTransform(end_effector_transform_))
     {
@@ -95,7 +95,7 @@ PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positiona
     }
     ros::Duration(0.001).sleep();
   }
-  if (!haveRecentTargetPose(DEFAULT_POSE_TIMEOUT))
+  if (!haveRecentTargetPose(target_pose_timeout))
   {
     ROS_ERROR_STREAM_NAMED(LOGNAME, "The target pose was not updated recently. Aborting.");
     return PoseTrackingStatusCode::NO_RECENT_TARGET_POSE;
@@ -119,7 +119,7 @@ PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positiona
       end_effector_transform_stamp_ = ros::Time::now();
     }
 
-    if (!haveRecentEndEffectorPose(DEFAULT_POSE_TIMEOUT))
+    if (!haveRecentEndEffectorPose(target_pose_timeout))
     {
       ROS_ERROR_STREAM_NAMED(LOGNAME, "The end effector pose was not updated in time. Aborting.");
       doPostMotionReset();

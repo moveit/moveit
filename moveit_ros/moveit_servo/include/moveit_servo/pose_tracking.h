@@ -48,17 +48,6 @@
 
 // Conventions:
 // Calculations are done in the planning_frame_ unless otherwise noted.
-// All control loops (i.e. moveToPose()) are based on updating the latest
-// end_effector_transform_ and receiving the desired target_pose_ which are the
-// only two transforms really needed for the PID controllers.
-// Each loop cycle should then in general call the following three functions:
-//
-//   updateControllerSetpoints();
-//   updateControllerStateMeasurements();
-//   calculateTwistServoCommand();
-//
-// These will first update the pid controller set points and measurements and then generate
-// the twist velocity commands from the controller output which in turn can be passed to Servo.
 
 namespace moveit_servo
 {
@@ -99,7 +88,8 @@ public:
   PoseTracking(const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
                const std::string& parameter_ns = "");
 
-  PoseTrackingStatusCode moveToPose(const Eigen::Vector3d& positional_tolerance, const double angular_tolerance);
+  PoseTrackingStatusCode moveToPose(const Eigen::Vector3d& positional_tolerance, const double angular_tolerance,
+                                    const double target_pose_timeout);
 
   /** \brief A method for a different thread to stop motion and return early from control loop */
   void stopMotion()
