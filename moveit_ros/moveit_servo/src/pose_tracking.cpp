@@ -78,7 +78,7 @@ PoseTracking::PoseTracking(const planning_scene_monitor::PlanningSceneMonitorPtr
       nh_.advertise<geometry_msgs::TwistStamped>(servo_->getParameters().cartesian_command_in_topic, 1);
 }
 
-int8_t PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance, const double angular_tolerance)
+PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance, const double angular_tolerance)
 {
   // Roll back the target pose timestamp to ensure we wait for a new target pose message
   target_pose_.header.stamp = ros::Time::now() - ros::Duration(2 * DEFAULT_POSE_TIMEOUT);

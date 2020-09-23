@@ -72,19 +72,21 @@ struct PIDConfig
   double windup_limit = 0.1;
 };
 
-enum PoseTrackingStatusCode : int8_t
+enum class PoseTrackingStatusCode : int8_t
 {
+  INVALID = -1,
   SUCCESS = 0,
   NO_RECENT_TARGET_POSE = 1,
   NO_RECENT_END_EFFECTOR_POSE = 2,
   STOP_REQUESTED = 3
 };
 
-const std::unordered_map<int8_t, std::string>
-    POSE_TRACKING_STATUS_CODE_MAP({ { SUCCESS, "Success" },
-                                    { NO_RECENT_TARGET_POSE, "No recent target pose" },
-                                    { NO_RECENT_END_EFFECTOR_POSE, "No recent end effector pose" },
-                                    { STOP_REQUESTED, "Stop requested" } });
+const std::unordered_map<PoseTrackingStatusCode, std::string>
+    POSE_TRACKING_STATUS_CODE_MAP({ { PoseTrackingStatusCode::INVALID, "Invalid" },
+                                    { PoseTrackingStatusCode::SUCCESS, "Success" },
+                                    { PoseTrackingStatusCode::NO_RECENT_TARGET_POSE, "No recent target pose" },
+                                    { PoseTrackingStatusCode::NO_RECENT_END_EFFECTOR_POSE, "No recent end effector pose" },
+                                    { PoseTrackingStatusCode::STOP_REQUESTED, "Stop requested" } });
 
 /**
  * Class PoseTracking - subscribe to a target pose.
@@ -97,7 +99,7 @@ public:
   PoseTracking(const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
                const std::string& parameter_ns = "");
 
-  int8_t moveToPose(const Eigen::Vector3d& positional_tolerance, const double angular_tolerance);
+  PoseTrackingStatusCode moveToPose(const Eigen::Vector3d& positional_tolerance, const double angular_tolerance);
 
   /** \brief A method for a different thread to stop motion and return early from control loop */
   void stopMotion()
