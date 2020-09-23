@@ -70,12 +70,12 @@ enum class PoseTrackingStatusCode : int8_t
   STOP_REQUESTED = 3
 };
 
-const std::unordered_map<PoseTrackingStatusCode, std::string>
-    POSE_TRACKING_STATUS_CODE_MAP({ { PoseTrackingStatusCode::INVALID, "Invalid" },
-                                    { PoseTrackingStatusCode::SUCCESS, "Success" },
-                                    { PoseTrackingStatusCode::NO_RECENT_TARGET_POSE, "No recent target pose" },
-                                    { PoseTrackingStatusCode::NO_RECENT_END_EFFECTOR_POSE, "No recent end effector pose" },
-                                    { PoseTrackingStatusCode::STOP_REQUESTED, "Stop requested" } });
+const std::unordered_map<PoseTrackingStatusCode, std::string> POSE_TRACKING_STATUS_CODE_MAP(
+    { { PoseTrackingStatusCode::INVALID, "Invalid" },
+      { PoseTrackingStatusCode::SUCCESS, "Success" },
+      { PoseTrackingStatusCode::NO_RECENT_TARGET_POSE, "No recent target pose" },
+      { PoseTrackingStatusCode::NO_RECENT_END_EFFECTOR_POSE, "No recent end effector pose" },
+      { PoseTrackingStatusCode::STOP_REQUESTED, "Stop requested" } });
 
 /**
  * Class PoseTracking - subscribe to a target pose.
@@ -114,7 +114,6 @@ public:
    * @return true if a valid transform was available
    */
   bool getEEFrameTransform(geometry_msgs::TransformStamped& transform);
-
 
   // moveit_servo::Servo instance. Public so we can access member functions like setPaused()
   std::unique_ptr<moveit_servo::Servo> servo_;

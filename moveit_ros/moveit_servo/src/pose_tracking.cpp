@@ -37,8 +37,8 @@
 namespace
 {
 constexpr char LOGNAME[] = "pose_tracking";
-constexpr double DEFAULT_LOOP_RATE = 100;     // Hz
-constexpr double ROS_STARTUP_WAIT = 10;       // sec
+constexpr double DEFAULT_LOOP_RATE = 100;  // Hz
+constexpr double ROS_STARTUP_WAIT = 10;    // sec
 }  // namespace
 
 namespace moveit_servo
@@ -77,8 +77,8 @@ PoseTracking::PoseTracking(const planning_scene_monitor::PlanningSceneMonitorPtr
       nh_.advertise<geometry_msgs::TwistStamped>(servo_->getParameters().cartesian_command_in_topic, 1);
 }
 
-PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance, const double angular_tolerance,
-                                                const double target_pose_timeout)
+PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance,
+                                                const double angular_tolerance, const double target_pose_timeout)
 {
   // Roll back the target pose timestamp to ensure we wait for a new target pose message
   target_pose_.header.stamp = ros::Time::now() - ros::Duration(2 * target_pose_timeout);
