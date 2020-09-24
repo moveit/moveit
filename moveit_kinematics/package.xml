@@ -30,8 +30,12 @@
   <depend condition="$ROS_DISTRO != noetic">orocos_kdl</depend>
   <depend condition="$ROS_DISTRO == noetic">liborocos-kdl-dev</depend>
 
-  <exec_depend>python-lxml</exec_depend>
-  <exec_depend>liburdfdom-tools</exec_depend> <!-- provides check_urdf required by ikfast scripts -->
+  <!-- some requirements of ikfast scripts -->
+  <exec_depend>liburdfdom-tools</exec_depend> <!-- provides check_urdf -->
+  <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-lxml</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-lxml</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-yaml</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-yaml</exec_depend>
 
   <test_depend>rostest</test_depend>
   <test_depend>moveit_ros_planning</test_depend>
