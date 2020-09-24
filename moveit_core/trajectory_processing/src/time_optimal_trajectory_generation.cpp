@@ -44,8 +44,6 @@
 #include <ros/console.h>
 #include <vector>
 
-#include <iostream>
-
 namespace trajectory_processing
 {
 const std::string LOGNAME = "trajectory_processing.time_optimal_trajectory_generation";
@@ -437,9 +435,8 @@ bool Trajectory::getNextAccelerationSwitchingPoint(double path_pos, TrajectorySt
       if ((before_path_vel > after_path_vel ||
            getMinMaxPhaseSlope(switching_path_pos - EPS, switching_path_vel, false) >
                getAccelerationMaxPathVelocityDeriv(switching_path_pos - 2.0 * EPS)) &&
-          (before_path_vel < after_path_vel ||
-           getMinMaxPhaseSlope(switching_path_pos + EPS, switching_path_vel, true) <
-               getAccelerationMaxPathVelocityDeriv(switching_path_pos + 2.0 * EPS)))
+          (before_path_vel < after_path_vel || getMinMaxPhaseSlope(switching_path_pos + EPS, switching_path_vel, true) <
+                                                   getAccelerationMaxPathVelocityDeriv(switching_path_pos + 2.0 * EPS)))
       {
         break;
       }
@@ -479,9 +476,8 @@ bool Trajectory::getNextVelocitySwitchingPoint(double path_pos, TrajectoryStep& 
     {
       start = true;
     }
-  } while ((!start ||
-            getMinMaxPhaseSlope(path_pos, getVelocityMaxPathVelocity(path_pos), false) >
-                getVelocityMaxPathVelocityDeriv(path_pos)) &&
+  } while ((!start || getMinMaxPhaseSlope(path_pos, getVelocityMaxPathVelocity(path_pos), false) >
+                          getVelocityMaxPathVelocityDeriv(path_pos)) &&
            path_pos < path_.getLength());
 
   if (path_pos >= path_.getLength())
@@ -863,8 +859,9 @@ Eigen::VectorXd Trajectory::getAcceleration(double time) const
   return path_acc;
 }
 
-TimeOptimalTrajectoryGeneration::TimeOptimalTrajectoryGeneration(const double path_tolerance, const double resample_dt)
-  : path_tolerance_(path_tolerance), resample_dt_(resample_dt)
+TimeOptimalTrajectoryGeneration::TimeOptimalTrajectoryGeneration(const double path_tolerance, const double resample_dt,
+                                                                 const double min_angle_change)
+  : path_tolerance_(path_tolerance), resample_dt_(resample_dt), min_angle_change_(min_angle_change)
 {
 }
 
@@ -965,7 +962,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
     for (size_t j = 0; j < num_joints; j++)
     {
       new_point[j] = waypoint->getVariablePosition(idx[j]);
-      if (p > 0 && std::abs(new_point[j] - points.back()[j]) > 0.001)
+      if (p > 0 && std::abs(new_point[j] - points.back()[j]) > min_angle_change_)
         diverse_point = true;
     }
 

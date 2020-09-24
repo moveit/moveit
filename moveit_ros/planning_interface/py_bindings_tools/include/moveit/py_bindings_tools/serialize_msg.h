@@ -125,9 +125,9 @@ namespace converter
 template <>
 struct object_manager_traits<moveit::py_bindings_tools::ByteString>
 #if PY_VERSION_HEX >= 0x03000000
-    : pytype_object_manager_traits<&PyBytes_Type, moveit::py_bindings_tools::ByteString>
+  : pytype_object_manager_traits<&PyBytes_Type, moveit::py_bindings_tools::ByteString>
 #else
-    : pytype_object_manager_traits<&PyString_Type, moveit::py_bindings_tools::ByteString>
+  : pytype_object_manager_traits<&PyString_Type, moveit::py_bindings_tools::ByteString>
 #endif
 
 {

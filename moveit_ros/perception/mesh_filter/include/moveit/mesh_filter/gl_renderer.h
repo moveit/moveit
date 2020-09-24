@@ -48,7 +48,7 @@
 
 namespace mesh_filter
 {
-MOVEIT_CLASS_FORWARD(GLRenderer);
+MOVEIT_CLASS_FORWARD(GLRenderer);  // Defines GLRendererPtr, ConstPtr, WeakPtr... etc
 
 /** \brief Abstracts the OpenGL frame buffer objects, and provides an interface to render meshes, and retrieve the color
  * and depth ap from opengl.

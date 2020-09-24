@@ -76,10 +76,10 @@ enum class CollisionObjectType
 
 /** \brief Clutters the world of the planning scene with random objects in a certain area around the origin. All added
  *  objects are not in collision with the robot.
-*
-*   \param planning_scene The planning scene
-*   \param num_objects The number of objects to be cluttered
-*   \param CollisionObjectType Type of object to clutter (mesh or box) */
+ *
+ *   \param planning_scene The planning scene
+ *   \param num_objects The number of objects to be cluttered
+ *   \param CollisionObjectType Type of object to clutter (mesh or box) */
 void clutterWorld(const planning_scene::PlanningScenePtr& planning_scene, const size_t num_objects,
                   CollisionObjectType type)
 {
@@ -100,7 +100,7 @@ void clutterWorld(const planning_scene::PlanningScenePtr& planning_scene, const 
   // load panda link5 as world collision object
   std::string name;
   shapes::ShapeConstPtr shape;
-  std::string kinect = "package://moveit_resources/panda_description/meshes/collision/link5.stl";
+  std::string kinect = "package://moveit_resources_panda_description/meshes/collision/link5.stl";
 
   Eigen::Quaterniond quat;
   Eigen::Isometry3d pos{ Eigen::Isometry3d::Identity() };
@@ -164,11 +164,11 @@ void clutterWorld(const planning_scene::PlanningScenePtr& planning_scene, const 
 }
 
 /** \brief Runs a collision detection benchmark and measures the time.
-*
-*   \param trials The number of repeated collision checks for each state
-*   \param scene The planning scene
-*   \param CollisionDetector The type of collision detector
-*   \param only_self Flag for only self collision check performed */
+ *
+ *   \param trials The number of repeated collision checks for each state
+ *   \param scene The planning scene
+ *   \param CollisionDetector The type of collision detector
+ *   \param only_self Flag for only self collision check performed */
 void runCollisionDetection(unsigned int trials, const planning_scene::PlanningScenePtr& scene,
                            const std::vector<moveit::core::RobotState>& states, const CollisionDetector col_detector,
                            bool only_self, bool distance = false)

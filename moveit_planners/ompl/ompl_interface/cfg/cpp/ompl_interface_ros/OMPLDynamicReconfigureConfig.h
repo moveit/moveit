@@ -62,7 +62,7 @@ class OMPLDynamicReconfigureConfigStatics;
 class OMPLDynamicReconfigureConfig
 {
 public:
-  MOVEIT_CLASS_FORWARD(AbstractParamDescription);
+  MOVEIT_CLASS_FORWARD(AbstractParamDescription);  // Defines AbstractParamDescriptionPtr, ConstPtr, WeakPtr... etc
   class AbstractParamDescription : public dynamic_reconfigure::ParamDescription
   {
   public:
@@ -141,7 +141,7 @@ public:
     }
   };
 
-  MOVEIT_CLASS_FORWARD(AbstractGroupDescription);
+  MOVEIT_CLASS_FORWARD(AbstractGroupDescription);  // Defines AbstractGroupDescriptionPtr, ConstPtr, WeakPtr... etc
   class AbstractGroupDescription : public dynamic_reconfigure::Group
   {
   public:
@@ -530,4 +530,4 @@ inline const OMPLDynamicReconfigureConfigStatics* OMPLDynamicReconfigureConfig::
 
   return statics;
 }
-}
+}  // namespace ompl_interface_ros

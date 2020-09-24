@@ -77,10 +77,10 @@ class MotionPlanningUI;
 
 namespace moveit_warehouse
 {
-MOVEIT_CLASS_FORWARD(PlanningSceneStorage);
-MOVEIT_CLASS_FORWARD(ConstraintsStorage);
-MOVEIT_CLASS_FORWARD(RobotStateStorage);
-}
+MOVEIT_CLASS_FORWARD(PlanningSceneStorage);  // Defines PlanningSceneStoragePtr, ConstPtr, WeakPtr... etc
+MOVEIT_CLASS_FORWARD(ConstraintsStorage);    // Defines ConstraintsStoragePtr, ConstPtr, WeakPtr... etc
+MOVEIT_CLASS_FORWARD(RobotStateStorage);     // Defines RobotStateStoragePtr, ConstPtr, WeakPtr... etc
+}  // namespace moveit_warehouse
 
 namespace moveit_rviz_plugin
 {
@@ -96,6 +96,8 @@ static const std::string TAB_OBJECTS = "Scene Objects";
 static const std::string TAB_SCENES = "Stored Scenes";
 static const std::string TAB_STATES = "Stored States";
 static const std::string TAB_STATUS = "Status";
+
+static const double LARGE_MESH_THRESHOLD = 10.0;
 
 class MotionPlanningFrame : public QWidget
 {
@@ -149,7 +151,6 @@ private Q_SLOTS:
 
   // Context tab
   void databaseConnectButtonClicked();
-  void publishSceneButtonClicked();
   void planningAlgorithmIndexChanged(int index);
   void resetDbButtonClicked();
   void approximateIKChanged(int state);
@@ -172,20 +173,24 @@ private Q_SLOTS:
   void onClearOctomapClicked();
 
   // Scene Objects tab
-  void importFileButtonClicked();
-  void importUrlButtonClicked();
-  void clearSceneButtonClicked();
+  void clearScene();
+  void publishScene();
+  void publishSceneIfNeeded();
+  void setLocalSceneEdited(bool dirty = true);
+  bool isLocalSceneDirty() const;
   void sceneScaleChanged(int value);
   void sceneScaleStartChange();
   void sceneScaleEndChange();
-  void removeObjectButtonClicked();
+  void shapesComboBoxChanged(const QString& text);
+  void addSceneObject();
+  void removeSceneObject();
   void selectedCollisionObjectChanged();
   void objectPoseValueChanged(double value);
   void collisionObjectChanged(QListWidgetItem* item);
   void imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback& feedback);
   void copySelectedCollisionObject();
-  void exportAsTextButtonClicked();
-  void importFromTextButtonClicked();
+  void exportGeometryAsTextButtonClicked();
+  void importGeometryFromTextButtonClicked();
 
   // Stored scenes tab
   void saveSceneButtonClicked();
@@ -242,15 +247,13 @@ private:
   void goalStateTextChangedExec(const std::string& goal_state);
 
   // Scene objects tab
-  void addObject(const collision_detection::WorldPtr& world, const std::string& id, const shapes::ShapeConstPtr& shape,
-                 const Eigen::Isometry3d& pose);
   void updateCollisionObjectPose(bool update_marker_position);
   void createSceneInteractiveMarker();
   void renameCollisionObject(QListWidgetItem* item);
   void attachDetachCollisionObject(QListWidgetItem* item);
   void populateCollisionObjectsList();
-  void computeImportFromText(const std::string& path);
-  void computeExportAsText(const std::string& path);
+  void computeImportGeometryFromText(const std::string& path);
+  void computeExportGeometryAsText(const std::string& path);
   visualization_msgs::InteractiveMarker
   createObjectMarkerMsg(const collision_detection::CollisionEnv::ObjectConstPtr& obj);
 
@@ -304,7 +307,7 @@ private:
   ros::Subscriber update_custom_goal_state_subscriber_;
   // General
   void changePlanningGroupHelper();
-  void importResource(const std::string& path);
+  shapes::ShapePtr loadMeshResource(const std::string& url);
   void loadStoredStates(const std::string& pattern);
 
   void remotePlanCallback(const std_msgs::EmptyConstPtr& msg);

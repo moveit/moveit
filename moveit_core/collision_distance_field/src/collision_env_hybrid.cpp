@@ -36,7 +36,6 @@
 
 #include <moveit/collision_distance_field/collision_detector_allocator_hybrid.h>
 #include <moveit/collision_distance_field/collision_env_hybrid.h>
-#include <utility>
 
 namespace collision_detection
 {

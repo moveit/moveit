@@ -36,7 +36,6 @@
 
 #include <ros/ros.h>
 #include <chomp_motion_planner/chomp_trajectory.h>
-#include <iostream>
 
 namespace chomp
 {
@@ -60,8 +59,7 @@ ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_m
   init();
 }
 
-ChompTrajectory::ChompTrajectory(const ChompTrajectory& source_traj, const std::string& group_name,
-                                 int diff_rule_length)
+ChompTrajectory::ChompTrajectory(const ChompTrajectory& source_traj, const std::string& group_name, int diff_rule_length)
   : planning_group_name_(group_name), discretization_(source_traj.discretization_)
 {
   num_joints_ = source_traj.getNumJoints();

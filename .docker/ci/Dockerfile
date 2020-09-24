@@ -1,7 +1,7 @@
-# moveit/moveit:master-ci
+# moveit/moveit:noetic-ci
 # Sets up a base image to use for running Continuous Integration on Travis
 
-FROM ros:melodic-ros-base
+FROM ros:noetic-ros-base
 MAINTAINER Dave Coleman dave@picknik.ai
 
 ENV TERM xterm
@@ -12,35 +12,36 @@ WORKDIR /root/ws_moveit
 # Commands are combined in single RUN statement with "apt/lists" folder removal to reduce image size
 # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#minimize-the-number-of-layers
 RUN \
-    mkdir src && \
-    cd src && \
-    #
-    # Download moveit source, so that we can get necessary dependencies
-    wstool init --shallow . https://raw.githubusercontent.com/ros-planning/moveit/master/moveit.rosinstall && \
-    #
     # Update apt package list as previous containers clear the cache
     apt-get -qq update && \
     apt-get -qq dist-upgrade && \
     #
     # Install some base dependencies
-    apt-get -qq install -y \
-        # Some source builds require a package.xml be downloaded via wget from an external location
-        wget \
-        # Required for rosdep command
-        sudo \
+    apt-get -qq install --no-install-recommends -y \
+        # Some basic requirements
+        wget git sudo \
         # Preferred build tools
-        python-catkin-tools \
-        clang clang-format-3.9 clang-tidy clang-tools \
+        python3-catkin-tools python3-osrf-pycommon \
+        clang clang-format-10 clang-tidy clang-tools \
         ccache && \
+    #
+    # Build and install franka_description from https://github.com/frankaemika/franka_ros.git
+    git clone --depth 1 --branch 0.6.0 https://github.com/frankaemika/franka_ros.git src/franka_ros && \
+    mv src/franka_ros/franka_description src/ && rm -rf src/franka_ros && \
+    catkin config --extend /opt/ros/noetic --install --install-space /opt/ros/noetic && \
+    catkin build && \
+    # Cleanup temporary workspace
+    rm -rf logs build devel .catkin_tools && \
+    #
+    # Download MoveIt source, so that we can fetch all necessary dependencies
+    wstool init --shallow src https://raw.githubusercontent.com/ros-planning/moveit/${ROS_DISTRO}-devel/moveit.rosinstall && \
     #
     # Download all dependencies of MoveIt
     rosdep update && \
-    rosdep install -y --from-paths . --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false && \
-    #
+    DEBIAN_FRONTEND=noninteractive \
+    rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false && \
     # Remove the source code from this container
-    # TODO: in the future we may want to keep this here for further optimization of later containers
-    cd .. && \
-    rm -rf src/ && \
+    rm -rf src && \
     #
     # Clear apt-cache to reduce image size
     rm -rf /var/lib/apt/lists/*

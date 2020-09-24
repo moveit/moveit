@@ -1,13 +1,10 @@
 coverage:
+  precision: 2
+  round: up
+  range: "45...70"
   status:
     project:
       default:
         target: auto
-        # allow coverage to drop by this amount and still post success
-        threshold: 0.5%
-        base: auto
-        branches:
-          - master
-        if_not_found: success
-        if_ci_failed: error
-        only_pulls: false
+        threshold: 5%
+    patch: off

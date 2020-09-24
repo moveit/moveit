@@ -59,7 +59,7 @@
 /** \brief This namespace includes the central class for representing planning contexts */
 namespace planning_scene
 {
-MOVEIT_CLASS_FORWARD(PlanningScene);
+MOVEIT_CLASS_FORWARD(PlanningScene);  // Defines PlanningScenePtr, ConstPtr, WeakPtr... etc
 
 /** \brief This is the function signature for additional feasibility checks to be imposed on states (in addition to
    respecting constraints and collision avoidance).
@@ -72,8 +72,7 @@ typedef boost::function<bool(const moveit::core::RobotState&, bool)> StateFeasib
     The order of the arguments matters: the notion of feasibility is to be checked for motion segments that start at the
    first state and end at the second state. The third argument indicates
     whether the check should be verbose or not. */
-typedef boost::function<bool(const moveit::core::RobotState&, const moveit::core::RobotState&, bool)>
-    MotionFeasibilityFn;
+typedef boost::function<bool(const moveit::core::RobotState&, const moveit::core::RobotState&, bool)> MotionFeasibilityFn;
 
 /** \brief A map from object names (e.g., attached bodies, collision objects) to their colors */
 typedef std::map<std::string, std_msgs::ColorRGBA> ObjectColorMap;
@@ -371,8 +370,7 @@ public:
 
   /** \brief Check if a given state is in collision (with the environment or self collision)
       If a group name is specified, collision checking is done for that group only. */
-  bool isStateColliding(const moveit_msgs::RobotState& state, const std::string& group = "",
-                        bool verbose = false) const;
+  bool isStateColliding(const moveit_msgs::RobotState& state, const std::string& group = "", bool verbose = false) const;
 
   /** \brief Check whether the current state is in collision, and if needed, updates the collision transforms of the
    * current state before the computation. */
@@ -482,8 +480,7 @@ public:
                           moveit::core::RobotState& robot_state) const
   {
     robot_state.updateCollisionBodyTransforms();
-    checkSelfCollision(req, res, static_cast<const moveit::core::RobotState&>(robot_state),
-                       getAllowedCollisionMatrix());
+    checkSelfCollision(req, res, static_cast<const moveit::core::RobotState&>(robot_state), getAllowedCollisionMatrix());
   }
 
   /** \brief Check whether a specified state (\e robot_state) is in self collision */
@@ -943,8 +940,7 @@ public:
 
   /** \brief Check if a message includes any information about a planning scene, or it is just a default, empty message.
    */
-  [[deprecated("Use moveit/utils/message_checks.h instead")]] static bool
-  isEmpty(const moveit_msgs::PlanningScene& msg);
+  [[deprecated("Use moveit/utils/message_checks.h instead")]] static bool isEmpty(const moveit_msgs::PlanningScene& msg);
 
   /** \brief Check if a message includes any information about a planning scene world, or it is just a default, empty
    * message. */

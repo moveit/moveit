@@ -41,7 +41,6 @@
 #include <moveit/mesh_filter/gl_renderer.h>
 #include <moveit/mesh_filter/mesh_filter_base.h>
 #include <boost/function.hpp>
-#include <Eigen/Eigen>
 
 // forward declarations
 namespace shapes

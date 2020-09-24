@@ -44,6 +44,6 @@ bool CollisionDetectorBtPluginLoader::initialize(const planning_scene::PlanningS
   scene->setActiveCollisionDetector(CollisionDetectorAllocatorBullet::create(), exclusive);
   return true;
 }
-}
+}  // namespace collision_detection
 
 PLUGINLIB_EXPORT_CLASS(collision_detection::CollisionDetectorBtPluginLoader, collision_detection::CollisionPlugin)

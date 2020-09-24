@@ -41,7 +41,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <memory>
 #include <boost/function.hpp>
 #include <Eigen/Geometry>
 #include <eigen_stl_containers/eigen_stl_vector_container.h>
@@ -49,12 +48,12 @@
 
 namespace shapes
 {
-MOVEIT_CLASS_FORWARD(Shape);
+MOVEIT_CLASS_FORWARD(Shape);  // Defines ShapePtr, ConstPtr, WeakPtr... etc
 }
 
 namespace collision_detection
 {
-MOVEIT_CLASS_FORWARD(World);
+MOVEIT_CLASS_FORWARD(World);  // Defines WorldPtr, ConstPtr, WeakPtr... etc
 
 /** \brief Maintain a representation of the environment */
 class World

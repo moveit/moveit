@@ -122,9 +122,10 @@ void LazyFreeSpaceUpdater::processThread()
     if (!running_)
       break;
 
-    ROS_DEBUG_NAMED(
-        LOGNAME, "Begin processing batched update: marking free cells due to %lu occupied cells and %lu model cells",
-        (long unsigned int)process_occupied_cells_set_->size(), (long unsigned int)process_model_cells_set_->size());
+    ROS_DEBUG_NAMED(LOGNAME,
+                    "Begin processing batched update: marking free cells due to %lu occupied cells and %lu model cells",
+                    (long unsigned int)process_occupied_cells_set_->size(),
+                    (long unsigned int)process_model_cells_set_->size());
 
     ros::WallTime start = ros::WallTime::now();
     tree_->lockRead();

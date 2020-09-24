@@ -49,7 +49,7 @@ namespace moveit
 {
 namespace planning_interface
 {
-MOVEIT_CLASS_FORWARD(PlanningComponent);
+MOVEIT_CLASS_FORWARD(PlanningComponent);  // Defines PlanningComponentPtr, ConstPtr, WeakPtr... etc
 
 class PlanningComponent
 {
@@ -118,8 +118,8 @@ public:
       std::string ns = "plan_request_params/";
       nh.param(ns + "planner_id", planner_id, std::string(""));
       nh.param(ns + "planning_pipeline", planning_pipeline, std::string(""));
-      nh.param(ns + "planning_time", planning_attempts, 1);
-      nh.param(ns + "planning_attempts", planning_time, 5.0);
+      nh.param(ns + "planning_time", planning_time, 1.0);
+      nh.param(ns + "planning_attempts", planning_attempts, 5);
       nh.param(ns + "max_velocity_scaling_factor", max_velocity_scaling_factor, 1.0);
       nh.param(ns + "max_acceleration_scaling_factor", max_acceleration_scaling_factor, 1.0);
     }

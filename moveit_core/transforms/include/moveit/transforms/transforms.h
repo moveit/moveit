@@ -37,7 +37,6 @@
 #pragma once
 
 #include <geometry_msgs/TransformStamped.h>
-#include <geometry_msgs/Pose.h>
 #include <Eigen/Geometry>
 #include <boost/noncopyable.hpp>
 #include <moveit/macros/class_forward.h>
@@ -46,7 +45,7 @@ namespace moveit
 {
 namespace core
 {
-MOVEIT_CLASS_FORWARD(Transforms);
+MOVEIT_CLASS_FORWARD(Transforms);  // Defines TransformsPtr, ConstPtr, WeakPtr... etc
 
 /// @brief Map frame names to the transformation matrix that can transform objects from the frame name to the planning
 /// frame

@@ -262,7 +262,7 @@ bool operator<(const QVariant& left, const QVariant& right)
   else
     return left.toString() < right.toString();
 }
-}
+}  // namespace
 #endif
 
 bool SortFilterProxyModel::lessThan(const QModelIndex& src_left, const QModelIndex& src_right) const

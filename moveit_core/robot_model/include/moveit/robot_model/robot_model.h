@@ -59,7 +59,7 @@ namespace moveit
 /** \brief Core components of MoveIt */
 namespace core
 {
-MOVEIT_CLASS_FORWARD(RobotModel);
+MOVEIT_CLASS_FORWARD(RobotModel);  // Defines RobotModelPtr, ConstPtr, WeakPtr... etc
 
 /** \brief Definition of a kinematic model. This class is not thread
     safe, however multiple instances can be created */
@@ -429,8 +429,7 @@ public:
       return b;
     if (!b)
       return a;
-    return joint_model_vector_[common_joint_roots_[a->getJointIndex() * joint_model_vector_.size() +
-                                                   b->getJointIndex()]];
+    return joint_model_vector_[common_joint_roots_[a->getJointIndex() * joint_model_vector_.size() + b->getJointIndex()]];
   }
 
   /// A map of known kinematics solvers (associated to their group name)

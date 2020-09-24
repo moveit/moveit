@@ -352,8 +352,7 @@ protected:
     {
       node_dist = node_queue.top();
       node_queue.pop();
-      if (node_dist.second > node_dist.first->maxRadius_ + dist ||
-          node_dist.second < node_dist.first->minRadius_ - dist)
+      if (node_dist.second > node_dist.first->maxRadius_ + dist || node_dist.second < node_dist.first->minRadius_ - dist)
         continue;
       node_dist.first->nearestR(*this, data, radius, nbhQueue, node_queue);
     }
@@ -615,8 +614,9 @@ protected:
             dist_to_pivot[i] = gnat.distFun_(data, child->pivot_);
             insertNeighborR(nbh, r, child->pivot_, dist_to_pivot[i]);
             for (unsigned int j = 0; j < children_.size(); ++j)
-              if (permutation[j] >= 0 && i != j && (dist_to_pivot[i] - dist > child->maxRange_[permutation[j]] ||
-                                                    dist_to_pivot[i] + dist < child->minRange_[permutation[j]]))
+              if (permutation[j] >= 0 && i != j &&
+                  (dist_to_pivot[i] - dist > child->maxRange_[permutation[j]] ||
+                   dist_to_pivot[i] + dist < child->minRange_[permutation[j]]))
                 permutation[j] = -1;
           }
 

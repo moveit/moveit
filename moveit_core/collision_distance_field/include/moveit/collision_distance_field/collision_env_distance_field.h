@@ -53,7 +53,7 @@ static const double DEFAULT_RESOLUTION = .02;
 static const double DEFAULT_COLLISION_TOLERANCE = 0.0;
 static const double DEFAULT_MAX_PROPOGATION_DISTANCE = .25;
 
-MOVEIT_CLASS_FORWARD(CollisionEnvDistanceField);
+MOVEIT_CLASS_FORWARD(CollisionEnvDistanceField);  // Defines CollisionEnvDistanceFieldPtr, ConstPtr, WeakPtr... etc
 
 class CollisionEnvDistanceField : public CollisionEnv
 {

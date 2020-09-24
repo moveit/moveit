@@ -200,7 +200,7 @@ template <typename KinematicsPlugin>
 struct HasRobotDescApi<KinematicsPlugin,
                        decltype(std::declval<KinematicsPlugin&>().KinematicsPlugin::initialize(
                            std::string(), std::string(), std::string(), std::vector<std::string>(), 0.0))>
-    : std::true_type
+  : std::true_type
 {
 };
 

@@ -1,6 +1,6 @@
 <launch>
   <!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
-  <include file="$(find panda_moveit_config)/launch/planning_context.launch">
+  <include file="$(find moveit_resources_panda_moveit_config)/launch/planning_context.launch">
     <arg name="load_robot_description" value="true"/>
   </include>
 
@@ -17,7 +17,7 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
 
   <!-- Run the main MoveIt executable with fake trajectory execution -->
-  <include file="$(find panda_moveit_config)/launch/move_group.launch">
+  <include file="$(find moveit_resources_panda_moveit_config)/launch/move_group.launch">
     <arg name="allow_trajectory_execution" value="true"/>
     <arg name="fake_execution" value="true"/>
     <arg name="info" value="true"/>

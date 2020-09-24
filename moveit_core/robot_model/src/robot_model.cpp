@@ -41,7 +41,6 @@
 #include <moveit/profiler/profiler.h>
 #include <algorithm>
 #include <limits>
-#include <queue>
 #include <cmath>
 #include <memory>
 #include "order_robot_model_items.inc"
@@ -344,14 +343,16 @@ void RobotModel::buildGroupStates(const srdf::Model& srdf_model)
             for (std::size_t j = 0; j < vn.size(); ++j)
               state[vn[j]] = jt->second[j];
           else
-            ROS_ERROR_NAMED(LOGNAME, "The model for joint '%s' requires %d variable values, "
-                                     "but only %d variable values were supplied in default state '%s' for group '%s'",
+            ROS_ERROR_NAMED(LOGNAME,
+                            "The model for joint '%s' requires %d variable values, "
+                            "but only %d variable values were supplied in default state '%s' for group '%s'",
                             jt->first.c_str(), (int)vn.size(), (int)jt->second.size(), group_state.name_.c_str(),
                             jmg->getName().c_str());
         }
         else
-          ROS_ERROR_NAMED(LOGNAME, "Group state '%s' specifies value for joint '%s', "
-                                   "but that joint is not part of group '%s'",
+          ROS_ERROR_NAMED(LOGNAME,
+                          "Group state '%s' specifies value for joint '%s', "
+                          "but that joint is not part of group '%s'",
                           group_state.name_.c_str(), jt->first.c_str(), jmg->getName().c_str());
       }
       if (!remaining_joints.empty())
@@ -621,8 +622,9 @@ void RobotModel::buildGroupsInfoEndEffectors(const srdf::Model& srdf_model)
                                 eef.parent_group_.c_str(), eef.name_.c_str());
             }
             else
-              ROS_ERROR_NAMED(LOGNAME, "Group '%s' was specified as parent group for end-effector '%s' "
-                                       "but it does not include the parent link '%s'",
+              ROS_ERROR_NAMED(LOGNAME,
+                              "Group '%s' was specified as parent group for end-effector '%s' "
+                              "but it does not include the parent link '%s'",
                               eef.parent_group_.c_str(), eef.name_.c_str(), eef.parent_link_.c_str());
           }
           else
@@ -916,8 +918,9 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
     {
       if (virtual_joint.child_link_ != child_link->name)
       {
-        ROS_WARN_NAMED(LOGNAME, "Skipping virtual joint '%s' because its child frame '%s' "
-                                "does not match the URDF frame '%s'",
+        ROS_WARN_NAMED(LOGNAME,
+                       "Skipping virtual joint '%s' because its child frame '%s' "
+                       "does not match the URDF frame '%s'",
                        virtual_joint.name_.c_str(), virtual_joint.child_link_.c_str(), child_link->name.c_str());
       }
       else if (virtual_joint.parent_frame_.empty())
@@ -976,7 +979,7 @@ static inline Eigen::Isometry3d urdfPose2Isometry3d(const urdf::Pose& pose)
   Eigen::Isometry3d af(Eigen::Translation3d(pose.position.x, pose.position.y, pose.position.z) * q);
   return af;
 }
-}
+}  // namespace
 
 LinkModel* RobotModel::constructLinkModel(const urdf::Link* urdf_link)
 {

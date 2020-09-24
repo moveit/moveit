@@ -72,6 +72,11 @@
 #include "ompl/base/objectives/MaximizeMinClearanceObjective.h"
 #include <ompl/geometric/planners/prm/LazyPRM.h>
 
+namespace ompl_interface
+{
+constexpr char LOGNAME[] = "model_based_planning_context";
+}  // namespace ompl_interface
+
 ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string& name,
                                                                      const ModelBasedPlanningContextSpecification& spec)
   : planning_interface::PlanningContext(name, spec.state_space_->getJointModelGroup()->getName())
@@ -89,17 +94,17 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   , max_planning_threads_(0)
   , max_solution_segment_length_(0.0)
   , minimum_waypoint_count_(0)
-  , use_state_validity_cache_(true)
   , multi_query_planning_enabled_(false)  // maintain "old" behavior by default
   , simplify_solutions_(true)
+  , interpolate_(true)
+  , hybridize_(true)
 {
   complete_initial_robot_state_.update();
 
   constraints_library_ = std::make_shared<ConstraintsLibrary>(this);
 }
 
-void ompl_interface::ModelBasedPlanningContext::configure(const ros::NodeHandle& nh,
-                                                          bool use_constraints_approximations)
+void ompl_interface::ModelBasedPlanningContext::configure(const ros::NodeHandle& nh, bool use_constraints_approximations)
 {
   loadConstraintApproximations(nh);
   if (!use_constraints_approximations)
@@ -124,7 +129,7 @@ void ompl_interface::ModelBasedPlanningContext::configure(const ros::NodeHandle&
     if (constraint_approx)
     {
       getOMPLStateSpace()->setInterpolationFunction(constraint_approx->getInterpolationFunction());
-      ROS_INFO_NAMED("model_based_planning_context", "Using precomputed interpolation states");
+      ROS_INFO_NAMED(LOGNAME, "Using precomputed interpolation states");
     }
   }
 
@@ -137,7 +142,7 @@ void ompl_interface::ModelBasedPlanningContext::setProjectionEvaluator(const std
 {
   if (!spec_.state_space_)
   {
-    ROS_ERROR_NAMED("model_based_planning_context", "No state space is configured yet");
+    ROS_ERROR_NAMED(LOGNAME, "No state space is configured yet");
     return;
   }
   ob::ProjectionEvaluatorPtr projection_eval = getProjectionEvaluator(peval);
@@ -154,7 +159,7 @@ ompl_interface::ModelBasedPlanningContext::getProjectionEvaluator(const std::str
     if (getRobotModel()->hasLinkModel(link_name))
       return ob::ProjectionEvaluatorPtr(new ProjectionEvaluatorLinkPose(this, link_name));
     else
-      ROS_ERROR_NAMED("model_based_planning_context",
+      ROS_ERROR_NAMED(LOGNAME,
                       "Attempted to set projection evaluator with respect to position of link '%s', "
                       "but that link is not known to the kinematic model.",
                       link_name.c_str());
@@ -179,24 +184,22 @@ ompl_interface::ModelBasedPlanningContext::getProjectionEvaluator(const std::str
             j.push_back(idx + q);
         }
         else
-          ROS_WARN_NAMED("model_based_planning_context", "%s: Ignoring joint '%s' in projection since it has 0 DOF",
-                         name_.c_str(), joint.c_str());
+          ROS_WARN_NAMED(LOGNAME, "%s: Ignoring joint '%s' in projection since it has 0 DOF", name_.c_str(),
+                         joint.c_str());
       }
       else
-        ROS_ERROR_NAMED("model_based_planning_context",
+        ROS_ERROR_NAMED(LOGNAME,
                         "%s: Attempted to set projection evaluator with respect to value of joint "
                         "'%s', but that joint is not known to the group '%s'.",
                         name_.c_str(), joint.c_str(), getGroupName().c_str());
     }
     if (j.empty())
-      ROS_ERROR_NAMED("model_based_planning_context", "%s: No valid joints specified for joint projection",
-                      name_.c_str());
+      ROS_ERROR_NAMED(LOGNAME, "%s: No valid joints specified for joint projection", name_.c_str());
     else
       return ob::ProjectionEvaluatorPtr(new ProjectionEvaluatorJointValue(this, j));
   }
   else
-    ROS_ERROR_NAMED("model_based_planning_context",
-                    "Unable to allocate projection evaluator based on description: '%s'", peval.c_str());
+    ROS_ERROR_NAMED(LOGNAME, "Unable to allocate projection evaluator based on description: '%s'", peval.c_str());
   return ob::ProjectionEvaluatorPtr();
 }
 
@@ -205,13 +208,11 @@ ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const omp
 {
   if (spec_.state_space_.get() != state_space)
   {
-    ROS_ERROR_NAMED("model_based_planning_context",
-                    "%s: Attempted to allocate a state sampler for an unknown state space", name_.c_str());
+    ROS_ERROR_NAMED(LOGNAME, "%s: Attempted to allocate a state sampler for an unknown state space", name_.c_str());
     return ompl::base::StateSamplerPtr();
   }
 
-  ROS_DEBUG_NAMED("model_based_planning_context",
-                  "%s: Allocating a new state sampler (attempts to use path constraints)", name_.c_str());
+  ROS_DEBUG_NAMED(LOGNAME, "%s: Allocating a new state sampler (attempts to use path constraints)", name_.c_str());
 
   if (path_constraints_)
   {
@@ -228,7 +229,7 @@ ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const omp
           ompl::base::StateSamplerPtr state_sampler = state_sampler_allocator(state_space);
           if (state_sampler)
           {
-            ROS_INFO_NAMED("model_based_planning_context",
+            ROS_INFO_NAMED(LOGNAME,
                            "%s: Using precomputed state sampler (approximated constraint space) for constraint '%s'",
                            name_.c_str(), path_constraints_msg_.name.c_str());
             return state_sampler;
@@ -244,13 +245,11 @@ ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const omp
 
     if (constraint_sampler)
     {
-      ROS_INFO_NAMED("model_based_planning_context", "%s: Allocating specialized state sampler for state space",
-                     name_.c_str());
+      ROS_INFO_NAMED(LOGNAME, "%s: Allocating specialized state sampler for state space", name_.c_str());
       return ob::StateSamplerPtr(new ConstrainedSampler(this, constraint_sampler));
     }
   }
-  ROS_DEBUG_NAMED("model_based_planning_context", "%s: Allocating default state sampler for state space",
-                  name_.c_str());
+  ROS_DEBUG_NAMED(LOGNAME, "%s: Allocating default state sampler for state space", name_.c_str());
   return state_space->allocDefaultStateSampler();
 }
 
@@ -338,13 +337,28 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   if (it != cfg.end())
     multi_query_planning_enabled_ = boost::lexical_cast<bool>(it->second);
 
+  // check whether the path returned by the planner should be interpolated
+  it = cfg.find("interpolate");
+  if (it != cfg.end())
+  {
+    interpolate_ = boost::lexical_cast<bool>(it->second);
+    cfg.erase(it);
+  }
+
+  // check whether solution paths from parallel planning should be hybridized
+  it = cfg.find("hybridize");
+  if (it != cfg.end())
+  {
+    hybridize_ = boost::lexical_cast<bool>(it->second);
+    cfg.erase(it);
+  }
+
   // remove the 'type' parameter; the rest are parameters for the planner itself
   it = cfg.find("type");
   if (it == cfg.end())
   {
     if (name_ != getGroupName())
-      ROS_WARN_NAMED("model_based_planning_context", "%s: Attribute 'type' not specified in planner configuration",
-                     name_.c_str());
+      ROS_WARN_NAMED(LOGNAME, "%s: Attribute 'type' not specified in planner configuration", name_.c_str());
   }
   else
   {
@@ -353,7 +367,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
     const std::string planner_name = getGroupName() + "/" + name_;
     ompl_simple_setup_->setPlannerAllocator(
         std::bind(spec_.planner_selector_(type), std::placeholders::_1, planner_name, std::cref(spec_)));
-    ROS_INFO_NAMED("model_based_planning_context",
+    ROS_INFO_NAMED(LOGNAME,
                    "Planner configuration '%s' will use planner '%s'. "
                    "Additional configuration parameters will be set when the planner is constructed.",
                    name_.c_str(), type.c_str());
@@ -371,9 +385,9 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_m
   if (wparams.min_corner.x == wparams.max_corner.x && wparams.min_corner.x == 0.0 &&
       wparams.min_corner.y == wparams.max_corner.y && wparams.min_corner.y == 0.0 &&
       wparams.min_corner.z == wparams.max_corner.z && wparams.min_corner.z == 0.0)
-    ROS_WARN_NAMED("model_based_planning_context", "It looks like the planning volume was not specified.");
+    ROS_WARN_NAMED(LOGNAME, "It looks like the planning volume was not specified.");
 
-  ROS_DEBUG_NAMED("model_based_planning_context",
+  ROS_DEBUG_NAMED(LOGNAME,
                   "%s: Setting planning volume (affects SE2 & SE3 joints only) to x = [%f, %f], y = "
                   "[%f, %f], z = [%f, %f]",
                   name_.c_str(), wparams.min_corner.x, wparams.max_corner.x, wparams.min_corner.y, wparams.max_corner.y,
@@ -463,13 +477,14 @@ ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal()
   if (!goals.empty())
     return goals.size() == 1 ? goals[0] : ompl::base::GoalPtr(new GoalSampleableRegionMux(goals));
   else
-    ROS_ERROR_NAMED("model_based_planning_context", "Unable to construct goal representation");
+    ROS_ERROR_NAMED(LOGNAME, "Unable to construct goal representation");
 
   return ob::GoalPtr();
 }
 
-ompl::base::PlannerTerminationCondition ompl_interface::ModelBasedPlanningContext::constructPlannerTerminationCondition(
-    double timeout, const ompl::time::point& start)
+ompl::base::PlannerTerminationCondition
+ompl_interface::ModelBasedPlanningContext::constructPlannerTerminationCondition(double timeout,
+                                                                                const ompl::time::point& start)
 {
   auto it = spec_.config_.find("termination_condition");
   if (it == spec_.config_.end())
@@ -479,7 +494,7 @@ ompl::base::PlannerTerminationCondition ompl_interface::ModelBasedPlanningContex
   boost::split(termination_and_params, termination_string, boost::is_any_of("[ ,]"));
 
   if (termination_and_params.empty())
-    ROS_ERROR_NAMED("model_based_planning_context", "Termination condition not specified");
+    ROS_ERROR_NAMED(LOGNAME, "Termination condition not specified");
   // Terminate if a maximum number of iterations is exceeded or a timeout occurs.
   // The semantics of "iterations" are planner-specific, but typically it corresponds to the number of times
   // an attempt was made to grow a roadmap/tree.
@@ -490,7 +505,7 @@ ompl::base::PlannerTerminationCondition ompl_interface::ModelBasedPlanningContex
           ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start)),
           ob::IterationTerminationCondition(std::stoul(termination_and_params[1])));
     else
-      ROS_ERROR_NAMED("model_based_planning_context", "Missing argument to Iteration termination condition");
+      ROS_ERROR_NAMED(LOGNAME, "Missing argument to Iteration termination condition");
   }
 // TODO: remove when ROS Melodic and older are no longer supported
 #if OMPL_VERSION_VALUE >= 1005000
@@ -498,17 +513,17 @@ ompl::base::PlannerTerminationCondition ompl_interface::ModelBasedPlanningContex
   // Only useful for anytime/optimizing planners.
   else if (termination_and_params[0] == "CostConvergence")
   {
-    std::size_t solutionsWindow = 10u;
+    std::size_t solutions_window = 10u;
     double epsilon = 0.1;
     if (termination_and_params.size() > 1)
     {
-      solutionsWindow = std::stoul(termination_and_params[1]);
+      solutions_window = std::stoul(termination_and_params[1]);
       if (termination_and_params.size() > 2)
         epsilon = moveit::core::toDouble(termination_and_params[2]);
     }
     return ob::plannerOrTerminationCondition(
         ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start)),
-        ob::CostConvergenceTerminationCondition(ompl_simple_setup_->getProblemDefinition(), solutionsWindow, epsilon));
+        ob::CostConvergenceTerminationCondition(ompl_simple_setup_->getProblemDefinition(), solutions_window, epsilon));
   }
 #endif
   // Terminate as soon as an exact solution is found or a timeout occurs.
@@ -521,7 +536,7 @@ ompl::base::PlannerTerminationCondition ompl_interface::ModelBasedPlanningContex
         ob::exactSolnPlannerTerminationCondition(ompl_simple_setup_->getProblemDefinition()));
   }
   else
-    ROS_ERROR_NAMED("model_based_planning_context", "Unknown planner termination condition");
+    ROS_ERROR_NAMED(LOGNAME, "Unknown planner termination condition");
 
   // return a planner termination condition to suppress compiler warning
   return ob::plannerAlwaysTerminatingCondition();
@@ -588,8 +603,7 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(
 
   if (goal_constraints_.empty())
   {
-    ROS_WARN_NAMED("model_based_planning_context", "%s: No goal constraints specified. There is no problem to solve.",
-                   name_.c_str());
+    ROS_WARN_NAMED(LOGNAME, "%s: No goal constraints specified. There is no problem to solve.", name_.c_str());
     if (error)
       error->val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
     return false;
@@ -654,10 +668,10 @@ void ompl_interface::ModelBasedPlanningContext::postSolve()
   stopSampling();
   int v = ompl_simple_setup_->getSpaceInformation()->getMotionValidator()->getValidMotionCount();
   int iv = ompl_simple_setup_->getSpaceInformation()->getMotionValidator()->getInvalidMotionCount();
-  ROS_DEBUG_NAMED("model_based_planning_context", "There were %d valid motions and %d invalid motions.", v, iv);
+  ROS_DEBUG_NAMED(LOGNAME, "There were %d valid motions and %d invalid motions.", v, iv);
 
   if (ompl_simple_setup_->getProblemDefinition()->hasApproximateSolution())
-    ROS_WARN_NAMED("model_based_planning_context", "Computed solution is approximate");
+    ROS_WARN_NAMED(LOGNAME, "Computed solution is approximate");
 }
 
 bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::MotionPlanResponse& res)
@@ -670,11 +684,13 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
       simplifySolution(request_.allowed_planning_time - ptime);
       ptime += getLastSimplifyTime();
     }
-    interpolateSolution();
+
+    if (interpolate_)
+      interpolateSolution();
 
     // fill the response
-    ROS_DEBUG_NAMED("model_based_planning_context", "%s: Returning successful solution with %lu states",
-                    getName().c_str(), getOMPLSimpleSetup()->getSolutionPath().getStateCount());
+    ROS_DEBUG_NAMED(LOGNAME, "%s: Returning successful solution with %lu states", getName().c_str(),
+                    getOMPLSimpleSetup()->getSolutionPath().getStateCount());
 
     res.trajectory_.reset(new robot_trajectory::RobotTrajectory(getRobotModel(), getGroupName()));
     getSolutionPath(*res.trajectory_);
@@ -683,7 +699,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
   }
   else
   {
-    ROS_INFO_NAMED("model_based_planning_context", "Unable to solve the planning problem");
+    ROS_INFO_NAMED(LOGNAME, "Unable to solve the planning problem");
     res.error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
   }
@@ -714,22 +730,25 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
       getSolutionPath(*res.trajectory_.back());
     }
 
-    ompl::time::point start_interpolate = ompl::time::now();
-    interpolateSolution();
-    res.processing_time_.push_back(ompl::time::seconds(ompl::time::now() - start_interpolate));
-    res.description_.emplace_back("interpolate");
-    res.trajectory_.resize(res.trajectory_.size() + 1);
-    res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(getRobotModel(), getGroupName()));
-    getSolutionPath(*res.trajectory_.back());
+    if (interpolate_)
+    {
+      ompl::time::point start_interpolate = ompl::time::now();
+      interpolateSolution();
+      res.processing_time_.push_back(ompl::time::seconds(ompl::time::now() - start_interpolate));
+      res.description_.emplace_back("interpolate");
+      res.trajectory_.resize(res.trajectory_.size() + 1);
+      res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(getRobotModel(), getGroupName()));
+      getSolutionPath(*res.trajectory_.back());
+    }
 
     // fill the response
-    ROS_DEBUG_NAMED("model_based_planning_context", "%s: Returning successful solution with %lu states",
-                    getName().c_str(), getOMPLSimpleSetup()->getSolutionPath().getStateCount());
+    ROS_DEBUG_NAMED(LOGNAME, "%s: Returning successful solution with %lu states", getName().c_str(),
+                    getOMPLSimpleSetup()->getSolutionPath().getStateCount());
     return true;
   }
   else
   {
-    ROS_INFO_NAMED("model_based_planning_context", "Unable to solve the planning problem");
+    ROS_INFO_NAMED(LOGNAME, "Unable to solve the planning problem");
     res.error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
   }
@@ -744,7 +763,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   bool result = false;
   if (count <= 1 || multi_query_planning_enabled_)  // multi-query planners should always run in single instances
   {
-    ROS_DEBUG_NAMED("model_based_planning_context", "%s: Solving the planning problem once...", name_.c_str());
+    ROS_DEBUG_NAMED(LOGNAME, "%s: Solving the planning problem once...", name_.c_str());
     ob::PlannerTerminationCondition ptc = constructPlannerTerminationCondition(timeout, start);
     registerTerminationCondition(ptc);
     result = ompl_simple_setup_->solve(ptc) == ompl::base::PlannerStatus::EXACT_SOLUTION;
@@ -753,8 +772,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   }
   else
   {
-    ROS_DEBUG_NAMED("model_based_planning_context", "%s: Solving the planning problem %u times...", name_.c_str(),
-                    count);
+    ROS_DEBUG_NAMED(LOGNAME, "%s: Solving the planning problem %u times...", name_.c_str(), count);
     ompl_parallel_plan_.clearHybridizationPaths();
     if (count <= max_planning_threads_)
     {
@@ -768,7 +786,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
 
       ob::PlannerTerminationCondition ptc = constructPlannerTerminationCondition(timeout, start);
       registerTerminationCondition(ptc);
-      result = ompl_parallel_plan_.solve(ptc, 1, count, true) == ompl::base::PlannerStatus::EXACT_SOLUTION;
+      result = ompl_parallel_plan_.solve(ptc, 1, count, hybridize_) == ompl::base::PlannerStatus::EXACT_SOLUTION;
       last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
       unregisterTerminationCondition();
     }
@@ -787,7 +805,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
         else
           for (unsigned int i = 0; i < max_planning_threads_; ++i)
             ompl_parallel_plan_.addPlanner(ompl::tools::SelfConfig::getDefaultPlanner(ompl_simple_setup_->getGoal()));
-        bool r = ompl_parallel_plan_.solve(ptc, 1, count, true) == ompl::base::PlannerStatus::EXACT_SOLUTION;
+        bool r = ompl_parallel_plan_.solve(ptc, 1, count, hybridize_) == ompl::base::PlannerStatus::EXACT_SOLUTION;
         result = result && r;
       }
       n = count % max_planning_threads_;
@@ -800,7 +818,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
         else
           for (int i = 0; i < n; ++i)
             ompl_parallel_plan_.addPlanner(ompl::tools::SelfConfig::getDefaultPlanner(ompl_simple_setup_->getGoal()));
-        bool r = ompl_parallel_plan_.solve(ptc, 1, count, true) == ompl::base::PlannerStatus::EXACT_SOLUTION;
+        bool r = ompl_parallel_plan_.solve(ptc, 1, count, hybridize_) == ompl::base::PlannerStatus::EXACT_SOLUTION;
         result = result && r;
       }
       last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
@@ -841,7 +859,7 @@ bool ompl_interface::ModelBasedPlanningContext::saveConstraintApproximations(con
     constraints_library_->saveConstraintApproximations(constraint_path);
     return true;
   }
-  ROS_WARN("ROS param 'constraint_approximations' not found. Unable to save constraint approximations");
+  ROS_WARN_NAMED(LOGNAME, "ROS param 'constraint_approximations' not found. Unable to save constraint approximations");
   return false;
 }
 

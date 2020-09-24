@@ -57,17 +57,6 @@ void MotionPlanningFrame::databaseConnectButtonClicked()
                                       "connect to database");
 }
 
-void MotionPlanningFrame::publishSceneButtonClicked()
-{
-  const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
-  if (ps)
-  {
-    moveit_msgs::PlanningScene msg;
-    ps->getPlanningSceneMsg(msg);
-    planning_scene_publisher_.publish(msg);
-  }
-}
-
 void MotionPlanningFrame::planningAlgorithmIndexChanged(int index)
 {
   std::string planner_id = ui_->planning_algorithm_combo_box->itemText(index).toStdString();
@@ -81,8 +70,9 @@ void MotionPlanningFrame::planningAlgorithmIndexChanged(int index)
 
 void MotionPlanningFrame::resetDbButtonClicked()
 {
-  if (QMessageBox::warning(this, "Data about to be deleted", "The following dialog will allow you to drop a MoveIt "
-                                                             "Warehouse database. Are you sure you want to continue?",
+  if (QMessageBox::warning(this, "Data about to be deleted",
+                           "The following dialog will allow you to drop a MoveIt "
+                           "Warehouse database. Are you sure you want to continue?",
                            QMessageBox::Yes | QMessageBox::No) == QMessageBox::No)
     return;
 

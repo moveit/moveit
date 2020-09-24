@@ -231,7 +231,7 @@ void MeshFilterTest<Type>::test()
     float sensor_depth = sensor_data_[idx] * FilterTraits<Type>::ToMetricScale;
     if (fabs(sensor_depth - distance_ - shadow_) > epsilon_ && fabs(sensor_depth - distance_) > epsilon_)
     {
-      ASSERT_NEAR(filtered_depth[idx], gt_depth[idx], 1e-6);
+      ASSERT_NEAR(filtered_depth[idx], gt_depth[idx], 1e-4);
       ASSERT_EQ(filtered_labels[idx], gt_labels[idx]);
     }
   }

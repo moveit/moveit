@@ -47,7 +47,7 @@
 
 namespace collision_detection
 {
-MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);
+MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);  // Defines AllowedCollisionMatrixPtr, ConstPtr, WeakPtr... etc
 
 /** \brief The types of bodies that are considered for collision */
 namespace BodyTypes
@@ -160,6 +160,9 @@ struct CollisionResult
     contacts.clear();
     cost_sources.clear();
   }
+
+  /** \brief Throttled warning printing the first collision pair, if any. All collisions are logged at DEBUG level */
+  void print() const;
 
   /** \brief True if collision was found, false otherwise */
   bool collision;

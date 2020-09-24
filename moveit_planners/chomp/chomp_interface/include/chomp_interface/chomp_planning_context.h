@@ -41,7 +41,7 @@
 
 namespace chomp_interface
 {
-MOVEIT_CLASS_FORWARD(CHOMPPlanningContext);
+MOVEIT_CLASS_FORWARD(CHOMPPlanningContext);  // Defines CHOMPPlanningContextPtr, ConstPtr, WeakPtr... etc
 
 class CHOMPPlanningContext : public planning_interface::PlanningContext
 {
@@ -52,8 +52,7 @@ public:
   void clear() override;
   bool terminate() override;
 
-  CHOMPPlanningContext(const std::string& name, const std::string& group,
-                       const moveit::core::RobotModelConstPtr& model);
+  CHOMPPlanningContext(const std::string& name, const std::string& group, const moveit::core::RobotModelConstPtr& model);
 
   ~CHOMPPlanningContext() override = default;
 

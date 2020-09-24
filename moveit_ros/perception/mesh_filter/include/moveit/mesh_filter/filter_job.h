@@ -43,7 +43,7 @@
 
 namespace mesh_filter
 {
-MOVEIT_CLASS_FORWARD(Job);
+MOVEIT_CLASS_FORWARD(Job);  // Defines JobPtr, ConstPtr, WeakPtr... etc
 
 /**
  * \brief This class is used to execute functions within the thread that holds the OpenGL context.

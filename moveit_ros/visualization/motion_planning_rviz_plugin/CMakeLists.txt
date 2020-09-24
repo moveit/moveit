@@ -23,6 +23,7 @@ set(SOURCE_FILES
   src/motion_planning_display.cpp
   src/motion_planning_frame_manipulation.cpp
   src/motion_planning_param_widget.cpp
+  src/icons/icons.qrc
 )
 
 set(MOVEIT_LIB_NAME moveit_motion_planning_rviz_plugin)

@@ -194,9 +194,9 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
     {
       try
       {
-        tf2::fromMsg(
-            tf_buffer_->lookupTransform(monitor_->getMapFrame(), cloud_msg->header.frame_id, cloud_msg->header.stamp),
-            map_h_sensor);
+        tf2::fromMsg(tf_buffer_->lookupTransform(monitor_->getMapFrame(), cloud_msg->header.frame_id,
+                                                 cloud_msg->header.stamp),
+                     map_h_sensor);
       }
       catch (tf2::TransformException& ex)
       {

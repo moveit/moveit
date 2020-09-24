@@ -41,13 +41,14 @@
 
 namespace moveit_rviz_plugin
 {
-TrajectoryDisplay::TrajectoryDisplay() : Display(), load_robot_model_(false)
+TrajectoryDisplay::TrajectoryDisplay() : Display()
 {
   // The robot description property is only needed when using the trajectory playback standalone (not within motion
   // planning plugin)
-  robot_description_property_ = new rviz::StringProperty(
-      "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
-      this, SLOT(changedRobotDescription()), this);
+  robot_description_property_ =
+      new rviz::StringProperty("Robot Description", "robot_description",
+                               "The name of the ROS parameter where the URDF for the robot is loaded", this,
+                               SLOT(changedRobotDescription()), this);
 
   trajectory_visual_.reset(new TrajectoryVisualization(this, this));
 }
@@ -63,7 +64,6 @@ void TrajectoryDisplay::onInitialize()
 
 void TrajectoryDisplay::loadRobotModel()
 {
-  load_robot_model_ = false;
   rdf_loader_.reset(new rdf_loader::RDFLoader(robot_description_property_->getStdString()));
 
   if (!rdf_loader_->getURDF())
@@ -80,7 +80,6 @@ void TrajectoryDisplay::loadRobotModel()
 
   // Send to child class
   trajectory_visual_->onRobotModelLoaded(robot_model_);
-  trajectory_visual_->onEnable();
 }
 
 void TrajectoryDisplay::reset()
@@ -90,10 +89,20 @@ void TrajectoryDisplay::reset()
   trajectory_visual_->reset();
 }
 
+void TrajectoryDisplay::load(const rviz::Config& config)
+{
+  // This property needs to be loaded in onEnable() below, which is triggered
+  // in the beginning of Display::load() before the other property would be available
+  robot_description_property_->load(config.mapGetChild("Robot Description"));
+  Display::load(config);
+}
+
 void TrajectoryDisplay::onEnable()
 {
   Display::onEnable();
-  load_robot_model_ = true;  // allow loading of robot model in update()
+  if (!rdf_loader_)
+    loadRobotModel();
+  trajectory_visual_->onEnable();
 }
 
 void TrajectoryDisplay::onDisable()
@@ -105,10 +114,6 @@ void TrajectoryDisplay::onDisable()
 void TrajectoryDisplay::update(float wall_dt, float ros_dt)
 {
   Display::update(wall_dt, ros_dt);
-
-  if (load_robot_model_)
-    loadRobotModel();
-
   trajectory_visual_->update(wall_dt, ros_dt);
 }
 

@@ -54,9 +54,9 @@ class DisplayContext;
 
 namespace moveit_rviz_plugin
 {
-MOVEIT_CLASS_FORWARD(RobotStateVisualization);
-MOVEIT_CLASS_FORWARD(RenderShapes);
-MOVEIT_CLASS_FORWARD(PlanningSceneRender);
+MOVEIT_CLASS_FORWARD(RobotStateVisualization);  // Defines RobotStateVisualizationPtr, ConstPtr, WeakPtr... etc
+MOVEIT_CLASS_FORWARD(RenderShapes);             // Defines RenderShapesPtr, ConstPtr, WeakPtr... etc
+MOVEIT_CLASS_FORWARD(PlanningSceneRender);      // Defines PlanningSceneRenderPtr, ConstPtr, WeakPtr... etc
 
 class PlanningSceneRender
 {

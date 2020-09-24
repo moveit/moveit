@@ -34,6 +34,8 @@
 
 /* Author: Ioan Sucan */
 
+#include <limits>
+
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
 #include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space.h>
 
@@ -41,34 +43,20 @@
 
 #include <ompl/util/Exception.h>
 #include <moveit/robot_state/conversions.h>
+#include <moveit/utils/robot_model_test_utils.h>
 #include <gtest/gtest.h>
 #include <fstream>
 #include <boost/filesystem/path.hpp>
 #include <ros/package.h>
+
+constexpr double EPSILON = std::numeric_limits<double>::epsilon();
 
 class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
   void SetUp() override
   {
-    boost::filesystem::path res_path(ros::package::getPath("moveit_resources"));
-
-    srdf_model_.reset(new srdf::Model());
-    std::string xml_string;
-    std::fstream xml_file((res_path / "pr2_description/urdf/robot.xml").string().c_str(), std::fstream::in);
-    if (xml_file.is_open())
-    {
-      while (xml_file.good())
-      {
-        std::string line;
-        std::getline(xml_file, line);
-        xml_string += (line + "\n");
-      }
-      xml_file.close();
-      urdf_model_ = urdf::parseURDF(xml_string);
-    }
-    srdf_model_->initFile(*urdf_model_, (res_path / "pr2_description/srdf/robot.xml").string());
-    robot_model_.reset(new moveit::core::RobotModel(urdf_model_, srdf_model_));
+    robot_model_ = moveit::core::loadTestingRobotModel("pr2");
   };
 
   void TearDown() override
@@ -77,10 +65,6 @@ protected:
 
 protected:
   moveit::core::RobotModelPtr robot_model_;
-  urdf::ModelInterfaceSharedPtr urdf_model_;
-  srdf::ModelSharedPtr srdf_model_;
-  bool urdf_ok_;
-  bool srdf_ok_;
 };
 
 TEST_F(LoadPlanningModelsPr2, StateSpace)
@@ -129,15 +113,15 @@ TEST_F(LoadPlanningModelsPr2, StateSpaces)
 TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
 {
   ompl_interface::ModelBasedStateSpaceSpecification spec(robot_model_, "right_arm");
-  ompl_interface::JointModelStateSpace ss(spec);
-  ss.setPlanningVolume(-1, 1, -1, 1, -1, 1);
-  ss.setup();
+  ompl_interface::JointModelStateSpace joint_model_state_space(spec);
+  joint_model_state_space.setPlanningVolume(-1, 1, -1, 1, -1, 1);
+  joint_model_state_space.setup();
   std::ofstream fout("ompl_interface_test_state_space_diagram1.dot");
-  ss.diagram(fout);
+  joint_model_state_space.diagram(fout);
   bool passed = false;
   try
   {
-    ss.sanityChecks();
+    joint_model_state_space.sanityChecks();
     passed = true;
   }
   catch (ompl::Exception& ex)
@@ -148,26 +132,56 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
 
   moveit::core::RobotState robot_state(robot_model_);
   robot_state.setToRandomPositions();
-  EXPECT_TRUE(robot_state.distance(robot_state) < 1e-12);
-  ompl::base::State* state = ss.allocState();
+  EXPECT_TRUE(robot_state.distance(robot_state) < EPSILON);
+  ompl::base::State* state = joint_model_state_space.allocState();
   for (int i = 0; i < 10; ++i)
   {
     moveit::core::RobotState robot_state2(robot_state);
-    EXPECT_TRUE(robot_state.distance(robot_state2) < 1e-12);
-    ss.copyToOMPLState(state, robot_state);
-    robot_state.setToRandomPositions(robot_state.getRobotModel()->getJointModelGroup(ss.getJointModelGroupName()));
+    EXPECT_TRUE(robot_state.distance(robot_state2) < EPSILON);
+    joint_model_state_space.copyToOMPLState(state, robot_state);
+    robot_state.setToRandomPositions(
+        robot_state.getRobotModel()->getJointModelGroup(joint_model_state_space.getJointModelGroupName()));
     std::cout << (robot_state.getGlobalLinkTransform("r_wrist_roll_link").translation() -
                   robot_state2.getGlobalLinkTransform("r_wrist_roll_link").translation())
               << std::endl;
-    EXPECT_TRUE(robot_state.distance(robot_state2) > 1e-12);
-    ss.copyToRobotState(robot_state, state);
+    EXPECT_TRUE(robot_state.distance(robot_state2) > EPSILON);
+    joint_model_state_space.copyToRobotState(robot_state, state);
     std::cout << (robot_state.getGlobalLinkTransform("r_wrist_roll_link").translation() -
                   robot_state2.getGlobalLinkTransform("r_wrist_roll_link").translation())
               << std::endl;
-    EXPECT_TRUE(robot_state.distance(robot_state2) < 1e-12);
+    EXPECT_TRUE(robot_state.distance(robot_state2) < EPSILON);
   }
 
-  ss.freeState(state);
+  // repeat the above test with a different method to copy the state to OMPL
+  for (int i = 0; i < 10; ++i)
+  {
+    // create two equal states
+    moveit::core::RobotState robot_state2(robot_state);
+    EXPECT_LT(robot_state.distance(robot_state2), EPSILON);
+
+    // copy the first state to OMPL as backup (this is where the 'different' method comes into play)
+    const moveit::core::JointModelGroup* joint_model_group =
+        robot_state.getRobotModel()->getJointModelGroup(joint_model_state_space.getJointModelGroupName());
+    std::vector<std::string> joint_model_names = joint_model_group->getActiveJointModelNames();
+    for (std::size_t joint_index = 0; joint_index < joint_model_group->getVariableCount(); ++joint_index)
+    {
+      const moveit::core::JointModel* joint_model = joint_model_group->getJointModel(joint_model_names[joint_index]);
+      EXPECT_NE(joint_model, nullptr);
+      joint_model_state_space.copyJointToOMPLState(state, robot_state, joint_model, joint_index);
+    }
+
+    // and change the joint values of the moveit state, so it is different that robot_state2
+    robot_state.setToRandomPositions(
+        robot_state.getRobotModel()->getJointModelGroup(joint_model_state_space.getJointModelGroupName()));
+    EXPECT_GT(robot_state.distance(robot_state2), EPSILON);
+
+    // copy the backup values in the OMPL state back to the first state,
+    // and check if it is still equal to the second
+    joint_model_state_space.copyToRobotState(robot_state, state);
+    EXPECT_LT(robot_state.distance(robot_state2), EPSILON);
+  }
+
+  joint_model_state_space.freeState(state);
 }
 
 int main(int argc, char** argv)

@@ -41,7 +41,7 @@
 
 namespace collision_detection
 {
-MOVEIT_CLASS_FORWARD(CollisionDetectorAllocator);
+MOVEIT_CLASS_FORWARD(CollisionDetectorAllocator);  // Defines CollisionDetectorAllocatorPtr, ConstPtr, WeakPtr... etc
 
 /** \brief An allocator for a compatible CollisionWorld/CollisionRobot pair. */
 class CollisionDetectorAllocator

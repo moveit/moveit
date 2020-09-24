@@ -137,9 +137,8 @@ void MotionPlanningFrame::saveRobotStateButtonClicked(const moveit::core::RobotS
     {
       name = text.toStdString();
       if (robot_states_.find(name) != robot_states_.end())
-        QMessageBox::warning(
-            this, "Name already exists",
-            QString("The name '").append(name.c_str()).append("' already exists. Not creating state."));
+        QMessageBox::warning(this, "Name already exists",
+                             QString("The name '").append(name.c_str()).append("' already exists. Not creating state."));
       else
       {
         // Store the current start state
@@ -161,8 +160,7 @@ void MotionPlanningFrame::saveRobotStateButtonClicked(const moveit::core::RobotS
         }
         else
         {
-          QMessageBox::warning(this, "Warning",
-                               "Not connected to a database. The state will be created but not stored");
+          QMessageBox::warning(this, "Warning", "Not connected to a database. The state will be created but not stored");
         }
       }
     }
@@ -245,8 +243,21 @@ void MotionPlanningFrame::removeStateButtonClicked()
 
 void MotionPlanningFrame::clearStatesButtonClicked()
 {
-  robot_states_.clear();
-  populateRobotStatesList();
+  QMessageBox msg_box;
+  msg_box.setText("Clear all stored robot states (from memory, not from the database)?");
+  msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+  msg_box.setDefaultButton(QMessageBox::Yes);
+  int ret = msg_box.exec();
+  switch (ret)
+  {
+    case QMessageBox::Yes:
+    {
+      robot_states_.clear();
+      populateRobotStatesList();
+    }
+    break;
+  }
+  return;
 }
 
 }  // namespace moveit_rviz_plugin

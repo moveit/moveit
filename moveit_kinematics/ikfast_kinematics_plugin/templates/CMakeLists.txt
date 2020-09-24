@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(_PACKAGE_NAME_)
 
-set(CMAKE_CXX_STANDARD 14)
+if(NOT "${CMAKE_CXX_STANDARD}")
+  set(CMAKE_CXX_STANDARD 14)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -15,7 +17,8 @@ find_package(catkin REQUIRED COMPONENTS
 )
 find_package(LAPACK REQUIRED)
 
-include_directories(${catkin_INCLUDE_DIRS} include)
+include_directories(include)
+include_directories(SYSTEM ${catkin_INCLUDE_DIRS})
 
 catkin_package()
 

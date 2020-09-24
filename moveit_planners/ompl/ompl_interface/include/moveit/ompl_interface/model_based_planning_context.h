@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2012, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2012, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -52,8 +52,8 @@ namespace ob = ompl::base;
 namespace og = ompl::geometric;
 namespace ot = ompl::tools;
 
-MOVEIT_CLASS_FORWARD(ModelBasedPlanningContext);
-MOVEIT_CLASS_FORWARD(ConstraintsLibrary);
+MOVEIT_CLASS_FORWARD(ModelBasedPlanningContext);  // Defines ModelBasedPlanningContextPtr, ConstPtr, WeakPtr... etc
+MOVEIT_CLASS_FORWARD(ConstraintsLibrary);         // Defines ConstraintsLibraryPtr, ConstPtr, WeakPtr... etc
 
 struct ModelBasedPlanningContextSpecification;
 typedef std::function<ob::PlannerPtr(const ompl::base::SpaceInformationPtr& si, const std::string& name,
@@ -68,7 +68,6 @@ struct ModelBasedPlanningContextSpecification
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
 
   ModelBasedStateSpacePtr state_space_;
-  std::vector<ModelBasedStateSpacePtr> subspaces_;
   og::SimpleSetupPtr ompl_simple_setup_;  // pass in the correct simple setup type
 };
 
@@ -255,16 +254,6 @@ public:
     return constraints_library_;
   }
 
-  bool useStateValidityCache() const
-  {
-    return use_state_validity_cache_;
-  }
-
-  void useStateValidityCache(bool flag)
-  {
-    use_state_validity_cache_ = flag;
-  }
-
   bool simplifySolutions() const
   {
     return simplify_solutions_;
@@ -275,13 +264,23 @@ public:
     simplify_solutions_ = flag;
   }
 
+  void setInterpolation(bool flag)
+  {
+    interpolate_ = flag;
+  }
+
+  void setHybridize(bool flag)
+  {
+    hybridize_ = flag;
+  }
+
   /* @brief Solve the planning problem. Return true if the problem is solved
      @param timeout The time to spend on solving
      @param count The number of runs to combine the paths of, in an attempt to generate better quality paths
   */
   bool solve(double timeout, unsigned int count);
 
-  /* @brief Benchmark the planning problem. Return true on succesful saving of benchmark results
+  /* @brief Benchmark the planning problem. Return true on successful saving of benchmark results
      @param timeout The time to spend on solving
      @param count The number of runs to average in the computation of the benchmark
      @param filename The name of the file to which the benchmark results are to be saved (automatic names can be
@@ -321,6 +320,13 @@ public:
    * approximations to */
   bool saveConstraintApproximations(const ros::NodeHandle& nh);
 
+  /** \brief Configure ompl_simple_setup_ and optionally the constraints_library_.
+   *
+   * ompl_simple_setup_ gets a start state, state sampler, and state validity checker.
+   *
+   * \param nh ROS node handle used to load the constraint approximations.
+   * \param use_constraints_approximations Set to true if we want to load the constraint approximation.
+   * */
   virtual void configure(const ros::NodeHandle& nh, bool use_constraints_approximations);
 
 protected:
@@ -345,8 +351,8 @@ protected:
 
      * `Iteration[num]`: Terminate after `num` iterations. Here, `num` should be replaced
        with a positive integer.
-     * `CostConvergence[solutionsWindow,epsilon]`: Terminate after the cost (as specified
-       by an optimization objective) has converged. The parameter `solutionsWindow`
+     * `CostConvergence[solutions_window,epsilon]`: Terminate after the cost (as specified
+       by an optimization objective) has converged. The parameter `solutions_window`
        specifies the minimum number of solutions to use in deciding whether a planner has
        converged. The parameter `epsilon`	is the threshold to consider for convergence.
        This should be a positive number close to 0. If the cumulative moving average does
@@ -416,13 +422,17 @@ protected:
   /// needed)
   unsigned int minimum_waypoint_count_;
 
-  bool use_state_validity_cache_;
-
   /// when false, clears planners before running solve()
   bool multi_query_planning_enabled_;
 
   ConstraintsLibraryPtr constraints_library_;
 
   bool simplify_solutions_;
+
+  // if false the final solution is not interpolated
+  bool interpolate_;
+
+  // if false parallel plan returns the first solution found
+  bool hybridize_;
 };
 }  // namespace ompl_interface

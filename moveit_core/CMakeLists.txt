@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(moveit_core)
 
-set(CMAKE_CXX_STANDARD 14)
+if(NOT "${CMAKE_CXX_STANDARD}")
+  set(CMAKE_CXX_STANDARD 14)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -26,7 +28,7 @@ endif()
 if(WIN32)
   set(EXTRA_BOOST_COMPONENTS zlib)
 endif()
-find_package(Boost REQUIRED system filesystem date_time thread iostreams ${EXTRA_BOOST_COMPONENTS})
+find_package(Boost REQUIRED system filesystem date_time thread iostreams regex ${EXTRA_BOOST_COMPONENTS})
 find_package(Eigen3 REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
@@ -170,20 +172,19 @@ catkin_package(
     ${BULLET_ENABLE}
     )
 
-include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS}
+include_directories(SYSTEM ${catkin_INCLUDE_DIRS}
+                           ${Boost_INCLUDE_DIRS}
+                           ${EIGEN3_INCLUDE_DIRS}
+                           ${urdfdom_INCLUDE_DIRS}
+                           ${urdfdom_headers_INCLUDE_DIRS}
                            ${LIBFCL_INCLUDE_DIRS}
                            ${BULLET_INCLUDE_DIRS}
-                           )
+                           ${OCTOMAP_INCLUDE_DIRS}
+                    )
 
 #catkin_lint: ignore_once external_directory  (${VERSION_FILE_PATH})
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
-                    ${VERSION_FILE_PATH}
-                    ${Boost_INCLUDE_DIRS}
-                    ${catkin_INCLUDE_DIRS}
-                    ${urdfdom_INCLUDE_DIRS}
-                    ${urdfdom_headers_INCLUDE_DIRS}
-                    ${OCTOMAP_INCLUDE_DIRS}
-                    )
+                    ${VERSION_FILE_PATH})
 
 # Generate and install version.h
 string(REGEX REPLACE "^([0-9]+)\\..*" "\\1" MOVEIT_VERSION_MAJOR "${${PROJECT_NAME}_VERSION}")

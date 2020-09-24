@@ -687,8 +687,9 @@ void ConfigurationFilesWidget::changeCheckedState(QListWidgetItem* item)
 
   if (!generate && (gen_files_[index].write_on_changes & config_data_->changes))
   {
-    QMessageBox::warning(this, "Package Generation", "You should generate this file to ensure your changes will take "
-                                                     "effect.");
+    QMessageBox::warning(this, "Package Generation",
+                         "You should generate this file to ensure your changes will take "
+                         "effect.");
   }
 
   // Enable/disable file
@@ -883,8 +884,9 @@ bool ConfigurationFilesWidget::generatePackage()
   // Check that a valid stack package name has been given
   if (new_package_path.empty())
   {
-    QMessageBox::warning(this, "Error Generating", "No package path provided. Please choose a directory location to "
-                                                   "generate the MoveIt configuration files.");
+    QMessageBox::warning(this, "Error Generating",
+                         "No package path provided. Please choose a directory location to "
+                         "generate the MoveIt configuration files.");
     return false;
   }
 
@@ -920,12 +922,12 @@ bool ConfigurationFilesWidget::generatePackage()
     }
 
     // Confirm overwrite
-    if (QMessageBox::question(
-            this, "Confirm Package Update",
-            QString("Are you sure you want to overwrite this existing package with updated configurations?<br /><i>")
-                .append(new_package_path.c_str())
-                .append("</i>"),
-            QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Cancel)
+    if (QMessageBox::question(this, "Confirm Package Update",
+                              QString("Are you sure you want to overwrite this existing package with updated "
+                                      "configurations?<br /><i>")
+                                  .append(new_package_path.c_str())
+                                  .append("</i>"),
+                              QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Cancel)
     {
       return false;  // abort
     }
@@ -969,10 +971,11 @@ bool ConfigurationFilesWidget::generatePackage()
     if (!file->gen_func_(absolute_path))
     {
       // Error occured
-      QMessageBox::critical(this, "Error Generating File", QString("Failed to generate folder or file: '")
-                                                               .append(file->rel_path_.c_str())
-                                                               .append("' at location:\n")
-                                                               .append(absolute_path.c_str()));
+      QMessageBox::critical(this, "Error Generating File",
+                            QString("Failed to generate folder or file: '")
+                                .append(file->rel_path_.c_str())
+                                .append("' at location:\n")
+                                .append(absolute_path.c_str()));
       return false;
     }
     updateProgress();  // Increment and update GUI
@@ -986,10 +989,9 @@ bool ConfigurationFilesWidget::generatePackage()
 // ******************************************************************************************
 void ConfigurationFilesWidget::exitSetupAssistant()
 {
-  if (has_generated_pkg_ ||
-      QMessageBox::question(this, "Exit Setup Assistant",
-                            QString("Are you sure you want to exit the MoveIt Setup Assistant?"),
-                            QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Ok)
+  if (has_generated_pkg_ || QMessageBox::question(this, "Exit Setup Assistant",
+                                                  QString("Are you sure you want to exit the MoveIt Setup Assistant?"),
+                                                  QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Ok)
   {
     QApplication::quit();
   }
@@ -1099,7 +1101,6 @@ void ConfigurationFilesWidget::loadTemplateStrings()
   else
   {
     std::stringstream deps;
-    deps << "<build_depend>" << config_data_->urdf_pkg_name_ << "</build_depend>\n";
     deps << "  <run_depend>" << config_data_->urdf_pkg_name_ << "</run_depend>\n";
     addTemplateString("[OTHER_DEPENDENCIES]", deps.str());  // not relative to a ROS package
   }

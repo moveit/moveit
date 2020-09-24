@@ -44,7 +44,7 @@
 
 namespace robot_interaction
 {
-MOVEIT_CLASS_FORWARD(LockedRobotState);
+MOVEIT_CLASS_FORWARD(LockedRobotState);  // Defines LockedRobotStatePtr, ConstPtr, WeakPtr... etc
 
 /// Maintain a RobotState in a multithreaded environment.
 //

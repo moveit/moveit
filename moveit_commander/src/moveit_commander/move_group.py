@@ -48,9 +48,9 @@ class MoveGroupCommander(object):
     Execution of simple commands for a particular group
     """
 
-    def __init__(self, name, robot_description="robot_description", ns=""):
+    def __init__(self, name, robot_description="robot_description", ns="", wait_for_servers=5.0):
         """ Specify the group name for which to construct this commander instance. Throws an exception if there is an initialization error. """
-        self._g = _moveit_move_group_interface.MoveGroupInterface(name, robot_description, ns)
+        self._g = _moveit_move_group_interface.MoveGroupInterface(name, robot_description, ns, wait_for_servers)
 
     def get_name(self):
         """ Get the name of the group this instance was initialized for """
@@ -83,7 +83,7 @@ class MoveGroupCommander(object):
     def set_end_effector_link(self, link_name):
         """ Set the name of the link to be considered as an end effector """
         if not self._g.set_end_effector_link(link_name):
-            raise MoveItCommanderException("Unable to set end efector link")
+            raise MoveItCommanderException("Unable to set end effector link")
 
     def get_interface_description(self):
         """ Get the description of the planner interface (list of planner ids) """
@@ -219,7 +219,7 @@ class MoveGroupCommander(object):
                 if approx:
                     raise MoveItCommanderException("Error setting joint target. Does your IK solver support approximate IK?")
                 else:
-                    raise MoveItCommanderException("Error setting joint target. Is IK running?")
+                    raise MoveItCommanderException("Error setting joint target. Is the IK solver functional?")
 
         elif (hasattr(arg1, '__iter__')):
             if (arg2 is not None or arg3 is not None):
@@ -448,7 +448,7 @@ class MoveGroupCommander(object):
 
     def get_planner_id(self):
         """ Get the current planner_id """
-        self._g.get_planner_id()
+        return self._g.get_planner_id()
 
     def set_num_planning_attempts(self, num_planning_attempts):
         """ Set the number of times the motion plan is to be computed from scratch before the shortest solution is returned. The default value is 1. """
@@ -571,7 +571,7 @@ class MoveGroupCommander(object):
     def place(self, object_name, location=None, plan_only=False):
         """Place the named object at a particular location in the environment or somewhere safe in the world if location is not provided"""
         result = False
-        if location is None:
+        if not location:
             result = self._g.place(object_name, plan_only)
         elif type(location) is PoseStamped:
             old = self.get_pose_reference_frame()
@@ -582,8 +582,16 @@ class MoveGroupCommander(object):
             result = self._g.place(object_name, conversions.pose_to_list(location), plan_only)
         elif type(location) is PlaceLocation:
             result = self._g.place(object_name, conversions.msg_to_string(location), plan_only)
+        elif type(location) is list:
+            if location:
+                if type(location[0]) is PlaceLocation:
+                    result = self._g.place_locations_list(object_name, [conversions.msg_to_string(x) for x in location], plan_only)
+                elif type(location[0]) is PoseStamped:
+                    result = self._g.place_poses_list(object_name, [conversions.msg_to_string(x) for x in location], plan_only)
+                else:
+                    raise MoveItCommanderException("Parameter location must be a Pose, PoseStamped, PlaceLocation, list of PoseStamped or list of PlaceLocation object")
         else:
-            raise MoveItCommanderException("Parameter location must be a Pose, PoseStamped or PlaceLocation object")
+            raise MoveItCommanderException("Parameter location must be a Pose, PoseStamped, PlaceLocation, list of PoseStamped or list of PlaceLocation object")
         return result
 
     def set_support_surface_name(self, value):

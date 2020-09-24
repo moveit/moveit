@@ -53,8 +53,8 @@ inline bool isLinkActive(const std::vector<std::string>& active, const std::stri
 }
 
 /** \brief Stores a single contact result in the requested way.
-*   \param found Indicates if a contact for this pair of objects has already been found
-*   \return Pointer to the newly inserted contact */
+ *   \param found Indicates if a contact for this pair of objects has already been found
+ *   \return Pointer to the newly inserted contact */
 inline collision_detection::Contact* processResult(ContactTestData& cdata, collision_detection::Contact& contact,
                                                    const std::pair<std::string, std::string>& key, bool found)
 {
@@ -67,8 +67,8 @@ inline collision_detection::Contact* processResult(ContactTestData& cdata, colli
     }
   }
 
-  ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Contact btw " << key.first << " and " << key.second
-                                                                      << " dist: " << contact.depth);
+  ROS_DEBUG_STREAM_NAMED("collision_detection.bullet",
+                         "Contact btw " << key.first << " and " << key.second << " dist: " << contact.depth);
   // case if pair hasn't a contact yet
   if (!found)
   {

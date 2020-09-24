@@ -86,8 +86,8 @@ public:
 
         if (!isArray(controller_list[i]["joints"]))
         {
-          ROS_ERROR_STREAM_NAMED(LOGNAME, "The list of joints for controller " << name
-                                                                               << " is not specified as an array");
+          ROS_ERROR_STREAM_NAMED(LOGNAME,
+                                 "The list of joints for controller " << name << " is not specified as an array");
           continue;
         }
 
@@ -113,8 +113,7 @@ public:
                 static_cast<GripperControllerHandle*>(new_handle.get())
                     ->setCommandJoint(controller_list[i]["command_joint"]);
               else
-                static_cast<GripperControllerHandle*>(new_handle.get())
-                    ->setCommandJoint(controller_list[i]["joints"][0]);
+                static_cast<GripperControllerHandle*>(new_handle.get())->setCommandJoint(controller_list[i]["joints"][0]);
             }
 
             if (controller_list[i].hasMember("allow_failure"))
@@ -219,8 +218,9 @@ public:
     }
     else
     {
-      ROS_WARN_NAMED(LOGNAME, "The joints for controller '%s' are not known. Perhaps the controller configuration is "
-                              "not loaded on the param server?",
+      ROS_WARN_NAMED(LOGNAME,
+                     "The joints for controller '%s' are not known. Perhaps the controller configuration is "
+                     "not loaded on the param server?",
                      name.c_str());
       joints.clear();
     }

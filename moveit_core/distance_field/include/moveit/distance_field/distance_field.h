@@ -38,8 +38,6 @@
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/distance_field/voxel_grid.h>
-#include <vector>
-#include <list>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <Eigen/Core>
@@ -49,7 +47,7 @@
 
 namespace shapes
 {
-MOVEIT_CLASS_FORWARD(Shape);
+MOVEIT_CLASS_FORWARD(Shape);  // Defines ShapePtr, ConstPtr, WeakPtr... etc
 }
 namespace octomap
 {
@@ -73,23 +71,23 @@ enum PlaneVisualizationType
   YZ_PLANE
 };
 
-MOVEIT_CLASS_FORWARD(DistanceField);
+MOVEIT_CLASS_FORWARD(DistanceField);  // Defines DistanceFieldPtr, ConstPtr, WeakPtr... etc
 
 /**
-* \brief DistanceField is an abstract base class for computing
-* distances from sets of 3D obstacle points.  The distance assigned to
-* a freespace cell should be the distance to the closest obstacle
-* cell.  Cells that are obstacle cells should either be marked as zero
-* distance, or may have a negative distance if a signed version of the
-* distance field is being used and an obstacle point is internal to an
-* obstacle volume.
-*
-* Inherited classes must contain methods for holding a dense set of 3D
-* voxels as well as methods for computing the required distances.  The
-* distance field parent class doesn't hold the data or have any way to
-* generate distances from that data.
-*
-*/
+ * \brief DistanceField is an abstract base class for computing
+ * distances from sets of 3D obstacle points.  The distance assigned to
+ * a freespace cell should be the distance to the closest obstacle
+ * cell.  Cells that are obstacle cells should either be marked as zero
+ * distance, or may have a negative distance if a signed version of the
+ * distance field is being used and an obstacle point is internal to an
+ * obstacle volume.
+ *
+ * Inherited classes must contain methods for holding a dense set of 3D
+ * voxels as well as methods for computing the required distances.  The
+ * distance field parent class doesn't hold the data or have any way to
+ * generate distances from that data.
+ *
+ */
 class DistanceField
 {
 public:

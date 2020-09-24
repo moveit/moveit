@@ -48,7 +48,7 @@ namespace tf2_ros
 {
 class TransformListener;
 class Buffer;
-}
+}  // namespace tf2_ros
 
 /**
  * \brief Class that caches and updates transformations for given frames.
@@ -120,7 +120,7 @@ private:
    */
   void updateTransforms();
 
-  MOVEIT_CLASS_FORWARD(TransformContext);
+  MOVEIT_CLASS_FORWARD(TransformContext);  // Defines TransformContextPtr, ConstPtr, WeakPtr... etc
 
   /**
    * \brief Context Object for registered frames

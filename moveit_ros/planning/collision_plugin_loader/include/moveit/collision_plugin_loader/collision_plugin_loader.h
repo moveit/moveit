@@ -62,7 +62,7 @@ public:
   bool activate(const std::string& name, const planning_scene::PlanningScenePtr& scene, bool exclusive);
 
 private:
-  MOVEIT_CLASS_FORWARD(CollisionPluginLoaderImpl);
+  MOVEIT_CLASS_FORWARD(CollisionPluginLoaderImpl);  // Defines CollisionPluginLoaderImplPtr, ConstPtr, WeakPtr... etc
   CollisionPluginLoaderImplPtr loader_;
 };
 

@@ -2,6 +2,51 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.0 (2020-09-04)
+------------------
+* [feature] Add missing variants of place from list of PlaceLocations and Poses in the python interface (`#2231 <https://github.com/ros-planning/moveit/issues/2231>`_)
+* [fix]     Add default velocity/acceleration scaling factors (`#1890 <https://github.com/ros-planning/moveit/issues/1890>`_)
+* [fix]     Handle the updated plan() function of MoveGroupCommander (`#1640 <https://github.com/ros-planning/moveit/issues/1640>`_)
+* [fix]     Fix `failing tutorial <https://github.com/ros-planning/moveit_tutorials/issues/301>`_ (`#1459 <https://github.com/ros-planning/moveit/issues/1459>`_)
+* [maint]   Update dependencies for python3 in noetic (`#2131 <https://github.com/ros-planning/moveit/issues/2131>`_)
+* [maint]   Better align MoveGroupInterface.plan() with C++ MoveGroup::plan() (`#790 <https://github.com/ros-planning/moveit/issues/790>`_)
+* Contributors: Bence Magyar, Bjar Ne, Dave Coleman, Felix von Drigalski, Gerard Canal, Jafar Abdi, Masaki Murooka, Michael Ferguson, Michael Görner, Pavel-P, Raphael Druon, Robert Haschke, Ryodo Tanaka, Ryosuke Tajima, Sean Yen, v4hn
+
+1.0.6 (2020-08-19)
+------------------
+* [maint]   Adapt repository for splitted moveit_resources layout (`#2199 <https://github.com/ros-planning/moveit/issues/2199>`_)
+* [feature] Exposed parameter wait_for_servers and getPlannerId() API in MoveGroup's Python API (`#2201 <https://github.com/ros-planning/moveit/issues/2201>`_)
+* Contributors: Gerard Canal, Robert Haschke, Michael Görner
+
+1.0.5 (2020-07-08)
+------------------
+* [fix]   Python 3 fix (`#2030 <https://github.com/ros-planning/moveit/issues/2030>`_)
+* Contributors: Henning Kayser, Michael Görner, Robert Haschke
+
+1.0.4 (2020-05-30)
+------------------
+
+1.0.3 (2020-04-26)
+------------------
+* [feature] Expose reference_point_position parameter in getJacobian() (`#1595 <https://github.com/ros-planning/moveit/issues/1595>`_)
+* [maint]   Improve Python 3 compatibility (`#1870 <https://github.com/ros-planning/moveit/issues/1870>`_)
+  * Replaced StringIO with BytesIO for python msg serialization
+  * Use py_bindings_tools::ByteString as byte-based serialization buffer on C++ side
+* [fix]     Fix service call to utilize original name space (`#1959 <https://github.com/ros-planning/moveit/issues/1959>`_)
+* [maint]   Windows compatibility: fallback to using `pyreadline` (`#1635 <https://github.com/ros-planning/moveit/issues/1635>`_)
+* [maint]   Use CMAKE_CXX_STANDARD to enforce c++14 (`#1607 <https://github.com/ros-planning/moveit/issues/1607>`_)
+* [fix]     Fix planning scene interface not respecting custom namespace (`#1815 <https://github.com/ros-planning/moveit/issues/1815>`_)
+* [maint]   moveit_commander: python3 import fixes (`#1786 <https://github.com/ros-planning/moveit/issues/1786>`_)
+* [fix]     python planning_scene_interface: fix attaching objects (`#1624 <https://github.com/ros-planning/moveit/issues/1624>`_)
+* [feature] Select time parametrization algorithm in retime_trajectory (`#1508 <https://github.com/ros-planning/moveit/issues/1508>`_)
+* Contributors: Bjar Ne, Felix von Drigalski, Masaki Murooka, Pavel-P, Raphael Druon, Robert Haschke, Ryodo Tanaka, Sean Yen, v4hn
+
+1.0.2 (2019-06-28)
+------------------
+* [feature]     Add get_jacobian_matrix to moveit_commander (`#1501 <https://github.com/ros-planning/moveit/issues/1501>`_)
+* [maintanance] Cleanup Python PlanningSceneInterface (`#1405 <https://github.com/ros-planning/moveit/issues/1405>`_, `#789 <https://github.com/ros-planning/moveit/issues/789>`_)
+* Contributors: Bence Magyar, Robert Haschke, Ryosuke Tajima
+
 1.0.1 (2019-03-08)
 ------------------
 * [capability] python PlanningSceneInterface.add_cylinder() (`#1372 <https://github.com/ros-planning/moveit/issues/1372>`_)
@@ -70,7 +115,7 @@ Changelog for package moveit_commander
 0.9.5 (2017-03-08)
 ------------------
 * [fix] Regression on Ubuntu Xenial; numpy.ndarray indices bug (from `#86 <https://github.com/ros-planning/moveit/issues/86>`_) (`#450 <https://github.com/ros-planning/moveit/issues/450>`_).
-* [doc][moveit_commander] added description for set_start_state (`#447 <https://github.com/ros-planning/moveit/issues/447>`_) 
+* [doc][moveit_commander] added description for set_start_state (`#447 <https://github.com/ros-planning/moveit/issues/447>`_)
 * Contributors: Adam Allevato, Ravi Prakash Joshi
 
 0.9.4 (2017-02-06)
@@ -126,7 +171,7 @@ Changelog for package moveit_commander
 
 0.5.6 (2014-03-24)
 ------------------
-* Added the calls necessary to manage path constraints. 
+* Added the calls necessary to manage path constraints.
 * fix joint and link acces on __getattr__  when trying to acces a joint and its paramaters throught
 * Contributors: Acorn, Emili Boronat, Sachin Chitta
 

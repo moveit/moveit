@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Pose.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <moveit/macros/class_forward.h>
 #include <ros/node_handle.h>
@@ -51,8 +51,8 @@ namespace core
 MOVEIT_CLASS_FORWARD(JointModelGroup)
 MOVEIT_CLASS_FORWARD(RobotState)
 MOVEIT_CLASS_FORWARD(RobotModel)
-}
-}
+}  // namespace core
+}  // namespace moveit
 
 /** @brief API for forward and inverse kinematics */
 namespace kinematics
@@ -135,7 +135,7 @@ struct KinematicsResult
                                        of solutions explored. */
 };
 
-MOVEIT_CLASS_FORWARD(KinematicsBase);
+MOVEIT_CLASS_FORWARD(KinematicsBase);  // Defines KinematicsBasePtr, ConstPtr, WeakPtr... etc
 
 /**
  * @class KinematicsBase

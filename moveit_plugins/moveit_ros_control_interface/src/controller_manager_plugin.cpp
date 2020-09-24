@@ -73,7 +73,7 @@ bool checkTimeout(ros::Time& t, double timeout, bool force = false)
   return false;
 }
 
-MOVEIT_CLASS_FORWARD(MoveItControllerManager);
+MOVEIT_CLASS_FORWARD(MoveItControllerManager);  // Defines MoveItControllerManagerPtr, ConstPtr, WeakPtr... etc
 
 /**
  * \brief moveit_controller_manager::MoveItControllerManager sub class that interfaces one ros_control
@@ -308,8 +308,7 @@ public:
     resources_bimap claimed_resources;
 
     // fill bimap with active controllers and their resources
-    for (std::pair<const std::string, controller_manager_msgs::ControllerState>& active_controller :
-         active_controllers_)
+    for (std::pair<const std::string, controller_manager_msgs::ControllerState>& active_controller : active_controllers_)
     {
       for (std::vector<controller_manager_msgs::HardwareInterfaceResources>::iterator hir =
                active_controller.second.claimed_resources.begin();

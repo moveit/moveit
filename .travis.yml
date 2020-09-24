@@ -1,6 +1,6 @@
 # This config file for Travis CI utilizes https://github.com/ros-planning/moveit_ci/ package.
 os: linux
-dist: xenial  # distro used by Travis, moveit_ci uses the docker image's distro
+dist: bionic  # distro used by Travis, moveit_ci uses the docker image's distro
 services:
   - docker
 language: cpp
@@ -24,8 +24,8 @@ jobs:
   include:
     - env: TEST="clang-format catkin_lint"
     - env: TEST=code-coverage
+    - env: ROS_DISTRO=noetic ROS_REPO=ros-testing
     - env: ROS_DISTRO=melodic
-    - env: ROS_DISTRO=kinetic
     - compiler: clang
       # test_ikfast_plugins takes ~10 minutes: include here to keep the main jobs shorter
       env: TEST=clang-tidy-fix

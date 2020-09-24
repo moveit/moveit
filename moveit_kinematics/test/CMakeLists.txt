@@ -1,10 +1,10 @@
 if(CATKIN_ENABLE_TESTING)
-  find_package(moveit_resources REQUIRED)
   find_package(rostest REQUIRED)
   find_package(xmlrpcpp REQUIRED)
   find_package(moveit_ros_planning REQUIRED)
 
-  include_directories(${xmlrpcpp_INCLUDE_DIRS} ${moveit_ros_planning_INCLUDE_DIRS})
+  include_directories(${moveit_ros_planning_INCLUDE_DIRS})
+  include_directories(SYSTEM ${xmlrpcpp_INCLUDE_DIRS})
 
   catkin_add_executable_with_gtest(test_kinematics_plugin test_kinematics_plugin.cpp)
   target_link_libraries(test_kinematics_plugin ${catkin_LIBRARIES} ${moveit_ros_planning_LIBRARIES} ${xmlrpcpp_LIBRARIES})

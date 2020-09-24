@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.1.3)
 project(moveit_planners_ompl)
 
 # At least C++11 required for OMPL
-set(CMAKE_CXX_STANDARD 14)
+if(NOT "${CMAKE_CXX_STANDARD}")
+  set(CMAKE_CXX_STANDARD 14)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -38,9 +40,10 @@ catkin_package(
     OMPL
 )
 
-include_directories(ompl_interface/include
-                    ${Boost_INCLUDE_DIRS}
+include_directories(ompl_interface/include)
+include_directories(SYSTEM
                     ${catkin_INCLUDE_DIRS}
+                    ${Boost_INCLUDE_DIRS}
                     ${OMPL_INCLUDE_DIRS})
 
 add_subdirectory(ompl_interface)
