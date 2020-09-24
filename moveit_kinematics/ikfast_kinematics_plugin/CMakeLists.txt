@@ -7,6 +7,12 @@ set(MOVEIT_LIB_NAME moveit_ikfast_kinematics_plugin)
 install(
   PROGRAMS
     scripts/auto_create_ikfast_moveit_plugin.sh
+  DESTINATION
+    ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+catkin_install_python(
+  PROGRAMS
     scripts/create_ikfast_moveit_plugin.py
     scripts/round_collada_numbers.py
   DESTINATION
