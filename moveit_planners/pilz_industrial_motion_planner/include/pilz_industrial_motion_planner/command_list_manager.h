@@ -70,7 +70,7 @@ public:
   /**
    * @brief Generates trajectories for the specified list of motion commands.
    *
-   * The folloing rules apply:
+   * The following rules apply:
    * - If two consecutive trajectories are from the same group, they are
    * simply attached to each other, given that the blend_radius is zero.
    * - If two consecutive trajectories are from the same group, they are
@@ -87,7 +87,7 @@ public:
    *    - All blending radii are non negative.
    *    - The blending radius of the last request is 0.
    *    - Only the first request of each group has a start state.
-   *    - Non of the blending radii overlapp each other.
+   *    - None of the blending radii overlap with each other.
    *
    * Please note:
    * Starts states do not need to state the joints of all groups.
