@@ -17,7 +17,6 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
   moveit_ros_planning_interface
   pilz_extensions
-  ${PROJECT_NAME}_testutils
   pluginlib
   roscpp
   tf2
@@ -195,10 +194,10 @@ install(TARGETS
 #############
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
-  find_package(pilz_testutils REQUIRED)
+  find_package(${PROJECT_NAME}_testutils REQUIRED)
 
   include_directories(
-    ${pilz_testutils_INCLUDE_DIRS}
+    ${${PROJECT_NAME}_testutils_INCLUDE_DIRS}
   )
 
   if(ENABLE_COVERAGE_TESTING)
@@ -224,7 +223,7 @@ if(CATKIN_ENABLE_TESTING)
   )
   target_link_libraries(integrationtest_sequence_action_preemption
     ${catkin_LIBRARIES}
-    ${pilz_testutils_LIBRARIES}
+    ${${PROJECT_NAME}_testutils_LIBRARIES}
     ${${PROJECT_NAME}_INTEGRATIONTEST_LIBRARIES}
   )
 
@@ -234,7 +233,7 @@ if(CATKIN_ENABLE_TESTING)
   )
   target_link_libraries(integrationtest_sequence_action
     ${catkin_LIBRARIES}
-    ${pilz_testutils_LIBRARIES}
+    ${${PROJECT_NAME}_testutils_LIBRARIES}
     ${${PROJECT_NAME}_INTEGRATIONTEST_LIBRARIES}
   )
 
@@ -252,6 +251,7 @@ if(CATKIN_ENABLE_TESTING)
   )
   target_link_libraries(integrationtest_sequence_service_capability
     ${catkin_LIBRARIES}
+    ${${PROJECT_NAME}_testutils_LIBRARIES}
     ${${PROJECT_NAME}_INTEGRATIONTEST_LIBRARIES}
   )
 
@@ -270,6 +270,7 @@ if(CATKIN_ENABLE_TESTING)
   )
   target_link_libraries(integrationtest_command_planning
     ${catkin_LIBRARIES}
+    ${${PROJECT_NAME}_testutils_LIBRARIES}
     ${${PROJECT_NAME}_INTEGRATIONTEST_LIBRARIES}
   )
 
@@ -288,6 +289,7 @@ if(CATKIN_ENABLE_TESTING)
   )
   target_link_libraries(integrationtest_command_list_manager
     ${catkin_LIBRARIES}
+    ${${PROJECT_NAME}_testutils_LIBRARIES}
     ${${PROJECT_NAME}_INTEGRATIONTEST_LIBRARIES}
   )
 
@@ -349,6 +351,7 @@ if(CATKIN_ENABLE_TESTING)
   )
   target_link_libraries(unittest_trajectory_generator
     ${catkin_LIBRARIES}
+    ${${PROJECT_NAME}_testutils_LIBRARIES}
     ${PROJECT_NAME}_lib
   )
 
@@ -370,6 +373,7 @@ if(CATKIN_ENABLE_TESTING)
   )
   target_link_libraries(unittest_trajectory_blender_transition_window
     ${catkin_LIBRARIES}
+    ${${PROJECT_NAME}_testutils_LIBRARIES}
     ${PROJECT_NAME}_testhelpers
   )
 
@@ -390,6 +394,7 @@ if(CATKIN_ENABLE_TESTING)
   )
   target_link_libraries(unittest_trajectory_generator_circ
     ${catkin_LIBRARIES}
+    ${${PROJECT_NAME}_testutils_LIBRARIES}
     ${PROJECT_NAME}_testhelpers
   )
 
@@ -400,6 +405,7 @@ if(CATKIN_ENABLE_TESTING)
   )
   target_link_libraries(unittest_trajectory_generator_lin
     ${catkin_LIBRARIES}
+    ${${PROJECT_NAME}_testutils_LIBRARIES}
     ${PROJECT_NAME}_testhelpers
   )
 

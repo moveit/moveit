@@ -52,7 +52,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 
-#include <pilz_testutils/async_test.h>
+#include <pilz_industrial_motion_planner_testutils/async_test.h>
 
 #include <pilz_industrial_motion_planner_testutils/xml_testdata_loader.h>
 #include <pilz_industrial_motion_planner_testutils/sequence.h>

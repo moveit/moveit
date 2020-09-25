@@ -117,7 +117,7 @@ void pilz_industrial_motion_planner::JointLimitsAggregator::updatePositionLimitF
       break;
     // LCOV_EXCL_START
     default:
-      ROS_ERROR_STREAM("Multi-DOF-Joints not supported. The robot won't move.");
+      ROS_ERROR_STREAM("Multi-DOF-Joints not supported. The robot won't move. " << joint_model->getName());
       joint_limit.has_position_limits = true;
       joint_limit.min_position = 0;
       joint_limit.max_position = 0;

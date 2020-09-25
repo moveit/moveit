@@ -53,7 +53,7 @@
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <sensor_msgs/JointState.h>
 
-#include <pilz_testutils/async_test.h>
+#include <pilz_industrial_motion_planner_testutils/async_test.h>
 
 #include <pilz_industrial_motion_planner_testutils/xml_testdata_loader.h>
 #include <pilz_industrial_motion_planner_testutils/sequence.h>
