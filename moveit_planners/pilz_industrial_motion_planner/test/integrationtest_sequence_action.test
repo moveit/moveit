@@ -33,11 +33,6 @@ POSSIBILITY OF SUCH DAMAGE.
 -->
 
 <launch>
-  <!-- Load the context with the pg70 -->
-  <include file="$(find moveit_resources_prbt_moveit_config)/launch/planning_context.launch" >
-    <arg name="gripper" value="pg70" />
-  </include>
-
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
     <param name="/use_gui" value="false"/>
     <rosparam param="/source_list">[/move_group/fake_controller_joint_states]</rosparam>
@@ -45,24 +40,20 @@ POSSIBILITY OF SUCH DAMAGE.
 
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 
-  <arg name="display_plots" default="false" />
-  <node if="$(arg display_plots)"
-        name="plot_trajectory_msg"
-        pkg="pilz_industrial_motion_planner"
-        type="plot_display_trajectory_msg.py"
-        args="/my_planned_path"  />
-
-  <include ns="integrationtest_command_list_manager" file="$(find moveit_resources_prbt_moveit_config)/launch/planning_pipeline.launch.xml">
+  <arg name="debug" default="false"/>
+  <include file="$(find moveit_resources_prbt_moveit_config)/launch/move_group.launch">
+    <arg name="allow_trajectory_execution" value="true"/>
+    <arg name="fake_execution" value="true"/>
+    <arg name="info" value="true"/>
+    <arg name="debug" value="$(arg debug)"/>
     <arg name="pipeline" value="pilz_industrial_motion_planner" />
+    <arg name="execution_type" value="last point" />
   </include>
 
   <!-- run test -->
-  <!--test pkg="pilz_industrial_motion_planner" test-name="integrationtest_command_list_manager" type="integrationtest_command_list_manager"
-  time-limit="885.0" launch-prefix="xterm -e gdb - -args" -->
-  <test pkg="pilz_industrial_motion_planner" test-name="integrationtest_command_list_manager" type="integrationtest_command_list_manager"
-  time-limit="885.0" >
+  <test pkg="pilz_industrial_motion_planner" test-name="integrationtest_sequence_action" type="integrationtest_sequence_action" time-limit="300.0">
+    <param name="joint_position_tolerance" value="0.01" />
     <param name="testdata_file_name" value="$(find pilz_industrial_motion_planner)/test/test_robots/prbt/test_data/testdata_sequence.xml" />
   </test>
-  <!--launch-prefix="xterm -e gdb - -args"-->
 
 </launch>

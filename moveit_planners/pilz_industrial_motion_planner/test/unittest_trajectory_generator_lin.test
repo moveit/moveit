@@ -56,7 +56,7 @@ POSSIBILITY OF SUCH DAMAGE.
     <param name="rot_axis_norm_tolerance" value="1.0e-6" />
     <param name="other_tolerance" value="1.0e-5" />
     <param name="velocity_scaling_factor" value="0.1" />
-    <rosparam command="load" file="$(find prbt_moveit_config)/config/joint_limits.yaml" />
+    <rosparam command="load" file="$(find moveit_resources_prbt_moveit_config)/config/joint_limits.yaml" />
   </test>
 
 </launch>

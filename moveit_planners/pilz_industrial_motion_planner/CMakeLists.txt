@@ -218,22 +218,32 @@ if(CATKIN_ENABLE_TESTING)
   )
 
   # Planning Integration tests
-  add_rostest_gmock(integrationtest_sequence_action_capability
-    test/integrationtest_sequence_action_capability.test
-    test/integrationtest_sequence_action_capability.cpp
+  add_rostest_gmock(integrationtest_sequence_action_preemption
+    test/integrationtest_sequence_action_preemption.test
+    test/integrationtest_sequence_action_preemption.cpp
   )
-  target_link_libraries(integrationtest_sequence_action_capability
+  target_link_libraries(integrationtest_sequence_action_preemption
+    ${catkin_LIBRARIES}
+    ${pilz_testutils_LIBRARIES}
+    ${${PROJECT_NAME}_INTEGRATIONTEST_LIBRARIES}
+  )
+
+  add_rostest_gmock(integrationtest_sequence_action
+    test/integrationtest_sequence_action.test
+    test/integrationtest_sequence_action.cpp
+  )
+  target_link_libraries(integrationtest_sequence_action
     ${catkin_LIBRARIES}
     ${pilz_testutils_LIBRARIES}
     ${${PROJECT_NAME}_INTEGRATIONTEST_LIBRARIES}
   )
 
   add_rostest(test/integrationtest_sequence_action_capability_with_gripper.test
-    DEPENDENCIES integrationtest_sequence_action_capability
+    DEPENDENCIES integrationtest_sequence_action
   )
 
   add_rostest(test/integrationtest_sequence_action_capability_frankaemika_panda.test
-    DEPENDENCIES integrationtest_sequence_action_capability
+    DEPENDENCIES integrationtest_sequence_action
   )
 
   add_rostest_gtest(integrationtest_sequence_service_capability

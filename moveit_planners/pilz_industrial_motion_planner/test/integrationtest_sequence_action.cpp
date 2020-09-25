@@ -61,7 +61,6 @@
 #include "moveit_msgs/MoveGroupSequenceAction.h"
 
 static constexpr int WAIT_FOR_RESULT_TIME_OUT{ 5 };          // seconds
-static constexpr int TIME_BEFORE_CANCEL_GOAL{ 2 };           // seconds
 static constexpr int WAIT_FOR_ACTION_SERVER_TIME_OUT{ 10 };  // seconds
 
 const std::string SEQUENCE_ACTION_NAME("/sequence_move_group");
@@ -131,7 +130,7 @@ void IntegrationTestSequenceAction::SetUp()
   move_group_->setJointValueTarget(robot_state);
   move_group_->move();
 
-  ASSERT_TRUE(isAtExpectedPosition(robot_state, *(move_group_->getCurrentState()), joint_position_tolerance_));
+  ASSERT_TRUE(isAtExpectedPosition(robot_state, *(move_group_->getCurrentState()), joint_position_tolerance_, group_name_));
 }
 
 /**
@@ -396,36 +395,6 @@ TEST_F(IntegrationTestSequenceAction, TestActionServerCallbacks)
 }
 
 /**
- * @brief Tests that goal can be cancelled.
- *
- * Test Sequence:
- *    1. Send goal for planning and execution.
- *    2. Cancel goal before it finishes.
- *
- * Expected Results:
- *    1. Goal is sent to the action server.
- *    2. Goal is cancelled. Execution stops.
- */
-TEST_F(IntegrationTestSequenceAction, TestCancellingOfGoal)
-{
-  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
-
-  moveit_msgs::MoveGroupSequenceGoal seq_goal;
-  seq_goal.request = seq.toRequest();
-
-  ac_.sendGoal(seq_goal);
-  // wait for 2 seconds
-  ros::Duration(TIME_BEFORE_CANCEL_GOAL).sleep();
-
-  ac_.cancelGoal();
-  ac_.waitForResult(ros::Duration(WAIT_FOR_RESULT_TIME_OUT));
-
-  moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
-  EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::PREEMPTED)
-      << "Error code should be preempted.";
-}
-
-/**
  * @brief Tests the "only planning" flag.
  *
  * Test Sequence:
@@ -452,7 +421,7 @@ TEST_F(IntegrationTestSequenceAction, TestPlanOnlyFlag)
   EXPECT_FALSE(res->response.planned_trajectories.empty()) << "Planned trajectory is empty";
 
   ASSERT_TRUE(
-      isAtExpectedPosition(*(move_group_->getCurrentState()), start_config.toRobotState(), joint_position_tolerance_))
+      isAtExpectedPosition(*(move_group_->getCurrentState()), start_config.toRobotState(), joint_position_tolerance_, group_name_))
       << "Robot did move although \"PlanOnly\" flag set.";
 }
 
@@ -487,7 +456,7 @@ TEST_F(IntegrationTestSequenceAction, TestIgnoreRobotStateForPlanOnly)
   EXPECT_FALSE(res->response.planned_trajectories.empty()) << "Planned trajectory is empty";
 
   ASSERT_TRUE(
-      isAtExpectedPosition(*(move_group_->getCurrentState()), start_config.toRobotState(), joint_position_tolerance_))
+      isAtExpectedPosition(*(move_group_->getCurrentState()), start_config.toRobotState(), joint_position_tolerance_, group_name_))
       << "Robot did move although \"PlanOnly\" flag set.";
 }
 

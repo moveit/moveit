@@ -43,16 +43,16 @@ joint_limits:
     max_acceleration: 1.0
   panda_joint4:
     has_acceleration_limits: true
-    max_acceleration: 1.0  
+    max_acceleration: 1.0
   panda_joint5:
     has_acceleration_limits: true
-    max_acceleration: 1.0  
+    max_acceleration: 1.0
   panda_joint6:
     has_acceleration_limits: true
-    max_acceleration: 1.0  
+    max_acceleration: 1.0
   panda_joint7:
     has_acceleration_limits: true
-    max_acceleration: 1.0  
+    max_acceleration: 1.0
 
   panda_hand_joint:
     has_acceleration_limits: true

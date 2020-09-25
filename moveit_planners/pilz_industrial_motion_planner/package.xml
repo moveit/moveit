@@ -42,9 +42,9 @@
   <test_depend>moveit_resources_panda_moveit_config</test_depend>
   <test_depend>pilz_testutils</test_depend>
   <test_depend>pilz_industrial_motion_planner_testutils</test_depend>
-  <test_depend>prbt_moveit_config</test_depend>
-  <test_depend>prbt_support</test_depend>
-  <test_depend>prbt_pg70_support</test_depend>
+  <test_depend>moveit_resources_prbt_moveit_config</test_depend>
+  <test_depend>moveit_resources_prbt_support</test_depend>
+  <test_depend>moveit_resources_prbt_pg70_support</test_depend>
   <test_depend>code_coverage</test_depend>
 
   <!-- The export tag contains other, unspecified, tags -->

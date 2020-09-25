@@ -33,7 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.
 -->
 
 <launch>
-  <include file="$(find prbt_moveit_config)/launch/planning_context.launch">
+  <include file="$(find moveit_resources_prbt_moveit_config)/launch/planning_context.launch">
       <arg name="load_robot_description" value="true"/>
   </include>
 
