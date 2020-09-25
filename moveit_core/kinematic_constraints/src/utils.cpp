@@ -167,7 +167,7 @@ moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name, 
   pcm.constraint_region.primitives.resize(1);
   shape_msgs::SolidPrimitive& bv = pcm.constraint_region.primitives[0];
   bv.type = shape_msgs::SolidPrimitive::SPHERE;
-  bv.dimensions.resize(geometric_shapes::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::SPHERE>::value);
+  bv.dimensions.resize(geometric_shapes::solidPrimitiveDimCount<shape_msgs::SolidPrimitive::SPHERE>());
   bv.dimensions[shape_msgs::SolidPrimitive::SPHERE_RADIUS] = tolerance_pos;
 
   pcm.header = pose.header;
@@ -203,7 +203,7 @@ moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name, 
   {
     shape_msgs::SolidPrimitive& bv = goal.position_constraints[0].constraint_region.primitives[0];
     bv.type = shape_msgs::SolidPrimitive::BOX;
-    bv.dimensions.resize(geometric_shapes::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::BOX>::value);
+    bv.dimensions.resize(geometric_shapes::solidPrimitiveDimCount<shape_msgs::SolidPrimitive::BOX>());
     bv.dimensions[shape_msgs::SolidPrimitive::BOX_X] = tolerance_pos[0];
     bv.dimensions[shape_msgs::SolidPrimitive::BOX_Y] = tolerance_pos[1];
     bv.dimensions[shape_msgs::SolidPrimitive::BOX_Z] = tolerance_pos[2];
@@ -258,7 +258,7 @@ moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name,
   pcm.constraint_region.primitives.resize(1);
   pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
   pcm.constraint_region.primitives[0].dimensions.resize(
-      geometric_shapes::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::SPHERE>::value);
+      geometric_shapes::solidPrimitiveDimCount<shape_msgs::SolidPrimitive::SPHERE>());
   pcm.constraint_region.primitives[0].dimensions[shape_msgs::SolidPrimitive::SPHERE_RADIUS] = tolerance;
 
   pcm.header = goal_point.header;
