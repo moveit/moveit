@@ -76,6 +76,12 @@ bool testutils::getExpectedGoalPose(const moveit::core::RobotModelConstPtr& robo
   if (!req.goal_constraints.front().joint_constraints.empty())
   {
     std::map<std::string, double> goal_joint_position;
+
+    // initializing all joints of the model
+    for (const auto& joint_name : robot_model->getVariableNames()){
+      goal_joint_position[joint_name] = 0;
+    }
+
     for (const auto& joint_item : req.goal_constraints.front().joint_constraints)
     {
       goal_joint_position[joint_item.joint_name] = joint_item.position;
@@ -156,6 +162,12 @@ bool testutils::isGoalReached(const moveit::core::RobotModelConstPtr& robot_mode
   trajectory_msgs::JointTrajectoryPoint last_point = trajectory.points.back();
   Eigen::Isometry3d goal_pose_actual;
   std::map<std::string, double> joint_state;
+
+  // initializing all joints of the model
+  for (const auto& joint_name : robot_model->getVariableNames()){
+    joint_state[joint_name] = 0;
+  }
+
   for (std::size_t i = 0; i < trajectory.joint_names.size(); ++i)
   {
     joint_state[trajectory.joint_names.at(i)] = last_point.positions.at(i);
@@ -229,10 +241,12 @@ bool testutils::checkCartesianLinearity(const moveit::core::RobotModelConstPtr& 
   {
     Eigen::Isometry3d way_point_pose;
     std::map<std::string, double> way_point_joint_state;
+
     // initializing all joints of the model
     for (const auto& joint_name : robot_model->getVariableNames()){
       way_point_joint_state[joint_name] = 0;
     }
+
     for (std::size_t i = 0; i < trajectory.joint_names.size(); ++i)
     {
       way_point_joint_state[trajectory.joint_names.at(i)] = way_point.positions.at(i);
@@ -302,6 +316,7 @@ bool testutils::computeLinkFK(const moveit::core::RobotModelConstPtr& robot_mode
 {
   // create robot state
   robot_state::RobotState rstate(robot_model);
+  rstate.setToDefaultValues();
 
   // check the reference frame of the target pose
   if (!rstate.knowsFrameTransform(link_name))
@@ -515,6 +530,12 @@ bool testutils::toTCPPose(const moveit::core::RobotModelConstPtr& robot_model, c
   {
     std::map<std::string, double> joint_state;
     auto joint_values_it = joint_values.begin();
+
+    // initializing all joints of the model
+    for (const auto& joint_name : robot_model->getVariableNames()){
+      joint_state[joint_name] = 0;
+    }
+
     for (std::size_t i = 0; i < joint_values.size(); ++i)
     {
       joint_state[testutils::getJointName(i + 1, joint_prefix)] = *joint_values_it;

@@ -389,6 +389,7 @@ TEST_F(IntegrationTestCommandPlanning, CircJointCenterCart)
   double expected_radius = sqrt(x_dist * x_dist + y_dist * y_dist + z_dist * z_dist);
   for (const auto& waypoint : trajectory.points)
   {
+    waypoint_state.setToDefaultValues();
     waypoint_state.setJointGroupPositions(planning_group_, waypoint.positions);
     waypoint_pose = waypoint_state.getFrameTransform(target_link_);
 
@@ -468,6 +469,7 @@ TEST_F(IntegrationTestCommandPlanning, CircCartCenterCart)
   double expected_radius = sqrt(x_dist * x_dist + y_dist * y_dist + z_dist * z_dist);
   for (const auto& waypoint : trajectory.points)
   {
+    waypoint_state.setToDefaultValues();
     waypoint_state.setJointGroupPositions(planning_group_, waypoint.positions);
     waypoint_pose = waypoint_state.getFrameTransform(target_link_);
 

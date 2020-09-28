@@ -110,8 +110,7 @@ bool pilz_industrial_motion_planner::computeLinkFK(const moveit::core::RobotMode
                                                    const std::string& link_name,
                                                    const std::map<std::string, double>& joint_state,
                                                    Eigen::Isometry3d& pose)
-{
-  // create robot state
+{ // create robot state
   robot_state::RobotState rstate(robot_model);
 
   // check the reference frame of the target pose
@@ -122,6 +121,7 @@ bool pilz_industrial_motion_planner::computeLinkFK(const moveit::core::RobotMode
   }
 
   // set the joint positions
+  rstate.setToDefaultValues();
   rstate.setVariablePositions(joint_state);
 
   // update the frame
