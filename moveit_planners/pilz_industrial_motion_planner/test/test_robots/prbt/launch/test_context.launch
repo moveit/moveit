@@ -21,7 +21,7 @@
   <group ns="$(arg robot_description)_planning">
     <rosparam if="$(eval not gripper)" command="load" file="$(find moveit_resources_prbt_moveit_config)/config/joint_limits.yaml"/>
     <rosparam unless="$(eval not gripper)" command="load"
-              file="$(eval find('prbt_'+ gripper + '_support') + '/config/joint_limits.yaml')" />
+              file="$(eval find('moveit_resources_prbt_'+ gripper + '_support') + '/config/joint_limits.yaml')" />
 
     <!-- Load cartesian limits -->
     <rosparam command="load" file="$(find moveit_resources_prbt_moveit_config)/config/cartesian_limits.yaml"/>
@@ -31,7 +31,7 @@
   <group ns="robot_description_planning">
     <rosparam if="$(eval not gripper)" command="load" file="$(find moveit_resources_prbt_moveit_config)/config/joint_limits.yaml"/>
     <rosparam unless="$(eval not gripper)" command="load"
-              file="$(eval find('prbt_'+ gripper + '_support') + '/config/joint_limits.yaml')" />
+              file="$(eval find('moveit_resources_prbt_'+ gripper + '_support') + '/config/joint_limits.yaml')" />
     <rosparam command="load" file="$(find moveit_resources_prbt_moveit_config)/config/cartesian_limits.yaml"/>
   </group>
 
