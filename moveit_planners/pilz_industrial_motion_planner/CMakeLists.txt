@@ -428,6 +428,16 @@ if(CATKIN_ENABLE_TESTING)
     ${PROJECT_NAME}_lib
   )
 
+  # JointLimits Unit Test
+  add_rostest_gtest(unittest_joint_limit
+    test/unittest_joint_limit.test
+    test/unittest_joint_limit.cpp
+  )
+  target_link_libraries(unittest_joint_limit
+    ${catkin_LIBRARIES}
+    ${PROJECT_NAME}_lib
+  )
+
   # JointLimitsAggregator Unit Test
   add_rostest_gtest(unittest_joint_limits_aggregator
     test/unittest_joint_limits_aggregator.test
