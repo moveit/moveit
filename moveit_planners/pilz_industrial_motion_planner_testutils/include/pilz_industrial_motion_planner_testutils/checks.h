@@ -41,20 +41,19 @@
 namespace pilz_industrial_motion_planner_testutils
 {
 ::testing::AssertionResult isAtExpectedPosition(const robot_state::RobotState& expected,
-                                                const robot_state::RobotState& actual,
-                                                const double epsilon,
+                                                const robot_state::RobotState& actual, const double epsilon,
                                                 const std::string& group_name = "")
 {
   if (group_name.empty() && expected.distance(actual) <= epsilon)
   {
     return ::testing::AssertionSuccess();
   }
-  else if (!group_name.empty() && expected.distance(actual, actual.getJointModelGroup(group_name)) <= epsilon) {
+  else if (!group_name.empty() && expected.distance(actual, actual.getJointModelGroup(group_name)) <= epsilon)
+  {
     return ::testing::AssertionSuccess();
   }
   std::stringstream msg;
-  msg << " expected: " << expected
-      << " actual: " << actual;
+  msg << " expected: " << expected << " actual: " << actual;
 
   return ::testing::AssertionFailure() << msg.str();
 }
