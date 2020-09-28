@@ -60,7 +60,6 @@
 
 #include "moveit_msgs/MoveGroupSequenceAction.h"
 
-static constexpr int WAIT_FOR_RESULT_TIME_OUT{ 5 };          // seconds
 static constexpr int WAIT_FOR_ACTION_SERVER_TIME_OUT{ 10 };  // seconds
 
 const std::string SEQUENCE_ACTION_NAME("/sequence_move_group");
