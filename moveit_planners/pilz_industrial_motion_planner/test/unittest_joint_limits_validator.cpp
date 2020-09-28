@@ -34,9 +34,11 @@
 
 #include <gtest/gtest.h>
 
-#include "pilz_extensions/joint_limits_extension.h"
+#include "pilz_industrial_motion_planner/joint_limits_extension.h"
 
 #include "pilz_industrial_motion_planner/joint_limits_validator.h"
+
+using namespace pilz_industrial_motion_planner;
 
 class JointLimitsValidatorTest : public ::testing::Test
 {
@@ -47,9 +49,9 @@ class JointLimitsValidatorTest : public ::testing::Test
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionEquality)
 {
-  pilz_industrial_motion_planner::JointLimitsContainer container;
+  JointLimitsContainer container;
 
-  pilz_extensions::JointLimit lim1;
+  JointLimit lim1;
   lim1.has_position_limits = true;
   lim1.min_position = -1;
   lim1.max_position = 1;
@@ -57,10 +59,10 @@ TEST_F(JointLimitsValidatorTest, CheckPositionEquality)
   container.addLimit("joint1", lim1);
   container.addLimit("joint2", lim1);
 
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllPositionLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllVelocityLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllPositionLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllVelocityLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
 /**
@@ -68,14 +70,14 @@ TEST_F(JointLimitsValidatorTest, CheckPositionEquality)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMinPosition)
 {
-  pilz_industrial_motion_planner::JointLimitsContainer container;
+  JointLimitsContainer container;
 
-  pilz_extensions::JointLimit lim1;
+  JointLimit lim1;
   lim1.has_position_limits = true;
   lim1.min_position = -1;
   lim1.max_position = 1;
 
-  pilz_extensions::JointLimit lim2;
+  JointLimit lim2;
   lim2.has_position_limits = true;
   lim2.min_position = -2;
   lim2.max_position = 1;
@@ -83,10 +85,10 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMinPosition)
   container.addLimit("joint1", lim1);
   container.addLimit("joint2", lim2);
 
-  EXPECT_EQ(false, pilz_industrial_motion_planner::JointLimitsValidator::validateAllPositionLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllVelocityLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
+  EXPECT_EQ(false, JointLimitsValidator::validateAllPositionLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllVelocityLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
 /**
@@ -94,14 +96,14 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMinPosition)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxPosition1)
 {
-  pilz_industrial_motion_planner::JointLimitsContainer container;
+  JointLimitsContainer container;
 
-  pilz_extensions::JointLimit lim1;
+  JointLimit lim1;
   lim1.has_position_limits = true;
   lim1.min_position = -1;
   lim1.max_position = 2;
 
-  pilz_extensions::JointLimit lim2;
+  JointLimit lim2;
   lim2.has_position_limits = true;
   lim2.min_position = -1;
   lim2.max_position = 1;
@@ -109,10 +111,10 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxPosition1)
   container.addLimit("joint1", lim1);
   container.addLimit("joint2", lim2);
 
-  EXPECT_EQ(false, pilz_industrial_motion_planner::JointLimitsValidator::validateAllPositionLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllVelocityLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
+  EXPECT_EQ(false, JointLimitsValidator::validateAllPositionLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllVelocityLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
 /**
@@ -120,19 +122,19 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxPosition1)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxPosition2)
 {
-  pilz_industrial_motion_planner::JointLimitsContainer container;
+  JointLimitsContainer container;
 
-  pilz_extensions::JointLimit lim1;
+  JointLimit lim1;
   lim1.has_position_limits = true;
   lim1.min_position = -1;
   lim1.max_position = 2;
 
-  pilz_extensions::JointLimit lim2;
+  JointLimit lim2;
   lim2.has_position_limits = true;
   lim2.min_position = -1;
   lim2.max_position = 1;
 
-  pilz_extensions::JointLimit lim3;
+  JointLimit lim3;
   lim3.has_position_limits = true;
   lim3.min_position = -1;
   lim3.max_position = 1;
@@ -141,10 +143,10 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxPosition2)
   container.addLimit("joint2", lim2);
   container.addLimit("joint3", lim3);
 
-  EXPECT_EQ(false, pilz_industrial_motion_planner::JointLimitsValidator::validateAllPositionLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllVelocityLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
+  EXPECT_EQ(false, JointLimitsValidator::validateAllPositionLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllVelocityLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
 /**
@@ -152,14 +154,14 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxPosition2)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityHasPositionLimits)
 {
-  pilz_industrial_motion_planner::JointLimitsContainer container;
+  JointLimitsContainer container;
 
-  pilz_extensions::JointLimit lim1;
+  JointLimit lim1;
   lim1.has_position_limits = true;
   lim1.min_position = -1;
   lim1.max_position = 1;
 
-  pilz_extensions::JointLimit lim2;
+  JointLimit lim2;
   lim2.has_position_limits = false;
   lim2.min_position = -1;
   lim2.max_position = 1;
@@ -167,10 +169,10 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityHasPositionLimits)
   container.addLimit("joint1", lim1);
   container.addLimit("joint2", lim2);
 
-  EXPECT_EQ(false, pilz_industrial_motion_planner::JointLimitsValidator::validateAllPositionLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllVelocityLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
+  EXPECT_EQ(false, JointLimitsValidator::validateAllPositionLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllVelocityLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
 //----------------------------------------------------------------------------------
@@ -184,19 +186,19 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityHasPositionLimits)
  */
 TEST_F(JointLimitsValidatorTest, CheckVelocityEquality)
 {
-  pilz_industrial_motion_planner::JointLimitsContainer container;
+  JointLimitsContainer container;
 
-  pilz_extensions::JointLimit lim1;
+  JointLimit lim1;
   lim1.has_velocity_limits = true;
   lim1.max_velocity = 1;
 
   container.addLimit("joint1", lim1);
   container.addLimit("joint2", lim1);
 
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllPositionLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllVelocityLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllPositionLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllVelocityLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
 /**
@@ -204,23 +206,23 @@ TEST_F(JointLimitsValidatorTest, CheckVelocityEquality)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxVelocity1)
 {
-  pilz_industrial_motion_planner::JointLimitsContainer container;
+  JointLimitsContainer container;
 
-  pilz_extensions::JointLimit lim1;
+  JointLimit lim1;
   lim1.has_velocity_limits = true;
   lim1.max_velocity = 1;
 
-  pilz_extensions::JointLimit lim2;
+  JointLimit lim2;
   lim2.has_velocity_limits = true;
   lim2.max_velocity = 2;
 
   container.addLimit("joint1", lim1);
   container.addLimit("joint2", lim2);
 
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllPositionLimitsEqual(container));
-  EXPECT_EQ(false, pilz_industrial_motion_planner::JointLimitsValidator::validateAllVelocityLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllPositionLimitsEqual(container));
+  EXPECT_EQ(false, JointLimitsValidator::validateAllVelocityLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
 /**
@@ -228,17 +230,17 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxVelocity1)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxVelocity2)
 {
-  pilz_industrial_motion_planner::JointLimitsContainer container;
+  JointLimitsContainer container;
 
-  pilz_extensions::JointLimit lim1;
+  JointLimit lim1;
   lim1.has_velocity_limits = true;
   lim1.max_velocity = 1;
 
-  pilz_extensions::JointLimit lim2;
+  JointLimit lim2;
   lim2.has_velocity_limits = true;
   lim2.max_velocity = 2;
 
-  pilz_extensions::JointLimit lim3;
+  JointLimit lim3;
   lim3.has_velocity_limits = true;
   lim3.max_velocity = 2;
 
@@ -246,10 +248,10 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxVelocity2)
   container.addLimit("joint2", lim2);
   container.addLimit("joint3", lim3);
 
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllPositionLimitsEqual(container));
-  EXPECT_EQ(false, pilz_industrial_motion_planner::JointLimitsValidator::validateAllVelocityLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllPositionLimitsEqual(container));
+  EXPECT_EQ(false, JointLimitsValidator::validateAllVelocityLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
 /**
@@ -257,21 +259,21 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxVelocity2)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityHasVelocityLimits)
 {
-  pilz_industrial_motion_planner::JointLimitsContainer container;
+  JointLimitsContainer container;
 
-  pilz_extensions::JointLimit lim1;
+  JointLimit lim1;
   lim1.has_velocity_limits = true;
 
-  pilz_extensions::JointLimit lim2;
+  JointLimit lim2;
   lim2.has_velocity_limits = false;
 
   container.addLimit("joint1", lim1);
   container.addLimit("joint2", lim2);
 
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllPositionLimitsEqual(container));
-  EXPECT_EQ(false, pilz_industrial_motion_planner::JointLimitsValidator::validateAllVelocityLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllPositionLimitsEqual(container));
+  EXPECT_EQ(false, JointLimitsValidator::validateAllVelocityLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
 //----------------------------------------------------------------------------------
@@ -285,19 +287,19 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityHasVelocityLimits)
  */
 TEST_F(JointLimitsValidatorTest, CheckAccelerationEquality)
 {
-  pilz_industrial_motion_planner::JointLimitsContainer container;
+  JointLimitsContainer container;
 
-  pilz_extensions::JointLimit lim1;
+  JointLimit lim1;
   lim1.has_acceleration_limits = true;
   lim1.max_acceleration = 1;
 
   container.addLimit("joint1", lim1);
   container.addLimit("joint2", lim1);
 
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllPositionLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllVelocityLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllPositionLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllVelocityLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
 /**
@@ -305,23 +307,23 @@ TEST_F(JointLimitsValidatorTest, CheckAccelerationEquality)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxAcceleration1)
 {
-  pilz_industrial_motion_planner::JointLimitsContainer container;
+  JointLimitsContainer container;
 
-  pilz_extensions::JointLimit lim1;
+  JointLimit lim1;
   lim1.has_acceleration_limits = true;
   lim1.max_acceleration = 1;
 
-  pilz_extensions::JointLimit lim2;
+  JointLimit lim2;
   lim2.has_acceleration_limits = true;
   lim2.max_acceleration = 2;
 
   container.addLimit("joint1", lim1);
   container.addLimit("joint2", lim2);
 
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllPositionLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllVelocityLimitsEqual(container));
-  EXPECT_EQ(false, pilz_industrial_motion_planner::JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllPositionLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllVelocityLimitsEqual(container));
+  EXPECT_EQ(false, JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
 /**
@@ -329,17 +331,17 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxAcceleration1)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxAcceleration2)
 {
-  pilz_industrial_motion_planner::JointLimitsContainer container;
+  JointLimitsContainer container;
 
-  pilz_extensions::JointLimit lim1;
+  JointLimit lim1;
   lim1.has_acceleration_limits = true;
   lim1.max_acceleration = 1;
 
-  pilz_extensions::JointLimit lim2;
+  JointLimit lim2;
   lim2.has_acceleration_limits = true;
   lim2.max_acceleration = 2;
 
-  pilz_extensions::JointLimit lim3;
+  JointLimit lim3;
   lim3.has_acceleration_limits = true;
   lim3.max_acceleration = 2;
 
@@ -347,10 +349,10 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxAcceleration2)
   container.addLimit("joint2", lim2);
   container.addLimit("joint3", lim3);
 
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllPositionLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllVelocityLimitsEqual(container));
-  EXPECT_EQ(false, pilz_industrial_motion_planner::JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllPositionLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllVelocityLimitsEqual(container));
+  EXPECT_EQ(false, JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
 /**
@@ -358,21 +360,21 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxAcceleration2)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityHasAccelerationLimits)
 {
-  pilz_industrial_motion_planner::JointLimitsContainer container;
+  JointLimitsContainer container;
 
-  pilz_extensions::JointLimit lim1;
+  JointLimit lim1;
   lim1.has_acceleration_limits = true;
 
-  pilz_extensions::JointLimit lim2;
+  JointLimit lim2;
   lim2.has_acceleration_limits = false;
 
   container.addLimit("joint1", lim1);
   container.addLimit("joint2", lim2);
 
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllPositionLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllVelocityLimitsEqual(container));
-  EXPECT_EQ(false, pilz_industrial_motion_planner::JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllPositionLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllVelocityLimitsEqual(container));
+  EXPECT_EQ(false, JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
 //----------------------------------------------------------------------------------
@@ -386,19 +388,19 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityHasAccelerationLimits)
  */
 TEST_F(JointLimitsValidatorTest, CheckDecelerationEquality)
 {
-  pilz_industrial_motion_planner::JointLimitsContainer container;
+  JointLimitsContainer container;
 
-  pilz_extensions::JointLimit lim1;
+  JointLimit lim1;
   lim1.has_deceleration_limits = true;
   lim1.max_deceleration = 1;
 
   container.addLimit("joint1", lim1);
   container.addLimit("joint2", lim1);
 
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllPositionLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllVelocityLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllPositionLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllVelocityLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
 /**
@@ -406,23 +408,23 @@ TEST_F(JointLimitsValidatorTest, CheckDecelerationEquality)
  */
 TEST_F(JointLimitsValidatorTest, CheckInEqualityMaxDeceleration1)
 {
-  pilz_industrial_motion_planner::JointLimitsContainer container;
+  JointLimitsContainer container;
 
-  pilz_extensions::JointLimit lim1;
+  JointLimit lim1;
   lim1.has_deceleration_limits = true;
   lim1.max_deceleration = -1;
 
-  pilz_extensions::JointLimit lim2;
+  JointLimit lim2;
   lim2.has_deceleration_limits = true;
   lim2.max_deceleration = -2;
 
   container.addLimit("joint1", lim1);
   container.addLimit("joint2", lim2);
 
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllPositionLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllVelocityLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
-  EXPECT_EQ(false, pilz_industrial_motion_planner::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllPositionLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllVelocityLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
+  EXPECT_EQ(false, JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
 /**
@@ -430,17 +432,17 @@ TEST_F(JointLimitsValidatorTest, CheckInEqualityMaxDeceleration1)
  */
 TEST_F(JointLimitsValidatorTest, CheckInEqualityMaxDeceleration2)
 {
-  pilz_industrial_motion_planner::JointLimitsContainer container;
+  JointLimitsContainer container;
 
-  pilz_extensions::JointLimit lim1;
+  JointLimit lim1;
   lim1.has_deceleration_limits = true;
   lim1.max_deceleration = -1;
 
-  pilz_extensions::JointLimit lim2;
+  JointLimit lim2;
   lim2.has_deceleration_limits = true;
   lim2.max_deceleration = -2;
 
-  pilz_extensions::JointLimit lim3;
+  JointLimit lim3;
   lim3.has_deceleration_limits = true;
   lim3.max_deceleration = -2;
 
@@ -448,10 +450,10 @@ TEST_F(JointLimitsValidatorTest, CheckInEqualityMaxDeceleration2)
   container.addLimit("joint2", lim2);
   container.addLimit("joint3", lim3);
 
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllPositionLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllVelocityLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
-  EXPECT_EQ(false, pilz_industrial_motion_planner::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllPositionLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllVelocityLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
+  EXPECT_EQ(false, JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
 /**
@@ -459,13 +461,13 @@ TEST_F(JointLimitsValidatorTest, CheckInEqualityMaxDeceleration2)
  */
 TEST_F(JointLimitsValidatorTest, CheckInEqualityHasDecelerationLimits)
 {
-  pilz_industrial_motion_planner::JointLimitsContainer container;
+  JointLimitsContainer container;
 
-  pilz_extensions::JointLimit lim1;
+  JointLimit lim1;
   lim1.has_deceleration_limits = true;
   lim1.max_deceleration = -1;
 
-  pilz_extensions::JointLimit lim2;
+  JointLimit lim2;
   lim2.has_deceleration_limits = false;
 
   container.addLimit("joint1", lim1);
@@ -473,10 +475,10 @@ TEST_F(JointLimitsValidatorTest, CheckInEqualityHasDecelerationLimits)
 
   ASSERT_EQ(2u, container.getCount());
 
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllPositionLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllVelocityLimitsEqual(container));
-  EXPECT_EQ(true, pilz_industrial_motion_planner::JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
-  EXPECT_EQ(false, pilz_industrial_motion_planner::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllPositionLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllVelocityLimitsEqual(container));
+  EXPECT_EQ(true, JointLimitsValidator::validateAllAccelerationLimitsEqual(container));
+  EXPECT_EQ(false, JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
 int main(int argc, char** argv)

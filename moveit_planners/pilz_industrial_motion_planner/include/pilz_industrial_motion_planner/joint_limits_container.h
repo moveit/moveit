@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "pilz_extensions/joint_limits_extension.h"
+#include "pilz_industrial_motion_planner/joint_limits_extension.h"
 
 #include <map>
 #include <vector>
@@ -55,7 +55,7 @@ public:
    * @return true if the limit was added, false
    *         if joint_limit.has_deceleration_limit && joint_limit.max_deceleration >= 0
    */
-  bool addLimit(const std::string& joint_name, pilz_extensions::JointLimit joint_limit);
+  bool addLimit(const std::string& joint_name, JointLimit joint_limit);
 
   /**
    * @brief Check if there is a limit for a joint with the given name in this container
@@ -82,7 +82,7 @@ public:
    *
    * @return joint limit
    */
-  pilz_extensions::JointLimit getCommonLimit() const;
+  JointLimit getCommonLimit() const;
 
   /**
    * @brief Returns joint limit fusion of all(position, velocity, acceleration, deceleration) limits for given joints.
@@ -93,7 +93,7 @@ public:
    * @return joint limit
    * @throws std::out_of_range if a joint limit with this name does not exist
    */
-  pilz_extensions::JointLimit getCommonLimit(const std::vector<std::string>& joint_names) const;
+  JointLimit getCommonLimit(const std::vector<std::string>& joint_names) const;
 
   /**
    * @brief getLimit get the limit for the given joint name
@@ -101,19 +101,19 @@ public:
    * @return joint limit
    * @throws std::out_of_range if a joint limit with this name does not exist
    */
-  pilz_extensions::JointLimit getLimit(const std::string& joint_name) const;
+  JointLimit getLimit(const std::string& joint_name) const;
 
   /**
    * @brief ConstIterator to the underlying data structure
    * @return
    */
-  std::map<std::string, pilz_extensions::JointLimit>::const_iterator begin() const;
+  std::map<std::string, JointLimit>::const_iterator begin() const;
 
   /**
    * @brief ConstIterator to the underlying data structure
    * @return
    */
-  std::map<std::string, pilz_extensions::JointLimit>::const_iterator end() const;
+  std::map<std::string, JointLimit>::const_iterator end() const;
 
   /**
    * @brief verify position limit of single joint
@@ -146,11 +146,11 @@ private:
    * @param joint_limit
    * @param common_limit the current most strict limit
    */
-  static void updateCommonLimit(const pilz_extensions::JointLimit& joint_limit,
-                                pilz_extensions::JointLimit& common_limit);
+  static void updateCommonLimit(const JointLimit& joint_limit,
+                                JointLimit& common_limit);
 
 protected:
   /// Actual container object containing the data
-  std::map<std::string, pilz_extensions::JointLimit> container_;
+  std::map<std::string, JointLimit> container_;
 };
 }  // namespace pilz_industrial_motion_planner

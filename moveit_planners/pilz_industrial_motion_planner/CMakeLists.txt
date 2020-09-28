@@ -16,7 +16,6 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_move_group
   moveit_ros_planning
   moveit_ros_planning_interface
-  pilz_extensions
   pluginlib
   roscpp
   tf2

@@ -39,7 +39,7 @@
 
 namespace pilz_industrial_motion_planner
 {
-bool JointLimitsContainer::addLimit(const std::string& joint_name, pilz_extensions::JointLimit joint_limit)
+bool JointLimitsContainer::addLimit(const std::string& joint_name, JointLimit joint_limit)
 {
   if (joint_limit.has_deceleration_limits && joint_limit.max_deceleration >= 0)
   {
@@ -47,7 +47,7 @@ bool JointLimitsContainer::addLimit(const std::string& joint_name, pilz_extensio
     return false;
   }
   const auto& insertion_result{ container_.insert(
-      std::pair<std::string, pilz_extensions::JointLimit>(joint_name, joint_limit)) };
+      std::pair<std::string, JointLimit>(joint_name, joint_limit)) };
   if (!insertion_result.second)
   {
     ROS_ERROR_STREAM("joint_limit for joint " << joint_name << " already contained.");
@@ -71,9 +71,9 @@ bool JointLimitsContainer::empty() const
   return container_.empty();
 }
 
-pilz_extensions::JointLimit JointLimitsContainer::getCommonLimit() const
+JointLimit JointLimitsContainer::getCommonLimit() const
 {
-  pilz_extensions::JointLimit common_limit;
+  JointLimit common_limit;
   for (const auto& limit : container_)
   {
     updateCommonLimit(limit.second, common_limit);
@@ -81,9 +81,9 @@ pilz_extensions::JointLimit JointLimitsContainer::getCommonLimit() const
   return common_limit;
 }
 
-pilz_extensions::JointLimit JointLimitsContainer::getCommonLimit(const std::vector<std::string>& joint_names) const
+JointLimit JointLimitsContainer::getCommonLimit(const std::vector<std::string>& joint_names) const
 {
-  pilz_extensions::JointLimit common_limit;
+  JointLimit common_limit;
   for (const auto& joint_name : joint_names)
   {
     updateCommonLimit(container_.at(joint_name), common_limit);
@@ -91,17 +91,17 @@ pilz_extensions::JointLimit JointLimitsContainer::getCommonLimit(const std::vect
   return common_limit;
 }
 
-pilz_extensions::JointLimit JointLimitsContainer::getLimit(const std::string& joint_name) const
+JointLimit JointLimitsContainer::getLimit(const std::string& joint_name) const
 {
   return container_.at(joint_name);
 }
 
-std::map<std::string, pilz_extensions::JointLimit>::const_iterator JointLimitsContainer::begin() const
+std::map<std::string, JointLimit>::const_iterator JointLimitsContainer::begin() const
 {
   return container_.begin();
 }
 
-std::map<std::string, pilz_extensions::JointLimit>::const_iterator JointLimitsContainer::end() const
+std::map<std::string, JointLimit>::const_iterator JointLimitsContainer::end() const
 {
   return container_.end();
 }
@@ -137,8 +137,8 @@ bool JointLimitsContainer::verifyPositionLimits(const std::vector<std::string>& 
   return true;
 }
 
-void JointLimitsContainer::updateCommonLimit(const pilz_extensions::JointLimit& joint_limit,
-                                             pilz_extensions::JointLimit& common_limit)
+void JointLimitsContainer::updateCommonLimit(const JointLimit& joint_limit,
+                                             JointLimit& common_limit)
 {
   // check position limits
   if (joint_limit.has_position_limits)

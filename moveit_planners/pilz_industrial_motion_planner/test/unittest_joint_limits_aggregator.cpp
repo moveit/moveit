@@ -37,12 +37,9 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
 
-#include "pilz_extensions/joint_limits_extension.h"
-#include "pilz_extensions/joint_limits_interface_extension.h"
-
 #include "pilz_industrial_motion_planner/joint_limits_aggregator.h"
-
-using namespace pilz_extensions;
+#include "pilz_industrial_motion_planner/joint_limits_extension.h"
+#include "pilz_industrial_motion_planner/joint_limits_interface_extension.h"
 
 /**
  * @brief Unittest of the JointLimitsAggregator class
@@ -94,7 +91,7 @@ TEST_F(JointLimitsAggregator, CorrectOverwriteByParamterPosition)
       pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(nh,
                                                                                  robot_model_->getActiveJointModels());
 
-  for (std::pair<std::string, JointLimit> lim : container)
+  for (std::pair<std::string, pilz_industrial_motion_planner::JointLimit> lim : container)
   {
     // Check for the overwrite
     if (lim.first == "prbt_joint_1")
@@ -124,7 +121,7 @@ TEST_F(JointLimitsAggregator, CorrectOverwriteByParamterVelocity)
       pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(nh,
                                                                                  robot_model_->getActiveJointModels());
 
-  for (std::pair<std::string, JointLimit> lim : container)
+  for (std::pair<std::string, pilz_industrial_motion_planner::JointLimit> lim : container)
   {
     // Check that velocity was only changed in joint "prbt_joint_3"
     if (lim.first == "prbt_joint_3")
@@ -150,7 +147,7 @@ TEST_F(JointLimitsAggregator, CorrectSettingAccelerationAndDeceleration)
       pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(nh,
                                                                                  robot_model_->getActiveJointModels());
 
-  for (std::pair<std::string, JointLimit> lim : container)
+  for (std::pair<std::string, pilz_industrial_motion_planner::JointLimit> lim : container)
   {
     if (lim.first == "prbt_joint_4")
     {

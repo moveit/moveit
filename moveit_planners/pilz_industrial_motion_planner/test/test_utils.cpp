@@ -49,7 +49,7 @@ testutils::createFakeLimits(const std::vector<std::string>& joint_names)
 
   for (const std::string& name : joint_names)
   {
-    pilz_extensions::JointLimit limit;
+    JointLimit limit;
     limit.has_position_limits = true;
     limit.max_position = 2.967;
     limit.min_position = -2.967;

@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "pilz_extensions/joint_limits_extension.h"
+#include "pilz_industrial_motion_planner/joint_limits_extension.h"
 #include "pilz_industrial_motion_planner/joint_limits_container.h"
 
 namespace pilz_industrial_motion_planner
@@ -80,17 +80,17 @@ public:
   validateAllDecelerationLimitsEqual(const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits);
 
 private:
-  static bool validateWithEqualFunc(bool (*eq_func)(const pilz_extensions::JointLimit&,
-                                                    const pilz_extensions::JointLimit&),
+  static bool validateWithEqualFunc(bool (*eq_func)(const JointLimit&,
+                                                    const JointLimit&),
                                     const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits);
 
-  static bool positionEqual(const pilz_extensions::JointLimit& lhs, const pilz_extensions::JointLimit& rhs);
+  static bool positionEqual(const JointLimit& lhs, const JointLimit& rhs);
 
-  static bool velocityEqual(const pilz_extensions::JointLimit& lhs, const pilz_extensions::JointLimit& rhs);
+  static bool velocityEqual(const JointLimit& lhs, const JointLimit& rhs);
 
-  static bool accelerationEqual(const pilz_extensions::JointLimit& lhs, const pilz_extensions::JointLimit& rhs);
+  static bool accelerationEqual(const JointLimit& lhs, const JointLimit& rhs);
 
-  static bool decelerationEqual(const pilz_extensions::JointLimit& lhs, const pilz_extensions::JointLimit& rhs);
+  static bool decelerationEqual(const JointLimit& lhs, const JointLimit& rhs);
 };
 
 /**

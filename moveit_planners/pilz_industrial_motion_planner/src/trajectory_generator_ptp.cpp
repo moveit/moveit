@@ -60,7 +60,7 @@ TrajectoryGeneratorPTP::TrajectoryGeneratorPTP(const robot_model::RobotModelCons
   // collect most strict joint limits for each group in robot model
   for (const auto& jmg : robot_model->getJointModelGroups())
   {
-    pilz_extensions::JointLimit most_strict_limit = joint_limits_.getCommonLimit(jmg->getActiveJointModelNames());
+    JointLimit most_strict_limit = joint_limits_.getCommonLimit(jmg->getActiveJointModelNames());
 
     if (!most_strict_limit.has_velocity_limits)
     {
@@ -78,7 +78,7 @@ TrajectoryGeneratorPTP::TrajectoryGeneratorPTP(const robot_model::RobotModelCons
       throw TrajectoryGeneratorInvalidLimitsException("deceleration limit not set for group " + jmg->getName());
     }
 
-    most_strict_limits_.insert(std::pair<std::string, pilz_extensions::JointLimit>(jmg->getName(), most_strict_limit));
+    most_strict_limits_.insert(std::pair<std::string, JointLimit>(jmg->getName(), most_strict_limit));
   }
 
   ROS_INFO("Initialized Point-to-Point Trajectory Generator.");

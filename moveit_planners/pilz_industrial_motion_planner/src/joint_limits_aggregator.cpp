@@ -33,15 +33,12 @@
  *********************************************************************/
 
 #include "pilz_industrial_motion_planner/joint_limits_aggregator.h"
-
-#include "pilz_extensions/joint_limits_interface_extension.h"
+#include "pilz_industrial_motion_planner/joint_limits_interface_extension.h"
 
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
 
 #include <vector>
-
-using namespace pilz_extensions;
 
 pilz_industrial_motion_planner::JointLimitsContainer
 pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(
@@ -57,7 +54,7 @@ pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(
     JointLimit joint_limit;
 
     // If there is something defined for the joint on the parameter server
-    if (pilz_extensions::joint_limits_interface::getJointLimits(joint_model->getName(), nh, joint_limit))
+    if (joint_limits_interface::getJointLimits(joint_model->getName(), nh, joint_limit))
     {
       if (joint_limit.has_position_limits)
       {
@@ -154,7 +151,7 @@ void pilz_industrial_motion_planner::JointLimitsAggregator::updateVelocityLimitF
 }
 
 void pilz_industrial_motion_planner::JointLimitsAggregator::checkPositionBoundsThrowing(
-    const moveit::core::JointModel* joint_model, const pilz_extensions::JointLimit& joint_limit)
+    const moveit::core::JointModel* joint_model, const JointLimit& joint_limit)
 {
   // Check min position
   if (!joint_model->satisfiesPositionBounds(&joint_limit.min_position))

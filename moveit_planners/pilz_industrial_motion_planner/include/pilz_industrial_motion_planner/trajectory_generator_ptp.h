@@ -88,7 +88,7 @@ private:
   const double MIN_MOVEMENT = 0.001;
   pilz_industrial_motion_planner::JointLimitsContainer joint_limits_;
   // most strict joint limits for each group
-  std::map<std::string, pilz_extensions::JointLimit> most_strict_limits_;
+  std::map<std::string, JointLimit> most_strict_limits_;
 };
 
 }  // namespace pilz_industrial_motion_planner

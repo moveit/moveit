@@ -43,7 +43,7 @@
 #include <kdl/frames.hpp>
 #include <kdl/trajectory.hpp>
 
-#include "pilz_extensions/joint_limits_extension.h"
+#include "pilz_industrial_motion_planner/joint_limits_extension.h"
 #include "pilz_industrial_motion_planner/limits_container.h"
 #include "pilz_industrial_motion_planner/trajectory_functions.h"
 #include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"

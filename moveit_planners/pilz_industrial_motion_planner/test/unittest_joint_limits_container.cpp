@@ -34,33 +34,35 @@
 
 #include <gtest/gtest.h>
 
-#include "pilz_extensions/joint_limits_extension.h"
+#include "pilz_industrial_motion_planner/joint_limits_extension.h"
 #include "pilz_industrial_motion_planner/joint_limits_container.h"
+
+using namespace pilz_industrial_motion_planner;
 
 class JointLimitsContainerTest : public ::testing::Test
 {
 protected:
   void SetUp() override
   {
-    pilz_extensions::JointLimit lim1;
+    JointLimit lim1;
     lim1.has_position_limits = true;
     lim1.min_position = -2;
     lim1.max_position = 2;
     lim1.has_acceleration_limits = true;
     lim1.max_acceleration = 3;  //<- Expected for common_limit_.max_acceleration
 
-    pilz_extensions::JointLimit lim2;
+    JointLimit lim2;
     lim2.has_position_limits = true;
     lim2.min_position = -1;  //<- Expected for common_limit_.min_position
     lim2.max_position = 1;   //<- Expected for common_limit_.max_position
     lim2.has_deceleration_limits = true;
     lim2.max_deceleration = -5;  //<- Expected for common_limit_.max_deceleration
 
-    pilz_extensions::JointLimit lim3;
+    JointLimit lim3;
     lim3.has_velocity_limits = true;
     lim3.max_velocity = 10;
 
-    pilz_extensions::JointLimit lim4;
+    JointLimit lim4;
     lim4.has_position_limits = true;
     lim4.min_position = -1;
     lim4.max_position = 1;
@@ -69,14 +71,14 @@ protected:
     lim4.has_deceleration_limits = false;
     lim4.max_deceleration = -1;
 
-    pilz_extensions::JointLimit lim5;
+    JointLimit lim5;
     lim5.has_position_limits = true;
     lim5.min_position = -1;
     lim5.max_position = 1;
     lim5.has_acceleration_limits = false;
     lim5.max_acceleration = 1;
 
-    pilz_extensions::JointLimit lim6;
+    JointLimit lim6;
     lim6.has_velocity_limits = true;
     lim6.max_velocity = 2;  //<- Expected for common_limit_.max_velocity
     lim6.has_deceleration_limits = true;
@@ -93,7 +95,7 @@ protected:
   }
 
   pilz_industrial_motion_planner::JointLimitsContainer container_;
-  pilz_extensions::JointLimit common_limit_;
+  JointLimit common_limit_;
 };
 
 /**
@@ -134,15 +136,15 @@ TEST_F(JointLimitsContainerTest, CheckDecelerationUnification)
  */
 TEST_F(JointLimitsContainerTest, CheckAddLimitDeceleration)
 {
-  pilz_extensions::JointLimit lim_invalid1;
+  JointLimit lim_invalid1;
   lim_invalid1.has_deceleration_limits = true;
   lim_invalid1.max_deceleration = 0;
 
-  pilz_extensions::JointLimit lim_invalid2;
+  JointLimit lim_invalid2;
   lim_invalid2.has_deceleration_limits = true;
   lim_invalid2.max_deceleration = 1;
 
-  pilz_extensions::JointLimit lim_valid;
+  JointLimit lim_valid;
   lim_valid.has_deceleration_limits = true;
   lim_valid.max_deceleration = -1;
 
@@ -158,7 +160,7 @@ TEST_F(JointLimitsContainerTest, CheckAddLimitDeceleration)
  */
 TEST_F(JointLimitsContainerTest, CheckAddLimitAlreadyContained)
 {
-  pilz_extensions::JointLimit lim_valid;
+  JointLimit lim_valid;
   lim_valid.has_deceleration_limits = true;
   lim_valid.max_deceleration = -1;
 
@@ -173,7 +175,7 @@ TEST_F(JointLimitsContainerTest, CheckAddLimitAlreadyContained)
 TEST_F(JointLimitsContainerTest, CheckEmptyContainer)
 {
   pilz_industrial_motion_planner::JointLimitsContainer container;
-  pilz_extensions::JointLimit limits = container.getCommonLimit();
+  JointLimit limits = container.getCommonLimit();
   EXPECT_FALSE(limits.has_position_limits);
   EXPECT_FALSE(limits.has_velocity_limits);
   EXPECT_FALSE(limits.has_acceleration_limits);
@@ -184,9 +186,9 @@ TEST_F(JointLimitsContainerTest, CheckEmptyContainer)
  */
 TEST_F(JointLimitsContainerTest, FirstPositionEmpty)
 {
-  pilz_extensions::JointLimit lim1;
+  JointLimit lim1;
 
-  pilz_extensions::JointLimit lim2;
+  JointLimit lim2;
   lim2.has_position_limits = true;
   lim2.min_position = -1;  //<- Expected for common_limit_.min_position
   lim2.max_position = 1;   //<- Expected for common_limit_.max_position
@@ -195,7 +197,7 @@ TEST_F(JointLimitsContainerTest, FirstPositionEmpty)
   container.addLimit("joint1", lim1);
   container.addLimit("joint2", lim2);
 
-  pilz_extensions::JointLimit limits = container.getCommonLimit();
+  JointLimit limits = container.getCommonLimit();
   EXPECT_TRUE(limits.has_position_limits);
   EXPECT_EQ(1, limits.max_position);
   EXPECT_EQ(-1, limits.min_position);

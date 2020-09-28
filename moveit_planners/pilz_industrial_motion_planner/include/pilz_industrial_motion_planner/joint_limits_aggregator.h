@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "pilz_extensions/joint_limits_extension.h"
+#include "pilz_industrial_motion_planner/joint_limits_extension.h"
 #include "pilz_industrial_motion_planner/joint_limits_container.h"
 
 #include <ros/ros.h>
@@ -82,7 +82,7 @@ protected:
    * @param joint_limit The joint_limit to be filled with new values.
    */
   static void updatePositionLimitFromJointModel(const moveit::core::JointModel* joint_model,
-                                                pilz_extensions::JointLimit& joint_limit);
+                                                JointLimit& joint_limit);
 
   /**
    * @brief Update the velocity limit with the one from the joint_model.
@@ -93,7 +93,7 @@ protected:
    * @param joint_limit The joint_limit to be filled with new values.
    */
   static void updateVelocityLimitFromJointModel(const moveit::core::JointModel* joint_model,
-                                                pilz_extensions::JointLimit& joint_limit);
+                                                JointLimit& joint_limit);
 
   /**
    * @brief Checks if the position limits from the given joint_limit are stricter than the limits of the joint_model.
@@ -102,7 +102,7 @@ protected:
    * @param joint_limit The joint_limit
    */
   static void checkPositionBoundsThrowing(const moveit::core::JointModel* joint_model,
-                                          const pilz_extensions::JointLimit& joint_limit);
+                                          const JointLimit& joint_limit);
 
   /**
    * @brief Checks if the velocity limit from the given joint_limit are stricter than the limit of the joint_model.
@@ -111,7 +111,7 @@ protected:
    * @param joint_limit The joint_limit
    */
   static void checkVelocityBoundsThrowing(const moveit::core::JointModel* joint_model,
-                                          const pilz_extensions::JointLimit& joint_limit);
+                                          const JointLimit& joint_limit);
 };
 
 /**
