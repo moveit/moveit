@@ -105,6 +105,8 @@ void IntegrationTestCommandPlanning::SetUp()
   ASSERT_TRUE(ph_.getParam(ORIENTATION_NORM_TOLERANCE, orientation_norm_tolerance_));
   ASSERT_TRUE(ph_.getParam(TEST_DATA_FILE_NAME, test_data_file_name_));
 
+  ASSERT_TRUE(ros::service::waitForService(PLAN_SERVICE_NAME, ros::Duration(testutils::DEFAULT_SERVICE_TIMEOUT)));
+
   // load the test data provider
   test_data_.reset(
       new pilz_industrial_motion_planner_testutils::XmlTestdataLoader{ test_data_file_name_, robot_model_ });
@@ -132,7 +134,6 @@ TEST_F(IntegrationTestCommandPlanning, PtpJoint)
   moveit_msgs::MotionPlanRequest req = ptp.toRequest();
   srv.request.motion_plan_request = req;
 
-  ASSERT_TRUE(ros::service::waitForService(PLAN_SERVICE_NAME, ros::Duration(testutils::DEFAULT_SERVICE_TIMEOUT)));
   ros::ServiceClient client = node_handle.serviceClient<moveit_msgs::GetMotionPlan>(PLAN_SERVICE_NAME);
 
   ASSERT_TRUE(client.call(srv));
@@ -183,7 +184,6 @@ TEST_F(IntegrationTestCommandPlanning, PtpJointCart)
   moveit_msgs::GetMotionPlan srv;
   srv.request.motion_plan_request = ptp.toRequest();
 
-  ASSERT_TRUE(ros::service::waitForService(PLAN_SERVICE_NAME, ros::Duration(testutils::DEFAULT_SERVICE_TIMEOUT)));
   ros::ServiceClient client = node_handle.serviceClient<moveit_msgs::GetMotionPlan>(PLAN_SERVICE_NAME);
 
   ASSERT_TRUE(client.call(srv));
@@ -206,13 +206,13 @@ TEST_F(IntegrationTestCommandPlanning, PtpJointCart)
     EXPECT_EQ(point.accelerations.size(), num_joints_);
   }
 
-  // TODO check that at right position
   robot_state::RobotState rstate(robot_model_);
+  rstate.setToDefaultValues();
   rstate.setJointGroupPositions(planning_group_, response.trajectory.joint_trajectory.points.back().positions);
-  rstate.update();
   Eigen::Isometry3d tf = rstate.getFrameTransform(target_link_);
 
   const geometry_msgs::Pose& expected_pose{ ptp.getGoalConfiguration().getPose() };
+
   EXPECT_NEAR(tf(0, 3), expected_pose.position.x, EPSILON);
   EXPECT_NEAR(tf(1, 3), expected_pose.position.y, EPSILON);
   EXPECT_NEAR(tf(2, 3), expected_pose.position.z, EPSILON);
@@ -248,7 +248,6 @@ TEST_F(IntegrationTestCommandPlanning, LinJoint)
   moveit_msgs::GetMotionPlan srv;
   srv.request.motion_plan_request = req;
 
-  ASSERT_TRUE(ros::service::waitForService(PLAN_SERVICE_NAME, ros::Duration(testutils::DEFAULT_SERVICE_TIMEOUT)));
   ros::NodeHandle node_handle("~");
   ros::ServiceClient client = node_handle.serviceClient<moveit_msgs::GetMotionPlan>(PLAN_SERVICE_NAME);
 
@@ -301,7 +300,6 @@ TEST_F(IntegrationTestCommandPlanning, LinJointCart)
   moveit_msgs::GetMotionPlan srv;
   srv.request.motion_plan_request = req;
 
-  ASSERT_TRUE(ros::service::waitForService(PLAN_SERVICE_NAME, ros::Duration(testutils::DEFAULT_SERVICE_TIMEOUT)));
   ros::ServiceClient client = node_handle.serviceClient<moveit_msgs::GetMotionPlan>(PLAN_SERVICE_NAME);
 
   ASSERT_TRUE(client.call(srv));
@@ -349,7 +347,6 @@ TEST_F(IntegrationTestCommandPlanning, CircJointCenterCart)
   moveit_msgs::GetMotionPlan srv;
   srv.request.motion_plan_request = req;
 
-  ASSERT_TRUE(ros::service::waitForService(PLAN_SERVICE_NAME, ros::Duration(testutils::DEFAULT_SERVICE_TIMEOUT)));
   ros::ServiceClient client = node_handle.serviceClient<moveit_msgs::GetMotionPlan>(PLAN_SERVICE_NAME);
 
   ASSERT_TRUE(client.call(srv));
@@ -431,7 +428,6 @@ TEST_F(IntegrationTestCommandPlanning, CircCartCenterCart)
   moveit_msgs::GetMotionPlan srv;
   srv.request.motion_plan_request = req;
 
-  ASSERT_TRUE(ros::service::waitForService(PLAN_SERVICE_NAME, ros::Duration(testutils::DEFAULT_SERVICE_TIMEOUT)));
   ros::ServiceClient client = node_handle.serviceClient<moveit_msgs::GetMotionPlan>(PLAN_SERVICE_NAME);
 
   ASSERT_TRUE(client.call(srv));
