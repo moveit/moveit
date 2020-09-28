@@ -217,6 +217,7 @@ bool testutils::checkCartesianLinearity(const moveit::core::RobotModelConstPtr& 
 
   // compute start pose
   robot_state::RobotState rstate(robot_model);
+  rstate.setToDefaultValues();
   moveit::core::jointStateToRobotState(req.start_state.joint_state, rstate);
   Eigen::Isometry3d start_pose = rstate.getFrameTransform(link_name);
 
@@ -228,6 +229,10 @@ bool testutils::checkCartesianLinearity(const moveit::core::RobotModelConstPtr& 
   {
     Eigen::Isometry3d way_point_pose;
     std::map<std::string, double> way_point_joint_state;
+    // initializing all joints of the model
+    for (const auto& joint_name : robot_model->getVariableNames()){
+      way_point_joint_state[joint_name] = 0;
+    }
     for (std::size_t i = 0; i < trajectory.joint_names.size(); ++i)
     {
       way_point_joint_state[trajectory.joint_names.at(i)] = way_point.positions.at(i);

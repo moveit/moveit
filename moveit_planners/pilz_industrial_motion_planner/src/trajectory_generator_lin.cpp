@@ -88,6 +88,11 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_interface::Mot
       throw JointNumberMismatch(os.str());
     }
 
+    // initializing all joints of the model
+    for (const auto& joint_name : robot_model_->getVariableNames()){
+      info.goal_joint_position[joint_name] = 0;
+    }
+
     for (const auto& joint_item : req.goal_constraints.front().joint_constraints)
     {
       info.goal_joint_position[joint_item.joint_name] = joint_item.position;
