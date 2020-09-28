@@ -247,7 +247,7 @@ bool testutils::checkCartesianLinearity(const moveit::core::RobotModelConstPtr& 
     // translational linearity
     Eigen::Vector3d goal_start_translation = goal_pose_expect.translation() - start_pose.translation();
     // https://de.wikipedia.org/wiki/Geradengleichung
-    // Determinent form of a straight line in 3D space
+    // Determined form of a straight line in 3D space
     if (fabs((goal_start_translation.cross(way_point_pose.translation()) -
               goal_start_translation.cross(start_pose.translation()))
                  .norm()) > fabs(translation_norm_tolerance))
