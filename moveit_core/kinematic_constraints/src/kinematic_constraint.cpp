@@ -603,7 +603,25 @@ bool OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& 
     constraint_weight_ = 1.0;
   }
   else
+  {
     constraint_weight_ = oc.weight;
+  }
+
+  if (oc.parameterization == 0)
+  {
+    // default case
+    parameterization_ = Parameterization::EULER_ANGLES;
+  }
+  else if (oc.parameterization == 1)
+  {
+    parameterization_ = Parameterization::ANGLE_AXIS;
+  }
+  else
+  {
+    ROS_WARN_NAMED("kinematic_constraints",
+                   "Unkown parameterization for orientation constraint tolerance, using default (EULER_ANGLES).");
+  }
+
   absolute_x_axis_tolerance_ = fabs(oc.absolute_x_axis_tolerance);
   if (absolute_x_axis_tolerance_ < std::numeric_limits<double>::epsilon())
     ROS_WARN_NAMED("kinematic_constraints", "Near-zero value for absolute_x_axis_tolerance");
