@@ -157,7 +157,7 @@ void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(
   {
     action_res.response.sequence_start = start_states_msg.at(0);
   }
-  catch (std::out_of_range)
+  catch (std::out_of_range&)
   {
     ROS_WARN("Can not determine start state from empty sequence.");
   }
@@ -223,7 +223,7 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const moveit_msgs::Mov
   {
     res.response.sequence_start = start_states_msg.at(0);
   }
-  catch (std::out_of_range)
+  catch (std::out_of_range&)
   {
     ROS_WARN("Can not determine start state from empty sequence.");
   }
