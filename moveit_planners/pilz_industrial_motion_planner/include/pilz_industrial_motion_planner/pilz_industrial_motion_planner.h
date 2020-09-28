@@ -36,11 +36,11 @@
 
 #include <ros/ros.h>
 
-#include "pilz_industrial_motion_planner/planning_context_loader.h"
 #include "pilz_industrial_motion_planner/joint_limits_extension.h"
+#include "pilz_industrial_motion_planner/planning_context_loader.h"
 
-#include <moveit/planning_interface/planning_interface.h>
 #include <moveit/macros/class_forward.h>
+#include <moveit/planning_interface/planning_interface.h>
 
 #include <pluginlib/class_loader.h>
 
@@ -51,9 +51,11 @@ namespace pilz_industrial_motion_planner
 {
 /**
  * @brief Moveit Plugin for Planning with Standart Robot Commands
- * This planner is dedicated to return a instance of PlanningContext that corresponds to the requested motion command
+ * This planner is dedicated to return a instance of PlanningContext that
+ * corresponds to the requested motion command
  * set as planner_id in the MotionPlanRequest).
- * It can be easily extended with additional commands by creating a class inherting from PlanningContextLoader.
+ * It can be easily extended with additional commands by creating a class
+ * inherting from PlanningContextLoader.
  */
 class CommandPlanner : public planning_interface::PlannerManager
 {
@@ -78,12 +80,14 @@ public:
   /**
    * @brief Returns the available planning commands
    * @param list with the planning algorithms
-   * @note behined each command is a pilz_industrial_motion_planner::PlanningContextLoader loaded as plugin
+   * @note behined each command is a
+   * pilz_industrial_motion_planner::PlanningContextLoader loaded as plugin
    */
   void getPlanningAlgorithms(std::vector<std::string>& algs) const override;
 
   /**
-   * @brief Returns a PlanningContext that can be used to solve(calculate) the trajectory that corresponds to command
+   * @brief Returns a PlanningContext that can be used to solve(calculate) the
+   * trajectory that corresponds to command
    * given in motion request as planner_id.
    * @param planning_scene
    * @param req
@@ -96,7 +100,8 @@ public:
 
   /**
    * @brief Checks if the request can be handled
-   * @param motion request containing the planning_id that corresponds to the motion command
+   * @param motion request containing the planning_id that corresponds to the
+   * motion command
    * @return true if the request can be handled
    */
   bool canServiceRequest(const planning_interface::MotionPlanRequest& req) const override;
@@ -104,13 +109,14 @@ public:
   /**
    * @brief Register a PlanningContextLoader to be used by the CommandPlanner
    * @param planning_context_loader
-   * @throw ContextLoaderRegistrationException if a loader with the same algorithm name is already registered
+   * @throw ContextLoaderRegistrationException if a loader with the same
+   * algorithm name is already registered
    */
   void registerContextLoader(const pilz_industrial_motion_planner::PlanningContextLoaderPtr& planning_context_loader);
 
 private:
   /// Plugin loader
-  boost::scoped_ptr<pluginlib::ClassLoader<PlanningContextLoader> > planner_context_loader;
+  boost::scoped_ptr<pluginlib::ClassLoader<PlanningContextLoader>> planner_context_loader;
 
   /// Mapping from command to loader
   std::map<std::string, pilz_industrial_motion_planner::PlanningContextLoaderPtr> context_loader_map_;

@@ -84,8 +84,10 @@ pilz_industrial_motion_planner::CartesianLimitsAggregator::getAggregatedLimits(c
   // LCOV_EXCL_START
   if (nh.hasParam(param_prefix + PARAM_MAX_ROT_ACC) || nh.hasParam(param_prefix + PARAM_MAX_ROT_DEC))
   {
-    ROS_WARN_STREAM("Ignoring cartesian limits parameters for rotational acceleration / deceleration;"
-                    << "these parameters are deprecated and are automatically calculated from"
+    ROS_WARN_STREAM("Ignoring cartesian limits parameters for rotational "
+                    "acceleration / deceleration;"
+                    << "these parameters are deprecated and are automatically "
+                       "calculated from"
                     << "translational to rotational ratio.");
   }
   // LCOV_EXCL_STOP

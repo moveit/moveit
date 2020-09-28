@@ -35,10 +35,10 @@
 #include "pilz_industrial_motion_planner/trajectory_functions.h"
 
 #include <moveit/planning_scene/planning_scene.h>
-#include <tf2/convert.h>
 #include <tf2/LinearMath/Quaternion.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2/convert.h>
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 bool pilz_industrial_motion_planner::computePoseIK(const moveit::core::RobotModelConstPtr& robot_model,
                                                    const std::string& group_name, const std::string& link_name,
@@ -110,7 +110,7 @@ bool pilz_industrial_motion_planner::computeLinkFK(const moveit::core::RobotMode
                                                    const std::string& link_name,
                                                    const std::map<std::string, double>& joint_state,
                                                    Eigen::Isometry3d& pose)
-{ // create robot state
+{  // create robot state
   robot_state::RobotState rstate(robot_model);
 
   // check the reference frame of the target pose
@@ -228,7 +228,8 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
     if (!computePoseIK(robot_model, group_name, link_name, pose_sample, robot_model->getModelFrame(), ik_solution_last,
                        ik_solution, check_self_collision))
     {
-      ROS_ERROR("Failed to compute inverse kinematics solution for sampled Cartesian pose.");
+      ROS_ERROR("Failed to compute inverse kinematics solution for sampled "
+                "Cartesian pose.");
       error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
       joint_trajectory.points.clear();
       return false;
@@ -332,7 +333,8 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
     if (!computePoseIK(robot_model, group_name, link_name, trajectory.points.at(i).pose, robot_model->getModelFrame(),
                        ik_solution_last, ik_solution, check_self_collision))
     {
-      ROS_ERROR("Failed to compute inverse kinematics solution for sampled Cartesian pose.");
+      ROS_ERROR("Failed to compute inverse kinematics solution for sampled "
+                "Cartesian pose.");
       error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
       joint_trajectory.points.clear();
       return false;
@@ -353,11 +355,13 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
     if (!verifySampleJointLimits(ik_solution_last, joint_velocity_last, ik_solution, duration_last, duration_current,
                                  joint_limits))
     {
-      // LCOV_EXCL_START since the same code was captured in a test in the other overload generateJointTrajectory(...,
+      // LCOV_EXCL_START since the same code was captured in a test in the other
+      // overload generateJointTrajectory(...,
       // KDL::Trajectory, ...)
       // TODO: refactor to avoid code duplication.
-      ROS_ERROR_STREAM("Inverse kinematics solution of the "
-                       << i << "th sample violates the joint velocity/acceleration/deceleration limits.");
+      ROS_ERROR_STREAM("Inverse kinematics solution of the " << i
+                                                             << "th sample violates the joint "
+                                                                "velocity/acceleration/deceleration limits.");
       error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
       joint_trajectory.points.clear();
       return false;
@@ -398,12 +402,14 @@ bool pilz_industrial_motion_planner::determineAndCheckSamplingTime(
     const robot_trajectory::RobotTrajectoryPtr& first_trajectory,
     const robot_trajectory::RobotTrajectoryPtr& second_trajectory, double epsilon, double& sampling_time)
 {
-  // The last sample is ignored because it is allowed to violate the sampling time.
+  // The last sample is ignored because it is allowed to violate the sampling
+  // time.
   std::size_t n1 = first_trajectory->getWayPointCount() - 1;
   std::size_t n2 = second_trajectory->getWayPointCount() - 1;
   if ((n1 < 2) && (n2 < 2))
   {
-    ROS_ERROR_STREAM("Both trajectories do not have enough points to determine sampling time.");
+    ROS_ERROR_STREAM("Both trajectories do not have enough points to determine "
+                     "sampling time.");
     return false;
   }
 

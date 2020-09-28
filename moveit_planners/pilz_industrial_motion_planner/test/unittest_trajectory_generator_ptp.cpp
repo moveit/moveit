@@ -36,14 +36,14 @@
 
 #include <gtest/gtest.h>
 
-#include "pilz_industrial_motion_planner/trajectory_generator_ptp.h"
 #include "pilz_industrial_motion_planner/joint_limits_aggregator.h"
+#include "pilz_industrial_motion_planner/trajectory_generator_ptp.h"
 #include "test_utils.h"
 
+#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <pluginlib/class_loader.h>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/kinematic_constraints/utils.h>
 
 // parameters for parameterized tests
 const std::string PARAM_MODEL_NO_GRIPPER_NAME{ "robot_description" };
@@ -76,8 +76,7 @@ protected:
    * @return
    */
   bool checkTrajectory(const trajectory_msgs::JointTrajectory& trajectory,
-                       const planning_interface::MotionPlanRequest& req,
-                       const JointLimitsContainer& joint_limits);
+                       const planning_interface::MotionPlanRequest& req, const JointLimitsContainer& joint_limits);
 
 protected:
   // ros stuff
@@ -131,9 +130,9 @@ void TrajectoryGeneratorPTPTest::SetUp()
   ASSERT_NE(nullptr, ptp_);
 }
 
-bool TrajectoryGeneratorPTPTest::checkTrajectory(
-    const trajectory_msgs::JointTrajectory& trajectory, const planning_interface::MotionPlanRequest& req,
-    const JointLimitsContainer& joint_limits)
+bool TrajectoryGeneratorPTPTest::checkTrajectory(const trajectory_msgs::JointTrajectory& trajectory,
+                                                 const planning_interface::MotionPlanRequest& req,
+                                                 const JointLimitsContainer& joint_limits)
 {
   return (testutils::isTrajectoryConsistent(trajectory) &&
           testutils::isGoalReached(trajectory, req.goal_constraints.front().joint_constraints,
@@ -254,7 +253,8 @@ TEST_P(TrajectoryGeneratorPTPTest, missingDecelerationimits)
  *    2. assign at least one joint limit per group with all required limits
  *
  *  - Expected Results:
- *    1. the constructor throws an exception of type TrajectoryGeneratorInvalidLimitsException
+ *    1. the constructor throws an exception of type
+ * TrajectoryGeneratorInvalidLimitsException
  *    2. the constructor throws no exception
  */
 TEST_P(TrajectoryGeneratorPTPTest, testInsufficientLimit)
@@ -305,7 +305,8 @@ TEST_P(TrajectoryGeneratorPTPTest, testInsufficientLimit)
   sufficient_limit.has_deceleration_limits = true;
   sufficient_limit.max_deceleration = -1;
   JointLimitsContainer sufficient_joint_limits;
-  // fill joint limits container, such that it contains one sufficient limit and all others are insufficient
+  // fill joint limits container, such that it contains one sufficient limit and
+  // all others are insufficient
   for (const auto& jmg : robot_model_->getJointModelGroups())
   {
     const auto& joint_names{ jmg->getActiveJointModelNames() };
@@ -377,7 +378,8 @@ TEST_P(TrajectoryGeneratorPTPTest, testCartesianGoal)
 }
 
 /**
- * @brief Check that missing a link_name in position or orientation constraints is detected
+ * @brief Check that missing a link_name in position or orientation constraints
+ * is detected
  */
 TEST_P(TrajectoryGeneratorPTPTest, testCartesianGoalMissingLinkNameConstraints)
 {
@@ -443,7 +445,8 @@ TEST_P(TrajectoryGeneratorPTPTest, testInvalidCartesianGoal)
 }
 
 /**
- * @brief test the ptp trajectory generator of joint space goal which is close enough to the start which does not need
+ * @brief test the ptp trajectory generator of joint space goal which is close
+ * enough to the start which does not need
  * to plan the trajectory
  */
 TEST_P(TrajectoryGeneratorPTPTest, testJointGoalAlreadyReached)

@@ -35,49 +35,56 @@
 #ifndef JOINT_LIMITS_INTERFACE_EXTENSION_H
 #define JOINT_LIMITS_INTERFACE_EXTENSION_H
 
-#include <joint_limits_interface/joint_limits_rosparam.h>
 #include "pilz_industrial_motion_planner/joint_limits_extension.h"
+#include <joint_limits_interface/joint_limits_rosparam.h>
 
-namespace pilz_industrial_motion_planner {
-namespace joint_limits_interface {
-
+namespace pilz_industrial_motion_planner
+{
+namespace joint_limits_interface
+{
 /**
  * @see joint_limits_inteface::getJointLimits(...)
  */
-inline bool getJointLimits(const std::string& joint_name,
-                           const ros::NodeHandle& nh,
-                           joint_limits_interface::JointLimits& limits) {
-
+inline bool getJointLimits(const std::string& joint_name, const ros::NodeHandle& nh,
+                           joint_limits_interface::JointLimits& limits)
+{
   // Node handle scoped where the joint limits are
-  // defined (copied from ::joint_limits_interface::getJointLimits(joint_name, nh, limits)
+  // defined (copied from ::joint_limits_interface::getJointLimits(joint_name,
+  // nh, limits)
   ros::NodeHandle limits_nh;
   try
   {
     const std::string limits_namespace = "joint_limits/" + joint_name;
     if (!nh.hasParam(limits_namespace))
     {
-      ROS_DEBUG_STREAM("No joint limits specification found for joint '" << joint_name <<
-                       "' in the parameter server (namespace " << nh.getNamespace() + "/" + limits_namespace << ").");
+      ROS_DEBUG_STREAM("No joint limits specification found for joint '"
+                       << joint_name << "' in the parameter server (namespace "
+                       << nh.getNamespace() + "/" + limits_namespace << ").");
       return false;
     }
     limits_nh = ros::NodeHandle(nh, limits_namespace);
   }
-  catch(const ros::InvalidNameException& ex)
+  catch (const ros::InvalidNameException& ex)
   {
     ROS_ERROR_STREAM(ex.what());
     return false;
   }
 
   // Set the existing limits
-  if(! ::joint_limits_interface::getJointLimits(joint_name, nh, limits)) {
-    return false; //LCOV_EXCL_LINE // The case where getJointLimits returns false is covered above.
+  if (!::joint_limits_interface::getJointLimits(joint_name, nh, limits))
+  {
+    return false;  // LCOV_EXCL_LINE // The case where getJointLimits returns
+                   // false is covered above.
   }
 
   // Deceleration limits
   bool has_deceleration_limits = false;
-  if(limits_nh.getParam("has_deceleration_limits", has_deceleration_limits))
+  if (limits_nh.getParam("has_deceleration_limits", has_deceleration_limits))
   {
-    if (!has_deceleration_limits) {limits.has_deceleration_limits = false;}
+    if (!has_deceleration_limits)
+    {
+      limits.has_deceleration_limits = false;
+    }
     double max_dec;
     if (has_deceleration_limits && limits_nh.getParam("max_deceleration", max_dec))
     {
@@ -88,8 +95,7 @@ inline bool getJointLimits(const std::string& joint_name,
 
   return true;
 }
+}  // namespace joint_limits_interface
+}  // namespace pilz_industrial_motion_planner
 
-}
-}
-
-#endif // JOINT_LIMITS_INTERFACE_EXTENSION_H
+#endif  // JOINT_LIMITS_INTERFACE_EXTENSION_H

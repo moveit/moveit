@@ -356,7 +356,8 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxAcceleration2)
 }
 
 /**
- * @brief Check acceleration inequality in has_acceleration_limits false detection
+ * @brief Check acceleration inequality in has_acceleration_limits false
+ * detection
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityHasAccelerationLimits)
 {
@@ -457,7 +458,8 @@ TEST_F(JointLimitsValidatorTest, CheckInEqualityMaxDeceleration2)
 }
 
 /**
- * @brief Check deceleration inequality in has_deceleration_limits false detection
+ * @brief Check deceleration inequality in has_deceleration_limits false
+ * detection
  */
 TEST_F(JointLimitsValidatorTest, CheckInEqualityHasDecelerationLimits)
 {

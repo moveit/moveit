@@ -34,8 +34,8 @@
 
 #include <eigen_conversions/eigen_msg.h>
 #include <gtest/gtest.h>
-#include <moveit/robot_state/conversions.h>
 #include <moveit/planning_interface/planning_interface.h>
+#include <moveit/robot_state/conversions.h>
 #include <tf2/convert.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
@@ -78,7 +78,8 @@ bool testutils::getExpectedGoalPose(const moveit::core::RobotModelConstPtr& robo
     std::map<std::string, double> goal_joint_position;
 
     // initializing all joints of the model
-    for (const auto& joint_name : robot_model->getVariableNames()){
+    for (const auto& joint_name : robot_model->getVariableNames())
+    {
       goal_joint_position[joint_name] = 0;
     }
 
@@ -91,7 +92,8 @@ bool testutils::getExpectedGoalPose(const moveit::core::RobotModelConstPtr& robo
 
     if (!computeLinkFK(robot_model, link_name, goal_joint_position, goal_pose_expect))
     {
-      std::cerr << "Failed to compute forward kinematics for link in goal constraints \n";
+      std::cerr << "Failed to compute forward kinematics for link in goal "
+                   "constraints \n";
       return false;
     }
     return true;
@@ -164,7 +166,8 @@ bool testutils::isGoalReached(const moveit::core::RobotModelConstPtr& robot_mode
   std::map<std::string, double> joint_state;
 
   // initializing all joints of the model
-  for (const auto& joint_name : robot_model->getVariableNames()){
+  for (const auto& joint_name : robot_model->getVariableNames())
+  {
     joint_state[joint_name] = 0;
   }
 
@@ -243,7 +246,8 @@ bool testutils::checkCartesianLinearity(const moveit::core::RobotModelConstPtr& 
     std::map<std::string, double> way_point_joint_state;
 
     // initializing all joints of the model
-    for (const auto& joint_name : robot_model->getVariableNames()){
+    for (const auto& joint_name : robot_model->getVariableNames())
+    {
       way_point_joint_state[joint_name] = 0;
     }
 
@@ -254,7 +258,8 @@ bool testutils::checkCartesianLinearity(const moveit::core::RobotModelConstPtr& 
 
     if (!computeLinkFK(robot_model, link_name, way_point_joint_state, way_point_pose))
     {
-      std::cerr << "Failed to compute forward kinematics for link in goal constraints \n";
+      std::cerr << "Failed to compute forward kinematics for link in goal "
+                   "constraints \n";
       return false;
     }
 
@@ -532,7 +537,8 @@ bool testutils::toTCPPose(const moveit::core::RobotModelConstPtr& robot_model, c
     auto joint_values_it = joint_values.begin();
 
     // initializing all joints of the model
-    for (const auto& joint_name : robot_model->getVariableNames()){
+    for (const auto& joint_name : robot_model->getVariableNames())
+    {
       joint_state[joint_name] = 0;
     }
 
@@ -681,7 +687,8 @@ bool testutils::checkBlendingJointSpaceContinuity(const pilz_industrial_motion_p
       first_end.velocities.size() != blend_start.velocities.size() ||
       first_end.accelerations.size() != blend_start.accelerations.size())
   {
-    std::cout << "Different sizes of the position/velocity/acceleration between first trajectory and blend trajectory."
+    std::cout << "Different sizes of the position/velocity/acceleration "
+                 "between first trajectory and blend trajectory."
               << std::endl;
     return false;
   }
@@ -693,7 +700,9 @@ bool testutils::checkBlendingJointSpaceContinuity(const pilz_industrial_motion_p
         (blend_start.positions.at(i) - first_end.positions.at(i)) / blend_start.time_from_start.toSec();
     if (fabs(blend_start_velo - blend_start.velocities.at(i)) > joint_velocity_tolerance)
     {
-      std::cout << "Velocity computed from positions are different from the value in trajectory." << std::endl
+      std::cout << "Velocity computed from positions are different from the "
+                   "value in trajectory."
+                << std::endl
                 << "position: " << blend_start.positions.at(i) << "; " << first_end.positions.at(i)
                 << "computed: " << blend_start_velo << "; "
                 << "in trajectory: " << blend_start.velocities.at(i) << std::endl;
@@ -703,7 +712,8 @@ bool testutils::checkBlendingJointSpaceContinuity(const pilz_industrial_motion_p
     double blend_start_acc = (blend_start_velo - first_end.velocities.at(i)) / blend_start.time_from_start.toSec();
     if (fabs(blend_start_acc - blend_start.accelerations.at(i)) > joint_velocity_tolerance)
     {
-      std::cout << "Acceleration computed from positions/velocities are different from the value in trajectory."
+      std::cout << "Acceleration computed from positions/velocities are "
+                   "different from the value in trajectory."
                 << std::endl
                 << "computed: " << blend_start_acc << "; "
                 << "in trajectory: " << blend_start.accelerations.at(i) << std::endl;
@@ -721,7 +731,8 @@ bool testutils::checkBlendingJointSpaceContinuity(const pilz_industrial_motion_p
       blend_end.velocities.size() != second_start.velocities.size() ||
       blend_end.accelerations.size() != second_start.accelerations.size())
   {
-    std::cout << "Different sizes of the position/velocity/acceleration between first trajectory and blend trajectory."
+    std::cout << "Different sizes of the position/velocity/acceleration "
+                 "between first trajectory and blend trajectory."
               << std::endl
               << blend_end.positions.size() << ", " << second_start.positions.size() << std::endl
               << blend_end.velocities.size() << ", " << second_start.positions.size() << std::endl
@@ -736,7 +747,9 @@ bool testutils::checkBlendingJointSpaceContinuity(const pilz_industrial_motion_p
         (second_start.positions.at(i) - blend_end.positions.at(i)) / second_start.time_from_start.toSec();
     if (fabs(second_start_velo - second_start.velocities.at(i)) > joint_accleration_tolerance)
     {
-      std::cout << "Velocity computed from positions are different from the value in trajectory." << std::endl
+      std::cout << "Velocity computed from positions are different from the "
+                   "value in trajectory."
+                << std::endl
                 << "computed: " << second_start_velo << "; "
                 << "in trajectory: " << second_start.velocities.at(i) << std::endl;
       return false;
@@ -745,7 +758,8 @@ bool testutils::checkBlendingJointSpaceContinuity(const pilz_industrial_motion_p
     double second_start_acc = (second_start_velo - blend_end.velocities.at(i)) / second_start.time_from_start.toSec();
     if (fabs(second_start_acc - second_start.accelerations.at(i)) > joint_accleration_tolerance)
     {
-      std::cout << "Acceleration computed from positions/velocities are different from the value in trajectory."
+      std::cout << "Acceleration computed from positions/velocities are "
+                   "different from the value in trajectory."
                 << std::endl
                 << "computed: " << second_start_acc << "; "
                 << "in trajectory: " << second_start.accelerations.at(i) << std::endl;
@@ -764,7 +778,9 @@ bool testutils::checkBlendingCartSpaceContinuity(const pilz_industrial_motion_pl
   double duration = res.blend_trajectory->getWayPointDurationFromPrevious(res.blend_trajectory->getWayPointCount() - 1);
   if (duration == 0.0)
   {
-    std::cout << "Cannot perform check of cartesian space continuity with sampling time 0.0" << std::endl;
+    std::cout << "Cannot perform check of cartesian space continuity with "
+                 "sampling time 0.0"
+              << std::endl;
     return false;
   }
 
@@ -832,14 +848,16 @@ bool testutils::checkBlendingCartSpaceContinuity(const pilz_industrial_motion_pl
   // translational velocity
   if (v_2.norm() > max_trans_velo)
   {
-    std::cout << "Translational velocity between first trajectory and blend trajectory exceeds the limit."
+    std::cout << "Translational velocity between first trajectory and blend "
+                 "trajectory exceeds the limit."
               << "Actual velocity (norm): " << v_2.norm() << "; "
               << "Limits: " << max_trans_velo << std::endl;
   }
   // rotational velocity
   if (w_2.norm() > max_rot_velo)
   {
-    std::cout << "Rotational velocity between first trajectory and blend trajectory exceeds the limit."
+    std::cout << "Rotational velocity between first trajectory and blend "
+                 "trajectory exceeds the limit."
               << "Actual velocity (norm): " << w_2.norm() << "; "
               << "Limits: " << max_rot_velo << std::endl;
   }
@@ -848,7 +866,8 @@ bool testutils::checkBlendingCartSpaceContinuity(const pilz_industrial_motion_pl
   Eigen::Vector3d a_2 = (v_3 - v_2) / duration;
   if (a_1.norm() > max_trans_acc || a_2.norm() > max_trans_acc)
   {
-    std::cout << "Translational acceleration between first trajectory and blend trajectory exceeds the limit."
+    std::cout << "Translational acceleration between first trajectory and "
+                 "blend trajectory exceeds the limit."
               << "Actual acceleration (norm): " << a_1.norm() << ", " << a_1.norm() << "; "
               << "Limits: " << max_trans_acc << std::endl;
   }
@@ -858,7 +877,8 @@ bool testutils::checkBlendingCartSpaceContinuity(const pilz_industrial_motion_pl
   a_2 = (w_3 - w_2) / duration;
   if (a_1.norm() > max_rot_acc || a_2.norm() > max_rot_acc)
   {
-    std::cout << "Rotational acceleration between first trajectory and blend trajectory exceeds the limit."
+    std::cout << "Rotational acceleration between first trajectory and blend "
+                 "trajectory exceeds the limit."
               << "Actual acceleration (norm): " << a_1.norm() << ", " << a_1.norm() << "; "
               << "Limits: " << max_rot_acc << std::endl;
   }
@@ -869,13 +889,15 @@ bool testutils::checkBlendingCartSpaceContinuity(const pilz_industrial_motion_pl
 
   if (v_2.norm() > max_trans_velo)
   {
-    std::cout << "Translational velocity between blend trajectory and second trajectory exceeds the limit."
+    std::cout << "Translational velocity between blend trajectory and second "
+                 "trajectory exceeds the limit."
               << "Actual velocity (norm): " << v_2.norm() << "; "
               << "Limits: " << max_trans_velo << std::endl;
   }
   if (w_2.norm() > max_rot_velo)
   {
-    std::cout << "Rotational velocity between blend trajectory and second trajectory exceeds the limit."
+    std::cout << "Rotational velocity between blend trajectory and second "
+                 "trajectory exceeds the limit."
               << "Actual velocity (norm): " << w_2.norm() << "; "
               << "Limits: " << max_rot_velo << std::endl;
   }
@@ -883,7 +905,8 @@ bool testutils::checkBlendingCartSpaceContinuity(const pilz_industrial_motion_pl
   a_2 = (v_3 - v_2) / duration;
   if (a_1.norm() > max_trans_acc || a_2.norm() > max_trans_acc)
   {
-    std::cout << "Translational acceleration between blend trajectory and second trajectory exceeds the limit."
+    std::cout << "Translational acceleration between blend trajectory and "
+                 "second trajectory exceeds the limit."
               << "Actual acceleration (norm): " << a_1.norm() << ", " << a_1.norm() << "; "
               << "Limits: " << max_trans_acc << std::endl;
   }
@@ -892,7 +915,8 @@ bool testutils::checkBlendingCartSpaceContinuity(const pilz_industrial_motion_pl
   a_2 = (w_3 - w_2) / duration;
   if (a_1.norm() > max_rot_acc || a_2.norm() > max_rot_acc)
   {
-    std::cout << "Rotational acceleration between blend trajectory and second trajectory exceeds the limit."
+    std::cout << "Rotational acceleration between blend trajectory and second "
+                 "trajectory exceeds the limit."
               << "Actual acceleration (norm): " << a_1.norm() << ", " << a_1.norm() << "; "
               << "Limits: " << max_rot_acc << std::endl;
   }
@@ -924,7 +948,8 @@ void testutils::computeCartVelocity(const Eigen::Isometry3d& pose_1, const Eigen
   v = (pose_2.translation() - pose_1.translation()) / duration;
 
   // angular velocity
-  // reference: A Mathematical Introduction to Robotics Manipulation 2.4.1 Rotational velocity
+  // reference: A Mathematical Introduction to Robotics Manipulation 2.4.1
+  // Rotational velocity
   Eigen::Matrix3d rm_1 = pose_1.linear();
   Eigen::Matrix3d rm_2 = pose_2.linear();
   Eigen::Matrix3d rm_dot = (rm_2 - rm_1) / duration;
@@ -1108,7 +1133,8 @@ bool testutils::checkBlendResult(const pilz_industrial_motion_planner::Trajector
     return false;
   }
 
-  // check the first and second trajectories, if they are still the same before and after the bendling phase
+  // check the first and second trajectories, if they are still the same before
+  // and after the bendling phase
   if (!testutils::checkOriginalTrajectoryAfterBlending(blend_req, blend_res, 10e-5))
   {
     return false;
@@ -1130,13 +1156,15 @@ bool testutils::checkBlendResult(const pilz_industrial_motion_planner::Trajector
   // + Visualize the result +
   // ++++++++++++++++++++++++
   //  ros::NodeHandle nh;
-  //  ros::Publisher pub = nh.advertise<moveit_msgs::DisplayTrajectory>("my_planned_path", 1);
+  //  ros::Publisher pub =
+  //  nh.advertise<moveit_msgs::DisplayTrajectory>("my_planned_path", 1);
   //  ros::Duration duration(1.0);
   //  duration.sleep();
 
   //  // visualize the joint trajectory
   //  moveit_msgs::DisplayTrajectory displayTrajectory;
-  //  moveit_msgs::RobotTrajectory res_first_traj_msg, res_blend_traj_msg, res_second_traj_msg;
+  //  moveit_msgs::RobotTrajectory res_first_traj_msg, res_blend_traj_msg,
+  //  res_second_traj_msg;
   //  blend_res.first_trajectory->getRobotTrajectoryMsg(res_first_traj_msg);
   //  blend_res.blend_trajectory->getRobotTrajectoryMsg(res_blend_traj_msg);
   //  blend_res.second_trajectory->getRobotTrajectoryMsg(res_second_traj_msg);
@@ -1179,7 +1207,8 @@ void testutils::generateRequestMsgFromBlendTestData(const moveit::core::RobotMod
   req_2.max_velocity_scaling_factor = 0.1;
   req_2.max_acceleration_scaling_factor = 0.1;
   // start state
-  // moveit::core::robotStateToRobotStateMsg(goal_state_1, req_2.start_state, false);
+  // moveit::core::robotStateToRobotStateMsg(goal_state_1, req_2.start_state,
+  // false);
   // goal state
   robot_state::RobotState goal_state_2(robot_model);
   goal_state_2.setToDefaultValues();
@@ -1225,7 +1254,9 @@ void testutils::checkRobotModel(const moveit::core::RobotModelConstPtr& robot_mo
   // Check that acceleration is monotonously decreasing
   if (!isMonotonouslyDecreasing(accelerations, acc_tol))
   {
-    return ::testing::AssertionFailure() << "Cannot be a trapezoid since acceleration is not monotonously decreasing!";
+    return ::testing::AssertionFailure() << "Cannot be a trapezoid since "
+                                            "acceleration is not monotonously "
+                                            "decreasing!";
   }
 
   // Check accelerations
@@ -1242,7 +1273,8 @@ void testutils::checkRobotModel(const moveit::core::RobotModelConstPtr& robot_mo
 
   if (n_intermediate_1 != 1 && n_intermediate_1 != 2)
   {
-    return ::testing::AssertionFailure() << "Expected 1 or 2 intermediate points between acceleration and constant "
+    return ::testing::AssertionFailure() << "Expected 1 or 2 intermediate points between acceleration and "
+                                            "constant "
                                             "velocity phase but found: "
                                          << n_intermediate_1;
   }
@@ -1251,10 +1283,12 @@ void testutils::checkRobotModel(const moveit::core::RobotModelConstPtr& robot_mo
   auto it_first_const = it_last_intermediate + 1;
   auto it_last_const =
       std::find_if(it_first_const, accelerations.end(), [acc_tol](double el) { return (std::abs(el) > acc_tol); }) - 1;
-  // This test makes sense only if the generated traj has enough points such that the trapezoid is not degenerated.
+  // This test makes sense only if the generated traj has enough points such
+  // that the trapezoid is not degenerated.
   if (std::distance(it_first_const, it_last_const) < 3)
   {
-    return ::testing::AssertionFailure() << "Exptected the have at least 3 points during the phase of constant "
+    return ::testing::AssertionFailure() << "Exptected the have at least 3 points during the phase of "
+                                            "constant "
                                             "velocity.";
   }
 
@@ -1269,7 +1303,8 @@ void testutils::checkRobotModel(const moveit::core::RobotModelConstPtr& robot_mo
   auto n_intermediate_2 = std::distance(it_last_const, it_first_dec);
   if (n_intermediate_2 != 1 && n_intermediate_2 != 2)
   {
-    return ::testing::AssertionFailure() << "Expected 1 or 2 intermediate points between constant velocity and "
+    return ::testing::AssertionFailure() << "Expected 1 or 2 intermediate points between constant velocity "
+                                            "and "
                                             "deceleration phase but found: "
                                          << n_intermediate_2;
   }
@@ -1309,7 +1344,8 @@ void testutils::checkRobotModel(const moveit::core::RobotModelConstPtr& robot_mo
 testutils::checkCartesianTranslationalPath(const robot_trajectory::RobotTrajectoryConstPtr& trajectory,
                                            const std::string& link_name, const double acc_tol)
 {
-  // We require the following such that the test makes sense, else the traj would have a degenerated velocity profile
+  // We require the following such that the test makes sense, else the traj
+  // would have a degenerated velocity profile
   EXPECT_GT(trajectory->getWayPointCount(), 9u);
 
   std::vector<double> accelerations;
@@ -1344,7 +1380,8 @@ testutils::checkCartesianRotationalPath(const robot_trajectory::RobotTrajectoryC
     return ::testing::AssertionSuccess();
   }
 
-  // We require the following such that the test makes sense, else the traj would have a degenerated velocity profile
+  // We require the following such that the test makes sense, else the traj
+  // would have a degenerated velocity profile
   EXPECT_GT(trajectory->getWayPointCount(), 9u);
 
   std::vector<double> accelerations;
@@ -1384,7 +1421,9 @@ testutils::checkCartesianRotationalPath(const robot_trajectory::RobotTrajectoryC
                            return ((axis1.axis() - axis2.axis()).norm() > rot_axis_tol);
                          }) != rotation_axes.end())
   {
-    return ::testing::AssertionFailure() << "Rotational path of trajectory does not have a fixed rotation axis";
+    return ::testing::AssertionFailure() << "Rotational path of trajectory "
+                                            "does not have a fixed rotation "
+                                            "axis";
   }
 
   return hasTrapezoidVelocity(accelerations, acc_tol);

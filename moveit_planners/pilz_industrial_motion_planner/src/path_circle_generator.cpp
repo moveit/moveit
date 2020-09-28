@@ -65,7 +65,8 @@ std::unique_ptr<KDL::Path> PathCircleGenerator::circleFromCenter(const KDL::Fram
   }
   catch (KDL::Error_MotionPlanning&)
   {
-    delete rot_interpo;  // in case we could not construct the Path object, avoid a memory leak
+    delete rot_interpo;  // in case we could not construct the Path object, avoid
+                         // a memory leak
     KDL::epsilon = old_kdl_epsilon;
     throw;  // and pass the exception on to the caller
   }
@@ -102,14 +103,17 @@ std::unique_ptr<KDL::Path> PathCircleGenerator::circleFromInterim(const KDL::Fra
 
   KDL::Vector kdl_aux_point(interim_point);
 
-  // if the angle at the interim is an acute angle (<90deg), rotation angle is an obtuse angle (>90deg)
-  // in this case using the interim as auxiliary point for KDL::Path_Circle can lead to a path in the wrong direction
+  // if the angle at the interim is an acute angle (<90deg), rotation angle is
+  // an obtuse angle (>90deg)
+  // in this case using the interim as auxiliary point for KDL::Path_Circle can
+  // lead to a path in the wrong direction
   double interim_angle = cosines(t.Norm(), v.Norm(), u.Norm());
   if (interim_angle < M_PI / 2)
   {
     alpha = 2 * M_PI - alpha;
 
-    // exclude that the goal is not colinear with start and center, then use the opposite of the goal as auxiliary point
+    // exclude that the goal is not colinear with start and center, then use the
+    // opposite of the goal as auxiliary point
     if ((t_center * v_center).Norm() > MAX_COLINEAR_NORM)
     {
       kdl_aux_point = 2 * center_point - goal_pose.p;
@@ -123,10 +127,13 @@ std::unique_ptr<KDL::Path> PathCircleGenerator::circleFromInterim(const KDL::Fra
                                                            rot_interpo, eqradius,
                                                            true /* take ownership of RotationalInterpolation */));
   }
-  catch (KDL::Error_MotionPlanning&)  // LCOV_EXCL_START // The cases where KDL would throw are already handled above,
+  catch (KDL::Error_MotionPlanning&)  // LCOV_EXCL_START // The cases where
+                                      // KDL would throw are already handled
+                                      // above,
                                       // we keep these lines to be safe
   {
-    delete rot_interpo;  // in case we could not construct the Path object, avoid a memory leak
+    delete rot_interpo;  // in case we could not construct the Path object, avoid
+                         // a memory leak
     throw;               // and pass the exception on to the caller
     // LCOV_EXCL_STOP
   }

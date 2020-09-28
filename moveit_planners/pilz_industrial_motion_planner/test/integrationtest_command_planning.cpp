@@ -35,20 +35,20 @@
 #include <gtest/gtest.h>
 
 #include <iostream>
-#include <string>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include <eigen_conversions/eigen_msg.h>
-#include <moveit_msgs/Constraints.h>
-#include <moveit_msgs/JointConstraint.h>
-#include <moveit_msgs/GetMotionPlan.h>
 #include <moveit/kinematic_constraints/utils.h>
-#include <moveit/robot_state/conversions.h>
 #include <moveit/planning_interface/planning_request.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
-#include <pilz_industrial_motion_planner_testutils/xml_testdata_loader.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit_msgs/Constraints.h>
+#include <moveit_msgs/GetMotionPlan.h>
+#include <moveit_msgs/JointConstraint.h>
 #include <pilz_industrial_motion_planner_testutils/command_types_typedef.h>
+#include <pilz_industrial_motion_planner_testutils/xml_testdata_loader.h>
 #include <ros/ros.h>
 #include <tf2/convert.h>
 #include <tf2_eigen/tf2_eigen.h>
@@ -159,7 +159,8 @@ TEST_F(IntegrationTestCommandPlanning, PtpJoint)
     EXPECT_NEAR(trajectory.points.back().positions.at(i), req.goal_constraints.back().joint_constraints.at(i).position,
                 10e-10);
     EXPECT_NEAR(trajectory.points.back().velocities.at(i), 0, 10e-10);
-    // EXPECT_NEAR(trajectory.points.back().accelerations.at(i), 0, 10e-10); // TODO what is expected
+    // EXPECT_NEAR(trajectory.points.back().accelerations.at(i), 0, 10e-10); //
+    // TODO what is expected
   }
 }
 
@@ -393,7 +394,8 @@ TEST_F(IntegrationTestCommandPlanning, CircJointCenterCart)
     waypoint_state.setJointGroupPositions(planning_group_, waypoint.positions);
     waypoint_pose = waypoint_state.getFrameTransform(target_link_);
 
-    // Calculate (and check) distance of current trajectory waypoint from circ center
+    // Calculate (and check) distance of current trajectory waypoint from circ
+    // center
     x_dist = aux_pose.position.x - waypoint_pose(0, 3);
     y_dist = aux_pose.position.y - waypoint_pose(1, 3);
     z_dist = aux_pose.position.z - waypoint_pose(2, 3);
@@ -473,7 +475,8 @@ TEST_F(IntegrationTestCommandPlanning, CircCartCenterCart)
     waypoint_state.setJointGroupPositions(planning_group_, waypoint.positions);
     waypoint_pose = waypoint_state.getFrameTransform(target_link_);
 
-    // Calculate (and check) distance of current trajectory waypoint from circ center
+    // Calculate (and check) distance of current trajectory waypoint from circ
+    // center
     x_dist = aux_pose.position.x - waypoint_pose(0, 3);
     y_dist = aux_pose.position.y - waypoint_pose(1, 3);
     z_dist = aux_pose.position.z - waypoint_pose(2, 3);

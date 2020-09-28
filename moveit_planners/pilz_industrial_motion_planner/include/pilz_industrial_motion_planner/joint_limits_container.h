@@ -42,8 +42,10 @@
 namespace pilz_industrial_motion_planner
 {
 /**
- * @brief Container for JointLimits, essentially a map with convenience functions.
- * Adds the ability to as for limits and get a common limit that unifies all given limits
+ * @brief Container for JointLimits, essentially a map with convenience
+ * functions.
+ * Adds the ability to as for limits and get a common limit that unifies all
+ * given limits
  */
 class JointLimitsContainer
 {
@@ -53,12 +55,14 @@ public:
    * @param joint_name  Name if the joint this limit belongs to
    * @param joint_limit Limit of the joint
    * @return true if the limit was added, false
-   *         if joint_limit.has_deceleration_limit && joint_limit.max_deceleration >= 0
+   *         if joint_limit.has_deceleration_limit &&
+   * joint_limit.max_deceleration >= 0
    */
   bool addLimit(const std::string& joint_name, JointLimit joint_limit);
 
   /**
-   * @brief Check if there is a limit for a joint with the given name in this container
+   * @brief Check if there is a limit for a joint with the given name in this
+   * container
    * @param joint_name Name of the joint
    */
   bool hasLimit(const std::string& joint_name) const;
@@ -76,18 +80,22 @@ public:
   bool empty() const;
 
   /**
-   * @brief Returns joint limit fusion of all(position, velocity, acceleration, deceleration) limits for all joint.
+   * @brief Returns joint limit fusion of all(position, velocity, acceleration,
+   * deceleration) limits for all joint.
    * There are cases where the most strict limit of all limits is needed.
-   * If there are no matching limits, the flag has_[position|velocity|...]_limits is set to false.
+   * If there are no matching limits, the flag
+   * has_[position|velocity|...]_limits is set to false.
    *
    * @return joint limit
    */
   JointLimit getCommonLimit() const;
 
   /**
-   * @brief Returns joint limit fusion of all(position, velocity, acceleration, deceleration) limits for given joints.
+   * @brief Returns joint limit fusion of all(position, velocity, acceleration,
+   * deceleration) limits for given joints.
    * There are cases where the most strict limit of all limits is needed.
-   * If there are no matching limits, the flag has_[position|velocity|...]_limits is set to false.
+   * If there are no matching limits, the flag
+   * has_[position|velocity|...]_limits is set to false.
    *
    * @param joint_names
    * @return joint limit
@@ -146,8 +154,7 @@ private:
    * @param joint_limit
    * @param common_limit the current most strict limit
    */
-  static void updateCommonLimit(const JointLimit& joint_limit,
-                                JointLimit& common_limit);
+  static void updateCommonLimit(const JointLimit& joint_limit, JointLimit& common_limit);
 
 protected:
   /// Actual container object containing the data

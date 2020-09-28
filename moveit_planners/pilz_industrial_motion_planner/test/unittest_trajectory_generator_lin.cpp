@@ -36,18 +36,18 @@
 
 #include <gtest/gtest.h>
 
-#include "pilz_industrial_motion_planner/trajectory_generator_lin.h"
 #include "pilz_industrial_motion_planner/joint_limits_aggregator.h"
-#include "test_utils.h"
-#include "pilz_industrial_motion_planner_testutils/xml_testdata_loader.h"
+#include "pilz_industrial_motion_planner/trajectory_generator_lin.h"
 #include "pilz_industrial_motion_planner_testutils/command_types_typedef.h"
+#include "pilz_industrial_motion_planner_testutils/xml_testdata_loader.h"
+#include "test_utils.h"
 
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/robot_state.h>
-#include <moveit/kinematic_constraints/utils.h>
-#include <moveit/robot_state/conversions.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit/robot_state/robot_state.h>
 
 #include <ros/console.h>
 
@@ -70,8 +70,10 @@ using namespace pilz_industrial_motion_planner;
 using namespace pilz_industrial_motion_planner_testutils;
 
 /**
- * @brief Parameterized unittest of trajectory generator LIN to enable tests against
- * different robot models.The parameter is the name of robot model parameter on the
+ * @brief Parameterized unittest of trajectory generator LIN to enable tests
+ * against
+ * different robot models.The parameter is the name of robot model parameter on
+ * the
  * ros parameter server.
  */
 class TrajectoryGeneratorLINTest : public testing::TestWithParam<std::string>
@@ -200,7 +202,8 @@ INSTANTIATE_TEST_CASE_P(InstantiationName, TrajectoryGeneratorLINTest,
                         ::testing::Values(PARAM_MODEL_NO_GRIPPER_NAME, PARAM_MODEL_WITH_GRIPPER_NAME));
 
 /**
- * @brief test the lin planner with invalid motion plan request which has non zero start velocity
+ * @brief test the lin planner with invalid motion plan request which has non
+ * zero start velocity
  */
 TEST_P(TrajectoryGeneratorLINTest, nonZeroStartVelocity)
 {
@@ -232,7 +235,8 @@ TEST_P(TrajectoryGeneratorLINTest, jointSpaceGoal)
 }
 
 /**
- * @brief test the lin planner with joint space goal with start velocity almost zero
+ * @brief test the lin planner with joint space goal with start velocity almost
+ * zero
  */
 TEST_P(TrajectoryGeneratorLINTest, jointSpaceGoalNearZeroStartVelocity)
 {
@@ -272,7 +276,8 @@ TEST_P(TrajectoryGeneratorLINTest, cartesianSpaceGoal)
  * @brief test the trapezoid shape of the planning trajectory in Cartesian space
  *
  * The test checks translational path for a trapezoid velocity profile.
- * Due to the way the acceleration is calculated 1 or 2 intermediate points occur that are neither
+ * Due to the way the acceleration is calculated 1 or 2 intermediate points
+ * occur that are neither
  * acceleration, constant or deceleration.
  */
 TEST_P(TrajectoryGeneratorLINTest, cartesianTrapezoidProfile)
@@ -299,11 +304,13 @@ TEST_P(TrajectoryGeneratorLINTest, cartesianTrapezoidProfile)
 
 /**
  * @brief Check that lin planner returns 'false' if
- * calculated lin trajectory violates velocity/acceleration or deceleration limits.
+ * calculated lin trajectory violates velocity/acceleration or deceleration
+ * limits.
  *
  *
  * Test Sequence:
- *    1. Call function with lin request violating velocity/acceleration or deceleration limits.
+ *    1. Call function with lin request violating velocity/acceleration or
+ * deceleration limits.
  *
  * Expected Results:
  *    1. Function returns 'false'.
@@ -331,7 +338,8 @@ TEST_P(TrajectoryGeneratorLINTest, LinPlannerLimitViolation)
 TEST_P(TrajectoryGeneratorLINTest, LinPlannerDiscontinuousJointTraj)
 {
   LinJoint lin{ tdp_->getLinJoint("lin2") };
-  // Alter goal joint configuration (represents the same cartesian pose, but does not fit together with start config)
+  // Alter goal joint configuration (represents the same cartesian pose, but
+  // does not fit together with start config)
   lin.getGoalConfiguration().setJoint(1, 1.63);
   lin.getGoalConfiguration().setJoint(2, 0.96);
   lin.getGoalConfiguration().setJoint(4, -2.48);
@@ -415,7 +423,8 @@ TEST_P(TrajectoryGeneratorLINTest, IncorrectJointNumber)
 }
 
 /**
- * @brief test invalid motion plan request with incomplete start state and cartesian goal
+ * @brief test invalid motion plan request with incomplete start state and
+ * cartesian goal
  */
 TEST_P(TrajectoryGeneratorLINTest, cartGoalIncompleteStartState)
 {
@@ -432,7 +441,8 @@ TEST_P(TrajectoryGeneratorLINTest, cartGoalIncompleteStartState)
 }
 
 /**
- * @brief Set a frame id in goal constraint with cartesian goal on both position and orientation constraints
+ * @brief Set a frame id in goal constraint with cartesian goal on both position
+ * and orientation constraints
  */
 TEST_P(TrajectoryGeneratorLINTest, cartGoalFrameIdBothConstraints)
 {

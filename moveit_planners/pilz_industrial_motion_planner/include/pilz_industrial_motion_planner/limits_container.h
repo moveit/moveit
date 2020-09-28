@@ -34,14 +34,15 @@
 
 #pragma once
 
-#include <math.h>
 #include "pilz_industrial_motion_planner/cartesian_limit.h"
 #include "pilz_industrial_motion_planner/joint_limits_container.h"
+#include <math.h>
 
 namespace pilz_industrial_motion_planner
 {
 /**
- * @brief This class combines CartesianLimit and JointLimits into on single class.
+ * @brief This class combines CartesianLimit and JointLimits into on single
+ * class.
  */
 class LimitsContainer
 {
@@ -69,7 +70,8 @@ public:
   /**
    * @brief Return if this LimitsContainer has defined cartesian limits
    *
-   * @return True if container contains cartesian limits including maximum velocity/acceleration/deceleration
+   * @return True if container contains cartesian limits including maximum
+   * velocity/acceleration/deceleration
    */
   bool hasFullCartesianLimits() const;
 

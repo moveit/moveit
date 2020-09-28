@@ -34,11 +34,11 @@
 
 #include <memory>
 #include <stdexcept>
-#include <vector>
 #include <string>
+#include <vector>
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include <moveit/robot_model/joint_model_group.h>
 

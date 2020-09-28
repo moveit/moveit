@@ -34,19 +34,19 @@
 
 #include "pilz_industrial_motion_planner/trajectory_generator_lin.h"
 
-#include <ros/ros.h>
-#include <time.h>
 #include <cassert>
+#include <ros/ros.h>
 #include <sstream>
+#include <time.h>
 
-#include <eigen_conversions/eigen_msg.h>
 #include <eigen_conversions/eigen_kdl.h>
+#include <eigen_conversions/eigen_msg.h>
 
 #include <moveit/robot_state/conversions.h>
 
 #include <kdl/path_line.hpp>
-#include <kdl/utilities/error.h>
 #include <kdl/trajectory_segment.hpp>
+#include <kdl/utilities/error.h>
 
 #include <tf2/convert.h>
 #include <tf2_eigen/tf2_eigen.h>
@@ -82,13 +82,15 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_interface::Mot
         robot_model_->getJointModelGroup(req.group_name)->getActiveJointModelNames().size())
     {
       std::ostringstream os;
-      os << "Number of joints in goal does not match number of joints of group (Number joints goal: "
+      os << "Number of joints in goal does not match number of joints of group "
+            "(Number joints goal: "
          << req.goal_constraints.front().joint_constraints.size() << " | Number of joints of group: "
          << robot_model_->getJointModelGroup(req.group_name)->getActiveJointModelNames().size() << ")";
       throw JointNumberMismatch(os.str());
     }
     // initializing all joints of the model
-    for (const auto& joint_name : robot_model_->getVariableNames()){
+    for (const auto& joint_name : robot_model_->getVariableNames())
+    {
       info.goal_joint_position[joint_name] = 0;
     }
 
@@ -97,7 +99,8 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_interface::Mot
       info.goal_joint_position[joint_item.joint_name] = joint_item.position;
     }
 
-    // Ignored return value because at this point the function should always return 'true'.
+    // Ignored return value because at this point the function should always
+    // return 'true'.
     computeLinkFK(robot_model_, info.link_name, info.goal_joint_position, info.goal_pose);
   }
   // goal given in Cartesian space
@@ -107,7 +110,8 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_interface::Mot
     if (req.goal_constraints.front().position_constraints.front().header.frame_id.empty() ||
         req.goal_constraints.front().orientation_constraints.front().header.frame_id.empty())
     {
-      ROS_WARN("Frame id is not set in position/orientation constraints of goal. Use model frame as default");
+      ROS_WARN("Frame id is not set in position/orientation constraints of "
+               "goal. Use model frame as default");
       frame_id = robot_model_->getModelFrame();
     }
     else
@@ -137,7 +141,8 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_interface::Mot
     info.start_joint_position[joint_name] = req.start_state.joint_state.position[index];
   }
 
-  // Ignored return value because at this point the function should always return 'true'.
+  // Ignored return value because at this point the function should always
+  // return 'true'.
   computeLinkFK(robot_model_, info.link_name, info.start_joint_position, info.start_pose);
 
   // check goal pose ik before Cartesian motion plan starts
@@ -162,12 +167,14 @@ void TrajectoryGeneratorLIN::plan(const planning_interface::MotionPlanRequest& r
       cartesianTrapVelocityProfile(req.max_velocity_scaling_factor, req.max_acceleration_scaling_factor, path));
 
   // combine path and velocity profile into Cartesian trajectory
-  // with the third parameter set to false, KDL::Trajectory_Segment does not take
+  // with the third parameter set to false, KDL::Trajectory_Segment does not
+  // take
   // the ownship of Path and Velocity Profile
   KDL::Trajectory_Segment cart_trajectory(path.get(), vp.get(), false);
 
   moveit_msgs::MoveItErrorCodes error_code;
-  // sample the Cartesian trajectory and compute joint trajectory using inverse kinematics
+  // sample the Cartesian trajectory and compute joint trajectory using inverse
+  // kinematics
   if (!generateJointTrajectory(robot_model_, planner_limits_.getJointLimitContainer(), cart_trajectory,
                                plan_info.group_name, plan_info.link_name, plan_info.start_joint_position, sampling_time,
                                joint_trajectory, error_code))

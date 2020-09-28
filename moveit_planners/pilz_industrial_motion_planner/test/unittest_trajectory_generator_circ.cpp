@@ -36,20 +36,20 @@
 
 #include <gtest/gtest.h>
 
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/kinematic_constraints/utils.h>
-#include <moveit/robot_state/conversions.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_state/conversions.h>
 #include <tf2/convert.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-#include "pilz_industrial_motion_planner/trajectory_generator_circ.h"
 #include "pilz_industrial_motion_planner/joint_limits_aggregator.h"
-#include "test_utils.h"
-#include "pilz_industrial_motion_planner_testutils/xml_testdata_loader.h"
+#include "pilz_industrial_motion_planner/trajectory_generator_circ.h"
 #include "pilz_industrial_motion_planner_testutils/command_types_typedef.h"
+#include "pilz_industrial_motion_planner_testutils/xml_testdata_loader.h"
+#include "test_utils.h"
 
 const std::string PARAM_MODEL_NO_GRIPPER_NAME{ "robot_description" };
 const std::string PARAM_MODEL_WITH_GRIPPER_NAME{ "robot_description_pg70" };
@@ -131,7 +131,8 @@ void TrajectoryGeneratorCIRCTest::SetUp()
       pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(ph_,
                                                                                  robot_model_->getActiveJointModels());
   CartesianLimit cart_limits;
-  // Cartesian limits are chose as such values to ease the manually compute the trajectory
+  // Cartesian limits are chose as such values to ease the manually compute the
+  // trajectory
 
   cart_limits.setMaxRotationalVelocity(1 * M_PI);
   cart_limits.setMaxTranslationalAcceleration(1 * M_PI);
@@ -288,7 +289,8 @@ TEST_P(TrajectoryGeneratorCIRCTest, noLimits)
 }
 
 /**
- * @brief test invalid motion plan request with incomplete start state and cartesian goal
+ * @brief test invalid motion plan request with incomplete start state and
+ * cartesian goal
  */
 TEST_P(TrajectoryGeneratorCIRCTest, incompleteStartState)
 {
@@ -355,7 +357,8 @@ TEST_P(TrajectoryGeneratorCIRCTest, accScaleToHigh)
 }
 
 /**
- * @brief Use three points (with center) with a really small distance between to trigger a internal throw from KDL
+ * @brief Use three points (with center) with a really small distance between to
+ * trigger a internal throw from KDL
  */
 TEST_P(TrajectoryGeneratorCIRCTest, samePointsWithCenter)
 {
@@ -431,7 +434,8 @@ TEST_P(TrajectoryGeneratorCIRCTest, invalidAuxName)
 }
 
 /**
- * @brief test invalid motion plan request with invalid link name in the auxiliary point
+ * @brief test invalid motion plan request with invalid link name in the
+ * auxiliary point
  */
 TEST_P(TrajectoryGeneratorCIRCTest, invalidAuxLinkName)
 {
@@ -483,7 +487,8 @@ TEST_P(TrajectoryGeneratorCIRCTest, colinearCenter)
 /**
  * @brief test the circ planner with  colinear start/goal/interim position
  *
- * Expected: Planning should fail. These positions do not even represent a circle.
+ * Expected: Planning should fail. These positions do not even represent a
+ * circle.
  */
 TEST_P(TrajectoryGeneratorCIRCTest, colinearInterim)
 {
@@ -523,7 +528,8 @@ TEST_P(TrajectoryGeneratorCIRCTest, colinearCenterDueToInterim)
  *
  * The request contains start/interim/goal such that
  * start, center (not explicitly given) and interim are colinear.
- * In case the interim is used as auxiliary point for KDL::Path_Circle this should fail.
+ * In case the interim is used as auxiliary point for KDL::Path_Circle this
+ * should fail.
  *
  * Expected: Planning should successfully return.
  */
@@ -531,7 +537,8 @@ TEST_P(TrajectoryGeneratorCIRCTest, colinearCenterAndInterim)
 {
   auto circ{ tdp_->getCircCartInterimCart("circ3_interim") };
 
-  // alter start, interim and goal such that start/center and interim are colinear
+  // alter start, interim and goal such that start/center and interim are
+  // colinear
   circ.getAuxiliaryConfiguration().getConfiguration().setPose(circ.getStartConfiguration().getPose());
   circ.getGoalConfiguration().setPose(circ.getStartConfiguration().getPose());
 
@@ -551,9 +558,11 @@ TEST_P(TrajectoryGeneratorCIRCTest, colinearCenterAndInterim)
 }
 
 /**
- * @brief test the circ planner with a circ path where the angle between goal and interim is larger than 180 degree
+ * @brief test the circ planner with a circ path where the angle between goal
+ * and interim is larger than 180 degree
  *
- * The request contains start/interim/goal such that 180 degree < interim angle < goal angle.
+ * The request contains start/interim/goal such that 180 degree < interim angle
+ * < goal angle.
  *
  * Expected: Planning should successfully return.
  */
@@ -561,7 +570,8 @@ TEST_P(TrajectoryGeneratorCIRCTest, interimLarger180Degree)
 {
   auto circ{ tdp_->getCircCartInterimCart("circ3_interim") };
 
-  // alter start, interim and goal such that start/center and interim are colinear
+  // alter start, interim and goal such that start/center and interim are
+  // colinear
   circ.getAuxiliaryConfiguration().getConfiguration().setPose(circ.getStartConfiguration().getPose());
   circ.getGoalConfiguration().setPose(circ.getStartConfiguration().getPose());
 
@@ -598,7 +608,8 @@ TEST_P(TrajectoryGeneratorCIRCTest, centerPointJointGoal)
 }
 
 /**
- * @brief A valid circ request contains a helping point (interim or center), in this test a additional
+ * @brief A valid circ request contains a helping point (interim or center), in
+ * this test a additional
  * point is defined as an invalid test case
  */
 TEST_P(TrajectoryGeneratorCIRCTest, InvalidAdditionalPrimitivePose)
@@ -623,8 +634,10 @@ TEST_P(TrajectoryGeneratorCIRCTest, InvalidAdditionalPrimitivePose)
 }
 
 /**
- * @brief Joint Goals are expected to match the start state in number and joint_names
- * Here an additional joint constraints is "falsely" defined to check for the error.
+ * @brief Joint Goals are expected to match the start state in number and
+ * joint_names
+ * Here an additional joint constraints is "falsely" defined to check for the
+ * error.
  */
 TEST_P(TrajectoryGeneratorCIRCTest, InvalidExtraJointConstraint)
 {
@@ -727,7 +740,8 @@ TEST_P(TrajectoryGeneratorCIRCTest, InterimPointJointGoal)
 }
 
 /**
- * @brief test the circ planner with interim point with joint goal and a close to zero velocity of the start state
+ * @brief test the circ planner with interim point with joint goal and a close
+ * to zero velocity of the start state
  *
  * The generator is expected to be robust against a velocity beeing almost zero.
  */

@@ -33,9 +33,9 @@
  *********************************************************************/
 
 #include "pilz_industrial_motion_planner/trajectory_generator_ptp.h"
-#include "ros/ros.h"
 #include "eigen_conversions/eigen_msg.h"
 #include "moveit/robot_state/conversions.h"
+#include "ros/ros.h"
 
 #include <iostream>
 #include <sstream>
@@ -147,7 +147,8 @@ void TrajectoryGeneratorPTP::planPTP(const std::map<std::string, double>& start_
   }
 
   // Full Synchronization
-  // This should only work if all axes have same max_vel, max_acc, max_dec values
+  // This should only work if all axes have same max_vel, max_acc, max_dec
+  // values
   // reset the velocity profile for other joints
   double acc_time = velocity_profile.at(leading_axis).firstPhaseDuration();
   double const_time = velocity_profile.at(leading_axis).secondPhaseDuration();
@@ -158,7 +159,8 @@ void TrajectoryGeneratorPTP::planPTP(const std::map<std::string, double>& start_
     if (joint_name != leading_axis)
     {
       // make full synchronization
-      // causes the program to terminate if acc_time<=0 or dec_time<=0 (should be prevented by goal_reached block above)
+      // causes the program to terminate if acc_time<=0 or dec_time<=0 (should
+      // be prevented by goal_reached block above)
       // by using the most strict limit, the following should always return true
       if (!velocity_profile.at(joint_name)
                .setProfileAllDurations(start_pos.at(joint_name), goal_pos.at(joint_name), acc_time, const_time,
@@ -166,8 +168,9 @@ void TrajectoryGeneratorPTP::planPTP(const std::map<std::string, double>& start_
       // LCOV_EXCL_START
       {
         std::stringstream error_str;
-        error_str << "TrajectoryGeneratorPTP::planPTP(): Can not synchronize velocity profile of axis " << joint_name
-                  << " with leading axis " << leading_axis;
+        error_str << "TrajectoryGeneratorPTP::planPTP(): Can not synchronize "
+                     "velocity profile of axis "
+                  << joint_name << " with leading axis " << leading_axis;
         throw PtpVelocityProfileSyncFailed(error_str.str());
       }
       // LCOV_EXCL_STOP

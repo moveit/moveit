@@ -47,7 +47,8 @@ public:
   /**
    * @brief Loads cartesian limits from the parameter server
    *
-   * The parameters are expected to be under "~/cartesian_limits" of the given node handle.
+   * The parameters are expected to be under "~/cartesian_limits" of the given
+   * node handle.
    * The following limits can be specified:
    * - "max_trans_vel", the maximum translational velocity [m/s]
    * - "max_trans_acc, the maximum translational acceleration [m/s^2]

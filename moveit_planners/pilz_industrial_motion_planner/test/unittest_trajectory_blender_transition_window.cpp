@@ -37,24 +37,24 @@
 #include <gtest/gtest.h>
 
 #include <eigen_conversions/eigen_msg.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/robot_model/robot_model.h>
 #include <moveit/kinematic_constraints/utils.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <tf2/convert.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-#include <pilz_industrial_motion_planner_testutils/xml_testdata_loader.h>
-#include <pilz_industrial_motion_planner_testutils/sequence.h>
 #include <pilz_industrial_motion_planner_testutils/command_types_typedef.h>
+#include <pilz_industrial_motion_planner_testutils/sequence.h>
+#include <pilz_industrial_motion_planner_testutils/xml_testdata_loader.h>
 
-#include "pilz_industrial_motion_planner/trajectory_generator_lin.h"
 #include "pilz_industrial_motion_planner/joint_limits_aggregator.h"
-#include "pilz_industrial_motion_planner/trajectory_blender_transition_window.h"
 #include "pilz_industrial_motion_planner/trajectory_blend_request.h"
 #include "pilz_industrial_motion_planner/trajectory_blend_response.h"
+#include "pilz_industrial_motion_planner/trajectory_blender_transition_window.h"
+#include "pilz_industrial_motion_planner/trajectory_generator_lin.h"
 #include "test_utils.h"
 
 const std::string PARAM_MODEL_NO_GRIPPER_NAME{ "robot_description" };
@@ -152,7 +152,8 @@ TrajectoryBlenderTransitionWindowTest::generateLinTrajs(const Sequence& seq, siz
   for (size_t index = 0; index < num_cmds; ++index)
   {
     planning_interface::MotionPlanRequest req{ seq.getCmd<LinCart>(index).toRequest() };
-    // Set start state of request to end state of previous trajectory (except for first)
+    // Set start state of request to end state of previous trajectory (except
+    // for first)
     if (index > 0)
     {
       moveit::core::robotStateToRobotStateMsg(responses[index - 1].trajectory_->getLastWayPoint(), req.start_state);
@@ -231,7 +232,8 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testInvalidTargetLink)
 }
 
 /**
- * @brief  Tests the blending of two trajectories with a negative blending radius.
+ * @brief  Tests the blending of two trajectories with a negative blending
+ * radius.
  *
  * Test Sequence:
  *    1. Generate two linear trajectories.
@@ -289,7 +291,8 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testZeroRadius)
 }
 
 /**
- * @brief  Tests the blending of two trajectories with differenent sampling times.
+ * @brief  Tests the blending of two trajectories with differenent sampling
+ * times.
  *
  * Test Sequence:
  *    1. Generate two linear trajectories with different sampling times.
@@ -310,7 +313,8 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testDifferentSamplingTimes)
   for (size_t index = 0; index < num_cmds; ++index)
   {
     planning_interface::MotionPlanRequest req{ seq.getCmd<LinCart>(index).toRequest() };
-    // Set start state of request to end state of previous trajectory (except for first)
+    // Set start state of request to end state of previous trajectory (except
+    // for first)
     if (index > 0)
     {
       moveit::core::robotStateToRobotStateMsg(responses[index - 1].trajectory_->getLastWayPoint(), req.start_state);
@@ -342,7 +346,8 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testDifferentSamplingTimes)
  * which is ignored).
  *
  * Test Sequence:
- *    1. Generate two linear trajectories and corrupt uniformity of sampling time.
+ *    1. Generate two linear trajectories and corrupt uniformity of sampling
+ * time.
  *    2. Try to generate blending trajectory.
  *
  * Expected Results:
@@ -395,7 +400,8 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testNotIntersectingTrajectories)
   blend_req.group_name = planning_group_;
   blend_req.link_name = target_link_;
   blend_req.first_trajectory = res.at(0).trajectory_;
-  // replace the second trajectory to make the two trajectories timely not intersect
+  // replace the second trajectory to make the two trajectories timely not
+  // intersect
   blend_req.second_trajectory = res.at(0).trajectory_;
   blend_req.blend_radius = seq.getBlendRadius(0);
   EXPECT_FALSE(blender_->blend(blend_req, blend_res));
@@ -429,7 +435,8 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testNonStationaryPoint)
   blend_req.first_trajectory = res.at(0).trajectory_;
   blend_req.second_trajectory = res.at(1).trajectory_;
 
-  // Modify last waypoint of first trajectory and first point of second trajectory
+  // Modify last waypoint of first trajectory and first point of second
+  // trajectory
   blend_req.first_trajectory->getLastWayPointPtr()->setVariableVelocity(0, 1.0);
   blend_req.second_trajectory->getFirstWayPointPtr()->setVariableVelocity(0, 1.0);
 
@@ -506,7 +513,8 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testTraj2InsideBlendRadius)
 }
 
 /**
- * @brief  Tests the blending of two cartesian linear trajectories using robot model
+ * @brief  Tests the blending of two cartesian linear trajectories using robot
+ * model
  *
  * Test Sequence:
  *    1. Generate two linear trajectories from the test data set.
@@ -551,7 +559,8 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testLinLinBlending)
  * the trajectories exactly lie on top of each other.
  *
  * Test Sequence:
- *    1. Generate two linear trajectories from the test data set. Set goal of second traj to start of first traj.
+ *    1. Generate two linear trajectories from the test data set. Set goal of
+ * second traj to start of first traj.
  *    2. Generate blending trajectory.
  *    3. Check blending trajectory:
  *      - for position, velocity, and acceleration bounds,
@@ -686,7 +695,8 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testNonLinearBlending)
     joint_traj.points.back().velocities.assign(joint_traj.points.back().velocities.size(), 0.0);
     joint_traj.points.back().accelerations.assign(joint_traj.points.back().accelerations.size(), 0.0);
 
-    // convert trajectory_msgs::JointTrajectory to robot_trajectory::RobotTrajectory
+    // convert trajectory_msgs::JointTrajectory to
+    // robot_trajectory::RobotTrajectory
     sine_trajs[traj_index] = std::make_shared<robot_trajectory::RobotTrajectory>(robot_model_, planning_group_);
     sine_trajs.at(traj_index)->setRobotTrajectoryMsg(lin_traj->getFirstWayPoint(), joint_traj);
   }

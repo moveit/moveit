@@ -44,7 +44,8 @@ namespace pilz_industrial_motion_planner
 class CommandListManager;
 
 /**
- * @brief Provide service to blend multiple trajectories in the form of a MoveGroup capability (plugin).
+ * @brief Provide service to blend multiple trajectories in the form of a
+ * MoveGroup capability (plugin).
  */
 class MoveGroupSequenceService : public move_group::MoveGroupCapability
 {

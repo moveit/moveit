@@ -34,8 +34,8 @@
 
 #include <gtest/gtest.h>
 
-#include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 
 #include "pilz_industrial_motion_planner/joint_limits_aggregator.h"
 #include "pilz_industrial_motion_planner/joint_limits_extension.h"
@@ -67,7 +67,8 @@ protected:
 };
 
 /**
- * @brief Check for that the size of the map and the size of the given joint models is equal
+ * @brief Check for that the size of the map and the size of the given joint
+ * models is equal
  */
 TEST_F(JointLimitsAggregator, ExpectedMapSize)
 {
@@ -81,7 +82,8 @@ TEST_F(JointLimitsAggregator, ExpectedMapSize)
 }
 
 /**
- * @brief Check that the value in the parameter server correctly overrides the position(if within limits)
+ * @brief Check that the value in the parameter server correctly overrides the
+ * position(if within limits)
  */
 TEST_F(JointLimitsAggregator, CorrectOverwriteByParamterPosition)
 {
@@ -111,7 +113,8 @@ TEST_F(JointLimitsAggregator, CorrectOverwriteByParamterPosition)
 }
 
 /**
- * @brief Check that the value in the parameter server correctly overrides the velocity(if within limits)
+ * @brief Check that the value in the parameter server correctly overrides the
+ * velocity(if within limits)
  */
 TEST_F(JointLimitsAggregator, CorrectOverwriteByParamterVelocity)
 {

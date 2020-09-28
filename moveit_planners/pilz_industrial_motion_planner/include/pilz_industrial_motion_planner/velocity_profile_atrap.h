@@ -45,7 +45,8 @@ namespace pilz_industrial_motion_planner
  *   - Maximal acceleration and deceleration can be different, resulting
  *     an asymmetric trapezoid shaped velocity profile.
  *   - Function to generate full synchronized PTP trajectory is provided.
- *   - Function to generate trapezoid shaped velocity profile with start velocity.
+ *   - Function to generate trapezoid shaped velocity profile with start
+ * velocity.
  */
 class VelocityProfileATrap : public KDL::VelocityProfile
 {
@@ -77,13 +78,15 @@ public:
    * @brief Profile scaled by the total duration
    * @param pos1: start position
    * @param pos2: goal position
-   * @param duration: trajectory duration (must be longer than fastest case, otherwise will be ignored)
+   * @param duration: trajectory duration (must be longer than fastest case,
+   * otherwise will be ignored)
    */
   void SetProfileDuration(double pos1, double pos2, double duration) override;
 
   /**
    * @brief Profile with given acceleration/constant/deceleration durations.
-   * Each duration must obey the maximal velocity/acceleration/deceleration constraints.
+   * Each duration must obey the maximal velocity/acceleration/deceleration
+   * constraints.
    * Otherwise the operation will be ignored.
    * Algorithm:
    * - compute the maximal velocity of given durations
@@ -101,7 +104,8 @@ public:
 
   /**
    * @brief Profile with start velocity
-   * Note: This function is not general and is currently only used for live control (vel1*(pos2-pos1)>0).
+   * Note: This function is not general and is currently only used for live
+   * control (vel1*(pos2-pos1)>0).
    * @param pos1: start position
    * @param pos2: goal position
    * @param vel1: start velocity
@@ -205,6 +209,7 @@ private:
   double t_c_;  /// the duration of third phase
 };
 
-std::ostream& operator<<(std::ostream& os, const VelocityProfileATrap& p);  // LCOV_EXCL_LINE
+std::ostream& operator<<(std::ostream& os,
+                         const VelocityProfileATrap& p);  // LCOV_EXCL_LINE
 
 }  // namespace pilz_industrial_motion_planner

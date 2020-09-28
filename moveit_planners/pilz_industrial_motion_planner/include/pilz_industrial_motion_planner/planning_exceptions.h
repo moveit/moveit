@@ -40,7 +40,8 @@ namespace pilz_industrial_motion_planner
 {
 /**
  * @class PlanningException
- * @brief A base class for all pilz_industrial_motion_planner exceptions inheriting from std::runtime_exception
+ * @brief A base class for all pilz_industrial_motion_planner exceptions
+ * inheriting from std::runtime_exception
  */
 class PlanningException : public std::runtime_error
 {
@@ -52,10 +53,12 @@ public:
 
 /**
  * @class PlanningContextFactoryRegistrationException
- * @brief An exception class thrown when the planner manager is unable to load a factory
+ * @brief An exception class thrown when the planner manager is unable to load a
+ * factory
  *
  * Loading a PlanningContextFactory can fail if a factory is loaded that
- * would provide a command which was already provided by another factory loaded before.
+ * would provide a command which was already provided by another factory loaded
+ * before.
  */
 class ContextLoaderRegistrationException : public PlanningException
 {

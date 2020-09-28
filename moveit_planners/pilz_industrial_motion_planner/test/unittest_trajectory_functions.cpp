@@ -34,33 +34,33 @@
 
 #include <gtest/gtest.h>
 
-#include <math.h>
-#include <vector>
-#include <string>
 #include <map>
+#include <math.h>
+#include <string>
+#include <vector>
 
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_model/joint_model_group.h>
-#include <moveit/planning_scene/planning_scene.h>
-#include <moveit_msgs/RobotTrajectory.h>
-#include <moveit_msgs/RobotState.h>
 #include <Eigen/Geometry>
 #include <eigen_conversions/eigen_msg.h>
+#include <kdl/frames.hpp>
 #include <kdl/path_roundedcomposite.hpp>
 #include <kdl/rotational_interpolation_sa.hpp>
-#include <kdl/frames.hpp>
-#include <kdl/velocityprofile_trap.hpp>
 #include <kdl/trajectory.hpp>
 #include <kdl/trajectory_segment.hpp>
+#include <kdl/velocityprofile_trap.hpp>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/robot_model/joint_model_group.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit_msgs/RobotState.h>
+#include <moveit_msgs/RobotTrajectory.h>
 #include <tf2/convert.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-#include "pilz_industrial_motion_planner/trajectory_functions.h"
-#include "pilz_industrial_motion_planner/limits_container.h"
 #include "pilz_industrial_motion_planner/cartesian_trajectory.h"
 #include "pilz_industrial_motion_planner/cartesian_trajectory_point.h"
+#include "pilz_industrial_motion_planner/limits_container.h"
+#include "pilz_industrial_motion_planner/trajectory_functions.h"
 #include "test_utils.h"
 
 #define _USE_MATH_DEFINES
@@ -174,7 +174,8 @@ INSTANTIATE_TEST_CASE_P(InstantiationName, TrajectoryFunctionsTestOnlyGripper,
                         ::testing::Values(PARAM_MODEL_WITH_GRIPPER_NAME));
 
 /**
- * @brief Test the forward kinematics function with simple robot poses for robot tip link
+ * @brief Test the forward kinematics function with simple robot poses for robot
+ * tip link
  * using robot model without gripper.
  */
 TEST_P(TrajectoryFunctionsTestFlangeAndGripper, TipLinkFK)
@@ -237,7 +238,7 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testIKSolver)
         ik_seed.push_back(rstate.getVariablePosition(joint_name) + IK_SEED_OFFSET);
     }
 
-    std::vector<std::vector<double> > ik_solutions;
+    std::vector<std::vector<double>> ik_solutions;
     kinematics::KinematicsResult ik_result;
     moveit_msgs::MoveItErrorCodes err_code;
     kinematics::KinematicsQueryOptions options = kinematics::KinematicsQueryOptions();
@@ -260,7 +261,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testIKSolver)
 }
 
 /**
- * @brief Test the inverse kinematics using RobotState class (setFromIK) using robot model
+ * @brief Test the inverse kinematics using RobotState class (setFromIK) using
+ * robot model
  */
 TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testIKRobotState)
 {
@@ -317,7 +319,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testIKRobotState)
 }
 
 /**
- * @brief Test the wrapper function to compute inverse kinematics using robot model
+ * @brief Test the wrapper function to compute inverse kinematics using robot
+ * model
  */
 TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testComputePoseIK)
 {
@@ -414,7 +417,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testComputePoseIKInvalidFrameId)
 }
 
 /**
- * @brief Test if activated self collision for a pose that would be in self collision without the check results in a
+ * @brief Test if activated self collision for a pose that would be in self
+ * collision without the check results in a
  * valid ik solution.
  */
 TEST_P(TrajectoryFunctionsTestOnlyGripper, testComputePoseIKSelfCollisionForValidPosition)
@@ -443,7 +447,8 @@ TEST_P(TrajectoryFunctionsTestOnlyGripper, testComputePoseIKSelfCollisionForVali
   normalizeQuaternion(pose.orientation);
   tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(pose, pose_expect);
 
-  // compute the ik without self collision check and expect the resulting pose to be in self collission.
+  // compute the ik without self collision check and expect the resulting pose
+  // to be in self collission.
   std::map<std::string, double> ik_actual1;
   EXPECT_TRUE(pilz_industrial_motion_planner::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect,
                                                             frame_id, ik_seed, ik_actual1, false));
@@ -466,7 +471,8 @@ TEST_P(TrajectoryFunctionsTestOnlyGripper, testComputePoseIKSelfCollisionForVali
 
   EXPECT_TRUE(collision_res.collision);
 
-  // compute the ik with collision detection activated and expect the resulting pose to be without self collision.
+  // compute the ik with collision detection activated and expect the resulting
+  // pose to be without self collision.
   std::map<std::string, double> ik_actual2;
   EXPECT_TRUE(pilz_industrial_motion_planner::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect,
                                                             frame_id, ik_seed, ik_actual2, true));
@@ -484,7 +490,8 @@ TEST_P(TrajectoryFunctionsTestOnlyGripper, testComputePoseIKSelfCollisionForVali
 }
 
 /**
- * @brief Test if self collision is considered by using a pose that always has self collision.
+ * @brief Test if self collision is considered by using a pose that always has
+ * self collision.
  */
 TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testComputePoseIKSelfCollisionForInvalidPose)
 {
@@ -562,7 +569,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testVerifySampleJointLimitsVeloc
   pilz_industrial_motion_planner::JointLimitsContainer joint_limits;
 
   JointLimit test_joint_limits;
-  // Calculate the max allowed velocity in such a way that it is always smaller than the current velocity.
+  // Calculate the max allowed velocity in such a way that it is always smaller
+  // than the current velocity.
   test_joint_limits.max_velocity =
       ((position_current.at(test_joint_name) - position_last.at(test_joint_name)) / duration_current) - 1.0;
   test_joint_limits.has_velocity_limits = true;
@@ -597,13 +605,15 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testVerifySampleJointLimitsAccel
   pilz_industrial_motion_planner::JointLimitsContainer joint_limits;
 
   JointLimit test_joint_limits;
-  // Calculate the max allowed velocity in such a way that it is always bigger than the current velocity.
+  // Calculate the max allowed velocity in such a way that it is always bigger
+  // than the current velocity.
   test_joint_limits.max_velocity = velocity_current + 1.0;
   test_joint_limits.has_velocity_limits = true;
 
   double acceleration_current =
       (velocity_current - velocity_last.at(test_joint_name)) / (duration_last + duration_current) * 2;
-  // Calculate the max allowed acceleration in such a way that it is always smaller than the current acceleration.
+  // Calculate the max allowed acceleration in such a way that it is always
+  // smaller than the current acceleration.
   test_joint_limits.max_acceleration = acceleration_current - 1.0;
   test_joint_limits.has_acceleration_limits = true;
 
@@ -638,13 +648,15 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testVerifySampleJointLimitsDecel
   pilz_industrial_motion_planner::JointLimitsContainer joint_limits;
 
   JointLimit test_joint_limits;
-  // Calculate the max allowed velocity in such a way that it is always bigger than the current velocity.
+  // Calculate the max allowed velocity in such a way that it is always bigger
+  // than the current velocity.
   test_joint_limits.max_velocity = fabs(velocity_current) + 1.0;
   test_joint_limits.has_velocity_limits = true;
 
   double acceleration_current =
       (velocity_current - velocity_last.at(test_joint_name)) / (duration_last + duration_current) * 2;
-  // Calculate the max allowed deceleration in such a way that it is always bigger than the current acceleration.
+  // Calculate the max allowed deceleration in such a way that it is always
+  // bigger than the current acceleration.
   test_joint_limits.max_deceleration = acceleration_current + 1.0;
   test_joint_limits.has_deceleration_limits = true;
 
@@ -661,7 +673,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testVerifySampleJointLimitsDecel
  * Please note: Both function variants are tested in this test.
  *
  * Test Sequence:
- *    1. Call function with a cartesian trajectory which cannot be transformed into a joint trajectory by using
+ *    1. Call function with a cartesian trajectory which cannot be transformed
+ * into a joint trajectory by using
  *        an invalid group_name.
  *
  * Expected Results:

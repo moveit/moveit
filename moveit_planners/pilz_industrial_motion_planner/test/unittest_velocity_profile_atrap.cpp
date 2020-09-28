@@ -190,7 +190,8 @@ TEST(ATrapTest, Test_SetProfile4)
  * Expected Results:
  *   1. -
  *   2. -
- *   3. Both profiles should be the same (checked with testpoints in the middle of each phase
+ *   3. Both profiles should be the same (checked with testpoints in the middle
+ * of each phase
  */
 TEST(ATrapTest, Test_SetProfileToLowDuration)
 {
@@ -210,8 +211,10 @@ TEST(ATrapTest, Test_SetProfileToLowDuration)
  * @brief Define Profile with setProfileAllDurations with to low duration
  *
  * Test Sequence:
- *    1. Define a profile with SetProfile(double, double), this will yield the fastest duration
- *    2. Try to define a profile with setProfileAllDurations with a faster combination of durations
+ *    1. Define a profile with SetProfile(double, double), this will yield the
+ * fastest duration
+ *    2. Try to define a profile with setProfileAllDurations with a faster
+ * combination of durations
  *
  * Expected Results:
  *    1.
@@ -607,7 +610,8 @@ TEST(ATrapTest, Test_setProfileStartVelocity6)
 /**
  * @brief Check that the clone function returns a equal profile
  *
- * Note: Definitions other than setProfileAllDurations could fail due to numeric noise
+ * Note: Definitions other than setProfileAllDurations could fail due to numeric
+ * noise
  */
 TEST(ATrapTest, Test_Clone)
 {

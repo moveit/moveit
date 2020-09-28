@@ -34,8 +34,8 @@
 
 #pragma once
 
-#include "pilz_industrial_motion_planner/joint_limits_extension.h"
 #include "pilz_industrial_motion_planner/joint_limits_container.h"
+#include "pilz_industrial_motion_planner/joint_limits_extension.h"
 
 namespace pilz_industrial_motion_planner
 {
@@ -49,7 +49,8 @@ public:
    * @brief Validates that the position limits of all limits are equal
    * @param joint_limits the joint limits
    * @return true if all are equal
-   * @note always returns true if has_position_limits=false for all limits, or if the size of joint_limits is 0 or 1
+   * @note always returns true if has_position_limits=false for all limits, or
+   * if the size of joint_limits is 0 or 1
    */
   static bool validateAllPositionLimitsEqual(const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits);
 
@@ -57,7 +58,8 @@ public:
    * @brief Validates that the velocity of all limits is equal
    * @param joint_limits the joint limits
    * @return true if all are equal
-   * @note always returns true if has_velocity_limits=false for all limits, or if the size of joint_limits is 0 or 1
+   * @note always returns true if has_velocity_limits=false for all limits, or
+   * if the size of joint_limits is 0 or 1
    */
   static bool validateAllVelocityLimitsEqual(const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits);
 
@@ -65,7 +67,8 @@ public:
    * @brief Validates that the acceleration of all limits is equal
    * @param joint_limits the joint limits
    * @return true if all are equal
-   * @note always returns true if has_acceleration_limits=false for all limits, or if size of joint_limits is 0 or 1
+   * @note always returns true if has_acceleration_limits=false for all limits,
+   * or if size of joint_limits is 0 or 1
    */
   static bool
   validateAllAccelerationLimitsEqual(const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits);
@@ -74,14 +77,14 @@ public:
    * @brief Validates that the deceleration of all limits is equal
    * @param joint_limits the joint limits
    * @return true if all are equal
-   * @note always returns true if has_acceleration_limits=false for all limits, or if size of joint_limits is 0 or 1
+   * @note always returns true if has_acceleration_limits=false for all limits,
+   * or if size of joint_limits is 0 or 1
    */
   static bool
   validateAllDecelerationLimitsEqual(const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits);
 
 private:
-  static bool validateWithEqualFunc(bool (*eq_func)(const JointLimit&,
-                                                    const JointLimit&),
+  static bool validateWithEqualFunc(bool (*eq_func)(const JointLimit&, const JointLimit&),
                                     const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits);
 
   static bool positionEqual(const JointLimit& lhs, const JointLimit& rhs);
@@ -95,7 +98,8 @@ private:
 
 /**
  * @class ValidationException
- * @brief A base class for all validations exceptions inheriting from std::runtime_exception
+ * @brief A base class for all validations exceptions inheriting from
+ * std::runtime_exception
  */
 class ValidationException : public std::runtime_error
 {
@@ -107,7 +111,8 @@ public:
 
 /**
  * @class ValidationJointMissingException
- * @brief Thrown the limits for a joint are defined in the urdf but not on the parameter server (loaded from yaml)
+ * @brief Thrown the limits for a joint are defined in the urdf but not on the
+ * parameter server (loaded from yaml)
  *
  */
 class ValidationJointMissingException : public ValidationException
@@ -133,7 +138,8 @@ public:
 
 /**
  * @class ValidationBoundsViolationException
- * @brief Thrown when the limits from the param server are weaker than the ones obtained from the urdf
+ * @brief Thrown when the limits from the param server are weaker than the ones
+ * obtained from the urdf
  *
  */
 class ValidationBoundsViolationException : public ValidationException

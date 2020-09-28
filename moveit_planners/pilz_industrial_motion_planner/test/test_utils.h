@@ -34,25 +34,25 @@
 
 #pragma once
 
-#include <string>
-#include <math.h>
+#include "moveit_msgs/MotionSequenceRequest.h"
+#include "pilz_industrial_motion_planner/limits_container.h"
+#include "pilz_industrial_motion_planner/trajectory_blend_request.h"
+#include "pilz_industrial_motion_planner/trajectory_blend_response.h"
+#include "pilz_industrial_motion_planner/trajectory_generator.h"
 #include <boost/core/demangle.hpp>
-#include <utility>
-#include <ros/console.h>
-#include <moveit_msgs/Constraints.h>
-#include <moveit/robot_trajectory/robot_trajectory.h>
-#include <sensor_msgs/JointState.h>
+#include <math.h>
+#include <moveit/kinematic_constraints/utils.h>
 #include <moveit/planning_interface/planning_interface.h>
+#include <moveit/robot_trajectory/robot_trajectory.h>
+#include <moveit_msgs/Constraints.h>
+#include <moveit_msgs/MoveGroupAction.h>
+#include <ros/console.h>
+#include <sensor_msgs/JointState.h>
+#include <string>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/convert.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <moveit/kinematic_constraints/utils.h>
-#include <moveit_msgs/MoveGroupAction.h>
-#include "pilz_industrial_motion_planner/limits_container.h"
-#include "pilz_industrial_motion_planner/trajectory_blend_response.h"
-#include "pilz_industrial_motion_planner/trajectory_blend_request.h"
-#include "pilz_industrial_motion_planner/trajectory_generator.h"
-#include "moveit_msgs/MotionSequenceRequest.h"
+#include <utility>
 
 namespace testutils
 {
@@ -76,7 +76,8 @@ inline std::string getJointName(size_t joint_number, const std::string& joint_pr
 }
 
 /**
- * @brief Create limits for tests to avoid the need to get the limits from the parameter server
+ * @brief Create limits for tests to avoid the need to get the limits from the
+ * parameter server
  */
 pilz_industrial_motion_planner::JointLimitsContainer createFakeLimits(const std::vector<std::string>& joint_names);
 
@@ -198,7 +199,8 @@ bool checkCartesianLinearity(const robot_model::RobotModelConstPtr& robot_model,
                              const double rot_axis_norm_tolerance, const double rot_angle_tolerance = 10e-5);
 
 /**
- * @brief check SLERP. The orientation should rotate around the same axis linearly.
+ * @brief check SLERP. The orientation should rotate around the same axis
+ * linearly.
  * @param start_pose
  * @param goal_pose
  * @param wp_pose
@@ -224,7 +226,8 @@ inline int getWayPointIndex(const robot_trajectory::RobotTrajectoryPtr& trajecto
 }
 
 /**
- * @brief check joint trajectory of consistency, position, velocity and acceleration limits
+ * @brief check joint trajectory of consistency, position, velocity and
+ * acceleration limits
  * @param trajectory
  * @param joint_limits
  * @return
@@ -233,7 +236,8 @@ bool checkJointTrajectory(const trajectory_msgs::JointTrajectory& trajectory,
                           const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits);
 
 /**
- * @brief Checks that every waypoint in the trajectory has a non-zero duration between itself and its predecessor
+ * @brief Checks that every waypoint in the trajectory has a non-zero duration
+ * between itself and its predecessor
  *
  * Usage in tests:
  * @code
@@ -243,7 +247,8 @@ bool checkJointTrajectory(const trajectory_msgs::JointTrajectory& trajectory,
 ::testing::AssertionResult hasStrictlyIncreasingTime(const robot_trajectory::RobotTrajectoryPtr& trajectory);
 
 /**
- * @brief check if the sizes of the joint position/veloicty/acceleration are correct
+ * @brief check if the sizes of the joint position/veloicty/acceleration are
+ * correct
  * @param trajectory
  * @return
  */
@@ -316,7 +321,8 @@ bool checkOriginalTrajectoryAfterBlending(const pilz_industrial_motion_planner::
  * @brief check the blending result, if the joint space continuity is fulfilled
  * @param res: trajectory blending response, contains three trajectories.
  * Between these three trajectories should be continuous.
- * @return true if joint position/velocity is continuous. joint acceleration can have jumps.
+ * @return true if joint position/velocity is continuous. joint acceleration can
+ * have jumps.
  */
 bool checkBlendingJointSpaceContinuity(const pilz_industrial_motion_planner::TrajectoryBlendResponse& res,
                                        double joint_velocity_tolerance, double joint_accleration_tolerance);
@@ -326,7 +332,8 @@ bool checkBlendingCartSpaceContinuity(const pilz_industrial_motion_planner::Traj
                                       const pilz_industrial_motion_planner::LimitsContainer& planner_limits);
 
 /**
- * @brief Checks if all points of the blending trajectory lie within the blending radius.
+ * @brief Checks if all points of the blending trajectory lie within the
+ * blending radius.
  */
 bool checkThatPointsInRadius(const std::string& link_name, const double& r, Eigen::Isometry3d& circ_pose,
                              const pilz_industrial_motion_planner::TrajectoryBlendResponse& res);
@@ -374,7 +381,8 @@ inline geometry_msgs::Quaternion fromEuler(double a, double b, double c)
 }
 
 /**
- * @brief Test data for blending, which contains three joint position vectors of three robot state.
+ * @brief Test data for blending, which contains three joint position vectors of
+ * three robot state.
  */
 struct BlendTestData
 {
@@ -431,13 +439,15 @@ void generateRequestMsgFromBlendTestData(const moveit::core::RobotModelConstPtr&
 void checkRobotModel(const moveit::core::RobotModelConstPtr& robot_model, const std::string& group_name,
                      const std::string& link_name);
 
-/** @brief Check that a given vector of accelerations represents a trapezoid velocity profile
+/** @brief Check that a given vector of accelerations represents a trapezoid
+ * velocity profile
  * @param acc_tol: tolerance for comparing acceleration values
  */
 ::testing::AssertionResult hasTrapezoidVelocity(std::vector<double> accelerations, const double acc_tol);
 
 /**
- * @brief Check that the translational path of a given trajectory has a trapezoid velocity profile
+ * @brief Check that the translational path of a given trajectory has a
+ * trapezoid velocity profile
  * @param acc_tol: tolerance for comparing acceleration values
  */
 ::testing::AssertionResult
@@ -446,7 +456,8 @@ checkCartesianTranslationalPath(const robot_trajectory::RobotTrajectoryConstPtr&
                                 const double acc_tol = DEFAULT_ACCELERATION_EQUALITY_TOLERANCE);
 
 /**
- * @brief Check that the rotational path of a given trajectory is a quaternion slerp.
+ * @brief Check that the rotational path of a given trajectory is a quaternion
+ * slerp.
  * @param rot_axis_tol: tolerance for comparing rotation axes (in the L2 norm)
  * @param acc_tol: tolerance for comparing angular acceleration values
  */

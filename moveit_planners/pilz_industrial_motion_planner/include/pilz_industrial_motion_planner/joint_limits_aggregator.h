@@ -34,8 +34,8 @@
 
 #pragma once
 
-#include "pilz_industrial_motion_planner/joint_limits_extension.h"
 #include "pilz_industrial_motion_planner/joint_limits_container.h"
+#include "pilz_industrial_motion_planner/joint_limits_extension.h"
 
 #include <ros/ros.h>
 
@@ -48,7 +48,8 @@
 namespace pilz_industrial_motion_planner
 {
 /**
- * @brief  Unifies the joint limits from the given joint models with joint limits from the parameter server.
+ * @brief  Unifies the joint limits from the given joint models with joint
+ * limits from the parameter server.
  *
  * Does not support MultiDOF joints.
  */
@@ -56,16 +57,23 @@ class JointLimitsAggregator
 {
 public:
   /**
-   * @brief  Aggregates(combines) the joint limits from joint model and parameter server.
+   * @brief  Aggregates(combines) the joint limits from joint model and
+   * parameter server.
    * The rules for the combination are:
-   *   1. Position and velocity limits on the parameter server must be stricter or equal if they are defined.
+   *   1. Position and velocity limits on the parameter server must be stricter
+   * or equal if they are defined.
    *   2. Limits on the parameter server where the corresponding
-   *      has_<position|velocity|acceleration|deceleration>_limits are „false“ are considered undefined(see point 1).
-   *   3. Not all joints have to be limited by the parameter server. Selective limitation is possible.
-   *   4. If max_deceleration is unset, it will be set to: max_deceleration = - max_acceleration.
-   * @note The acceleration/deceleration can only be set via the parameter server since they are not supported
+   *      has_<position|velocity|acceleration|deceleration>_limits are „false“
+   * are considered undefined(see point 1).
+   *   3. Not all joints have to be limited by the parameter server. Selective
+   * limitation is possible.
+   *   4. If max_deceleration is unset, it will be set to: max_deceleration = -
+   * max_acceleration.
+   * @note The acceleration/deceleration can only be set via the parameter
+   * server since they are not supported
    * in the urdf so far.
-   * @param nh Node handle in whose namespace the joint limit parameters are expected.
+   * @param nh Node handle in whose namespace the joint limit parameters are
+   * expected.
    * @param joint_models The joint models
    * @return Container containing the limits
    */
@@ -81,8 +89,7 @@ protected:
    * @param joint_model The joint model
    * @param joint_limit The joint_limit to be filled with new values.
    */
-  static void updatePositionLimitFromJointModel(const moveit::core::JointModel* joint_model,
-                                                JointLimit& joint_limit);
+  static void updatePositionLimitFromJointModel(const moveit::core::JointModel* joint_model, JointLimit& joint_limit);
 
   /**
    * @brief Update the velocity limit with the one from the joint_model.
@@ -92,31 +99,31 @@ protected:
    * @param joint_model The joint model
    * @param joint_limit The joint_limit to be filled with new values.
    */
-  static void updateVelocityLimitFromJointModel(const moveit::core::JointModel* joint_model,
-                                                JointLimit& joint_limit);
+  static void updateVelocityLimitFromJointModel(const moveit::core::JointModel* joint_model, JointLimit& joint_limit);
 
   /**
-   * @brief Checks if the position limits from the given joint_limit are stricter than the limits of the joint_model.
+   * @brief Checks if the position limits from the given joint_limit are
+   * stricter than the limits of the joint_model.
    * Throws AggregationBoundsViolationException on violation
    * @param joint_model The joint_model
    * @param joint_limit The joint_limit
    */
-  static void checkPositionBoundsThrowing(const moveit::core::JointModel* joint_model,
-                                          const JointLimit& joint_limit);
+  static void checkPositionBoundsThrowing(const moveit::core::JointModel* joint_model, const JointLimit& joint_limit);
 
   /**
-   * @brief Checks if the velocity limit from the given joint_limit are stricter than the limit of the joint_model.
+   * @brief Checks if the velocity limit from the given joint_limit are stricter
+   * than the limit of the joint_model.
    * Throws AggregationBoundsViolationException on violation
    * @param joint_model The joint_model
    * @param joint_limit The joint_limit
    */
-  static void checkVelocityBoundsThrowing(const moveit::core::JointModel* joint_model,
-                                          const JointLimit& joint_limit);
+  static void checkVelocityBoundsThrowing(const moveit::core::JointModel* joint_model, const JointLimit& joint_limit);
 };
 
 /**
  * @class AggregationException
- * @brief A base class for all aggregation exceptions inheriting from std::runtime_exception
+ * @brief A base class for all aggregation exceptions inheriting from
+ * std::runtime_exception
  */
 class AggregationException : public std::runtime_error
 {
@@ -128,7 +135,8 @@ public:
 
 /**
  * @class AggregationJointMissingException
- * @brief Thrown the limits from the parameter server are weaker(forbidden) than the ones defined in the urdf
+ * @brief Thrown the limits from the parameter server are weaker(forbidden) than
+ * the ones defined in the urdf
  *
  */
 class AggregationBoundsViolationException : public AggregationException

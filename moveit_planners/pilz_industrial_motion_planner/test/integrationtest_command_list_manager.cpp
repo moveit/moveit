@@ -37,22 +37,22 @@
 
 #include <gtest/gtest.h>
 
+#include <functional>
 #include <ros/ros.h>
 #include <ros/time.h>
-#include <functional>
 
-#include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/kinematic_constraints/utils.h>
-#include <moveit_msgs/MotionPlanResponse.h>
-#include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit/planning_scene/planning_scene.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit_msgs/DisplayTrajectory.h>
+#include <moveit_msgs/MotionPlanResponse.h>
 
 #include <tf2_eigen/tf2_eigen.h>
 
-#include <pilz_industrial_motion_planner_testutils/xml_testdata_loader.h>
-#include <pilz_industrial_motion_planner_testutils/sequence.h>
-#include <pilz_industrial_motion_planner_testutils/lin.h>
 #include <pilz_industrial_motion_planner_testutils/gripper.h>
+#include <pilz_industrial_motion_planner_testutils/lin.h>
+#include <pilz_industrial_motion_planner_testutils/sequence.h>
+#include <pilz_industrial_motion_planner_testutils/xml_testdata_loader.h>
 
 #include "test_utils.h"
 
@@ -224,8 +224,10 @@ TEST_F(IntegrationTestCommandListManager, concatThreeSegments)
  * @brief Tests if times are strictly increasing with selective blending
  *
  * Test Sequence:
- *    1. Generate request with three trajectories where only the first has a blend radius.
- *    1. Generate request with three trajectories where only the second has a blend radius.
+ *    1. Generate request with three trajectories where only the first has a
+ * blend radius.
+ *    1. Generate request with three trajectories where only the second has a
+ * blend radius.
  *
  * Expected Results:
  *    1. Generation of concatenated trajectory is successful.

@@ -36,13 +36,14 @@
 
 #include <kdl/path.hpp>
 #include <kdl/path_circle.hpp>
-#include <kdl/utilities/error.h>
 #include <kdl/rotational_interpolation_sa.hpp>
+#include <kdl/utilities/error.h>
 
 namespace pilz_industrial_motion_planner
 {
 /**
- * @brief Generator class for KDL::Path_Circle from different circle representations
+ * @brief Generator class for KDL::Path_Circle from different circle
+ * representations
  */
 class PathCircleGenerator
 {
@@ -52,7 +53,8 @@ public:
    *
    * Note that a half circle should use interim point and cannot be defined
    * by circle center since start/goal/center points are colinear.
-   * @throws KDL::Error_MotionPlanning in case start and goal have different radii to the center point.
+   * @throws KDL::Error_MotionPlanning in case start and goal have different
+   * radii to the center point.
    */
   static std::unique_ptr<KDL::Path> circleFromCenter(const KDL::Frame& start_pose, const KDL::Frame& goal_pose,
                                                      const KDL::Vector& center_point, double eqradius);

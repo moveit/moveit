@@ -34,9 +34,9 @@
 
 #pragma once
 
-#include <string>
 #include <cassert>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"
@@ -68,7 +68,8 @@ static bool hasSolver(const JointModelGroup* group)
  *
  * @tparam JointModelGroup aims at moveit::core::JointModelGroup
  * @throws exception in case the group has no solver.
- * @throws exception in case the solver for the group has more than one tip frame.
+ * @throws exception in case the solver for the group has more than one tip
+ * frame.
  */
 template <class JointModelGroup>
 static const std::string& getSolverTipFrame(const JointModelGroup* group)

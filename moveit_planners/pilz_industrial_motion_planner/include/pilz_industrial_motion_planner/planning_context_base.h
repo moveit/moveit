@@ -72,15 +72,19 @@ public:
   }
 
   /**
-   * @brief Calculates a trajectory for the request this context is currently set for
-   * @param res The result containing the respective trajectory, or error_code on failure
+   * @brief Calculates a trajectory for the request this context is currently
+   * set for
+   * @param res The result containing the respective trajectory, or error_code
+   * on failure
    * @return true on success, false otherwise
    */
   bool solve(planning_interface::MotionPlanResponse& res) override;
 
   /**
-   * @brief Will return the same trajectory as solve(planning_interface::MotionPlanResponse& res)
-   * This function just delegates to the common response however here the same trajectory is stored with the
+   * @brief Will return the same trajectory as
+   * solve(planning_interface::MotionPlanResponse& res)
+   * This function just delegates to the common response however here the same
+   * trajectory is stored with the
    * descriptions "plan", "simplify", "interpolate"
    * @param res The detailed response
    * @return true on success, false otherwise

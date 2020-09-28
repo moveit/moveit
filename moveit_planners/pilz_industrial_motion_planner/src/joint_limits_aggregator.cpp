@@ -35,8 +35,8 @@
 #include "pilz_industrial_motion_planner/joint_limits_aggregator.h"
 #include "pilz_industrial_motion_planner/joint_limits_interface_extension.h"
 
-#include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 
 #include <vector>
 
@@ -76,7 +76,8 @@ pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(
     }
     else
     {
-      // If there is nothing defined for this joint on the parameter server just update the values by the values of
+      // If there is nothing defined for this joint on the parameter server just
+      // update the values by the values of
       // the urdf
 
       updatePositionLimitFromJointModel(joint_model, joint_limit);

@@ -32,8 +32,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 
 #include "pilz_industrial_motion_planner/joint_limits_extension.h"
 #include "pilz_industrial_motion_planner/joint_limits_interface_extension.h"
@@ -87,8 +87,7 @@ bool pilz_industrial_motion_planner::JointLimitsValidator::validateWithEqualFunc
   return true;
 }
 
-bool pilz_industrial_motion_planner::JointLimitsValidator::positionEqual(const JointLimit& lhs,
-                                                                         const JointLimit& rhs)
+bool pilz_industrial_motion_planner::JointLimitsValidator::positionEqual(const JointLimit& lhs, const JointLimit& rhs)
 {
   // Return false if .has_velocity_limits differs
   if (lhs.has_position_limits != rhs.has_position_limits)
@@ -104,8 +103,7 @@ bool pilz_industrial_motion_planner::JointLimitsValidator::positionEqual(const J
   return true;
 }
 
-bool pilz_industrial_motion_planner::JointLimitsValidator::velocityEqual(const JointLimit& lhs,
-                                                                         const JointLimit& rhs)
+bool pilz_industrial_motion_planner::JointLimitsValidator::velocityEqual(const JointLimit& lhs, const JointLimit& rhs)
 {
   // Return false if .has_velocity_limits differs
   if (lhs.has_velocity_limits != rhs.has_velocity_limits)

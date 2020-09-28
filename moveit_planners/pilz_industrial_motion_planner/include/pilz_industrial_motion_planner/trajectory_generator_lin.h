@@ -53,7 +53,8 @@ CREATE_MOVEIT_ERROR_CODE_EXCEPTION(LinJointMissingInStartState, moveit_msgs::Mov
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(LinInverseForGoalIncalculable, moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION);
 
 /**
- * @brief This class implements a linear trajectory generator in Cartesian space.
+ * @brief This class implements a linear trajectory generator in Cartesian
+ * space.
  * The Cartesian trajetory are based on trapezoid velocity profile.
  */
 class TrajectoryGeneratorLIN : public TrajectoryGenerator

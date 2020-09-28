@@ -35,9 +35,9 @@
 #pragma once
 
 #include "eigen3/Eigen/Eigen"
+#include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"
 #include "pilz_industrial_motion_planner/trajectory_generator.h"
 #include "pilz_industrial_motion_planner/velocity_profile_atrap.h"
-#include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"
 
 using namespace pilz_industrial_motion_planner;
 

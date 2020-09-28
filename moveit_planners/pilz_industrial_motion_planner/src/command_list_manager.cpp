@@ -34,19 +34,19 @@
 
 #include "pilz_industrial_motion_planner/command_list_manager.h"
 
-#include <sstream>
-#include <functional>
 #include <cassert>
+#include <functional>
+#include <sstream>
 
-#include <ros/ros.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/robot_state/conversions.h>
+#include <ros/ros.h>
 
-#include "pilz_industrial_motion_planner/joint_limits_aggregator.h"
 #include "pilz_industrial_motion_planner/cartesian_limits_aggregator.h"
-#include "pilz_industrial_motion_planner/trajectory_blender_transition_window.h"
-#include "pilz_industrial_motion_planner/trajectory_blend_request.h"
+#include "pilz_industrial_motion_planner/joint_limits_aggregator.h"
 #include "pilz_industrial_motion_planner/tip_frame_getter.h"
+#include "pilz_industrial_motion_planner/trajectory_blend_request.h"
+#include "pilz_industrial_motion_planner/trajectory_blender_transition_window.h"
 
 namespace pilz_industrial_motion_planner
 {

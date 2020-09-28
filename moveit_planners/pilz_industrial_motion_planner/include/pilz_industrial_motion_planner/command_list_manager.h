@@ -43,8 +43,8 @@
 #include <moveit_msgs/MotionPlanResponse.h>
 
 #include "moveit_msgs/MotionSequenceRequest.h"
-#include "pilz_industrial_motion_planner/trajectory_blender.h"
 #include "pilz_industrial_motion_planner/plan_components_builder.h"
+#include "pilz_industrial_motion_planner/trajectory_blender.h"
 #include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"
 
 namespace pilz_industrial_motion_planner
@@ -80,7 +80,8 @@ public:
    * All following trajectories are then attached to the new trajectory
    * element (until all requests are processed or until the next group change).
    *
-   * @param planning_scene The planning scene to be used for trajectory generation.
+   * @param planning_scene The planning scene to be used for trajectory
+   * generation.
    * @param req_list List of motion requests containing: PTP, LIN, CIRC
    * and/or gripper commands.
    * Please note: A request is only valid if:
@@ -111,7 +112,8 @@ private:
   /**
    * @brief Validates that two consecutive blending radii do not overlap.
    *
-   * @param motion_plan_responses Container of calculated/generated trajectories.
+   * @param motion_plan_responses Container of calculated/generated
+   * trajectories.
    * @param radii Container stating the blend radii.
    */
   void checkForOverlappingRadii(const MotionResponseCont& resp_cont, const RadiiCont& radii) const;
@@ -119,7 +121,8 @@ private:
   /**
    * @brief Solve each sequence item individually.
    *
-   * @param planning_scene The planning_scene to be used for trajectory generation.
+   * @param planning_scene The planning_scene to be used for trajectory
+   * generation.
    * @param req_list Container of requests for calculation/generation.
    *
    * @return Container of generated trajectories.

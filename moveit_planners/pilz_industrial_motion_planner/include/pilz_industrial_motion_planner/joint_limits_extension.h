@@ -38,28 +38,29 @@
 #include <joint_limits_interface/joint_limits.h>
 #include <map>
 
-namespace pilz_industrial_motion_planner {
-namespace joint_limits_interface {
-
+namespace pilz_industrial_motion_planner
+{
+namespace joint_limits_interface
+{
 /**
- * @brief Extends joint_limits_interface::JointLimits with a deceleration parameter
+ * @brief Extends joint_limits_interface::JointLimits with a deceleration
+ * parameter
  */
-struct JointLimits : ::joint_limits_interface::JointLimits {
-  JointLimits()
-    : max_deceleration(0.0),
-      has_deceleration_limits(false)
-  {}
+struct JointLimits : ::joint_limits_interface::JointLimits
+{
+  JointLimits() : max_deceleration(0.0), has_deceleration_limits(false)
+  {
+  }
 
-/// maximum deceleration MUST(!) be negative
-double max_deceleration;
+  /// maximum deceleration MUST(!) be negative
+  double max_deceleration;
 
-bool has_deceleration_limits;
-
+  bool has_deceleration_limits;
 };
-}
+}  // namespace joint_limits_interface
 
 typedef joint_limits_interface::JointLimits JointLimit;
 typedef std::map<std::string, JointLimit> JointLimitsMap;
-}
+}  // namespace pilz_industrial_motion_planner
 
-#endif // JOINT_LIMITS_EXTENSION_H
+#endif  // JOINT_LIMITS_EXTENSION_H

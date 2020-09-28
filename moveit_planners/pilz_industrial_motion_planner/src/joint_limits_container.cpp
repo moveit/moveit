@@ -46,8 +46,7 @@ bool JointLimitsContainer::addLimit(const std::string& joint_name, JointLimit jo
     ROS_ERROR_STREAM("joint_limit.max_deceleration MUST be negative!");
     return false;
   }
-  const auto& insertion_result{ container_.insert(
-      std::pair<std::string, JointLimit>(joint_name, joint_limit)) };
+  const auto& insertion_result{ container_.insert(std::pair<std::string, JointLimit>(joint_name, joint_limit)) };
   if (!insertion_result.second)
   {
     ROS_ERROR_STREAM("joint_limit for joint " << joint_name << " already contained.");
@@ -137,8 +136,7 @@ bool JointLimitsContainer::verifyPositionLimits(const std::vector<std::string>& 
   return true;
 }
 
-void JointLimitsContainer::updateCommonLimit(const JointLimit& joint_limit,
-                                             JointLimit& common_limit)
+void JointLimitsContainer::updateCommonLimit(const JointLimit& joint_limit, JointLimit& common_limit)
 {
   // check position limits
   if (joint_limit.has_position_limits)

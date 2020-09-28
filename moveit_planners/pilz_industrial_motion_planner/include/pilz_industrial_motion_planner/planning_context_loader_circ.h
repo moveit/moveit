@@ -51,7 +51,8 @@ public:
   ~PlanningContextLoaderCIRC() override;
 
   /**
-   * @brief return a instance of pilz_industrial_motion_planner::PlanningContextCIRC
+   * @brief return a instance of
+   * pilz_industrial_motion_planner::PlanningContextCIRC
    * @param planning_context returned context
    * @param name
    * @param group

@@ -32,22 +32,22 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <gtest/gtest.h>
 #include <boost/core/demangle.hpp>
+#include <gtest/gtest.h>
 
 #include <moveit_msgs/MoveItErrorCodes.h>
 
 #include <moveit/planning_interface/planning_interface.h>
 
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/planning_scene/planning_scene.h>
 #include <moveit/kinematic_constraints/utils.h>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 
 #include "pilz_industrial_motion_planner/joint_limits_container.h"
-#include "pilz_industrial_motion_planner/planning_context_ptp.h"
-#include "pilz_industrial_motion_planner/planning_context_lin.h"
 #include "pilz_industrial_motion_planner/planning_context_circ.h"
+#include "pilz_industrial_motion_planner/planning_context_lin.h"
+#include "pilz_industrial_motion_planner/planning_context_ptp.h"
 
 #include "test_utils.h"
 
@@ -140,7 +140,8 @@ protected:
     // start state
     robot_state::RobotState rstate(this->robot_model_);
     rstate.setToDefaultValues();
-    // state state in joint space, used as initial positions, since IK does not work at zero positions
+    // state state in joint space, used as initial positions, since IK does not
+    // work at zero positions
     rstate.setJointGroupPositions(this->planning_group_,
                                   { 4.430233957464225e-12, 0.007881892504574495, -1.8157263253868452,
                                     1.1801525390026025e-11, 1.8236082178909834, 8.591793942969161e-12 });
@@ -190,7 +191,8 @@ protected:
 TYPED_TEST_CASE(PlanningContextTest, PlanningContextTestTypes);
 
 /**
- * @brief No request is set. Check the output of solve. Using robot model without gripper.
+ * @brief No request is set. Check the output of solve. Using robot model
+ * without gripper.
  */
 TYPED_TEST(PlanningContextTest, NoRequest)
 {

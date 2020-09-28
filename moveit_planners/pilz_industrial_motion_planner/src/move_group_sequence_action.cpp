@@ -40,12 +40,12 @@
 
 #include <time.h>
 
-#include <moveit/planning_pipeline/planning_pipeline.h>
+#include <moveit/kinematic_constraints/utils.h>
 #include <moveit/plan_execution/plan_execution.h>
 #include <moveit/plan_execution/plan_with_sensing.h>
-#include <moveit/trajectory_processing/trajectory_tools.h>
-#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/robot_state/conversions.h>
+#include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/utils/message_checks.h>
 
 #include "pilz_industrial_motion_planner/command_list_manager.h"
@@ -86,7 +86,8 @@ void MoveGroupSequenceAction::executeSequenceCallback(const moveit_msgs::MoveGro
     return;
   }
 
-  // before we start planning, ensure that we have the latest robot state received...
+  // before we start planning, ensure that we have the latest robot state
+  // received...
   context_->planning_scene_monitor_->waitForCurrentRobotState(ros::Time::now());
   context_->planning_scene_monitor_->updateFrameTransforms();
 
@@ -123,7 +124,8 @@ void MoveGroupSequenceAction::executeSequenceCallback(const moveit_msgs::MoveGro
 void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(
     const moveit_msgs::MoveGroupSequenceGoalConstPtr& goal, moveit_msgs::MoveGroupSequenceResult& action_res)
 {
-  ROS_INFO("Combined planning and execution request received for MoveGroupSequenceAction.");
+  ROS_INFO("Combined planning and execution request received for "
+           "MoveGroupSequenceAction.");
 
   plan_execution::PlanExecution::Options opt;
 
@@ -142,7 +144,8 @@ void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(
 
   if (goal->planning_options.look_around && context_->plan_with_sensing_)
   {
-    ROS_WARN("Plan with sensing not yet implemented/tested. This option is ignored.");  // LCOV_EXCL_LINE
+    ROS_WARN("Plan with sensing not yet implemented/tested. This option is "
+             "ignored.");  // LCOV_EXCL_LINE
   }
 
   plan_execution::ExecutableMotionPlan plan;
@@ -178,7 +181,8 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const moveit_msgs::Mov
 {
   ROS_INFO("Planning request received for MoveGroupSequenceAction action.");
 
-  // lock the scene so that it does not modify the world representation while diff() is called
+  // lock the scene so that it does not modify the world representation while
+  // diff() is called
   planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
 
   const planning_scene::PlanningSceneConstPtr& the_scene =

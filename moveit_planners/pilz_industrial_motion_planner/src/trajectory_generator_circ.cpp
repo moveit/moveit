@@ -38,15 +38,15 @@
 #include <cassert>
 #include <sstream>
 
-#include <ros/ros.h>
-#include <eigen_conversions/eigen_msg.h>
 #include <eigen_conversions/eigen_kdl.h>
-#include <moveit/robot_state/conversions.h>
-#include <kdl_conversions/kdl_msg.h>
+#include <eigen_conversions/eigen_msg.h>
+#include <kdl/rotational_interpolation_sa.hpp>
+#include <kdl/trajectory_segment.hpp>
 #include <kdl/utilities/error.h>
 #include <kdl/utilities/utility.h>
-#include <kdl/trajectory_segment.hpp>
-#include <kdl/rotational_interpolation_sa.hpp>
+#include <kdl_conversions/kdl_msg.h>
+#include <moveit/robot_state/conversions.h>
+#include <ros/ros.h>
 #include <tf2/convert.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
@@ -69,7 +69,8 @@ void TrajectoryGeneratorCIRC::cmdSpecificRequestValidation(const planning_interf
   if (!(req.path_constraints.name == "interim" || req.path_constraints.name == "center"))
   {
     std::ostringstream os;
-    os << "No path constraint named \"interim\" or \"center\" found (found unknown constraint: "
+    os << "No path constraint named \"interim\" or \"center\" found (found "
+          "unknown constraint: "
        << "\"req.path_constraints.name\""
        << " instead)";
     throw UnknownPathConstraintName(os.str());
@@ -115,7 +116,8 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_interface::Mo
     }
 
     // initializing all joints of the model
-    for (const auto& joint_name : robot_model_->getVariableNames()){
+    for (const auto& joint_name : robot_model_->getVariableNames())
+    {
       info.goal_joint_position[joint_name] = 0;
     }
 
@@ -133,7 +135,8 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_interface::Mo
     if (req.goal_constraints.front().position_constraints.front().header.frame_id.empty() ||
         req.goal_constraints.front().orientation_constraints.front().header.frame_id.empty())
     {
-      ROS_WARN("Frame id is not set in position/orientation constraints of goal. Use model frame as default");
+      ROS_WARN("Frame id is not set in position/orientation constraints of "
+               "goal. Use model frame as default");
       frame_id = robot_model_->getModelFrame();
     }
     else
@@ -174,7 +177,8 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_interface::Mo
     std::ostringstream os;
     os << "Failed to compute inverse kinematics for link: " << info.link_name << " of goal pose";
     throw CircInverseForGoalIncalculable(os.str());
-    // LCOV_EXCL_STOP // not able to trigger here since lots of checks before are in place
+    // LCOV_EXCL_STOP // not able to trigger here since lots of checks before
+    // are in place
   }
 
   Eigen::Vector3d circ_path_point;
@@ -193,12 +197,14 @@ void TrajectoryGeneratorCIRC::plan(const planning_interface::MotionPlanRequest& 
       cartesianTrapVelocityProfile(req.max_velocity_scaling_factor, req.max_acceleration_scaling_factor, cart_path));
 
   // combine path and velocity profile into Cartesian trajectory
-  // with the third parameter set to false, KDL::Trajectory_Segment does not take
+  // with the third parameter set to false, KDL::Trajectory_Segment does not
+  // take
   // the ownship of Path and Velocity Profile
   KDL::Trajectory_Segment cart_trajectory(cart_path.get(), vel_profile.get(), false);
 
   moveit_msgs::MoveItErrorCodes error_code;
-  // sample the Cartesian trajectory and compute joint trajectory using inverse kinematics
+  // sample the Cartesian trajectory and compute joint trajectory using inverse
+  // kinematics
   if (!generateJointTrajectory(robot_model_, planner_limits_.getJointLimitContainer(), cart_trajectory,
                                plan_info.group_name, plan_info.link_name, plan_info.start_joint_position, sampling_time,
                                joint_trajectory, error_code))
@@ -220,8 +226,10 @@ std::unique_ptr<KDL::Path> TrajectoryGeneratorCIRC::setPathCIRC(const MotionPlan
   tf::vectorEigenToKDL(info.circ_path_point.second, path_point);
 
   // pass the ratio of translational by rotational velocity as equivalent radius
-  // to get a trajectory with rotational speed, if no (or very little) translational distance
-  // The KDL::Path implementation chooses the motion with the longer duration (translation vs. rotation)
+  // to get a trajectory with rotational speed, if no (or very little)
+  // translational distance
+  // The KDL::Path implementation chooses the motion with the longer duration
+  // (translation vs. rotation)
   // and uses eqradius as scaling factor between the distances.
   double eqradius = planner_limits_.getCartesianLimits().getMaxTranslationalVelocity() /
                     planner_limits_.getCartesianLimits().getMaxRotationalVelocity();

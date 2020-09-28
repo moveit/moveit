@@ -32,22 +32,22 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <gtest/gtest.h>
 #include <boost/core/demangle.hpp>
+#include <gtest/gtest.h>
 
-#include <moveit_msgs/MoveItErrorCodes.h>
 #include <moveit/planning_interface/planning_interface.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/robot_state.h>
-#include <moveit/robot_state/conversions.h>
 #include <moveit/planning_scene/planning_scene.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit/robot_state/robot_state.h>
+#include <moveit_msgs/MoveItErrorCodes.h>
 
 #include "pilz_industrial_motion_planner/joint_limits_aggregator.h"
 #include "pilz_industrial_motion_planner/joint_limits_container.h"
-#include "pilz_industrial_motion_planner/trajectory_generator_ptp.h"
-#include "pilz_industrial_motion_planner/trajectory_generator_lin.h"
 #include "pilz_industrial_motion_planner/trajectory_generator_circ.h"
+#include "pilz_industrial_motion_planner/trajectory_generator_lin.h"
+#include "pilz_industrial_motion_planner/trajectory_generator_ptp.h"
 
 #include "test_utils.h"
 
@@ -122,7 +122,8 @@ protected:
     trajectory_generator_ = std::unique_ptr<typename T::Type_>(new typename T::Type_(robot_model_, planner_limits));
     ASSERT_NE(nullptr, trajectory_generator_) << "failed to create trajectory generator";
 
-    // create a valid motion plan request with goal in joint space as basis for tests
+    // create a valid motion plan request with goal in joint space as basis for
+    // tests
     req_.group_name = planning_group_;
     req_.max_velocity_scaling_factor = 1.0;
     req_.max_acceleration_scaling_factor = 1.0;
@@ -170,7 +171,8 @@ class TrajectoryGeneratorCommonTestWithGripper : public TrajectoryGeneratorCommo
 TYPED_TEST_CASE(TrajectoryGeneratorCommonTestWithGripper, TrajectoryGeneratorCommonTestTypesWithGripper);
 
 /**
- * @brief test invalid scaling factor. The scaling factor must be in the range of [0.0001, 1]
+ * @brief test invalid scaling factor. The scaling factor must be in the range
+ * of [0.0001, 1]
  */
 TYPED_TEST(TrajectoryGeneratorCommonTest, InvalideScalingFactor)
 {
@@ -225,14 +227,18 @@ TYPED_TEST(TrajectoryGeneratorCommonTestWithGripper, GripperGroup)
 }
 
 /**
- * @brief Test if there is a valid inverse kinematics solver for this planning group
- * You can only test this case by commenting the planning_context.launch in the .test file
- * //TODO create a separate robot model without ik solver and use it to create a trajectory generator
+ * @brief Test if there is a valid inverse kinematics solver for this planning
+ * group
+ * You can only test this case by commenting the planning_context.launch in the
+ * .test file
+ * //TODO create a separate robot model without ik solver and use it to create a
+ * trajectory generator
  */
 // TYPED_TEST(TrajectoryGeneratorCommonTest, NoIKSolver)
 //{
 //  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_, this->res_));
-//  EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME);
+//  EXPECT_EQ(this->res_.error_code_.val,
+//  moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME);
 //}
 
 /**
@@ -268,7 +274,8 @@ TYPED_TEST(TrajectoryGeneratorCommonTest, StartPostionOutOfLimit)
 /**
  * @brief Check that no trajectory is generated if a start velocity is given
  *
- * @note This test is here for regression, however in general generators that can work with a given
+ * @note This test is here for regression, however in general generators that
+ * can work with a given
  * start velocity are highly desired.
  */
 TYPED_TEST(TrajectoryGeneratorCommonTest, StartPositionVelocityNoneZero)

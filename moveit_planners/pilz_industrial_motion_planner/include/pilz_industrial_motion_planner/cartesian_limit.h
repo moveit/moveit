@@ -37,7 +37,8 @@
 namespace pilz_industrial_motion_planner
 {
 /**
- * @brief Set of cartesian limits, has values for velocity, acceleration and deceleration of both the
+ * @brief Set of cartesian limits, has values for velocity, acceleration and
+ * deceleration of both the
  *        translational and rotational part.
  */
 class CartesianLimit
@@ -60,7 +61,8 @@ public:
   void setMaxTranslationalVelocity(double max_trans_vel);
 
   /**
-   * @brief Return the maximal translational velocity [m/s], 0 if nothing was set
+   * @brief Return the maximal translational velocity [m/s], 0 if nothing was
+   * set
    * @return Maximum translational velocity, 0 if nothing was set
    */
   double getMaxTranslationalVelocity() const;
@@ -80,7 +82,8 @@ public:
   void setMaxTranslationalAcceleration(double max_trans_acc);
 
   /**
-   * @brief Return the maximal translational acceleration [m/s^2], 0 if nothing was set
+   * @brief Return the maximal translational acceleration [m/s^2], 0 if nothing
+   * was set
    * @return maximal translational acceleration, 0 if nothing was set
    */
   double getMaxTranslationalAcceleration() const;
@@ -100,8 +103,10 @@ public:
   void setMaxTranslationalDeceleration(double max_trans_dec);
 
   /**
-   * @brief Return the maximal translational deceleration [m/s^2], 0 if nothing was set
-   * @return maximal translational deceleration, 0 if nothing was set, always <=0 [m/s^2]
+   * @brief Return the maximal translational deceleration [m/s^2], 0 if nothing
+   * was set
+   * @return maximal translational deceleration, 0 if nothing was set, always
+   * <=0 [m/s^2]
    */
   double getMaxTranslationalDeceleration() const;
 

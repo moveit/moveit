@@ -35,22 +35,23 @@
 #pragma once
 
 #include <Eigen/Geometry>
+#include <eigen_conversions/eigen_kdl.h>
+#include <eigen_conversions/eigen_msg.h>
 #include <kdl/trajectory.hpp>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
-#include <eigen_conversions/eigen_kdl.h>
-#include <eigen_conversions/eigen_msg.h>
-#include <trajectory_msgs/MultiDOFJointTrajectory.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <tf2/transform_datatypes.h>
+#include <trajectory_msgs/MultiDOFJointTrajectory.h>
 
-#include "pilz_industrial_motion_planner/limits_container.h"
 #include "pilz_industrial_motion_planner/cartesian_trajectory.h"
+#include "pilz_industrial_motion_planner/limits_container.h"
 
 namespace pilz_industrial_motion_planner
 {
 /**
- * @brief compute the inverse kinematics of a given pose, also check robot self collision
+ * @brief compute the inverse kinematics of a given pose, also check robot self
+ * collision
  * @param robot_model: kinematic model of the robot
  * @param group_name: name of planning group
  * @param link_name: name of target link
@@ -58,7 +59,8 @@ namespace pilz_industrial_motion_planner
  * @param frame_id: reference frame of the target pose
  * @param seed: seed state of IK solver
  * @param solution: solution of IK
- * @param check_self_collision: true to enable self collision checking after IK computation
+ * @param check_self_collision: true to enable self collision checking after IK
+ * computation
  * @param max_attempt: maximal attempts of IK
  * @return true if succeed
  */
@@ -88,7 +90,8 @@ bool computeLinkFK(const robot_model::RobotModelConstPtr& robot_model, const std
                    Eigen::Isometry3d& pose);
 
 /**
- * @brief verify the velocity/acceleration limits of current sample (based on backward difference computation)
+ * @brief verify the velocity/acceleration limits of current sample (based on
+ * backward difference computation)
  * v(k) = [x(k) - x(k-1)]/[t(k) - t(k-1)]
  * a(k) = [v(k) - v(k-1)]/[t(k) - t(k-2)]*2
  * @param position_last: position of last sample
@@ -111,9 +114,11 @@ bool verifySampleJointLimits(const std::map<std::string, double>& position_last,
  * @param trajectory: KDL Cartesian trajectory
  * @param group_name: name of the planning group
  * @param link_name: name of the target robot link
- * @param initial_joint_position: initial joint positions, needed for selecting the ik solution
+ * @param initial_joint_position: initial joint positions, needed for selecting
+ * the ik solution
  * @param sampling_time: sampling time of the generated trajectory
- * @param joint_trajectory: output as robot joint trajectory, first and last point will have zero velocity
+ * @param joint_trajectory: output as robot joint trajectory, first and last
+ * point will have zero velocity
  * and acceleration
  * @param error_code: detailed error information
  * @param check_self_collision: check for self collision during creation
@@ -147,7 +152,8 @@ bool generateJointTrajectory(const robot_model::RobotModelConstPtr& robot_model,
 /**
  * @brief Determines the sampling time and checks that both trajectroies use the
  * same sampling time.
- * @return TRUE if the sampling time is equal between all given points (except the last two points
+ * @return TRUE if the sampling time is equal between all given points (except
+ * the last two points
  * of each trajectory), otherwise FALSE.
  */
 bool determineAndCheckSamplingTime(const robot_trajectory::RobotTrajectoryPtr& first_trajectory,
@@ -155,13 +161,16 @@ bool determineAndCheckSamplingTime(const robot_trajectory::RobotTrajectoryPtr& f
                                    double& sampling_time);
 
 /**
- * @brief Check if the two robot states have the same joint position/velocity/acceleration.
+ * @brief Check if the two robot states have the same joint
+ * position/velocity/acceleration.
  *
  * @param joint_group_name The name of the joint group.
- * @param epsilon Constants defining how close the joint position/velocity/acceleration have to be to be
+ * @param epsilon Constants defining how close the joint
+ * position/velocity/acceleration have to be to be
  * recognized as equal.
  *
- * @return True if joint positions, joint velocities and joint accelerations are equal, otherwise false.
+ * @return True if joint positions, joint velocities and joint accelerations are
+ * equal, otherwise false.
  */
 bool isRobotStateEqual(const robot_state::RobotState& state1, const robot_state::RobotState& state2,
                        const std::string& joint_group_name, double epsilon);
@@ -176,11 +185,13 @@ bool isRobotStateEqual(const robot_state::RobotState& state1, const robot_state:
 bool isRobotStateStationary(const robot_state::RobotState& state, const std::string& group, double EPSILON);
 
 /**
- * @brief Performs a linear search for the intersection point of the trajectory with the blending radius.
+ * @brief Performs a linear search for the intersection point of the trajectory
+ * with the blending radius.
  * @param center_position Center of blending sphere.
  * @param r Radius of blending sphere.
  * @param traj The trajectory.
- * @param inverseOrder TRUE: Farthest element from blending sphere center is located at the
+ * @param inverseOrder TRUE: Farthest element from blending sphere center is
+ * located at the
  * smallest index of trajectroy.
  * @param index The intersection index which has to be determined.
  */

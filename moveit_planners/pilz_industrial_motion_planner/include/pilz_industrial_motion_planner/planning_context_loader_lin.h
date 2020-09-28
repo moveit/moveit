@@ -51,7 +51,8 @@ public:
   ~PlanningContextLoaderLIN() override;
 
   /**
-   * @brief return a instance of pilz_industrial_motion_planner::PlanningContextLIN
+   * @brief return a instance of
+   * pilz_industrial_motion_planner::PlanningContextLIN
    * @param planning_context returned context
    * @param name
    * @param group

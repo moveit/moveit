@@ -39,8 +39,8 @@
 
 #include <pluginlib/class_loader.h>
 
-#include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 
 #include "pilz_industrial_motion_planner/planning_context_loader.h"
 
@@ -49,7 +49,7 @@
 const std::string PARAM_MODEL_NO_GRIPPER_NAME{ "robot_description" };
 const std::string PARAM_MODEL_WITH_GRIPPER_NAME{ "robot_description_pg70" };
 
-class PlanningContextLoadersTest : public ::testing::TestWithParam<std::vector<std::string> >
+class PlanningContextLoadersTest : public ::testing::TestWithParam<std::vector<std::string>>
 {
 protected:
   /**
@@ -100,13 +100,14 @@ protected:
   robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(GetParam().back()).getModel() };
 
   // Load the plugin
-  boost::scoped_ptr<pluginlib::ClassLoader<pilz_industrial_motion_planner::PlanningContextLoader> >
+  boost::scoped_ptr<pluginlib::ClassLoader<pilz_industrial_motion_planner::PlanningContextLoader>>
       planning_context_loader_class_loader_;
 
   pilz_industrial_motion_planner::PlanningContextLoaderPtr planning_context_loader_;
 };
 
-// Instantiate the test cases for all loaders, extend here if you added a new ContextLoader you want to test
+// Instantiate the test cases for all loaders, extend here if you added a new
+// ContextLoader you want to test
 INSTANTIATE_TEST_CASE_P(
     InstantiationName, PlanningContextLoadersTest,
     ::testing::Values(std::vector<std::string>{ "pilz_industrial_motion_planner::PlanningContextLoaderPTP", "PTP",

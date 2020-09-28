@@ -32,31 +32,31 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <gtest/gtest.h>
+#include <chrono>
+#include <condition_variable>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 #include <iostream>
 #include <memory>
-#include <thread>
 #include <mutex>
-#include <condition_variable>
-#include <chrono>
 #include <stdexcept>
+#include <thread>
 
-#include <ros/ros.h>
-#include <moveit_msgs/Constraints.h>
-#include <moveit_msgs/JointConstraint.h>
-#include <moveit_msgs/GetMotionPlan.h>
-#include <moveit/robot_state/conversions.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/robot_model/robot_model.h>
 #include <actionlib/client/simple_action_client.h>
 #include <moveit/move_group_interface/move_group_interface.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit_msgs/Constraints.h>
+#include <moveit_msgs/GetMotionPlan.h>
+#include <moveit_msgs/JointConstraint.h>
+#include <ros/ros.h>
 
 #include <pilz_industrial_motion_planner_testutils/async_test.h>
 
-#include <pilz_industrial_motion_planner_testutils/xml_testdata_loader.h>
-#include <pilz_industrial_motion_planner_testutils/sequence.h>
 #include <pilz_industrial_motion_planner_testutils/checks.h>
+#include <pilz_industrial_motion_planner_testutils/sequence.h>
+#include <pilz_industrial_motion_planner_testutils/xml_testdata_loader.h>
 
 #include "moveit_msgs/MoveGroupSequenceAction.h"
 
@@ -130,7 +130,8 @@ void IntegrationTestSequenceAction::SetUp()
   move_group_->setJointValueTarget(robot_state);
   move_group_->move();
 
-  ASSERT_TRUE(isAtExpectedPosition(robot_state, *(move_group_->getCurrentState()), joint_position_tolerance_, group_name_));
+  ASSERT_TRUE(
+      isAtExpectedPosition(robot_state, *(move_group_->getCurrentState()), joint_position_tolerance_, group_name_));
 }
 
 /**
@@ -158,7 +159,8 @@ TEST_F(IntegrationTestSequenceAction, TestSendingOfEmptySequence)
  * @brief Tests that invalid (differing) group names are detected.
  *
  * Test Sequence:
- *    1. Invalidate first request (change group_name) and send goal for planning and execution.
+ *    1. Invalidate first request (change group_name) and send goal for planning
+ * and execution.
  *    2. Evaluate the result.
  *
  * Expected Results:
@@ -189,7 +191,8 @@ TEST_F(IntegrationTestSequenceAction, TestDifferingGroupNames)
  *
  * Expected Results:
  *    1. Goal is sent to the action server.
- *    2. Error code of the result is not success and the planned trajectory is empty.
+ *    2. Error code of the result is not success and the planned trajectory is
+ * empty.
  */
 TEST_F(IntegrationTestSequenceAction, TestNegativeBlendRadius)
 {
@@ -347,7 +350,8 @@ MATCHER(IsResultNotEmpty, "")
  *
  * Expected Results:
  *    1. Goal is sent to the action server.
- *    2. Error code of the result is success. Active-, feedback- and done-callbacks are called.
+ *    2. Error code of the result is success. Active-, feedback- and
+ * done-callbacks are called.
  */
 TEST_F(IntegrationTestSequenceAction, TestActionServerCallbacks)
 {
@@ -365,7 +369,8 @@ TEST_F(IntegrationTestSequenceAction, TestActionServerCallbacks)
   moveit_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.request = seq.toRequest();
 
-  // set expectations (no guarantee, that done callback is called before idle feedback)
+  // set expectations (no guarantee, that done callback is called before idle
+  // feedback)
   EXPECT_CALL(*this, active_callback()).Times(1).RetiresOnSaturation();
 
   EXPECT_CALL(*this, done_callback(_, AllOf(IsResultSuccess(), IsResultNotEmpty())))
@@ -420,8 +425,8 @@ TEST_F(IntegrationTestSequenceAction, TestPlanOnlyFlag)
   EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS) << "Sequence execution failed.";
   EXPECT_FALSE(res->response.planned_trajectories.empty()) << "Planned trajectory is empty";
 
-  ASSERT_TRUE(
-      isAtExpectedPosition(*(move_group_->getCurrentState()), start_config.toRobotState(), joint_position_tolerance_, group_name_))
+  ASSERT_TRUE(isAtExpectedPosition(*(move_group_->getCurrentState()), start_config.toRobotState(),
+                                   joint_position_tolerance_, group_name_))
       << "Robot did move although \"PlanOnly\" flag set.";
 }
 
@@ -455,8 +460,8 @@ TEST_F(IntegrationTestSequenceAction, TestIgnoreRobotStateForPlanOnly)
   EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS) << "Execution of sequence failed.";
   EXPECT_FALSE(res->response.planned_trajectories.empty()) << "Planned trajectory is empty";
 
-  ASSERT_TRUE(
-      isAtExpectedPosition(*(move_group_->getCurrentState()), start_config.toRobotState(), joint_position_tolerance_, group_name_))
+  ASSERT_TRUE(isAtExpectedPosition(*(move_group_->getCurrentState()), start_config.toRobotState(),
+                                   joint_position_tolerance_, group_name_))
       << "Robot did move although \"PlanOnly\" flag set.";
 }
 
@@ -470,7 +475,8 @@ TEST_F(IntegrationTestSequenceAction, TestIgnoreRobotStateForPlanOnly)
  *
  * Expected Results:
  *    1. Goal is sent to the action server.
- *    2. Error code of the result is not success and the planned trajectory is empty.
+ *    2. Error code of the result is not success and the planned trajectory is
+ * empty.
  */
 TEST_F(IntegrationTestSequenceAction, TestNegativeBlendRadiusForPlanOnly)
 {

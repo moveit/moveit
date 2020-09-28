@@ -58,9 +58,12 @@ CREATE_MOVEIT_ERROR_CODE_EXCEPTION(CircJointMissingInStartState, moveit_msgs::Mo
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(CircInverseForGoalIncalculable, moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION);
 
 /**
- * @brief This class implements a trajectory generator of arcs in Cartesian space.
- * The arc is specified by a start pose, a goal pose and a interim point on the arc,
- * or a point as the center of the circle which forms the arc. Complete circle is not
+ * @brief This class implements a trajectory generator of arcs in Cartesian
+ * space.
+ * The arc is specified by a start pose, a goal pose and a interim point on the
+ * arc,
+ * or a point as the center of the circle which forms the arc. Complete circle
+ * is not
  * covered by this generator.
  */
 class TrajectoryGeneratorCIRC : public TrajectoryGenerator

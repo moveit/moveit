@@ -34,15 +34,15 @@
 
 #include <memory>
 #include <stdexcept>
-#include <vector>
 #include <string>
+#include <vector>
 
 #include <gtest/gtest.h>
 
-#include <ros/ros.h>
+#include <moveit/robot_model/joint_model_group.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/robot_model/joint_model_group.h>
+#include <ros/ros.h>
 
 #include "pilz_industrial_motion_planner/tip_frame_getter.h"
 
@@ -70,7 +70,8 @@ void GetSolverTipFrameIntegrationTest::SetUp()
 }
 
 /**
- * @brief Check if hasSolver() can be called successfully for the manipulator group.
+ * @brief Check if hasSolver() can be called successfully for the manipulator
+ * group.
  */
 TEST_F(GetSolverTipFrameIntegrationTest, TestHasSolverManipulator)
 {
@@ -86,7 +87,8 @@ TEST_F(GetSolverTipFrameIntegrationTest, TestHasSolverGripperGroup)
 }
 
 /**
- * @brief Check if getSolverTipFrame() can be called successfully for the manipulator group.
+ * @brief Check if getSolverTipFrame() can be called successfully for the
+ * manipulator group.
  */
 TEST_F(GetSolverTipFrameIntegrationTest, TestGetTipSolverFrameManipulator)
 {

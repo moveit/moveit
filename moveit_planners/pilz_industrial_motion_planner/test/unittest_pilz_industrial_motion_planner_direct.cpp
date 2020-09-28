@@ -49,14 +49,17 @@ TEST(CommandPlannerTestDirect, ExceptionCoverage)
 }
 
 /**
- *  This test uses pilz_industrial_motion_planner::CommandPlanner directly and is thus seperated from
- * unittest_pilz_industrial_motion_planner.cpp since plugin loading via pluginlib does not allow loading of classes
+ *  This test uses pilz_industrial_motion_planner::CommandPlanner directly and
+ * is thus seperated from
+ * unittest_pilz_industrial_motion_planner.cpp since plugin loading via
+ * pluginlib does not allow loading of classes
  * already
  * defined.
  */
 
 /**
- * @brief Check that a exception is thrown if a already loaded PlanningContextLoader is loaded
+ * @brief Check that a exception is thrown if a already loaded
+ * PlanningContextLoader is loaded
  *
  * It this point the planning_instance_ has loaded ptp, lin, circ.
  * A additional ptp is loaded which should throw the respective exception.
@@ -75,7 +78,8 @@ TEST(CommandPlannerTestDirect, CheckDoubleLoadingException)
 }
 
 /**
- * @brief Check that getPlanningContext() fails if the underlying ContextLoader fails to load the context.
+ * @brief Check that getPlanningContext() fails if the underlying ContextLoader
+ * fails to load the context.
  */
 TEST(CommandPlannerTestDirect, FailOnLoadContext)
 {

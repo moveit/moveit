@@ -36,8 +36,8 @@
 
 #include <memory>
 
-#include <moveit/move_group/move_group_capability.h>
 #include <actionlib/server/simple_action_server.h>
+#include <moveit/move_group/move_group_capability.h>
 
 #include <moveit_msgs/MoveGroupSequenceAction.h>
 
@@ -81,7 +81,7 @@ private:
                            PlannedTrajMsgs& plannedTrajsMsgs);
 
 private:
-  std::unique_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupSequenceAction> > move_action_server_;
+  std::unique_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupSequenceAction>> move_action_server_;
   moveit_msgs::MoveGroupSequenceFeedback move_feedback_;
 
   move_group::MoveGroupState move_state_{ move_group::IDLE };

@@ -36,8 +36,8 @@
 
 #include <iostream>
 
-#include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 
 #include "pilz_industrial_motion_planner/pilz_industrial_motion_planner.h"
 
@@ -54,10 +54,12 @@ protected:
 
   /**
    * @brief initialize the planner plugin
-   * The planner is loaded using the pluginlib. Checks that the planner was loaded properly.
+   * The planner is loaded using the pluginlib. Checks that the planner was
+   * loaded properly.
    * Exceptions will cause test failure.
    *
-   * This function should be called only once during initialization of the class.
+   * This function should be called only once during initialization of the
+   * class.
    */
   void createPlannerInstance()
   {
@@ -105,7 +107,7 @@ protected:
 
   std::string planner_plugin_name_;
 
-  std::unique_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager> > planner_plugin_loader_;
+  std::unique_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager>> planner_plugin_loader_;
 
   planning_interface::PlannerManagerPtr planner_instance_;
 };
@@ -140,7 +142,8 @@ TEST_P(CommandPlannerTest, ObtainLoadedPlanningAlgorithms)
 }
 
 /**
- * @brief Check that all announced planning algorithms can perform the service request if the planner_id is set.
+ * @brief Check that all announced planning algorithms can perform the service
+ * request if the planner_id is set.
  */
 TEST_P(CommandPlannerTest, CheckValidAlgorithmsForServiceRequest)
 {
@@ -158,7 +161,8 @@ TEST_P(CommandPlannerTest, CheckValidAlgorithmsForServiceRequest)
 }
 
 /**
- * @brief Check that canServiceRequest(req) returns false if planner_id is not supported
+ * @brief Check that canServiceRequest(req) returns false if planner_id is not
+ * supported
  */
 TEST_P(CommandPlannerTest, CheckInvalidAlgorithmsForServiceRequest)
 {
@@ -190,7 +194,8 @@ TEST_P(CommandPlannerTest, CheckPlanningContextRequestNull)
 }
 
 /**
- * @brief Check that for the announced algorithmns getPlanningContext does not return nullptr
+ * @brief Check that for the announced algorithmns getPlanningContext does not
+ * return nullptr
  */
 TEST_P(CommandPlannerTest, CheckPlanningContextRequest)
 {

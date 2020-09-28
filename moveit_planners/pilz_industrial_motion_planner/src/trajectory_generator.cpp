@@ -36,10 +36,10 @@
 
 #include <cassert>
 
-#include <moveit/robot_state/conversions.h>
-#include <eigen_conversions/eigen_msg.h>
 #include <eigen_conversions/eigen_kdl.h>
+#include <eigen_conversions/eigen_msg.h>
 #include <kdl/velocityprofile_trap.hpp>
+#include <moveit/robot_state/conversions.h>
 
 #include "pilz_industrial_motion_planner/limits_container.h"
 

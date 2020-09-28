@@ -32,25 +32,25 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
+#include <functional>
 #include <gtest/gtest.h>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
-#include <functional>
 
-#include <ros/ros.h>
-#include <moveit_msgs/Constraints.h>
-#include <moveit_msgs/JointConstraint.h>
-#include <moveit_msgs/GetMotionPlan.h>
-#include <moveit/robot_state/conversions.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/robot_model/robot_model.h>
 #include <moveit/move_group_interface/move_group_interface.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit_msgs/Constraints.h>
+#include <moveit_msgs/GetMotionPlan.h>
+#include <moveit_msgs/JointConstraint.h>
 #include <moveit_msgs/MotionPlanResponse.h>
+#include <ros/ros.h>
 
-#include <pilz_industrial_motion_planner_testutils/xml_testdata_loader.h>
 #include <pilz_industrial_motion_planner_testutils/sequence.h>
+#include <pilz_industrial_motion_planner_testutils/xml_testdata_loader.h>
 
 #include "moveit_msgs/GetMotionSequence.h"
 #include "moveit_msgs/MotionSequenceRequest.h"
@@ -125,8 +125,10 @@ TEST_F(IntegrationTestSequenceService, TestSendingOfEmptySequence)
  * @brief Tests that invalid (differing) group names are detected.
  *
  * Test Sequence:
- *    1. Generate request, first request has invalid group_name +  Call sequence service.
- *    2. Invalidate first request (change group_name) and send goal for planning and execution.
+ *    1. Generate request, first request has invalid group_name +  Call sequence
+ * service.
+ *    2. Invalidate first request (change group_name) and send goal for planning
+ * and execution.
  *
  * Expected Results:
  *    1. MotionPlanResponse is received.
@@ -231,7 +233,8 @@ TEST_F(IntegrationTestSequenceService, TestTooLargeBlendRadii)
  * start state is sent.
  *
  *  Test Sequence:
- *    1. Generate request (second goal has invalid start state) +  Call sequence service.
+ *    1. Generate request (second goal has invalid start state) +  Call sequence
+ * service.
  *    2. Evaluate the result
  *
  *  Expected Results:
@@ -263,7 +266,8 @@ TEST_F(IntegrationTestSequenceService, TestSecondTrajInvalidStartState)
  * is sent.
  *
  *  Test Sequence:
- *    1. Generate request with first goal out of workspace +  Call sequence service.
+ *    1. Generate request with first goal out of workspace +  Call sequence
+ * service.
  *    2. Evaluate the result
  *
  *  Expected Results:

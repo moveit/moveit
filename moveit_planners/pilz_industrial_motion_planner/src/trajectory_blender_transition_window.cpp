@@ -34,10 +34,10 @@
 
 #include "pilz_industrial_motion_planner/trajectory_blender_transition_window.h"
 
-#include <tf2/convert.h>
-#include <tf2_eigen/tf2_eigen.h>
 #include <algorithm>
 #include <math.h>
+#include <tf2/convert.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::blend(
     const pilz_industrial_motion_planner::TrajectoryBlendRequest& req,
@@ -52,7 +52,8 @@ bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::blend(
     return false;
   }
 
-  // search for intersection points of the two trajectories with the blending sphere
+  // search for intersection points of the two trajectories with the blending
+  // sphere
   // intersection points belongs to blend trajectory after blending
   std::size_t first_intersection_index;
   std::size_t second_intersection_index;
@@ -63,7 +64,8 @@ bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::blend(
     return false;
   }
 
-  // Select blending period and adjust the start and end point of the blend phase
+  // Select blending period and adjust the start and end point of the blend
+  // phase
   std::size_t blend_align_index;
   determineTrajectoryAlignment(req, first_intersection_index, second_intersection_index, blend_align_index);
 
@@ -104,7 +106,8 @@ bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::blend(
       new robot_trajectory::RobotTrajectory(req.first_trajectory->getRobotModel(), req.first_trajectory->getGroup()));
 
   // set the three trajectories after blending in response
-  // erase the points [first_intersection_index, back()] from the first trajectory
+  // erase the points [first_intersection_index, back()] from the first
+  // trajectory
   for (size_t i = 0; i < first_intersection_index; ++i)
   {
     res.first_trajectory->insertWayPoint(i, req.first_trajectory->getWayPoint(i),
@@ -157,7 +160,8 @@ bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::validate
     return false;
   }
 
-  // end position of the first trajectory and start position of second trajectory must be the same
+  // end position of the first trajectory and start position of second
+  // trajectory must be the same
   if (!pilz_industrial_motion_planner::isRobotStateEqual(
           req.first_trajectory->getLastWayPoint(), req.second_trajectory->getFirstWayPoint(), req.group_name, EPSILON))
   {
@@ -177,14 +181,16 @@ bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::validate
     return false;
   }
 
-  // end position of the first trajectory and start position of second trajectory must have zero
+  // end position of the first trajectory and start position of second
+  // trajectory must have zero
   // velocities/accelerations
   if (!pilz_industrial_motion_planner::isRobotStateStationary(req.first_trajectory->getLastWayPoint(), req.group_name,
                                                               EPSILON) ||
       !pilz_industrial_motion_planner::isRobotStateStationary(req.second_trajectory->getFirstWayPoint(), req.group_name,
                                                               EPSILON))
   {
-    ROS_ERROR("Intersection point of the blending trajectories has non-zero velocities/accelerations.");
+    ROS_ERROR("Intersection point of the blending trajectories has non-zero "
+              "velocities/accelerations.");
     error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
     return false;
   }

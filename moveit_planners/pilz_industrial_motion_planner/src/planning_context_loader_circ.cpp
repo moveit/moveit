@@ -32,10 +32,10 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include "pilz_industrial_motion_planner/planning_context_circ.h"
-#include "pilz_industrial_motion_planner/planning_context_base.h"
 #include "pilz_industrial_motion_planner/planning_context_loader_circ.h"
 #include "moveit/planning_scene/planning_scene.h"
+#include "pilz_industrial_motion_planner/planning_context_base.h"
+#include "pilz_industrial_motion_planner/planning_context_circ.h"
 
 #include <pluginlib/class_list_macros.h>
 
@@ -60,7 +60,8 @@ bool pilz_industrial_motion_planner::PlanningContextLoaderCIRC::loadContext(
   {
     if (!limits_set_)
     {
-      ROS_ERROR_STREAM("Limits are not defined. Cannot load planning context. Call setLimits loadContext");
+      ROS_ERROR_STREAM("Limits are not defined. Cannot load planning context. "
+                       "Call setLimits loadContext");
     }
     if (!model_set_)
     {

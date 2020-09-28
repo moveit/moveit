@@ -47,7 +47,8 @@ namespace pilz_industrial_motion_planner
 {
 /**
  * @brief Base class for all PlanningContextLoaders.
- * Since planning_interface::PlanningContext has a non empty ctor classes derived from it can not be plugins.
+ * Since planning_interface::PlanningContext has a non empty ctor classes
+ * derived from it can not be plugins.
  * This class serves as base class for wrappers.
  */
 class PlanningContextLoader
@@ -68,7 +69,8 @@ public:
 
   /**
    * @brief Sets limits the planner can pass to the contexts
-   * @param limits container of limits, no guarantee to contain the limits for all joints of the model
+   * @param limits container of limits, no guarantee to contain the limits for
+   * all joints of the model
    * @return true if limits could be set
    */
   virtual bool setLimits(const pilz_industrial_motion_planner::LimitsContainer& limits);
@@ -128,7 +130,8 @@ bool PlanningContextLoader::loadContext(planning_interface::PlanningContextPtr& 
   {
     if (!limits_set_)
     {
-      ROS_ERROR_STREAM("Limits are not defined. Cannot load planning context. Call setLimits loadContext");
+      ROS_ERROR_STREAM("Limits are not defined. Cannot load planning context. "
+                       "Call setLimits loadContext");
     }
     if (!model_set_)
     {
