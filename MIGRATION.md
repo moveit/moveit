@@ -2,7 +2,7 @@
 
 API changes in MoveIt releases
 
-## ROS Noetic (upcoming changes in master)
+## ROS Noetic
 - RobotModel no longer overrides empty URDF collision geometry by matching the visual geometry of the link.
 - Planned trajectories are *slow* by default.
   The default values of the `velocity_scaling_factor` and `acceleration_scaling_factor` can now be customized and default to 0.1 instead of 1.0.

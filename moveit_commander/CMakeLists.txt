@@ -7,7 +7,8 @@ catkin_python_setup()
 
 catkin_package()
 
-install(PROGRAMS bin/${PROJECT_NAME}_cmdline.py
-        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+catkin_install_python(
+  PROGRAMS bin/${PROJECT_NAME}_cmdline.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 add_subdirectory(test)

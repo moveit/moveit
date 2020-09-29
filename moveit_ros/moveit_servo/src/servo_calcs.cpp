@@ -179,14 +179,7 @@ void ServoCalcs::start()
   initial_joint_trajectory->points.push_back(point);
   last_sent_command_ = initial_joint_trajectory;
 
-  stop_requested_ = false;
   timer_ = nh_.createTimer(period_, &ServoCalcs::run, this);
-}
-
-void ServoCalcs::stop()
-{
-  stop_requested_ = true;
-  timer_.stop();
 }
 
 void ServoCalcs::run(const ros::TimerEvent& timer_event)
@@ -209,8 +202,6 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
   // 2) so the low-pass filters are up to date and don't cause a jump
   while (!updateJoints() && ros::ok())
   {
-    if (stop_requested_)
-      return;
     default_sleep_rate_.sleep();
   }
 
@@ -335,7 +326,7 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
     zero_velocity_count_ = 0;
   }
 
-  if (ok_to_publish_)
+  if (ok_to_publish_ && !paused_)
   {
     // Put the outgoing msg in the right format
     // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
@@ -458,7 +449,7 @@ bool ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
 
   delta_theta_ = pseudo_inverse * delta_x;
 
-  enforceSRDFAccelVelLimits(delta_theta_);
+  enforceVelLimits(delta_theta_);
 
   // If close to a collision or a singularity, decelerate
   applyVelocityScaling(delta_theta_, velocityScalingFactorForSingularity(delta_x, svd, pseudo_inverse));
@@ -484,7 +475,7 @@ bool ServoCalcs::jointServoCalcs(const control_msgs::JointJog& cmd, trajectory_m
   // Apply user-defined scaling
   delta_theta_ = scaleJointCommand(cmd);
 
-  enforceSRDFAccelVelLimits(delta_theta_);
+  enforceVelLimits(delta_theta_);
 
   // If close to a collision, decelerate
   applyVelocityScaling(delta_theta_, 1.0 /* scaling for singularities -- ignore for joint motions */);
@@ -507,7 +498,7 @@ bool ServoCalcs::convertDeltasToOutgoingCmd(trajectory_msgs::JointTrajectory& jo
 
   composeJointTrajMessage(internal_joint_state_, joint_trajectory);
 
-  if (!enforceSRDFPositionLimits())
+  if (!enforcePositionLimits())
   {
     suddenHalt(joint_trajectory);
     status_ = StatusCode::JOINT_BOUND;
@@ -680,45 +671,18 @@ double ServoCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& co
   return velocity_scale;
 }
 
-void ServoCalcs::enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta)
+void ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
 {
   Eigen::ArrayXd velocity = delta_theta / parameters_.publish_period;
-  const Eigen::ArrayXd acceleration = (velocity - prev_joint_velocity_) / parameters_.publish_period;
 
   std::size_t joint_delta_index = 0;
+  // Track the smallest velocity scaling factor required, across all joints
+  double velocity_limit_scaling_factor = 1;
+
   for (auto joint : joint_model_group_->getActiveJointModels())
   {
     // Some joints do not have bounds defined
     const auto bounds = joint->getVariableBounds(joint->getName());
-    if (bounds.acceleration_bounded_)
-    {
-      bool clip_acceleration = false;
-      double acceleration_limit = 0.0;
-      if (acceleration(joint_delta_index) < bounds.min_acceleration_)
-      {
-        clip_acceleration = true;
-        acceleration_limit = bounds.min_acceleration_;
-      }
-      else if (acceleration(joint_delta_index) > bounds.max_acceleration_)
-      {
-        clip_acceleration = true;
-        acceleration_limit = bounds.max_acceleration_;
-      }
-
-      // Apply acceleration bounds
-      if (clip_acceleration)
-      {
-        // accel = (vel - vel_prev) / delta_t = ((delta_theta / delta_t) - vel_prev) / delta_t
-        // --> delta_theta = (accel * delta_t _ + vel_prev) * delta_t
-        const double relative_change =
-            ((acceleration_limit * parameters_.publish_period + prev_joint_velocity_(joint_delta_index)) *
-             parameters_.publish_period) /
-            delta_theta(joint_delta_index);
-        // Avoid nan
-        if (fabs(relative_change) < 1)
-          delta_theta(joint_delta_index) = relative_change * delta_theta(joint_delta_index);
-      }
-    }
 
     if (bounds.velocity_bounded_)
     {
@@ -740,21 +704,30 @@ void ServoCalcs::enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta)
       // Apply velocity bounds
       if (clip_velocity)
       {
-        // delta_theta = joint_velocity * delta_t
-        const double relative_change = (velocity_limit * parameters_.publish_period) / delta_theta(joint_delta_index);
-        // Avoid nan
-        if (fabs(relative_change) < 1)
-        {
-          delta_theta(joint_delta_index) = relative_change * delta_theta(joint_delta_index);
-          velocity(joint_delta_index) = relative_change * velocity(joint_delta_index);
-        }
+        const double scaling_factor =
+            fabs(velocity_limit * parameters_.publish_period) / fabs(delta_theta(joint_delta_index));
+
+        // Store the scaling factor if it's the smallest yet
+        if (scaling_factor < velocity_limit_scaling_factor)
+          velocity_limit_scaling_factor = scaling_factor;
       }
     }
     ++joint_delta_index;
   }
+
+  // Apply the velocity scaling to all joints
+  if (velocity_limit_scaling_factor < 1)
+  {
+    for (joint_delta_index = 0; joint_delta_index < joint_model_group_->getActiveJointModels().size();
+         ++joint_delta_index)
+    {
+      delta_theta(joint_delta_index) = velocity_limit_scaling_factor * delta_theta(joint_delta_index);
+      velocity(joint_delta_index) = velocity_limit_scaling_factor * velocity(joint_delta_index);
+    }
+  }
 }
 
-bool ServoCalcs::enforceSRDFPositionLimits()
+bool ServoCalcs::enforcePositionLimits()
 {
   bool halting = false;
 

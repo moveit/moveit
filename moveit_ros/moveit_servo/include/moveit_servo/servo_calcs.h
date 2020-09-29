@@ -66,9 +66,13 @@ public:
              const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
              const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber);
 
-  /** \brief Start and stop the timer where we do work and publish outputs */
+  ~ServoCalcs()
+  {
+    timer_.stop();
+  }
+
+  /** \brief Start the timer where we do work and publish outputs */
   void start();
-  void stop();
 
   /**
    * Get the MoveIt planning link transform.
@@ -113,10 +117,10 @@ private:
   void suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory);
 
   /** \brief  Scale the delta theta to match joint velocity/acceleration limits */
-  void enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta);
+  void enforceVelLimits(Eigen::ArrayXd& delta_theta);
 
   /** \brief Avoid overshooting joint limits */
-  bool enforceSRDFPositionLimits();
+  bool enforcePositionLimits();
 
   /** \brief Possibly calculate a velocity scaling factor, due to proximity of
    * singularity and direction of motion
@@ -252,7 +256,6 @@ private:
 
   // Status
   StatusCode status_ = StatusCode::NO_WARNING;
-  bool stop_requested_ = false;
   bool paused_ = false;
   bool twist_command_is_stale_ = false;
   bool joint_command_is_stale_ = false;
