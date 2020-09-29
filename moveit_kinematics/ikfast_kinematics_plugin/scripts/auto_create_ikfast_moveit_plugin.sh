@@ -8,6 +8,8 @@
 
 # TODO: Would be nice to integrate this functionality directly into create_ikfast_moveit_plugin.py
 
+set -e  # fail on error
+
 function print_help {
    echo "$(basename $0) [--help|-h] [--quiet|-q] [--keep] [--name|-n] [--pkg|-p] [--iktype|-t] <input> <group> <base> <eef>"
    echo "  input          .urdf, .dae, or .cpp input file"

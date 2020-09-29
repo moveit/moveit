@@ -61,7 +61,7 @@ except ImportError:
   class InvalidROSPkgException(Exception):
     pass
   def get_pkg_dir(pkg_name):
-    raise InvalidROSPkgException
+    raise InvalidROSPkgException('Failed to locate ROS package {}'.format(pkg_name))
 
 # Package containing this file
 plugin_gen_pkg = 'moveit_kinematics'
@@ -389,7 +389,7 @@ def main():
   try:
     update_moveit_package(args)
   except Exception as e:
-    print("Failed to update MoveIt package:\n" + e.message)
+    print("Failed to update MoveIt package:\n" + str(e))
 
 
 if __name__ == '__main__':
