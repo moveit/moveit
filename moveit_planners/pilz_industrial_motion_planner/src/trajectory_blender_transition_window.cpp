@@ -165,10 +165,7 @@ bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::validate
   if (!pilz_industrial_motion_planner::isRobotStateEqual(
           req.first_trajectory->getLastWayPoint(), req.second_trajectory->getFirstWayPoint(), req.group_name, EPSILON))
   {
-    ROS_ERROR_STREAM("During blending the last point ("
-                     << req.first_trajectory->getLastWayPoint()
-                     << " of the preceding and the first point of the succeding trajectory ("
-                     << req.second_trajectory->getFirstWayPoint() << " do not match");
+    ROS_ERROR_STREAM("During blending the last point of the preceding and the first point of the succeding trajectory");
     error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
     return false;
   }

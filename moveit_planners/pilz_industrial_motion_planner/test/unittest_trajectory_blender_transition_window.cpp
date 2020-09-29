@@ -392,7 +392,7 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testNotIntersectingTrajectories)
 {
   Sequence seq{ data_loader_->getSequence("SimpleSequence") };
 
-  std::vector<planning_interface::MotionPlanResponse> res{ generateLinTrajs(seq, 2) };
+  std::vector<planning_interface::MotionPlanResponse> res{ generateLinTrajs(seq, 1) };
 
   pilz_industrial_motion_planner::TrajectoryBlendRequest blend_req;
   pilz_industrial_motion_planner::TrajectoryBlendResponse blend_res;
