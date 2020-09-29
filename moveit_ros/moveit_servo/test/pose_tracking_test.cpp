@@ -138,7 +138,7 @@ TEST_F(PoseTrackingFixture, OutgoingMsgTest)
   });
 
   ros::Duration(ROS_PUB_SUB_DELAY).sleep();
-  tracker_->moveToPose(translation_tolerance_, ROTATION_TOLERANC, 1 /* target pose timeout */);
+  tracker_->moveToPose(translation_tolerance_, ROTATION_TOLERANCE, 1 /* target pose timeout */);
 
   target_pub_thread.join();
 }
