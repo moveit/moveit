@@ -27,6 +27,7 @@
   <depend>image_transport</depend>
   <depend>glut</depend>
   <depend>libglew-dev</depend>
+  <depend>libomp-dev</depend>
   <depend>opengl</depend>
   <depend>cv_bridge</depend>
   <depend>sensor_msgs</depend>
