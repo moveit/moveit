@@ -334,19 +334,6 @@ struct DistanceResultsData
     normal.setZero();
   }
 
-  /// Update structure data given DistanceResultsData object
-  void operator=(const DistanceResultsData& other)
-  {
-    distance = other.distance;
-    nearest_points[0] = other.nearest_points[0];
-    nearest_points[1] = other.nearest_points[1];
-    link_names[0] = other.link_names[0];
-    link_names[1] = other.link_names[1];
-    body_types[0] = other.body_types[0];
-    body_types[1] = other.body_types[1];
-    normal = other.normal;
-  }
-
   /// Compare if the distance is less than another
   bool operator<(const DistanceResultsData& other)
   {
