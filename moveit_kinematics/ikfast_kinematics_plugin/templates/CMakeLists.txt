@@ -26,7 +26,7 @@ set(IKFAST_LIBRARY_NAME _LIBRARY_NAME_)
 add_library(${IKFAST_LIBRARY_NAME} src/_ROBOT_NAME___GROUP_NAME__ikfast_moveit_plugin.cpp)
 target_link_libraries(${IKFAST_LIBRARY_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${LAPACK_LIBRARIES})
 # suppress warnings about unused variables in OpenRave's solver code
-target_compile_options(${IKFAST_LIBRARY_NAME} PRIVATE -Wno-unused-variable)
+target_compile_options(${IKFAST_LIBRARY_NAME} PRIVATE -Wno-unused-variable -Wno-unused-parameter)
 
 install(TARGETS
   ${IKFAST_LIBRARY_NAME}
