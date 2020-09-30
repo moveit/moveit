@@ -30,9 +30,13 @@ install(FILES ../collision_detector_bullet_description.xml DESTINATION ${CATKIN_
 if(CATKIN_ENABLE_TESTING)
   catkin_add_gtest(test_bullet_collision_detection test/test_bullet_collision_detection_pr2.cpp)
   target_link_libraries(test_bullet_collision_detection moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
+  # TODO: remove if transition to gtest's new API TYPED_TEST_SUITE_P is finished
+  target_compile_options(test_bullet_collision_detection PRIVATE -Wno-deprecated-declarations)
 
   catkin_add_gtest(test_bullet_collision_detection_panda test/test_bullet_collision_detection_panda.cpp)
   target_link_libraries(test_bullet_collision_detection_panda moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
+  # TODO: remove if transition to gtest's new API TYPED_TEST_SUITE_P is finished
+  target_compile_options(test_bullet_collision_detection_panda PRIVATE -Wno-deprecated-declarations)
 
   catkin_add_gtest(test_bullet_continuous_collision_checking test/test_bullet_continuous_collision_checking.cpp)
   target_link_libraries(test_bullet_continuous_collision_checking moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})

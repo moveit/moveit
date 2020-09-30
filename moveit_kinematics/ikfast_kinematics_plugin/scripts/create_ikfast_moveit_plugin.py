@@ -61,7 +61,7 @@ except ImportError:
   class InvalidROSPkgException(Exception):
     pass
   def get_pkg_dir(pkg_name):
-    raise InvalidROSPkgException
+    raise InvalidROSPkgException('Failed to locate ROS package {}'.format(pkg_name))
 
 # Package containing this file
 plugin_gen_pkg = 'moveit_kinematics'
@@ -182,8 +182,7 @@ def create_ikfast_package(args):
     user_name = getuser()
     root.append(xmlElement("maintainer", email="%s@todo.todo" % user_name, text=user_name))
     root.append(xmlElement("buildtool_depend", text="catkin"))
-    with open(pkg_xml_path, 'w') as f:
-      etree.ElementTree(root).write(f, xml_declaration=True, pretty_print=True, encoding="UTF-8")
+    etree.ElementTree(root).write(pkg_xml_path, xml_declaration=True, pretty_print=True, encoding="UTF-8")
     print("Created package.xml at: '%s'" % pkg_xml_path)
 
 
@@ -247,8 +246,7 @@ def update_ikfast_package(args):
   # Write plugin definition to file
   plugin_file_name = ik_library_name + "_description.xml"
   plugin_file_path = args.ikfast_plugin_pkg_path + "/" + plugin_file_name
-  with open(plugin_file_path, 'w') as f:
-    etree.ElementTree(plugin_def).write(f, xml_declaration=True, pretty_print=True, encoding="UTF-8")
+  etree.ElementTree(plugin_def).write(plugin_file_path, xml_declaration=True, pretty_print=True, encoding="UTF-8")
   print("Created plugin definition at  '%s'" % plugin_file_path)
 
   # Create CMakeLists file
@@ -286,8 +284,7 @@ def update_ikfast_package(args):
 
   # Always write the package xml file, even if there are no changes, to ensure
   # proper encodings are used in the future (UTF-8)
-  with open(package_file_name, "w") as f:
-    etree.ElementTree(package_xml).write(f, xml_declaration=True, pretty_print=True, encoding="UTF-8")
+  etree.ElementTree(package_xml).write(package_file_name, xml_declaration=True, pretty_print=True, encoding="UTF-8")
   print("Wrote package.xml at  '%s'" % package_file_name)
 
   # Create a script for easily updating the plugin in the future in case the plugin needs to be updated
@@ -392,7 +389,7 @@ def main():
   try:
     update_moveit_package(args)
   except Exception as e:
-    print("Failed to update MoveIt package:\n" + e.message)
+    print("Failed to update MoveIt package:\n" + str(e))
 
 
 if __name__ == '__main__':

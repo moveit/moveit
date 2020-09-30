@@ -13,7 +13,7 @@ notifications:
 env:
   global:
     - MOVEIT_CI_TRAVIS_TIMEOUT=85  # Travis grants us 90 min, but we add a safety margin of 5 min
-    - ROS_DISTRO=melodic
+    - ROS_DISTRO=noetic
     - ROS_REPO=ros
     - UPSTREAM_WORKSPACE=moveit.rosinstall
     - CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls"
@@ -25,7 +25,7 @@ jobs:
     - env: TEST="clang-format catkin_lint"
     - env: TEST=code-coverage
     - env: ROS_DISTRO=noetic ROS_REPO=ros-testing
-    - env: ROS_DISTRO=melodic
+    - env: ROS_DISTRO=melodic BEFORE_DOCKER_SCRIPT="source moveit_kinematics/test/test_ikfast_plugins.sh"
     - compiler: clang
       # test_ikfast_plugins takes ~10 minutes: include here to keep the main jobs shorter
       env: TEST=clang-tidy-fix
