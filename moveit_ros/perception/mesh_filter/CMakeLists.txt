@@ -17,6 +17,8 @@ if (CATKIN_ENABLE_TESTING)
   if (DEFINED ENV{DISPLAY} AND NOT $ENV{DISPLAY} STREQUAL "")
     catkin_add_gtest(mesh_filter_test test/mesh_filter_test.cpp)
     target_link_libraries(mesh_filter_test ${catkin_LIBRARIES} ${Boost_LIBRARIES} moveit_mesh_filter)
+    # TODO: remove if transition to gtest's new API TYPED_TEST_SUITE_P is finished
+    target_compile_options(mesh_filter_test PRIVATE -Wno-deprecated-declarations)
   else()
     message("No display, will not configure tests for moveit_ros_perception/mesh_filter")
   endif()
