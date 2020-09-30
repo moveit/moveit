@@ -42,7 +42,6 @@
 using namespace std;
 using namespace boost;
 using namespace Eigen;
-using namespace tf;
 using namespace mesh_filter;
 
 TransformProvider::TransformProvider(unsigned long interval_us) : stop_(true), interval_us_(interval_us)
@@ -83,8 +82,7 @@ void TransformProvider::setFrame(const string& frame)
   if (frame_id_ != frame)
   {
     frame_id_ = frame;
-    for (map<MeshHandle, shared_ptr<TransformContext> >::iterator contextIt = handle2context_.begin();
-         contextIt != handle2context_.end(); ++contextIt)
+    for (auto contextIt = handle2context_.begin(); contextIt != handle2context_.end(); ++contextIt)
     {
       // invalidate transformations
       contextIt->second->mutex_.lock();
@@ -96,7 +94,7 @@ void TransformProvider::setFrame(const string& frame)
 
 bool TransformProvider::getTransform(MeshHandle handle, Isometry3d& transform) const
 {
-  map<MeshHandle, shared_ptr<TransformContext> >::const_iterator contextIt = handle2context_.find(handle);
+  auto contextIt = handle2context_.find(handle);
 
   if (contextIt == handle2context_.end())
   {
@@ -135,23 +133,21 @@ void TransformProvider::updateTransforms()
   {
     geometry_msgs::TransformStamped common_tf =
         tf_buffer_->lookupTransform(frame_id_, psm_->getPlanningScene()->getPlanningFrame(), ros::Time(0.0));
+    input_transform.stamp_ = common_tf.header.stamp;
   }
   catch (tf2::TransformException& ex)
   {
     ROS_ERROR("TF Problem: %s", ex.what());
     return;
   }
-  input_transform.stamp_ = common_tf.header.stamp;
   input_transform.frame_id_ = psm_->getPlanningScene()->getPlanningFrame();
 
-  for (map<MeshHandle, shared_ptr<TransformContext> >::const_iterator contextIt = handle2context_.begin();
-       contextIt != handle2context_.end(); ++contextIt)
+  for (auto contextIt = handle2context_.begin(); contextIt != handle2context_.end(); ++contextIt)
   {
     try
     {
       // TODO: check logic here - which global collision body's transform should be used?
-      input_transform.setData(
-          robot_state->getAttachedBody(contextIt->second->frame_id_)->getGlobalCollisionBodyTransforms()[0]);
+      input_transform.setData(robot_state->getGlobalLinkTransform(contextIt->second->frame_id_));
       tf_buffer_->transform(input_transform, output_transform, frame_id_);
     }
     catch (const tf2::TransformException& ex)

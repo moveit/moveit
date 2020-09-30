@@ -94,7 +94,7 @@ void mesh_filter::DepthSelfFiltering::onInit()
 
   mesh_filter_.reset(
       new MeshFilter<StereoCameraModel>(bind(&TransformProvider::getTransform, &transform_provider_, _1, _2),
-                                        mesh_filter::StereoCameraModel::RegisteredPSDKParams));
+                                        mesh_filter::StereoCameraModel::REGISTERED_PSDK_PARAMS));
   mesh_filter_->parameters().setDepthRange(near_clipping_plane_distance_, far_clipping_plane_distance_);
   mesh_filter_->setShadowThreshold(shadow_threshold_);
   mesh_filter_->setPaddingOffset(padding_offset_);
@@ -176,15 +176,18 @@ void mesh_filter::DepthSelfFiltering::addMeshes(MeshFilter<StereoCameraModel>& m
 {
   robot_model_loader::RobotModelLoader robotModelLoader("robot_description");
   moveit::core::RobotModelConstPtr robotModel = robotModelLoader.getModel();
-  const vector<moveit::core::LinkModel*>& links = robotModel->getLinkModelsWithCollisionGeometry();
+  const auto& links = robotModel->getLinkModelsWithCollisionGeometry();
   for (size_t i = 0; i < links.size(); ++i)
   {
-    shapes::ShapeConstPtr shape = links[i]->getShape();
-    if (shape->type == shapes::MESH)
+    const auto& shapes = links[i]->getShapes();
+    for (const auto& shape : shapes)
     {
-      const shapes::Mesh& m = static_cast<const shapes::Mesh&>(*shape);
-      MeshHandle mesh_handle = mesh_filter.addMesh(m);
-      transform_provider_.addHandle(mesh_handle, links[i]->getName());
+      if (shape->type == shapes::MESH)
+      {
+        const shapes::Mesh& m = static_cast<const shapes::Mesh&>(*shape);
+        MeshHandle mesh_handle = mesh_filter.addMesh(m);
+        transform_provider_.addHandle(mesh_handle, links[i]->getName());
+      }
     }
   }
 }
