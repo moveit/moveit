@@ -38,6 +38,7 @@
 
 #include <moveit/collision_detection/collision_detector_allocator.h>
 #include <moveit/collision_detection_fcl/collision_env_fcl.h>
+#include "moveit_collision_detection_fcl_export.h"
 
 namespace collision_detection
 {
@@ -46,6 +47,6 @@ class CollisionDetectorAllocatorFCL
   : public CollisionDetectorAllocatorTemplate<CollisionEnvFCL, CollisionDetectorAllocatorFCL>
 {
 public:
-  static const std::string NAME;  // defined in collision_env_fcl.cpp
+  static moveit_collision_detection_fcl_EXPORT const std::string NAME;  // defined in collision_env_fcl.cpp
 };
 }  // namespace collision_detection

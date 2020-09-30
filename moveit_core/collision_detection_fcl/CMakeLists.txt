@@ -4,6 +4,9 @@ add_library(${MOVEIT_LIB_NAME}
   src/collision_common.cpp
   src/collision_env_fcl.cpp
 )
+include(GenerateExportHeader)
+generate_export_header(${MOVEIT_LIB_NAME} EXPORT_MACRO_NAME moveit_collision_detection_fcl_EXPORT)
+
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
 target_link_libraries(${MOVEIT_LIB_NAME} moveit_collision_detection ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${LIBFCL_LIBRARIES} ${Boost_LIBRARIES})
@@ -11,8 +14,10 @@ add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 
 add_library(collision_detector_fcl_plugin src/collision_detector_fcl_plugin_loader.cpp)
 set_target_properties(collision_detector_fcl_plugin PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-target_link_libraries(collision_detector_fcl_plugin ${catkin_LIBRARIES} ${MOVEIT_LIB_NAME})
+target_link_libraries(collision_detector_fcl_plugin ${catkin_LIBRARIES} ${MOVEIT_LIB_NAME} moveit_planning_scene)
+add_dependencies(collision_detector_fcl_plugin moveit_planning_scene)
 
+target_include_directories(${MOVEIT_LIB_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 install(TARGETS ${MOVEIT_LIB_NAME} collision_detector_fcl_plugin
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

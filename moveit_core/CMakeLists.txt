@@ -7,6 +7,8 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
 if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   # Enable warnings
   add_compile_options(-Wall -Wextra
