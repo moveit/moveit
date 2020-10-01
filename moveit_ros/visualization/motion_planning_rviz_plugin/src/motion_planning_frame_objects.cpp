@@ -61,7 +61,7 @@ namespace
 QString subframe_poses_to_qstring(const moveit::core::FixedTransformsMap& subframes)
 {
   QString status_text = "\nIt has the subframes '";
-  for (auto subframe : subframes)
+  for (const auto& subframe : subframes)
   {
     status_text += QString::fromStdString(subframe.first) + "', '";
   }
