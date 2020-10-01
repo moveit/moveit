@@ -303,7 +303,7 @@ struct DistanceRequest
 };
 
 /** \brief Generic representation of the distance information for a pair of objects */
-struct DistanceResultsData
+struct DistanceResultsData  // NOLINT(readability-identifier-naming) - suppress spurious clang-tidy warning
 {
   DistanceResultsData()
   {
