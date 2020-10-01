@@ -76,7 +76,7 @@ public:
     return changes_;
   }
 
-  typedef std::map<std::string, World::Action>::const_iterator const_iterator;
+  using const_iterator = std::map<std::string, World::Action>::const_iterator;
   /** iterator pointing to first change */
   const_iterator begin() const
   {

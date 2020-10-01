@@ -248,8 +248,8 @@ public:
     return world_const_;
   }
 
-  typedef World::ObjectPtr ObjectPtr;
-  typedef World::ObjectConstPtr ObjectConstPtr;
+  using ObjectPtr = World::ObjectPtr;
+  using ObjectConstPtr = World::ObjectConstPtr;
 
   /** @brief The kinematic model corresponding to this collision model*/
   const moveit::core::RobotModelConstPtr& getRobotModel() const

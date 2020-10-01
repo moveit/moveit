@@ -76,7 +76,7 @@ enum DiscretizationMethod
                            The unused redundant joints will be fixed at their current value. */
 };
 }  // namespace DiscretizationMethods
-typedef DiscretizationMethods::DiscretizationMethod DiscretizationMethod;
+using DiscretizationMethod = DiscretizationMethods::DiscretizationMethod;
 
 /*
  * @enum KinematicErrors
@@ -98,7 +98,7 @@ enum KinematicError
 
 };
 }  // namespace KinematicErrors
-typedef KinematicErrors::KinematicError KinematicError;
+using KinematicError = KinematicErrors::KinematicError;
 
 /**
  * @struct KinematicsQueryOptions
@@ -148,9 +148,8 @@ public:
   static const double DEFAULT_TIMEOUT;               /* = 1.0 */
 
   /** @brief Signature for a callback to validate an IK solution. Typically used for collision checking. */
-  typedef boost::function<void(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_solution,
-                               moveit_msgs::MoveItErrorCodes& error_code)>
-      IKCallbackFn;
+  using IKCallbackFn =
+      boost::function<void(const geometry_msgs::Pose&, const std::vector<double>&, moveit_msgs::MoveItErrorCodes&)>;
 
   /**
    * @brief Given a desired pose of the end-effector, compute the joint angles to reach it

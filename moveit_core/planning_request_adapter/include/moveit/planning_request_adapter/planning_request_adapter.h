@@ -49,10 +49,9 @@ MOVEIT_CLASS_FORWARD(PlanningRequestAdapter);  // Defines PlanningRequestAdapter
 class PlanningRequestAdapter
 {
 public:
-  typedef boost::function<bool(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                               const planning_interface::MotionPlanRequest& req,
-                               planning_interface::MotionPlanResponse& res)>
-      PlannerFn;
+  using PlannerFn =
+      boost::function<bool(const planning_scene::PlanningSceneConstPtr&, const planning_interface::MotionPlanRequest&,
+                           planning_interface::MotionPlanResponse&)>;
 
   PlanningRequestAdapter()
   {
