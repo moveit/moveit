@@ -55,15 +55,15 @@ class JointModelGroup;
 typedef boost::function<kinematics::KinematicsBasePtr(const JointModelGroup*)> SolverAllocatorFn;
 
 /** \brief Map from group instances to allocator functions & bijections */
-typedef std::map<const JointModelGroup*, SolverAllocatorFn> SolverAllocatorMapFn;
+using SolverAllocatorMapFn = std::map<const JointModelGroup*, SolverAllocatorFn>;
 
 /** \brief Map of names to instances for JointModelGroup */
-typedef std::map<std::string, JointModelGroup*> JointModelGroupMap;
+using JointModelGroupMap = std::map<std::string, JointModelGroup*>;
 
 /** \brief Map of names to const instances for JointModelGroup */
-typedef std::map<std::string, const JointModelGroup*> JointModelGroupMapConst;
+using JointModelGroupMapConst = std::map<std::string, const JointModelGroup*>;
 
-typedef std::vector<const JointModel::Bounds*> JointBoundsVector;
+using JointBoundsVector = std::vector<const JointModel::Bounds*>;
 
 class JointModelGroup
 {
@@ -102,7 +102,7 @@ public:
   };
 
   /// Map from group instances to allocator functions & bijections
-  typedef std::map<const JointModelGroup*, KinematicsSolver> KinematicsSolverMap;
+  using KinematicsSolverMap = std::map<const JointModelGroup*, KinematicsSolver>;
 
   JointModelGroup(const std::string& name, const srdf::Model::Group& config,
                   const std::vector<const JointModel*>& joint_vector, const RobotModel* parent_model);

@@ -67,7 +67,7 @@ public:
 
   /// Definition of the function signature that is called when the execution of a pushed trajectory completes
   /// successfully.
-  typedef boost::function<void(std::size_t)> PathSegmentCompleteCallback;
+  using PathSegmentCompleteCallback = boost::function<void(std::size_t)>;
 
   /// Data structure that represents information necessary to execute a trajectory
   struct TrajectoryExecutionContext

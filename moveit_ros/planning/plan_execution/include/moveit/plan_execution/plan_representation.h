@@ -85,5 +85,5 @@ struct ExecutableMotionPlan
 };
 
 /// The signature of a function that can compute a motion plan
-typedef boost::function<bool(ExecutableMotionPlan& plan)> ExecutableMotionPlanComputationFn;
+using ExecutableMotionPlanComputationFn = boost::function<bool(ExecutableMotionPlan&)>;
 }  // namespace plan_execution

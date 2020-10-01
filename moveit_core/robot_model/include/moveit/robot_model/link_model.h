@@ -61,12 +61,11 @@ class LinkModel;
 typedef std::map<std::string, LinkModel*> LinkModelMap;
 
 /** \brief Map of names to const instances for LinkModel */
-typedef std::map<std::string, const LinkModel*> LinkModelMapConst;
+using LinkModelMapConst = std::map<std::string, const LinkModel*>;
 
 /** \brief Map from link model instances to Eigen transforms */
-typedef std::map<const LinkModel*, Eigen::Isometry3d, std::less<const LinkModel*>,
-                 Eigen::aligned_allocator<std::pair<const LinkModel* const, Eigen::Isometry3d> > >
-    LinkTransformMap;
+using LinkTransformMap = std::map<const LinkModel*, Eigen::Isometry3d, std::less<const LinkModel*>,
+                                  Eigen::aligned_allocator<std::pair<const LinkModel* const, Eigen::Isometry3d> > >;
 
 /** \brief A link from the robot. Contains the constant transform applied to the link and its geometry */
 class LinkModel

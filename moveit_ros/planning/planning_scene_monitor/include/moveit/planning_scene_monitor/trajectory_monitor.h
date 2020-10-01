@@ -44,8 +44,7 @@
 
 namespace planning_scene_monitor
 {
-typedef boost::function<void(const moveit::core::RobotStateConstPtr& state, const ros::Time& stamp)>
-    TrajectoryStateAddedCallback;
+using TrajectoryStateAddedCallback = boost::function<void(const moveit::core::RobotStateConstPtr&, const ros::Time&)>;
 
 MOVEIT_CLASS_FORWARD(TrajectoryMonitor);  // Defines TrajectoryMonitorPtr, ConstPtr, WeakPtr... etc
 

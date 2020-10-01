@@ -84,13 +84,13 @@ class JointModel;
 typedef std::map<std::string, int> VariableIndexMap;
 
 /** \brief Data type for holding mappings from variable names to their bounds */
-typedef std::map<std::string, VariableBounds> VariableBoundsMap;
+using VariableBoundsMap = std::map<std::string, VariableBounds>;
 
 /** \brief Map of names to instances for JointModel */
-typedef std::map<std::string, JointModel*> JointModelMap;
+using JointModelMap = std::map<std::string, JointModel*>;
 
 /** \brief Map of names to const instances for JointModel */
-typedef std::map<std::string, const JointModel*> JointModelMapConst;
+using JointModelMapConst = std::map<std::string, const JointModel*>;
 
 /** \brief A joint from the robot. Models the transform that
     this joint applies in the kinematic chain. A joint
@@ -119,7 +119,7 @@ public:
   };
 
   /** \brief The datatype for the joint bounds */
-  typedef std::vector<VariableBounds> Bounds;
+  using Bounds = std::vector<VariableBounds>;
 
   /** \brief Construct a joint named \e name */
   JointModel(const std::string& name);
