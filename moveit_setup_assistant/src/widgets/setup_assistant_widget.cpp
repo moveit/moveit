@@ -187,6 +187,7 @@ void SetupAssistantWidget::virtualJointReferenceFrameChanged()
   {
     rviz_manager_->setFixedFrame(QString::fromStdString(config_data_->getRobotModel()->getModelFrame()));
     robot_state_display_->reset();
+    robot_state_display_->setVisible(true);
   }
 }
 
