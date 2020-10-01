@@ -437,6 +437,7 @@ void VirtualJointsWidget::deleteSelected()
   // Reload main screen table
   loadDataTable();
   config_data_->changes |= MoveItConfigData::VIRTUAL_JOINTS;
+  Q_EMIT referenceFrameChanged();
 }
 
 // ******************************************************************************************
