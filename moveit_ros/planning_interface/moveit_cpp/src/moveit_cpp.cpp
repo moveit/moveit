@@ -225,7 +225,9 @@ std::set<std::string> MoveItCpp::getPlanningPipelineNames(const std::string& gro
   std::set<std::string> result_names;
   if (!group_name.empty() && groups_pipelines_map_.count(group_name) == 0)
   {
-    ROS_ERROR_NAMED(LOGNAME, "There are no planning pipelines loaded for group '%s'.", group_name.c_str());
+    ROS_ERROR_NAMED(LOGNAME,
+                    "No planning pipelines loaded for group '%s'. Check planning pipeline and controller setup.",
+                    group_name.c_str());
     return result_names;  // empty
   }
   for (const auto& pipeline_entry : planning_pipelines_)
@@ -240,6 +242,11 @@ std::set<std::string> MoveItCpp::getPlanningPipelineNames(const std::string& gro
     }
     result_names.insert(pipeline_name);
   }
+  // No valid planning pipelines
+  if (result_names.empty())
+    ROS_ERROR_NAMED(LOGNAME,
+                    "No planning pipelines loaded for group '%s'. Check planning pipeline and controller setup.",
+                    group_name.c_str());
   return result_names;
 }
 
