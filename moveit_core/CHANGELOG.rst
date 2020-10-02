@@ -2,6 +2,17 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.1 (2020-10-13)
+------------------
+* [feature] Handle multiple link libraries for FCL (`#2325 <https://github.com/ros-planning/moveit/issues/2325>`_)
+* [feature] Adapt to API changes in geometric_shapes (`#2324 <https://github.com/ros-planning/moveit/issues/2324>`_)
+* [fix] clang-tidy issues (`#2337 <https://github.com/ros-planning/moveit/issues/2337>`_)
+* [fix] various issues with Noetic build (`#2327 <https://github.com/ros-planning/moveit/issues/2327>`_)
+* [maint] Depend on ros-noetic-fcl (0.6) in Noetic (`#2359 <https://github.com/ros-planning/moveit/issues/2359>`_)
+* [maint] Cleanup MSA includes (`#2351 <https://github.com/ros-planning/moveit/issues/2351>`_)
+* [maint] Add comment to MOVEIT_CLASS_FORWARD (`#2315 <https://github.com/ros-planning/moveit/issues/2315>`_)
+* Contributors: Felix von Drigalski, G.A. vd. Hoorn, Robert Haschke
+
 1.1.0 (2020-09-04)
 ------------------
 * [feature] Add a utility to print collision pairs (`#2275 <https://github.com/ros-planning/moveit/issues/2275>`_)

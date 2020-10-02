@@ -2,6 +2,14 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.1 (2020-10-13)
+------------------
+* [feature] moveit_cpp: more informative error message, cover another potential failure condition. (`#2336 <https://github.com/ros-planning/moveit/issues/2336>`_)
+* [fix] Make GILReleaser exception-safe (`#2363 <https://github.com/ros-planning/moveit/issues/2363>`_)
+* [maint] Add comment to MOVEIT_CLASS_FORWARD (`#2315 <https://github.com/ros-planning/moveit/issues/2315>`_)
+* [maint] Replace panda_moveit_config -> moveit_resources_panda_moveit_config (`#2300 <https://github.com/ros-planning/moveit/issues/2300>`_)
+* Contributors: AndyZe, Bjar Ne, Felix von Drigalski, Robert Haschke
+
 1.1.0 (2020-09-04)
 ------------------
 * [feature] Use Eigen::Transform::linear() instead of rotation() (`#1964 <https://github.com/ros-planning/moveit/issues/1964>`_)

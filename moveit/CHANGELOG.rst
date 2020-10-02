@@ -2,6 +2,16 @@
 Changelog for package moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.1 (2020-10-13)
+------------------
+* [feature][visualization] Clean up Rviz Motion Planning plugin, add tooltips (`#2310 <https://github.com/ros-planning/moveit/issues/2310>`_)
+* [feature][moveit_servo] A library for servoing toward a moving pose (`#2203 <https://github.com/ros-planning/moveit/issues/2203>`_)
+* [feature][moveit_setup_assistant] Allow showing both, visual and collision geometry (`#2352 <https://github.com/ros-planning/moveit/issues/2352>`_)
+* [fix][moveit_setup_assistant] layout (`#2349 <https://github.com/ros-planning/moveit/issues/2349>`_)
+* [fix][moveit_setup_assistant] group editing (`#2350 <https://github.com/ros-planning/moveit/issues/2350>`_)
+* [fix][moveit_setup_assistant] disappearing robot on change of reference frame (`#2335 <https://github.com/ros-planning/moveit/issues/2335>`_)
+* Contributors: Felix von Drigalski, Michael Görner, Robert Haschke, Tyler Weaver, Yoan Mollard
+
 1.1.0 (2020-09-04)
 ------------------
 * [maint] Use standard cmake text for metapackages (`#1620 <https://github.com/ros-planning/moveit/issues/1620>`_)
