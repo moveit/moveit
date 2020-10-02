@@ -321,13 +321,17 @@ void RobotPosesWidget::editDoubleClicked(int /*row*/, int /*column*/)
 // ******************************************************************************************
 void RobotPosesWidget::previewClicked(int row, int /*column*/, int /*previous_row*/, int /*previous_column*/)
 {
-  const std::string& name = data_table_->item(row, 0)->text().toStdString();
-  const std::string& group = data_table_->item(row, 1)->text().toStdString();
+  QTableWidgetItem* name = data_table_->item(row, 0);
+  QTableWidgetItem* group = data_table_->item(row, 1);
 
-  // Find the selected in datastructure
-  srdf::Model::GroupState* pose = findPoseByName(name, group);
+  // nullptr check before dereferencing
+  if (name && group)
+  {
+    // Find the selected in datastructure
+    srdf::Model::GroupState* pose = findPoseByName(name->text().toStdString(), group->text().toStdString());
 
-  showPose(pose);
+    showPose(pose);
+  }
 }
 
 // ******************************************************************************************
