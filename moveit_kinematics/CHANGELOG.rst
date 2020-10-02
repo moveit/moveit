@@ -2,6 +2,12 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.1 (2020-10-13)
+------------------
+* [fix] various issues with Noetic build (`#2327 <https://github.com/ros-planning/moveit/issues/2327>`_)
+* [fix] python3 issues (`#2323 <https://github.com/ros-planning/moveit/issues/2323>`_)
+* Contributors: G.A. vd. Hoorn, Michael Görner, Robert Haschke
+
 1.1.0 (2020-09-04)
 ------------------
 * [feature] Implementation of parameter TranslationXY2D IKFast (`#1949 <https://github.com/ros-planning/moveit/issues/1949>`_)

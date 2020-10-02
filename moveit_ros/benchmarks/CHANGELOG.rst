@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.1 (2020-10-13)
+------------------
+* [fix] python3 issues (`#2323 <https://github.com/ros-planning/moveit/issues/2323>`_)
+* [maint] Cleanup MSA includes (`#2351 <https://github.com/ros-planning/moveit/issues/2351>`_)
+* Contributors: Michael Görner, Robert Haschke
+
 1.1.0 (2020-09-04)
 ------------------
 * [feature] Benchmark combinations of predefined poses (`#1548 <https://github.com/ros-planning/moveit/issues/1548>`_)
