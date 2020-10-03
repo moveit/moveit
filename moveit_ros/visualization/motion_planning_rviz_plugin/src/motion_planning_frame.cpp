@@ -431,12 +431,7 @@ void MotionPlanningFrame::changePlanningGroup()
 void MotionPlanningFrame::sceneUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
 {
   if (update_type & planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY)
-  {
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
-    // Enable Clear Octomap button only if octomap exists in the world
-    const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
-    ui_->clear_octomap_button->setEnabled(ps->getWorld()->hasObject(ps->OCTOMAP_NS));
-  }
 }
 
 void MotionPlanningFrame::addSceneObject()
