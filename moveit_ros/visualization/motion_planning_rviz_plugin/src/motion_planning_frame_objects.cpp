@@ -890,6 +890,7 @@ void MotionPlanningFrame::populateCollisionObjectsList()
 {
   ui_->collision_objects_list->setUpdatesEnabled(false);
   bool old_state = ui_->collision_objects_list->blockSignals(true);
+  bool octomap_in_scene = false;
 
   {
     QList<QListWidgetItem*> sel = ui_->collision_objects_list->selectedItems();
@@ -907,7 +908,10 @@ void MotionPlanningFrame::populateCollisionObjectsList()
       for (std::size_t i = 0; i < collision_object_names.size(); ++i)
       {
         if (collision_object_names[i] == planning_scene::PlanningScene::OCTOMAP_NS)
+        {
+          octomap_in_scene = true;
           continue;
+        }
 
         QListWidgetItem* item =
             new QListWidgetItem(QString::fromStdString(collision_object_names[i]), ui_->collision_objects_list, (int)i);
@@ -939,6 +943,7 @@ void MotionPlanningFrame::populateCollisionObjectsList()
     }
   }
 
+  ui_->clear_octomap_button->setEnabled(octomap_in_scene);
   ui_->collision_objects_list->blockSignals(old_state);
   ui_->collision_objects_list->setUpdatesEnabled(true);
   selectedCollisionObjectChanged();
