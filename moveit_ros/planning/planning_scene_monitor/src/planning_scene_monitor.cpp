@@ -537,6 +537,8 @@ void PlanningSceneMonitor::newPlanningSceneCallback(const moveit_msgs::PlanningS
 
 void PlanningSceneMonitor::clearOctomap()
 {
+  if (scene_->getWorldNonConst()->removeObject(scene_->OCTOMAP_NS))
+    triggerSceneUpdateEvent(UPDATE_SCENE);
   if (octomap_monitor_)
   {
     octomap_monitor_->getOcTreePtr()->lockWrite();

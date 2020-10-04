@@ -110,6 +110,7 @@ void MotionPlanningFrame::onClearOctomapClicked()
 {
   std_srvs::Empty srv;
   clear_octomap_service_client_.call(srv);
+  ui_->clear_octomap_button->setEnabled(false);
 }
 
 bool MotionPlanningFrame::computeCartesianPlan()
