@@ -339,12 +339,12 @@ void RobotPosesWidget::previewClicked(int row, int /*column*/, int /*previous_ro
 // ******************************************************************************************
 void RobotPosesWidget::showPose(srdf::Model::GroupState* pose)
 {
-  // Set pose joint values by adding them to the local joint state map
+  // Set the joints based on the SRDF pose
+  moveit::core::RobotState& robot_state = config_data_->getPlanningScene()->getCurrentStateNonConst();
   for (std::map<std::string, std::vector<double> >::const_iterator value_it = pose->joint_values_.begin();
        value_it != pose->joint_values_.end(); ++value_it)
   {
-    // Only copy the first joint value // TODO: add capability for multi-DOF joints?
-    joint_state_map_[value_it->first] = value_it->second[0];
+    robot_state.setJointPositions(value_it->first, value_it->second);
   }
 
   // Update the joints
@@ -362,25 +362,8 @@ void RobotPosesWidget::showPose(srdf::Model::GroupState* pose)
 // ******************************************************************************************
 void RobotPosesWidget::showDefaultPose()
 {
-  // Get list of all joints for the robot
-  std::vector<const moveit::core::JointModel*> joint_models = config_data_->getRobotModel()->getJointModels();
-
-  // Iterate through the joints
-  for (std::vector<const moveit::core::JointModel*>::const_iterator joint_it = joint_models.begin();
-       joint_it < joint_models.end(); ++joint_it)
-  {
-    // Check that this joint only represents 1 variable.
-    if ((*joint_it)->getVariableCount() == 1)
-    {
-      double init_value;
-
-      // get the first joint value in its vector
-      (*joint_it)->getVariableDefaultPositions(&init_value);
-
-      // Change joint's value in joint_state_map to the default
-      joint_state_map_[(*joint_it)->getName()] = init_value;
-    }
-  }
+  moveit::core::RobotState& robot_state = config_data_->getPlanningScene()->getCurrentStateNonConst();
+  robot_state.setToDefaultValues();
 
   // Update the joints
   publishJoints();
@@ -441,16 +424,7 @@ void RobotPosesWidget::edit(int row)
   }
   group_name_field_->setCurrentIndex(index);
 
-  // Set pose joint values by adding them to the local joint state map
-  for (std::map<std::string, std::vector<double> >::const_iterator value_it = pose->joint_values_.begin();
-       value_it != pose->joint_values_.end(); ++value_it)
-  {
-    // Only copy the first joint value // TODO: add capability for multi-DOF joints?
-    joint_state_map_[value_it->first] = value_it->second[0];
-  }
-
-  // Update robot model in rviz
-  publishJoints();
+  showPose(pose);
 
   // Switch to screen - do this before setCurrentIndex
   stacked_layout_->setCurrentIndex(1);
@@ -517,30 +491,18 @@ void RobotPosesWidget::loadJointSliders(const QString& selected)
   // Get list of associated joints
   const moveit::core::JointModelGroup* joint_model_group =
       config_data_->getRobotModel()->getJointModelGroup(group_name);
-  joint_models_ = joint_model_group->getJointModels();
+  const auto& robot_state = config_data_->getPlanningScene()->getCurrentState();
 
   // Iterate through the joints
   int num_joints = 0;
-  for (const moveit::core::JointModel* joint_model : joint_models_)
+  for (const moveit::core::JointModel* joint_model : joint_model_group->getJointModels())
   {
     if (joint_model->getVariableCount() != 1 ||  // only consider 1-variable joints
         joint_model->isPassive() ||              // ignore passive
         joint_model->getMimic())                 // and mimic joints
       continue;
 
-    double init_value;
-
-    // Decide what this joint's initial value is
-    if (joint_state_map_.find(joint_model->getName()) == joint_state_map_.end())
-    {
-      // The joint state map does not yet have an entry for this joint
-      // Get the first joint value in its vector
-      joint_model->getVariableDefaultPositions(&init_value);
-    }
-    else  // There is already a value in the map
-    {
-      init_value = joint_state_map_[joint_model->getName()];
-    }
+    double init_value = robot_state.getVariablePosition(joint_model->getVariableNames()[0]);
 
     // For each joint in group add slider
     SliderWidget* sw = new SliderWidget(this, joint_model, init_value);
@@ -683,19 +645,22 @@ void RobotPosesWidget::doneEditing()
   // Clear the old values
   searched_data->joint_values_.clear();
 
-  // Iterate through the current group's joints and add to SRDF
-  for (std::vector<const moveit::core::JointModel*>::const_iterator joint_it = joint_models_.begin();
-       joint_it < joint_models_.end(); ++joint_it)
+  const moveit::core::JointModelGroup* joint_model_group = config_data_->getRobotModel()->getJointModelGroup(group);
+  const auto& robot_state = config_data_->getPlanningScene()->getCurrentState();
+
+  // Iterate through the current group's joints and add them to SRDF
+  for (const moveit::core::JointModel* jm : joint_model_group->getJointModels())
   {
     // Check that this joint only represents 1 variable.
-    if ((*joint_it)->getVariableCount() == 1)
+    if (jm->getVariableCount() == 1 && !jm->isPassive() && !jm->getMimic())
     {
       // Create vector for new joint values
-      std::vector<double> joint_value;
-      joint_value.push_back(joint_state_map_[(*joint_it)->getName()]);
+      std::vector<double> joint_values(jm->getVariableCount());
+      const double* const first_variable = robot_state.getVariablePositions() + jm->getFirstVariableIndex();
+      std::copy(first_variable, first_variable + joint_values.size(), joint_values.begin());
 
       // Add joint vector to SRDF
-      searched_data->joint_values_[(*joint_it)->getName()] = joint_value;
+      searched_data->joint_values_[jm->getName()] = std::move(joint_values);
     }
   }
 
@@ -794,48 +759,33 @@ void RobotPosesWidget::focusGiven()
 // ******************************************************************************************
 void RobotPosesWidget::updateRobotModel(const std::string& name, double value)
 {
-  // Save the new value
-  joint_state_map_[name] = value;
+  moveit::core::RobotState& robot_state = config_data_->getPlanningScene()->getCurrentStateNonConst();
+  robot_state.setVariablePosition(name, value);
 
   // Update the robot model/rviz
   publishJoints();
 }
 
 // ******************************************************************************************
-// Publish the joint values in the joint_state_map_ to Rviz
+// Publish the current RobotState to Rviz
 // ******************************************************************************************
 void RobotPosesWidget::publishJoints()
 {
-  // Change the scene
-  // scene.getCurrentState().setToDefaultValues();//set to default values of 0 OR half between low and high joint values
-  // config_data_->getPlanningScene()->getCurrentState().setToRandomValues();
-
-  // Set the joints based on the map
-  config_data_->getPlanningScene()->getCurrentStateNonConst().setVariablePositions(joint_state_map_);
-
+  // Update link + collision transforms
+  auto& robot_state = config_data_->getPlanningScene()->getCurrentStateNonConst();
+  robot_state.update();
   // Create a planning scene message
   moveit_msgs::DisplayRobotState msg;
-  moveit::core::robotStateToRobotStateMsg(config_data_->getPlanningScene()->getCurrentState(), msg.state);
+  moveit::core::robotStateToRobotStateMsg(robot_state, msg.state);
 
   // Publish!
   pub_robot_state_.publish(msg);
 
-  // Prevent dirty collision body transforms
-  config_data_->getPlanningScene()->getCurrentStateNonConst().update();
-
   // Decide if current state is in collision
   collision_detection::CollisionResult result;
-  config_data_->getPlanningScene()->checkSelfCollision(
-      request, result, config_data_->getPlanningScene()->getCurrentState(), config_data_->allowed_collision_matrix_);
-  // Show result notification
-  if (!result.contacts.empty())
-  {
-    collision_warning_->show();
-  }
-  else
-  {
-    collision_warning_->hide();
-  }
+  config_data_->getPlanningScene()->checkSelfCollision(request, result, robot_state,
+                                                       config_data_->allowed_collision_matrix_);
+  collision_warning_->setHidden(result.contacts.empty());
 }
 
 // ******************************************************************************************
