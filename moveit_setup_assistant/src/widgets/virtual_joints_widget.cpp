@@ -255,29 +255,6 @@ void VirtualJointsWidget::editDoubleClicked(int /*row*/, int /*column*/)
 // ******************************************************************************************
 void VirtualJointsWidget::previewClicked(int /*row*/, int /*column*/)
 {
-  // TODO: highlight the virtual joint?
-
-  /*  // Get list of all selected items
-  QList<QTableWidgetItem*> selected = data_table_->selectedItems();
-
-  // Check that an element was selected
-  if( !selected.size() )
-    return;
-
-  // Find the selected in datastructure
-  srdf::Model::GroupState *vjoint = findVjointByName( selected[0]->text().toStdString() );
-
-  // Set vjoint joint values by adding them to the local joint state map
-  for( std::map<std::string, std::vector<double> >::const_iterator value_it = vjoint->joint_values_.begin();
-       value_it != vjoint->joint_values_.end(); ++value_it )
-  {
-    // Only copy the first joint value
-    joint_state_map_[ value_it->first ] = value_it->second[0];
-  }
-
-  // Update the joints
-  publishJoints();
-  */
 }
 
 // ******************************************************************************************
