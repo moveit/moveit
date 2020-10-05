@@ -44,7 +44,6 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QTableWidget>
-#include <QStackedLayout>
 #include <QString>
 #include <QComboBox>
 
