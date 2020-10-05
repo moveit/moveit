@@ -31,6 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 # Author: Ioan Sucan, Felix Messmer
+
 import rospy
 from rosgraph.names import ns_join
 from . import conversions
@@ -59,6 +60,7 @@ class PlanningSceneInterface(object):
     def __init__(self, ns='', synchronous=False, service_timeout=5.0):
         """ Create a planning scene interface; it uses both C++ wrapped methods and scene manipulation topics. """
         self._psi = _moveit_planning_scene_interface.PlanningSceneInterface(ns)
+
         self._pub_co = rospy.Publisher(ns_join(ns, 'collision_object'), CollisionObject, queue_size=100)
         self._pub_aco = rospy.Publisher(ns_join(ns, 'attached_collision_object'), AttachedCollisionObject, queue_size=100)
         self.__synchronous = synchronous
