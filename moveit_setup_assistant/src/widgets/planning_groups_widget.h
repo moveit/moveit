@@ -39,7 +39,7 @@
 
 // Qt
 class QPushButton;
-class QStackedLayout;
+class QStackedWidget;
 class QTreeWidget;
 class QTreeWidgetItem;
 
@@ -147,7 +147,7 @@ private:
   QTreeWidget* groups_tree_;
 
   /// For changing between table and different add/edit views
-  QStackedLayout* stacked_layout_;
+  QStackedWidget* stacked_widget_;
 
   /// Show and hide edit button
   QPushButton* btn_edit_;
