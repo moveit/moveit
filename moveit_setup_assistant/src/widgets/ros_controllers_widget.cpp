@@ -162,9 +162,7 @@ QWidget* ROSControllersWidget::createContentsWidget()
   controls_layout_->addWidget(expand_controls);
 
   // Spacer
-  QWidget* spacer = new QWidget(this);
-  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  controls_layout_->addWidget(spacer);
+  controls_layout_->addItem(new QSpacerItem(20, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
 
   // Delete
   btn_delete_ = new QPushButton("&Delete Controller", this);
