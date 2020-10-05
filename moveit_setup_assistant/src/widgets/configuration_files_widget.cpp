@@ -50,9 +50,6 @@
 #include "configuration_files_widget.h"
 #include "header_widget.h"
 
-// ROS
-#include <ros/ros.h>
-
 // Boost
 #include <boost/algorithm/string.hpp>       // for string find and replace in templates
 #include <boost/filesystem/path.hpp>        // for creating folders/files

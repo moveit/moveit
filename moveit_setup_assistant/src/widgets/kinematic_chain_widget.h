@@ -44,7 +44,6 @@ class QTreeWidgetItem;
 
 #ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
-#include <ros/ros.h>
 #endif
 
 namespace moveit_setup_assistant

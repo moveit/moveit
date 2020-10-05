@@ -47,7 +47,6 @@
 */
 // ******************************************************************************************
 
-#include "ros/ros.h"
 #include "header_widget.h"
 #include "planning_groups_widget.h"
 #include "double_list_widget.h"      // for joints, links and subgroups pages

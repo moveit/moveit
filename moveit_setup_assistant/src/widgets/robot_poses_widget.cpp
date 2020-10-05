@@ -54,6 +54,7 @@
 
 #include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/DisplayRobotState.h>
+#include <moveit/planning_scene/planning_scene.h>
 
 namespace moveit_setup_assistant
 {
