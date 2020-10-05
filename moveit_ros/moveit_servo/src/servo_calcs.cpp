@@ -156,6 +156,12 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
   {
     position_filters_.emplace_back(parameters_.low_pass_filter_coeff);
   }
+
+  // A matrix of all zeros is used to check whether matrices have been initialized
+  Eigen::Matrix3d empty_matrix;
+  empty_matrix.setZero();
+  tf_moveit_to_ee_frame_ = empty_matrix;
+  tf_moveit_to_robot_cmd_frame_ = empty_matrix;
 }
 
 void ServoCalcs::start()
