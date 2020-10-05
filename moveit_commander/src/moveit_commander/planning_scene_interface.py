@@ -33,6 +33,7 @@
 # Author: Ioan Sucan, Felix Messmer
 
 import rospy
+from rosgraph.names import ns_join
 from . import conversions
 
 from moveit_msgs.msg import PlanningScene, CollisionObject, AttachedCollisionObject
@@ -60,11 +61,11 @@ class PlanningSceneInterface(object):
         """ Create a planning scene interface; it uses both C++ wrapped methods and scene manipulation topics. """
         self._psi = _moveit_planning_scene_interface.PlanningSceneInterface(ns)
 
-        self._pub_co = rospy.Publisher(ns + '/collision_object', CollisionObject, queue_size=100)
-        self._pub_aco = rospy.Publisher(ns + '/attached_collision_object', AttachedCollisionObject, queue_size=100)
+        self._pub_co = rospy.Publisher(ns_join(ns, 'collision_object'), CollisionObject, queue_size=100)
+        self._pub_aco = rospy.Publisher(ns_join(ns, 'attached_collision_object'), AttachedCollisionObject, queue_size=100)
         self.__synchronous = synchronous
         if self.__synchronous:
-            self._apply_planning_scene_diff = rospy.ServiceProxy(ns + '/apply_planning_scene', ApplyPlanningScene)
+            self._apply_planning_scene_diff = rospy.ServiceProxy(ns_join(ns, 'apply_planning_scene'), ApplyPlanningScene)
             self._apply_planning_scene_diff.wait_for_service(service_timeout)
 
     def __submit(self, collision_object, attach=False):
