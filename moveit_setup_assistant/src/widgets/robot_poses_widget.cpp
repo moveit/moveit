@@ -806,36 +806,24 @@ void RobotPosesWidget::updateRobotModel(const std::string& name, double value)
 // ******************************************************************************************
 void RobotPosesWidget::publishJoints()
 {
-  // Change the scene
-  // scene.getCurrentState().setToDefaultValues();//set to default values of 0 OR half between low and high joint values
-  // config_data_->getPlanningScene()->getCurrentState().setToRandomValues();
-
   // Set the joints based on the map
-  config_data_->getPlanningScene()->getCurrentStateNonConst().setVariablePositions(joint_state_map_);
+  moveit::core::RobotState& robot_state = config_data_->getPlanningScene()->getCurrentStateNonConst();
+  robot_state.setVariablePositions(joint_state_map_);
+  // Prevent dirty collision body transforms
+  robot_state.update();
 
   // Create a planning scene message
   moveit_msgs::DisplayRobotState msg;
-  moveit::core::robotStateToRobotStateMsg(config_data_->getPlanningScene()->getCurrentState(), msg.state);
+  moveit::core::robotStateToRobotStateMsg(robot_state, msg.state);
 
   // Publish!
   pub_robot_state_.publish(msg);
 
-  // Prevent dirty collision body transforms
-  config_data_->getPlanningScene()->getCurrentStateNonConst().update();
-
   // Decide if current state is in collision
   collision_detection::CollisionResult result;
-  config_data_->getPlanningScene()->checkSelfCollision(
-      request, result, config_data_->getPlanningScene()->getCurrentState(), config_data_->allowed_collision_matrix_);
-  // Show result notification
-  if (!result.contacts.empty())
-  {
-    collision_warning_->show();
-  }
-  else
-  {
-    collision_warning_->hide();
-  }
+  config_data_->getPlanningScene()->checkSelfCollision(request, result, robot_state,
+                                                       config_data_->allowed_collision_matrix_);
+  collision_warning_->setHidden(result.contacts.empty());
 }
 
 // ******************************************************************************************
