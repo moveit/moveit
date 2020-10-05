@@ -53,7 +53,6 @@
 static const std::string LOGNAME = "servo_cpp_interface_test";
 static constexpr double TRANSLATION_TOLERANCE = 0.01;  // meters
 static constexpr double ROTATION_TOLERANCE = 0.1;      // quaternion
-static constexpr double ROS_SETUP_DELAY = 4;           // allow for initial launching
 static constexpr double ROS_PUB_SUB_DELAY = 4;         // allow for subscribers to initialize
 
 namespace moveit_servo
@@ -63,7 +62,13 @@ class PoseTrackingFixture : public ::testing::Test
 public:
   void SetUp() override
   {
-    ros::Duration(ROS_SETUP_DELAY).sleep();
+    // Wait for several key topics / parameters
+    ros::topic::waitForMessage<sensor_msgs::JointState>("/joint_states");
+    if (!nh_.hasParam("/robot_description"))
+    {
+      ros::Duration(0.1).sleep();
+    }
+
     // Load the planning scene monitor
     planning_scene_monitor_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
     planning_scene_monitor_->startSceneMonitor();
@@ -129,7 +134,7 @@ TEST_F(PoseTrackingFixture, OutgoingMsgTest)
   // Republish the target pose in a new thread, as if the target is moving
   std::thread target_pub_thread([&] {
     size_t msg_count = 0;
-    while (++msg_count < 100; )
+    while (++msg_count < 100)
     {
       target_pose_pub_.publish(target_pose);
       ros::Duration(0.01).sleep();
