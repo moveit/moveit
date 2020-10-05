@@ -172,8 +172,8 @@ private:
   /// Remember what group we are editing when an edit screen is being shown
   std::string current_edit_group_;
 
-  /// Remember what group element we are editing when an edit screen is being shown
-  GroupType current_edit_element_;
+  /// Remember to which editing screen we should return on Cancel
+  int return_screen_;
 
   /// Remember whethere we're editing a group or adding a new one
   bool adding_new_group_;

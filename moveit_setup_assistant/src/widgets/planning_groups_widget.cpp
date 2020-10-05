@@ -153,7 +153,7 @@ PlanningGroupsWidget::PlanningGroupsWidget(QWidget* parent, const MoveItConfigDa
   connect(group_edit_widget_, SIGNAL(saveChain()), this, SLOT(saveGroupScreenChain()));
   connect(group_edit_widget_, SIGNAL(saveSubgroups()), this, SLOT(saveGroupScreenSubgroups()));
 
-  // Combine into stack
+  // Combine into stack: Note, order is same as GroupType!
   stacked_widget_ = new QStackedWidget(this);
   stacked_widget_->addWidget(groups_tree_widget_);  // screen index 0
   stacked_widget_->addWidget(joints_widget_);       // screen index 1
@@ -462,50 +462,29 @@ void PlanningGroupsWidget::editSelected()
   // Get the user custom properties of the currently selected row
   PlanGroupType plan_group = item->data(0, Qt::UserRole).value<PlanGroupType>();
 
-  if (plan_group.type_ == JOINT)
+  switch (plan_group.type_)
   {
-    // Load the data
-    loadJointsScreen(plan_group.group_);
-
-    // Switch to screen
-    changeScreen(JOINT);
+    case JOINT:
+      loadJointsScreen(plan_group.group_);
+      break;
+    case LINK:
+      loadLinksScreen(plan_group.group_);
+      break;
+    case CHAIN:
+      loadChainScreen(plan_group.group_);
+      break;
+    case SUBGROUP:
+      loadSubgroupsScreen(plan_group.group_);
+      break;
+    case GROUP:
+      loadGroupScreen(plan_group.group_);
+      break;
+    default:
+      QMessageBox::critical(this, "Error Loading", "An internal error has occured while loading.");
+      return;
   }
-  else if (plan_group.type_ == LINK)
-  {
-    // Load the data
-    loadLinksScreen(plan_group.group_);
-
-    // Switch to screen
-    changeScreen(LINK);
-  }
-  else if (plan_group.type_ == CHAIN)
-  {
-    // Load the data
-    loadChainScreen(plan_group.group_);
-
-    // Switch to screen
-    changeScreen(CHAIN);
-  }
-  else if (plan_group.type_ == SUBGROUP)
-  {
-    // Load the data
-    loadSubgroupsScreen(plan_group.group_);
-
-    // Switch to screen
-    changeScreen(SUBGROUP);
-  }
-  else if (plan_group.type_ == GROUP)
-  {
-    // Load the data
-    loadGroupScreen(plan_group.group_);
-
-    // Switch to screen
-    changeScreen(GROUP);
-  }
-  else
-  {
-    QMessageBox::critical(this, "Error Loading", "An internal error has occured while loading.");
-  }
+  return_screen_ = 0;  // return to main screen directly
+  changeScreen(plan_group.type_);
 }
 
 // ******************************************************************************************
@@ -537,7 +516,6 @@ void PlanningGroupsWidget::loadJointsScreen(srdf::Model::Group* this_group)
 
   // Remember what is currently being edited so we can later save changes
   current_edit_group_ = this_group->name_;
-  current_edit_element_ = JOINT;
 }
 
 // ******************************************************************************************
@@ -569,7 +547,6 @@ void PlanningGroupsWidget::loadLinksScreen(srdf::Model::Group* this_group)
 
   // Remember what is currently being edited so we can later save changes
   current_edit_group_ = this_group->name_;
-  current_edit_element_ = LINK;
 }
 
 // ******************************************************************************************
@@ -602,7 +579,6 @@ void PlanningGroupsWidget::loadChainScreen(srdf::Model::Group* this_group)
 
   // Remember what is currently being edited so we can later save changes
   current_edit_group_ = this_group->name_;
-  current_edit_element_ = CHAIN;
 }
 
 // ******************************************************************************************
@@ -635,7 +611,6 @@ void PlanningGroupsWidget::loadSubgroupsScreen(srdf::Model::Group* this_group)
 
   // Remember what is currently being edited so we can later save changes
   current_edit_group_ = this_group->name_;
-  current_edit_element_ = SUBGROUP;
 }
 
 // ******************************************************************************************
@@ -666,9 +641,6 @@ void PlanningGroupsWidget::loadGroupScreen(srdf::Model::Group* this_group)
 
   // Set the data in the edit box
   group_edit_widget_->setSelected(current_edit_group_);
-
-  // Remember what is currently being edited so we can later save changes
-  current_edit_element_ = GROUP;
 }
 
 // ******************************************************************************************
@@ -1269,6 +1241,7 @@ void PlanningGroupsWidget::saveGroupScreenJoints()
 
   // Find the group we are editing based on the goup name string
   loadJointsScreen(config_data_->findGroupByName(current_edit_group_));
+  return_screen_ = GROUP;
 
   // Switch to screen
   changeScreen(JOINT);
@@ -1285,6 +1258,7 @@ void PlanningGroupsWidget::saveGroupScreenLinks()
 
   // Find the group we are editing based on the goup name string
   loadLinksScreen(config_data_->findGroupByName(current_edit_group_));
+  return_screen_ = GROUP;
 
   // Switch to screen
   changeScreen(LINK);
@@ -1301,6 +1275,7 @@ void PlanningGroupsWidget::saveGroupScreenChain()
 
   // Find the group we are editing based on the goup name string
   loadChainScreen(config_data_->findGroupByName(current_edit_group_));
+  return_screen_ = GROUP;
 
   // Switch to screen
   changeScreen(CHAIN);
@@ -1317,6 +1292,7 @@ void PlanningGroupsWidget::saveGroupScreenSubgroups()
 
   // Find the group we are editing based on the goup name string
   loadSubgroupsScreen(config_data_->findGroupByName(current_edit_group_));
+  return_screen_ = GROUP;
 
   // Switch to screen
   changeScreen(SUBGROUP);
@@ -1327,6 +1303,12 @@ void PlanningGroupsWidget::saveGroupScreenSubgroups()
 // ******************************************************************************************
 void PlanningGroupsWidget::cancelEditing()
 {
+  if (return_screen_)
+  {
+    changeScreen(return_screen_);
+    return_screen_ = 0;
+    return;
+  }
   if (!current_edit_group_.empty() && adding_new_group_)
   {
     srdf::Model::Group* editing = config_data_->findGroupByName(current_edit_group_);
