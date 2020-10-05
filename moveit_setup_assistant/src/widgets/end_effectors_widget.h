@@ -45,7 +45,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QTableWidget>
-#include <QStackedLayout>
+#include <QStackedWidget>
 #include <QString>
 #include <QComboBox>
 
@@ -81,7 +81,7 @@ public:
   QPushButton* btn_delete_;
   QPushButton* btn_save_;
   QPushButton* btn_cancel_;
-  QStackedLayout* stacked_layout_;
+  QStackedWidget* stacked_widget_;
   QLineEdit* effector_name_field_;
   QComboBox* parent_name_field_;
   QComboBox* parent_group_name_field_;

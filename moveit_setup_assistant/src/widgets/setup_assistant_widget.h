@@ -202,10 +202,9 @@ private:
   QList<QString> nav_name_list_;
   NavigationWidget* navs_view_;
 
-  QWidget* middle_frame_;
   QWidget* rviz_container_;
   QSplitter* splitter_;
-  QStackedLayout* main_content_;
+  QStackedWidget* main_content_;
   int current_index_;
   boost::mutex change_screen_lock_;
 

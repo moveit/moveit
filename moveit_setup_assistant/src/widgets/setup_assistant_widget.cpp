@@ -39,7 +39,7 @@
 #include "setup_screen_widget.h"  // a base class for screens in the setup assistant
 #include "setup_assistant_widget.h"
 // Qt
-#include <QStackedLayout>
+#include <QStackedWidget>
 #include <QListWidget>
 #include <QListWidgetItem>
 #include <QFont>
@@ -87,13 +87,8 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, const boost::program
   layout->setAlignment(Qt::AlignTop);
 
   // Create main content stack for various screens
-  main_content_ = new QStackedLayout();
+  main_content_ = new QStackedWidget();
   current_index_ = 0;
-
-  // Wrap main_content_ with a widget
-  middle_frame_ = new QWidget(this);
-  middle_frame_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-  middle_frame_->setLayout(main_content_);
 
   // Screens --------------------------------------------------------
 
@@ -149,7 +144,7 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, const boost::program
   splitter_ = new QSplitter(Qt::Horizontal, this);
   splitter_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   splitter_->addWidget(navs_view_);
-  splitter_->addWidget(middle_frame_);
+  splitter_->addWidget(main_content_);
   splitter_->addWidget(rviz_container_);
   splitter_->setHandleWidth(6);
   // splitter_->setCollapsible( 0, false ); // don't let navigation collapse

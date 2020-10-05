@@ -57,7 +57,7 @@
 #include <QApplication>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QStackedLayout>
+#include <QStackedWidget>
 #include <QPushButton>
 #include <QMessageBox>
 #include <QTreeWidget>
@@ -154,24 +154,19 @@ PlanningGroupsWidget::PlanningGroupsWidget(QWidget* parent, const MoveItConfigDa
   connect(group_edit_widget_, SIGNAL(saveSubgroups()), this, SLOT(saveGroupScreenSubgroups()));
 
   // Combine into stack
-  stacked_layout_ = new QStackedLayout(this);
-  stacked_layout_->addWidget(groups_tree_widget_);  // screen index 0
-  stacked_layout_->addWidget(joints_widget_);       // screen index 1
-  stacked_layout_->addWidget(links_widget_);        // screen index 2
-  stacked_layout_->addWidget(chain_widget_);        // screen index 3
-  stacked_layout_->addWidget(subgroups_widget_);    // screen index 4
-  stacked_layout_->addWidget(group_edit_widget_);   // screen index 5
+  stacked_widget_ = new QStackedWidget(this);
+  stacked_widget_->addWidget(groups_tree_widget_);  // screen index 0
+  stacked_widget_->addWidget(joints_widget_);       // screen index 1
+  stacked_widget_->addWidget(links_widget_);        // screen index 2
+  stacked_widget_->addWidget(chain_widget_);        // screen index 3
+  stacked_widget_->addWidget(subgroups_widget_);    // screen index 4
+  stacked_widget_->addWidget(group_edit_widget_);   // screen index 5
 
   showMainScreen();
 
   // Finish GUI -----------------------------------------------------------
 
-  // Create Widget wrapper for layout
-  QWidget* stacked_layout_widget = new QWidget(this);
-  stacked_layout_widget->setLayout(stacked_layout_);
-
-  layout->addWidget(stacked_layout_widget);
-
+  layout->addWidget(stacked_widget_);
   setLayout(layout);
 
   // process the gui
@@ -1384,7 +1379,7 @@ void PlanningGroupsWidget::alterTree(const QString& link)
 // ******************************************************************************************
 void PlanningGroupsWidget::showMainScreen()
 {
-  stacked_layout_->setCurrentIndex(0);
+  stacked_widget_->setCurrentIndex(0);
 
   // Announce that this widget is not in modal mode
   Q_EMIT isModal(false);
@@ -1395,7 +1390,7 @@ void PlanningGroupsWidget::showMainScreen()
 // ******************************************************************************************
 void PlanningGroupsWidget::changeScreen(int index)
 {
-  stacked_layout_->setCurrentIndex(index);
+  stacked_widget_->setCurrentIndex(index);
 
   // Announce this widget's mode
   Q_EMIT isModal(index != 0);
