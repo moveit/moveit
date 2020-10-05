@@ -35,11 +35,16 @@
 
 // SA
 #include "perception_widget.h"
+#include "header_widget.h"
 
 // Qt
-#include <QVBoxLayout>
-#include <QFormLayout>
 #include <QApplication>
+#include <QComboBox>
+#include <QFormLayout>
+#include <QGroupBox>
+#include <QLabel>
+#include <QLineEdit>
+#include <QVBoxLayout>
 
 namespace moveit_setup_assistant
 {

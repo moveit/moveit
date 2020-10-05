@@ -38,11 +38,8 @@
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_NAVIGATION_WIDGET_
 
 #include <QListView>
-#include <QStandardItemModel>
-#include <QScrollBar>
-#include <QString>
 #include <QStyledItemDelegate>
-#include <QPainter>
+class QStandardItemModel;
 
 namespace moveit_setup_assistant
 {

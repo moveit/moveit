@@ -36,10 +36,24 @@
 
 // SA
 #include "end_effectors_widget.h"
+#include "header_widget.h"
+
 // Qt
-#include <QFormLayout>
-#include <QMessageBox>
 #include <QApplication>
+#include <QComboBox>
+#include <QFormLayout>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QScrollArea>
+#include <QStackedWidget>
+#include <QString>
+#include <QTableWidget>
+#include <QVBoxLayout>
+#include <QWidget>
 
 namespace moveit_setup_assistant
 {

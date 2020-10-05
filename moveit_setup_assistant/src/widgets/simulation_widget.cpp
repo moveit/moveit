@@ -35,12 +35,15 @@
 
 // SA
 #include "simulation_widget.h"
+#include "header_widget.h"
 
 // Qt
-#include <QVBoxLayout>
+#include <QColor>
+#include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
-#include <QColor>
+#include <QTextEdit>
+#include <QVBoxLayout>
 
 #include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/DisplayRobotState.h>

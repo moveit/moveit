@@ -36,10 +36,21 @@
 
 // SA
 #include "virtual_joints_widget.h"
+#include "header_widget.h"
+
 // Qt
-#include <QFormLayout>
-#include <QMessageBox>
 #include <QApplication>
+#include <QComboBox>
+#include <QFormLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QStackedWidget>
+#include <QString>
+#include <QTableWidget>
+#include <QVBoxLayout>
 
 namespace moveit_setup_assistant
 {

@@ -41,7 +41,8 @@
 #include <QGridLayout>
 #include <QLineEdit>
 #include <QMessageBox>
-#include <QString>
+#include <QLabel>
+#include <QTreeWidget>
 #include "kinematic_chain_widget.h"
 
 namespace moveit_setup_assistant

@@ -38,17 +38,15 @@
 #define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROBOT_POSES_WIDGET_
 
 // Qt
-#include <QWidget>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QScrollArea>
-#include <QGroupBox>
-#include <QLabel>
-#include <QPushButton>
-#include <QTableWidget>
-#include <QStackedWidget>
-#include <QString>
-#include <QComboBox>
+class QComboBox;
+class QLabel;
+class QLineEdit;
+class QPushButton;
+class QScrollArea;
+class QSlider;
+class QStackedWidget;
+class QTableWidget;
+class QVBoxLayout;
 
 // SA
 #ifndef Q_MOC_RUN
@@ -57,7 +55,6 @@
 #include <ros/ros.h>
 #endif
 
-#include "header_widget.h"
 #include "setup_screen_widget.h"  // a base class for screens in the setup assistant
 
 namespace moveit_setup_assistant

@@ -34,22 +34,26 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_DEFAULT_COLLISIONS_WIDGET__
-#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_DEFAULT_COLLISIONS_WIDGET__
+#pragma once
 
-#include <QLabel>
-#include <QVBoxLayout>
-#include <QTableView>
-#include <QSlider>
-#include <QPushButton>
-#include <QGroupBox>
-#include <QProgressBar>
-#include <QCheckBox>
-#include <QRadioButton>
-#include <QSpinBox>
 #include <QThread>
-#include <QLineEdit>
-#include <QAction>
+class QAbstractItemModel;
+class QAction;
+class QButtonGroup;
+class QCheckBox;
+class QGroupBox;
+class QHeaderView;
+class QItemSelection;
+class QItemSelectionModel;
+class QLabel;
+class QLineEdit;
+class QProgressBar;
+class QPushButton;
+class QRadioButton;
+class QSlider;
+class QSpinBox;
+class QTableView;
+class QVBoxLayout;
 
 #ifndef Q_MOC_RUN
 #include <boost/thread/thread.hpp>

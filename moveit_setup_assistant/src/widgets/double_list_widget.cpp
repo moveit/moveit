@@ -34,15 +34,17 @@
 
 /* Author: Dave Coleman */
 
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGroupBox>
-#include <QPushButton>
 #include <QFormLayout>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QHeaderView>
+#include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QString>
-#include <QHeaderView>
+#include <QTableWidget>
+#include <QVBoxLayout>
 #include "double_list_widget.h"
 
 namespace moveit_setup_assistant
