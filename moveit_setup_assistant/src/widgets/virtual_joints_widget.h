@@ -38,22 +38,18 @@
 #define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_VIRTUAL_JOINTS_WIDGET_
 
 // Qt
-#include <QWidget>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QPushButton>
-#include <QTableWidget>
-#include <QStackedWidget>
-#include <QString>
-#include <QComboBox>
+class QLabel;
+class QLineEdit;
+class QPushButton;
+class QTableWidget;
+class QStackedWidget;
+class QComboBox;
 
 // SA
 #ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 #endif
 
-#include "header_widget.h"
 #include "setup_screen_widget.h"  // a base class for screens in the setup assistant
 
 namespace moveit_setup_assistant

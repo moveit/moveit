@@ -38,18 +38,9 @@
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_SETUP_ASSISTANT_WIDGET_
 
 // Qt
-#include <QWidget>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QString>
-#include <QApplication>
-#include <QObject>
-#include <QEvent>
-#include <QListWidget>
-#include <QTimer>
-#include <QSplitter>
-#include <QStringList>
-// Setup Asst
+class QSplitter;
+
+// Setup Assistant
 #include "navigation_widget.h"
 #include "start_screen_widget.h"
 #include "default_collisions_widget.h"
@@ -68,8 +59,7 @@
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 
 // Other
-#include <ros/ros.h>
-#include <boost/program_options.hpp>  // for parsing input arguments
+#include <boost/program_options/variables_map.hpp>  // for parsing input arguments
 #include <boost/thread/mutex.hpp>
 #endif
 

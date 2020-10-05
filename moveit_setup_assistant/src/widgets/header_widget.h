@@ -38,8 +38,9 @@
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_HEADER_WIDGET_
 
 #include <QWidget>
-#include <QLabel>
-#include <QLineEdit>
+#include <QFrame>
+class QLabel;
+class QLineEdit;
 
 namespace moveit_setup_assistant
 {

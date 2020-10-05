@@ -34,16 +34,26 @@
 
 /* Author: Dave Coleman */
 
-#include <QHBoxLayout>
-#include <QMessageBox>
-#include <QProgressDialog>
-#include <QString>
-#include <QFont>
+#include <QAction>
 #include <QApplication>
 #include <QButtonGroup>
-#include <QRadioButton>
+#include <QCheckBox>
+#include <QFont>
+#include <QGroupBox>
+#include <QHBoxLayout>
 #include <QKeyEvent>
+#include <QLabel>
+#include <QLineEdit>
 #include <QMenu>
+#include <QMessageBox>
+#include <QProgressBar>
+#include <QPushButton>
+#include <QRadioButton>
+#include <QSlider>
+#include <QSpinBox>
+#include <QString>
+#include <QTableView>
+#include <QVBoxLayout>
 
 #include "default_collisions_widget.h"
 #include "header_widget.h"

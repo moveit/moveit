@@ -37,10 +37,10 @@
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_CONTROLLER_EDIT_WIDGET_H
 
 #include <QWidget>
-#include <QLabel>
-#include <QLineEdit>
-#include <QComboBox>
-#include <QPushButton>
+class QComboBox;
+class QLabel;
+class QLineEdit;
+class QPushButton;
 
 #ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
