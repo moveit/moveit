@@ -36,12 +36,9 @@
 
 #pragma once
 
-#include <QWidget>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QLabel>
-#include <QProgressBar>
-#include <QTextEdit>
+class QLabel;
+class QProgressBar;
+class QPushButton;
 
 #ifndef Q_MOC_RUN
 #include <urdf/model.h>                                       // for testing a valid urdf is loaded

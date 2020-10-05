@@ -36,23 +36,23 @@
 
 #pragma once
 
-#include <QWidget>
-#include <QPushButton>
-#include <QString>
-#include <QProgressBar>
-#include <QLabel>
-#include <QListWidget>
 #include <QList>
+class QLabel;
+class QListWidget;
+class QListWidgetItem;
+class QProgressBar;
+class QPushButton;
 
 #ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 #endif
 
-#include "header_widget.h"
 #include "setup_screen_widget.h"  // a base class for screens in the setup assistant
 
 namespace moveit_setup_assistant
 {
+class LoadPathWidget;
+
 // Struct for storing all the file operations
 struct GenerateFile
 {

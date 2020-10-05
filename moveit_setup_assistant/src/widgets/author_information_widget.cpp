@@ -39,10 +39,10 @@
 #include <QPushButton>
 #include <QMessageBox>
 #include <QApplication>
-#include <QSplitter>
-// ROS
+#include <QLabel>
+#include <QLineEdit>
 #include "author_information_widget.h"
-#include <ros/ros.h>
+#include "header_widget.h"
 
 namespace moveit_setup_assistant
 {

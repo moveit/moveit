@@ -34,11 +34,13 @@
 
 /* Author: Dave Coleman */
 
-#include <QPushButton>
-#include <QFont>
-#include <QFileDialog>
-#include <QVBoxLayout>
 #include "header_widget.h"
+#include <QFileDialog>
+#include <QFont>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QVBoxLayout>
 
 namespace moveit_setup_assistant
 {

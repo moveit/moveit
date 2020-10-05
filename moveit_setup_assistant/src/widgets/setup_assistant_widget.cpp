@@ -38,15 +38,20 @@
 // SA
 #include "setup_screen_widget.h"  // a base class for screens in the setup assistant
 #include "setup_assistant_widget.h"
+#include "header_widget.h"
+
 // Qt
-#include <QStackedWidget>
+#include <QApplication>
+#include <QCloseEvent>
+#include <QFont>
+#include <QHBoxLayout>
+#include <QLabel>
 #include <QListWidget>
 #include <QListWidgetItem>
-#include <QFont>
-#include <QLabel>
-#include <QPushButton>
-#include <QCloseEvent>
 #include <QMessageBox>
+#include <QPushButton>
+#include <QSplitter>
+#include <QStackedWidget>
 #include <QString>
 #include <pluginlib/class_loader.hpp>  // for loading all avail kinematic planners
 // Rviz

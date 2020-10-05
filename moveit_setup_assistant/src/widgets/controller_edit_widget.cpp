@@ -33,12 +33,16 @@
 
 /* Author: Mohamad Ayman */
 
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QMessageBox>
+#include <QComboBox>
 #include <QFormLayout>
-#include <QString>
 #include <QGroupBox>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QString>
+#include <QVBoxLayout>
 #include "controller_edit_widget.h"
 
 namespace moveit_setup_assistant

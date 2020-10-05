@@ -36,6 +36,9 @@
 
 #include "navigation_widget.h"
 #include <QApplication>
+#include <QPainter>
+#include <QScrollBar>
+#include <QStandardItemModel>
 #include <iostream>
 
 namespace moveit_setup_assistant

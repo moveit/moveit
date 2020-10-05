@@ -36,9 +36,14 @@
 
 // SA
 #include "passive_joints_widget.h"
+#include "header_widget.h"
+#include "double_list_widget.h"
+
 // Qt
 #include <QFormLayout>
+#include <QLabel>
 #include <QMessageBox>
+#include <QTableWidget>
 
 namespace moveit_setup_assistant
 {
