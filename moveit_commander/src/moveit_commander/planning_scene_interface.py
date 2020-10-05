@@ -31,8 +31,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 # Author: Ioan Sucan, Felix Messmer
-import rosgraph
 import rospy
+from rosgraph.names import ns_join
 from . import conversions
 
 from moveit_msgs.msg import PlanningScene, CollisionObject, AttachedCollisionObject
@@ -59,10 +59,8 @@ class PlanningSceneInterface(object):
     def __init__(self, ns='', synchronous=False, service_timeout=5.0):
         """ Create a planning scene interface; it uses both C++ wrapped methods and scene manipulation topics. """
         self._psi = _moveit_planning_scene_interface.PlanningSceneInterface(ns)
-        collision_object_topic_name = rosgraph.names.ns_join(ns, 'collision_object')
-        self._pub_co = rospy.Publisher(collision_object_topic_name, CollisionObject, queue_size=100)
-        attached_collision_object_topic_name = rosgraph.names.ns_join(ns, 'attached_collision_object')
-        self._pub_aco = rospy.Publisher(attached_collision_object_topic_name, AttachedCollisionObject, queue_size=100)
+        self._pub_co = rospy.Publisher(ns_join(ns, 'collision_object'), CollisionObject, queue_size=100)
+        self._pub_aco = rospy.Publisher(ns_join(ns, 'attached_collision_object'), AttachedCollisionObject, queue_size=100)
         self.__synchronous = synchronous
         if self.__synchronous:
             self._apply_planning_scene_diff = rospy.ServiceProxy(ns + '/apply_planning_scene', ApplyPlanningScene)
