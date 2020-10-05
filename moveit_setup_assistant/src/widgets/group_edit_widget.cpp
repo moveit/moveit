@@ -142,6 +142,12 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, const MoveItConfigDataPtr& con
   add_subtitle->setFont(add_subtitle_font);
   recommended_options->addWidget(add_subtitle, 0, Qt::AlignLeft);
 
+  // Save and add chain
+  QPushButton* btn_save_chain = new QPushButton("Add Kin. Chain", this);
+  btn_save_chain->setMaximumWidth(200);
+  connect(btn_save_chain, SIGNAL(clicked()), this, SIGNAL(saveChain()));
+  recommended_options->addWidget(btn_save_chain);
+
   // Save and add joints
   QPushButton* btn_save_joints = new QPushButton("Add Joints", this);
   btn_save_joints->setMaximumWidth(200);
@@ -153,23 +159,17 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, const MoveItConfigDataPtr& con
   add_subtitle2->setFont(add_subtitle_font);
   advanced_options->addWidget(add_subtitle2, 0, Qt::AlignLeft);
 
-  // Save and add links
-  QPushButton* btn_save_links = new QPushButton("Add Links", this);
-  btn_save_links->setMaximumWidth(200);
-  connect(btn_save_links, SIGNAL(clicked()), this, SIGNAL(saveLinks()));
-  advanced_options->addWidget(btn_save_links);
-
-  // Save and add chain
-  QPushButton* btn_save_chain = new QPushButton("Add Kin. Chain", this);
-  btn_save_chain->setMaximumWidth(200);
-  connect(btn_save_chain, SIGNAL(clicked()), this, SIGNAL(saveChain()));
-  advanced_options->addWidget(btn_save_chain);
-
   // Save and add subgroups
   QPushButton* btn_save_subgroups = new QPushButton("Add Subgroups", this);
   btn_save_subgroups->setMaximumWidth(200);
   connect(btn_save_subgroups, SIGNAL(clicked()), this, SIGNAL(saveSubgroups()));
   advanced_options->addWidget(btn_save_subgroups);
+
+  // Save and add links
+  QPushButton* btn_save_links = new QPushButton("Add Links", this);
+  btn_save_links->setMaximumWidth(200);
+  connect(btn_save_links, SIGNAL(clicked()), this, SIGNAL(saveLinks()));
+  advanced_options->addWidget(btn_save_links);
 
   // Add layouts
   new_buttons_layout_container->addLayout(label_layout);
