@@ -2,7 +2,7 @@
 
 # Software License Agreement (BSD License)
 #
-# Copyright (c) 2012, Willow Garage, Inc.
+# Copyright (c) 2020, Open Source Robotics Foundation
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -15,7 +15,7 @@
 #    copyright notice, this list of conditions and the following
 #    disclaimer in the documentation and/or other materials provided
 #    with the distribution.
-#  * Neither the name of Willow Garage, Inc. nor the names of its
+#  * Neither the name of Open Source Robotics Foundation. nor the names of its
 #    contributors may be used to endorse or promote products derived
 #    from this software without specific prior written permission.
 #
@@ -45,19 +45,26 @@ import os
 from moveit_commander import PlanningSceneInterface
 
 
-class PythonMoveitCommanderRosNamspaceTest(unittest.TestCase):
+class PythonMoveitCommanderRosNamespaceTest(unittest.TestCase):
 
     def test_namespace(self):
         self.scene = PlanningSceneInterface()
-        expected_resolved_name = "/test_ros_namespace/collision_object"
-        self.assertEqual(self.scene._pub_co.resolved_name, expected_resolved_name)
+        expected_resolved_co_name = "/test_ros_namespace/collision_object"
+        expected_resolved_aco_name = "/test_ros_namespace/attached_collision_object"
+        self.assertEqual(self.scene._pub_co.resolved_name, expected_resolved_co_name)
+        self.assertEqual(self.scene._pub_aco.resolved_name, expected_resolved_aco_name)
+
+    def test_namespace_synchronous(self):
+        self.scene = PlanningSceneInterface(synchronous=True)
+        expected_resolved_apply_diff_name = "/test_ros_namespace/apply_planning_scene"
+        self.assertEqual(self.scene._apply_planning_scene_diff.resolved_name, expected_resolved_apply_diff_name)
 
 
 if __name__ == '__main__':
     PKGNAME = 'moveit_ros_planning_interface'
     NODENAME = 'moveit_test_python_moveit_commander_ros_namespace'
     rospy.init_node(NODENAME)
-    rostest.rosrun(PKGNAME, NODENAME, PythonMoveitCommanderRosNamspaceTest)
+    rostest.rosrun(PKGNAME, NODENAME, PythonMoveitCommanderRosNamespaceTest)
 
     # suppress cleanup segfault
     os._exit(0)
