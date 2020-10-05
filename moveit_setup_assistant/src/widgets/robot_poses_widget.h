@@ -152,12 +152,6 @@ private:
   /// Pointer to currently edited group state
   srdf::Model::GroupState* current_edit_pose_;
 
-  /// All the joint slider values that have thus far been seen. May contain more than just the current joints' values
-  std::map<std::string, double> joint_state_map_;
-
-  /// The joints currently in the selected planning group
-  std::vector<const moveit::core::JointModel*> joint_models_;
-
   /// Remember the publisher for quick publishing later
   ros::Publisher pub_robot_state_;
 
