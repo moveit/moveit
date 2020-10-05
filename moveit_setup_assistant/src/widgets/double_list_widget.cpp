@@ -140,9 +140,7 @@ DoubleListWidget::DoubleListWidget(QWidget* parent, const MoveItConfigDataPtr& c
     controls_layout->setContentsMargins(0, 25, 0, 15);
 
     // Spacer
-    QWidget* spacer = new QWidget(this);
-    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    controls_layout->addWidget(spacer);
+    controls_layout->addItem(new QSpacerItem(20, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
 
     // Save
     QPushButton* btn_save = new QPushButton("&Save", this);
