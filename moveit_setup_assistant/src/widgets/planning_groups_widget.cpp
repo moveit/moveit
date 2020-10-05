@@ -468,7 +468,7 @@ void PlanningGroupsWidget::editSelected()
     loadJointsScreen(plan_group.group_);
 
     // Switch to screen
-    changeScreen(1);  // 1 is index of joints
+    changeScreen(JOINT);
   }
   else if (plan_group.type_ == LINK)
   {
@@ -476,7 +476,7 @@ void PlanningGroupsWidget::editSelected()
     loadLinksScreen(plan_group.group_);
 
     // Switch to screen
-    changeScreen(2);
+    changeScreen(LINK);
   }
   else if (plan_group.type_ == CHAIN)
   {
@@ -484,7 +484,7 @@ void PlanningGroupsWidget::editSelected()
     loadChainScreen(plan_group.group_);
 
     // Switch to screen
-    changeScreen(3);
+    changeScreen(CHAIN);
   }
   else if (plan_group.type_ == SUBGROUP)
   {
@@ -492,7 +492,7 @@ void PlanningGroupsWidget::editSelected()
     loadSubgroupsScreen(plan_group.group_);
 
     // Switch to screen
-    changeScreen(4);
+    changeScreen(SUBGROUP);
   }
   else if (plan_group.type_ == GROUP)
   {
@@ -500,7 +500,7 @@ void PlanningGroupsWidget::editSelected()
     loadGroupScreen(plan_group.group_);
 
     // Switch to screen
-    changeScreen(5);
+    changeScreen(GROUP);
   }
   else
   {
@@ -838,7 +838,7 @@ void PlanningGroupsWidget::addGroup()
   loadGroupScreen(nullptr);  // NULL indicates this is a new group, not an existing one
 
   // Switch to screen
-  changeScreen(5);
+  changeScreen(GROUP);
 }
 
 // ******************************************************************************************
@@ -1271,7 +1271,7 @@ void PlanningGroupsWidget::saveGroupScreenJoints()
   loadJointsScreen(config_data_->findGroupByName(current_edit_group_));
 
   // Switch to screen
-  changeScreen(1);  // 1 is index of joints
+  changeScreen(JOINT);
 }
 
 // ******************************************************************************************
@@ -1287,7 +1287,7 @@ void PlanningGroupsWidget::saveGroupScreenLinks()
   loadLinksScreen(config_data_->findGroupByName(current_edit_group_));
 
   // Switch to screen
-  changeScreen(2);  // 2 is index of links
+  changeScreen(LINK);
 }
 
 // ******************************************************************************************
@@ -1303,7 +1303,7 @@ void PlanningGroupsWidget::saveGroupScreenChain()
   loadChainScreen(config_data_->findGroupByName(current_edit_group_));
 
   // Switch to screen
-  changeScreen(3);
+  changeScreen(CHAIN);
 }
 
 // ******************************************************************************************
@@ -1319,7 +1319,7 @@ void PlanningGroupsWidget::saveGroupScreenSubgroups()
   loadSubgroupsScreen(config_data_->findGroupByName(current_edit_group_));
 
   // Switch to screen
-  changeScreen(4);
+  changeScreen(SUBGROUP);
 }
 
 // ******************************************************************************************
@@ -1381,7 +1381,7 @@ void PlanningGroupsWidget::showMainScreen()
 {
   stacked_widget_->setCurrentIndex(0);
 
-  // Announce that this widget is not in modal mode
+  // Announce that this widget is not in modal mode anymore
   Q_EMIT isModal(false);
 }
 

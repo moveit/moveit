@@ -61,11 +61,11 @@ class GroupEditWidget;
 // Custom Type
 enum GroupType
 {
-  JOINT,
-  LINK,
-  CHAIN,
-  SUBGROUP,
-  GROUP
+  JOINT = 1,
+  LINK = 2,
+  CHAIN = 3,
+  SUBGROUP = 4,
+  GROUP = 5
 };
 
 // ******************************************************************************************
