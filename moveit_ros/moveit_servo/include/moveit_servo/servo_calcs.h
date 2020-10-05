@@ -39,6 +39,9 @@
 #pragma once
 
 // ROS
+#include <control_msgs/JointJog.h>
+#include <geometry_msgs/TwistStamped.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit_msgs/ChangeDriftDimensions.h>
@@ -47,9 +50,7 @@
 #include <std_msgs/Float64.h>
 #include <std_msgs/Int8.h>
 #include <std_srvs/Empty.h>
-#include <control_msgs/JointJog.h>
-#include <geometry_msgs/TwistStamped.h>
-#include <geometry_msgs/TransformStamped.h>
+#include <tf2_eigen/tf2_eigen.h>
 #include <trajectory_msgs/JointTrajectory.h>
 
 // moveit_servo

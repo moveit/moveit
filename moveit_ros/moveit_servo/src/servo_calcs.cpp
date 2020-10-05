@@ -75,22 +75,7 @@ geometry_msgs::TransformStamped convertIsometryToTransform(const Eigen::Isometry
                                                            const std::string& parent_frame,
                                                            const std::string& child_frame)
 {
-  geometry_msgs::TransformStamped output;
-  Eigen::Vector3d eigen_translation = eigen_tf.translation();
-
-  // Fill in the translations directly
-  output.transform.translation.x = eigen_translation[0];
-  output.transform.translation.y = eigen_translation[1];
-  output.transform.translation.z = eigen_translation[2];
-
-  // Use Eigen to convert rotation to quaternion and fill in
-  Eigen::Quaterniond quat(eigen_tf.rotation());
-  output.transform.rotation.x = quat.x();
-  output.transform.rotation.y = quat.y();
-  output.transform.rotation.z = quat.z();
-  output.transform.rotation.w = quat.w();
-
-  // Fill in rest of TF info
+  geometry_msgs::TransformStamped output = tf2::eigenToTransform(eigen_tf);
   output.header.frame_id = parent_frame;
   output.child_frame_id = child_frame;
 

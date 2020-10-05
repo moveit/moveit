@@ -25,6 +25,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   std_srvs
+  tf2_eigen
   trajectory_msgs
 )
 
@@ -44,6 +45,7 @@ catkin_package(
     sensor_msgs
     std_msgs
     std_srvs
+    tf2_eigen
     trajectory_msgs
   DEPENDS
     EIGEN3
