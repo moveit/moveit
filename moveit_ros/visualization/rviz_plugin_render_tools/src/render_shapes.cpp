@@ -47,12 +47,8 @@
 #include <rviz/ogre_helpers/shape.h>
 #include <rviz/ogre_helpers/mesh_shape.h>
 
-#include <moveit/macros/diagnostics.h>
-DIAGNOSTIC_PUSH
-SILENT_UNUSED_PARAM
 #include <rviz/display_context.h>
 #include <rviz/robot/robot.h>
-DIAGNOSTIC_POP
 
 #include <boost/lexical_cast.hpp>
 #include <boost/math/constants/constants.hpp>

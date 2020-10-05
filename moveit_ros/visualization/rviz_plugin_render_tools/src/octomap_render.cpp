@@ -36,11 +36,8 @@
 
 #include <moveit/rviz_plugin_render_tools/octomap_render.h>
 
-DIAGNOSTIC_PUSH
-SILENT_UNUSED_PARAM
 #include <octomap_msgs/Octomap.h>
 #include <octomap/octomap.h>
-DIAGNOSTIC_POP
 
 #include <OgreSceneNode.h>
 #include <OgreSceneManager.h>
