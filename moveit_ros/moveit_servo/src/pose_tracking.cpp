@@ -239,10 +239,19 @@ void PoseTracking::targetPoseCallback(const geometry_msgs::PoseStampedConstPtr& 
 {
   // Transform to MoveIt planning frame
   target_pose_ = *msg;
+  geometry_msgs::TransformStamped target_to_planning_frame;
   if (target_pose_.header.frame_id != planning_frame_)
   {
-    auto target_to_planning_frame = transform_buffer_.lookupTransform(planning_frame_, target_pose_.header.frame_id,
-                                                                      ros::Time(0), ros::Duration(0.1));
+    try
+    {
+      target_to_planning_frame = transform_buffer_.lookupTransform(planning_frame_, target_pose_.header.frame_id,
+                                                                   ros::Time(0), ros::Duration(0.1));
+    }
+    catch (tf2::TransformException& ex)
+    {
+      ROS_WARN_NAMED(LOGNAME, "%s", ex.what());
+      return;
+    }
     tf2::doTransform(target_pose_, target_pose_, target_to_planning_frame);
   }
   target_pose_.header.stamp = ros::Time::now();
