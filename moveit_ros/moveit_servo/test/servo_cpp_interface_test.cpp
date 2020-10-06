@@ -111,7 +111,7 @@ TEST_F(ServoFixture, SendTwistStampedTest)
   // count trajectory messages sent by servo
   size_t received_count = 0;
   boost::function<void(const trajectory_msgs::JointTrajectoryConstPtr&)> traj_callback =
-      [&received_count](const trajectory_msgs::JointTrajectoryConstPtr& msg) { ++received_count; };
+      [&received_count](const trajectory_msgs::JointTrajectoryConstPtr& /*msg*/) { ++received_count; };
   auto traj_sub = nh_.subscribe(parameters.command_out_topic, 1, traj_callback);
 
   // Create publisher to send servo commands
@@ -152,7 +152,7 @@ TEST_F(ServoFixture, SendJointServoTest)
   // count trajectory messages sent by servo
   size_t received_count = 0;
   boost::function<void(const trajectory_msgs::JointTrajectoryConstPtr&)> traj_callback =
-      [&received_count](const trajectory_msgs::JointTrajectoryConstPtr& msg) { ++received_count; };
+      [&received_count](const trajectory_msgs::JointTrajectoryConstPtr& /*msg*/) { ++received_count; };
   auto traj_sub = nh_.subscribe(parameters.command_out_topic, 1, traj_callback);
 
   // Create publisher to send servo commands
