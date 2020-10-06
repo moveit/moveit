@@ -25,14 +25,6 @@ RUN \
         clang clang-format-10 clang-tidy clang-tools \
         ccache && \
     #
-    # Build and install franka_description from https://github.com/frankaemika/franka_ros.git
-    git clone --depth 1 --branch 0.6.0 https://github.com/frankaemika/franka_ros.git src/franka_ros && \
-    mv src/franka_ros/franka_description src/ && rm -rf src/franka_ros && \
-    catkin config --extend /opt/ros/noetic --install --install-space /opt/ros/noetic && \
-    catkin build && \
-    # Cleanup temporary workspace
-    rm -rf logs build devel .catkin_tools && \
-    #
     # Download MoveIt source, so that we can fetch all necessary dependencies
     wstool init --shallow src https://raw.githubusercontent.com/ros-planning/moveit/${ROS_DISTRO}-devel/moveit.rosinstall && \
     #
