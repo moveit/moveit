@@ -188,7 +188,7 @@ protected:
 };
 
 // Define the types we need to test
-TYPED_TEST_SUITE(PlanningContextTest, PlanningContextTestTypes);
+TYPED_TEST_CASE(PlanningContextTest, PlanningContextTestTypes);
 
 /**
  * @brief No request is set. Check the output of solve. Using robot model

@@ -156,19 +156,19 @@ protected:
   std::string planning_group_, target_link_;
 };
 // Define the types we need to test
-TYPED_TEST_SUITE(TrajectoryGeneratorCommonTest, TrajectoryGeneratorCommonTestTypes);
+TYPED_TEST_CASE(TrajectoryGeneratorCommonTest, TrajectoryGeneratorCommonTestTypes);
 
 template <typename T>
 class TrajectoryGeneratorCommonTestNoGripper : public TrajectoryGeneratorCommonTest<T>
 {
 };
-TYPED_TEST_SUITE(TrajectoryGeneratorCommonTestNoGripper, TrajectoryGeneratorCommonTestTypesNoGripper);
+TYPED_TEST_CASE(TrajectoryGeneratorCommonTestNoGripper, TrajectoryGeneratorCommonTestTypesNoGripper);
 
 template <typename T>
 class TrajectoryGeneratorCommonTestWithGripper : public TrajectoryGeneratorCommonTest<T>
 {
 };
-TYPED_TEST_SUITE(TrajectoryGeneratorCommonTestWithGripper, TrajectoryGeneratorCommonTestTypesWithGripper);
+TYPED_TEST_CASE(TrajectoryGeneratorCommonTestWithGripper, TrajectoryGeneratorCommonTestTypesWithGripper);
 
 /**
  * @brief test invalid scaling factor. The scaling factor must be in the range
