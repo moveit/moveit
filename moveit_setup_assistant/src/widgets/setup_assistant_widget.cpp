@@ -45,8 +45,9 @@
 #include <QFont>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QListWidget>
-#include <QListWidgetItem>
+#include <QPushButton>
+#include <QCheckBox>
+#include <QCloseEvent>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QSplitter>
@@ -404,9 +405,24 @@ void SetupAssistantWidget::loadRviz()
   view->subProp("Distance")->setValue(4.0f);
 
   // Add Rviz to Planning Groups Widget
-  QHBoxLayout* rviz_layout = new QHBoxLayout();
+  QVBoxLayout* rviz_layout = new QVBoxLayout();
   rviz_layout->addWidget(rviz_render_panel_);
   rviz_container_->setLayout(rviz_layout);
+
+  // visual / collision buttons
+  auto btn_layout = new QHBoxLayout();
+  rviz_layout->addLayout(btn_layout);
+
+  QCheckBox* btn;
+  btn_layout->addWidget(btn = new QCheckBox("visual"), 0);
+  btn->setChecked(true);
+  connect(btn, &QCheckBox::toggled,
+          [this](bool checked) { robot_state_display_->subProp("Visual Enabled")->setValue(checked); });
+
+  btn_layout->addWidget(btn = new QCheckBox("collision"), 1);
+  btn->setChecked(false);
+  connect(btn, &QCheckBox::toggled,
+          [this](bool checked) { robot_state_display_->subProp("Collision Enabled")->setValue(checked); });
 
   rviz_container_->show();
 }

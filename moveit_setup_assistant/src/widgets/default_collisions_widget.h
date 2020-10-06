@@ -261,5 +261,3 @@ private:
   bool canceled_;
 };
 }  // namespace moveit_setup_assistant
-
-#endif
