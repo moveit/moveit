@@ -65,16 +65,11 @@ VirtualJointsWidget::VirtualJointsWidget(QWidget* parent, const MoveItConfigData
   vjoint_list_widget_ = createContentsWidget();
   vjoint_edit_widget_ = createEditWidget();
 
-  // Create stacked layout -----------------------------------------
-  stacked_layout_ = new QStackedLayout(this);
-  stacked_layout_->addWidget(vjoint_list_widget_);  // screen index 0
-  stacked_layout_->addWidget(vjoint_edit_widget_);  // screen index 1
-
   // Create Widget wrapper for layout
-  QWidget* stacked_layout_widget = new QWidget(this);
-  stacked_layout_widget->setLayout(stacked_layout_);
-
-  layout->addWidget(stacked_layout_widget);
+  stacked_widget_ = new QStackedWidget(this);
+  stacked_widget_->addWidget(vjoint_list_widget_);  // screen index 0
+  stacked_widget_->addWidget(vjoint_edit_widget_);  // screen index 1
+  layout->addWidget(stacked_widget_);
 
   // Finish Layout --------------------------------------------------
   this->setLayout(layout);
@@ -114,9 +109,7 @@ QWidget* VirtualJointsWidget::createContentsWidget()
   QHBoxLayout* controls_layout = new QHBoxLayout();
 
   // Spacer
-  QWidget* spacer = new QWidget(this);
-  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  controls_layout->addWidget(spacer);
+  controls_layout->addItem(new QSpacerItem(20, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
 
   // Edit Selected Button
   btn_edit_ = new QPushButton("&Edit Selected", this);
@@ -194,9 +187,7 @@ QWidget* VirtualJointsWidget::createEditWidget()
   controls_layout->setContentsMargins(0, 25, 0, 15);
 
   // Spacer
-  QWidget* spacer = new QWidget(this);
-  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  controls_layout->addWidget(spacer);
+  controls_layout->addItem(new QSpacerItem(20, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
 
   // Save
   QPushButton* btn_save = new QPushButton("&Save", this);
@@ -236,7 +227,7 @@ void VirtualJointsWidget::showNewScreen()
   joint_type_field_->clearEditText();  // actually this just chooses first option
 
   // Switch to screen
-  stacked_layout_->setCurrentIndex(1);
+  stacked_widget_->setCurrentIndex(1);
 
   // Announce that this widget is in modal mode
   Q_EMIT isModal(true);
@@ -307,7 +298,7 @@ void VirtualJointsWidget::edit(const std::string& name)
   joint_type_field_->setCurrentIndex(index);
 
   // Switch to screen
-  stacked_layout_->setCurrentIndex(1);
+  stacked_widget_->setCurrentIndex(1);
 
   // Announce that this widget is in modal mode
   Q_EMIT isModal(true);
@@ -512,7 +503,7 @@ void VirtualJointsWidget::doneEditing()
   loadDataTable();
 
   // Switch to screen
-  stacked_layout_->setCurrentIndex(0);
+  stacked_widget_->setCurrentIndex(0);
 
   // Announce that this widget is not in modal mode
   Q_EMIT isModal(false);
@@ -530,7 +521,7 @@ void VirtualJointsWidget::doneEditing()
 void VirtualJointsWidget::cancelEditing()
 {
   // Switch to screen
-  stacked_layout_->setCurrentIndex(0);
+  stacked_widget_->setCurrentIndex(0);
 
   // Announce that this widget is not in modal mode
   Q_EMIT isModal(false);
@@ -594,7 +585,7 @@ void VirtualJointsWidget::loadDataTable()
 void VirtualJointsWidget::focusGiven()
 {
   // Show the current vjoints screen
-  stacked_layout_->setCurrentIndex(0);
+  stacked_widget_->setCurrentIndex(0);
 
   // Load the data to the tree
   loadDataTable();

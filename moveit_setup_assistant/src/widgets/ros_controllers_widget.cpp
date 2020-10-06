@@ -95,19 +95,12 @@ ROSControllersWidget::ROSControllersWidget(QWidget* parent, const MoveItConfigDa
   connect(controller_edit_widget_, SIGNAL(saveJointsGroups()), this, SLOT(saveControllerScreenGroups()));
 
   // Combine into stack
-  stacked_layout_ = new QStackedLayout(this);
-  stacked_layout_->addWidget(controllers_tree_widget_);  // screen index 0
-  stacked_layout_->addWidget(joints_widget_);            // screen index 1
-  stacked_layout_->addWidget(controller_edit_widget_);   // screen index 2
-  stacked_layout_->addWidget(joint_groups_widget_);      // screen index 3
-
-  // Finish GUI -----------------------------------------------------------
-
-  // Create Widget wrapper for layout
-  QWidget* stacked_layout_widget = new QWidget(this);
-  stacked_layout_widget->setLayout(stacked_layout_);
-
-  layout->addWidget(stacked_layout_widget);
+  stacked_widget_ = new QStackedWidget(this);
+  stacked_widget_->addWidget(controllers_tree_widget_);  // screen index 0
+  stacked_widget_->addWidget(joints_widget_);            // screen index 1
+  stacked_widget_->addWidget(controller_edit_widget_);   // screen index 2
+  stacked_widget_->addWidget(joint_groups_widget_);      // screen index 3
+  layout->addWidget(stacked_widget_);
 
   this->setLayout(layout);
 }
@@ -162,9 +155,7 @@ QWidget* ROSControllersWidget::createContentsWidget()
   controls_layout_->addWidget(expand_controls);
 
   // Spacer
-  QWidget* spacer = new QWidget(this);
-  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  controls_layout_->addWidget(spacer);
+  controls_layout_->addItem(new QSpacerItem(20, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
 
   // Delete
   btn_delete_ = new QPushButton("&Delete Controller", this);
@@ -799,7 +790,7 @@ void ROSControllersWidget::editController()
 // ******************************************************************************************
 void ROSControllersWidget::showMainScreen()
 {
-  stacked_layout_->setCurrentIndex(0);
+  stacked_widget_->setCurrentIndex(0);
 
   // Announce that this widget is not in modal mode
   Q_EMIT isModal(false);
@@ -810,7 +801,7 @@ void ROSControllersWidget::showMainScreen()
 // ******************************************************************************************
 void ROSControllersWidget::changeScreen(int index)
 {
-  stacked_layout_->setCurrentIndex(index);
+  stacked_widget_->setCurrentIndex(index);
 
   // Announce this widget's mode
   Q_EMIT isModal(index != 0);

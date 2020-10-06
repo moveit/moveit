@@ -188,9 +188,7 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, const MoveItConfigDataPtr&
   layout->addLayout(hlayout);
 
   // Verticle Spacer
-  QWidget* vspacer = new QWidget(this);
-  vspacer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-  layout->addWidget(vspacer);
+  layout->addItem(new QSpacerItem(20, 20, QSizePolicy::Minimum, QSizePolicy::Expanding));
 
   // Attach bottom layout
   layout->addWidget(next_label_);

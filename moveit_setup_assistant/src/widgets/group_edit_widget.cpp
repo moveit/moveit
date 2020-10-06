@@ -142,6 +142,12 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, const MoveItConfigDataPtr& con
   add_subtitle->setFont(add_subtitle_font);
   recommended_options->addWidget(add_subtitle, 0, Qt::AlignLeft);
 
+  // Save and add chain
+  QPushButton* btn_save_chain = new QPushButton("Add Kin. Chain", this);
+  btn_save_chain->setMaximumWidth(200);
+  connect(btn_save_chain, SIGNAL(clicked()), this, SIGNAL(saveChain()));
+  recommended_options->addWidget(btn_save_chain);
+
   // Save and add joints
   QPushButton* btn_save_joints = new QPushButton("Add Joints", this);
   btn_save_joints->setMaximumWidth(200);
@@ -153,23 +159,17 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, const MoveItConfigDataPtr& con
   add_subtitle2->setFont(add_subtitle_font);
   advanced_options->addWidget(add_subtitle2, 0, Qt::AlignLeft);
 
-  // Save and add links
-  QPushButton* btn_save_links = new QPushButton("Add Links", this);
-  btn_save_links->setMaximumWidth(200);
-  connect(btn_save_links, SIGNAL(clicked()), this, SIGNAL(saveLinks()));
-  advanced_options->addWidget(btn_save_links);
-
-  // Save and add chain
-  QPushButton* btn_save_chain = new QPushButton("Add Kin. Chain", this);
-  btn_save_chain->setMaximumWidth(200);
-  connect(btn_save_chain, SIGNAL(clicked()), this, SIGNAL(saveChain()));
-  advanced_options->addWidget(btn_save_chain);
-
   // Save and add subgroups
   QPushButton* btn_save_subgroups = new QPushButton("Add Subgroups", this);
   btn_save_subgroups->setMaximumWidth(200);
   connect(btn_save_subgroups, SIGNAL(clicked()), this, SIGNAL(saveSubgroups()));
   advanced_options->addWidget(btn_save_subgroups);
+
+  // Save and add links
+  QPushButton* btn_save_links = new QPushButton("Add Links", this);
+  btn_save_links->setMaximumWidth(200);
+  connect(btn_save_links, SIGNAL(clicked()), this, SIGNAL(saveLinks()));
+  advanced_options->addWidget(btn_save_links);
 
   // Add layouts
   new_buttons_layout_container->addLayout(label_layout);
@@ -180,10 +180,8 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, const MoveItConfigDataPtr& con
   new_buttons_widget_->setLayout(new_buttons_layout_container);
   layout->addWidget(new_buttons_widget_);
 
-  // Verticle Spacer -----------------------------------------------------
-  QWidget* vspacer = new QWidget(this);
-  vspacer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-  layout->addWidget(vspacer);
+  // Vertical Spacer
+  layout->addItem(new QSpacerItem(20, 20, QSizePolicy::Minimum, QSizePolicy::Expanding));
 
   // Bottom Controls ---------------------------------------------------------
   QHBoxLayout* controls_layout = new QHBoxLayout();
@@ -196,9 +194,7 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, const MoveItConfigDataPtr& con
   controls_layout->setAlignment(btn_delete_, Qt::AlignRight);
 
   // Horizontal Spacer
-  QWidget* spacer = new QWidget(this);
-  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  controls_layout->addWidget(spacer);
+  controls_layout->addItem(new QSpacerItem(20, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
 
   // Save
   btn_save_ = new QPushButton("&Save", this);

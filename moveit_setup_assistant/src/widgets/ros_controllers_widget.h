@@ -42,7 +42,7 @@
 #include <QGroupBox>
 #include <QTableWidget>
 #include <QTreeWidget>
-#include <QStackedLayout>
+#include <QStackedWidget>
 #include <QString>
 
 // SA
@@ -128,7 +128,7 @@ private:
   QWidget* controllers_tree_widget_;
 
   /// For changing between table and different add/edit views
-  QStackedLayout* stacked_layout_;
+  QStackedWidget* stacked_widget_;
   ControllerEditWidget* controller_edit_widget_;
 
   QPushButton* btn_delete_;

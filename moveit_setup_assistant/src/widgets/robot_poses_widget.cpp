@@ -75,15 +75,10 @@ RobotPosesWidget::RobotPosesWidget(QWidget* parent, const MoveItConfigDataPtr& c
   pose_edit_widget_ = createEditWidget();
 
   // Create stacked layout -----------------------------------------
-  stacked_layout_ = new QStackedLayout(this);
-  stacked_layout_->addWidget(pose_list_widget_);  // screen index 0
-  stacked_layout_->addWidget(pose_edit_widget_);  // screen index 1
-
-  // Create Widget wrapper for layout
-  QWidget* stacked_layout_widget = new QWidget(this);
-  stacked_layout_widget->setLayout(stacked_layout_);
-
-  layout->addWidget(stacked_layout_widget);
+  stacked_widget_ = new QStackedWidget(this);
+  stacked_widget_->addWidget(pose_list_widget_);  // screen index 0
+  stacked_widget_->addWidget(pose_edit_widget_);  // screen index 1
+  layout->addWidget(stacked_widget_);
 
   // Finish Layout --------------------------------------------------
   this->setLayout(layout);
@@ -154,9 +149,7 @@ QWidget* RobotPosesWidget::createContentsWidget()
   controls_layout->setAlignment(btn_play, Qt::AlignLeft);
 
   // Spacer
-  QWidget* spacer = new QWidget(this);
-  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  controls_layout->addWidget(spacer);
+  controls_layout->addItem(new QSpacerItem(20, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
 
   // Edit Selected Button
   btn_edit_ = new QPushButton("&Edit Selected", this);
@@ -258,9 +251,7 @@ QWidget* RobotPosesWidget::createEditWidget()
   controls_layout->setContentsMargins(0, 25, 0, 15);
 
   // Spacer
-  QWidget* spacer = new QWidget(this);
-  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  controls_layout->addWidget(spacer);
+  controls_layout->addItem(new QSpacerItem(20, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
 
   // Save
   btn_save_ = new QPushButton("&Save", this);
@@ -291,7 +282,7 @@ QWidget* RobotPosesWidget::createEditWidget()
 void RobotPosesWidget::showNewScreen()
 {
   // Switch to screen - do this before clearEditText()
-  stacked_layout_->setCurrentIndex(1);
+  stacked_widget_->setCurrentIndex(1);
 
   // Remember that this is a new pose
   current_edit_pose_ = nullptr;
@@ -427,7 +418,7 @@ void RobotPosesWidget::edit(int row)
   showPose(pose);
 
   // Switch to screen - do this before setCurrentIndex
-  stacked_layout_->setCurrentIndex(1);
+  stacked_widget_->setCurrentIndex(1);
 
   // Announce that this widget is in modal mode
   Q_EMIT isModal(true);
@@ -458,7 +449,7 @@ void RobotPosesWidget::loadJointSliders(const QString& selected)
 {
   // Ignore this event if the combo box is empty. This occurs when clearing the combo box and reloading with the
   // newest groups. Also ignore if we are not on the edit screen
-  if (!group_name_field_->count() || selected.isEmpty() || stacked_layout_->currentIndex() == 0)
+  if (!group_name_field_->count() || selected.isEmpty() || stacked_widget_->currentIndex() == 0)
     return;
 
   // Get group name from input
@@ -677,7 +668,7 @@ void RobotPosesWidget::doneEditing()
   loadDataTable();
 
   // Switch to screen
-  stacked_layout_->setCurrentIndex(0);
+  stacked_widget_->setCurrentIndex(0);
 
   // Announce that this widget is done with modal mode
   Q_EMIT isModal(false);
@@ -689,7 +680,7 @@ void RobotPosesWidget::doneEditing()
 void RobotPosesWidget::cancelEditing()
 {
   // Switch to screen
-  stacked_layout_->setCurrentIndex(0);
+  stacked_widget_->setCurrentIndex(0);
 
   // Announce that this widget is done with modal mode
   Q_EMIT isModal(false);
@@ -745,7 +736,7 @@ void RobotPosesWidget::loadDataTable()
 void RobotPosesWidget::focusGiven()
 {
   // Show the current poses screen
-  stacked_layout_->setCurrentIndex(0);
+  stacked_widget_->setCurrentIndex(0);
 
   // Load the data to the tree
   loadDataTable();
