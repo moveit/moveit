@@ -44,11 +44,7 @@
 
 #include <geometric_shapes/shapes.h>
 #include <geometric_shapes/bodies.h>
-#include <moveit/macros/diagnostics.h>
-DIAGNOSTIC_PUSH
-SILENT_UNUSED_PARAM
 #include <octomap/OcTree.h>
-DIAGNOSTIC_POP
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/distance_field/distance_field.h>

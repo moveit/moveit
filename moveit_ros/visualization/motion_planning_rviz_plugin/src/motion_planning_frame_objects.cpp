@@ -73,7 +73,7 @@ QString subframe_poses_to_qstring(const moveit::core::FixedTransformsMap& subfra
 
 namespace moveit_rviz_plugin
 {
-void MotionPlanningFrame::shapesComboBoxChanged(const QString& text)
+void MotionPlanningFrame::shapesComboBoxChanged(const QString& /*text*/)
 {
   switch (ui_->shapes_combo_box->currentData().toInt())  // fetch shape ID from current combobox item
   {

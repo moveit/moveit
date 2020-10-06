@@ -37,11 +37,8 @@
 #pragma once
 
 #include <QListView>
-#include <QStandardItemModel>
-#include <QScrollBar>
-#include <QString>
 #include <QStyledItemDelegate>
-#include <QPainter>
+class QStandardItemModel;
 
 namespace moveit_setup_assistant
 {

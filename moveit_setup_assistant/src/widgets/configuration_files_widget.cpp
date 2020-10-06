@@ -35,15 +35,21 @@
 /* Author: Dave Coleman */
 
 // Qt
-#include <QVBoxLayout>
-#include <QPushButton>
-#include <QMessageBox>
 #include <QApplication>
-#include <QSplitter>
+#include <QLabel>
+#include <QList>
+#include <QListWidget>
+#include <QMessageBox>
+#include <QProgressBar>
+#include <QPushButton>
+#include <QPushButton>
 #include <QRegExp>
-// ROS
+#include <QSplitter>
+#include <QVBoxLayout>
+
 #include "configuration_files_widget.h"
-#include <ros/ros.h>
+#include "header_widget.h"
+
 // Boost
 #include <boost/algorithm/string.hpp>       // for string find and replace in templates
 #include <boost/filesystem/path.hpp>        // for creating folders/files

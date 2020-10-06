@@ -38,9 +38,6 @@
 #include <moveit/robot_state/conversions.h>
 #include <moveit/utils/message_checks.h>
 
-#include <moveit/macros/diagnostics.h>
-DIAGNOSTIC_PUSH
-SILENT_UNUSED_PARAM
 #include <rviz/visualization_manager.h>
 #include <rviz/robot/robot.h>
 #include <rviz/robot/robot_link.h>
@@ -56,7 +53,6 @@ SILENT_UNUSED_PARAM
 
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
-DIAGNOSTIC_POP
 
 namespace moveit_rviz_plugin
 {

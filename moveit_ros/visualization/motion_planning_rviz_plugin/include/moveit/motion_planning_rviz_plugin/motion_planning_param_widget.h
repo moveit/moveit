@@ -37,11 +37,7 @@
 #pragma once
 
 #include <moveit/macros/class_forward.h>
-#include <moveit/macros/diagnostics.h>
-DIAGNOSTIC_PUSH
-SILENT_UNUSED_PARAM
 #include <rviz/properties/property_tree_widget.h>
-DIAGNOSTIC_POP
 
 namespace moveit
 {

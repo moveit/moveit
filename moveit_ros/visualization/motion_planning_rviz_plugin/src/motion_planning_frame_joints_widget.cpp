@@ -50,7 +50,7 @@ JMGItemModel::JMGItemModel(const moveit::core::RobotState& robot_state, const st
     jmg_ = robot_state_.getRobotModel()->getJointModelGroup(group_name);
 }
 
-int JMGItemModel::rowCount(const QModelIndex& parent) const
+int JMGItemModel::rowCount(const QModelIndex& /*parent*/) const
 {
   if (!jmg_)
     return robot_state_.getVariableCount();
@@ -58,7 +58,7 @@ int JMGItemModel::rowCount(const QModelIndex& parent) const
     return jmg_->getVariableCount();
 }
 
-int JMGItemModel::columnCount(const QModelIndex& parent) const
+int JMGItemModel::columnCount(const QModelIndex& /*parent*/) const
 {
   return 2;
 }
@@ -461,7 +461,7 @@ JointsWidgetEventFilter::JointsWidgetEventFilter(QAbstractItemView* view) : QObj
 {
 }
 
-bool JointsWidgetEventFilter::eventFilter(QObject* target, QEvent* event)
+bool JointsWidgetEventFilter::eventFilter(QObject* /*target*/, QEvent* event)
 {
   if (event->type() == QEvent::MouseButtonPress)
   {

@@ -36,11 +36,7 @@
 
 #pragma once
 
-#include <moveit/macros/diagnostics.h>
-DIAGNOSTIC_PUSH
-SILENT_UNUSED_PARAM
 #include <octomap/octomap.h>
-DIAGNOSTIC_PUSH
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/function.hpp>

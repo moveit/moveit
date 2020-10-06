@@ -46,11 +46,7 @@
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/trajectory_constraints_storage.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
-#include <moveit/macros/diagnostics.h>
-DIAGNOSTIC_PUSH
-SILENT_UNUSED_PARAM
 #include <warehouse_ros/database_loader.h>
-DIAGNOSTIC_PUSH
 #include <pluginlib/class_loader.hpp>
 
 #include <map>

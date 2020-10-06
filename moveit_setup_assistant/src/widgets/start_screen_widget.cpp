@@ -35,17 +35,21 @@
 /* Author: Dave Coleman */
 
 // Qt
+#include <QApplication>
+#include <QFileDialog>
+#include <QFont>
+#include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
+#include <QMessageBox>
+#include <QProgressBar>
+#include <QPushButton>
+#include <QString>
+#include <QTextEdit>
 #include <QTimer>
 #include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QMessageBox>
-#include <QString>
-#include <QApplication>
-#include <QFont>
-#include <QFileDialog>
+
 // ROS
-#include <ros/ros.h>
 #include <ros/package.h>  // for getting file path for loadng images
 // SA
 #include "header_widget.h"  // title and instructions

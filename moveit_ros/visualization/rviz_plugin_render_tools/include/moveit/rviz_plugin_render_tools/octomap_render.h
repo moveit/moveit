@@ -38,11 +38,7 @@
 
 #include <memory>
 #include <vector>
-#include <moveit/macros/diagnostics.h>
-DIAGNOSTIC_PUSH
-SILENT_UNUSED_PARAM
 #include <rviz/ogre_helpers/point_cloud.h>
-DIAGNOSTIC_POP
 #include <moveit/rviz_plugin_render_tools/octomap_render.h>
 #include <OGRE/OgrePrerequisites.h>
 

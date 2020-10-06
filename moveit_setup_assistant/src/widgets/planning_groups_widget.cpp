@@ -47,7 +47,6 @@
 */
 // ******************************************************************************************
 
-#include "ros/ros.h"
 #include "header_widget.h"
 #include "planning_groups_widget.h"
 #include "double_list_widget.h"      // for joints, links and subgroups pages
@@ -55,13 +54,17 @@
 #include "group_edit_widget.h"       // for group rename page
 // Qt
 #include <QApplication>
-#include <QVBoxLayout>
+#include <QComboBox>
 #include <QHBoxLayout>
-#include <QStackedWidget>
-#include <QPushButton>
+#include <QLabel>
+#include <QLineEdit>
 #include <QMessageBox>
+#include <QPushButton>
+#include <QStackedWidget>
+#include <QTableWidget>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
+#include <QVBoxLayout>
 
 //// Cycle checking
 #include <boost/graph/adjacency_list.hpp>

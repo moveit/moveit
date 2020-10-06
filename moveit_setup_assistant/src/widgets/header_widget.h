@@ -37,8 +37,9 @@
 #pragma once
 
 #include <QWidget>
-#include <QLabel>
-#include <QLineEdit>
+#include <QFrame>
+class QLabel;
+class QLineEdit;
 
 namespace moveit_setup_assistant
 {

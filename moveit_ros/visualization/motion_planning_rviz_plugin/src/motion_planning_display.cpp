@@ -38,10 +38,7 @@
 #include <moveit/robot_interaction/kinematic_options_map.h>
 #include <moveit/rviz_plugin_render_tools/planning_link_updater.h>
 #include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
-#include <moveit/macros/diagnostics.h>
 
-DIAGNOSTIC_PUSH
-SILENT_UNUSED_PARAM
 #include <rviz/visualization_manager.h>
 #include <rviz/robot/robot.h>
 #include <rviz/robot/robot_link.h>
@@ -63,7 +60,6 @@ SILENT_UNUSED_PARAM
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
 #include <rviz/ogre_helpers/shape.h>
-DIAGNOSTIC_POP
 
 #include <moveit/robot_state/conversions.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>

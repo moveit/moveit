@@ -34,31 +34,30 @@
 
 /* Author: Dave Coleman */
 
-#include <moveit/macros/diagnostics.h>
 // SA
 #include "setup_screen_widget.h"  // a base class for screens in the setup assistant
 #include "setup_assistant_widget.h"
+#include "header_widget.h"
+
 // Qt
-#include <QStackedWidget>
-#include <QListWidget>
-#include <QListWidgetItem>
-#include <QFont>
-#include <QLabel>
-#include <QPushButton>
+#include <QApplication>
 #include <QCheckBox>
 #include <QCloseEvent>
+#include <QFont>
+#include <QHBoxLayout>
+#include <QLabel>
 #include <QMessageBox>
+#include <QPushButton>
+#include <QSplitter>
+#include <QStackedWidget>
 #include <QString>
 #include <pluginlib/class_loader.hpp>  // for loading all avail kinematic planners
 // Rviz
-DIAGNOSTIC_PUSH
-SILENT_UNUSED_PARAM
 #include <rviz/render_panel.h>
 #include <rviz/visualization_manager.h>
 #include <rviz/view_manager.h>
 #include <rviz/default_plugin/view_controllers/orbit_view_controller.h>
 #include <moveit/robot_state_rviz_plugin/robot_state_display.h>
-DIAGNOSTIC_POP
 
 namespace moveit_setup_assistant
 {
