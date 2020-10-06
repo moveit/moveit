@@ -34,6 +34,16 @@
 
 #pragma once
 
+#include <gtest/gtest.h>
+#ifndef INSTANTIATE_TEST_SUITE_P // prior to gtest 1.10
+#define INSTANTIATE_TEST_SUITE_P(...) INSTANTIATE_TEST_CASE_P(__VA_ARGS__)
+#endif
+#ifndef TYPED_TEST_SUITE // prior to gtest 1.10
+#define TYPED_TEST_SUITE(...) TYPED_TEST_CASE(__VA_ARGS__)
+#endif
+
+
+
 #include "moveit_msgs/MotionSequenceRequest.h"
 #include "pilz_industrial_motion_planner/limits_container.h"
 #include "pilz_industrial_motion_planner/trajectory_blend_request.h"

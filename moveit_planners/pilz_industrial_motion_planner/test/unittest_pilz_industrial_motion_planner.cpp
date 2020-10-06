@@ -40,6 +40,7 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 
 #include "pilz_industrial_motion_planner/pilz_industrial_motion_planner.h"
+#include "test_utils.h"
 
 const std::string PARAM_MODEL_NO_GRIPPER_NAME{ "robot_description" };
 const std::string PARAM_MODEL_WITH_GRIPPER_NAME{ "robot_description_pg70" };
@@ -113,8 +114,8 @@ protected:
 };
 
 // Instantiate the test cases for robot model with and without gripper
-INSTANTIATE_TEST_CASE_P(InstantiationName, CommandPlannerTest,
-                        ::testing::Values(PARAM_MODEL_NO_GRIPPER_NAME, PARAM_MODEL_WITH_GRIPPER_NAME));
+INSTANTIATE_TEST_SUITE_P(InstantiationName, CommandPlannerTest,
+                         ::testing::Values(PARAM_MODEL_NO_GRIPPER_NAME, PARAM_MODEL_WITH_GRIPPER_NAME));
 
 /**
  * @brief Test that PTP can be loaded

@@ -160,8 +160,8 @@ TEST(TrajectoryGeneratorPTPTest, TestExceptionErrorCodeMapping)
 }
 
 // Instantiate the test cases for robot model with and without gripper
-INSTANTIATE_TEST_CASE_P(InstantiationName, TrajectoryGeneratorPTPTest,
-                        ::testing::Values(PARAM_MODEL_NO_GRIPPER_NAME, PARAM_MODEL_WITH_GRIPPER_NAME));
+INSTANTIATE_TEST_SUITE_P(InstantiationName, TrajectoryGeneratorPTPTest,
+                         ::testing::Values(PARAM_MODEL_NO_GRIPPER_NAME, PARAM_MODEL_WITH_GRIPPER_NAME));
 /**
  * @brief Construct a TrajectoryGeneratorPTP with no limits given
  */
