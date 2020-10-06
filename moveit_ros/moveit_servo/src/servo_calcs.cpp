@@ -1035,7 +1035,7 @@ bool ServoCalcs::changeControlDimensions(moveit_msgs::ChangeControlDimensions::R
   return true;
 }
 
-bool ServoCalcs::resetServoStatus(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+bool ServoCalcs::resetServoStatus(std_srvs::Empty::Request& /*req*/, std_srvs::Empty::Response& /*res*/)
 {
   status_ = StatusCode::NO_WARNING;
   return true;
