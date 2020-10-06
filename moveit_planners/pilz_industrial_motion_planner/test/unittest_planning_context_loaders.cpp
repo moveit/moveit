@@ -108,7 +108,7 @@ protected:
 
 // Instantiate the test cases for all loaders, extend here if you added a new
 // ContextLoader you want to test
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     InstantiationName, PlanningContextLoadersTest,
     ::testing::Values(std::vector<std::string>{ "pilz_industrial_motion_planner::PlanningContextLoaderPTP", "PTP",
                                                 PARAM_MODEL_NO_GRIPPER_NAME },  // Test for PTP
