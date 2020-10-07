@@ -112,10 +112,10 @@ inline sensor_msgs::JointState generateJointState(const std::vector<double>& pos
   return state;
 }
 
-inline sensor_msgs::JointState generateJointState(std::vector<double> pos,
+inline sensor_msgs::JointState generateJointState(const std::vector<double>& pos,
                                                   const std::string& joint_prefix = testutils::JOINT_NAME_PREFIX)
 {
-  return generateJointState(std::move(pos), std::vector<double>(), joint_prefix);
+  return generateJointState(pos, std::vector<double>(), joint_prefix);
 }
 
 inline moveit_msgs::Constraints generateJointConstraint(const std::vector<double>& pos_list,
