@@ -302,7 +302,7 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testIKRobotState)
     }
 
     // compare ik solution and expected value
-    for (auto joint_pair : ik_actual)
+    for (const auto& joint_pair : ik_actual)
     {
       EXPECT_NEAR(joint_pair.second, ik_expect.at(joint_pair.first), 4 * IK_SEED_OFFSET);
     }
@@ -358,7 +358,7 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testComputePoseIK)
                                                               frame_id, ik_seed, ik_actual, false));
 
     // compare ik solution and expected value
-    for (auto joint_pair : ik_actual)
+    for (const auto& joint_pair : ik_actual)
     {
       EXPECT_NEAR(joint_pair.second, ik_expect.at(joint_pair.first), 4 * IK_SEED_OFFSET);
     }

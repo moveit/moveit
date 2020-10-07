@@ -145,7 +145,7 @@ bool pilz_industrial_motion_planner::verifySampleJointLimits(
 
   double velocity_current, acceleration_current;
 
-  for (auto pos : position_current)
+  for (const auto& pos : position_current)
   {
     velocity_current = (pos.second - position_last.at(pos.first)) / duration_current;
 

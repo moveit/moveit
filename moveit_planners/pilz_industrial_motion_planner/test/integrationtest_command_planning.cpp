@@ -147,7 +147,7 @@ TEST_F(IntegrationTestCommandPlanning, PtpJoint)
   EXPECT_GT(trajectory.points.size(), 0u) << "There are no points in the trajectory";
 
   // Check that every point has position, velocity, acceleration
-  for (trajectory_msgs::JointTrajectoryPoint point : trajectory.points)
+  for (const auto& point : trajectory.points)
   {
     EXPECT_EQ(point.positions.size(), num_joints_);
     EXPECT_EQ(point.velocities.size(), num_joints_);
@@ -200,7 +200,7 @@ TEST_F(IntegrationTestCommandPlanning, PtpJointCart)
   EXPECT_GT(trajectory.points.size(), 0u) << "There are no points in the trajectory";
 
   // Check that every point has position, velocity, acceleration
-  for (trajectory_msgs::JointTrajectoryPoint point : trajectory.points)
+  for (const auto& point : trajectory.points)
   {
     EXPECT_EQ(point.positions.size(), num_joints_);
     EXPECT_EQ(point.velocities.size(), num_joints_);
@@ -361,7 +361,7 @@ TEST_F(IntegrationTestCommandPlanning, CircJointCenterCart)
   EXPECT_GT(trajectory.points.size(), 0u) << "There are no points in the trajectory";
 
   // Check that every point has position, velocity, acceleration
-  for (trajectory_msgs::JointTrajectoryPoint point : trajectory.points)
+  for (const auto& point : trajectory.points)
   {
     EXPECT_EQ(point.positions.size(), num_joints_);
     EXPECT_EQ(point.velocities.size(), num_joints_);
@@ -444,7 +444,7 @@ TEST_F(IntegrationTestCommandPlanning, CircCartCenterCart)
   EXPECT_GT(trajectory.points.size(), 0u) << "There are no points in the trajectory";
 
   // Check that every point has position, velocity, acceleration
-  for (trajectory_msgs::JointTrajectoryPoint point : trajectory.points)
+  for (const auto& point : trajectory.points)
   {
     EXPECT_EQ(point.positions.size(), num_joints_);
     EXPECT_EQ(point.velocities.size(), num_joints_);

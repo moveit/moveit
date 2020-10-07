@@ -351,7 +351,7 @@ bool testutils::computeLinkFK(const moveit::core::RobotModelConstPtr& robot_mode
 bool testutils::isVelocityBounded(const trajectory_msgs::JointTrajectory& trajectory,
                                   const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits)
 {
-  for (auto point : trajectory.points)
+  for (const auto& point : trajectory.points)
   {
     for (std::size_t i = 0; i < point.velocities.size(); ++i)
     {
@@ -374,7 +374,7 @@ bool testutils::isVelocityBounded(const trajectory_msgs::JointTrajectory& trajec
 
 bool testutils::isTrajectoryConsistent(const trajectory_msgs::JointTrajectory& trajectory)
 {
-  for (auto point : trajectory.points)
+  for (const auto& point : trajectory.points)
   {
     if (trajectory.joint_names.size() != point.positions.size() ||
         trajectory.joint_names.size() != point.velocities.size() ||
@@ -392,7 +392,7 @@ bool testutils::isTrajectoryConsistent(const trajectory_msgs::JointTrajectory& t
 bool testutils::isAccelerationBounded(const trajectory_msgs::JointTrajectory& trajectory,
                                       const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits)
 {
-  for (auto point : trajectory.points)
+  for (const auto& point : trajectory.points)
   {
     for (std::size_t i = 0; i < point.velocities.size(); ++i)
     {
@@ -434,7 +434,7 @@ bool testutils::isAccelerationBounded(const trajectory_msgs::JointTrajectory& tr
 bool testutils::isPositionBounded(const trajectory_msgs::JointTrajectory& trajectory,
                                   const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits)
 {
-  for (auto point : trajectory.points)
+  for (const auto& point : trajectory.points)
   {
     for (std::size_t i = 0; i < point.positions.size(); ++i)
     {

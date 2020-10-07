@@ -90,14 +90,14 @@ inline std::string demangel(char const* name)
 // Motion plan requests
 //********************************************
 
-inline sensor_msgs::JointState generateJointState(std::vector<double> pos, std::vector<double> vel,
+inline sensor_msgs::JointState generateJointState(const std::vector<double>& pos, const std::vector<double>& vel,
                                                   const std::string& joint_prefix = testutils::JOINT_NAME_PREFIX)
 {
   sensor_msgs::JointState state;
-  auto posit = pos.begin();
+  auto posit = pos.cbegin();
   size_t i = 0;
 
-  while (posit != pos.end())
+  while (posit != pos.cend())
   {
     state.name.push_back(testutils::getJointName(i + 1, joint_prefix));
     state.position.push_back(*posit);
@@ -105,7 +105,7 @@ inline sensor_msgs::JointState generateJointState(std::vector<double> pos, std::
     i++;
     posit++;
   }
-  for (auto one_vel : vel)
+  for (const auto& one_vel : vel)
   {
     state.velocity.push_back(one_vel);
   }
