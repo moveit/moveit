@@ -114,7 +114,7 @@ int main(int argc, char** argv)
 
   // Get the current EE transform
   geometry_msgs::TransformStamped current_ee_tf;
-  tracker.getEEFrameTransform(current_ee_tf);
+  tracker.getCommandFrameTransform(current_ee_tf);
 
   // Convert it to a Pose
   geometry_msgs::PoseStamped target_pose;

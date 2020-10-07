@@ -84,7 +84,7 @@ geometry_msgs::TransformStamped convertIsometryToTransform(const Eigen::Isometry
 }  // namespace
 
 // Constructor for the class that handles servoing calculations
-ServoCalcs::ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
+ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
                        const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
                        const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber, std::string& ros_namespace)
   : nh_(nh)
@@ -1115,6 +1115,11 @@ bool ServoCalcs::resetServoStatus(std_srvs::Empty::Request& req, std_srvs::Empty
 void ServoCalcs::setPaused(bool paused)
 {
   paused_ = paused;
+}
+
+void ServoCalcs::changeRobotLinkCommandFrame(const std::string& new_command_frame)
+{
+  parameters_.robot_link_command_frame = new_command_frame;
 }
 
 }  // namespace moveit_servo

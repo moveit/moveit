@@ -64,7 +64,7 @@ namespace moveit_servo
 class ServoCalcs
 {
 public:
-  ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
+  ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
              const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
              const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber, std::string& ros_namespace);
 
@@ -98,6 +98,11 @@ public:
 
   /** \brief Pause or unpause processing servo commands while keeping the timers alive */
   void setPaused(bool paused);
+
+  /** \brief Change the controlled link. Often, this is the end effector
+   * This must be a link on the robot since MoveIt tracks the transform (not tf)
+   */
+  void changeRobotLinkCommandFrame(const std::string& new_command_frame);
 
 private:
   /** \brief Timer method */
@@ -210,7 +215,7 @@ private:
   ros::NodeHandle nh_;
 
   // Parameters from yaml
-  const ServoParameters& parameters_;
+  ServoParameters& parameters_;
 
   // Pointer to the collision environment
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;

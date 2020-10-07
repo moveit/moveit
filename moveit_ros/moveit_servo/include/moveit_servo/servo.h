@@ -90,6 +90,14 @@ public:
   /** \brief Get the latest joint state. */
   sensor_msgs::JointStateConstPtr getLatestJointState() const;
 
+  /** \brief Change the controlled link. Often, this is the end effector
+   * This must be a link on the robot since MoveIt tracks the transform (not tf)
+   */
+  void changeRobotLinkCommandFrame(const std::string& new_command_frame)
+  {
+    servo_calcs_->changeRobotLinkCommandFrame(new_command_frame);
+  }
+
 private:
   bool readParameters();
 

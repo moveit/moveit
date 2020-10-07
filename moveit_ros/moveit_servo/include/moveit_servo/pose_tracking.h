@@ -113,7 +113,7 @@ public:
    * @param transform the transform that will be calculated
    * @return true if a valid transform was available
    */
-  bool getEEFrameTransform(geometry_msgs::TransformStamped& transform);
+  bool getCommandFrameTransform(geometry_msgs::TransformStamped& transform);
 
   // moveit_servo::Servo instance. Public so we can access member functions like setPaused()
   std::unique_ptr<moveit_servo::Servo> servo_;
@@ -168,8 +168,8 @@ private:
   PIDConfig x_pid_config_, y_pid_config_, z_pid_config_, angular_pid_config_;
 
   // Transforms w.r.t. planning_frame_
-  Eigen::Isometry3d end_effector_transform_;
-  ros::Time end_effector_transform_stamp_;
+  Eigen::Isometry3d command_frame_transform_;
+  ros::Time command_frame_transform_stamp_;
   geometry_msgs::PoseStamped target_pose_;
 
   // Subscribe to target pose

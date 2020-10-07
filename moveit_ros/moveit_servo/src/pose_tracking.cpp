@@ -89,9 +89,9 @@ PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positiona
   while ((!haveRecentTargetPose(target_pose_timeout) || !haveRecentEndEffectorPose(target_pose_timeout)) &&
          ((ros::Time::now() - start_time).toSec() < target_pose_timeout))
   {
-    if (servo_->getEEFrameTransform(end_effector_transform_))
+    if (servo_->getCommandFrameTransform(command_frame_transform_))
     {
-      end_effector_transform_stamp_ = ros::Time::now();
+      command_frame_transform_stamp_ = ros::Time::now();
     }
     ros::Duration(0.001).sleep();
   }
@@ -114,9 +114,9 @@ PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positiona
     }
 
     // Attempt to update robot pose
-    if (servo_->getEEFrameTransform(end_effector_transform_))
+    if (servo_->getCommandFrameTransform(command_frame_transform_))
     {
-      end_effector_transform_stamp_ = ros::Time::now();
+      command_frame_transform_stamp_ = ros::Time::now();
     }
 
     if (!haveRecentEndEffectorPose(target_pose_timeout))
@@ -222,14 +222,14 @@ bool PoseTracking::haveRecentTargetPose(const double timespan)
 
 bool PoseTracking::haveRecentEndEffectorPose(const double timespan)
 {
-  return ((ros::Time::now() - end_effector_transform_stamp_).toSec() < timespan);
+  return ((ros::Time::now() - command_frame_transform_stamp_).toSec() < timespan);
 }
 
 bool PoseTracking::satisfiesPoseTolerance(const Eigen::Vector3d& positional_tolerance, const double angular_tolerance)
 {
-  double x_error = target_pose_.pose.position.x - end_effector_transform_.translation()(0);
-  double y_error = target_pose_.pose.position.y - end_effector_transform_.translation()(1);
-  double z_error = target_pose_.pose.position.z - end_effector_transform_.translation()(2);
+  double x_error = target_pose_.pose.position.x - command_frame_transform_.translation()(0);
+  double y_error = target_pose_.pose.position.y - command_frame_transform_.translation()(1);
+  double z_error = target_pose_.pose.position.z - command_frame_transform_.translation()(2);
 
   return (fabs(x_error) < positional_tolerance(0)) && (fabs(y_error) < positional_tolerance(1)) &&
          (fabs(z_error) < positional_tolerance(2) && fabs(angular_error_) < angular_tolerance);
@@ -237,7 +237,7 @@ bool PoseTracking::satisfiesPoseTolerance(const Eigen::Vector3d& positional_tole
 
 void PoseTracking::targetPoseCallback(const geometry_msgs::PoseStampedConstPtr& msg)
 {
-  // Transform to MoveIt planning frame
+  // Transform to planning frame
   target_pose_ = *msg;
   geometry_msgs::TransformStamped target_to_planning_frame;
   if (target_pose_.header.frame_id != planning_frame_)
@@ -268,11 +268,11 @@ geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
 
   // Position
   twist.linear.x = cartesian_position_pids_[0].computeCommand(
-      target_pose_.pose.position.x - end_effector_transform_.translation()(0), loop_rate_.expectedCycleTime());
+      target_pose_.pose.position.x - command_frame_transform_.translation()(0), loop_rate_.expectedCycleTime());
   twist.linear.y = cartesian_position_pids_[1].computeCommand(
-      target_pose_.pose.position.y - end_effector_transform_.translation()(1), loop_rate_.expectedCycleTime());
+      target_pose_.pose.position.y - command_frame_transform_.translation()(1), loop_rate_.expectedCycleTime());
   twist.linear.z = cartesian_position_pids_[2].computeCommand(
-      target_pose_.pose.position.z - end_effector_transform_.translation()(2), loop_rate_.expectedCycleTime());
+      target_pose_.pose.position.z - command_frame_transform_.translation()(2), loop_rate_.expectedCycleTime());
 
   // Orientation algorithm:
   // - Find the orientation error as a quaternion: q_error = q_desired * q_current ^ -1
@@ -280,7 +280,7 @@ geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
   // - Convert to angular velocity for the TwistStamped message
   Eigen::Quaterniond q_desired(target_pose_.pose.orientation.w, target_pose_.pose.orientation.x,
                                target_pose_.pose.orientation.y, target_pose_.pose.orientation.z);
-  Eigen::Quaterniond q_current(end_effector_transform_.rotation());
+  Eigen::Quaterniond q_current(command_frame_transform_.rotation());
   Eigen::Quaterniond q_error = q_desired * q_current.inverse();
 
   // Convert axis-angle to angular velocity
@@ -348,8 +348,8 @@ void PoseTracking::getPIDErrors(double& x_error, double& y_error, double& z_erro
   cartesian_orientation_pids_.at(0).getCurrentPIDErrors(&orientation_error, &dummy1, &dummy2);
 }
 
-bool PoseTracking::getEEFrameTransform(geometry_msgs::TransformStamped& transform)
+bool PoseTracking::getCommandFrameTransform(geometry_msgs::TransformStamped& transform)
 {
-  return servo_->getEEFrameTransform(transform);
+  return servo_->getCommandFrameTransform(transform);
 }
 }  // namespace moveit_servo
