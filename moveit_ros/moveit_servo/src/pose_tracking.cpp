@@ -329,6 +329,10 @@ void PoseTracking::updatePIDConfig(const double x_proportional_gain, const doubl
   z_pid_config_.k_i = z_integral_gain;
   z_pid_config_.k_d = z_derivative_gain;
 
+  angular_pid_config_.k_p = angular_proportional_gain;
+  angular_pid_config_.k_i = angular_integral_gain;
+  angular_pid_config_.k_d = angular_derivative_gain;
+
   cartesian_position_pids_.clear();
   cartesian_orientation_pids_.clear();
   initializePID(x_pid_config_, cartesian_position_pids_);
