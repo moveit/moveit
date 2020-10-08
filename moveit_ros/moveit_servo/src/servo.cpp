@@ -91,20 +91,15 @@ bool Servo::readParameters()
   error += !rosparam_shortcuts::get(LOGNAME, nh, "scale/linear", parameters_.linear_scale);
   error += !rosparam_shortcuts::get(LOGNAME, nh, "scale/rotational", parameters_.rotational_scale);
   error += !rosparam_shortcuts::get(LOGNAME, nh, "scale/joint", parameters_.joint_scale);
-  error +=
-      !rosparam_shortcuts::get(LOGNAME, nh, "low_pass_filter_coeff", parameters_.low_pass_filter_coeff);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "low_pass_filter_coeff", parameters_.low_pass_filter_coeff);
   error += !rosparam_shortcuts::get(LOGNAME, nh, "joint_topic", parameters_.joint_topic);
   error += !rosparam_shortcuts::get(LOGNAME, nh, "command_in_type", parameters_.command_in_type);
-  error += !rosparam_shortcuts::get(LOGNAME, nh, "cartesian_command_in_topic",
-                                    parameters_.cartesian_command_in_topic);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "cartesian_command_in_topic", parameters_.cartesian_command_in_topic);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "joint_command_in_topic", parameters_.joint_command_in_topic);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "robot_link_command_frame", parameters_.robot_link_command_frame);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "incoming_command_timeout", parameters_.incoming_command_timeout);
   error +=
-      !rosparam_shortcuts::get(LOGNAME, nh, "joint_command_in_topic", parameters_.joint_command_in_topic);
-  error += !rosparam_shortcuts::get(LOGNAME, nh, "robot_link_command_frame",
-                                    parameters_.robot_link_command_frame);
-  error += !rosparam_shortcuts::get(LOGNAME, nh, "incoming_command_timeout",
-                                    parameters_.incoming_command_timeout);
-  error += !rosparam_shortcuts::get(LOGNAME, nh, "lower_singularity_threshold",
-                                    parameters_.lower_singularity_threshold);
+      !rosparam_shortcuts::get(LOGNAME, nh, "lower_singularity_threshold", parameters_.lower_singularity_threshold);
   error += !rosparam_shortcuts::get(LOGNAME, nh, "hard_stop_singularity_threshold",
                                     parameters_.hard_stop_singularity_threshold);
   error += !rosparam_shortcuts::get(LOGNAME, nh, "move_group_name", parameters_.move_group_name);
@@ -113,12 +108,10 @@ bool Servo::readParameters()
   error += !rosparam_shortcuts::get(LOGNAME, nh, "joint_limit_margin", parameters_.joint_limit_margin);
   error += !rosparam_shortcuts::get(LOGNAME, nh, "command_out_topic", parameters_.command_out_topic);
   error += !rosparam_shortcuts::get(LOGNAME, nh, "command_out_type", parameters_.command_out_type);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "publish_joint_positions", parameters_.publish_joint_positions);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "publish_joint_velocities", parameters_.publish_joint_velocities);
   error +=
-      !rosparam_shortcuts::get(LOGNAME, nh, "publish_joint_positions", parameters_.publish_joint_positions);
-  error += !rosparam_shortcuts::get(LOGNAME, nh, "publish_joint_velocities",
-                                    parameters_.publish_joint_velocities);
-  error += !rosparam_shortcuts::get(LOGNAME, nh, "publish_joint_accelerations",
-                                    parameters_.publish_joint_accelerations);
+      !rosparam_shortcuts::get(LOGNAME, nh, "publish_joint_accelerations", parameters_.publish_joint_accelerations);
 
   // Parameters for collision checking
   error += !rosparam_shortcuts::get(LOGNAME, nh, "check_collisions", parameters_.check_collisions);

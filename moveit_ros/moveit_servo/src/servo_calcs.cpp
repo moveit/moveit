@@ -113,19 +113,16 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
   joint_cmd_sub_ = nh_.subscribe(parameters_.joint_command_in_topic, ROS_QUEUE_SIZE, &ServoCalcs::jointCmdCB, this);
 
   // ROS Server for allowing drift in some dimensions
-  drift_dimensions_server_ =
-      nh_.advertiseService(ros::names::append(nh_.getNamespace(), "change_drift_dimensions"),
-                           &ServoCalcs::changeDriftDimensions, this);
+  drift_dimensions_server_ = nh_.advertiseService(ros::names::append(nh_.getNamespace(), "change_drift_dimensions"),
+                                                  &ServoCalcs::changeDriftDimensions, this);
 
   // ROS Server for changing the control dimensions
-  control_dimensions_server_ =
-      nh_.advertiseService(ros::names::append(nh_.getNamespace(), "change_control_dimensions"),
-                           &ServoCalcs::changeControlDimensions, this);
+  control_dimensions_server_ = nh_.advertiseService(ros::names::append(nh_.getNamespace(), "change_control_dimensions"),
+                                                    &ServoCalcs::changeControlDimensions, this);
 
   // ROS Server to reset the status, e.g. so the arm can move again after a collision
-  reset_servo_status_ =
-      nh_.advertiseService(ros::names::append(nh_.getNamespace(), "reset_servo_status"),
-                           &ServoCalcs::resetServoStatus, this);
+  reset_servo_status_ = nh_.advertiseService(ros::names::append(nh_.getNamespace(), "reset_servo_status"),
+                                             &ServoCalcs::resetServoStatus, this);
 
   // Publish and Subscribe to internal namespace topics
   ros::NodeHandle internal_nh("~internal");
