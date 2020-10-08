@@ -529,7 +529,9 @@ public:
   py_bindings_tools::ByteString retimeTrajectory(const py_bindings_tools::ByteString& ref_state_str,
                                                  const py_bindings_tools::ByteString& traj_str,
                                                  double velocity_scaling_factor, double acceleration_scaling_factor,
-                                                 const std::string& algorithm)
+                                                 const std::string& algorithm, unsigned int max_iterations = 100,
+                                                 double max_time_change_per_it = 0.01, bool add_points = true,
+                                                 const double path_tolerance = 0.1, const double resample_dt = 0.1)
   {
     // Convert reference state message to object
     moveit_msgs::RobotState ref_state_msg;
@@ -547,17 +549,18 @@ public:
       // Do the actual retiming
       if (algorithm == "iterative_time_parameterization")
       {
-        trajectory_processing::IterativeParabolicTimeParameterization time_param;
+        trajectory_processing::IterativeParabolicTimeParameterization time_param(max_iterations,
+                                                                                 max_time_change_per_it);
         time_param.computeTimeStamps(traj_obj, velocity_scaling_factor, acceleration_scaling_factor);
       }
       else if (algorithm == "iterative_spline_parameterization")
       {
-        trajectory_processing::IterativeSplineParameterization time_param;
+        trajectory_processing::IterativeSplineParameterization time_param(add_points);
         time_param.computeTimeStamps(traj_obj, velocity_scaling_factor, acceleration_scaling_factor);
       }
       else if (algorithm == "time_optimal_trajectory_generation")
       {
-        trajectory_processing::TimeOptimalTrajectoryGeneration time_param;
+        trajectory_processing::TimeOptimalTrajectoryGeneration time_param(path_tolerance, resample_dt);
         time_param.computeTimeStamps(traj_obj, velocity_scaling_factor, acceleration_scaling_factor);
       }
       else
