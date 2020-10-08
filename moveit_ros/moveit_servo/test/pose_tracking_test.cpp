@@ -64,7 +64,7 @@ public:
   {
     // Wait for several key topics / parameters
     ros::topic::waitForMessage<sensor_msgs::JointState>("/joint_states");
-    if (!nh_.hasParam("/robot_description"))
+    while (!nh_.hasParam("/robot_description") && ros::ok())
     {
       ros::Duration(0.1).sleep();
     }
