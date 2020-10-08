@@ -11,7 +11,7 @@
 - git:
     local-name: moveit_resources
     uri: https://github.com/ros-planning/moveit_resources.git
-    version: master
+    version: 0.6.5
 - git:
     local-name: moveit_visual_tools
     uri: https://github.com/ros-planning/moveit_visual_tools.git
