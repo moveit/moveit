@@ -40,6 +40,8 @@ import rospy
 import rostest
 import os
 
+from moveit_msgs.msg import RobotState
+
 from moveit_commander import RobotCommander, PlanningSceneInterface
 
 
@@ -54,6 +56,14 @@ class PythonMoveitCommanderTest(unittest.TestCase):
     @classmethod
     def tearDown(self):
         pass
+
+    def test_get_current_state(self):
+        expected_state = RobotState()
+        expected_state.joint_state.header.frame_id = 'base_link'
+        expected_state.multi_dof_joint_state.header.frame_id = 'base_link'
+        expected_state.joint_state.name = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
+        expected_state.joint_state.position = [0]*6
+        self.assertEqual(self.group.get_current_state(), expected_state)
 
     def check_target_setting(self, expect, *args):
         if len(args) == 0:

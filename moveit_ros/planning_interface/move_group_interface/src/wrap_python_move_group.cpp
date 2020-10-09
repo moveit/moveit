@@ -342,6 +342,15 @@ public:
     return output;
   }
 
+  py_bindings_tools::ByteString getCurrentStatePython()
+  {
+    moveit::core::RobotStatePtr current_state = getCurrentState();
+    moveit_msgs::RobotState state_message;
+    moveit::core::robotStateToRobotStateMsg(*current_state, state_message);
+    return py_bindings_tools::serializeMsg(state_message);
+  }
+
+
   void setStartStatePython(const py_bindings_tools::ByteString& msg_str)
   {
     moveit_msgs::RobotState msg;
@@ -736,6 +745,7 @@ static void wrap_move_group_interface()
   move_group_interface_class.def("get_named_targets", &MoveGroupInterfaceWrapper::getNamedTargetsPython);
   move_group_interface_class.def("get_named_target_values", &MoveGroupInterfaceWrapper::getNamedTargetValuesPython);
   move_group_interface_class.def("get_current_state_bounded", &MoveGroupInterfaceWrapper::getCurrentStateBoundedPython);
+  move_group_interface_class.def("get_current_state", &MoveGroupInterfaceWrapper::getCurrentStatePython);
   move_group_interface_class.def("get_jacobian_matrix", &MoveGroupInterfaceWrapper::getJacobianMatrixPython,
                                  getJacobianMatrixOverloads());
 }

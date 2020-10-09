@@ -156,6 +156,20 @@ class MoveGroupCommander(object):
         """
         self._g.set_start_state(conversions.msg_to_string(msg))
 
+    def get_current_state_bounded(self):
+        """ Get the current state of the robot bounded."""
+        s = RobotState()
+        c_str = self._g.get_current_state_bounded()
+        conversions.msg_from_string(s, c_str)
+        return s
+
+    def get_current_state(self):
+        """ Get the current state of the robot."""
+        s = RobotState()
+        c_str = self._g.get_current_state()
+        conversions.msg_from_string(s, c_str)
+        return s
+
     def get_joint_value_target(self):
         return self._g.get_joint_value_target()
 
