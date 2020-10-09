@@ -244,7 +244,6 @@ class MoveGroupCommander(object):
         else:
             raise MoveItCommanderException("Unsupported argument of type %s" % type(arg1))
 
-
     def set_rpy_target(self, rpy, end_effector_link=""):
         """ Specify a target orientation for the end-effector. Any position of the end-effector is acceptable."""
         if len(end_effector_link) > 0 or self.has_end_effector_link():
@@ -624,3 +623,9 @@ class MoveGroupCommander(object):
         """ Get the jacobian matrix of the group as a list"""
         return self._g.get_jacobian_matrix(joint_values, [0.0, 0.0, 0.0] if reference_point is None else reference_point)
 
+    def enforce_bounds(self, robot_state_msg):
+        """ Takes a moveit_msgs RobotState and enforces the state bounds, based on the C++ RobotState enforceBounds() """
+        s = RobotState()
+        c_str = self._g.enforce_bounds(conversions.msg_to_string(robot_state_msg))
+        conversions.msg_from_string(s, c_str)
+        return s
