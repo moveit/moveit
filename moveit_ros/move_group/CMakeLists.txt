@@ -97,4 +97,5 @@ if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
   # this test is flaky
   # add_rostest(test/test_cancel_before_plan_execution.test)
+  add_rostest(test/test_check_state_validity_in_empty_scene.test)
 endif()
