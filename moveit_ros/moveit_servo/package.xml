@@ -21,14 +21,16 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>control_msgs</depend>
+  <depend>control_toolbox</depend>
   <depend>geometry_msgs</depend>
-  <depend>sensor_msgs</depend>
-  <depend>std_msgs</depend>
-  <depend>std_srvs</depend>
-  <depend>trajectory_msgs</depend>
   <depend>moveit_msgs</depend>
   <depend>moveit_ros_planning_interface</depend>
   <depend>rosparam_shortcuts</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>tf2_eigen</depend>
+  <depend>trajectory_msgs</depend>
 
   <exec_depend>joy_teleop</exec_depend>
   <exec_depend>spacenav_node</exec_depend>

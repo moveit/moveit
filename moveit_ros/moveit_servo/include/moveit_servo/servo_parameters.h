@@ -52,6 +52,7 @@ struct ServoParameters
   std::string robot_link_command_frame;
   std::string command_out_topic;
   std::string planning_frame;
+  std::string ee_frame_name;
   std::string status_topic;
   std::string joint_command_in_topic;
   std::string command_in_type;

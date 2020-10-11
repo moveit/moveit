@@ -39,6 +39,9 @@
 #pragma once
 
 // ROS
+#include <control_msgs/JointJog.h>
+#include <geometry_msgs/TwistStamped.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit_msgs/ChangeDriftDimensions.h>
@@ -47,8 +50,7 @@
 #include <std_msgs/Float64.h>
 #include <std_msgs/Int8.h>
 #include <std_srvs/Empty.h>
-#include <control_msgs/JointJog.h>
-#include <geometry_msgs/TwistStamped.h>
+#include <tf2_eigen/tf2_eigen.h>
 #include <trajectory_msgs/JointTrajectory.h>
 
 // moveit_servo
@@ -62,9 +64,9 @@ namespace moveit_servo
 class ServoCalcs
 {
 public:
-  ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
+  ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
              const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-             const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber);
+             const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber, std::string& ros_namespace);
 
   ~ServoCalcs()
   {
@@ -82,9 +84,25 @@ public:
    * @return true if a valid transform was available
    */
   bool getCommandFrameTransform(Eigen::Isometry3d& transform);
+  bool getCommandFrameTransform(geometry_msgs::TransformStamped& transform);
+
+  /**
+   * Get the End Effector link transform.
+   * The transform from the MoveIt planning frame to EE link
+   *
+   * @param transform the transform that will be calculated
+   * @return true if a valid transform was available
+   */
+  bool getEEFrameTransform(Eigen::Isometry3d& transform);
+  bool getEEFrameTransform(geometry_msgs::TransformStamped& transform);
 
   /** \brief Pause or unpause processing servo commands while keeping the timers alive */
   void setPaused(bool paused);
+
+  /** \brief Change the controlled link. Often, this is the end effector
+   * This must be a link on the robot since MoveIt tracks the transform (not tf)
+   */
+  void changeRobotLinkCommandFrame(const std::string& new_command_frame);
 
 private:
   /** \brief Timer method */
@@ -197,7 +215,7 @@ private:
   ros::NodeHandle nh_;
 
   // Parameters from yaml
-  const ServoParameters& parameters_;
+  ServoParameters& parameters_;
 
   // Pointer to the collision environment
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
@@ -282,6 +300,7 @@ private:
   // latest_state_mutex_ is used to protect the state below it
   mutable std::mutex latest_state_mutex_;
   Eigen::Isometry3d tf_moveit_to_robot_cmd_frame_;
+  Eigen::Isometry3d tf_moveit_to_ee_frame_;
   geometry_msgs::TwistStampedConstPtr latest_twist_stamped_;
   control_msgs::JointJogConstPtr latest_joint_cmd_;
   ros::Time latest_twist_command_stamp_ = ros::Time(0.);
