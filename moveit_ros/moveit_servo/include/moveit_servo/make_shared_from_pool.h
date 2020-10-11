@@ -38,6 +38,7 @@
 
 #pragma once
 
+#include <boost/make_shared.hpp>
 #include <boost/pool/pool_alloc.hpp>
 
 namespace moveit

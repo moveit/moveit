@@ -59,6 +59,13 @@ class ServoFixture : public ::testing::Test
 public:
   void SetUp() override
   {
+    // Wait for several key topics / parameters
+    ros::topic::waitForMessage<sensor_msgs::JointState>("/joint_states");
+    while (!nh_.hasParam("/robot_description") && ros::ok())
+    {
+      ros::Duration(0.1).sleep();
+    }
+
     // Load the planning scene monitor
     planning_scene_monitor_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
     planning_scene_monitor_->startSceneMonitor();

@@ -45,8 +45,9 @@ static const std::string LOGNAME = "servo_node";
 
 namespace moveit_servo
 {
-Servo::Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
-  : nh_(nh), planning_scene_monitor_(planning_scene_monitor)
+Servo::Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
+             const std::string& parameter_ns)
+  : nh_(nh), planning_scene_monitor_(planning_scene_monitor), parameter_ns_(parameter_ns)
 {
   // Read ROS parameters, typically from YAML file
   if (!readParameters())
@@ -54,7 +55,8 @@ Servo::Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMon
 
   joint_state_subscriber_ = std::make_shared<JointStateSubscriber>(nh_, parameters_.joint_topic);
 
-  servo_calcs_ = std::make_unique<ServoCalcs>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber_);
+  servo_calcs_ =
+      std::make_unique<ServoCalcs>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber_, parameter_ns_);
 
   collision_checker_ =
       std::make_unique<CollisionCheck>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber_);
@@ -65,67 +67,67 @@ bool Servo::readParameters()
 {
   std::size_t error = 0;
 
-  // Specified in the launch file. All other parameters will be read from this namespace.
-  std::string parameter_ns;
-  ros::param::get("~parameter_ns", parameter_ns);
-  if (parameter_ns.empty())
+  // Check for parameter namespace from launch file. All other parameters will be read from this namespace.
+  std::string yaml_namespace;
+  if (ros::param::get("~parameter_ns", yaml_namespace))
   {
-    ROS_ERROR_STREAM_NAMED(LOGNAME, "A namespace must be specified in the launch file, like:");
-    ROS_ERROR_STREAM_NAMED(LOGNAME, "<param name=\"parameter_ns\" "
-                                    "type=\"string\" "
-                                    "value=\"left_servo_server\" />");
-    return false;
+    if (!parameter_ns_.empty())
+      ROS_WARN_STREAM_NAMED(LOGNAME,
+                            "A parameter namespace was specified in the launch file AND in the constructor argument.");
+
+    parameter_ns_ = yaml_namespace;
   }
 
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/publish_period", parameters_.publish_period);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/collision_check_rate", parameters_.collision_check_rate);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/num_outgoing_halt_msgs_to_publish",
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/publish_period", parameters_.publish_period);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/collision_check_rate", parameters_.collision_check_rate);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/num_outgoing_halt_msgs_to_publish",
                                     parameters_.num_outgoing_halt_msgs_to_publish);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/scale/linear", parameters_.linear_scale);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/scale/rotational", parameters_.rotational_scale);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/scale/joint", parameters_.joint_scale);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/scale/linear", parameters_.linear_scale);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/scale/rotational", parameters_.rotational_scale);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/scale/joint", parameters_.joint_scale);
   error +=
-      !rosparam_shortcuts::get("", nh_, parameter_ns + "/low_pass_filter_coeff", parameters_.low_pass_filter_coeff);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/joint_topic", parameters_.joint_topic);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/command_in_type", parameters_.command_in_type);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/cartesian_command_in_topic",
+      !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/low_pass_filter_coeff", parameters_.low_pass_filter_coeff);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/joint_topic", parameters_.joint_topic);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/command_in_type", parameters_.command_in_type);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/cartesian_command_in_topic",
                                     parameters_.cartesian_command_in_topic);
   error +=
-      !rosparam_shortcuts::get("", nh_, parameter_ns + "/joint_command_in_topic", parameters_.joint_command_in_topic);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/robot_link_command_frame",
+      !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/joint_command_in_topic", parameters_.joint_command_in_topic);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/robot_link_command_frame",
                                     parameters_.robot_link_command_frame);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/incoming_command_timeout",
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/incoming_command_timeout",
                                     parameters_.incoming_command_timeout);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/lower_singularity_threshold",
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/lower_singularity_threshold",
                                     parameters_.lower_singularity_threshold);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/hard_stop_singularity_threshold",
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/hard_stop_singularity_threshold",
                                     parameters_.hard_stop_singularity_threshold);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/move_group_name", parameters_.move_group_name);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/planning_frame", parameters_.planning_frame);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/use_gazebo", parameters_.use_gazebo);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/joint_limit_margin", parameters_.joint_limit_margin);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/command_out_topic", parameters_.command_out_topic);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/command_out_type", parameters_.command_out_type);
-  error +=
-      !rosparam_shortcuts::get("", nh_, parameter_ns + "/publish_joint_positions", parameters_.publish_joint_positions);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/publish_joint_velocities",
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/move_group_name", parameters_.move_group_name);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/planning_frame", parameters_.planning_frame);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/ee_frame_name", parameters_.ee_frame_name);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/use_gazebo", parameters_.use_gazebo);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/joint_limit_margin", parameters_.joint_limit_margin);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/command_out_topic", parameters_.command_out_topic);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/command_out_type", parameters_.command_out_type);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/publish_joint_positions",
+                                    parameters_.publish_joint_positions);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/publish_joint_velocities",
                                     parameters_.publish_joint_velocities);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/publish_joint_accelerations",
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/publish_joint_accelerations",
                                     parameters_.publish_joint_accelerations);
 
   // Parameters for collision checking
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/check_collisions", parameters_.check_collisions);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/collision_check_type", parameters_.collision_check_type);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/check_collisions", parameters_.check_collisions);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/collision_check_type", parameters_.collision_check_type);
   bool have_self_collision_proximity_threshold = rosparam_shortcuts::get(
-      "", nh_, parameter_ns + "/self_collision_proximity_threshold", parameters_.self_collision_proximity_threshold);
+      "", nh_, parameter_ns_ + "/self_collision_proximity_threshold", parameters_.self_collision_proximity_threshold);
   bool have_scene_collision_proximity_threshold = rosparam_shortcuts::get(
-      "", nh_, parameter_ns + "/scene_collision_proximity_threshold", parameters_.scene_collision_proximity_threshold);
+      "", nh_, parameter_ns_ + "/scene_collision_proximity_threshold", parameters_.scene_collision_proximity_threshold);
   double collision_proximity_threshold;
   // 'collision_proximity_threshold' parameter was removed, replaced with separate self- and scene-collision proximity
   // thresholds
   // TODO(JStech): remove this deprecation warning in ROS Noetic; simplify error case handling
-  if (nh_.hasParam(parameter_ns + "/collision_proximity_threshold") &&
-      rosparam_shortcuts::get("", nh_, parameter_ns + "/collision_proximity_threshold", collision_proximity_threshold))
+  if (nh_.hasParam(parameter_ns_ + "/collision_proximity_threshold") &&
+      rosparam_shortcuts::get("", nh_, parameter_ns_ + "/collision_proximity_threshold", collision_proximity_threshold))
   {
     ROS_WARN_NAMED(LOGNAME, "'collision_proximity_threshold' parameter is deprecated, and has been replaced by separate"
                             "'self_collision_proximity_threshold' and 'scene_collision_proximity_threshold' "
@@ -143,22 +145,22 @@ bool Servo::readParameters()
   }
   error += !have_self_collision_proximity_threshold;
   error += !have_scene_collision_proximity_threshold;
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/collision_distance_safety_factor",
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/collision_distance_safety_factor",
                                     parameters_.collision_distance_safety_factor);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/min_allowable_collision_distance",
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/min_allowable_collision_distance",
                                     parameters_.min_allowable_collision_distance);
 
   // This parameter name was changed recently.
   // Try retrieving from the correct name. If it fails, then try the deprecated name.
   // TODO(andyz): remove this deprecation warning in ROS Noetic
-  if (!rosparam_shortcuts::get("", nh_, parameter_ns + "/status_topic", parameters_.status_topic))
+  if (!rosparam_shortcuts::get("", nh_, parameter_ns_ + "/status_topic", parameters_.status_topic))
   {
     ROS_WARN_NAMED(LOGNAME, "'status_topic' parameter is missing. Recently renamed from 'warning_topic'. Please update "
                             "the servoing yaml file.");
-    error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/warning_topic", parameters_.status_topic);
+    error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/warning_topic", parameters_.status_topic);
   }
 
-  rosparam_shortcuts::shutdownIfError(parameter_ns, error);
+  rosparam_shortcuts::shutdownIfError(parameter_ns_, error);
 
   // Input checking
   if (parameters_.publish_period <= 0.)
@@ -300,6 +302,21 @@ void Servo::setPaused(bool paused)
 bool Servo::getCommandFrameTransform(Eigen::Isometry3d& transform)
 {
   return servo_calcs_->getCommandFrameTransform(transform);
+}
+
+bool Servo::getCommandFrameTransform(geometry_msgs::TransformStamped& transform)
+{
+  return servo_calcs_->getEEFrameTransform(transform);
+}
+
+bool Servo::getEEFrameTransform(Eigen::Isometry3d& transform)
+{
+  return servo_calcs_->getEEFrameTransform(transform);
+}
+
+bool Servo::getEEFrameTransform(geometry_msgs::TransformStamped& transform)
+{
+  return servo_calcs_->getEEFrameTransform(transform);
 }
 
 const ServoParameters& Servo::getParameters() const

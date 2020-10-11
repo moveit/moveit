@@ -53,7 +53,8 @@ namespace moveit_servo
 class Servo
 {
 public:
-  Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
+  Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
+        const std::string& parameter_ns = "");
 
   ~Servo();
 
@@ -71,12 +72,31 @@ public:
    * @return true if a valid transform was available
    */
   bool getCommandFrameTransform(Eigen::Isometry3d& transform);
+  bool getCommandFrameTransform(geometry_msgs::TransformStamped& transform);
+
+  /**
+   * Get the End Effector link transform.
+   * The transform from the MoveIt planning frame to EE link
+   *
+   * @param transform the transform that will be calculated
+   * @return true if a valid transform was available
+   */
+  bool getEEFrameTransform(Eigen::Isometry3d& transform);
+  bool getEEFrameTransform(geometry_msgs::TransformStamped& transform);
 
   /** \brief Get the parameters used by servo node. */
   const ServoParameters& getParameters() const;
 
   /** \brief Get the latest joint state. */
   sensor_msgs::JointStateConstPtr getLatestJointState() const;
+
+  /** \brief Change the controlled link. Often, this is the end effector
+   * This must be a link on the robot since MoveIt tracks the transform (not tf)
+   */
+  void changeRobotLinkCommandFrame(const std::string& new_command_frame)
+  {
+    servo_calcs_->changeRobotLinkCommandFrame(new_command_frame);
+  }
 
 private:
   bool readParameters();
@@ -92,6 +112,9 @@ private:
   std::shared_ptr<JointStateSubscriber> joint_state_subscriber_;
   std::unique_ptr<ServoCalcs> servo_calcs_;
   std::unique_ptr<CollisionCheck> collision_checker_;
+
+  // Read parameters from this namespace
+  std::string parameter_ns_;
 };
 
 // ServoPtr using alias

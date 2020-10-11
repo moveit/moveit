@@ -49,9 +49,15 @@ JointStateSubscriber::JointStateSubscriber(ros::NodeHandle& nh, const std::strin
   // subscribe to joints
   joint_state_sub_ = nh.subscribe(joint_state_topic_name, ROS_QUEUE_SIZE, &JointStateSubscriber::jointStateCB, this);
 
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
+
   // Wait for initial messages
   ROS_INFO_NAMED(LOGNAME, "Waiting for first joint msg.");
-  ros::topic::waitForMessage<sensor_msgs::JointState>(joint_state_topic_name);
+  while (latest_joint_state_ == nullptr)
+  {
+    ros::Duration(0.01).sleep();
+  }
   ROS_INFO_NAMED(LOGNAME, "Received first joint msg.");
 }
 
