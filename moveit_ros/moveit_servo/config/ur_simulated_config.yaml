@@ -4,7 +4,6 @@
 use_gazebo: true # Whether the robot is started in a Gazebo simulation environment
 
 ## Properties of incoming commands
-robot_link_command_frame:  world  # commands must be given in the frame of a robot link. Usually either the base or end effector
 command_in_type: "speed_units" # "unitless"> in the range [-1:1], as if from joystick. "speed_units"> cmds are in m/s and rad/s
 scale:
   # Scale parameters are only used if command_in_type=="unitless"
@@ -30,6 +29,10 @@ publish_joint_accelerations: false
 ## MoveIt properties
 move_group_name:  manipulator  # Often 'manipulator' or 'arm'
 planning_frame: world  # The MoveIt planning frame. Often 'base_link' or 'world'
+
+## Other frames
+ee_frame_name: ee_link  # The name of the end effector link, used to return the EE pose
+robot_link_command_frame:  world  # commands must be given in the frame of a robot link. Usually either the base or end effector
 
 ## Stopping behaviour
 incoming_command_timeout:  0.1  # Stop servoing if X seconds elapse without a new command

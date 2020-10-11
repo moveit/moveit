@@ -69,12 +69,24 @@ bool isNonZero(const control_msgs::JointJog& msg)
   };
   return !all_zeros;
 }
+
+// Helper function for converting Eigen::Isometry3d to geometry_msgs/TransformStamped
+geometry_msgs::TransformStamped convertIsometryToTransform(const Eigen::Isometry3d& eigen_tf,
+                                                           const std::string& parent_frame,
+                                                           const std::string& child_frame)
+{
+  geometry_msgs::TransformStamped output = tf2::eigenToTransform(eigen_tf);
+  output.header.frame_id = parent_frame;
+  output.child_frame_id = child_frame;
+
+  return output;
+}
 }  // namespace
 
 // Constructor for the class that handles servoing calculations
-ServoCalcs::ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
+ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
                        const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-                       const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber)
+                       const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber, std::string& ros_namespace)
   : nh_(nh)
   , parameters_(parameters)
   , planning_scene_monitor_(planning_scene_monitor)
@@ -102,18 +114,15 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
 
   // ROS Server for allowing drift in some dimensions
   drift_dimensions_server_ =
-      nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/change_drift_dimensions",
-                           &ServoCalcs::changeDriftDimensions, this);
+      nh_.advertiseService(ros_namespace + "/change_drift_dimensions", &ServoCalcs::changeDriftDimensions, this);
 
   // ROS Server for changing the control dimensions
   control_dimensions_server_ =
-      nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/change_control_dimensions",
-                           &ServoCalcs::changeControlDimensions, this);
+      nh_.advertiseService(ros_namespace + "/change_control_dimensions", &ServoCalcs::changeControlDimensions, this);
 
   // ROS Server to reset the status, e.g. so the arm can move again after a collision
   reset_servo_status_ =
-      nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/reset_servo_status",
-                           &ServoCalcs::resetServoStatus, this);
+      nh_.advertiseService(ros_namespace + "/reset_servo_status", &ServoCalcs::resetServoStatus, this);
 
   // Publish and Subscribe to internal namespace topics
   ros::NodeHandle internal_nh("~internal");
@@ -147,6 +156,12 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
   {
     position_filters_.emplace_back(parameters_.low_pass_filter_coeff);
   }
+
+  // A matrix of all zeros is used to check whether matrices have been initialized
+  Eigen::Matrix3d empty_matrix;
+  empty_matrix.setZero();
+  tf_moveit_to_ee_frame_ = empty_matrix;
+  tf_moveit_to_robot_cmd_frame_ = empty_matrix;
 }
 
 void ServoCalcs::start()
@@ -180,6 +195,15 @@ void ServoCalcs::start()
   last_sent_command_ = initial_joint_trajectory;
 
   timer_ = nh_.createTimer(period_, &ServoCalcs::run, this);
+
+  // TODO(adamp or andyz): after rebasing on upstream master, update this section. Maybe put the tf updates in a tiny
+  // function by themselves
+  sensor_msgs::JointStateConstPtr latest_joint_state = joint_state_subscriber_->getLatest();
+  kinematic_state_->setVariableValues(*latest_joint_state);
+  tf_moveit_to_ee_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
+                           kinematic_state_->getGlobalLinkTransform(parameters_.ee_frame_name);
+  tf_moveit_to_robot_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
+                                  kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
 }
 
 void ServoCalcs::run(const ros::TimerEvent& timer_event)
@@ -231,6 +255,11 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
   // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
   tf_moveit_to_robot_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
                                   kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
+
+  // Calculate the transform from MoveIt planning frame to End Effector frame
+  // Calculate this transform to ensure it is available via C++ API
+  tf_moveit_to_ee_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
+                           kinematic_state_->getGlobalLinkTransform(parameters_.ee_frame_name);
 
   have_nonzero_command_ = have_nonzero_twist_stamped_ || have_nonzero_joint_command_;
 
@@ -402,6 +431,12 @@ bool ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
     {
       translation_vector = tf_moveit_to_robot_cmd_frame_.linear() * translation_vector;
       angular_vector = tf_moveit_to_robot_cmd_frame_.linear() * angular_vector;
+    }
+    else if (cmd.header.frame_id == parameters_.ee_frame_name)
+    {
+      // If the frame is the EE frame, we already have that transform as well
+      translation_vector = tf_moveit_to_ee_frame_.linear() * translation_vector;
+      angular_vector = tf_moveit_to_ee_frame_.linear() * angular_vector;
     }
     else
     {
@@ -982,6 +1017,42 @@ bool ServoCalcs::getCommandFrameTransform(Eigen::Isometry3d& transform)
   return !transform.matrix().isZero(0);
 }
 
+bool ServoCalcs::getCommandFrameTransform(geometry_msgs::TransformStamped& transform)
+{
+  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
+  // All zeros means the transform wasn't initialized, so return false
+  if (tf_moveit_to_robot_cmd_frame_.matrix().isZero(0))
+  {
+    return false;
+  }
+
+  transform = convertIsometryToTransform(tf_moveit_to_robot_cmd_frame_, parameters_.planning_frame,
+                                         parameters_.robot_link_command_frame);
+  return true;
+}
+
+bool ServoCalcs::getEEFrameTransform(Eigen::Isometry3d& transform)
+{
+  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
+  transform = tf_moveit_to_ee_frame_;
+
+  // All zeros means the transform wasn't initialized, so return false
+  return !transform.matrix().isZero(0);
+}
+
+bool ServoCalcs::getEEFrameTransform(geometry_msgs::TransformStamped& transform)
+{
+  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
+  // All zeros means the transform wasn't initialized, so return false
+  if (tf_moveit_to_ee_frame_.matrix().isZero(0))
+  {
+    return false;
+  }
+
+  transform = convertIsometryToTransform(tf_moveit_to_ee_frame_, parameters_.planning_frame, parameters_.ee_frame_name);
+  return true;
+}
+
 void ServoCalcs::twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg)
 {
   const std::lock_guard<std::mutex> lock(latest_state_mutex_);
@@ -1044,6 +1115,11 @@ bool ServoCalcs::resetServoStatus(std_srvs::Empty::Request& /*req*/, std_srvs::E
 void ServoCalcs::setPaused(bool paused)
 {
   paused_ = paused;
+}
+
+void ServoCalcs::changeRobotLinkCommandFrame(const std::string& new_command_frame)
+{
+  parameters_.robot_link_command_frame = new_command_frame;
 }
 
 }  // namespace moveit_servo
