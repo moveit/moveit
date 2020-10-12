@@ -3,5 +3,5 @@
 		<arg name="use_rviz" value="false"/>
 	</include>
 
-	<test test-name="cancel_before_plan_execution" pkg="moveit_ros_move_group" type="test_cancel_before_plan_execution.py"/>
+	<test test-name="check_state_validity_in_empty_scene" pkg="moveit_ros_move_group" type="test_check_state_validity_in_empty_scene.py"/>
 </launch>
