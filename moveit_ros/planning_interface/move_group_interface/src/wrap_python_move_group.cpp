@@ -467,10 +467,9 @@ public:
   py_bindings_tools::ByteString getPlanPython()
   {
     MoveGroupInterface::Plan plan;
-    moveit_msgs::MoveItErrorCodes res;
     {
       GILReleaser gr;
-      res = MoveGroupInterface::plan(plan);
+      MoveGroupInterface::plan(plan);
     }
     return py_bindings_tools::serializeMsg(plan.trajectory_);
   }
