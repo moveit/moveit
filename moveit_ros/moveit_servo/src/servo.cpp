@@ -45,9 +45,8 @@ static const std::string LOGNAME = "servo_node";
 
 namespace moveit_servo
 {
-Servo::Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-             const std::string& parameter_ns)
-  : nh_(nh), planning_scene_monitor_(planning_scene_monitor), parameter_ns_(parameter_ns)
+Servo::Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
+  : nh_(nh), planning_scene_monitor_(planning_scene_monitor)
 {
   // Read ROS parameters, typically from YAML file
   if (!readParameters())
@@ -64,8 +63,7 @@ Servo::Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMon
   ros::NodeHandle nh_parent_ns = ros::NodeHandle("");
   joint_state_subscriber_ = std::make_shared<JointStateSubscriber>(nh_parent_ns, parameters_.joint_topic);
 
-  servo_calcs_ =
-      std::make_unique<ServoCalcs>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber_, parameter_ns_);
+  servo_calcs_ = std::make_unique<ServoCalcs>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber_);
 
   collision_checker_ =
       std::make_unique<CollisionCheck>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber_);
@@ -121,7 +119,7 @@ bool Servo::readParameters()
       LOGNAME, nh, "self_collision_proximity_threshold", parameters_.self_collision_proximity_threshold);
   bool have_scene_collision_proximity_threshold = rosparam_shortcuts::get(
       LOGNAME, nh, "scene_collision_proximity_threshold", parameters_.scene_collision_proximity_threshold);
-  
+
   double collision_proximity_threshold;
   // 'collision_proximity_threshold' parameter was removed, replaced with separate self- and scene-collision proximity
   // thresholds
