@@ -59,13 +59,16 @@ public:
   /** \brief Release the GIL on construction  */
   GILReleaser() noexcept
   {
-    m_thread_state = nullptr;
-    release();
+    m_thread_state = PyEval_SaveThread();
   }
   /** \brief Reacquire the GIL on destruction  */
   ~GILReleaser() noexcept
   {
-    reacquire();
+    if (m_thread_state)
+    {
+      PyEval_RestoreThread(m_thread_state);
+      m_thread_state = nullptr;
+    }
   }
 
   GILReleaser(const GILReleaser&) = delete;
@@ -86,24 +89,6 @@ public:
   void swap(GILReleaser& other) noexcept
   {
     std::swap(other.m_thread_state, m_thread_state);
-  }
-
-  /** \brief Reacquire the GIL, noop if already acquired */
-  void reacquire() noexcept
-  {
-    if (m_thread_state)
-    {
-      PyEval_RestoreThread(m_thread_state);
-      m_thread_state = nullptr;
-    }
-  }
-  /** \brief Release the GIL (again), noop if already released */
-  void release() noexcept
-  {
-    if (!m_thread_state)
-    {
-      m_thread_state = PyEval_SaveThread();
-    }
   }
 };
 
