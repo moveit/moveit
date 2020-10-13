@@ -107,7 +107,4 @@ class PythonMsgSerializeTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    import rostest
-    PKGNAME = 'moveit_ros_planning_interface'
-    NODENAME = 'moveit_test_message_serialisation'
-    rostest.rosrun(PKGNAME, NODENAME, PythonMsgSerializeTest)
+    unittest.main()
