@@ -125,7 +125,7 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
                                              &ServoCalcs::resetServoStatus, this);
 
   // Publish and Subscribe to internal namespace topics
-  ros::NodeHandle internal_nh("~internal");
+  ros::NodeHandle internal_nh(nh_, "internal");
   collision_velocity_scale_sub_ =
       internal_nh.subscribe("collision_velocity_scale", ROS_QUEUE_SIZE, &ServoCalcs::collisionVelocityScaleCB, this);
   worst_case_stop_time_pub_ = internal_nh.advertise<std_msgs::Float64>("worst_case_stop_time", ROS_QUEUE_SIZE);
