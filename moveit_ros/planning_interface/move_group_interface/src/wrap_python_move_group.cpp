@@ -458,10 +458,12 @@ public:
 
   bp::tuple planPython()
   {
-    GILReleaser gr;
     MoveGroupInterface::Plan plan;
-    moveit_msgs::MoveItErrorCodes res = MoveGroupInterface::plan(plan);
-    gr.reacquire();
+    moveit_msgs::MoveItErrorCodes res;
+    {
+      GILReleaser gr;
+      res = MoveGroupInterface::plan(plan);
+    }
     return bp::make_tuple(py_bindings_tools::serializeMsg(res), py_bindings_tools::serializeMsg(plan.trajectory_),
                           plan.planning_time_);
   }
@@ -488,10 +490,11 @@ public:
     std::vector<geometry_msgs::Pose> poses;
     convertListToArrayOfPoses(waypoints, poses);
     moveit_msgs::RobotTrajectory trajectory;
-    GILReleaser gr;
-    double fraction =
-        computeCartesianPath(poses, eef_step, jump_threshold, trajectory, path_constraints, avoid_collisions);
-    gr.reacquire();
+    double fraction;
+    {
+      GILReleaser gr;
+      fraction = computeCartesianPath(poses, eef_step, jump_threshold, trajectory, path_constraints, avoid_collisions);
+    }
     return bp::make_tuple(py_bindings_tools::serializeMsg(trajectory), fraction);
   }
 
@@ -540,36 +543,39 @@ public:
       // Convert trajectory message to object
       moveit_msgs::RobotTrajectory traj_msg;
       py_bindings_tools::deserializeMsg(traj_str, traj_msg);
-      GILReleaser gr;
-      robot_trajectory::RobotTrajectory traj_obj(getRobotModel(), getName());
-      traj_obj.setRobotTrajectoryMsg(ref_state_obj, traj_msg);
+      bool algorithm_found = true;
+      {
+        GILReleaser gr;
+        robot_trajectory::RobotTrajectory traj_obj(getRobotModel(), getName());
+        traj_obj.setRobotTrajectoryMsg(ref_state_obj, traj_msg);
 
-      // Do the actual retiming
-      if (algorithm == "iterative_time_parameterization")
-      {
-        trajectory_processing::IterativeParabolicTimeParameterization time_param;
-        time_param.computeTimeStamps(traj_obj, velocity_scaling_factor, acceleration_scaling_factor);
-      }
-      else if (algorithm == "iterative_spline_parameterization")
-      {
-        trajectory_processing::IterativeSplineParameterization time_param;
-        time_param.computeTimeStamps(traj_obj, velocity_scaling_factor, acceleration_scaling_factor);
-      }
-      else if (algorithm == "time_optimal_trajectory_generation")
-      {
-        trajectory_processing::TimeOptimalTrajectoryGeneration time_param;
-        time_param.computeTimeStamps(traj_obj, velocity_scaling_factor, acceleration_scaling_factor);
-      }
-      else
-      {
-        ROS_ERROR_STREAM_NAMED("move_group_py", "Unknown time parameterization algorithm: " << algorithm);
-        gr.reacquire();
-        return py_bindings_tools::serializeMsg(moveit_msgs::RobotTrajectory());
-      }
+        // Do the actual retiming
+        if (algorithm == "iterative_time_parameterization")
+        {
+          trajectory_processing::IterativeParabolicTimeParameterization time_param;
+          time_param.computeTimeStamps(traj_obj, velocity_scaling_factor, acceleration_scaling_factor);
+        }
+        else if (algorithm == "iterative_spline_parameterization")
+        {
+          trajectory_processing::IterativeSplineParameterization time_param;
+          time_param.computeTimeStamps(traj_obj, velocity_scaling_factor, acceleration_scaling_factor);
+        }
+        else if (algorithm == "time_optimal_trajectory_generation")
+        {
+          trajectory_processing::TimeOptimalTrajectoryGeneration time_param;
+          time_param.computeTimeStamps(traj_obj, velocity_scaling_factor, acceleration_scaling_factor);
+        }
+        else
+        {
+          ROS_ERROR_STREAM_NAMED("move_group_py", "Unknown time parameterization algorithm: " << algorithm);
+          algorithm_found = false;
+          traj_msg = moveit_msgs::RobotTrajectory();
+        }
 
-      // Convert the retimed trajectory back into a message
-      traj_obj.getRobotTrajectoryMsg(traj_msg);
-      gr.reacquire();
+        if (algorithm_found)
+          // Convert the retimed trajectory back into a message
+          traj_obj.getRobotTrajectoryMsg(traj_msg);
+      }
       return py_bindings_tools::serializeMsg(traj_msg);
     }
     else
