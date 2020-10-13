@@ -104,6 +104,7 @@ bool Servo::readParameters()
                                     parameters_.hard_stop_singularity_threshold);
   error += !rosparam_shortcuts::get(LOGNAME, nh, "move_group_name", parameters_.move_group_name);
   error += !rosparam_shortcuts::get(LOGNAME, nh, "planning_frame", parameters_.planning_frame);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "ee_frame_name", parameters_.ee_frame_name);
   error += !rosparam_shortcuts::get(LOGNAME, nh, "use_gazebo", parameters_.use_gazebo);
   error += !rosparam_shortcuts::get(LOGNAME, nh, "joint_limit_margin", parameters_.joint_limit_margin);
   error += !rosparam_shortcuts::get(LOGNAME, nh, "command_out_topic", parameters_.command_out_topic);
