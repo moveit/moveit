@@ -110,9 +110,7 @@ public:
   bool compareVectorTuple(const bp::tuple& t)
   {
     const ByteString s(t[0]);
-    geometry_msgs::Vector3 v;
-    s.deserialize(v);
-    return v.x == 1.0 && v.y == -2.0 && v.z == 0.25;
+    return compareVector(s);
   }
 
   static void setup()
@@ -127,7 +125,6 @@ public:
     cls.def("getTuple", &ByteStringTestHelper::getTuple);
     cls.def("getVector", &ByteStringTestHelper::getVector);
     cls.def("compareVector", &ByteStringTestHelper::compareVector);
-    cls.def("compareVectorTuple", &ByteStringTestHelper::compareVectorTuple);
   }
 };
 
