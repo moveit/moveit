@@ -68,7 +68,6 @@ add_library(${SERVO_LIB_NAME}
   src/collision_check.cpp
   src/servo_calcs.cpp
   src/servo.cpp
-  src/joint_state_subscriber.cpp
   src/low_pass_filter.cpp
 )
 set_target_properties(${SERVO_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
