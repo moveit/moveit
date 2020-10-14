@@ -16,7 +16,9 @@
   <arg name="allow_trajectory_execution" default="true"/>
   <arg name="fake_execution" default="false"/>
   <arg name="max_safe_path_cost" default="1"/>
-  <arg name="jiggle_fraction" default="0.05" />
+  <arg name="jiggle_fraction" default="0.02" />  <!--  Maximum joint space movement allowed in FixStartStateCollision adapter (as a ratio of joint range) -->
+  <!-- [m] Maximum Cartesian distance any link is allowed to be displaced by the FixStartStateCollision adapter -->
+  <arg name="max_jiggle_distance" default="0.02" />
   <arg name="publish_monitored_planning_scene" default="true"/>
 
   <arg name="capabilities" default=""/>
@@ -68,6 +70,7 @@
     <param name="allow_trajectory_execution" value="$(arg allow_trajectory_execution)"/>
     <param name="max_safe_path_cost" value="$(arg max_safe_path_cost)"/>
     <param name="jiggle_fraction" value="$(arg jiggle_fraction)" />
+    <param name="max_jiggle_distance" value="$(arg max_jiggle_distance)" />
     <param name="capabilities" value="$(arg capabilities)"/>
     <param name="disable_capabilities" value="$(arg disable_capabilities)"/>
 
