@@ -342,6 +342,14 @@ public:
     return output;
   }
 
+  py_bindings_tools::ByteString getCurrentStatePython()
+  {
+    moveit::core::RobotStatePtr current_state = getCurrentState();
+    moveit_msgs::RobotState state_message;
+    moveit::core::robotStateToRobotStateMsg(*current_state, state_message);
+    return py_bindings_tools::serializeMsg(state_message);
+  }
+
   void setStartStatePython(const py_bindings_tools::ByteString& msg_str)
   {
     moveit_msgs::RobotState msg;
@@ -602,6 +610,24 @@ public:
     state.setJointGroupPositions(group, v);
     return state.getJacobian(group, Eigen::Map<Eigen::Vector3d>(&ref[0]));
   }
+
+  py_bindings_tools::ByteString enforceBoundsPython(const py_bindings_tools::ByteString& msg_str)
+  {
+    moveit_msgs::RobotState state_msg;
+    py_bindings_tools::deserializeMsg(msg_str, state_msg);
+    moveit::core::RobotState state(getRobotModel());
+    if (moveit::core::robotStateMsgToRobotState(state_msg, state, true))
+    {
+      state.enforceBounds();
+      moveit::core::robotStateToRobotStateMsg(state, state_msg);
+      return py_bindings_tools::serializeMsg(state_msg);
+    }
+    else
+    {
+      ROS_ERROR("Unable to convert RobotState message to RobotState instance.");
+      return py_bindings_tools::ByteString("");
+    }
+  }
 };
 
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(getJacobianMatrixOverloads, getJacobianMatrixPython, 1, 2)
@@ -742,8 +768,10 @@ static void wrap_move_group_interface()
   move_group_interface_class.def("get_named_targets", &MoveGroupInterfaceWrapper::getNamedTargetsPython);
   move_group_interface_class.def("get_named_target_values", &MoveGroupInterfaceWrapper::getNamedTargetValuesPython);
   move_group_interface_class.def("get_current_state_bounded", &MoveGroupInterfaceWrapper::getCurrentStateBoundedPython);
+  move_group_interface_class.def("get_current_state", &MoveGroupInterfaceWrapper::getCurrentStatePython);
   move_group_interface_class.def("get_jacobian_matrix", &MoveGroupInterfaceWrapper::getJacobianMatrixPython,
                                  getJacobianMatrixOverloads());
+  move_group_interface_class.def("enforce_bounds", &MoveGroupInterfaceWrapper::enforceBoundsPython);
 }
 }  // namespace planning_interface
 }  // namespace moveit

@@ -35,10 +35,14 @@
 # Author: William Baker
 
 import unittest
+
+import genpy
 import numpy as np
 import rospy
 import rostest
 import os
+
+from moveit_msgs.msg import RobotState
 
 from moveit_commander import RobotCommander, PlanningSceneInterface
 
@@ -54,6 +58,31 @@ class PythonMoveitCommanderTest(unittest.TestCase):
     @classmethod
     def tearDown(self):
         pass
+
+    def test_enforce_bounds_empty_state(self):
+        in_msg = RobotState()
+        with self.assertRaises(genpy.DeserializationError):
+            self.group.enforce_bounds(in_msg)
+
+    def test_enforce_bounds(self):
+        in_msg = RobotState()
+        in_msg.joint_state.header.frame_id = 'base_link'
+        in_msg.joint_state.name = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
+        in_msg.joint_state.position = [0] * 6
+        in_msg.joint_state.position[0] = 1000
+
+        out_msg = self.group.enforce_bounds(in_msg)
+
+        self.assertEqual(in_msg.joint_state.position[0], 1000)
+        self.assertLess(out_msg.joint_state.position[0], 1000)
+
+    def test_get_current_state(self):
+        expected_state = RobotState()
+        expected_state.joint_state.header.frame_id = 'base_link'
+        expected_state.multi_dof_joint_state.header.frame_id = 'base_link'
+        expected_state.joint_state.name = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
+        expected_state.joint_state.position = [0] * 6
+        self.assertEqual(self.group.get_current_state(), expected_state)
 
     def check_target_setting(self, expect, *args):
         if len(args) == 0:
