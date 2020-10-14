@@ -155,6 +155,20 @@ class MoveGroupCommander(object):
         """
         self._g.set_start_state(conversions.msg_to_string(msg))
 
+    def get_current_state_bounded(self):
+        """ Get the current state of the robot bounded."""
+        s = RobotState()
+        c_str = self._g.get_current_state_bounded()
+        conversions.msg_from_string(s, c_str)
+        return s
+
+    def get_current_state(self):
+        """ Get the current state of the robot."""
+        s = RobotState()
+        c_str = self._g.get_current_state()
+        conversions.msg_from_string(s, c_str)
+        return s
+
     def get_joint_value_target(self):
         return self._g.get_joint_value_target()
 
@@ -229,8 +243,7 @@ class MoveGroupCommander(object):
         else:
             raise MoveItCommanderException("Unsupported argument of type %s" % type(arg1))
 
-
-    def set_rpy_target(self, rpy, end_effector_link = ""):
+    def set_rpy_target(self, rpy, end_effector_link=""):
         """ Specify a target orientation for the end-effector. Any position of the end-effector is acceptable."""
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             if len(rpy) == 3:
@@ -598,3 +611,9 @@ class MoveGroupCommander(object):
         """ Get the jacobian matrix of the group as a list"""
         return self._g.get_jacobian_matrix(joint_values, [0.0, 0.0, 0.0] if reference_point is None else reference_point)
 
+    def enforce_bounds(self, robot_state_msg):
+        """ Takes a moveit_msgs RobotState and enforces the state bounds, based on the C++ RobotState enforceBounds() """
+        s = RobotState()
+        c_str = self._g.enforce_bounds(conversions.msg_to_string(robot_state_msg))
+        conversions.msg_from_string(s, c_str)
+        return s
