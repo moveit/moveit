@@ -9,7 +9,7 @@
   <arg unless="$(eval rviz_config=='')" name="command_args" value="-d $(arg rviz_config)" />
 
   <node name="$(anon rviz)" launch-prefix="$(arg launch_prefix)" pkg="rviz" type="rviz" respawn="false"
-	args="$(arg command_args)" output="screen">
+        args="$(arg command_args)" output="screen">
   </node>
 
 </launch>
