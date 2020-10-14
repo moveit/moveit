@@ -52,14 +52,8 @@ Servo::Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMon
   if (!readParameters())
     exit(EXIT_FAILURE);
 
-  // By default joint topic name is relative to the node parent namespace. E.g. if the joint topic specified in the
-  // configuration files is "joint_states" and the node is launched in namespace "bar", which exists within
-  // namespace "foo", then the subscribed topic would be "/foo/bar/joint_states".
-  //
-  // Fully custom joint name topics can be used by using absolute topic names in config files. For example,
-  // joint topic parameter can be explicitly set to "/baz/my_joint_state_topic".
-  // **Note!** Make sure your planning scene monitor subscribes to correct joint states topic when using absolute
-  // joint state topic name *or* custom relative joint state topic name (for example, "my_joint_states").
+  // By default, joint topic name is relative to the node parent namespace. Fully custom joint name topics can be
+  // set by using absolute topic names in config files. For example, "/foo/my_joint_state_topic".
   ros::NodeHandle nh_parent_ns = ros::NodeHandle("");
   joint_state_subscriber_ = std::make_shared<JointStateSubscriber>(nh_parent_ns, parameters_.joint_topic);
 
