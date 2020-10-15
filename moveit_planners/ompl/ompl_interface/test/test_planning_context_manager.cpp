@@ -36,7 +36,7 @@
 
 /** Test the creation of a ModelBasedPlanningContext through the PlanningContextManager.
  *
- * The tests use a default robot state as start state, and then moves the last joint 0.1 radions/meters to create a
+ * The tests use a default robot state as start state, and then moves the last joint 0.1 radians/meters to create a
  * joint goal. This creates an extremely simple planning problem to test general mechanics of the interface.
  *
  * In the test with path constraints, we create an orientation constraint around the start orientation of the
@@ -129,7 +129,7 @@ public:
     tf::quaternionEigenToMsg(Eigen::Quaterniond(ee_pose.rotation()), ee_orientation);
     request.path_constraints.orientation_constraints.push_back(createOrientationConstraint(ee_orientation));
 
-    // TODO(jeroendm) As explained at the top of this file, path constraints don't work yet
+    // TODO(jeroendm) As explained at the top of this file, position path constraints don't work yet
     // request.path_constraints.position_constraints.push_back(createPositionConstraint(
     //     { ee_pose.translation().x(), ee_pose.translation().y(), ee_pose.translation().z() }, { 0.1, 0.1, 0.1 }));
 
