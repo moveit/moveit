@@ -211,8 +211,8 @@ void PoseTracking::readROSParams()
 void PoseTracking::initializePID(const PIDConfig& pid_config, std::vector<control_toolbox::Pid>& pid_vector)
 {
   bool use_anti_windup = true;
-  pid_vector.push_back(control_toolbox::Pid(pid_config.k_p, pid_config.k_i, pid_config.k_d, -pid_config.windup_limit,
-                                            pid_config.windup_limit, use_anti_windup));
+  pid_vector.push_back(control_toolbox::Pid(pid_config.k_p, pid_config.k_i, pid_config.k_d, pid_config.windup_limit,
+                                            -pid_config.windup_limit, use_anti_windup));
 }
 
 bool PoseTracking::haveRecentTargetPose(const double timespan)
