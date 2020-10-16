@@ -42,11 +42,12 @@ POSSIBILITY OF SUCH DAMAGE.
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 
   <arg name="debug" default="false"/>
-  <include file="$(find pilz_industrial_motion_planner)/test/test_robots/frankaemika_panda/launch/move_group.launch">
+  <include file="$(find moveit_resources_panda_moveit_config)/launch/move_group.launch">
     <arg name="allow_trajectory_execution" value="true"/>
     <arg name="fake_execution" value="true"/>
     <arg name="info" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
+    <arg name="pipeline" value="pilz_industrial_motion_planner" />
   </include>
 
   <!-- run test -->
