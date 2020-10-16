@@ -4,7 +4,7 @@
   <arg name="debug" default="false" />
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
   <arg     if="$(arg debug)" name="launch_prefix"
-	   value="gdb -x $(find [GENERATED_PACKAGE_NAME])/launch/gdb_settings.gdb --ex run --args" />
+           value="gdb -x $(find [GENERATED_PACKAGE_NAME])/launch/gdb_settings.gdb --ex run --args" />
 
   <!-- Verbose Mode Option -->
   <arg name="info" default="$(arg debug)" />

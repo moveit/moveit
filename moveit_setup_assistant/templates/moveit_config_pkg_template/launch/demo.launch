@@ -26,7 +26,7 @@
   <arg name="use_rviz" default="true" />
 
   <!-- If needed, broadcast static tf for robot root -->
-  [VIRTUAL_JOINT_BROADCASTER]
+[VIRTUAL_JOINT_BROADCASTER]
 
   <!-- We do not have a robot connected, so publish fake joint states -->
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" unless="$(arg use_gui)">
