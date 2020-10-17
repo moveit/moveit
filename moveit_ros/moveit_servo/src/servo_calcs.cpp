@@ -808,6 +808,8 @@ void ServoCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory)
   joint_trajectory.points.clear();
   joint_trajectory.points.emplace_back();
   trajectory_msgs::JointTrajectoryPoint& point = joint_trajectory.points.front();
+  point.time_from_start.fromNSec(1);
+
   point.positions.resize(num_joints_);
   point.velocities.resize(num_joints_);
 
