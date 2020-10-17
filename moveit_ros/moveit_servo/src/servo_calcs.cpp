@@ -361,7 +361,6 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
     // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
     if (parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
     {
-      joint_trajectory->header.stamp = ros::Time::now();
       outgoing_cmd_pub_.publish(joint_trajectory);
     }
     else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
@@ -595,7 +594,6 @@ void ServoCalcs::composeJointTrajMessage(const sensor_msgs::JointState& joint_st
                                          trajectory_msgs::JointTrajectory& joint_trajectory) const
 {
   joint_trajectory.header.frame_id = parameters_.planning_frame;
-  joint_trajectory.header.stamp = ros::Time::now();
   joint_trajectory.joint_names = joint_state.name;
 
   trajectory_msgs::JointTrajectoryPoint point;
