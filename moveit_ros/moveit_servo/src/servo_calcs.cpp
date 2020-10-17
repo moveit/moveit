@@ -170,7 +170,6 @@ void ServoCalcs::start()
   auto initial_joint_trajectory = moveit::util::make_shared_from_pool<trajectory_msgs::JointTrajectory>();
 
   initial_joint_trajectory->header.frame_id = parameters_.planning_frame;
-  initial_joint_trajectory->header.stamp = ros::Time::now();
   initial_joint_trajectory->joint_names = internal_joint_state_.name;
   trajectory_msgs::JointTrajectoryPoint point;
   point.time_from_start = ros::Duration(parameters_.publish_period);
