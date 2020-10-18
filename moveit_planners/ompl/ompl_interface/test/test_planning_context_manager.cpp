@@ -96,15 +96,14 @@ public:
 
     // see if it returns the expected planning context
     auto pc = pcm.getPlanningContext(planning_scene_, request, error_code, node_handle_, false);
-
+    // the planning context should have a simple setup created
     EXPECT_NE(pc->getOMPLSimpleSetup(), nullptr);
-    auto ss = dynamic_cast<ompl_interface::JointModelStateSpace*>(pc->getOMPLStateSpace().get());
-    EXPECT_NE(ss, nullptr);
+    // the OMPL state space in the planning context should be of type JointModelStateSpace
+    EXPECT_NE(dynamic_cast<ompl_interface::JointModelStateSpace*>(pc->getOMPLStateSpace().get()), nullptr);
 
     // solve the planning problem
     planning_interface::MotionPlanDetailedResponse res;
-    bool success = pc->solve(res);
-    EXPECT_TRUE(success);
+    ASSERT_TRUE(pc->solve(res));
   }
 
   void testPathConstraints(const std::vector<double>& start, const std::vector<double>& goal)
@@ -148,8 +147,7 @@ public:
     EXPECT_NE(ss, nullptr);
 
     planning_interface::MotionPlanDetailedResponse res;
-    bool success = pc->solve(res);
-    EXPECT_TRUE(success);
+    ASSERT_TRUE(pc->solve(res));
   }
 
   // /***************************************************************************

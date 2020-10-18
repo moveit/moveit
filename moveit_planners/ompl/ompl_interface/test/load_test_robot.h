@@ -42,7 +42,7 @@
 
 namespace ompl_interface_testing
 {
-/** \brief Robot indepentent test class setup
+/** \brief Robot independent test class setup
  *
  * The desired robot tests can be impelmented in a derived class in a generic way.
  *
