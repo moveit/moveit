@@ -145,7 +145,7 @@ public:
 
     EXPECT_NE(pc->getOMPLSimpleSetup(), nullptr);
 
-    // As the joint_model_group_ has no IK solver initialized, we still get a joint model state space
+    // As the joint_model_group_ has no IK solver initialized, we expect a joint model state space
     EXPECT_NE(dynamic_cast<ompl_interface::JointModelStateSpace*>(pc->getOMPLStateSpace().get()), nullptr);
 
     planning_interface::MotionPlanDetailedResponse response;
@@ -181,7 +181,7 @@ public:
 
     EXPECT_NE(pc->getOMPLSimpleSetup(), nullptr);
 
-    // As the joint_model_group_ has no IK solver initialized, we still get a joint model state space
+    // As the joint_model_group_ has no IK solver initialized, we expect a joint model state space
     EXPECT_NE(dynamic_cast<ompl_interface::JointModelStateSpace*>(pc->getOMPLStateSpace().get()), nullptr);
 
     // Create a new response, because the solve method does not clear the given respone
