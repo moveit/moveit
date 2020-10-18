@@ -154,7 +154,7 @@ public:
     // Are the path constraints created in the planning context?
     auto path_constraints = pc->getPathConstraints();
     EXPECT_FALSE(path_constraints->empty());
-    EXPECT_EQ(path_constraints->getOrientationConstraints().size(), 1);
+    EXPECT_EQ(path_constraints->getOrientationConstraints().size(), 1u);
     EXPECT_TRUE(path_constraints->getPositionConstraints().empty());
     EXPECT_TRUE(path_constraints->getJointConstraints().empty());
     EXPECT_TRUE(path_constraints->getVisibilityConstraints().empty());
@@ -191,7 +191,7 @@ public:
     // Are the path constraints created in the planning context?
     path_constraints = pc->getPathConstraints();
     EXPECT_FALSE(path_constraints->empty());
-    EXPECT_EQ(path_constraints->getPositionConstraints().size(), 1);
+    EXPECT_EQ(path_constraints->getPositionConstraints().size(), 1u);
     EXPECT_TRUE(path_constraints->getOrientationConstraints().empty());
 
     // Check if all the states in the solution satisfy the path constraints.
