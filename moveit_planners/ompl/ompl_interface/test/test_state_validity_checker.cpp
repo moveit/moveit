@@ -114,8 +114,7 @@ public:
 
     // assume the given position is not in self-collision
     // and there are no collision objects or path constraints so this state should be valid
-    bool result = checker->isValid(ompl_state.get());
-    EXPECT_TRUE(result);
+    EXPECT_TRUE(checker->isValid(ompl_state.get()));
 
     // move first joint obviously outside any joint limits
     ompl_state->as<ompl_interface::JointModelStateSpace::StateType>()->values[0] = std::numeric_limits<double>::max();
@@ -123,8 +122,7 @@ public:
 
     ROS_DEBUG_STREAM_NAMED(LOGNAME, ompl_state.reals());
 
-    bool result_2 = checker->isValid(ompl_state.get());
-    EXPECT_FALSE(result_2);
+    EXPECT_FALSE(checker->isValid(ompl_state.get()));
   }
 
   /** This test takes a state that is known to be in self-collision and inside the joint limits as input. **/
@@ -144,12 +142,10 @@ public:
     ROS_DEBUG_STREAM_NAMED(LOGNAME, ompl_state.reals());
 
     // the given state is known to be in self-collision, we check it here
-    bool result = checker->isValid(ompl_state.get());
-    EXPECT_FALSE(result);
+    EXPECT_FALSE(checker->isValid(ompl_state.get()));
 
     // but it should respect the joint limits
-    bool result_2 = robot_state_->satisfiesBounds();
-    EXPECT_TRUE(result_2);
+    EXPECT_TRUE(robot_state_->satisfiesBounds());
   }
 
   void testPathConstraints(const std::vector<double>& position_in_joint_limits)
@@ -167,8 +163,7 @@ public:
         { ee_pose.translation().x(), ee_pose.translation().y(), ee_pose.translation().z() }, { 0.1, 0.1, 0.1 }));
 
     moveit_msgs::MoveItErrorCodes error_code_not_used;
-    bool succeeded = planning_context_->setPathConstraints(path_constraints, &error_code_not_used);
-    ASSERT_TRUE(succeeded) << "Failed to set path constraints on the planning context";
+    ASSERT_TRUE(planning_context_->setPathConstraints(path_constraints, &error_code_not_used));
 
     auto checker = std::make_shared<ompl_interface::StateValidityChecker>(planning_context_.get());
     checker->setVerbose(VERBOSE);
@@ -180,22 +175,19 @@ public:
 
     ROS_DEBUG_STREAM_NAMED(LOGNAME, ompl_state.reals());
 
-    bool result = checker->isValid(ompl_state.get());
-    EXPECT_TRUE(result);
+    EXPECT_TRUE(checker->isValid(ompl_state.get()));
 
     // move the position constraints away from the curren end-effector position to make it fail
     moveit_msgs::Constraints path_constraints_2(path_constraints);
     path_constraints_2.position_constraints.at(0).constraint_region.primitive_poses.at(0).position.z += 0.2;
 
-    succeeded = planning_context_->setPathConstraints(path_constraints_2, &error_code_not_used);
-    ASSERT_TRUE(succeeded) << "Failed to set path constraints on the planning context";
+    ASSERT_TRUE(planning_context_->setPathConstraints(path_constraints_2, &error_code_not_used));
 
     // clear the cached validity of the state before checking again,
     // otherwise the path constraints will not be checked.
     ompl_state->as<ompl_interface::JointModelStateSpace::StateType>()->clearKnownInformation();
 
-    bool result_2 = checker->isValid(ompl_state.get());
-    EXPECT_FALSE(result_2);
+    EXPECT_FALSE(checker->isValid(ompl_state.get()));
   }
 
   /***************************************************************************
