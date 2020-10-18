@@ -84,7 +84,7 @@ public:
     planning_interface::PlannerConfigurationSettings pconfig_settings;
     pconfig_settings.group = group_name_;
     pconfig_settings.name = group_name_;
-    pconfig_settings.config = { { "enforce_joint_model_state_space", "0" }, { "use_ompl_constrained_planning", "0" } };
+    pconfig_settings.config = { { "enforce_joint_model_state_space", "0" } };
 
     planning_interface::PlannerConfigurationMap pconfig_map{ { pconfig_settings.name, pconfig_settings } };
     moveit_msgs::MoveItErrorCodes error_code;
@@ -96,10 +96,15 @@ public:
 
     // see if it returns the expected planning context
     auto pc = pcm.getPlanningContext(planning_scene_, request, error_code, node_handle_, false);
+
     // the planning context should have a simple setup created
     EXPECT_NE(pc->getOMPLSimpleSetup(), nullptr);
+
     // the OMPL state space in the planning context should be of type JointModelStateSpace
     EXPECT_NE(dynamic_cast<ompl_interface::JointModelStateSpace*>(pc->getOMPLStateSpace().get()), nullptr);
+
+    // there did not magically appear path constraints in the planning context
+    EXPECT_TRUE(pc->getPathConstraints()->empty());
 
     // solve the planning problem
     planning_interface::MotionPlanDetailedResponse res;
@@ -148,6 +153,26 @@ public:
 
     planning_interface::MotionPlanDetailedResponse res;
     ASSERT_TRUE(pc->solve(res));
+
+    // Are the path constraints created in the planning context?
+    auto path_constraints = pc->getPathConstraints();
+    EXPECT_FALSE(path_constraints->empty());
+    EXPECT_EQ(path_constraints->getOrientationConstraints().size(), 1);
+    EXPECT_TRUE(path_constraints->getPositionConstraints().empty());
+    EXPECT_TRUE(path_constraints->getJointConstraints().empty());
+    EXPECT_TRUE(path_constraints->getVisibilityConstraints().empty());
+
+    // Check if all the states in the solution satisfy the path constraints.
+    // A detailed response returns 3 solutions: the ompl solution, the simplified solution and the interpolated
+    // solution. We test all of them here.
+    kinematic_constraints::ConstraintEvaluationResult con_result;
+    for (const robot_trajectory::RobotTrajectoryPtr& trajectory : res.trajectory_)
+    {
+      for (std::size_t pt_index = { 0 }; pt_index < trajectory->getWayPointCount(); ++pt_index)
+      {
+        EXPECT_TRUE(path_constraints->decide(trajectory->getWayPoint(pt_index)).satisfied);
+      }
+    }
   }
 
   // /***************************************************************************
