@@ -334,17 +334,4 @@ const ServoParameters& Servo::getParameters() const
   return parameters_;
 }
 
-sensor_msgs::JointStateConstPtr Servo::getLatestJointState() const
-{
-  auto msg = moveit::util::make_shared_from_pool<sensor_msgs::JointState>();
-  auto current_state_time = planning_scene_monitor_->getStateMonitor()->getCurrentStateAndTime();
-
-  msg->header.stamp = current_state_time.second;
-  msg->name = current_state_time.first->getJointModelGroup(parameters_.move_group_name)->getActiveJointModelNames();
-  current_state_time.first->copyJointGroupPositions(parameters_.move_group_name, msg->position);
-  current_state_time.first->copyJointGroupVelocities(parameters_.move_group_name, msg->velocity);
-
-  return msg;
-}
-
 }  // namespace moveit_servo
