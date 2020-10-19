@@ -816,6 +816,11 @@ void ServoCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory)
   joint_trajectory.points.clear();
   joint_trajectory.points.emplace_back();
   trajectory_msgs::JointTrajectoryPoint& point = joint_trajectory.points.front();
+
+  // When sending out trajectory_msgs/JointTrajectory type messages, the "trajectory" is just a single point.
+  // That point cannot have the same timestamp as the start of trajectory execution since that would mean the
+  // arm has to reach the first trajectory point the moment execution begins. To prevent errors about points
+  // being 0 seconds in the past, the smallest supported timestep is added as time from start to the trajectory point.
   point.time_from_start.fromNSec(1);
 
   point.positions.resize(num_joints_);
