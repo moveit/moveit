@@ -15,6 +15,7 @@
   <arg name="pipeline" default="ompl" />
   <arg name="allow_trajectory_execution" default="true"/>
   <arg name="fake_execution" default="false"/>
+  <arg name="execution_type" default="interpolate"/> <!-- set to 'last point' to skip intermediate trajectory in fake execution -->
   <arg name="max_safe_path_cost" default="1"/>
   <arg name="jiggle_fraction" default="0.05" />
   <arg name="publish_monitored_planning_scene" default="true"/>
@@ -55,6 +56,7 @@
     <arg name="moveit_manage_controllers" value="true" />
     <arg name="moveit_controller_manager" value="[ROBOT_NAME]" unless="$(arg fake_execution)"/>
     <arg name="moveit_controller_manager" value="fake" if="$(arg fake_execution)"/>
+    <arg name="execution_type" value="$(arg execution_type)" />
   </include>
 
   <!-- Sensors Functionality -->

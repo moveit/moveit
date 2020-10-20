@@ -516,6 +516,8 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
     const std::vector<const moveit::core::JointModel*>& joint_models = joint_model_group->getActiveJointModels();
     emitter << YAML::Key << "name";
     emitter << YAML::Value << "fake_" + group.name_ + "_controller";
+    emitter << YAML::Key << "type";
+    emitter << YAML::Value << "$(arg execution_type)";
     emitter << YAML::Key << "joints";
     emitter << YAML::Value << YAML::BeginSeq;
 
