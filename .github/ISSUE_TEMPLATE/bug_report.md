@@ -12,7 +12,7 @@ assignees: ''
 Overview of your issue here.
 
 ### Your environment
-* ROS Distro: [Kinetic|Melodic]
+* ROS Distro: [Kinetic|Melodic|Noetic]
 * OS Version: e.g. Ubuntu 18.04
 * Source or Binary build?
 * If binary, which release version?
