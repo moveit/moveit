@@ -59,9 +59,7 @@ struct OrderPlaceLocationQuality
 
   bool operator()(const std::size_t a, const std::size_t b) const
   {
-    if (places_[a].quality > places_[b].quality) return true;
-    if (places_[a].quality == places_[b].quality) return a > b;
-    return false;
+    return places_[a].quality > places_[b].quality;
   }
 
   const std::vector<moveit_msgs::PlaceLocation>& places_;
@@ -325,7 +323,8 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene
   for (std::size_t i = 0; i < goal.place_locations.size(); ++i)
     place_locations_order[i] = i;
   OrderPlaceLocationQuality oq(goal.place_locations);
-  std::sort(place_locations_order.begin(), place_locations_order.end(), oq);
+  // using stable_sort to preserve order of place locations with equal quality
+  std::stable_sort(place_locations_order.begin(), place_locations_order.end(), oq);
 
   // add possible place locations
   for (std::size_t i = 0; i < goal.place_locations.size(); ++i)
