@@ -59,7 +59,9 @@ struct OrderPlaceLocationQuality
 
   bool operator()(const std::size_t a, const std::size_t b) const
   {
-    return places_[a].quality > places_[b].quality;
+    if (places_[a].quality > places_[b].quality) return true;
+    if (places_[a].quality == places_[b].quality) return a > b;
+    return false;
   }
 
   const std::vector<moveit_msgs::PlaceLocation>& places_;
