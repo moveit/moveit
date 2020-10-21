@@ -169,8 +169,10 @@ void ServoCalcs::start()
   // We will update last_sent_command_ every time we start servo
   auto initial_joint_trajectory = moveit::util::make_shared_from_pool<trajectory_msgs::JointTrajectory>();
 
+  // When a joint_trajectory_controller receives a new command, a stamp of 0 indicates "begin immediately"
+  // See http://wiki.ros.org/joint_trajectory_controller#Trajectory_replacement
+  initial_joint_trajectory->header.stamp = ros::Time(0);
   initial_joint_trajectory->header.frame_id = parameters_.planning_frame;
-  initial_joint_trajectory->header.stamp = ros::Time::now();
   initial_joint_trajectory->joint_names = internal_joint_state_.name;
   trajectory_msgs::JointTrajectoryPoint point;
   point.time_from_start = ros::Duration(parameters_.publish_period);
@@ -361,7 +363,9 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
     // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
     if (parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
     {
-      joint_trajectory->header.stamp = ros::Time::now();
+      // When a joint_trajectory_controller receives a new command, a stamp of 0 indicates "begin immediately"
+      // See http://wiki.ros.org/joint_trajectory_controller#Trajectory_replacement
+      joint_trajectory->header.stamp = ros::Time(0);
       outgoing_cmd_pub_.publish(joint_trajectory);
     }
     else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
@@ -594,8 +598,10 @@ void ServoCalcs::calculateJointVelocities(sensor_msgs::JointState& joint_state, 
 void ServoCalcs::composeJointTrajMessage(const sensor_msgs::JointState& joint_state,
                                          trajectory_msgs::JointTrajectory& joint_trajectory) const
 {
+  // When a joint_trajectory_controller receives a new command, a stamp of 0 indicates "begin immediately"
+  // See http://wiki.ros.org/joint_trajectory_controller#Trajectory_replacement
+  joint_trajectory.header.stamp = ros::Time(0);
   joint_trajectory.header.frame_id = parameters_.planning_frame;
-  joint_trajectory.header.stamp = ros::Time::now();
   joint_trajectory.joint_names = joint_state.name;
 
   trajectory_msgs::JointTrajectoryPoint point;
@@ -810,6 +816,13 @@ void ServoCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory)
   joint_trajectory.points.clear();
   joint_trajectory.points.emplace_back();
   trajectory_msgs::JointTrajectoryPoint& point = joint_trajectory.points.front();
+
+  // When sending out trajectory_msgs/JointTrajectory type messages, the "trajectory" is just a single point.
+  // That point cannot have the same timestamp as the start of trajectory execution since that would mean the
+  // arm has to reach the first trajectory point the moment execution begins. To prevent errors about points
+  // being 0 seconds in the past, the smallest supported timestep is added as time from start to the trajectory point.
+  point.time_from_start.fromNSec(1);
+
   point.positions.resize(num_joints_);
   point.velocities.resize(num_joints_);
 
