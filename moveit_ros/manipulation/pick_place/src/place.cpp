@@ -319,17 +319,17 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene
   pipeline_.start();
 
   // order the place locations by quality
-  std::vector<std::size_t> places_order(goal.place_locations.size());
+  std::vector<std::size_t> place_locations_order(goal.place_locations.size());
   for (std::size_t i = 0; i < goal.place_locations.size(); ++i)
-    places_order[i] = i;
+    place_locations_order[i] = i;
   OrderPlaceLocationQuality oq(goal.place_locations);
-  std::sort(places_order.begin(), places_order.end(), oq);
+  std::sort(place_locations_order.begin(), place_locations_order.end(), oq);
 
   // add possible place locations
   for (std::size_t i = 0; i < goal.place_locations.size(); ++i)
   {
     ManipulationPlanPtr p(new ManipulationPlan(const_plan_data));
-    const moveit_msgs::PlaceLocation& pl = goal.place_locations[places_order[i]];
+    const moveit_msgs::PlaceLocation& pl = goal.place_locations[place_locations_order[i]];
 
     if (goal.place_eef)
       p->goal_pose_ = pl.place_pose;
@@ -346,7 +346,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene
     p->approach_ = pl.pre_place_approach;
     p->retreat_ = pl.post_place_retreat;
     p->retreat_posture_ = pl.post_place_posture;
-    p->id_ = places_order[i];
+    p->id_ = place_locations_order[i];
     if (p->retreat_posture_.joint_names.empty())
       p->retreat_posture_ = attached_body->getDetachPosture();
     pipeline_.push(p);
