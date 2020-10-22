@@ -89,7 +89,7 @@ public:
   }
 
 protected:
-  ros::NodeHandle nh_;
+  ros::NodeHandle nh_{ "~" };
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   moveit_servo::ServoPtr servo_;
 };  // class ServoFixture

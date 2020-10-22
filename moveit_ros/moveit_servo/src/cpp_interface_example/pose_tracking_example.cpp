@@ -79,7 +79,7 @@ private:
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, LOGNAME);
-  ros::NodeHandle nh;
+  ros::NodeHandle nh("~");
   ros::AsyncSpinner spinner(8);
   spinner.start();
 
@@ -100,14 +100,14 @@ int main(int argc, char** argv)
   planning_scene_monitor->startStateMonitor();
 
   // Create the pose tracker
-  moveit_servo::PoseTracking tracker(planning_scene_monitor, "servo_server");
+  moveit_servo::PoseTracking tracker(nh, planning_scene_monitor);
 
   // Make a publisher for sending pose commands
   ros::Publisher target_pose_pub =
-      nh.advertise<geometry_msgs::PoseStamped>("/servo_server/target_pose", 1 /* queue */, true /* latch */);
+      nh.advertise<geometry_msgs::PoseStamped>("target_pose", 1 /* queue */, true /* latch */);
 
   // Subscribe to servo status (and log it when it changes)
-  StatusMonitor status_monitor(nh, "servo_server/status");
+  StatusMonitor status_monitor(nh, "status");
 
   Eigen::Vector3d lin_tol{ 0.01, 0.01, 0.01 };
   double rot_tol = 0.1;

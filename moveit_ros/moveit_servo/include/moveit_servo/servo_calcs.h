@@ -66,7 +66,7 @@ class ServoCalcs
 public:
   ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
              const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-             const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber, std::string& ros_namespace);
+             const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber);
 
   ~ServoCalcs()
   {

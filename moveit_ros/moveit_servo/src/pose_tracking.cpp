@@ -43,13 +43,13 @@ constexpr double ROS_STARTUP_WAIT = 10;    // sec
 
 namespace moveit_servo
 {
-PoseTracking::PoseTracking(const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-                           const std::string& parameter_ns)
-  : planning_scene_monitor_(planning_scene_monitor)
+PoseTracking::PoseTracking(const ros::NodeHandle& nh,
+                           const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
+  : nh_(nh)
+  , planning_scene_monitor_(planning_scene_monitor)
   , loop_rate_(DEFAULT_LOOP_RATE)
   , transform_listener_(transform_buffer_)
   , stop_requested_(false)
-  , parameter_ns_(parameter_ns)
   , angular_error_(0)
 {
   readROSParams();
@@ -64,13 +64,12 @@ PoseTracking::PoseTracking(const planning_scene_monitor::PlanningSceneMonitorPtr
   initializePID(angular_pid_config_, cartesian_orientation_pids_);
 
   // Use the C++ interface that Servo provides
-  servo_ = std::make_unique<moveit_servo::Servo>(nh_, planning_scene_monitor_, parameter_ns_);
+  servo_ = std::make_unique<moveit_servo::Servo>(nh_, planning_scene_monitor_);
   servo_->start();
 
   // Connect to Servo ROS interfaces
-  std::string target_pose_topic = "/" + parameter_ns_ + "/target_pose";
   target_pose_sub_ =
-      nh_.subscribe<geometry_msgs::PoseStamped>(target_pose_topic, 1, &PoseTracking::targetPoseCallback, this);
+      nh_.subscribe<geometry_msgs::PoseStamped>("target_pose", 1, &PoseTracking::targetPoseCallback, this);
 
   // Publish outgoing twist commands to the Servo object
   twist_stamped_pub_ =
@@ -142,30 +141,27 @@ PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positiona
 
 void PoseTracking::readROSParams()
 {
-  std::size_t error = 0;
+  // Optional parameter sub-namespace specified in the launch file. All other parameters will be read from this namespace.
+  std::string parameter_ns;
+  ros::param::get("~parameter_ns", parameter_ns);
 
-  // Check for parameter namespace from launch file. All other parameters will be read from this namespace.
-  std::string yaml_namespace;
-  if (ros::param::get("~parameter_ns", yaml_namespace))
-  {
-    if (!parameter_ns_.empty())
-      ROS_WARN_STREAM_NAMED(LOGNAME,
-                            "A parameter namespace was specified in the launch file AND in the constructor argument.");
-
-    parameter_ns_ = yaml_namespace;
-  }
+  // If parameters have been loaded into sub-namespace within the node namespace, append the parameter namespace
+  // to load the parameters correctly.
+  ros::NodeHandle nh = parameter_ns.empty() ? nh_ : ros::NodeHandle(nh_, parameter_ns);
 
   // Wait for ROS parameters to load
   ros::Time begin = ros::Time::now();
-  while (ros::ok() && !ros::param::has(parameter_ns_ + "/planning_frame") &&
-         ((ros::Time::now() - begin).toSec() < ROS_STARTUP_WAIT))
+  while (ros::ok() && !nh.hasParam("planning_frame") && ((ros::Time::now() - begin).toSec() < ROS_STARTUP_WAIT))
   {
-    ROS_WARN_STREAM_NAMED(LOGNAME, "Waiting for parameter: " << parameter_ns_ + "/planning_frame");
+    ROS_WARN_STREAM_NAMED(LOGNAME, "Waiting for parameter: "
+                                       << "planning_frame");
     ros::Duration(0.1).sleep();
   }
 
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/planning_frame", planning_frame_);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/move_group_name", move_group_name_);
+  std::size_t error = 0;
+
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "planning_frame", planning_frame_);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "move_group_name", move_group_name_);
   if (!planning_scene_monitor_->getRobotModel()->hasJointModelGroup(move_group_name_))
   {
     ++error;
@@ -173,7 +169,7 @@ void PoseTracking::readROSParams()
   }
 
   double publish_period;
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/publish_period", publish_period);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "publish_period", publish_period);
   loop_rate_ = ros::Rate(1 / publish_period);
 
   x_pid_config_.dt = publish_period;
@@ -182,25 +178,25 @@ void PoseTracking::readROSParams()
   angular_pid_config_.dt = publish_period;
 
   double windup_limit;
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/windup_limit", windup_limit);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "windup_limit", windup_limit);
   x_pid_config_.windup_limit = windup_limit;
   y_pid_config_.windup_limit = windup_limit;
   z_pid_config_.windup_limit = windup_limit;
   angular_pid_config_.windup_limit = windup_limit;
 
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/x_proportional_gain", x_pid_config_.k_p);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/y_proportional_gain", y_pid_config_.k_p);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/z_proportional_gain", z_pid_config_.k_p);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/x_integral_gain", x_pid_config_.k_i);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/y_integral_gain", y_pid_config_.k_i);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/z_integral_gain", z_pid_config_.k_i);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/x_derivative_gain", x_pid_config_.k_d);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/y_derivative_gain", y_pid_config_.k_d);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/z_derivative_gain", z_pid_config_.k_d);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "x_proportional_gain", x_pid_config_.k_p);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "y_proportional_gain", y_pid_config_.k_p);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "z_proportional_gain", z_pid_config_.k_p);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "x_integral_gain", x_pid_config_.k_i);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "y_integral_gain", y_pid_config_.k_i);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "z_integral_gain", z_pid_config_.k_i);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "x_derivative_gain", x_pid_config_.k_d);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "y_derivative_gain", y_pid_config_.k_d);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "z_derivative_gain", z_pid_config_.k_d);
 
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/angular_proportional_gain", angular_pid_config_.k_p);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/angular_integral_gain", angular_pid_config_.k_i);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/angular_derivative_gain", angular_pid_config_.k_d);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "angular_proportional_gain", angular_pid_config_.k_p);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "angular_integral_gain", angular_pid_config_.k_i);
+  error += !rosparam_shortcuts::get(LOGNAME, nh, "angular_derivative_gain", angular_pid_config_.k_d);
 
   rosparam_shortcuts::shutdownIfError(ros::this_node::getName(), error);
 }
