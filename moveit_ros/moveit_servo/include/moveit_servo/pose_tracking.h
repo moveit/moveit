@@ -85,8 +85,7 @@ class PoseTracking
 {
 public:
   /** \brief Constructor. Loads ROS parameters under the given namespace. */
-  PoseTracking(const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-               const std::string& parameter_ns = "");
+  PoseTracking(const ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
   PoseTrackingStatusCode moveToPose(const Eigen::Vector3d& positional_tolerance, const double angular_tolerance,
                                     const double target_pose_timeout);
@@ -183,9 +182,6 @@ private:
 
   // Flag that a different thread has requested a stop.
   std::atomic<bool> stop_requested_;
-
-  // Read parameters from this namespace
-  std::string parameter_ns_;
 
   double angular_error_;
 };

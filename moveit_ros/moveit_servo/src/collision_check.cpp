@@ -75,7 +75,7 @@ CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_servo::ServoPar
   safety_factor_ = parameters_.collision_distance_safety_factor;
 
   // Internal namespace
-  ros::NodeHandle internal_nh("~internal");
+  ros::NodeHandle internal_nh(nh_, "internal");
   collision_velocity_scale_pub_ = internal_nh.advertise<std_msgs::Float64>("collision_velocity_scale", ROS_QUEUE_SIZE);
   worst_case_stop_time_sub_ =
       internal_nh.subscribe("worst_case_stop_time", ROS_QUEUE_SIZE, &CollisionCheck::worstCaseStopTimeCB, this);

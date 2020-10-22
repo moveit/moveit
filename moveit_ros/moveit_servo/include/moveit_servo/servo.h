@@ -53,8 +53,7 @@ namespace moveit_servo
 class Servo
 {
 public:
-  Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-        const std::string& parameter_ns = "");
+  Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
   ~Servo();
 
@@ -112,9 +111,6 @@ private:
   std::shared_ptr<JointStateSubscriber> joint_state_subscriber_;
   std::unique_ptr<ServoCalcs> servo_calcs_;
   std::unique_ptr<CollisionCheck> collision_checker_;
-
-  // Read parameters from this namespace
-  std::string parameter_ns_;
 };
 
 // ServoPtr using alias
