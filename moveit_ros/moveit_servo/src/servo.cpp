@@ -39,12 +39,18 @@
 
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 
+#include <moveit_servo/make_shared_from_pool.h>
 #include <moveit_servo/servo.h>
 
 static const std::string LOGNAME = "servo_node";
 
 namespace moveit_servo
 {
+namespace
+{
+constexpr double ROBOT_STATE_WAIT_TIME = 10.0;  // seconds
+}  // namespace
+
 Servo::Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
   : nh_(nh), planning_scene_monitor_(planning_scene_monitor)
 {
@@ -52,15 +58,27 @@ Servo::Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMon
   if (!readParameters())
     exit(EXIT_FAILURE);
 
-  // By default, joint topic name is relative to the node parent namespace. Fully custom joint name topics can be
-  // set by using absolute topic names in config files. For example, "/foo/my_joint_state_topic".
-  ros::NodeHandle nh_parent_ns = ros::NodeHandle("");
-  joint_state_subscriber_ = std::make_shared<JointStateSubscriber>(nh_parent_ns, parameters_.joint_topic);
+  // Async spinner is needed to receive messages to wait for the robot state to be complete
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
 
-  servo_calcs_ = std::make_unique<ServoCalcs>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber_);
+  // Confirm the planning scene monitor is ready to be used
+  if (!planning_scene_monitor_->getStateMonitor())
+  {
+    planning_scene_monitor_->startStateMonitor(parameters_.joint_topic);
+  }
+  planning_scene_monitor->getStateMonitor()->enableCopyDynamics(true);
 
-  collision_checker_ =
-      std::make_unique<CollisionCheck>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber_);
+  if (!planning_scene_monitor_->getStateMonitor()->waitForCompleteState(parameters_.move_group_name,
+                                                                        ROBOT_STATE_WAIT_TIME))
+  {
+    ROS_FATAL_NAMED(LOGNAME, "Timeout waiting for current state");
+    exit(EXIT_FAILURE);
+  }
+
+  servo_calcs_ = std::make_unique<ServoCalcs>(nh_, parameters_, planning_scene_monitor_);
+
+  collision_checker_ = std::make_unique<CollisionCheck>(nh_, parameters_, planning_scene_monitor_);
 }
 
 // Read ROS parameters, typically from YAML file
@@ -314,11 +332,6 @@ bool Servo::getEEFrameTransform(geometry_msgs::TransformStamped& transform)
 const ServoParameters& Servo::getParameters() const
 {
   return parameters_;
-}
-
-sensor_msgs::JointStateConstPtr Servo::getLatestJointState() const
-{
-  return joint_state_subscriber_->getLatest();
 }
 
 }  // namespace moveit_servo

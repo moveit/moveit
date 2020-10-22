@@ -51,12 +51,10 @@ namespace moveit_servo
 {
 // Constructor for the class that handles collision checking
 CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_servo::ServoParameters& parameters,
-                               const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-                               const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber)
+                               const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
   : nh_(nh)
   , parameters_(parameters)
   , planning_scene_monitor_(planning_scene_monitor)
-  , joint_state_subscriber_(joint_state_subscriber)
   , self_velocity_scale_coefficient_(-log(0.001) / parameters.self_collision_proximity_threshold)
   , scene_velocity_scale_coefficient_(-log(0.001) / parameters.scene_collision_proximity_threshold)
   , period_(1. / parameters_.collision_check_rate)
@@ -80,7 +78,7 @@ CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_servo::ServoPar
   worst_case_stop_time_sub_ =
       internal_nh.subscribe("worst_case_stop_time", ROS_QUEUE_SIZE, &CollisionCheck::worstCaseStopTimeCB, this);
 
-  current_state_ = std::make_unique<moveit::core::RobotState>(getLockedPlanningSceneRO()->getCurrentState());
+  current_state_ = planning_scene_monitor_->getStateMonitor()->getCurrentState();
   acm_ = getLockedPlanningSceneRO()->getAllowedCollisionMatrix();
 }
 
@@ -109,11 +107,8 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
     return;
   }
 
-  // Copy the latest joint state
-  auto latest_joint_state = joint_state_subscriber_->getLatest();
-  for (std::size_t i = 0; i < latest_joint_state->position.size(); ++i)
-    current_state_->setJointPositions(latest_joint_state->name[i], &latest_joint_state->position[i]);
-
+  // Update to the latest current state
+  current_state_ = planning_scene_monitor_->getStateMonitor()->getCurrentState();
   current_state_->updateCollisionBodyTransforms();
   collision_detected_ = false;
 
