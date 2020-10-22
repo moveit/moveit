@@ -43,7 +43,6 @@
 #include <moveit_servo/collision_check.h>
 #include <moveit_servo/servo_parameters.h>
 #include <moveit_servo/servo_calcs.h>
-#include <moveit_servo/joint_state_subscriber.h>
 
 namespace moveit_servo
 {
@@ -86,9 +85,6 @@ public:
   /** \brief Get the parameters used by servo node. */
   const ServoParameters& getParameters() const;
 
-  /** \brief Get the latest joint state. */
-  sensor_msgs::JointStateConstPtr getLatestJointState() const;
-
   /** \brief Change the controlled link. Often, this is the end effector
    * This must be a link on the robot since MoveIt tracks the transform (not tf)
    */
@@ -108,7 +104,6 @@ private:
   // Store the parameters that were read from ROS server
   ServoParameters parameters_;
 
-  std::shared_ptr<JointStateSubscriber> joint_state_subscriber_;
   std::unique_ptr<ServoCalcs> servo_calcs_;
   std::unique_ptr<CollisionCheck> collision_checker_;
 };

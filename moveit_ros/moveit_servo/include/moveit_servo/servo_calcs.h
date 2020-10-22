@@ -38,6 +38,9 @@
 
 #pragma once
 
+// C++
+#include <mutex>
+
 // ROS
 #include <control_msgs/JointJog.h>
 #include <geometry_msgs/TwistStamped.h>
@@ -57,7 +60,6 @@
 #include <moveit_servo/servo_parameters.h>
 #include <moveit_servo/status_codes.h>
 #include <moveit_servo/low_pass_filter.h>
-#include <moveit_servo/joint_state_subscriber.h>
 
 namespace moveit_servo
 {
@@ -65,8 +67,7 @@ class ServoCalcs
 {
 public:
   ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
-             const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-             const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber);
+             const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
   ~ServoCalcs()
   {
@@ -115,7 +116,7 @@ private:
   bool jointServoCalcs(const control_msgs::JointJog& cmd, trajectory_msgs::JointTrajectory& joint_trajectory);
 
   /** \brief Parse the incoming joint msg for the joints of our MoveGroup */
-  bool updateJoints();
+  void updateJoints();
 
   /** \brief If incoming velocity commands are from a unitless joystick, scale them to physical units.
    * Also, multiply by timestep to calculate a position change.
@@ -220,9 +221,6 @@ private:
   // Pointer to the collision environment
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 
-  // Subscriber to the latest joint states
-  const std::shared_ptr<JointStateSubscriber> joint_state_subscriber_;
-
   // Track the number of cycles during which motion has not occurred.
   // Will avoid re-publishing zero velocities endlessly.
   int zero_velocity_count_ = 0;
@@ -244,7 +242,7 @@ private:
 
   const moveit::core::JointModelGroup* joint_model_group_;
 
-  moveit::core::RobotStatePtr kinematic_state_;
+  moveit::core::RobotStatePtr current_state_;
 
   // incoming_joint_state_ is the incoming message. It may contain passive joints or other joints we don't care about.
   // (mutex protected below)
@@ -293,9 +291,6 @@ private:
 
   // The dimesions to control. In the command frame. [x, y, z, roll, pitch, yaw]
   std::array<bool, 6> control_dimensions_ = { { true, true, true, true, true, true } };
-
-  // Amount we sleep when waiting
-  ros::Rate default_sleep_rate_ = 100;
 
   // latest_state_mutex_ is used to protect the state below it
   mutable std::mutex latest_state_mutex_;
