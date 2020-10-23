@@ -112,6 +112,9 @@ public:
   planning_scene_monitor::LockedPlanningSceneRW getPlanningSceneRW();
   const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor();
 
+Q_SIGNALS:
+  void changeSceneName(const QString& name);
+
 private Q_SLOTS:
 
   // ******************************************************************************************
@@ -130,6 +133,7 @@ private Q_SLOTS:
   void changedSceneDisplayTime();
   void changedOctreeRenderMode();
   void changedOctreeColorMode();
+  void setSceneName(const QString& name);
 
 protected Q_SLOTS:
   virtual void changedAttachedBodyColor();
