@@ -192,10 +192,18 @@ private Q_SLOTS:
   void loadStateButtonClicked();
   void saveStartStateButtonClicked();
   void saveGoalStateButtonClicked();
+  void saveCurrentStateButtonClicked();
   void removeStateButtonClicked();
   void clearStatesButtonClicked();
   void setAsStartStateButtonClicked();
   void setAsGoalStateButtonClicked();
+  void planAllStatesButtonClicked();
+  void planAndExecuteAllStatesButtonClicked();
+  void planAllStatesCartesianTrajectory();
+  void planAllStatesCartesianExec();
+  void planAndExecuteAllStatesCartesianExec();
+  void planAllStatesJointSpaceExec();
+  void planAndExecuteAllStatesJointSpaceExec();
 
   // Pick and place
   void detectObjectsButtonClicked();
