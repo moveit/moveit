@@ -12,13 +12,13 @@ assignees: ''
 Overview of your issue here.
 
 ## Instructions
-Hi, this is a `first-timer-only` issue. This means we've worked to make it more legible to folks who either **haven't contributed to our codebase before, or even folks who haven't contributed to open source before**.
+Hi, this is a `first-timer-only` issue. This means we've worked to make it more legible to people who either **haven't contributed to our codebase before, or even folks who haven't contributed to open source before**.
 
-If that's you, we're interested in helping you take the first step and can answer questions and help you out as you do. Note that we're especially interested in contributions from people from groups underrepresented in free and open-source software!
+We're interested in helping you take the first step, and can answer questions and help you out along the way. Note that we're especially interested in contributions from underrepresented groups!
 
-We know that the process of creating a pull request is the biggest barrier for new contributors. This issue is for you 💝
+We know that creating a pull request is the biggest barrier for new contributors. This issue is for you 💝
 
-If you have contributed before, **consider leaving this one for someone new**, and looking through our general [bug](https://github.com/ros-planning/moveit/labels/bug) issues. Thanks!
+If you have contributed before, **consider leaving this PR for someone new**, and looking through our general [bug](https://github.com/ros-planning/moveit/labels/bug) issues. Thanks!
 
 ### 🤔 What you will need to know.
 
@@ -41,7 +41,7 @@ $DIFF
 - [ ] 💾 **Commit** your changes
 
 - [ ] 🔀 **Start a Pull Request**. There are two ways how you can start a pull request:
-1. If you are not familiar with GitHub or the pull request model, [here is a guide you can follow](https://guides.github.com/activities/hello-world/) on how GitHub works.
+1. If you are not familiar with GitHub or how to create a pull request, [here is a guide you can follow](https://guides.github.com/activities/hello-world/) on how GitHub works.
 2. If you are familiar with the terminal or would like to learn to use it, [here is a great tutorial](https://egghead.io/series/how-to-contribute-to-an-open-source-project-on-github) on how to send a pull request using the terminal.
 
 - [ ] 🏁 **Done** Ask in comments for a review :)
