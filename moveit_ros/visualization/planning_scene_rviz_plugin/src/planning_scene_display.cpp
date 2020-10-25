@@ -90,6 +90,7 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
   scene_name_property_ = new rviz::StringProperty("Scene Name", "(noname)", "Shows the name of the planning scene",
                                                   scene_category_, SLOT(changedSceneName()), this);
   scene_name_property_->setShouldBeSaved(false);
+  connect(this, &PlanningSceneDisplay::changeSceneName, this, &PlanningSceneDisplay::setSceneName);
   scene_enabled_property_ =
       new rviz::BoolProperty("Show Scene Geometry", true, "Indicates whether planning scenes should be displayed",
                              scene_category_, SLOT(changedSceneEnabled()), this);
