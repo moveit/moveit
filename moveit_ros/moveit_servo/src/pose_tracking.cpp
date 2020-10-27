@@ -231,20 +231,21 @@ void PoseTracking::targetPoseCallback(const geometry_msgs::PoseStampedConstPtr& 
 {
   std::lock_guard<std::mutex> lock(target_pose_mtx_);
   target_pose_ = *msg;
-  geometry_msgs::TransformStamped target_to_planning_frame;
+
+  // If the target pose is not defined in planning frame, transform the target pose.
   if (target_pose_.header.frame_id != planning_frame_)
   {
     try
     {
-      target_to_planning_frame = transform_buffer_.lookupTransform(planning_frame_, target_pose_.header.frame_id,
-                                                                   ros::Time(0), ros::Duration(0.1));
+      geometry_msgs::TransformStamped target_to_planning_frame = transform_buffer_.lookupTransform(
+          planning_frame_, target_pose_.header.frame_id, ros::Time(0), ros::Duration(0.1));
+      tf2::doTransform(target_pose_, target_pose_, target_to_planning_frame);
     }
-    catch (tf2::TransformException& ex)
+    catch (const tf2::TransformException& ex)
     {
-      ROS_WARN_NAMED(LOGNAME, "%s", ex.what());
+      ROS_WARN_STREAM_NAMED(LOGNAME, ex.what());
       return;
     }
-    tf2::doTransform(target_pose_, target_pose_, target_to_planning_frame);
   }
 }
 
