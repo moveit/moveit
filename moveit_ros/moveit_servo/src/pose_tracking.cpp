@@ -207,6 +207,7 @@ void PoseTracking::initializePID(const PIDConfig& pid_config, std::vector<contro
 
 bool PoseTracking::haveRecentTargetPose(const double timespan)
 {
+  std::lock_guard<std::mutex> lock(target_pose_mtx_);
   return ((ros::Time::now() - target_pose_.header.stamp).toSec() < timespan);
 }
 
@@ -217,6 +218,7 @@ bool PoseTracking::haveRecentEndEffectorPose(const double timespan)
 
 bool PoseTracking::satisfiesPoseTolerance(const Eigen::Vector3d& positional_tolerance, const double angular_tolerance)
 {
+  std::lock_guard<std::mutex> lock(target_pose_mtx_);
   double x_error = target_pose_.pose.position.x - command_frame_transform_.translation()(0);
   double y_error = target_pose_.pose.position.y - command_frame_transform_.translation()(1);
   double z_error = target_pose_.pose.position.z - command_frame_transform_.translation()(2);
@@ -227,7 +229,7 @@ bool PoseTracking::satisfiesPoseTolerance(const Eigen::Vector3d& positional_tole
 
 void PoseTracking::targetPoseCallback(const geometry_msgs::PoseStampedConstPtr& msg)
 {
-  // Transform to planning frame
+  std::lock_guard<std::mutex> lock(target_pose_mtx_);
   target_pose_ = *msg;
   geometry_msgs::TransformStamped target_to_planning_frame;
   if (target_pose_.header.frame_id != planning_frame_)
@@ -250,25 +252,32 @@ geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
 {
   // use the shared pool to create a message more efficiently
   auto msg = moveit::util::make_shared_from_pool<geometry_msgs::TwistStamped>();
-  msg->header.frame_id = target_pose_.header.frame_id;
 
   // Get twist components from PID controllers
   geometry_msgs::Twist& twist = msg->twist;
+  Eigen::Quaterniond q_desired;
 
-  // Position
-  twist.linear.x = cartesian_position_pids_[0].computeCommand(
-      target_pose_.pose.position.x - command_frame_transform_.translation()(0), loop_rate_.expectedCycleTime());
-  twist.linear.y = cartesian_position_pids_[1].computeCommand(
-      target_pose_.pose.position.y - command_frame_transform_.translation()(1), loop_rate_.expectedCycleTime());
-  twist.linear.z = cartesian_position_pids_[2].computeCommand(
-      target_pose_.pose.position.z - command_frame_transform_.translation()(2), loop_rate_.expectedCycleTime());
+  // Scope mutex locking only to operations which require access to target pose.
+  {
+    std::lock_guard<std::mutex> lock(target_pose_mtx_);
+    msg->header.frame_id = target_pose_.header.frame_id;
 
-  // Orientation algorithm:
-  // - Find the orientation error as a quaternion: q_error = q_desired * q_current ^ -1
-  // - Use the quaternion PID controllers to calculate a quaternion rate, q_error_dot
-  // - Convert to angular velocity for the TwistStamped message
-  Eigen::Quaterniond q_desired(target_pose_.pose.orientation.w, target_pose_.pose.orientation.x,
-                               target_pose_.pose.orientation.y, target_pose_.pose.orientation.z);
+    // Position
+    twist.linear.x = cartesian_position_pids_[0].computeCommand(
+        target_pose_.pose.position.x - command_frame_transform_.translation()(0), loop_rate_.expectedCycleTime());
+    twist.linear.y = cartesian_position_pids_[1].computeCommand(
+        target_pose_.pose.position.y - command_frame_transform_.translation()(1), loop_rate_.expectedCycleTime());
+    twist.linear.z = cartesian_position_pids_[2].computeCommand(
+        target_pose_.pose.position.z - command_frame_transform_.translation()(2), loop_rate_.expectedCycleTime());
+
+    // Orientation algorithm:
+    // - Find the orientation error as a quaternion: q_error = q_desired * q_current ^ -1
+    // - Use the quaternion PID controllers to calculate a quaternion rate, q_error_dot
+    // - Convert to angular velocity for the TwistStamped message
+    q_desired = Eigen::Quaterniond(target_pose_.pose.orientation.w, target_pose_.pose.orientation.x,
+                                   target_pose_.pose.orientation.y, target_pose_.pose.orientation.z);
+  }
+
   Eigen::Quaterniond q_current(command_frame_transform_.rotation());
   Eigen::Quaterniond q_error = q_desired * q_current.inverse();
 

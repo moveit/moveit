@@ -170,6 +170,7 @@ private:
   Eigen::Isometry3d command_frame_transform_;
   ros::Time command_frame_transform_stamp_;
   geometry_msgs::PoseStamped target_pose_;
+  std::mutex target_pose_mtx_;
 
   // Subscribe to target pose
   ros::Subscriber target_pose_sub_;
