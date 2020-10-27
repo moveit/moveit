@@ -90,7 +90,6 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
   scene_name_property_ = new rviz::StringProperty("Scene Name", "(noname)", "Shows the name of the planning scene",
                                                   scene_category_, SLOT(changedSceneName()), this);
   scene_name_property_->setShouldBeSaved(false);
-  connect(this, &PlanningSceneDisplay::changeSceneName, this, &PlanningSceneDisplay::setSceneName);
   scene_enabled_property_ =
       new rviz::BoolProperty("Show Scene Geometry", true, "Indicates whether planning scenes should be displayed",
                              scene_category_, SLOT(changedSceneEnabled()), this);
@@ -585,13 +584,13 @@ void PlanningSceneDisplay::onSceneMonitorReceivedUpdate(
     planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType /*update_type*/)
 {
   getPlanningSceneRW()->getCurrentStateNonConst().update();
-  Q_EMIT changeSceneName(QString::fromStdString(getPlanningSceneRO()->getName()));
+  QMetaObject::invokeMethod(this, "setSceneName", Qt::QueuedConnection,
+                            Q_ARG(QString, QString::fromStdString(getPlanningSceneRO()->getName())));
   planning_scene_needs_render_ = true;
 }
 
 void PlanningSceneDisplay::setSceneName(const QString& name)
 {
-  QSignalBlocker block(scene_name_property_);
   scene_name_property_->setString(name);
 }
 
