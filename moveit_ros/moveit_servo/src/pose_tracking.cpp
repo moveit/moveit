@@ -79,9 +79,6 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
 PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance,
                                                 const double angular_tolerance, const double target_pose_timeout)
 {
-  // Roll back the target pose timestamp to ensure we wait for a new target pose message
-  target_pose_.header.stamp = ros::Time::now() - ros::Duration(2 * target_pose_timeout);
-
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves (in a callback function).
   ros::Time start_time = ros::Time::now();
@@ -247,7 +244,6 @@ void PoseTracking::targetPoseCallback(const geometry_msgs::PoseStampedConstPtr& 
     }
     tf2::doTransform(target_pose_, target_pose_, target_to_planning_frame);
   }
-  target_pose_.header.stamp = ros::Time::now();
 }
 
 geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
