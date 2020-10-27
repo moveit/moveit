@@ -81,7 +81,7 @@ PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positiona
 {
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves (in a callback function).
-  ros::Time start_time = ros::Time::now();
+  const ros::Time start_time = ros::Time::now();
   while ((!haveRecentTargetPose(target_pose_timeout) || !haveRecentEndEffectorPose(target_pose_timeout)) &&
          ((ros::Time::now() - start_time).toSec() < target_pose_timeout))
   {
@@ -91,36 +91,34 @@ PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positiona
     }
     ros::Duration(0.001).sleep();
   }
+
   if (!haveRecentTargetPose(target_pose_timeout))
   {
     ROS_ERROR_STREAM_NAMED(LOGNAME, "The target pose was not updated recently. Aborting.");
     return PoseTrackingStatusCode::NO_RECENT_TARGET_POSE;
   }
 
-  while (ros::ok())
+  // Continue sending PID controller output to Servo until one of the following conditions is met:
+  // - Goal tolerance is satisfied
+  // - Target pose becomes outdated
+  // - Command frame transform becomes outdated
+  // - Another thread requested a stop
+  while (ros::ok() && !satisfiesPoseTolerance(positional_tolerance, angular_tolerance))
   {
-    // Check for reasons to stop:
-    // - Goal tolerance is satisfied
-    // - Timeout
-    // - Another thread requested a stop
-    // - PID controllers aren't initialized
-    if (satisfiesPoseTolerance(positional_tolerance, angular_tolerance))
-    {
-      break;
-    }
-
     // Attempt to update robot pose
     if (servo_->getCommandFrameTransform(command_frame_transform_))
     {
       command_frame_transform_stamp_ = ros::Time::now();
     }
 
+    // Check that end-effector pose (command frame transform) is recent enough.
     if (!haveRecentEndEffectorPose(target_pose_timeout))
     {
       ROS_ERROR_STREAM_NAMED(LOGNAME, "The end effector pose was not updated in time. Aborting.");
       doPostMotionReset();
       return PoseTrackingStatusCode::NO_RECENT_END_EFFECTOR_POSE;
     }
+
     if (stop_requested_)
     {
       ROS_INFO_STREAM_NAMED(LOGNAME, "Halting servo motion, a stop was requested.");
@@ -223,8 +221,8 @@ bool PoseTracking::satisfiesPoseTolerance(const Eigen::Vector3d& positional_tole
   double y_error = target_pose_.pose.position.y - command_frame_transform_.translation()(1);
   double z_error = target_pose_.pose.position.z - command_frame_transform_.translation()(2);
 
-  return (fabs(x_error) < positional_tolerance(0)) && (fabs(y_error) < positional_tolerance(1)) &&
-         (fabs(z_error) < positional_tolerance(2) && fabs(angular_error_) < angular_tolerance);
+  return ((std::abs(x_error) < positional_tolerance(0)) && (std::abs(y_error) < positional_tolerance(1)) &&
+         (std::abs(z_error) < positional_tolerance(2)) && (std::abs(angular_error_) < angular_tolerance));
 }
 
 void PoseTracking::targetPoseCallback(const geometry_msgs::PoseStampedConstPtr& msg)
