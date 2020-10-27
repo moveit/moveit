@@ -424,6 +424,8 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2Co
     if (ros::Time::now() - last_update_time_ <= ros::Duration(1.0 / max_update_rate_))
       return;
   }
+
+  processCloud(*cloud_msg);
 }
 
 bool PointCloudOctomapUpdater::updatePointcloudOctomapService(moveit_msgs::UpdatePointcloudOctomap::Request& req,
