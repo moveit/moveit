@@ -6,7 +6,7 @@
 
 - [Overview of MoveIt](https://moveit.ros.org)
 - [Installation Instructions](https://moveit.ros.org/install/)
-- [Documentation](https://moveit.ros.org/documentation/)
+- [Documentation](https://moveit.ros.org/documentation/source-code-api/)
 - [Get Involved](https://moveit.ros.org/about/get_involved/)
 
 ## Branches Policy
