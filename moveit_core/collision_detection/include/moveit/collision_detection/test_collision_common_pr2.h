@@ -113,6 +113,19 @@ TYPED_TEST_P(CollisionDetectorTest, DefaultNotInCollision)
   EXPECT_FALSE(dres.collision);
   EXPECT_EQ(dres.distances.size(), 0u);
   EXPECT_GT(dres.minimum_distance.distance, 0.0);
+
+  // Enable one pair of links for actual collision checking
+  this->acm_->setEntry("l_gripper_palm_link", "r_gripper_palm_link", false);
+
+  // Should still not be in collision
+  this->cenv_->checkSelfCollision(req, res, robot_state, *this->acm_);
+  ASSERT_FALSE(res.collision);
+
+  // Also not in collision, but now we can get an actual distance measurement
+  this->cenv_->distanceSelf(dreq, dres, robot_state);
+  EXPECT_FALSE(dres.collision);
+  EXPECT_EQ(dres.distances.size(), 0u);
+  EXPECT_NEAR(dres.minimum_distance.distance, 0.27, 0.1);
 }
 
 TYPED_TEST_P(CollisionDetectorTest, LinksInCollision)
