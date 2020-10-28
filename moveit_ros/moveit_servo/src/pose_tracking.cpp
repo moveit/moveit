@@ -222,7 +222,7 @@ bool PoseTracking::satisfiesPoseTolerance(const Eigen::Vector3d& positional_tole
   double z_error = target_pose_.pose.position.z - command_frame_transform_.translation()(2);
 
   return ((std::abs(x_error) < positional_tolerance(0)) && (std::abs(y_error) < positional_tolerance(1)) &&
-         (std::abs(z_error) < positional_tolerance(2)) && (std::abs(angular_error_) < angular_tolerance));
+          (std::abs(z_error) < positional_tolerance(2)) && (std::abs(angular_error_) < angular_tolerance));
 }
 
 void PoseTracking::targetPoseCallback(const geometry_msgs::PoseStampedConstPtr& msg)
