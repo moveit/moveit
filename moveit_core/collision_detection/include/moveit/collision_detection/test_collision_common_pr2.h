@@ -107,9 +107,12 @@ TYPED_TEST_P(CollisionDetectorTest, DefaultNotInCollision)
 
   collision_detection::DistanceRequest dreq;
   collision_detection::DistanceResult dres;
+  dreq.acm = this->acm_.get();
+  dreq.enable_nearest_points = true;
   this->cenv_->distanceSelf(dreq, dres, robot_state);
   EXPECT_FALSE(dres.collision);
   EXPECT_EQ(dres.distances.size(), 0u);
+  EXPECT_GT(dres.minimum_distance.distance, 0.0);
 }
 
 TYPED_TEST_P(CollisionDetectorTest, LinksInCollision)
@@ -138,17 +141,23 @@ TYPED_TEST_P(CollisionDetectorTest, LinksInCollision)
 
   this->acm_->setEntry("base_link", "base_bellow_link", false);
   this->cenv_->checkSelfCollision(req, res1, robot_state, *this->acm_);
-  this->cenv_->distanceSelf(dreq, dres1, robot_state);
   ASSERT_TRUE(res1.collision);
+
+  dreq.acm = this->acm_.get();
+  this->cenv_->distanceSelf(dreq, dres1, robot_state);
   EXPECT_TRUE(dres1.collision);
   EXPECT_EQ(dres1.distances.size(), 0u);
+  EXPECT_LE(dres1.minimum_distance.distance, 0.0);
 
   this->acm_->setEntry("base_link", "base_bellow_link", true);
   this->cenv_->checkSelfCollision(req, res2, robot_state, *this->acm_);
-  this->cenv_->distanceSelf(dreq, dres2, robot_state);
   ASSERT_FALSE(res2.collision);
+
+  dreq.acm = this->acm_.get();
+  this->cenv_->distanceSelf(dreq, dres2, robot_state);
   EXPECT_FALSE(dres2.collision);
   EXPECT_EQ(dres2.distances.size(), 0u);
+  EXPECT_GT(dres2.minimum_distance.distance, 0.0);
 
   //  req.verbose = true;
   //  robot_state.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(Eigen::Isometry3d::Identity());
@@ -159,10 +168,13 @@ TYPED_TEST_P(CollisionDetectorTest, LinksInCollision)
 
   this->acm_->setEntry("r_gripper_palm_link", "l_gripper_palm_link", false);
   this->cenv_->checkSelfCollision(req, res3, robot_state, *this->acm_);
-  this->cenv_->distanceSelf(dreq, dres3, robot_state);
   ASSERT_TRUE(res3.collision);
+
+  dreq.acm = this->acm_.get();
+  this->cenv_->distanceSelf(dreq, dres3, robot_state);
   EXPECT_TRUE(dres3.collision);
   EXPECT_EQ(dres3.distances.size(), 0u);
+  EXPECT_LE(dres3.minimum_distance.distance, 0.0);
 }
 
 TYPED_TEST_P(CollisionDetectorTest, ContactReporting)
