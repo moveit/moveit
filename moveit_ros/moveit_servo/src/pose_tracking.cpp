@@ -349,6 +349,12 @@ void PoseTracking::getPIDErrors(double& x_error, double& y_error, double& z_erro
   cartesian_orientation_pids_.at(0).getCurrentPIDErrors(&orientation_error, &dummy1, &dummy2);
 }
 
+void PoseTracking::resetTargetPose()
+{
+  target_pose_ = geometry_msgs::PoseStamped();
+  target_pose_.header.stamp = ros::Time(0);
+}
+
 bool PoseTracking::getCommandFrameTransform(geometry_msgs::TransformStamped& transform)
 {
   return servo_->getCommandFrameTransform(transform);
