@@ -271,7 +271,7 @@ geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
 
     // Orientation algorithm:
     // - Find the orientation error as a quaternion: q_error = q_desired * q_current ^ -1
-    // - Use the quaternion PID controllers to calculate a quaternion rate, q_error_dot
+    // - Use the angle-axis PID controller to calculate an angular rate
     // - Convert to angular velocity for the TwistStamped message
     q_desired = Eigen::Quaterniond(target_pose_.pose.orientation.w, target_pose_.pose.orientation.x,
                                    target_pose_.pose.orientation.y, target_pose_.pose.orientation.z);
