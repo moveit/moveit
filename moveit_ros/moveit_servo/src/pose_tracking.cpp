@@ -351,6 +351,7 @@ void PoseTracking::getPIDErrors(double& x_error, double& y_error, double& z_erro
 
 void PoseTracking::resetTargetPose()
 {
+  std::lock_guard<std::mutex> lock(target_pose_mtx_);
   target_pose_ = geometry_msgs::PoseStamped();
   target_pose_.header.stamp = ros::Time(0);
 }
