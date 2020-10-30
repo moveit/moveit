@@ -211,12 +211,12 @@ protected:
     state_space_ = std::make_shared<ompl_interface::ConstrainedPlanningStateSpace>(space_spec);
     state_space_->computeLocations();  // this gets called in the state space factory normally
 
-    assert(state_space_ != nullptr);
+    ASSERT_NE(state_space_, nullptr);
 
     auto dummy_constraint = std::make_shared<DummyConstraint>(num_dofs_);
     constrained_state_space_ = std::make_shared<ompl::base::ProjectedStateSpace>(state_space_, dummy_constraint);
 
-    assert(constrained_state_space_ != nullptr);
+    ASSERT_NE(constrained_state_space_, nullptr);
   }
 
   void setupPlanningContext()
@@ -232,7 +232,7 @@ protected:
     // check if the we succeeded in the comment above
     auto si = planning_context_spec_.ompl_simple_setup_->getSpaceInformation();
     auto si_constrained = dynamic_cast<ompl::base::ConstrainedSpaceInformation*>(si.get());
-    assert(si_constrained != nullptr);
+    ASSERT_NE(si_constrained, nullptr);
 
     planning_context_ =
         std::make_shared<ompl_interface::ModelBasedPlanningContext>(group_name_, planning_context_spec_);
