@@ -51,6 +51,7 @@ ompl_interface::ConstrainedPlanningStateSpace::ConstrainedPlanningStateSpace(
 double* ompl_interface::ConstrainedPlanningStateSpace::getValueAddressAtIndex(ompl::base::State* ompl_state,
                                                                               const unsigned int index) const
 {
+  assert(ompl_state != nullptr);
   if (index >= variable_count_)
     return nullptr;
 
@@ -61,6 +62,7 @@ double* ompl_interface::ConstrainedPlanningStateSpace::getValueAddressAtIndex(om
 void ompl_interface::ConstrainedPlanningStateSpace::copyToRobotState(moveit::core::RobotState& robot_state,
                                                                      const ompl::base::State* ompl_state) const
 {
+  assert(ompl_state != nullptr);
   robot_state.setJointGroupPositions(
       spec_.joint_model_group_,
       ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState()->as<StateType>()->values);
@@ -70,6 +72,7 @@ void ompl_interface::ConstrainedPlanningStateSpace::copyToRobotState(moveit::cor
 void ompl_interface::ConstrainedPlanningStateSpace::copyToOMPLState(ompl::base::State* ompl_state,
                                                                     const moveit::core::RobotState& robot_state) const
 {
+  assert(ompl_state != nullptr);
   robot_state.copyJointGroupPositions(
       spec_.joint_model_group_,
       ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState()->as<StateType>()->values);
@@ -83,6 +86,8 @@ void ompl_interface::ConstrainedPlanningStateSpace::copyJointToOMPLState(ompl::b
                                                                          const moveit::core::JointModel* joint_model,
                                                                          int ompl_state_joint_index) const
 {
+  assert(ompl_state != nullptr);
+  assert(joint_model != nullptr);
   memcpy(getValueAddressAtIndex(ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState(),
                                 ompl_state_joint_index),
          robot_state.getVariablePositions() + joint_model->getFirstVariableIndex(),
