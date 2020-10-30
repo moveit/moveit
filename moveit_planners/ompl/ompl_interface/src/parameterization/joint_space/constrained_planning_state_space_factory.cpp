@@ -48,6 +48,9 @@ int ompl_interface::ConstrainedPlanningStateSpaceFactory::canRepresentProblem(
     const std::string& /*group*/, const moveit_msgs::MotionPlanRequest& /*req*/,
     const moveit::core::RobotModelConstPtr& /*robot_model*/) const
 {
+  // Return the lowest priority currently existing in the ompl interface.
+  // This state space will only be selected if it is the only option to choose from.
+  // See header file for more info.
   return -2;
 }
 
