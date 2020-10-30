@@ -171,7 +171,7 @@ public:
    * */
   virtual Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
   {
-    ROS_ERROR_STREAM("Constraint method calcError was not overridded, so it should not be used.");
+    ROS_ERROR_STREAM("Constraint method calcError was not overridden, so it should not be used.");
     return Eigen::VectorXd::Zero(getCoDimension());
   }
 
@@ -189,7 +189,7 @@ public:
    * */
   virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const
   {
-    ROS_ERROR_STREAM("Constraint method calcErrorJacobian was not overridded, so it should not be used.");
+    ROS_ERROR_STREAM("Constraint method calcErrorJacobian was not overridden, so it should not be used.");
     return Eigen::MatrixXd::Zero(getCoDimension(), n_);
   }
 
@@ -214,7 +214,7 @@ protected:
   /** \brief Thread-safe storage of the robot state.
    *
    * The robot state is modified for kinematic calculations. As an instance of this class is possibly used in multiple
-   * threads due to OMPL's LazeGoalSampler, we need a separate robot state in every thread.
+   * threads due to OMPL's LazyGoalSampler, we need a separate robot state in every thread.
    * */
   TSStateStorage state_storage_;
   const robot_state::JointModelGroup* joint_model_group_;
@@ -269,7 +269,7 @@ public:
  * ****************************************/
 /** \brief Equality constraints on a link's position.
  *
- *  When you set the name of a constraint to 'use_equality_constraints', all constraints with a dimension lower that
+ *  When you set the name of a constraint to 'use_equality_constraints', all constraints with a dimension lower than
  * `equality_constraint_threshold_` will be modelled as equality constraints.
  *
  * The dimension value for the others are ignored. For example, a box with dimensions [1.0, 1e-5, 1.0]
