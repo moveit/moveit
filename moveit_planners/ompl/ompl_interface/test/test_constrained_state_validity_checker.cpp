@@ -35,7 +35,7 @@
 
 /* Author: Jeroen De Maeyer */
 
-#include "utilities.h"
+#include "load_test_robot.h"
 
 #include <limits>
 #include <ostream>

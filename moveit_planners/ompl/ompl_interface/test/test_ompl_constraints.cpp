@@ -41,7 +41,7 @@
  *  NOTE q = joint positions
  **/
 
-#include "utilities.h"
+#include "load_test_robot.h"
 
 #include <moveit/ompl_interface/detail/ompl_constraints.h>
 

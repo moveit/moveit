@@ -57,7 +57,7 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/spaces/constraint/ProjectedStateSpace.h>
 
-#include "utilities.h"
+#include "load_test_robot.h"
 
 /** \brief Use this flag to turn on extra output on std::cout for debugging. **/
 constexpr bool VERBOSE{ false };
