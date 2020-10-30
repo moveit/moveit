@@ -271,7 +271,7 @@ geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
 
     // Orientation algorithm:
     // - Find the orientation error as a quaternion: q_error = q_desired * q_current ^ -1
-    // - Use the quaternion PID controllers to calculate a quaternion rate, q_error_dot
+    // - Use the angle-axis PID controller to calculate an angular rate
     // - Convert to angular velocity for the TwistStamped message
     q_desired = Eigen::Quaterniond(target_pose_.pose.orientation.w, target_pose_.pose.orientation.x,
                                    target_pose_.pose.orientation.y, target_pose_.pose.orientation.z);
@@ -347,6 +347,13 @@ void PoseTracking::getPIDErrors(double& x_error, double& y_error, double& z_erro
   cartesian_position_pids_.at(1).getCurrentPIDErrors(&y_error, &dummy1, &dummy2);
   cartesian_position_pids_.at(2).getCurrentPIDErrors(&z_error, &dummy1, &dummy2);
   cartesian_orientation_pids_.at(0).getCurrentPIDErrors(&orientation_error, &dummy1, &dummy2);
+}
+
+void PoseTracking::resetTargetPose()
+{
+  std::lock_guard<std::mutex> lock(target_pose_mtx_);
+  target_pose_ = geometry_msgs::PoseStamped();
+  target_pose_.header.stamp = ros::Time(0);
 }
 
 bool PoseTracking::getCommandFrameTransform(geometry_msgs::TransformStamped& transform)

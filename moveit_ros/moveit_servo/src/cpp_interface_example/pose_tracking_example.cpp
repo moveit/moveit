@@ -127,6 +127,10 @@ int main(int argc, char** argv)
   // Modify it a little bit
   target_pose.pose.position.x += 0.1;
 
+  // resetTargetPose() can be used to clear the target pose and wait for a new one, e.g. when moving between multiple
+  // waypoints
+  tracker.resetTargetPose();
+
   // Publish target pose
   target_pose.header.stamp = ros::Time::now();
   target_pose_pub.publish(target_pose);
