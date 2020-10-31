@@ -144,7 +144,7 @@ TEST_F(PoseTrackingFixture, OutgoingMsgTest)
 
   // resetTargetPose() can be used to clear the target pose and wait for a new one, e.g. when moving between multiple
   // waypoints
-  tracker_->resetTargetPose()
+  tracker_->resetTargetPose();
 
   tracker_->moveToPose(translation_tolerance_, ROTATION_TOLERANCE, 1 /* target pose timeout */);
 

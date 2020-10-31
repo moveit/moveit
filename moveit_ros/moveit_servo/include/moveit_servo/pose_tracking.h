@@ -114,7 +114,6 @@ public:
    */
   bool getCommandFrameTransform(geometry_msgs::TransformStamped& transform);
 
-
   /** \brief Re-initialize the target pose to an empty message. Can be used to reset motion between waypoints. */
   void resetTargetPose();
 
