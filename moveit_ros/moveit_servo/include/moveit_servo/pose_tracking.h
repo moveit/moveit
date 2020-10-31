@@ -114,6 +114,9 @@ public:
    */
   bool getCommandFrameTransform(geometry_msgs::TransformStamped& transform);
 
+  /** \brief Re-initialize the target pose to an empty message. Can be used to reset motion between waypoints. */
+  void resetTargetPose();
+
   // moveit_servo::Servo instance. Public so we can access member functions like setPaused()
   std::unique_ptr<moveit_servo::Servo> servo_;
 
@@ -170,6 +173,7 @@ private:
   Eigen::Isometry3d command_frame_transform_;
   ros::Time command_frame_transform_stamp_;
   geometry_msgs::PoseStamped target_pose_;
+  mutable std::mutex target_pose_mtx_;
 
   // Subscribe to target pose
   ros::Subscriber target_pose_sub_;

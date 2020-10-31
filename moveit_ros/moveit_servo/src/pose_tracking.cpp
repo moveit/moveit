@@ -79,12 +79,9 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
 PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance,
                                                 const double angular_tolerance, const double target_pose_timeout)
 {
-  // Roll back the target pose timestamp to ensure we wait for a new target pose message
-  target_pose_.header.stamp = ros::Time::now() - ros::Duration(2 * target_pose_timeout);
-
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves (in a callback function).
-  ros::Time start_time = ros::Time::now();
+  const ros::Time start_time = ros::Time::now();
   while ((!haveRecentTargetPose(target_pose_timeout) || !haveRecentEndEffectorPose(target_pose_timeout)) &&
          ((ros::Time::now() - start_time).toSec() < target_pose_timeout))
   {
@@ -94,36 +91,34 @@ PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positiona
     }
     ros::Duration(0.001).sleep();
   }
+
   if (!haveRecentTargetPose(target_pose_timeout))
   {
     ROS_ERROR_STREAM_NAMED(LOGNAME, "The target pose was not updated recently. Aborting.");
     return PoseTrackingStatusCode::NO_RECENT_TARGET_POSE;
   }
 
-  while (ros::ok())
+  // Continue sending PID controller output to Servo until one of the following conditions is met:
+  // - Goal tolerance is satisfied
+  // - Target pose becomes outdated
+  // - Command frame transform becomes outdated
+  // - Another thread requested a stop
+  while (ros::ok() && !satisfiesPoseTolerance(positional_tolerance, angular_tolerance))
   {
-    // Check for reasons to stop:
-    // - Goal tolerance is satisfied
-    // - Timeout
-    // - Another thread requested a stop
-    // - PID controllers aren't initialized
-    if (satisfiesPoseTolerance(positional_tolerance, angular_tolerance))
-    {
-      break;
-    }
-
     // Attempt to update robot pose
     if (servo_->getCommandFrameTransform(command_frame_transform_))
     {
       command_frame_transform_stamp_ = ros::Time::now();
     }
 
+    // Check that end-effector pose (command frame transform) is recent enough.
     if (!haveRecentEndEffectorPose(target_pose_timeout))
     {
       ROS_ERROR_STREAM_NAMED(LOGNAME, "The end effector pose was not updated in time. Aborting.");
       doPostMotionReset();
       return PoseTrackingStatusCode::NO_RECENT_END_EFFECTOR_POSE;
     }
+
     if (stop_requested_)
     {
       ROS_INFO_STREAM_NAMED(LOGNAME, "Halting servo motion, a stop was requested.");
@@ -210,6 +205,7 @@ void PoseTracking::initializePID(const PIDConfig& pid_config, std::vector<contro
 
 bool PoseTracking::haveRecentTargetPose(const double timespan)
 {
+  std::lock_guard<std::mutex> lock(target_pose_mtx_);
   return ((ros::Time::now() - target_pose_.header.stamp).toSec() < timespan);
 }
 
@@ -220,59 +216,67 @@ bool PoseTracking::haveRecentEndEffectorPose(const double timespan)
 
 bool PoseTracking::satisfiesPoseTolerance(const Eigen::Vector3d& positional_tolerance, const double angular_tolerance)
 {
+  std::lock_guard<std::mutex> lock(target_pose_mtx_);
   double x_error = target_pose_.pose.position.x - command_frame_transform_.translation()(0);
   double y_error = target_pose_.pose.position.y - command_frame_transform_.translation()(1);
   double z_error = target_pose_.pose.position.z - command_frame_transform_.translation()(2);
 
-  return (fabs(x_error) < positional_tolerance(0)) && (fabs(y_error) < positional_tolerance(1)) &&
-         (fabs(z_error) < positional_tolerance(2) && fabs(angular_error_) < angular_tolerance);
+  return ((std::abs(x_error) < positional_tolerance(0)) && (std::abs(y_error) < positional_tolerance(1)) &&
+          (std::abs(z_error) < positional_tolerance(2)) && (std::abs(angular_error_) < angular_tolerance));
 }
 
 void PoseTracking::targetPoseCallback(const geometry_msgs::PoseStampedConstPtr& msg)
 {
-  // Transform to planning frame
+  std::lock_guard<std::mutex> lock(target_pose_mtx_);
   target_pose_ = *msg;
-  geometry_msgs::TransformStamped target_to_planning_frame;
+
+  // If the target pose is not defined in planning frame, transform the target pose.
   if (target_pose_.header.frame_id != planning_frame_)
   {
     try
     {
-      target_to_planning_frame = transform_buffer_.lookupTransform(planning_frame_, target_pose_.header.frame_id,
-                                                                   ros::Time(0), ros::Duration(0.1));
+      geometry_msgs::TransformStamped target_to_planning_frame = transform_buffer_.lookupTransform(
+          planning_frame_, target_pose_.header.frame_id, ros::Time(0), ros::Duration(0.1));
+      tf2::doTransform(target_pose_, target_pose_, target_to_planning_frame);
     }
-    catch (tf2::TransformException& ex)
+    catch (const tf2::TransformException& ex)
     {
-      ROS_WARN_NAMED(LOGNAME, "%s", ex.what());
+      ROS_WARN_STREAM_NAMED(LOGNAME, ex.what());
       return;
     }
-    tf2::doTransform(target_pose_, target_pose_, target_to_planning_frame);
   }
-  target_pose_.header.stamp = ros::Time::now();
 }
 
 geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
 {
   // use the shared pool to create a message more efficiently
   auto msg = moveit::util::make_shared_from_pool<geometry_msgs::TwistStamped>();
-  msg->header.frame_id = target_pose_.header.frame_id;
 
   // Get twist components from PID controllers
   geometry_msgs::Twist& twist = msg->twist;
+  Eigen::Quaterniond q_desired;
 
-  // Position
-  twist.linear.x = cartesian_position_pids_[0].computeCommand(
-      target_pose_.pose.position.x - command_frame_transform_.translation()(0), loop_rate_.expectedCycleTime());
-  twist.linear.y = cartesian_position_pids_[1].computeCommand(
-      target_pose_.pose.position.y - command_frame_transform_.translation()(1), loop_rate_.expectedCycleTime());
-  twist.linear.z = cartesian_position_pids_[2].computeCommand(
-      target_pose_.pose.position.z - command_frame_transform_.translation()(2), loop_rate_.expectedCycleTime());
+  // Scope mutex locking only to operations which require access to target pose.
+  {
+    std::lock_guard<std::mutex> lock(target_pose_mtx_);
+    msg->header.frame_id = target_pose_.header.frame_id;
 
-  // Orientation algorithm:
-  // - Find the orientation error as a quaternion: q_error = q_desired * q_current ^ -1
-  // - Use the quaternion PID controllers to calculate a quaternion rate, q_error_dot
-  // - Convert to angular velocity for the TwistStamped message
-  Eigen::Quaterniond q_desired(target_pose_.pose.orientation.w, target_pose_.pose.orientation.x,
-                               target_pose_.pose.orientation.y, target_pose_.pose.orientation.z);
+    // Position
+    twist.linear.x = cartesian_position_pids_[0].computeCommand(
+        target_pose_.pose.position.x - command_frame_transform_.translation()(0), loop_rate_.expectedCycleTime());
+    twist.linear.y = cartesian_position_pids_[1].computeCommand(
+        target_pose_.pose.position.y - command_frame_transform_.translation()(1), loop_rate_.expectedCycleTime());
+    twist.linear.z = cartesian_position_pids_[2].computeCommand(
+        target_pose_.pose.position.z - command_frame_transform_.translation()(2), loop_rate_.expectedCycleTime());
+
+    // Orientation algorithm:
+    // - Find the orientation error as a quaternion: q_error = q_desired * q_current ^ -1
+    // - Use the angle-axis PID controller to calculate an angular rate
+    // - Convert to angular velocity for the TwistStamped message
+    q_desired = Eigen::Quaterniond(target_pose_.pose.orientation.w, target_pose_.pose.orientation.x,
+                                   target_pose_.pose.orientation.y, target_pose_.pose.orientation.z);
+  }
+
   Eigen::Quaterniond q_current(command_frame_transform_.rotation());
   Eigen::Quaterniond q_error = q_desired * q_current.inverse();
 
@@ -343,6 +347,13 @@ void PoseTracking::getPIDErrors(double& x_error, double& y_error, double& z_erro
   cartesian_position_pids_.at(1).getCurrentPIDErrors(&y_error, &dummy1, &dummy2);
   cartesian_position_pids_.at(2).getCurrentPIDErrors(&z_error, &dummy1, &dummy2);
   cartesian_orientation_pids_.at(0).getCurrentPIDErrors(&orientation_error, &dummy1, &dummy2);
+}
+
+void PoseTracking::resetTargetPose()
+{
+  std::lock_guard<std::mutex> lock(target_pose_mtx_);
+  target_pose_ = geometry_msgs::PoseStamped();
+  target_pose_.header.stamp = ros::Time(0);
 }
 
 bool PoseTracking::getCommandFrameTransform(geometry_msgs::TransformStamped& transform)
