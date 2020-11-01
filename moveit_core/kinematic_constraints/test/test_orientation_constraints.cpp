@@ -72,7 +72,8 @@ protected:
   }
 
 protected:
-  moveit::core::RobotModelPtr robot_model_;
+  //moveit::core::RobotModelPtr robot_model_;
+  moveit::core::RobotModelPtr robot_wrist_model_;
 };
 
 class FloatingJointRobot : public testing::Test
@@ -473,6 +474,50 @@ TEST_F(FloatingJointRobot, OrientationConstraintsParameterization)
   EXPECT_TRUE(oc_rotvec.configure(ocm, tf));
   EXPECT_FALSE(oc_rotvec.decide(robot_state).satisfied);
 }
+
+// TEST_F(LoadPlanningModelsPr2, OrientationConstraintsParameterization)
+// {
+//   moveit::core::RobotState robot_state(robot_model_);
+//   robot_state.setToDefaultValues();
+//   robot_state.update();
+//   moveit::core::Transforms tf(robot_model_->getModelFrame());
+
+//   kinematic_constraints::OrientationConstraint oc(robot_model_);
+
+//   moveit_msgs::OrientationConstraint ocm;
+
+//   // center the orientation constraints around the current orientation of the link
+//   geometry_msgs::Pose p = tf2::toMsg(robot_state.getGlobalLinkTransform("r_wrist_roll_link"));
+//   ocm.orientation = p.orientation;
+
+//   ocm.link_name = "r_wrist_roll_link";
+//   ocm.header.frame_id = robot_model_->getModelFrame();
+//   // ocm.orientation.x = 0.0;
+//   // ocm.orientation.y = 0.0;
+//   // ocm.orientation.z = 0.0;
+//   // ocm.orientation.w = 1.0;
+//   ocm.absolute_x_axis_tolerance = 0.5;
+//   ocm.absolute_y_axis_tolerance = 0.5;
+//   ocm.absolute_z_axis_tolerance = 0.5;
+//   // ocm.parameterization = moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES;
+//   ocm.parameterization = 3;
+//   ocm.weight = 1.0;
+
+//   EXPECT_TRUE(oc.configure(ocm, tf));
+
+//   // Constraints should be satisfied based on how we created them
+//   EXPECT_TRUE(oc.decide(robot_state).satisfied);
+
+//   // move a joint and check the constraints again
+//   std::map<std::string, double> jvals;
+//   jvals["r_wrist_flex_joint"] = 1.0;
+//   robot_state.setVariablePositions(jvals);
+//   robot_state.update();
+
+//   EXPECT_FALSE(oc.decide(robot_state, true).satisfied);
+
+//   //oc.decide()
+// }
 
 int main(int argc, char** argv)
 {
