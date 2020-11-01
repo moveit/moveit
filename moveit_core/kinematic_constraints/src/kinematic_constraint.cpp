@@ -673,41 +673,58 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
   if (!link_model_)
     return ConstraintEvaluationResult(true, 0.0);
 
-  std::tuple<Eigen::Vector3d, bool> euler_angles_error;
+  Eigen::Vector3d xyz;
+  Eigen::Isometry3d diff;
   if (mobile_frame_)
   {
     // getFrameTransform() returns a valid isometry by contract
     Eigen::Matrix3d tmp = state.getFrameTransform(desired_rotation_frame_id_).linear() * desired_rotation_matrix_;
     // getGlobalLinkTransform() returns a valid isometry by contract
-    Eigen::Isometry3d diff(tmp.transpose() * state.getGlobalLinkTransform(link_model_).linear());  // valid isometry
-    euler_angles_error = CalcEulerAngles(diff.linear());
+    diff = Eigen::Isometry3d(tmp.transpose() * state.getGlobalLinkTransform(link_model_).linear());  // valid isometry
   }
   else
   {
     // diff is valid isometry by construction
-    Eigen::Isometry3d diff(desired_rotation_matrix_inv_ * state.getGlobalLinkTransform(link_model_).linear());
-    euler_angles_error = CalcEulerAngles(diff.linear());
+    diff = Eigen::Isometry3d(desired_rotation_matrix_inv_ * state.getGlobalLinkTransform(link_model_).linear());
   }
 
-  // Converting from a rotation matrix to an intrinsic XYZ euler angles have 2 singularities:
-  // pitch ~= pi/2 ==> roll + yaw = theta
-  // pitch ~= -pi/2 ==> roll - yaw = theta
-  // in those cases CalcEulerAngles will set roll (xyz(0)) to theta and yaw (xyz(2)) to zero, so for us to be able to
-  // capture yaw tolerance violation we do the following, if theta violate the absolute yaw tolerance we think of it as
-  // pure yaw rotation and set roll to zero
-  auto& xyz = std::get<Eigen::Vector3d>(euler_angles_error);
-  if (!std::get<bool>(euler_angles_error))
+  // TODO(jeroendm) do this variable need to be outside the scope of the if statement below?
+  // look into what std::get does.
+  std::tuple<Eigen::Vector3d, bool> euler_angles_error;
+  if (parameterization_ == Parameterization::EULER_ANGLES)
   {
-    if (normalizeAbsoluteAngle(xyz(0)) > absolute_z_axis_tolerance_ + std::numeric_limits<double>::epsilon())
+    euler_angles_error = CalcEulerAngles(diff.linear());
+    // Converting from a rotation matrix to an intrinsic XYZ euler angles have 2 singularities:
+    // pitch ~= pi/2 ==> roll + yaw = theta
+    // pitch ~= -pi/2 ==> roll - yaw = theta
+    // in those cases CalcEulerAngles will set roll (xyz(0)) to theta and yaw (xyz(2)) to zero, so for us to be able to
+    // capture yaw tolerance violation we do the following, if theta violate the absolute yaw tolerance we think of it
+    // as pure yaw rotation and set roll to zero
+    auto& xyz = std::get<Eigen::Vector3d>(euler_angles_error);
+    if (!std::get<bool>(euler_angles_error))
     {
-      xyz(2) = xyz(0);
-      xyz(0) = 0;
+      if (normalizeAbsoluteAngle(xyz(0)) > absolute_z_axis_tolerance_ + std::numeric_limits<double>::epsilon())
+      {
+        xyz(2) = xyz(0);
+        xyz(0) = 0;
+      }
     }
+    // Account for angle wrapping
+    xyz = xyz.unaryExpr(&normalizeAbsoluteAngle);
   }
-  // Account for angle wrapping
-  xyz = xyz.unaryExpr(&normalizeAbsoluteAngle);
+  else if (parameterization_ == Parameterization::ANGLE_AXIS)
+  {
+    Eigen::AngleAxisd aa(diff.linear());
+    xyz = aa.axis() * aa.angle();
+    xyz(0) = fabs(xyz(0));
+    xyz(1) = fabs(xyz(1));
+    xyz(2) = fabs(xyz(2));
+  }
+  else
+  {
+    // Is it possible for parameterization_ to have an unkown type?
+  }
 
-  // 0,1,2 corresponds to XYZ, the convention used in sampling constraints
   bool result = xyz(2) < absolute_z_axis_tolerance_ + std::numeric_limits<double>::epsilon() &&
                 xyz(1) < absolute_y_axis_tolerance_ + std::numeric_limits<double>::epsilon() &&
                 xyz(0) < absolute_x_axis_tolerance_ + std::numeric_limits<double>::epsilon();
