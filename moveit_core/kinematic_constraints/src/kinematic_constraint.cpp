@@ -609,7 +609,6 @@ bool OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& 
 
   if (oc.parameterization == 0)
   {
-    // default case
     parameterization_ = Parameterization::EULER_ANGLES;
   }
   else if (oc.parameterization == 1)
@@ -620,6 +619,7 @@ bool OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& 
   {
     ROS_WARN_NAMED("kinematic_constraints",
                    "Unkown parameterization for orientation constraint tolerance, using default (EULER_ANGLES).");
+    parameterization_ = Parameterization::EULER_ANGLES;
   }
 
   absolute_x_axis_tolerance_ = fabs(oc.absolute_x_axis_tolerance);
