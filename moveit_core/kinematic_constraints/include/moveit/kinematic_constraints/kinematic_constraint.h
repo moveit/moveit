@@ -478,14 +478,12 @@ public:
     return absolute_z_axis_tolerance_;
   }
 
-protected:
-  /** Describes the three parameter representation of an orientation matrix to apply constraint tolerance around x, y and x axis. **/
-  enum class Parameterization
+  int getParameterization() const
   {
-    EULER_ANGLES,
-    ANGLE_AXIS
-  };
+    return parameterization_;
+  }
 
+protected:
   const moveit::core::LinkModel* link_model_;   /**< \brief The target link model */
   Eigen::Matrix3d desired_rotation_matrix_;     /**< \brief The desired rotation matrix in the tf frame. Guaranteed to
                                                  * be valid rotation matrix. */
@@ -493,7 +491,7 @@ protected:
                                                  * efficiency. Guaranteed to be valid rotation matrix. */
   std::string desired_rotation_frame_id_;       /**< \brief The target frame of the transform tree */
   bool mobile_frame_;                           /**< \brief Whether or not the header frame is mobile or fixed */
-  Parameterization parameterization_;           /**< \brief Parameterization type for orientation tolerance. */
+  int parameterization_;           /**< \brief Parameterization type for orientation tolerance. */
   double absolute_x_axis_tolerance_, absolute_y_axis_tolerance_,
       absolute_z_axis_tolerance_; /**< \brief Storage for the tolerances */
 };
