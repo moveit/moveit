@@ -46,6 +46,21 @@
 class SphericalRobot : public testing::Test
 {
 protected:
+  /** A robot model with a single floating joint will be created. **/
+  moveit::core::RobotModelPtr robot_model_;
+
+  /** Test data
+   *
+   * The test data represents valid orientations for an absolute tolerance of 0.5 around x, y and z.
+   *
+   * The first matrix contains valid orientations for xyx_euler_angles error, but invalid for rotation_vector.
+   * The second matrix is the other way around.
+   *
+   * The rows contain a quaternion in the order x, y, z and w.
+   * */
+  Eigen::Matrix<double, 8, 4> valid_euler_data_;
+  Eigen::Matrix<double, 8, 4> valid_rotvec_data_;
+
   void SetUp() override
   {
     moveit::core::RobotModelBuilder builder("robot", "base_link");
@@ -326,6 +341,9 @@ TEST_F(SphericalRobot, Test4)
 TEST_F(SphericalRobot, Test5)
 {
   kinematic_constraints::OrientationConstraint oc(robot_model_);
+  EXPECT_TRUE(oc.configure(ocm, tf));
+  EXPECT_EQ(oc.getParameterization(), moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES);
+}
 
   moveit::core::Transforms tf(robot_model_->getModelFrame());
   moveit_msgs::OrientationConstraint ocm;
@@ -475,49 +493,15 @@ TEST_F(FloatingJointRobot, OrientationConstraintsParameterization)
   EXPECT_FALSE(oc_rotvec.decide(robot_state).satisfied);
 }
 
-// TEST_F(LoadPlanningModelsPr2, OrientationConstraintsParameterization)
-// {
-//   moveit::core::RobotState robot_state(robot_model_);
-//   robot_state.setToDefaultValues();
-//   robot_state.update();
-//   moveit::core::Transforms tf(robot_model_->getModelFrame());
+  ocm.parameterization = moveit_msgs::OrientationConstraint::ROTATION_VECTOR;
+  ocm.orientation = tf2::toMsg(rotation_vector_to_quat(0.1, 0.2, -0.3));
+  EXPECT_TRUE(oc_rotvec.configure(ocm, tf));
+  EXPECT_TRUE(oc_rotvec.decide(robot_state).satisfied);
 
-//   kinematic_constraints::OrientationConstraint oc(robot_model_);
-
-//   moveit_msgs::OrientationConstraint ocm;
-
-//   // center the orientation constraints around the current orientation of the link
-//   geometry_msgs::Pose p = tf2::toMsg(robot_state.getGlobalLinkTransform("r_wrist_roll_link"));
-//   ocm.orientation = p.orientation;
-
-//   ocm.link_name = "r_wrist_roll_link";
-//   ocm.header.frame_id = robot_model_->getModelFrame();
-//   // ocm.orientation.x = 0.0;
-//   // ocm.orientation.y = 0.0;
-//   // ocm.orientation.z = 0.0;
-//   // ocm.orientation.w = 1.0;
-//   ocm.absolute_x_axis_tolerance = 0.5;
-//   ocm.absolute_y_axis_tolerance = 0.5;
-//   ocm.absolute_z_axis_tolerance = 0.5;
-//   // ocm.parameterization = moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES;
-//   ocm.parameterization = 3;
-//   ocm.weight = 1.0;
-
-//   EXPECT_TRUE(oc.configure(ocm, tf));
-
-//   // Constraints should be satisfied based on how we created them
-//   EXPECT_TRUE(oc.decide(robot_state).satisfied);
-
-//   // move a joint and check the constraints again
-//   std::map<std::string, double> jvals;
-//   jvals["r_wrist_flex_joint"] = 1.0;
-//   robot_state.setVariablePositions(jvals);
-//   robot_state.update();
-
-//   EXPECT_FALSE(oc.decide(robot_state, true).satisfied);
-
-//   //oc.decide()
-// }
+  ocm.orientation = tf2::toMsg(rotation_vector_to_quat(0.1, 0.2, -0.6));
+  EXPECT_TRUE(oc_rotvec.configure(ocm, tf));
+  EXPECT_FALSE(oc_rotvec.decide(robot_state).satisfied);
+}
 
 int main(int argc, char** argv)
 {
