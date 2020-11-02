@@ -483,14 +483,8 @@ public:
     return parameterization_type_;
   }
 
-protected:
-  /** Describes the three parameter representation of an orientation matrix to apply constraint tolerance around x, y and x axis. **/
-  enum class Parameterization
-  {
-    EULER_ANGLES,
-    ANGLE_AXIS
-  };
 
+protected:
   const moveit::core::LinkModel* link_model_;   /**< \brief The target link model */
   Eigen::Matrix3d desired_rotation_matrix_;     /**< \brief The desired rotation matrix in the tf frame. Guaranteed to
                                                  * be valid rotation matrix. */
