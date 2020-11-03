@@ -136,7 +136,7 @@ bool Servo::readParameters()
   // 'collision_proximity_threshold' parameter was removed, replaced with separate self- and scene-collision proximity
   // thresholds
   // TODO(JStech): remove this deprecation warning in ROS Noetic; simplify error case handling
-  if (nh_.hasParam("collision_proximity_threshold") &&
+  if (nh.hasParam("collision_proximity_threshold") &&
       rosparam_shortcuts::get(LOGNAME, nh, "collision_proximity_threshold", collision_proximity_threshold))
   {
     ROS_WARN_NAMED(LOGNAME, "'collision_proximity_threshold' parameter is deprecated, and has been replaced by separate"
@@ -168,6 +168,17 @@ bool Servo::readParameters()
     ROS_WARN_NAMED(LOGNAME, "'status_topic' parameter is missing. Recently renamed from 'warning_topic'. Please update "
                             "the servoing yaml file.");
     error += !rosparam_shortcuts::get(LOGNAME, nh, "warning_topic", parameters_.status_topic);
+  }
+
+  if (nh.hasParam("low_latency_mode"))
+  {
+    error += !rosparam_shortcuts::get(LOGNAME, nh, "low_latency_mode", parameters_.low_latency_mode);
+  }
+  else
+  {
+    ROS_WARN_NAMED(LOGNAME, "'low_latency_mode' is a new parameter that runs servo calc immediately after receiving "
+                            "input.  Setting to the default value of false.");
+    parameters_.low_latency_mode = false;
   }
 
   rosparam_shortcuts::shutdownIfError(LOGNAME, error);
