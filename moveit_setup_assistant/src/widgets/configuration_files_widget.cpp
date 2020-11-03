@@ -297,6 +297,17 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = 0;  // Can they be changed?
   gen_files_.push_back(file);
 
+  // cartesian_limits.yaml --------------------------------------------------------------------------------------
+  file.file_name_ = "cartesian_limits.yaml";
+  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  template_path = config_data_->appendPaths(config_data_->template_package_path_, file.rel_path_);
+  file.description_ = "Cartesian velocity for planning in the workspace."
+                      "The velocity is used by pilz industrial motion planner as maximum velocity for cartesian "
+                      "planning requests scaled by the velocity scaling factor of an individual planning request.";
+  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  file.write_on_changes = 0;  // Can they be changed?
+  gen_files_.push_back(file);
+
   // fake_controllers.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "fake_controllers.yaml";
   file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
@@ -376,6 +387,18 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.description_ = "Intended to be included in other launch files that require the OMPL planning plugin. Defines "
                       "the proper plugin name on the parameter server and a default selection of planning request "
                       "adapters.";
+  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  file.write_on_changes = 0;
+  gen_files_.push_back(file);
+
+  // pilz_industrial_motion_planner_planning_pipeline.launch
+  // --------------------------------------------------------------------------------------
+  file.file_name_ = "pilz_industrial_motion_planner_planning_pipeline.launch.xml";
+  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
+  template_path = config_data_->appendPaths(template_launch_path, file.file_name_);
+  file.description_ = "Intended to be included in other launch files that require the Pilz industrial motion planner "
+                      "planning plugin. Defines the proper plugin name on the parameter server and a default selection "
+                      "of planning request adapters.";
   file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   file.write_on_changes = 0;
   gen_files_.push_back(file);

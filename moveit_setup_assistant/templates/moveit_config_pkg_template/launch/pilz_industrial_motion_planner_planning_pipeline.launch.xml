@@ -1,0 +1,28 @@
+<launch>
+
+  <!-- Pilz Command Planner Plugin for MoveIt -->
+  <arg name="planning_plugin" value="pilz_industrial_motion_planner::CommandPlanner" />
+
+  <!-- The request adapters (plugins) used when planning.
+       ORDER MATTERS -->
+  <arg name="planning_adapters" value="" />
+
+  <!-- define capabilites that are loaded on start (space seperated) -->
+  <arg name="capabilities" default=""/>
+
+  <!-- inhibit capabilites (space seperated) -->
+  <arg name="disable_capabilities" default=""/>
+
+  <arg name="start_state_max_bounds_error" value="0.1" />
+
+  <param name="planning_plugin" value="$(arg planning_plugin)" />
+  <param name="request_adapters" value="$(arg planning_adapters)" />
+  <param name="start_state_max_bounds_error" value="$(arg start_state_max_bounds_error)" />
+
+  <!-- MoveGroup capabilities to load, append sequence capability -->
+  <param name="capabilities" value="$(arg capabilities)
+                                    pilz_industrial_motion_planner/MoveGroupSequenceAction
+                                    pilz_industrial_motion_planner/MoveGroupSequenceService
+                                   " />
+  <param name="disable_capabilities" value="$(arg disable_capabilities)" />
+</launch>
