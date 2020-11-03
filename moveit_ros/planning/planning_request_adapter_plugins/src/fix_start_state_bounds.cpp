@@ -178,7 +178,7 @@ public:
     if (change_req)
     {
       planning_interface::MotionPlanRequest req2 = req;
-      robot_state::robotStateToRobotStateMsg(start_state, req2.start_state, false);
+      moveit::core::robotStateToRobotStateMsg(start_state, req2.start_state);
       solved = planner(planning_scene, req2, res);
     }
     else
