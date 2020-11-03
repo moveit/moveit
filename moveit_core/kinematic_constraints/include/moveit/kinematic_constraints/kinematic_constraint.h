@@ -491,7 +491,7 @@ protected:
                                                  * efficiency. Guaranteed to be valid rotation matrix. */
   std::string desired_rotation_frame_id_;       /**< \brief The target frame of the transform tree */
   bool mobile_frame_;                           /**< \brief Whether or not the header frame is mobile or fixed */
-  int parameterization_;           /**< \brief Parameterization type for orientation tolerance. */
+  int parameterization_;                        /**< \brief Parameterization type for orientation tolerance. */
   double absolute_x_axis_tolerance_, absolute_y_axis_tolerance_,
       absolute_z_axis_tolerance_; /**< \brief Storage for the tolerances */
 };

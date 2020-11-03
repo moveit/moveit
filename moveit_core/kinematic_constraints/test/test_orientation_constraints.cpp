@@ -34,7 +34,6 @@
 
 /* Author: Jeroen De Maeyer */
 
-
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <gtest/gtest.h>
 
