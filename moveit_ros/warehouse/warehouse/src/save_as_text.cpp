@@ -33,6 +33,8 @@
  *********************************************************************/
 
 /* Author: Ioan Sucan */
+/* Author: Raphael Bricout */
+/* Author: Shadow Software Team */
 
 #include <moveit/warehouse/planning_scene_storage.h>
 #include <moveit/warehouse/state_storage.h>
@@ -44,6 +46,7 @@
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_state/conversions.h>
 #include <ros/ros.h>
+#include <eigen_conversions/eigen_msg.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 
@@ -82,11 +85,59 @@ int main(int argc, char** argv)
   boost::program_options::options_description desc;
   desc.add_options()("help", "Show help message")("host", boost::program_options::value<std::string>(), "Host for the "
                                                                                                         "DB.")(
-      "port", boost::program_options::value<std::size_t>(), "Port for the DB.");
+      "port", boost::program_options::value<std::size_t>(), "Port for the DB.")(
+      "cartesian", "Save queries in cartesian space (start and end pose of eef)")("scene", "Saves the scene.")(
+      "eef", boost::program_options::value<std::string>(),
+      "Specify the end effector. Default: last link.")("group_prefix", boost::program_options::value<std::string>(),
+                                                       "Specify the group prefix you'd like to plan with.")(
+      "output_directory", boost::program_options::value<std::string>(), "Directory to save files");
 
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
   boost::program_options::notify(vm);
+
+  std::string cartesian_prefix = "";
+  if (vm.count("cartesian"))
+  {
+    cartesian_prefix = "cartesian_";
+  }
+
+  std::string link_eef = "";
+  if (vm.count("eef"))
+  {
+    link_eef = vm["eef"].as<std::string>();
+  }
+  else
+  {
+    ROS_INFO("If you want to export the queries in cartesian space, you can specify the eef.");
+  }
+
+  std::string output_dir = "";
+  if (vm.count("output_directory"))
+  {
+    output_dir = vm["output_directory"].as<std::string>();
+    if (output_dir.size() && output_dir[output_dir.size() - 1] != '/')
+      output_dir.append("/");
+
+    // Ensure directories exist
+    boost::filesystem::create_directories(output_dir);
+  }
+  else
+  {
+    ROS_INFO("Specify output_directory to save the files in a specific directory");
+  }
+
+  std::string group_prefix = "";
+  if (vm.count("group_prefix"))
+  {
+    group_prefix = vm["group_prefix"].as<std::string>();
+  }
+  else
+  {
+    ROS_INFO(
+        "If you have a problem with a composite robot, try to use the group_prefix option to specify the prefix of the "
+        "group you want to save the queries");
+  }
 
   if (vm.count("help"))
   {
@@ -112,77 +163,197 @@ int main(int argc, char** argv)
   std::vector<std::string> scene_names;
   pss.getPlanningSceneNames(scene_names);
 
+  std::string scene_filename;
+  std::string queries_filename;
   for (std::size_t i = 0; i < scene_names.size(); ++i)
   {
     moveit_warehouse::PlanningSceneWithMetadata pswm;
     if (pss.getPlanningScene(pswm, scene_names[i]))
     {
-      ROS_INFO("Saving scene '%s'", scene_names[i].c_str());
       psm.getPlanningScene()->setPlanningSceneMsg(static_cast<const moveit_msgs::PlanningScene&>(*pswm));
-      std::ofstream fout((scene_names[i] + ".scene").c_str());
-      psm.getPlanningScene()->saveGeometryToStream(fout);
-      fout.close();
-
-      std::vector<std::string> robotStateNames;
-      robot_model::RobotModelConstPtr km = psm.getRobotModel();
-      // Get start states for scene
-      std::stringstream rsregex;
-      rsregex << ".*" << scene_names[i] << ".*";
-      rss.getKnownRobotStates(rsregex.str(), robotStateNames);
-
-      // Get goal constraints for scene
-      std::vector<std::string> constraintNames;
-
-      std::stringstream csregex;
-      csregex << ".*" << scene_names[i] << ".*";
-      cs.getKnownConstraints(csregex.str(), constraintNames);
-
-      if (!(robotStateNames.empty() && constraintNames.empty()))
+      if (vm.count("scene"))
       {
-        std::ofstream qfout((scene_names[i] + ".queries").c_str());
+        scene_filename = output_dir + (scene_names[i] + ".scene").c_str();
+        ROS_INFO("Saving scene '%s'", scene_filename.c_str());
+
+        std::ofstream fout(scene_filename);
+        psm.getPlanningScene()->saveGeometryToStream(fout);
+        fout.close();
+      }
+      else
+      {
+        std::vector<std::string> robotStateNames;
+        robot_model::RobotModelConstPtr km = psm.getRobotModel();
+        // Get start states for scene
+        std::stringstream rsregex;
+        rsregex << ".*" << scene_names[i] << ".*";
+        rss.getKnownRobotStates(rsregex.str(), robotStateNames);
+
+        // Get goal constraints for scene
+        std::vector<std::string> constraintNames;
+
+        std::stringstream csregex;
+        csregex << ".*" << scene_names[i] << ".*";
+        cs.getKnownConstraints(csregex.str(), constraintNames);
+
+        std::vector<std::string> query_names;
+        std::stringstream pssregex;
+        pssregex << ".*";
+        pss.getPlanningQueriesNames(pssregex.str(), query_names, scene_names[i]);
+
+        queries_filename = output_dir + (cartesian_prefix + scene_names[i] + ".queries").c_str();
+        std::ofstream qfout(queries_filename);
         qfout << scene_names[i] << std::endl;
-        if (robotStateNames.size())
+
+        for (std::size_t k = 0; k < query_names.size(); ++k)
         {
-          qfout << "start" << std::endl;
-          qfout << robotStateNames.size() << std::endl;
-          for (std::size_t k = 0; k < robotStateNames.size(); ++k)
+          ROS_INFO("Saving query '%s' from scene '%s'", query_names[k].c_str(), scene_names[i].c_str());
+          moveit_warehouse::MotionPlanRequestWithMetadata planning_query;
+          try
           {
-            ROS_INFO("Saving start state %s for scene %s", robotStateNames[k].c_str(), scene_names[i].c_str());
-            qfout << robotStateNames[k] << std::endl;
-            moveit_warehouse::RobotStateWithMetadata robotState;
-            rss.getRobotState(robotState, robotStateNames[k]);
-            robot_state::RobotState ks(km);
-            robot_state::robotStateMsgToRobotState(*robotState, ks, false);
-            ks.printStateInfo(qfout);
-            qfout << "." << std::endl;
+            pss.getPlanningQuery(planning_query, scene_names[i], query_names[k]);
+          }
+          catch (std::exception& ex)
+          {
+            ROS_ERROR("Error loading motion planning query '%s': %s", query_names[i].c_str(), ex.what());
+            continue;
+          }
+          moveit_msgs::MotionPlanRequest plan_request = static_cast<moveit_msgs::MotionPlanRequest>(*planning_query);
+          std::vector<moveit_msgs::Constraints> query_goal_constraints = plan_request.goal_constraints;
+          if (query_goal_constraints.size() == 1)
+          {
+            moveit_msgs::Constraints query_goal = query_goal_constraints[0];
+            moveit_msgs::RobotState startState = plan_request.start_state;
+            sensor_msgs::JointState jointState = startState.joint_state;
+
+            std::vector<moveit_msgs::JointConstraint> joint_constraints = query_goal.joint_constraints;
+            std::vector<moveit_msgs::PositionConstraint> position_constraints = query_goal.position_constraints;
+            std::vector<moveit_msgs::OrientationConstraint> orientation_constraints =
+                query_goal.orientation_constraints;
+
+            // Save queries defined in joint space
+            if (joint_constraints.size() != 0)
+            {
+              if (vm.count("cartesian"))
+              {
+                query_names[k] = "cartesian_" + query_names[k];
+              }
+              qfout << query_names[k] << std::endl;
+
+              // Save the start State
+              qfout << "START" << std::endl;
+              for (std::size_t p = 0; p < jointState.position.size(); ++p)
+              {
+                if (jointState.name[p].compare(0, group_prefix.length(), group_prefix) == 0)
+                {
+                  qfout << jointState.name[p] << " = ";
+                  qfout << jointState.position[p] << std::endl;
+                }
+              }
+              qfout << "." << std::endl;
+
+              // Save the goal state
+              qfout << "GOAL" << std::endl;
+
+              // save queries using end-effector position
+              if (vm.count("cartesian"))
+              {
+                qfout << "position_constraint" << std::endl;
+
+                moveit::core::RobotState goal_state(km);
+                for (int i = 0; i < joint_constraints.size(); ++i)
+                {
+                  goal_state.setJointPositions(joint_constraints[i].joint_name, { joint_constraints[i].position });
+                }
+
+                const moveit::core::JointModel* joint_eef =
+                    goal_state.getJointModel(joint_constraints[joint_constraints.size() - 1].joint_name);
+
+                if (link_eef == "")
+                {
+                  link_eef = joint_eef->getChildLinkModel()->getName();
+                }
+                const Eigen::Affine3d& link_pose = goal_state.getGlobalLinkTransform(link_eef);
+
+                geometry_msgs::Transform transform;
+                tf::transformEigenToMsg(link_pose, transform);
+                qfout << "End_effector = " << link_eef << std::endl;
+                qfout << "Position =";
+                qfout << " " << transform.translation.x;
+                qfout << " " << transform.translation.y;
+                qfout << " " << transform.translation.z << std::endl;
+                qfout << "Orientation =";
+                qfout << " " << transform.rotation.x;
+                qfout << " " << transform.rotation.y;
+                qfout << " " << transform.rotation.z;
+                qfout << " " << transform.rotation.w << std::endl;
+                qfout << "." << std::endl;
+              }
+              // save queries using joint constraints
+              else
+              {
+                qfout << "joint_constraint" << std::endl;
+                std::vector<moveit_msgs::JointConstraint> joint_constraints = query_goal.joint_constraints;
+                if (joint_constraints.size() != 0)
+                {
+                  for (auto iter = joint_constraints.begin(); iter != joint_constraints.end(); iter++)
+                  {
+                    qfout << iter->joint_name << " = ";
+                    qfout << iter->position << std::endl;
+                  }
+                }
+                qfout << "." << std::endl;
+              }
+            }
           }
         }
 
-        if (constraintNames.size())
+        // Saving link constaints
+        if (!(robotStateNames.empty() && constraintNames.empty()))
         {
-          qfout << "goal" << std::endl;
-          qfout << constraintNames.size() << std::endl;
-          for (std::size_t k = 0; k < constraintNames.size(); ++k)
+          if (robotStateNames.size())
           {
-            ROS_INFO("Saving goal %s for scene %s", constraintNames[k].c_str(), scene_names[i].c_str());
-            qfout << "link_constraint" << std::endl;
-            qfout << constraintNames[k] << std::endl;
-            moveit_warehouse::ConstraintsWithMetadata constraints;
-            cs.getConstraints(constraints, constraintNames[k]);
-
-            LinkConstraintMap lcmap;
-            collectLinkConstraints(*constraints, lcmap);
-            for (LinkConstraintMap::iterator iter = lcmap.begin(); iter != lcmap.end(); iter++)
+            qfout << "start" << std::endl;
+            qfout << robotStateNames.size() << std::endl;
+            for (std::size_t k = 0; k < robotStateNames.size(); ++k)
             {
-              std::string link_name = iter->first;
-              LinkConstraintPair lcp = iter->second;
-              qfout << link_name << std::endl;
-              qfout << "xyz " << lcp.first.x << " " << lcp.first.y << " " << lcp.first.z << std::endl;
-              Eigen::Quaterniond orientation(lcp.second.w, lcp.second.x, lcp.second.y, lcp.second.z);
-              Eigen::Vector3d rpy = orientation.matrix().eulerAngles(0, 1, 2);
-              qfout << "rpy " << rpy[0] << " " << rpy[1] << " " << rpy[2] << std::endl;
+              ROS_INFO("Saving start state %s for scene %s", robotStateNames[k].c_str(), scene_names[i].c_str());
+              qfout << robotStateNames[k] << std::endl;
+              moveit_warehouse::RobotStateWithMetadata robotState;
+              rss.getRobotState(robotState, robotStateNames[k]);
+              robot_state::RobotState ks(km);
+              robot_state::robotStateMsgToRobotState(*robotState, ks, false);
+              ks.printStateInfo(qfout);
+              qfout << "." << std::endl;
             }
-            qfout << "." << std::endl;
+          }
+
+          if (constraintNames.size())
+          {
+            qfout << "goal" << std::endl;
+            qfout << constraintNames.size() << std::endl;
+            for (std::size_t k = 0; k < constraintNames.size(); ++k)
+            {
+              ROS_INFO("Saving goal %s for scene %s", constraintNames[k].c_str(), scene_names[i].c_str());
+              qfout << "link_constraint" << std::endl;
+              qfout << constraintNames[k] << std::endl;
+              moveit_warehouse::ConstraintsWithMetadata constraints;
+              cs.getConstraints(constraints, constraintNames[k]);
+
+              LinkConstraintMap lcmap;
+              collectLinkConstraints(*constraints, lcmap);
+              for (LinkConstraintMap::iterator iter = lcmap.begin(); iter != lcmap.end(); iter++)
+              {
+                std::string link_name = iter->first;
+                LinkConstraintPair lcp = iter->second;
+                qfout << link_name << std::endl;
+                qfout << "xyz " << lcp.first.x << " " << lcp.first.y << " " << lcp.first.z << std::endl;
+                Eigen::Quaterniond orientation(lcp.second.w, lcp.second.x, lcp.second.y, lcp.second.z);
+                Eigen::Vector3d rpy = orientation.matrix().eulerAngles(0, 1, 2);
+                qfout << "rpy " << rpy[0] << " " << rpy[1] << " " << rpy[2] << std::endl;
+              }
+              qfout << "." << std::endl;
+            }
           }
         }
         qfout.close();
