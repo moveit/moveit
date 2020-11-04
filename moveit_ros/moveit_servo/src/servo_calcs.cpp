@@ -198,6 +198,7 @@ void ServoCalcs::start()
 
   stop_requested_ = false;
   thread_ = std::thread([this] { mainCalcLoop(); });
+  new_input_cmd_ = false;
 }
 
 void ServoCalcs::stop()
@@ -210,6 +211,7 @@ void ServoCalcs::stop()
     // scope so the mutex is unlocked after so the thread can continue
     // and therefore be joinable
     const std::lock_guard<std::mutex> lock(input_mutex_);
+    new_input_cmd_ = false;
     input_cv_.notify_all();
   }
 
@@ -232,17 +234,20 @@ void ServoCalcs::mainCalcLoop()
     // low latency mode
     if (parameters_.low_latency_mode)
     {
-      input_cv_.wait(input_lock);
+      input_cv_.wait(input_lock, [this] { return (new_input_cmd_ || stop_requested_); });
+
+      // break out of the loop if stop was requested
       if (stop_requested_)
-      {
         break;
-      }
     }
 
+    // reset new_input_cmd_ flag
+    new_input_cmd_ = false;
+
     // run servo calcs
-    auto start_time = ros::Time::now();
+    const auto start_time = ros::Time::now();
     run();
-    auto run_duration = ros::Time::now() - start_time;
+    const auto run_duration = ros::Time::now() - start_time;
 
     // Log warning when the run duration was longer than the period
     if (run_duration.toSec() > parameters_.publish_period)
@@ -1093,6 +1098,7 @@ void ServoCalcs::twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg)
     latest_twist_command_stamp_ = msg->header.stamp;
 
   // notify that we have a new input
+  new_input_cmd_ = true;
   input_cv_.notify_all();
 }
 
@@ -1106,6 +1112,7 @@ void ServoCalcs::jointCmdCB(const control_msgs::JointJogConstPtr& msg)
     latest_joint_command_stamp_ = msg->header.stamp;
 
   // notify that we have a new input
+  new_input_cmd_ = true;
   input_cv_.notify_all();
 }
 

@@ -312,5 +312,6 @@ private:
 
   // input condition variable used for low latency mode
   std::condition_variable input_cv_;
+  bool new_input_cmd_ = false;
 };
 }  // namespace moveit_servo
