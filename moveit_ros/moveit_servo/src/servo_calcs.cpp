@@ -182,13 +182,13 @@ void ServoCalcs::start()
   initial_joint_trajectory->points.push_back(point);
   last_sent_command_ = initial_joint_trajectory;
 
-  timer_ = nh_.createTimer(period_, &ServoCalcs::run, this);
-
   current_state_ = planning_scene_monitor_->getStateMonitor()->getCurrentState();
   tf_moveit_to_ee_frame_ = current_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
                            current_state_->getGlobalLinkTransform(parameters_.ee_frame_name);
   tf_moveit_to_robot_cmd_frame_ = current_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
                                   current_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
+
+  timer_ = nh_.createTimer(period_, &ServoCalcs::run, this);
 }
 
 void ServoCalcs::run(const ros::TimerEvent& timer_event)
