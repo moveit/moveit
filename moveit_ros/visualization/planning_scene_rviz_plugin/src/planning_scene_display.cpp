@@ -583,12 +583,15 @@ void PlanningSceneDisplay::sceneMonitorReceivedUpdate(
 void PlanningSceneDisplay::onSceneMonitorReceivedUpdate(
     planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType /*update_type*/)
 {
-  bool old_state = scene_name_property_->blockSignals(true);
   getPlanningSceneRW()->getCurrentStateNonConst().update();
-  scene_name_property_->setStdString(getPlanningSceneRO()->getName());
-  scene_name_property_->blockSignals(old_state);
-
+  QMetaObject::invokeMethod(this, "setSceneName", Qt::QueuedConnection,
+                            Q_ARG(QString, QString::fromStdString(getPlanningSceneRO()->getName())));
   planning_scene_needs_render_ = true;
+}
+
+void PlanningSceneDisplay::setSceneName(const QString& name)
+{
+  scene_name_property_->setString(name);
 }
 
 void PlanningSceneDisplay::onEnable()
