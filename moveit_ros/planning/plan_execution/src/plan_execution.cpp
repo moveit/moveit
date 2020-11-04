@@ -305,6 +305,8 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
 
 moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(ExecutableMotionPlan& plan)
 {
+  preempt_requested_ = false;
+
   if (!plan.planning_scene_monitor_)
     plan.planning_scene_monitor_ = planning_scene_monitor_;
   if (!plan.planning_scene_)
