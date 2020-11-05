@@ -220,8 +220,8 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan& p
       if (preempt_requested_)
         break;
 
-      // execute the trajectory, and monitor its executionm
-      plan.error_code_ = executeAndMonitor(plan);
+      // execute the trajectory, and monitor its execution
+      plan.error_code_ = executeAndMonitor(plan, false);
     }
 
     // if we are done, then we exit the loop
@@ -303,9 +303,10 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
   return true;
 }
 
-moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(ExecutableMotionPlan& plan)
+moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(ExecutableMotionPlan& plan, bool reset_preempted)
 {
-  preempt_requested_ = false;
+  if (reset_preempted)
+    preempt_requested_ = false;
 
   if (!plan.planning_scene_monitor_)
     plan.planning_scene_monitor_ = planning_scene_monitor_;

@@ -133,7 +133,7 @@ public:
 
       In case there is no \e planning_scene or \e planning_scene_monitor set in the \e plan they will be set at the
       start of the method. They are then used to monitor the execution. */
-  moveit_msgs::MoveItErrorCodes executeAndMonitor(ExecutableMotionPlan& plan);
+  moveit_msgs::MoveItErrorCodes executeAndMonitor(ExecutableMotionPlan& plan, bool reset_preempted = true);
 
   void stop();
 
