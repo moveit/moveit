@@ -566,16 +566,16 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
     emitter << YAML::EndSeq;
   else
   {
-    // Add empty list for valid yaml
-    emitter << YAML::BeginSeq;
-    emitter << YAML::EndSeq;
-
     // Add commented lines to show how the feature can be used
     if (default_group_name.empty())
       default_group_name = "group";
     emitter << YAML::Newline;
     emitter << YAML::Comment(" - group: " + default_group_name) << YAML::Newline;
     emitter << YAML::Comment("   pose: home") << YAML::Newline;
+
+    // Add empty list for valid yaml
+    emitter << YAML::BeginSeq;
+    emitter << YAML::EndSeq;
   }
 
   emitter << YAML::EndMap;
