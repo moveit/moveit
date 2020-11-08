@@ -717,7 +717,9 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
   }
   else
   {
-    // Is it possible for parameterization_ to have an unkown type?
+    /* The parameterization type should be validated in configure, so this should never happen. */
+    ROS_ERROR_STREAM_NAMED("kinematic_constraints",
+                           "The parameterization type for the orientation constraints is invalid.");
   }
 
   bool result = xyz(2) < absolute_z_axis_tolerance_ + std::numeric_limits<double>::epsilon() &&
