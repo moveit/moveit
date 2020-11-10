@@ -572,6 +572,10 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
     emitter << YAML::Newline;
     emitter << YAML::Comment(" - group: " + default_group_name) << YAML::Newline;
     emitter << YAML::Comment("   pose: home") << YAML::Newline;
+
+    // Add empty list for valid yaml
+    emitter << YAML::BeginSeq;
+    emitter << YAML::EndSeq;
   }
 
   emitter << YAML::EndMap;
