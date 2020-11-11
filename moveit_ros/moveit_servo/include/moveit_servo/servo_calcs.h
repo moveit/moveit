@@ -105,11 +105,11 @@ public:
   void changeRobotLinkCommandFrame(const std::string& new_command_frame);
 
 private:
-  /** \brief thread main */
+  /** \brief Run the main calculation loop */
   void mainCalcLoop();
 
-  /** \brief Logic of Servo, publishes one output */
-  void run();
+  /** \brief Do calculations for a single iteration. Publish one outgoing command */
+  void calculateSingleIteration();
 
   /** \brief Stop the currently running thread */
   void stop();

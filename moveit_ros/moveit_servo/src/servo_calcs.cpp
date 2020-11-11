@@ -246,7 +246,7 @@ void ServoCalcs::mainCalcLoop()
 
     // run servo calcs
     const auto start_time = ros::Time::now();
-    run();
+    calculateSingleIteration();
     const auto run_duration = ros::Time::now() - start_time;
 
     // Log warning when the run duration was longer than the period
@@ -266,7 +266,7 @@ void ServoCalcs::mainCalcLoop()
   }
 }
 
-void ServoCalcs::run()
+void ServoCalcs::calculateSingleIteration()
 {
   // Publish status each loop iteration
   auto status_msg = moveit::util::make_shared_from_pool<std_msgs::Int8>();
