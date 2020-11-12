@@ -227,7 +227,34 @@ void CollisionEnvBullet::checkRobotCollisionHelperCCD(const CollisionRequest& re
 void CollisionEnvBullet::distanceSelf(const DistanceRequest& req, DistanceResult& res,
                                       const moveit::core::RobotState& state) const
 {
-  ROS_INFO_NAMED("collision_detection.bullet", "Distance to self not implemented yet.");
+  std::vector<collision_detection_bullet::CollisionObjectWrapperPtr> cows;
+  addAttachedOjects(state, cows);
+  manager_->setContactDistanceThreshold(req.distance_threshold);
+
+  if (req.distance_threshold)
+  {
+    manager_->setContactDistanceThreshold(req.distance_threshold);
+  }
+
+  for (const collision_detection_bullet::CollisionObjectWrapperPtr& cow : cows)
+  {
+    manager_->addCollisionObject(cow);
+    manager_->setCollisionObjectsTransform(
+        cow->getName(), state.getAttachedBody(cow->getName())->getGlobalCollisionBodyTransforms()[0]);
+  }
+
+  // updating link positions with the current robot state
+  for (const std::string& link : active_)
+  {
+    manager_->setCollisionObjectsTransform(link, state.getCollisionBodyTransform(link, 0));
+  }
+
+  manager_->distanceTest(res, req);
+
+  for (const collision_detection_bullet::CollisionObjectWrapperPtr& cow : cows)
+  {
+    manager_->removeCollisionObject(cow->getName());
+  }
 }
 
 void CollisionEnvBullet::distanceRobot(const DistanceRequest& req, DistanceResult& res,
