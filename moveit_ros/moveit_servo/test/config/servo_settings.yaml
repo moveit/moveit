@@ -14,6 +14,7 @@ scale:
 low_pass_filter_coeff: 2.  # Larger --> trust the filtered data more, trust the measurements less.
 
 ## Properties of outgoing commands
+low_latency_mode: false  # Set this to true to tie the output rate to the input rate
 publish_period: 0.01  # 1/Nominal publish rate [seconds]
 
 # What type of topic does your robot driver expect?
