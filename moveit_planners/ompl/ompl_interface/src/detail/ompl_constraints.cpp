@@ -65,6 +65,42 @@ inline double Bounds::derivative(double value) const
     return 0.0;
 }
 
+
+Eigen::VectorXd Bounds2::penalty(const Eigen::Ref<const Eigen::VectorXd>& x) const
+{
+  assert(lower.size() == x.size());
+  Eigen::VectorXd penalty(x.size());
+
+  for (Eigen::Index i{ 0 }; i < x.size(); ++i)
+  {
+    if (x[i] < lower[i])
+      penalty[i] =  lower[i] - x[i];
+    else if (x[i] > upper[i])
+      penalty[i] = x[i] - upper[i];
+    else
+      penalty[i] = 0.0;
+  }
+  return penalty;
+}
+
+Eigen::VectorXd Bounds2::derivative(const Eigen::Ref<const Eigen::VectorXd>& x) const
+{
+  assert(lower.size() == x.size());
+  Eigen::VectorXd derivative(x.size());
+
+  for (Eigen::Index i{ 0 }; i < x.size(); ++i)
+  {
+    if (x[i] < lower[i])
+      derivative[i] =  -1.0;
+    else if (x[i] > upper[i])
+      derivative[i] = 1.0;
+    else
+      derivative[i] = 0.0;
+  }
+  return derivative;
+}
+
+
 std::ostream& operator<<(std::ostream& os, const ompl_interface::Bounds& bound)
 {
   os << "Bounds: (" << bound.lower;
