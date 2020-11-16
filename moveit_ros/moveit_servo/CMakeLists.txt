@@ -175,6 +175,16 @@ if(CATKIN_ENABLE_TESTING)
     ${catkin_LIBRARIES}
   )
 
+  # low_latency
+  add_rostest_gtest(servo_low_latency_test
+    test/servo_low_latency_test.test
+    test/servo_low_latency_test.cpp
+  )
+  target_link_libraries(servo_low_latency_test
+    ${SERVO_LIB_NAME}
+    ${catkin_LIBRARIES}
+  )
+
   # pose_tracking
   add_rostest_gtest(pose_tracking_test
     test/pose_tracking_test.test

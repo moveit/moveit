@@ -71,6 +71,7 @@ struct ServoParameters
   bool publish_joint_positions;
   bool publish_joint_velocities;
   bool publish_joint_accelerations;
+  bool low_latency_mode;
   // Collision checking
   bool check_collisions;
   std::string collision_check_type;
