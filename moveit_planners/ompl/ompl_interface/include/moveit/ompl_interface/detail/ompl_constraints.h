@@ -93,6 +93,47 @@ struct Bounds
   inline double derivative(double value) const;
 };
 
+/** \brief Represents upper and lower bound on the elements of a vector.
+ *
+ * OMPL ConstrainedStateSpace requires a model of the constraints given as:
+ *  f1(joint_values) = 0
+ *  f2(joint_values) = 0
+ *  f3(joint_values) = 0
+ *  ...
+ *
+ * So we use a penalty function to convert bounds to an equality constraint.
+ * If you do need equality constraint, you can represent them by setting the upper bound and lower bound almost equal.
+ * Or you can use the EqualityPositionConstraint version by setting the name of the constraint to
+ * "use_equality_constraints". But the latter will ignore bounds on other dimensions.
+ * **/
+class Bounds2
+{
+public:
+  /** \brief Distance to region inside bounds
+   *
+   * Distance of a given value outside the bounds, zero inside the bounds.
+   * Creates a penalty function that looks like this:
+   *
+   * (penalty) ^
+   *           | \         /
+   *           |  \       /
+   *           |   \_____/
+   *           |----------------> (variable to be constrained)
+   * */
+  Eigen::VectorXd penalty(const Eigen::Ref<const Eigen::VectorXd>& x) const;
+
+  /** \brief Derivative of the penalty function
+   * ^
+   * |
+   * | -1-1-1 0 0 0 +1+1+1
+   * |------------------------>
+   * **/
+  Eigen::VectorXd derivative(const Eigen::Ref<const Eigen::VectorXd>& x) const;
+
+private:
+  Eigen::VectorXd lower, upper;
+};
+
 /** \brief Pretty printing of bounds. **/
 std::ostream& operator<<(std::ostream& os, const ompl_interface::Bounds& bound);
 
