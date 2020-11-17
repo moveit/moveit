@@ -359,7 +359,7 @@ private:
 std::vector<Bounds> positionConstraintMsgToBoundVector(const moveit_msgs::PositionConstraint& pos_con);
 
 /** \brief Factory to create constraints based on what is in the MoveIt constraint message. **/
-std::shared_ptr<BaseConstraint> createOMPLConstraint(robot_model::RobotModelConstPtr robot_model,
+std::shared_ptr<BaseConstraint> createOMPLConstraint(const robot_model::RobotModelConstPtr& robot_model,
                                                      const std::string& group,
                                                      const moveit_msgs::Constraints& constraints);
 

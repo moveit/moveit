@@ -228,7 +228,7 @@ void EqualityPositionConstraint::parseConstraintMsg(const moveit_msgs::Constrain
       {
         ROS_ERROR_NAMED(
             LOGNAME,
-            "Dimension %i of position constraint is smaller than the tolerance used to evaluate the constraints. "
+            "Dimension %li of position constraint is smaller than the tolerance used to evaluate the constraints. "
             "This will make all states invalid and planning will fail :( Please use a value between %f and %f. ",
             i, getTolerance(), equality_constraint_threshold_);
       }
@@ -297,7 +297,7 @@ std::vector<Bounds> positionConstraintMsgToBoundVector(const moveit_msgs::Positi
 /******************************************
  * OMPL Constraints Factory
  * ****************************************/
-std::shared_ptr<BaseConstraint> createOMPLConstraint(robot_model::RobotModelConstPtr robot_model,
+std::shared_ptr<BaseConstraint> createOMPLConstraint(const robot_model::RobotModelConstPtr& robot_model,
                                                      const std::string& group,
                                                      const moveit_msgs::Constraints& constraints)
 {
