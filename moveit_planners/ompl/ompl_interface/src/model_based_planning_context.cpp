@@ -124,7 +124,7 @@ void ompl_interface::ModelBasedPlanningContext::configure(const ros::NodeHandle&
     spec_.state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
     ompl_simple_setup_->setStartState(ompl_start_state);
     ompl_simple_setup_->setStateValidityChecker(
-        ob::StateValidityCheckerPtr(new ConstrainedPlanningStateValidityChecker(this)));
+        ob::StateValidityCheckerPtr(std::make_shared<ConstrainedPlanningStateValidityChecker>(this)));
   }
   else
   {
@@ -132,7 +132,7 @@ void ompl_interface::ModelBasedPlanningContext::configure(const ros::NodeHandle&
     ompl::base::ScopedState<> ompl_start_state(spec_.state_space_);
     spec_.state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
     ompl_simple_setup_->setStartState(ompl_start_state);
-    ompl_simple_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
+    ompl_simple_setup_->setStateValidityChecker(std::make_shared<StateValidityChecker>(this));
   }
 
   if (path_constraints_ && constraints_library_)
