@@ -157,7 +157,7 @@ class BaseConstraint : public ompl::base::Constraint
 {
 public:
   BaseConstraint(const robot_model::RobotModelConstPtr& robot_model, const std::string& group,
-                 const unsigned int num_dofs, const unsigned int num_cons_ = 3);
+                 const unsigned int num_dofs, const unsigned int num_cons = 3);
 
   /** \brief Initialize constraint based on message content.
    *

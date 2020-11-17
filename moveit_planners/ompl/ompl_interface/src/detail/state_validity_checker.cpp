@@ -77,14 +77,14 @@ void ompl_interface::StateValidityChecker::setVerbose(bool flag)
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State* state, bool verbose) const
 {
+  assert(state != nullptr);
   // Use cached validity if it is available
   if (state->as<ModelBasedStateSpace::StateType>()->isValidityKnown())
     return state->as<ModelBasedStateSpace::StateType>()->isMarkedValid();
 
-  if (!si_->satisfiesBounds(state))
+  if (!si_->satisfiesBounds(state))  // si_ = ompl::base::SpaceInformation
   {
-    if (verbose)
-      ROS_INFO_NAMED(LOGNAME, "State outside bounds");
+    ROS_DEBUG_NAMED(LOGNAME, "State outside bounds");
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
     return false;
   }
@@ -124,6 +124,7 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State* stat
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State* state, double& dist, bool verbose) const
 {
+  assert(state != nullptr);
   // Use cached validity and distance if they are available
   if (state->as<ModelBasedStateSpace::StateType>()->isValidityKnown() &&
       state->as<ModelBasedStateSpace::StateType>()->isGoalDistanceKnown())
@@ -132,10 +133,9 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State* stat
     return state->as<ModelBasedStateSpace::StateType>()->isMarkedValid();
   }
 
-  if (!si_->satisfiesBounds(state))
+  if (!si_->satisfiesBounds(state))  // si_ = ompl::base::SpaceInformation
   {
-    if (verbose)
-      ROS_INFO_NAMED(LOGNAME, "State outside bounds");
+    ROS_DEBUG_NAMED(LOGNAME, "State outside bounds");
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(0.0);
     return false;
   }
@@ -173,6 +173,7 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State* stat
 
 double ompl_interface::StateValidityChecker::cost(const ompl::base::State* state) const
 {
+  assert(state != nullptr);
   double cost = 0.0;
 
   moveit::core::RobotState* robot_state = tss_.getStateStorage();
@@ -190,6 +191,7 @@ double ompl_interface::StateValidityChecker::cost(const ompl::base::State* state
 
 double ompl_interface::StateValidityChecker::clearance(const ompl::base::State* state) const
 {
+  assert(state != nullptr);
   moveit::core::RobotState* robot_state = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToRobotState(*robot_state, state);
 
@@ -205,6 +207,7 @@ double ompl_interface::StateValidityChecker::clearance(const ompl::base::State* 
 bool ompl_interface::ConstrainedPlanningStateValidityChecker::isValid(const ompl::base::State* wrapped_state,
                                                                       bool verbose) const
 {
+  assert(wrapped_state != nullptr);
   // Unwrap the state from a ConstrainedStateSpace::StateType
   auto state = wrapped_state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState();
 
@@ -213,10 +216,9 @@ bool ompl_interface::ConstrainedPlanningStateValidityChecker::isValid(const ompl
     return state->as<ModelBasedStateSpace::StateType>()->isMarkedValid();
 
   // do not use the unwrapped state here, as satisfiesBounds expects a state of type ConstrainedStateSpace::StateType
-  if (!si_->satisfiesBounds(wrapped_state))
+  if (!si_->satisfiesBounds(wrapped_state))  // si_ = ompl::base::SpaceInformation
   {
-    if (verbose)
-      ROS_INFO_NAMED(LOGNAME, "State outside bounds");
+    ROS_DEBUG_NAMED(LOGNAME, "State outside bounds");
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
     return false;
   }
@@ -258,6 +260,7 @@ bool ompl_interface::ConstrainedPlanningStateValidityChecker::isValid(const ompl
 bool ompl_interface::ConstrainedPlanningStateValidityChecker::isValid(const ompl::base::State* wrapped_state,
                                                                       double& dist, bool verbose) const
 {
+  assert(wrapped_state != nullptr);
   // Unwrap the state from a ConstrainedStateSpace::StateType
   auto state = wrapped_state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState();
 
@@ -270,10 +273,9 @@ bool ompl_interface::ConstrainedPlanningStateValidityChecker::isValid(const ompl
   }
 
   // do not use the unwrapped state here, as satisfiesBounds expects a state of type ConstrainedStateSpace::StateType
-  if (!si_->satisfiesBounds(wrapped_state))
+  if (!si_->satisfiesBounds(wrapped_state))  // si_ = ompl::base::SpaceInformation
   {
-    if (verbose)
-      ROS_INFO_NAMED(LOGNAME, "State outside bounds");
+    ROS_DEBUG_NAMED(LOGNAME, "State outside bounds");
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(0.0);
     return false;
   }
