@@ -620,6 +620,7 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
     xyz = diff.linear().eulerAngles(0, 1, 2);  // 0,1,2 corresponds to XYZ, the convention used in sampling constraints
   }
 
+  // Account for angle wrapping
   xyz(0) = std::min(fabs(xyz(0)), boost::math::constants::two_pi<double>() - fabs(xyz(0)));
   xyz(1) = std::min(fabs(xyz(1)), boost::math::constants::two_pi<double>() - fabs(xyz(1)));
   xyz(2) = std::min(fabs(xyz(2)), boost::math::constants::two_pi<double>() - fabs(xyz(2)));

@@ -654,6 +654,7 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
   robot_state.update();
   EXPECT_FALSE(oc.decide(robot_state).satisfied);
 
+  // rotation by pi does not wrap to zero
   jvals["r_wrist_roll_joint"] = boost::math::constants::pi<double>();
   robot_state.setVariablePositions(jvals);
   robot_state.update();
