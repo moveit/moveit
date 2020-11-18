@@ -45,54 +45,40 @@ namespace ompl_interface
 {
 constexpr char LOGNAME[] = "ompl_constraints";
 
-inline double Bounds::penalty(double value) const
+Bounds::Bounds(const std::vector<double>& lower, const std::vector<double>& upper)
+  : lower_(lower), upper_(upper), size_(lower.size())
 {
-  if (value < lower)
-    return lower - value;
-  else if (value > upper)
-    return value - upper;
-  else
-    return 0.0;
+  // how to report this in release mode??
+  assert(lower_.size() == upper_.size());
 }
 
-inline double Bounds::derivative(double value) const
+Eigen::VectorXd Bounds::penalty(const Eigen::Ref<const Eigen::VectorXd>& x) const
 {
-  if (value < lower)
-    return -1.0;
-  else if (value > upper)
-    return 1.0;
-  else
-    return 0.0;
-}
-
-
-Eigen::VectorXd Bounds2::penalty(const Eigen::Ref<const Eigen::VectorXd>& x) const
-{
-  assert(lower.size() == x.size());
+  assert(lower_.size() == x.size());
   Eigen::VectorXd penalty(x.size());
 
   for (Eigen::Index i{ 0 }; i < x.size(); ++i)
   {
-    if (x[i] < lower[i])
-      penalty[i] =  lower[i] - x[i];
-    else if (x[i] > upper[i])
-      penalty[i] = x[i] - upper[i];
+    if (x[i] < lower_[i])
+      penalty[i] = lower_[i] - x[i];
+    else if (x[i] > upper_[i])
+      penalty[i] = x[i] - upper_[i];
     else
       penalty[i] = 0.0;
   }
   return penalty;
 }
 
-Eigen::VectorXd Bounds2::derivative(const Eigen::Ref<const Eigen::VectorXd>& x) const
+Eigen::VectorXd Bounds::derivative(const Eigen::Ref<const Eigen::VectorXd>& x) const
 {
-  assert(lower.size() == x.size());
+  assert(lower_.size() == x.size());
   Eigen::VectorXd derivative(x.size());
 
   for (Eigen::Index i{ 0 }; i < x.size(); ++i)
   {
-    if (x[i] < lower[i])
-      derivative[i] =  -1.0;
-    else if (x[i] > upper[i])
+    if (x[i] < lower_[i])
+      derivative[i] = -1.0;
+    else if (x[i] > upper_[i])
       derivative[i] = 1.0;
     else
       derivative[i] = 0.0;
@@ -100,11 +86,18 @@ Eigen::VectorXd Bounds2::derivative(const Eigen::Ref<const Eigen::VectorXd>& x) 
   return derivative;
 }
 
-
-std::ostream& operator<<(std::ostream& os, const ompl_interface::Bounds& bound)
+std::size_t Bounds::size() const
 {
-  os << "Bounds: (" << bound.lower;
-  os << ", " << bound.upper << " )";
+  return size_;
+}
+
+std::ostream& operator<<(std::ostream& os, const ompl_interface::Bounds& bounds)
+{
+  os << "Bounds:\n";
+  for (std::size_t i{ 0 }; i < bounds.size(); ++i)
+  {
+    os << "( " << bounds.lower_[i] << ", " << bounds.upper_[i] << " )\n";
+  }
   return os;
 }
 
@@ -147,20 +140,18 @@ void BaseConstraint::function(const Eigen::Ref<const Eigen::VectorXd>& joint_val
                               Eigen::Ref<Eigen::VectorXd> out) const
 {
   Eigen::VectorXd current_values = calcError(joint_values);
-  for (std::size_t i{ 0 }; i < bounds_.size(); ++i)
-  {
-    out[i] = bounds_[i].penalty(current_values[i]);
-  }
+  out = bounds_.penalty(current_values);
 }
 
 void BaseConstraint::jacobian(const Eigen::Ref<const Eigen::VectorXd>& joint_values,
                               Eigen::Ref<Eigen::MatrixXd> out) const
 {
   Eigen::VectorXd constraint_error = calcError(joint_values);
+  Eigen::VectorXd constraint_derivative = bounds_.derivative(constraint_error);
   Eigen::MatrixXd robot_jacobian = calcErrorJacobian(joint_values);
   for (std::size_t i{ 0 }; i < bounds_.size(); ++i)
   {
-    out.row(i) = bounds_[i].derivative(constraint_error[i]) * robot_jacobian.row(i);
+    out.row(i) = constraint_derivative[i] * robot_jacobian.row(i);
   }
 }
 
@@ -176,11 +167,10 @@ BoxConstraint::BoxConstraint(const robot_model::RobotModelConstPtr& robot_model,
 void BoxConstraint::parseConstraintMsg(const moveit_msgs::Constraints& constraints)
 {
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsing box position constraint for OMPL constrained state space.");
-  bounds_.clear();
+  assert(bounds_.size() == 0);
   bounds_ = positionConstraintMsgToBoundVector(constraints.position_constraints.at(0));
-  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsed x constraints" << bounds_[0]);
-  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsed y constraints" << bounds_[1]);
-  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsed z constraints" << bounds_[2]);
+  ROS_DEBUG_NAMED(LOGNAME, "Parsed Box constraints");
+  ROS_DEBUG_STREAM_NAMED(LOGNAME, bounds_);
 
   // extract target position and orientation
   geometry_msgs::Point position =
@@ -215,7 +205,6 @@ EqualityPositionConstraint::EqualityPositionConstraint(const robot_model::RobotM
 void EqualityPositionConstraint::parseConstraintMsg(const moveit_msgs::Constraints& constraints)
 {
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsing equality position constraint for OMPL constrained state space.");
-  bounds_.clear();
 
   std::vector<double> dims = constraints.position_constraints.at(0).constraint_region.primitives.at(0).dimensions;
 
@@ -280,7 +269,7 @@ void EqualityPositionConstraint::jacobian(const Eigen::Ref<const Eigen::VectorXd
 /************************************
  * MoveIt constraint message parsing
  * **********************************/
-std::vector<Bounds> positionConstraintMsgToBoundVector(const moveit_msgs::PositionConstraint& pos_con)
+Bounds positionConstraintMsgToBoundVector(const moveit_msgs::PositionConstraint& pos_con)
 {
   auto dims = pos_con.constraint_region.primitives.at(0).dimensions;
 
@@ -291,7 +280,7 @@ std::vector<Bounds> positionConstraintMsgToBoundVector(const moveit_msgs::Positi
       dim = std::numeric_limits<double>::infinity();
   }
 
-  return { { -dims[0] / 2, dims[0] / 2 }, { -dims[1] / 2, dims[1] / 2 }, { -dims[2] / 2, dims[2] / 2 } };
+  return { { -dims[0] / 2, -dims[1] / 2, -dims[2] / 2 }, { dims[0] / 2, dims[1] / 2, dims[2] / 2 } };
 }
 
 /******************************************
