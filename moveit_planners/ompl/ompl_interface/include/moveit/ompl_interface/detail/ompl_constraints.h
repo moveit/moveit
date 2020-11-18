@@ -51,48 +51,6 @@ MOVEIT_CLASS_FORWARD(BaseConstraint);
 MOVEIT_CLASS_FORWARD(BoxConstraint);
 MOVEIT_CLASS_FORWARD(OrientationConstraint);
 
-/** \brief Represents upper and lower bound on a scalar value (double).
- *
- * OMPL ConstrainedStateSpace requires a model of the constraints given as:
- *  f1(joint_values) = 0
- *  f2(joint_values) = 0
- *  f3(joint_values) = 0
- *  ...
- *
- * So we use a penalty function to convert bounds to an equality constraint.
- * If you do need equality constraint, you can represent them by setting the upper bound and lower bound almost equal.
- * Or you can use the EqualityPositionConstraint version by setting the name of the constraint to
- * "use_equality_constraints". But the latter will ignore bounds on other dimensions.
- * **/
-struct Bounds
-{
-  double lower, upper;
-
-  /** \brief Distance to region inside bounds
-   *
-   * Distance of a given value outside the bounds, zero inside the bounds.
-   * Creates a penalty function that looks like this:
-   *
-   * (penalty) ^
-   *           | \         /
-   *           |  \       /
-   *           |   \_____/
-   *           |----------------> (variable to be constrained)
-   *
-   * TODO(jeroendm) Change it to a penalty function that has a continuous derivative, so we can use AtlasStateSpace and
-   * TangentBundleStateSpace.
-   * */
-  inline double penalty(double value) const;
-
-  /** \brief Derivative of the penalty function
-   * ^
-   * |
-   * | -1-1-1 0 0 0 +1+1+1
-   * |------------------------>
-   * **/
-  inline double derivative(double value) const;
-};
-
 /** \brief Represents upper and lower bound on the elements of a vector.
  *
  * OMPL ConstrainedStateSpace requires a model of the constraints given as:
@@ -106,9 +64,11 @@ struct Bounds
  * Or you can use the EqualityPositionConstraint version by setting the name of the constraint to
  * "use_equality_constraints". But the latter will ignore bounds on other dimensions.
  * **/
-class Bounds2
+class Bounds
 {
 public:
+  Bounds() = default;
+  Bounds(const std::vector<double>& lower, const std::vector<double>& upper);
   /** \brief Distance to region inside bounds
    *
    * Distance of a given value outside the bounds, zero inside the bounds.
@@ -130,12 +90,17 @@ public:
    * **/
   Eigen::VectorXd derivative(const Eigen::Ref<const Eigen::VectorXd>& x) const;
 
+  std::size_t size() const;
+
 private:
-  Eigen::VectorXd lower, upper;
+  std::vector<double> lower_, upper_;
+  std::size_t size_{ 0 };
+
+  friend std::ostream& operator<<(std::ostream& os, const ompl_interface::Bounds& bounds);
 };
 
 /** \brief Pretty printing of bounds. **/
-std::ostream& operator<<(std::ostream& os, const ompl_interface::Bounds& bound);
+std::ostream& operator<<(std::ostream& os, const ompl_interface::Bounds& bounds);
 
 /****************************
  * Base class for constraints
@@ -269,7 +234,7 @@ protected:
   std::string link_name_;
 
   /** \brief Upper and lower bounds on constrained variables. */
-  std::vector<Bounds> bounds_;
+  Bounds bounds_;
 
   /** \brief target for equality constraints, nominal value for inequality constraints. */
   Eigen::Vector3d target_position_;
@@ -356,7 +321,7 @@ private:
  * The dimensions of the box are the bounds on the deviation of the link origin from
  * the target pose, given in constraint_regions.primitive_poses[0].
  * */
-std::vector<Bounds> positionConstraintMsgToBoundVector(const moveit_msgs::PositionConstraint& pos_con);
+Bounds positionConstraintMsgToBoundVector(const moveit_msgs::PositionConstraint& pos_con);
 
 /** \brief Factory to create constraints based on what is in the MoveIt constraint message. **/
 std::shared_ptr<BaseConstraint> createOMPLConstraint(const robot_model::RobotModelConstPtr& robot_model,
