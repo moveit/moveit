@@ -40,6 +40,7 @@
 #include <fstream>
 #include <tf2_eigen/tf2_eigen.h>
 #include <moveit/utils/robot_model_test_utils.h>
+#include <boost/math/constants/constants.hpp>
 
 class LoadPlanningModelsPr2 : public testing::Test
 {
@@ -649,6 +650,12 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
   EXPECT_TRUE(oc.decide(robot_state).satisfied);
 
   jvals["r_wrist_roll_joint"] = .11;
+  robot_state.setVariablePositions(jvals);
+  robot_state.update();
+  EXPECT_FALSE(oc.decide(robot_state).satisfied);
+
+  // rotation by pi does not wrap to zero
+  jvals["r_wrist_roll_joint"] = boost::math::constants::pi<double>();
   robot_state.setVariablePositions(jvals);
   robot_state.update();
   EXPECT_FALSE(oc.decide(robot_state).satisfied);
