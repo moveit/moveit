@@ -1,4 +1,4 @@
-<library path="lib/libInverseJacobianIKPlugin">
+<library path="lib/libinverse_jacobian_ik">
   <class type="moveit_servo::InverseJacobianIKPlugin" base_class_type="moveit_servo::IKSolverBase">
   <description>
     This is a local IK solver plugin

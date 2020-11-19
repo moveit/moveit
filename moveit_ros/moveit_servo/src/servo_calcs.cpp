@@ -448,6 +448,8 @@ void ServoCalcs::calculateSingleIteration()
 bool ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
                                      trajectory_msgs::JointTrajectory& joint_trajectory)
 {
+  ik_plugin_->testPrint();
+
   // Check for nan's in the incoming command
   if (std::isnan(cmd.twist.linear.x) || std::isnan(cmd.twist.linear.y) || std::isnan(cmd.twist.linear.z) ||
       std::isnan(cmd.twist.angular.x) || std::isnan(cmd.twist.angular.y) || std::isnan(cmd.twist.angular.z))

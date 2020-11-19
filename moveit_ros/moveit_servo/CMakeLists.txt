@@ -157,6 +157,7 @@ target_link_libraries(spacenav_to_twist ${catkin_LIBRARIES})
 install(
   TARGETS
     ik_solver_base
+    inverse_jacobian_ik
     ${SERVO_LIB_NAME}
     pose_tracking
     pose_tracking_example

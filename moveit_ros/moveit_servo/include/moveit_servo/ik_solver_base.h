@@ -38,10 +38,16 @@
 
 #pragma once
 
+#include <iostream>
+
 namespace moveit_servo
 {
 class IKSolverBase
 {
-
+public:
+  void testPrint()
+  {
+    std::cout << "Hello World!" << std::endl;
+  }
 };
 }
