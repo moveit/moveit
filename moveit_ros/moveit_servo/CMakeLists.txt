@@ -62,6 +62,21 @@ include_directories(SYSTEM
 ## Library to process realtime twist or joint commands ##
 #########################################################
 
+# Base plugin for local IK solvers. Inherit from this class to create your own IK solver
+add_library(ik_solver_base
+  src/ik_solver_base.cpp
+)
+
+# This library provides IK solutions. You can replace it with a plugin of your own
+# It inherits from ik_solver_base
+add_library(inverse_jacobian_ik
+  src/inverse_jacobian_ik_plugin.cpp
+)
+target_link_libraries(inverse_jacobian_ik
+  ${catkin_LIBRARIES}
+  ik_solver_base
+)
+
 # This library provides an interface for sending realtime twist or joint commands to a robot
 add_library(${SERVO_LIB_NAME}
   # These files are used to produce differential motion
@@ -141,6 +156,7 @@ target_link_libraries(spacenav_to_twist ${catkin_LIBRARIES})
 
 install(
   TARGETS
+    ik_solver_base
     ${SERVO_LIB_NAME}
     pose_tracking
     pose_tracking_example

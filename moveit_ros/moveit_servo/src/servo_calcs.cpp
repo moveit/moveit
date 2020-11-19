@@ -38,6 +38,7 @@
  */
 
 #include <cassert>
+#include <memory>
 
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float64MultiArray.h>
@@ -109,6 +110,20 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
   // ROS Server to reset the status, e.g. so the arm can move again after a collision
   reset_servo_status_ = nh_.advertiseService(ros::names::append(nh_.getNamespace(), "reset_servo_status"),
                                              &ServoCalcs::resetServoStatus, this);
+
+  // IK Solver plugin
+  pluginlib::ClassLoader<moveit_servo::IKSolverBase> ik_plugin_loader("moveit_servo", "moveit_servo::IKSolverBase");
+  try
+  {
+    // TODO: read plugin name from yaml
+    ik_plugin_ = ik_plugin_loader.createInstance("moveit_servo::InverseJacobianIKPlugin");
+  }
+  catch(pluginlib::PluginlibException& ex)
+  {
+    //handle the class failing to load
+    ROS_ERROR_NAMED(LOGNAME, "The IK solver plugin failed to load. Error: %s", ex.what());
+    std::exit(EXIT_FAILURE);
+  }
 
   // Publish and Subscribe to internal namespace topics
   ros::NodeHandle internal_nh(nh_, "internal");

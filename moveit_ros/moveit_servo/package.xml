@@ -39,6 +39,7 @@
   <test_depend>moveit_resources_panda_moveit_config</test_depend>
 
   <export>
+    <moveit_servo plugin="config/inverse_jacobian_ik_plugin.xml"/>
   </export>
 
 </package>

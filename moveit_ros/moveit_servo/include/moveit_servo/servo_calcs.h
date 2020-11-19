@@ -63,6 +63,10 @@
 #include <moveit_servo/status_codes.h>
 #include <moveit_servo/low_pass_filter.h>
 
+// IK plugin
+#include <moveit_servo/ik_solver_base.h>
+#include <pluginlib/class_loader.h>
+
 namespace moveit_servo
 {
 class ServoCalcs
@@ -219,6 +223,8 @@ private:
   bool resetServoStatus(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
 
   ros::NodeHandle nh_;
+
+  boost::shared_ptr<moveit_servo::IKSolverBase> ik_plugin_;
 
   // Parameters from yaml
   ServoParameters& parameters_;
