@@ -1329,8 +1329,6 @@ void MotionPlanningDisplay::load(const rviz::Config& config)
       frame_->ui_->velocity_scaling_factor->setValue(d);
     if (config.mapGetFloat("Acceleration_Scaling_Factor", &d))
       frame_->ui_->acceleration_scaling_factor->setValue(d);
-    if (config.mapGetFloat("MoveIt_Goal_Tolerance", &d))
-      frame_->ui_->goal_tolerance->setValue(d);
 
     bool b;
     if (config.mapGetBool("MoveIt_Allow_Replanning", &b))
@@ -1388,8 +1386,6 @@ void MotionPlanningDisplay::save(rviz::Config config) const
   {
     config.mapSetValue("MoveIt_Warehouse_Host", frame_->ui_->database_host->text());
     config.mapSetValue("MoveIt_Warehouse_Port", frame_->ui_->database_port->value());
-
-    config.mapSetValue("MoveIt_Goal_Tolerance", frame_->ui_->goal_tolerance->value());
 
     // "Options" Section
     config.mapSetValue("MoveIt_Planning_Time", frame_->ui_->planning_time->value());
