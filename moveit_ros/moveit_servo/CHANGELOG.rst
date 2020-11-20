@@ -2,6 +2,16 @@
 Changelog for package moveit_servo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2020-11-20)
+------------------
+* [feature] Low latency mode (`#2401 <https://github.com/ros-planning/moveit/issues/2401>`_)
+* [feature] Cleanup current state handling in servo (`#2372 <https://github.com/ros-planning/moveit/issues/2372>`_)
+* [feature] Change servo namespacing logic (`#2354 <https://github.com/ros-planning/moveit/issues/2354>`_)
+* [fix] Fix pose tracking race condition (`#2395 <https://github.com/ros-planning/moveit/issues/2395>`_)
+* [fix] Fix servo trajectory point timestamping (`#2375 <https://github.com/ros-planning/moveit/issues/2375>`_)
+* [fix] Fix ordering of windup args to control_toolbox::Pid (`#2370 <https://github.com/ros-planning/moveit/issues/2370>`_)
+* Contributors: AndyZe, Jere Liukkonen, Nathan Brooks, Tyler Weaver
+
 1.1.1 (2020-10-13)
 ------------------
 * [feature] A library for servoing toward a moving pose (`#2203 <https://github.com/ros-planning/moveit/issues/2203>`_)

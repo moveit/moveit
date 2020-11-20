@@ -2,6 +2,11 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2020-11-20)
+------------------
+* [feature] Python interface improvements. (`#2356 <https://github.com/ros-planning/moveit/issues/2356>`_)
+* Contributors: Peter Mitrano
+
 1.1.1 (2020-10-13)
 ------------------
 * [feature] MGC: Improve exception messages (`#2318 <https://github.com/ros-planning/moveit/issues/2318>`_)

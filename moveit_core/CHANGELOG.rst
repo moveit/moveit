@@ -2,6 +2,13 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2020-11-20)
+------------------
+* [fix] Fix OrientationConstraint::decide (`#2414 <https://github.com/ros-planning/moveit/issues/2414>`_)
+* [maint] Changed processing_thread\_ spin to use std::make_unique instead of new (`#2412 <https://github.com/ros-planning/moveit/issues/2412>`_)
+* [maint] Update collision-related comments (`#2382 <https://github.com/ros-planning/moveit/issues/2382>`_) (`#2388 <https://github.com/ros-planning/moveit/issues/2388>`_)
+* Contributors: AndyZe, Stuart Anderson, Thomas G
+
 1.1.1 (2020-10-13)
 ------------------
 * [feature] Handle multiple link libraries for FCL (`#2325 <https://github.com/ros-planning/moveit/issues/2325>`_)

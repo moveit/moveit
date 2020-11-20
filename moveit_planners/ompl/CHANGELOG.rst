@@ -2,6 +2,12 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2020-11-20)
+------------------
+* [feature] Add test to ompl interface for StateValidityChecker (`#2247 <https://github.com/ros-planning/moveit/issues/2247>`_)
+* [feature] Add test for PlanningContextManager in ompl interface (`#2248 <https://github.com/ros-planning/moveit/issues/2248>`_)
+* Contributors: Jeroen
+
 1.1.1 (2020-10-13)
 ------------------
 * [maint] Add comment to MOVEIT_CLASS_FORWARD (`#2315 <https://github.com/ros-planning/moveit/issues/2315>`_)

@@ -2,6 +2,15 @@
 Changelog for package moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2020-11-20)
+------------------
+* [feature][pilz] Add Pilz industrial motion planner (`#1893 <https://github.com/tylerjw/moveit/issues/1893>`_)
+* [feature][moveit_servo] Low latency mode (`#2401 <https://github.com/ros-planning/moveit/issues/2401>`_)
+* [feature][moveit_servo] Cleanup current state handling in servo (`#2372 <https://github.com/ros-planning/moveit/issues/2372>`_)
+* [feature][moveit_servo] Change servo namespacing logic (`#2354 <https://github.com/ros-planning/moveit/issues/2354>`_)
+* [fix][moveit_setup_assistant] Fix empty sequence in moveit_setup_assistant (`#2406 <https://github.com/ros-planning/moveit/issues/2406>`_)
+* Contributors: AndyZe, Christian Henkel, David V. Lu!!, Immanuel Martini, Jere Liukkonen, Jeroen, Joachim Schleicher, Nathan Brooks, Peter Mitrano, Pilz GmbH and Co. KG, rfeistenauer, Robert Haschke, Stuart Anderson, Thomas G, Tyler Weaver
+
 1.1.1 (2020-10-13)
 ------------------
 * [feature][visualization] Clean up Rviz Motion Planning plugin, add tooltips (`#2310 <https://github.com/ros-planning/moveit/issues/2310>`_)

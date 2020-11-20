@@ -2,6 +2,13 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2020-11-20)
+------------------
+* [fix] Fix empty sequence in moveit_setup_assistant (`#2406 <https://github.com/ros-planning/moveit/issues/2406>`_)
+* [feature] Add Pilz industrial motion planner (`#1893 <https://github.com/ros-planning/moveit/issues/1893>`_)
+* [maint] MSA launch files: fix indentation (`#2371 <https://github.com/ros-planning/moveit/issues/2371>`_)
+* Contributors: Christian Henkel, David V. Lu!!
+
 1.1.1 (2020-10-13)
 ------------------
 * [feature] Allow showing both, visual and collision geometry (`#2352 <https://github.com/ros-planning/moveit/issues/2352>`_)

@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2020-11-20)
+------------------
+
 1.1.1 (2020-10-13)
 ------------------
 * [fix] Let the max number of contacts be the amount of world objects + link models with geometry (`#2355 <https://github.com/ros-planning/moveit/issues/2355>`_)

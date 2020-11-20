@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2020-11-20)
+------------------
+* [fix] FixStartStateBounds: Copy attached bodies when adapting the start state (`#2398 <https://github.com/ros-planning/moveit/issues/2398>`_)
+* Contributors: Robert Haschke
+
 1.1.1 (2020-10-13)
 ------------------
 * [fix] some clang-tidy issues on Travis (`#2337 <https://github.com/ros-planning/moveit/issues/2337>`_)

@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2020-11-20)
+------------------
+* [fix] Fix QObject::connect: Cannot queue arguments of type 'QVector<int>' (`#2392 <https://github.com/ros-planning/moveit/issues/2392>`_)
+* Contributors: Robert Haschke
+
 1.1.1 (2020-10-13)
 ------------------
 * [feature] Clean up Rviz Motion Planning plugin, add tooltips (`#2310 <https://github.com/ros-planning/moveit/issues/2310>`_)

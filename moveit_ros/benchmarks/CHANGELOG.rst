@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2020-11-20)
+------------------
+
 1.1.1 (2020-10-13)
 ------------------
 * [fix] python3 issues (`#2323 <https://github.com/ros-planning/moveit/issues/2323>`_)

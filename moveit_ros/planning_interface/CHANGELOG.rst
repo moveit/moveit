@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2020-11-20)
+------------------
+* [feature] Python interface improvements. (`#2356 <https://github.com/ros-planning/moveit/issues/2356>`_)
+* [feature] Unit Test for ByteString-based ROS msg conversion (`#2362 <https://github.com/ros-planning/moveit/issues/2362>`_)
+* Contributors: Bjar Ne, Peter Mitrano
+
 1.1.1 (2020-10-13)
 ------------------
 * [feature] moveit_cpp: more informative error message, cover another potential failure condition. (`#2336 <https://github.com/ros-planning/moveit/issues/2336>`_)
