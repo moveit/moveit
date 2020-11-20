@@ -2,6 +2,15 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.7 (2020-11-20)
+------------------
+* [feature] Handle multiple link libraries for FCL (`#2325 <https://github.com/ros-planning/moveit/issues/2325>`_)
+* [feature] Add comment to MOVEIT_CLASS_FORWARD (`#2315 <https://github.com/ros-planning/moveit/issues/2315>`_)
+* [feature] Add a utility to print collision pairs (`#2278 <https://github.com/ros-planning/moveit/issues/2278>`_) (`#2275 <https://github.com/ros-planning/moveit/issues/2275>`_)
+* [maint] Move constraint representation dox to moveit_tutorials (`#2147 <https://github.com/ros-planning/moveit/issues/2147>`_)
+* [maint] Update collision-related comments (`#2382 <https://github.com/ros-planning/moveit/issues/2382>`_)
+* Contributors: AndyZe, Dave Coleman, Felix von Drigalski, Ghenohenomohe, Robert Haschke
+
 1.0.6 (2020-08-19)
 ------------------
 * [maint] Adapt repository for splitted moveit_resources layout (`#2199 <https://github.com/ros-planning/moveit/issues/2199>`_)

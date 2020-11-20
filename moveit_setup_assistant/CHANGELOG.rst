@@ -2,6 +2,19 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.7 (2020-11-20)
+------------------
+* [feature] MSA: Fix group editing (`#2350 <https://github.com/ros-planning/moveit/issues/2350>`_)
+* [feature] MSA: Allow showing both, visual and collision geometry (`#2352 <https://github.com/ros-planning/moveit/issues/2352>`_)
+* [feature] Start new joint_state_publisher_gui on param use_gui (`#2257 <https://github.com/ros-planning/moveit/issues/2257>`_)
+* [fix] MSA launch files: fix indentation (`#2371 <https://github.com/ros-planning/moveit/issues/2371>`_)
+* [fix] Segfault when editing pose in moveit_setup_assistant (`#2340 <https://github.com/ros-planning/moveit/issues/2340>`_)
+* [fix] robot_description is already loaded in move_group.launch (`#2313 <https://github.com/ros-planning/moveit/issues/2313>`_)
+* [fix] MSA: only write default_planner_config field if any is selected (`#2293 <https://github.com/ros-planning/moveit/issues/2293>`_)
+* [fix] MSA: Fix disappearing robot on change of reference frame (`#2335 <https://github.com/ros-planning/moveit/issues/2335>`_)
+* [maint] Add comment to MOVEIT_CLASS_FORWARD (`#2315 <https://github.com/ros-planning/moveit/issues/2315>`_)
+* Contributors: David V. Lu!!, Felix von Drigalski, Michael Görner, Robert Haschke, Tyler Weaver, Yoan Mollard
+
 1.0.6 (2020-08-19)
 ------------------
 * [maint] Adapt repository for splitted moveit_resources layout (`#2199 <https://github.com/ros-planning/moveit/issues/2199>`_)

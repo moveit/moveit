@@ -2,6 +2,9 @@
 Changelog for package moveit_chomp_optimizer_adapter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.7 (2020-11-20)
+------------------
+
 1.0.6 (2020-08-19)
 ------------------
 * [maint] Migrate to clang-format-10
