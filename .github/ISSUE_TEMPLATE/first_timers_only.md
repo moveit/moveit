@@ -28,7 +28,9 @@ Nothing. This issue is meant to welcome you to Open Source :) We are happy to wa
 
 - [ ] 🙋 **Claim this issue**: Comment below. If someone else has claimed it, ask if they've opened a pull request already and if they're stuck -- maybe you can help them solve a problem or move it along!
 
-- [ ] 🗄️**Create a local workspace** for making your changes and testing [follwing these instructions](https://moveit.ros.org/install/source/)
+- [ ] 🗄️ **Create a local workspace** for making your changes and testing [following these instructions](https://moveit.ros.org/install/source/)
+
+- [ ] 🍴 **Fork the repository** using the handy button at the top of the repository page and **clone** it into `~/ws_moveit/src/moveit`, [here is a guide that you can follow](https://guides.github.com/activities/forking/) (You will have to remove or empty the existing `moveit` folder before cloning your own fork)
 
 - [ ] 📝 **Update** the file(s) `$FILENAME`by applying the change shown in the diff below.
 
@@ -38,9 +40,9 @@ $DIFF
 
 - [ ] 🤖 **Apply `clang-format-10`** auto formatting, [following these instructions](https://moveit.ros.org//documentation/contributing/code/?#clang-format-auto-code-formatting)
 
-- [ ] 💾 **Commit** your changes
+- [ ] 💾 **Commit and Push** your changes
 
-- [ ] 🔀 **Start a Pull Request**. There are two ways how you can start a pull request:
+- [ ] 🔀 **Start a Pull Request** to request to merge your code into `master`. There are two ways that you can start a pull request:
 1. If you are not familiar with GitHub or how to create a pull request, [here is a guide you can follow](https://guides.github.com/activities/hello-world/) on how GitHub works.
 2. If you are familiar with the terminal or would like to learn to use it, [here is a great tutorial](https://egghead.io/series/how-to-contribute-to-an-open-source-project-on-github) on how to send a pull request using the terminal.
 
