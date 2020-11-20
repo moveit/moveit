@@ -46,10 +46,20 @@
 
 namespace moveit_servo
 {
+// Base class for incremental IK solvers.
+// If your IK solver requires something different, please raise a Github issue or notify a maintainer.
 class IKSolverBase
 {
 public:
-  virtual bool doIncrementalIK(const moveit::core::RobotStatePtr& current_state, geometry_msgs::TwistStamped& cmd,
+
+  /**
+   * From a twist command and the current robot state, compute a new JointTrajectory message with an incremental change
+   * in joint values.
+   * @param current_state current state of the robot from MoveIt
+   * @param twist_cmd a vector with 6 elements (x-dot, y-dot, z-dot, roll-dot, pitch-dot, yaw-dot)
+   * @return true if calculations were successful
+   */
+  virtual bool doIncrementalIK(const moveit::core::RobotStatePtr& current_state, const Eigen::VectorXd& twist_cmd,
                                trajectory_msgs::JointTrajectory& joint_trajectory)
   {
     return true;

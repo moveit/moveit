@@ -38,9 +38,12 @@
 namespace moveit_servo
 {
 bool InverseJacobianIKPlugin::doIncrementalIK(const moveit::core::RobotStatePtr& current_state,
-                                              geometry_msgs::TwistStamped& cmd,
+                                              const Eigen::VectorXd& twist_cmd,
                                               trajectory_msgs::JointTrajectory& joint_trajectory)
 {
+  // Convert from cartesian commands to joint commands
+//  Eigen::MatrixXd jacobian = current_state->getJacobian(joint_model_group.get());
+
   return true;
 }
 }  // namespace moveit_servo

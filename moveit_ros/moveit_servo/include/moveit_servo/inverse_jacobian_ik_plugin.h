@@ -42,9 +42,10 @@
 
 namespace moveit_servo
 {
+// Inherit from a generic base class
 class InverseJacobianIKPlugin : public IKSolverBase
 {
-  bool doIncrementalIK(const moveit::core::RobotStatePtr& current_state, geometry_msgs::TwistStamped& cmd,
+  bool doIncrementalIK(const moveit::core::RobotStatePtr& current_state, const Eigen::VectorXd& twist_cmd,
                        trajectory_msgs::JointTrajectory& joint_trajectory);
 };
 }  // namespace moveit_servo

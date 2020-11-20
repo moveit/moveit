@@ -350,7 +350,6 @@ void ServoCalcs::calculateSingleIteration()
   // Only run commands if not stale and nonzero
   if (have_nonzero_twist_stamped_ && !twist_command_is_stale_)
   {
-    ik_plugin_->doIncrementalIK(current_state_, twist_stamped_cmd_, *joint_trajectory);
     if (!cartesianServoCalcs(twist_stamped_cmd_, *joint_trajectory))
     {
       resetLowPassFilters(original_joint_state_);
@@ -525,6 +524,13 @@ bool ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
   }
 
   Eigen::VectorXd delta_x = scaleCartesianCommand(cmd);
+
+  if (!ik_plugin_->doIncrementalIK(current_state_, delta_x, joint_trajectory))
+  {
+    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+                                   "IK calculation failed.");
+    return false;
+  }
 
   // Convert from cartesian commands to joint commands
   Eigen::MatrixXd jacobian = current_state_->getJacobian(joint_model_group_);
