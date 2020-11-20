@@ -37,7 +37,13 @@
 
 namespace moveit_servo
 {
+bool InverseJacobianIKPlugin::doIncrementalIK(const moveit::core::RobotStatePtr& current_state,
+                                              geometry_msgs::TwistStamped& cmd,
+                                              trajectory_msgs::JointTrajectory& joint_trajectory)
+{
+  return true;
 }
+}  // namespace moveit_servo
 
 // Declare availability as a ROS plugin
 PLUGINLIB_EXPORT_CLASS(moveit_servo::InverseJacobianIKPlugin, moveit_servo::IKSolverBase)

@@ -33,21 +33,26 @@
  *********************************************************************/
 /*
    Author: Andy Zelenak
-   Desc: A plugin providing an IK solution
+   Desc: A plugin providing an IK solution.
+   The plugin can be any IK method that takes a current RobotState and TwistStamped command
+   and outputs an incremental trajectory_msgs::JointTrajectory
 */
 
 #pragma once
 
-#include <iostream>
+#include <geometry_msgs/TwistStamped.h>
+#include <moveit/robot_state/robot_state.h>
+#include <trajectory_msgs/JointTrajectory.h>
 
 namespace moveit_servo
 {
 class IKSolverBase
 {
 public:
-  void testPrint()
+  virtual bool doIncrementalIK(const moveit::core::RobotStatePtr& current_state, geometry_msgs::TwistStamped& cmd,
+                               trajectory_msgs::JointTrajectory& joint_trajectory)
   {
-    std::cout << "Hello World!" << std::endl;
+    return true;
   }
 };
-}
+}  // namespace moveit_servo

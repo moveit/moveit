@@ -118,9 +118,9 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
     // TODO: read plugin name from yaml
     ik_plugin_ = ik_plugin_loader.createInstance("moveit_servo::InverseJacobianIKPlugin");
   }
-  catch(pluginlib::PluginlibException& ex)
+  catch (pluginlib::PluginlibException& ex)
   {
-    //handle the class failing to load
+    // handle the class failing to load
     ROS_ERROR_NAMED(LOGNAME, "The IK solver plugin failed to load. Error: %s", ex.what());
     std::exit(EXIT_FAILURE);
   }
@@ -350,6 +350,7 @@ void ServoCalcs::calculateSingleIteration()
   // Only run commands if not stale and nonzero
   if (have_nonzero_twist_stamped_ && !twist_command_is_stale_)
   {
+    ik_plugin_->doIncrementalIK(current_state_, twist_stamped_cmd_, *joint_trajectory);
     if (!cartesianServoCalcs(twist_stamped_cmd_, *joint_trajectory))
     {
       resetLowPassFilters(original_joint_state_);
@@ -448,8 +449,6 @@ void ServoCalcs::calculateSingleIteration()
 bool ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
                                      trajectory_msgs::JointTrajectory& joint_trajectory)
 {
-  ik_plugin_->testPrint();
-
   // Check for nan's in the incoming command
   if (std::isnan(cmd.twist.linear.x) || std::isnan(cmd.twist.linear.y) || std::isnan(cmd.twist.linear.z) ||
       std::isnan(cmd.twist.angular.x) || std::isnan(cmd.twist.angular.y) || std::isnan(cmd.twist.angular.z))

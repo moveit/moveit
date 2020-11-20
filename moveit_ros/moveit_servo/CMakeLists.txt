@@ -58,9 +58,9 @@ include_directories(SYSTEM
   ${Boost_INCLUDE_DIR}
 )
 
-#########################################################
-## Library to process realtime twist or joint commands ##
-#########################################################
+##################################
+## Incremental IK solver plugin ##
+##################################
 
 # Base plugin for local IK solvers. Inherit from this class to create your own IK solver
 add_library(ik_solver_base
@@ -76,6 +76,10 @@ target_link_libraries(inverse_jacobian_ik
   ${catkin_LIBRARIES}
   ik_solver_base
 )
+
+#########################################################
+## Library to process realtime twist or joint commands ##
+#########################################################
 
 # This library provides an interface for sending realtime twist or joint commands to a robot
 add_library(${SERVO_LIB_NAME}

@@ -44,6 +44,7 @@ namespace moveit_servo
 {
 class InverseJacobianIKPlugin : public IKSolverBase
 {
-
+  bool doIncrementalIK(const moveit::core::RobotStatePtr& current_state, geometry_msgs::TwistStamped& cmd,
+                       trajectory_msgs::JointTrajectory& joint_trajectory);
 };
-}
+}  // namespace moveit_servo
