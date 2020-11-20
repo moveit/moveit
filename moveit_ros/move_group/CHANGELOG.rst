@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.7 (2020-11-20)
+------------------
+* [feature] Start new joint_state_publisher_gui on param use_gui (`#2257 <https://github.com/ros-planning/moveit/issues/2257>`_)
+* [feature] Let the max number of contacts be the amount of world objects + link models with geometry (`#2361 <https://github.com/ros-planning/moveit/issues/2361>`_)
+* [maint] Add comment to MOVEIT_CLASS_FORWARD (`#2315 <https://github.com/ros-planning/moveit/issues/2315>`_)
+* Contributors: Felix von Drigalski, Loy van Beek, Michael Görner, Yoan Mollard, v4hn
+
 1.0.6 (2020-08-19)
 ------------------
 * [maint] Adapt repository for splitted moveit_resources layout (`#2199 <https://github.com/ros-planning/moveit/issues/2199>`_)

@@ -2,6 +2,14 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.7 (2020-11-20)
+------------------
+* [feature] Python interface improvements.  (`#2356 <https://github.com/ros-planning/moveit/issues/2356>`_)
+* [feature] Fix ROS namespacing in moveit_commander's PSI (`#2347 <https://github.com/ros-planning/moveit/issues/2347>`_)
+* [feature] MGC: Improve exception messages (`#2318 <https://github.com/ros-planning/moveit/issues/2318>`_)
+* [feature] Add missing variants of place from list of PlaceLocations and Poses in the python interface (`#2231 <https://github.com/ros-planning/moveit/issues/2231>`_)
+* Contributors: Gerard Canal, Michael Görner, Peter Mitrano, Robert Haschke
+
 1.0.6 (2020-08-19)
 ------------------
 * [maint]   Adapt repository for splitted moveit_resources layout (`#2199 <https://github.com/ros-planning/moveit/issues/2199>`_)

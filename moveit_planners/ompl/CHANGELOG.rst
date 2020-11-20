@@ -2,6 +2,19 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.7 (2020-11-20)
+------------------
+* [feature] Melodic backports in ompl interface (cleanup) (`#2277 <https://github.com/ros-planning/moveit/issues/2277>`_)
+  * add consistent named logging to ompl interface
+  * add named logging to the ompl planner service script
+  * Remove dead code from ompl interface (related to subspaces and state validity cache)
+  * add some documentation to the ompl interface
+  * fix clang-tidy warnings in ompl interface
+  * fix some spelling errors in the ompl interface
+  * fix melodic specific clang-tidy warnings in ompl interface
+* [maint] Add comment to MOVEIT_CLASS_FORWARD (`#2315 <https://github.com/ros-planning/moveit/issues/2315>`_)
+* Contributors: Felix von Drigalski, Jeroen
+
 1.0.6 (2020-08-19)
 ------------------
 * [maint] Adapt repository for splitted moveit_resources layout (`#2199 <https://github.com/ros-planning/moveit/issues/2199>`_)

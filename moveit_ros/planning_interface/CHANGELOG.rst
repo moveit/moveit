@@ -2,6 +2,17 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.7 (2020-11-20)
+------------------
+* [feature] Python interface improvements. (`#2356 <https://github.com/ros-planning/moveit/issues/2356>`_)
+* [feature] moveit_cpp: more informative error message, cover another potential failure condition. (`#2336 <https://github.com/ros-planning/moveit/issues/2336>`_)
+* [feature] Unit Test for ByteString-based ROS msg conversion (`#2362 <https://github.com/ros-planning/moveit/issues/2362>`_)
+* [feature] Make GILReleaser exception-safe (`#2363 <https://github.com/ros-planning/moveit/issues/2363>`_)
+* [feature] Added GILRelease to pick and place (`#2272 <https://github.com/ros-planning/moveit/issues/2272>`_)
+* [feature] Add missing variants of place from list of PlaceLocations and Poses in the python interface (`#2231 <https://github.com/ros-planning/moveit/issues/2231>`_)
+* [maint] Add comment to MOVEIT_CLASS_FORWARD (`#2315 <https://github.com/ros-planning/moveit/issues/2315>`_)
+* Contributors: AndyZe, Bjar Ne, Felix von Drigalski, Gerard Canal, Peter Mitrano, Robert Haschke
+
 1.0.6 (2020-08-19)
 ------------------
 * [maint]   Adapt repository for splitted moveit_resources layout (`#2199 <https://github.com/ros-planning/moveit/issues/2199>`_)
