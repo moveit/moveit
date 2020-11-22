@@ -57,6 +57,9 @@ $DIFF
 ### 🤔❓ Questions?
 
 Don’t hesitate to ask questions or to get help if you feel like you are getting stuck. For example leave a comment below!
+
+- You can even ping us by using an `@ mention` in the comments.
+
 Furthermore, you find helpful resources here:
 * [MoveIt FAQ](https://moveit.ros.org/documentation/faqs/)
 * [MoveIt Tutorials](https://ros-planning.github.io/moveit_tutorials/)
