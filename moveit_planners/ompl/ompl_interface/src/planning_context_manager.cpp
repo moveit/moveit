@@ -383,7 +383,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     if (factory->getType() != ConstrainedPlanningStateSpace::PARAMETERIZATION_TYPE)
     {
       {
-        std::unique_lock<std::mutex> slock(cached_contexts_->lock_);
+        std::lock_guard<std::mutex> slock(cached_contexts_->lock_);
         cached_contexts_->contexts_[std::make_pair(config.name, factory->getType())].push_back(context);
       }
     }
