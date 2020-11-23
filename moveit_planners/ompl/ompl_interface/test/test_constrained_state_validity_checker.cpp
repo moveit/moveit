@@ -52,7 +52,7 @@
 #include <ompl/base/ConstrainedSpaceInformation.h>
 #include <ompl/base/spaces/constraint/ProjectedStateSpace.h>
 
-/** \brief Use this flag to turn on extra output on std::cout for debugging. **/
+/** \brief This flag sets the verbosity level for the state validity checker. **/
 constexpr bool VERBOSE{ false };
 
 /** \brief Pretty print std:vectors **/
