@@ -64,11 +64,10 @@
 #include <ompl/base/spaces/constraint/ProjectedStateSpace.h>
 #include <ompl/base/ConstrainedSpaceInformation.h>
 
+constexpr char LOGNAME[] = "test_ompl_constraints";
+
 /** \brief Number of times to run a test that uses randomly generated input. **/
 constexpr int NUM_RANDOM_TESTS{ 10 };
-
-/** \brief For failing tests, some extra print statements are useful. **/
-constexpr bool VERBOSE{ false };
 
 /** \brief Select a robot link at (num_dofs - different_link_offset) to test another link than the end-effector. **/
 constexpr unsigned int DIFFERENT_LINK_OFFSET{ 2 };
@@ -166,8 +165,7 @@ protected:
   {
     std::string different_link = joint_model_group_->getLinkModelNames().at(num_dofs_ - DIFFERENT_LINK_OFFSET);
 
-    if (VERBOSE)
-      ROS_INFO_STREAM(different_link);
+    ROS_DEBUG_STREAM_NAMED(LOGNAME, different_link);
 
     moveit_msgs::Constraints constraint_msgs;
     constraint_msgs.position_constraints.push_back(createPositionConstraint(base_link_name_, different_link));
@@ -208,13 +206,11 @@ protected:
       auto jac_exact = constraint_->calcErrorJacobian(q);
 
       Eigen::MatrixXd jac_approx = numericalJacobianPosition(q, constraint_->getLinkName());
-      if (VERBOSE)
-      {
-        std::cout << "Analytical jacobian: \n";
-        std::cout << jac_exact << std::endl;
-        std::cout << "Finite difference jacobian: \n";
-        std::cout << jac_approx << std::endl;
-      }
+
+      ROS_DEBUG_STREAM_NAMED(LOGNAME, "Analytical jacobian:");
+      ROS_DEBUG_STREAM_NAMED(LOGNAME, jac_exact);
+      ROS_DEBUG_STREAM_NAMED(LOGNAME, "Finite difference jacobian:");
+      ROS_DEBUG_STREAM_NAMED(LOGNAME, jac_approx);
 
       total_error = (jac_exact - jac_approx).lpNorm<1>();
       EXPECT_LT(total_error, JAC_ERROR_TOLERANCE);

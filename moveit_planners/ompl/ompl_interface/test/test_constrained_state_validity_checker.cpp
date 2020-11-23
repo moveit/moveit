@@ -55,6 +55,8 @@
 /** \brief This flag sets the verbosity level for the state validity checker. **/
 constexpr bool VERBOSE{ false };
 
+constexpr char LOGNAME[] = "test_constrained_state_validity_checker";
+
 /** \brief Pretty print std:vectors **/
 std::ostream& operator<<(std::ostream& os, const std::vector<double>& v)
 {
@@ -115,8 +117,8 @@ public:
                      ->getState()
                      ->as<ompl_interface::ConstrainedPlanningStateSpace::StateType>();
 
-    if (VERBOSE)
-      ROS_INFO_STREAM(std::vector<double>(state->values, state->values + joint_model_group_->getVariableCount()));
+    ROS_DEBUG_STREAM_NAMED(LOGNAME,
+                           std::vector<double>(state->values, state->values + joint_model_group_->getVariableCount()));
 
     // assume the default position in not in self-collision
     // and there are no collision objects of path constraints so this state should be valid
@@ -126,8 +128,8 @@ public:
     // do the same for the version with distance
     double distance{ 0.0 };
     result = checker->isValid(ompl_state.get(), distance);
-    if (VERBOSE)
-      ROS_INFO_STREAM("Distance from the isValid function: " << distance);
+
+    ROS_DEBUG_STREAM_NAMED(LOGNAME, "Distance from the isValid function: " << distance);
     EXPECT_TRUE(result);
     EXPECT_GT(distance, 0.0);
 
@@ -135,8 +137,8 @@ public:
     state->values[0] = std::numeric_limits<double>::max();
     state->clearKnownInformation();  // make sure the validity checker does not use the cached value
 
-    if (VERBOSE)
-      ROS_INFO_STREAM(std::vector<double>(state->values, state->values + joint_model_group_->getVariableCount()));
+    ROS_DEBUG_STREAM_NAMED(LOGNAME,
+                           std::vector<double>(state->values, state->values + joint_model_group_->getVariableCount()));
 
     bool result_2 = checker->isValid(ompl_state.get());
     EXPECT_FALSE(result_2);
@@ -162,18 +164,15 @@ public:
     ompl::base::ScopedState<> ompl_state(constrained_state_space_);
     state_space_->copyToOMPLState(ompl_state.get(), *robot_state_);
 
-    // too much code, just to print the state
-    if (VERBOSE)
-    {
-      // cast ompl state to a specific type, useful in the rest of this test
-      auto state = ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>()
-                       ->getState()
-                       ->as<ompl_interface::ConstrainedPlanningStateSpace::StateType>();
+    // The code below is just to print the state to the debug stream
+    auto state = ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>()
+                     ->getState()
+                     ->as<ompl_interface::ConstrainedPlanningStateSpace::StateType>();
 
-      // ompl_state.reals() throws a segmentation fault for this state type
-      // use a more involved conversion to std::vector for logging
-      ROS_INFO_STREAM(std::vector<double>(state->values, state->values + joint_model_group_->getVariableCount()));
-    }
+    // ompl_state.reals() throws a segmentation fault for this state type
+    // use a more involved conversion to std::vector for logging
+    ROS_DEBUG_STREAM_NAMED(LOGNAME,
+                           std::vector<double>(state->values, state->values + joint_model_group_->getVariableCount()));
 
     // the given state is known to be in self-collision, we check it here
     bool result = checker->isValid(ompl_state.get());
@@ -241,8 +240,8 @@ protected:
     planning_context_->setPlanningScene(planning_scene_);
     planning_context_->setCompleteInitialState(*initial_robot_state_);
 
-    if (VERBOSE)
-      ROS_INFO("Planning context with name %s is ready (but not configured).", planning_context_->getName().c_str());
+    ROS_DEBUG_NAMED(LOGNAME, "Planning context with name %s is ready (but not configured).",
+                    planning_context_->getName().c_str());
   }
 
   robot_state::RobotStatePtr initial_robot_state_;
