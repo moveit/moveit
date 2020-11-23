@@ -39,13 +39,41 @@
 #pragma once
 
 #include "moveit_servo/ik_solver_base.h"
+#include <moveit_servo/status_codes.h>
 
 namespace moveit_servo
 {
 // Inherit from a generic base class
 class InverseJacobianIKPlugin : public IKSolverBase
 {
-  bool doIncrementalIK(const moveit::core::RobotStatePtr& current_state, const Eigen::VectorXd& twist_cmd,
-                       trajectory_msgs::JointTrajectory& joint_trajectory);
+  bool doIncrementalIK(const moveit::core::RobotStatePtr& current_state, Eigen::VectorXd& twist_cmd,
+                       const moveit::core::JointModelGroup* joint_model_group,
+                       const std::array<bool, 6>& drift_dimensions,
+                       double loop_period, double& velocity_scaling_for_singularity,
+                       Eigen::ArrayXd& delta_theta,
+                       StatusCode& status);
+
+  /**
+   * Remove the Jacobian row and the delta-x element of one Cartesian dimension, to take advantage of task redundancy
+   *
+   * @param matrix The Jacobian matrix.
+   * @param delta_x Vector of Cartesian delta commands, should be the same size as matrix.rows()
+   * @param row_to_remove Dimension that will be allowed to drift, e.g. row_to_remove = 2 allows z-translation drift.
+   */
+  void removeDimension(Eigen::MatrixXd& matrix, Eigen::VectorXd& delta_x, unsigned int row_to_remove);
+
+  /** \brief  Scale the delta theta to match joint velocity/acceleration limits */
+  void enforceVelLimits(Eigen::ArrayXd& delta_theta, double loop_period,
+                        const moveit::core::JointModelGroup* joint_model_group);
+
+  /** \brief Possibly calculate a velocity scaling factor, due to proximity of
+   * singularity and direction of motion
+   */
+  double velocityScalingFactorForSingularity(const moveit::core::RobotStatePtr& current_state,
+                                             const moveit::core::JointModelGroup* joint_model_group,
+                                             const Eigen::VectorXd& commanded_velocity,
+                                             const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
+                                             const Eigen::MatrixXd& pseudo_inverse,
+                                             StatusCode& status);
 };
 }  // namespace moveit_servo

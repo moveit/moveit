@@ -42,6 +42,7 @@
 
 #include <geometry_msgs/TwistStamped.h>
 #include <moveit/robot_state/robot_state.h>
+#include <moveit_servo/status_codes.h>
 #include <trajectory_msgs/JointTrajectory.h>
 
 namespace moveit_servo
@@ -53,14 +54,19 @@ class IKSolverBase
 public:
 
   /**
-   * From a twist command and the current robot state, compute a new JointTrajectory message with an incremental change
-   * in joint values.
+   * From a Cartesian delta command and the current robot state, compute a new JointTrajectory message with an
+   * incremental change in joint values.
+   * The idea is to add new function signatures here as different IK solvers are added.
    * @param current_state current state of the robot from MoveIt
-   * @param twist_cmd a vector with 6 elements (x-dot, y-dot, z-dot, roll-dot, pitch-dot, yaw-dot)
+   * @param delta_x a vector with 6 elements (delta-x, delta-y, delta-z, delta-roll, delta-pitch, delta-yaw)
    * @return true if calculations were successful
    */
-  virtual bool doIncrementalIK(const moveit::core::RobotStatePtr& current_state, const Eigen::VectorXd& twist_cmd,
-                               trajectory_msgs::JointTrajectory& joint_trajectory)
+  virtual bool doIncrementalIK(const moveit::core::RobotStatePtr& current_state, Eigen::VectorXd& delta_x,
+                               const moveit::core::JointModelGroup* joint_model_group,
+                               const std::array<bool, 6>& drift_dimensions,
+                               double loop_period, double& velocity_scaling_for_singularity,
+                               Eigen::ArrayXd& delta_theta,
+                               StatusCode& status)
   {
     return true;
   }

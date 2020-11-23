@@ -144,18 +144,8 @@ private:
    */
   void suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory);
 
-  /** \brief  Scale the delta theta to match joint velocity/acceleration limits */
-  void enforceVelLimits(Eigen::ArrayXd& delta_theta);
-
   /** \brief Avoid overshooting joint limits */
   bool enforcePositionLimits();
-
-  /** \brief Possibly calculate a velocity scaling factor, due to proximity of
-   * singularity and direction of motion
-   */
-  double velocityScalingFactorForSingularity(const Eigen::VectorXd& commanded_velocity,
-                                             const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
-                                             const Eigen::MatrixXd& pseudo_inverse);
 
   /**
    * Slow motion down if close to singularity or collision.
@@ -186,15 +176,6 @@ private:
    * Satisfy Gazebo by stuffing multiple messages into one.
    */
   void insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& joint_trajectory, int count) const;
-
-  /**
-   * Remove the Jacobian row and the delta-x element of one Cartesian dimension, to take advantage of task redundancy
-   *
-   * @param matrix The Jacobian matrix.
-   * @param delta_x Vector of Cartesian delta commands, should be the same size as matrix.rows()
-   * @param row_to_remove Dimension that will be allowed to drift, e.g. row_to_remove = 2 allows z-translation drift.
-   */
-  void removeDimension(Eigen::MatrixXd& matrix, Eigen::VectorXd& delta_x, unsigned int row_to_remove);
 
   /* \brief Callback for joint subsription */
   void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
