@@ -59,8 +59,7 @@
 
 #include "load_test_robot.h"
 
-/** \brief Use this flag to turn on extra output on std::cout for debugging. **/
-constexpr bool VERBOSE{ false };
+constexpr char LOGNAME[] = "test_constrained_state_validity_checker";
 
 /** \brief Dummy constraint for testing, always satisfied. We need this to create and OMPL ConstrainedStateSpace. **/
 class DummyConstraint : public ompl::base::Constraint
@@ -202,12 +201,11 @@ protected:
     {
       const moveit::core::JointModel* joint_model = joint_model_group_->getJointModel(joint_model_names[joint_index]);
       EXPECT_FALSE(joint_model == nullptr);
-      if (VERBOSE)
-      {
-        std::cout << "Joint model: " << joint_model->getName() << " index: " << joint_index << std::endl;
-        std::cout << "first index: " << joint_model->getFirstVariableIndex() * sizeof(double) << std::endl;
-        std::cout << "width: " << joint_model->getVariableCount() * sizeof(double) << std::endl;
-      }
+
+      ROS_DEBUG_STREAM_NAMED(LOGNAME, "Joint model: " << joint_model->getName() << " index: " << joint_index);
+      ROS_DEBUG_STREAM_NAMED(LOGNAME, "first index: " << joint_model->getFirstVariableIndex() * sizeof(double));
+      ROS_DEBUG_STREAM_NAMED(LOGNAME, "width: " << joint_model->getVariableCount() * sizeof(double));
+
 
       moveit_state_space_->copyJointToOMPLState(ompl_state.get(), moveit_state, joint_model, joint_index);
     }
