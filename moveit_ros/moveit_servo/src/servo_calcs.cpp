@@ -120,7 +120,11 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
     ROS_ERROR_NAMED(LOGNAME, "The IK solver plugin failed to load. Error: %s", ex.what());
     std::exit(EXIT_FAILURE);
   }
-  ik_plugin_->initialize(nh_);
+  if (!ik_plugin_->initialize(nh_))
+  {
+    ROS_ERROR_STREAM_NAMED(LOGNAME, "The IK plugin could not be initialized.");
+    std::exit(EXIT_FAILURE);
+  }
 
   // Publish and Subscribe to internal namespace topics
   ros::NodeHandle internal_nh(nh_, "internal");
@@ -526,12 +530,10 @@ bool ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
 
   // For now, only one solver type is available.
   // May need to add a different solver type later (add a yaml file and a switch-case to select it)
-  if (!ik_plugin_->doIncrementalIK(current_state_, delta_x, joint_model_group_,
-                                   parameters_.publish_period, velocity_scaling_for_singularity, delta_theta_,
-                                   status_))
+  if (!ik_plugin_->doDifferentialIK(current_state_, delta_x, joint_model_group_, parameters_.publish_period,
+                                    velocity_scaling_for_singularity, delta_theta_, status_))
   {
-    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-                                   "IK calculation failed.");
+    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "IK calculation failed.");
     return false;
   }
 

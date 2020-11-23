@@ -32,28 +32,59 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include "moveit_servo/inverse_jacobian_ik_plugin.h"
-#include "pluginlib/class_list_macros.h"
+#include <moveit_servo/inverse_jacobian_ik_plugin.h>
+#include <pluginlib/class_list_macros.h>
+#include <rosparam_shortcuts/rosparam_shortcuts.h>
 
 static const std::string LOGNAME = "inverse_jacobian_ik_plugin";
 constexpr size_t ROS_LOG_THROTTLE_PERIOD = 30;  // Seconds to throttle logs inside loops
 
 namespace moveit_servo
 {
-void InverseJacobianIKPlugin::initialize(ros::NodeHandle& nh)
+bool InverseJacobianIKPlugin::initialize(ros::NodeHandle& nh)
 {
-  ROS_ERROR_STREAM("INITIALIZED");
   // ROS Server for allowing drift in some dimensions
   drift_dimensions_server_ = nh.advertiseService(ros::names::append(nh.getNamespace(), "change_drift_dimensions"),
-                                                  &InverseJacobianIKPlugin::changeDriftDimensions, this);
+                                                 &InverseJacobianIKPlugin::changeDriftDimensions, this);
+
+  // Retrieve singularity thresholds from yaml
+
+  // Optional parameter sub-namespace specified in the launch file. All other parameters will be read from this namespace.
+  std::string parameter_ns;
+  ros::param::get("~parameter_ns", parameter_ns);
+
+  // If parameters have been loaded into sub-namespace within the node namespace, append the parameter namespace
+  // to load the parameters correctly.
+  ros::NodeHandle ik_nh = parameter_ns.empty() ? nh : ros::NodeHandle(nh, parameter_ns);
+
+  std::size_t error = 0;
+  error += !rosparam_shortcuts::get(LOGNAME, ik_nh, "lower_singularity_threshold", lower_singularity_threshold_);
+  error += !rosparam_shortcuts::get(LOGNAME, ik_nh, "hard_stop_singularity_threshold", hard_stop_singularity_threshold_);
+
+  if (hard_stop_singularity_threshold_ < lower_singularity_threshold_)
+  {
+    ROS_WARN_NAMED(LOGNAME, "Parameter 'hard_stop_singularity_threshold' "
+                            "should be greater than 'lower_singularity_threshold.' "
+                            "Check yaml file.");
+    return false;
+  }
+  if ((hard_stop_singularity_threshold_ < 0.) || (lower_singularity_threshold_ < 0.))
+  {
+    ROS_WARN_NAMED(LOGNAME, "Parameters 'hard_stop_singularity_threshold' "
+                            "and 'lower_singularity_threshold' should be "
+                            "greater than zero. Check yaml file.");
+    return false;
+  }
+
+  rosparam_shortcuts::shutdownIfError(LOGNAME, error);
+  return true;
 }
 
-bool InverseJacobianIKPlugin::doIncrementalIK(const moveit::core::RobotStatePtr& current_state,
-                                              Eigen::VectorXd& delta_x,
-                                              const moveit::core::JointModelGroup* joint_model_group,
-                                              double loop_period, double& velocity_scaling_for_singularity, 
-                                              Eigen::ArrayXd& delta_theta,
-                                              StatusCode& status)
+bool InverseJacobianIKPlugin::doDifferentialIK(const moveit::core::RobotStatePtr& current_state,
+                                               Eigen::VectorXd& delta_x,
+                                               const moveit::core::JointModelGroup* joint_model_group,
+                                               const double loop_period, double& velocity_scaling_for_singularity,
+                                               Eigen::ArrayXd& delta_theta, StatusCode& status)
 {
   // Convert from cartesian commands to joint commands
   Eigen::MatrixXd jacobian = current_state->getJacobian(joint_model_group);
@@ -79,13 +110,14 @@ bool InverseJacobianIKPlugin::doIncrementalIK(const moveit::core::RobotStatePtr&
 
   enforceVelLimits(delta_theta, loop_period, joint_model_group);
 
-  velocity_scaling_for_singularity = velocityScalingFactorForSingularity(current_state, joint_model_group, delta_x,
-                                                                         svd, pseudo_inverse, status);
+  velocity_scaling_for_singularity =
+      velocityScalingFactorForSingularity(current_state, joint_model_group, delta_x, svd, pseudo_inverse, status);
 
   return true;
 }
 
-void InverseJacobianIKPlugin::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta_x, unsigned int row_to_remove)
+void InverseJacobianIKPlugin::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta_x,
+                                              unsigned int row_to_remove)
 {
   unsigned int num_rows = jacobian.rows() - 1;
   unsigned int num_cols = jacobian.cols();
@@ -135,8 +167,7 @@ void InverseJacobianIKPlugin::enforceVelLimits(Eigen::ArrayXd& delta_theta, doub
       // Apply velocity bounds
       if (clip_velocity)
       {
-        const double scaling_factor =
-            fabs(velocity_limit * loop_period) / fabs(delta_theta(joint_delta_index));
+        const double scaling_factor = fabs(velocity_limit * loop_period) / fabs(delta_theta(joint_delta_index));
 
         // Store the scaling factor if it's the smallest yet
         if (scaling_factor < velocity_limit_scaling_factor)
@@ -159,12 +190,10 @@ void InverseJacobianIKPlugin::enforceVelLimits(Eigen::ArrayXd& delta_theta, doub
 }
 
 // Possibly calculate a velocity scaling factor, due to proximity of singularity and direction of motion
-double InverseJacobianIKPlugin::velocityScalingFactorForSingularity(const moveit::core::RobotStatePtr& current_state,
-                                                       const moveit::core::JointModelGroup* joint_model_group,
-                                                       const Eigen::VectorXd& commanded_velocity,
-                                                       const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
-                                                       const Eigen::MatrixXd& pseudo_inverse,
-                                                       StatusCode& status)
+double InverseJacobianIKPlugin::velocityScalingFactorForSingularity(
+    const moveit::core::RobotStatePtr& current_state, const moveit::core::JointModelGroup* joint_model_group,
+    const Eigen::VectorXd& commanded_velocity, const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
+    const Eigen::MatrixXd& pseudo_inverse, StatusCode& status)
 {
   double velocity_scale = 1;
   std::size_t num_dimensions = commanded_velocity.size();
@@ -207,11 +236,10 @@ double InverseJacobianIKPlugin::velocityScalingFactorForSingularity(const moveit
   {
     // Ramp velocity down linearly when the Jacobian condition is between lower_singularity_threshold and
     // hard_stop_singularity_threshold, and we're moving towards the singularity
-    if ((ini_condition > 20 /*parameters_.lower_singularity_threshold*/) &&
-        (ini_condition < 50 /*parameters_.hard_stop_singularity_threshold*/))
+    if ((ini_condition > lower_singularity_threshold_) && (ini_condition < hard_stop_singularity_threshold_))
     {
-      velocity_scale = 1. - (ini_condition - 20 /*parameters_.lower_singularity_threshold*/) /
-                                (50-20 /*parameters_.hard_stop_singularity_threshold - parameters_.lower_singularity_threshold*/);
+      velocity_scale = 1. - (ini_condition - lower_singularity_threshold_) /
+                                (hard_stop_singularity_threshold_ - lower_singularity_threshold_);
       status = StatusCode::DECELERATE_FOR_SINGULARITY;
       ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, SERVO_STATUS_CODE_MAP.at(status));
     }
@@ -229,7 +257,7 @@ double InverseJacobianIKPlugin::velocityScalingFactorForSingularity(const moveit
 }
 
 bool InverseJacobianIKPlugin::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
-                                       moveit_msgs::ChangeDriftDimensions::Response& res)
+                                                    moveit_msgs::ChangeDriftDimensions::Response& res)
 {
   drift_dimensions_[0] = req.drift_x_translation;
   drift_dimensions_[1] = req.drift_y_translation;

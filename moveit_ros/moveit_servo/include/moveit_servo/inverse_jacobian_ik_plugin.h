@@ -48,13 +48,12 @@ namespace moveit_servo
 class InverseJacobianIKPlugin : public IKSolverBase
 {
 public:
-  void initialize(ros::NodeHandle& nh) override;
+  bool initialize(ros::NodeHandle& nh) override;
 
-  bool doIncrementalIK(const moveit::core::RobotStatePtr& current_state, Eigen::VectorXd& twist_cmd,
-                       const moveit::core::JointModelGroup* joint_model_group,
-                       double loop_period, double& velocity_scaling_for_singularity,
-                       Eigen::ArrayXd& delta_theta,
-                       StatusCode& status) override;
+  bool doDifferentialIK(const moveit::core::RobotStatePtr& current_state, Eigen::VectorXd& twist_cmd,
+                        const moveit::core::JointModelGroup* joint_model_group, const double loop_period,
+                        double& velocity_scaling_for_singularity, Eigen::ArrayXd& delta_theta,
+                        StatusCode& status) override;
 
   /**
    * Remove the Jacobian row and the delta-x element of one Cartesian dimension, to take advantage of task redundancy
@@ -76,8 +75,7 @@ public:
                                              const moveit::core::JointModelGroup* joint_model_group,
                                              const Eigen::VectorXd& commanded_velocity,
                                              const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
-                                             const Eigen::MatrixXd& pseudo_inverse,
-                                             StatusCode& status);
+                                             const Eigen::MatrixXd& pseudo_inverse, StatusCode& status);
 
 private:
   /**
@@ -94,5 +92,7 @@ private:
   ros::ServiceServer drift_dimensions_server_;
   // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
   std::array<bool, 6> drift_dimensions_ = { { false, false, false, false, false, false } };
+  double lower_singularity_threshold_;
+  double hard_stop_singularity_threshold_;
 };
 }  // namespace moveit_servo

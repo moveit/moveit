@@ -108,10 +108,6 @@ bool Servo::readParameters()
   error += !rosparam_shortcuts::get(LOGNAME, nh, "joint_command_in_topic", parameters_.joint_command_in_topic);
   error += !rosparam_shortcuts::get(LOGNAME, nh, "robot_link_command_frame", parameters_.robot_link_command_frame);
   error += !rosparam_shortcuts::get(LOGNAME, nh, "incoming_command_timeout", parameters_.incoming_command_timeout);
-  error +=
-      !rosparam_shortcuts::get(LOGNAME, nh, "lower_singularity_threshold", parameters_.lower_singularity_threshold);
-  error += !rosparam_shortcuts::get(LOGNAME, nh, "hard_stop_singularity_threshold",
-                                    parameters_.hard_stop_singularity_threshold);
   error += !rosparam_shortcuts::get(LOGNAME, nh, "move_group_name", parameters_.move_group_name);
   error += !rosparam_shortcuts::get(LOGNAME, nh, "planning_frame", parameters_.planning_frame);
   error += !rosparam_shortcuts::get(LOGNAME, nh, "ee_frame_name", parameters_.ee_frame_name);
@@ -194,20 +190,6 @@ bool Servo::readParameters()
   {
     ROS_WARN_NAMED(LOGNAME,
                    "Parameter 'num_outgoing_halt_msgs_to_publish' should be greater than zero. Check yaml file.");
-    return false;
-  }
-  if (parameters_.hard_stop_singularity_threshold < parameters_.lower_singularity_threshold)
-  {
-    ROS_WARN_NAMED(LOGNAME, "Parameter 'hard_stop_singularity_threshold' "
-                            "should be greater than 'lower_singularity_threshold.' "
-                            "Check yaml file.");
-    return false;
-  }
-  if ((parameters_.hard_stop_singularity_threshold < 0.) || (parameters_.lower_singularity_threshold < 0.))
-  {
-    ROS_WARN_NAMED(LOGNAME, "Parameters 'hard_stop_singularity_threshold' "
-                            "and 'lower_singularity_threshold' should be "
-                            "greater than zero. Check yaml file.");
     return false;
   }
   if (parameters_.low_pass_filter_coeff < 0.)

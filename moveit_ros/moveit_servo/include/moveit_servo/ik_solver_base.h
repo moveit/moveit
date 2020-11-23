@@ -34,16 +34,14 @@
 /*
    Author: Andy Zelenak
    Desc: A plugin providing an IK solution.
-   The plugin can be any IK method that takes a current RobotState and TwistStamped command
-   and outputs an incremental trajectory_msgs::JointTrajectory
+   The plugin can be any IK method that takes a current RobotState and Cartesian delta command
+   and outputs an incremental delta_theta
 */
 
 #pragma once
 
-#include <geometry_msgs/TwistStamped.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_servo/status_codes.h>
-#include <trajectory_msgs/JointTrajectory.h>
 
 namespace moveit_servo
 {
@@ -52,7 +50,9 @@ namespace moveit_servo
 class IKSolverBase
 {
 public:
-  virtual void initialize(ros::NodeHandle& nh){}
+  virtual bool initialize(ros::NodeHandle& nh)
+  {
+  }
 
   /**
    * From a Cartesian delta command and the current robot state, compute a new JointTrajectory message with an
@@ -60,18 +60,19 @@ public:
    * The idea is to add new function signatures here as different IK solvers are added.
    * @param current_state current state of the robot from MoveIt
    * @param delta_x a vector with 6 elements (delta-x, delta-y, delta-z, delta-roll, delta-pitch, delta-yaw)
+   * @param joint_mmodel_group the MoveIt joint model group of interest
+   * @param loop_period control rate, as specified in config file
+   * @param velocity_scaling_for_singularity a double between 0 and 1; decelerate if near singularity
+   * @param delta_theta return the change in each joint
+   * @param status an enumerated status code
    * @return true if calculations were successful
    */
-  virtual bool doIncrementalIK(const moveit::core::RobotStatePtr& current_state, Eigen::VectorXd& delta_x,
-                               const moveit::core::JointModelGroup* joint_model_group,
-                               double loop_period, double& velocity_scaling_for_singularity,
-                               Eigen::ArrayXd& delta_theta,
-                               StatusCode& status)
+  virtual bool doDifferentialIK(const moveit::core::RobotStatePtr& current_state, Eigen::VectorXd& delta_x,
+                                const moveit::core::JointModelGroup* joint_model_group, const double loop_period,
+                                double& velocity_scaling_for_singularity, Eigen::ArrayXd& delta_theta,
+                                StatusCode& status)
   {
     return true;
   }
-
-protected:
-  IKSolverBase(){}
 };
 }  // namespace moveit_servo

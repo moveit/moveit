@@ -60,8 +60,6 @@ struct ServoParameters
   double linear_scale;
   double rotational_scale;
   double joint_scale;
-  double lower_singularity_threshold;
-  double hard_stop_singularity_threshold;
   double low_pass_filter_coeff;
   double publish_period;
   double incoming_command_timeout;

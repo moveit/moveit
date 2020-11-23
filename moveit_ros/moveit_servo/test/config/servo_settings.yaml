@@ -41,9 +41,6 @@ incoming_command_timeout:  1  # Stop servoing if X seconds elapse without a new 
 # Important because ROS may drop some messages and we need the robot to halt reliably.
 num_outgoing_halt_msgs_to_publish: 1
 
-## Configure handling of singularities and joint limits
-lower_singularity_threshold:  30  # Start decelerating when the condition number hits this (close to singularity)
-hard_stop_singularity_threshold: 45 # Stop when the condition number hits this
 joint_limit_margin: 0.1 # added as a buffer to joint limits [radians]. If moving quickly, make this larger.
 
 ## Topic names
@@ -66,3 +63,7 @@ scene_collision_proximity_threshold: 0.03 # Start decelerating when a collision 
 # Parameters for "stop_distance"-type collision checking
 collision_distance_safety_factor: 1000 # Must be >= 1. A large safety factor is recommended to account for latency
 min_allowable_collision_distance: 0.01 # Stop if a collision is closer than this [m]
+
+# These parameters are specific to the inverse jacobian IK plugin. They may not be needed for other IK solver plugins
+lower_singularity_threshold:  30  # Start decelerating when the condition number hits this (close to singularity)
+hard_stop_singularity_threshold: 45 # Stop when the condition number hits this
