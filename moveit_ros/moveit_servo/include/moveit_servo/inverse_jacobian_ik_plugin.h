@@ -38,7 +38,8 @@
 
 #pragma once
 
-#include "moveit_servo/ik_solver_base.h"
+#include <moveit_msgs/ChangeDriftDimensions.h>
+#include <moveit_servo/ik_solver_base.h>
 #include <moveit_servo/status_codes.h>
 
 namespace moveit_servo
@@ -46,12 +47,14 @@ namespace moveit_servo
 // Inherit from a generic base class
 class InverseJacobianIKPlugin : public IKSolverBase
 {
+public:
+  void initialize(ros::NodeHandle& nh) override;
+
   bool doIncrementalIK(const moveit::core::RobotStatePtr& current_state, Eigen::VectorXd& twist_cmd,
                        const moveit::core::JointModelGroup* joint_model_group,
-                       const std::array<bool, 6>& drift_dimensions,
                        double loop_period, double& velocity_scaling_for_singularity,
                        Eigen::ArrayXd& delta_theta,
-                       StatusCode& status);
+                       StatusCode& status) override;
 
   /**
    * Remove the Jacobian row and the delta-x element of one Cartesian dimension, to take advantage of task redundancy
@@ -75,5 +78,21 @@ class InverseJacobianIKPlugin : public IKSolverBase
                                              const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
                                              const Eigen::MatrixXd& pseudo_inverse,
                                              StatusCode& status);
+
+private:
+  /**
+   * Allow drift in certain dimensions. For example, may allow the wrist to rotate freely.
+   * This can help avoid singularities.
+   *
+   * @param request the service request
+   * @param response the service response
+   * @return true if the adjustment was made
+   */
+  bool changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
+                             moveit_msgs::ChangeDriftDimensions::Response& res);
+
+  ros::ServiceServer drift_dimensions_server_;
+  // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
+  std::array<bool, 6> drift_dimensions_ = { { false, false, false, false, false, false } };
 };
 }  // namespace moveit_servo

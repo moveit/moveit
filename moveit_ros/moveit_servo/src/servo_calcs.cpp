@@ -99,10 +99,6 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
       nh_.subscribe(parameters_.cartesian_command_in_topic, ROS_QUEUE_SIZE, &ServoCalcs::twistStampedCB, this);
   joint_cmd_sub_ = nh_.subscribe(parameters_.joint_command_in_topic, ROS_QUEUE_SIZE, &ServoCalcs::jointCmdCB, this);
 
-  // ROS Server for allowing drift in some dimensions
-  drift_dimensions_server_ = nh_.advertiseService(ros::names::append(nh_.getNamespace(), "change_drift_dimensions"),
-                                                  &ServoCalcs::changeDriftDimensions, this);
-
   // ROS Server for changing the control dimensions
   control_dimensions_server_ = nh_.advertiseService(ros::names::append(nh_.getNamespace(), "change_control_dimensions"),
                                                     &ServoCalcs::changeControlDimensions, this);
@@ -115,7 +111,7 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
   pluginlib::ClassLoader<moveit_servo::IKSolverBase> ik_plugin_loader("moveit_servo", "moveit_servo::IKSolverBase");
   try
   {
-    // TODO: read plugin name from yaml
+    // TODO(andyz): Will want to retrieve IK solver name from yaml when multiple are available
     ik_plugin_ = ik_plugin_loader.createInstance("moveit_servo::InverseJacobianIKPlugin");
   }
   catch (pluginlib::PluginlibException& ex)
@@ -124,6 +120,7 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
     ROS_ERROR_NAMED(LOGNAME, "The IK solver plugin failed to load. Error: %s", ex.what());
     std::exit(EXIT_FAILURE);
   }
+  ik_plugin_->initialize(nh_);
 
   // Publish and Subscribe to internal namespace topics
   ros::NodeHandle internal_nh(nh_, "internal");
@@ -529,7 +526,7 @@ bool ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
 
   // For now, only one solver type is available.
   // May need to add a different solver type later (add a yaml file and a switch-case to select it)
-  if (!ik_plugin_->doIncrementalIK(current_state_, delta_x, joint_model_group_, drift_dimensions_,
+  if (!ik_plugin_->doIncrementalIK(current_state_, delta_x, joint_model_group_,
                                    parameters_.publish_period, velocity_scaling_for_singularity, delta_theta_,
                                    status_))
   {
@@ -982,20 +979,6 @@ void ServoCalcs::jointCmdCB(const control_msgs::JointJogConstPtr& msg)
 void ServoCalcs::collisionVelocityScaleCB(const std_msgs::Float64ConstPtr& msg)
 {
   collision_velocity_scale_ = msg->data;
-}
-
-bool ServoCalcs::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
-                                       moveit_msgs::ChangeDriftDimensions::Response& res)
-{
-  drift_dimensions_[0] = req.drift_x_translation;
-  drift_dimensions_[1] = req.drift_y_translation;
-  drift_dimensions_[2] = req.drift_z_translation;
-  drift_dimensions_[3] = req.drift_x_rotation;
-  drift_dimensions_[4] = req.drift_y_rotation;
-  drift_dimensions_[5] = req.drift_z_rotation;
-
-  res.success = true;
-  return true;
 }
 
 bool ServoCalcs::changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,

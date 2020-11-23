@@ -49,7 +49,6 @@
 #include <geometry_msgs/TransformStamped.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit_msgs/ChangeDriftDimensions.h>
 #include <moveit_msgs/ChangeControlDimensions.h>
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Float64.h>
@@ -185,17 +184,6 @@ private:
   void jointCmdCB(const control_msgs::JointJogConstPtr& msg);
   void collisionVelocityScaleCB(const std_msgs::Float64ConstPtr& msg);
 
-  /**
-   * Allow drift in certain dimensions. For example, may allow the wrist to rotate freely.
-   * This can help avoid singularities.
-   *
-   * @param request the service request
-   * @param response the service response
-   * @return true if the adjustment was made
-   */
-  bool changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
-                             moveit_msgs::ChangeDriftDimensions::Response& res);
-
   /** \brief Service callback for changing servoing dimensions (e.g. ignore rotation about X) */
   bool changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
                                moveit_msgs::ChangeControlDimensions::Response& res);
@@ -256,7 +244,6 @@ private:
   ros::Publisher status_pub_;
   ros::Publisher worst_case_stop_time_pub_;
   ros::Publisher outgoing_cmd_pub_;
-  ros::ServiceServer drift_dimensions_server_;
   ros::ServiceServer control_dimensions_server_;
   ros::ServiceServer reset_servo_status_;
 
@@ -279,9 +266,6 @@ private:
   const int gazebo_redundant_message_count_ = 30;
 
   uint num_joints_;
-
-  // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
-  std::array<bool, 6> drift_dimensions_ = { { false, false, false, false, false, false } };
 
   // The dimesions to control. In the command frame. [x, y, z, roll, pitch, yaw]
   std::array<bool, 6> control_dimensions_ = { { true, true, true, true, true, true } };

@@ -40,10 +40,17 @@ constexpr size_t ROS_LOG_THROTTLE_PERIOD = 30;  // Seconds to throttle logs insi
 
 namespace moveit_servo
 {
+void InverseJacobianIKPlugin::initialize(ros::NodeHandle& nh)
+{
+  ROS_ERROR_STREAM("INITIALIZED");
+  // ROS Server for allowing drift in some dimensions
+  drift_dimensions_server_ = nh.advertiseService(ros::names::append(nh.getNamespace(), "change_drift_dimensions"),
+                                                  &InverseJacobianIKPlugin::changeDriftDimensions, this);
+}
+
 bool InverseJacobianIKPlugin::doIncrementalIK(const moveit::core::RobotStatePtr& current_state,
                                               Eigen::VectorXd& delta_x,
                                               const moveit::core::JointModelGroup* joint_model_group,
-                                              const std::array<bool, 6>& drift_dimensions,
                                               double loop_period, double& velocity_scaling_for_singularity, 
                                               Eigen::ArrayXd& delta_theta,
                                               StatusCode& status)
@@ -57,7 +64,7 @@ bool InverseJacobianIKPlugin::doIncrementalIK(const moveit::core::RobotStatePtr&
   // Work backwards through the 6-vector so indices don't get out of order
   for (auto dimension = jacobian.rows() - 1; dimension >= 0; --dimension)
   {
-    if (drift_dimensions[dimension] && jacobian.rows() > 1)
+    if (drift_dimensions_[dimension] && jacobian.rows() > 1)
     {
       removeDimension(jacobian, delta_x, dimension);
     }
@@ -219,6 +226,20 @@ double InverseJacobianIKPlugin::velocityScalingFactorForSingularity(const moveit
   }
 
   return velocity_scale;
+}
+
+bool InverseJacobianIKPlugin::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
+                                       moveit_msgs::ChangeDriftDimensions::Response& res)
+{
+  drift_dimensions_[0] = req.drift_x_translation;
+  drift_dimensions_[1] = req.drift_y_translation;
+  drift_dimensions_[2] = req.drift_z_translation;
+  drift_dimensions_[3] = req.drift_x_rotation;
+  drift_dimensions_[4] = req.drift_y_rotation;
+  drift_dimensions_[5] = req.drift_z_rotation;
+
+  res.success = true;
+  return true;
 }
 }  // namespace moveit_servo
 

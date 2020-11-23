@@ -52,6 +52,7 @@ namespace moveit_servo
 class IKSolverBase
 {
 public:
+  virtual void initialize(ros::NodeHandle& nh){}
 
   /**
    * From a Cartesian delta command and the current robot state, compute a new JointTrajectory message with an
@@ -63,12 +64,14 @@ public:
    */
   virtual bool doIncrementalIK(const moveit::core::RobotStatePtr& current_state, Eigen::VectorXd& delta_x,
                                const moveit::core::JointModelGroup* joint_model_group,
-                               const std::array<bool, 6>& drift_dimensions,
                                double loop_period, double& velocity_scaling_for_singularity,
                                Eigen::ArrayXd& delta_theta,
                                StatusCode& status)
   {
     return true;
   }
+
+protected:
+  IKSolverBase(){}
 };
 }  // namespace moveit_servo
