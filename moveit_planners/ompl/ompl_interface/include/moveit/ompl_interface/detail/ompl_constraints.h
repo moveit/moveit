@@ -135,14 +135,14 @@ public:
    *
    *  OMPL requires you to override at least "function" which represents the constraint F(q) = 0
    * */
-  virtual void function(const Eigen::Ref<const Eigen::VectorXd>& joint_values, Eigen::Ref<Eigen::VectorXd> out) const;
+  void function(const Eigen::Ref<const Eigen::VectorXd>& joint_values, Eigen::Ref<Eigen::VectorXd> out) const override;
 
   /** \brief Jacobian of the constraint function.
    *
    * Optionally you can also provide dF(q)/dq, the Jacobian of  the constraint.
    *
    * */
-  virtual void jacobian(const Eigen::Ref<const Eigen::VectorXd>& joint_values, Eigen::Ref<Eigen::MatrixXd> out) const;
+  void jacobian(const Eigen::Ref<const Eigen::VectorXd>& joint_values, Eigen::Ref<Eigen::MatrixXd> out) const override;
 
   /** \brief Wrapper for forward kinematics calculated by MoveIt's Robot State.
    *
@@ -175,7 +175,7 @@ public:
    * This method can be bypassed if you want to override `ompl_interface::BaseConstraint::function directly and ignore
    * the bounds calculation.
    * */
-  virtual Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
+  virtual Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& /*x*/) const
   {
     ROS_ERROR_STREAM("Constraint method calcError was not overridden, so it should not be used.");
     return Eigen::VectorXd::Zero(getCoDimension());
@@ -193,7 +193,7 @@ public:
    * TODO(jeroendm), Maybe also use an output argument as in `ompl::base::Constraint::jacobian(x, out)` for better
    * performance?
    * */
-  virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const
+  virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& /*x*/) const
   {
     ROS_ERROR_STREAM("Constraint method calcErrorJacobian was not overridden, so it should not be used.");
     return Eigen::MatrixXd::Zero(getCoDimension(), n_);
@@ -265,9 +265,9 @@ class BoxConstraint : public BaseConstraint
 public:
   BoxConstraint(const robot_model::RobotModelConstPtr& robot_model, const std::string& group,
                 const unsigned int num_dofs);
-  virtual void parseConstraintMsg(const moveit_msgs::Constraints& constraints) override;
-  virtual Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
-  virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
+  void parseConstraintMsg(const moveit_msgs::Constraints& constraints) override;
+  Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
+  Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
 };
 
 /******************************************
@@ -289,7 +289,7 @@ class EqualityPositionConstraint : public BaseConstraint
 public:
   EqualityPositionConstraint(const robot_model::RobotModelConstPtr& robot_model, const std::string& group,
                              const unsigned int num_dofs);
-  virtual void parseConstraintMsg(const moveit_msgs::Constraints& constraints) override;
+  void parseConstraintMsg(const moveit_msgs::Constraints& constraints) override;
   void function(const Eigen::Ref<const Eigen::VectorXd>& joint_values, Eigen::Ref<Eigen::VectorXd> out) const override;
   void jacobian(const Eigen::Ref<const Eigen::VectorXd>& joint_values, Eigen::Ref<Eigen::MatrixXd> out) const override;
 
