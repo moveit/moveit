@@ -206,7 +206,6 @@ protected:
       ROS_DEBUG_STREAM_NAMED(LOGNAME, "first index: " << joint_model->getFirstVariableIndex() * sizeof(double));
       ROS_DEBUG_STREAM_NAMED(LOGNAME, "width: " << joint_model->getVariableCount() * sizeof(double));
 
-
       moveit_state_space_->copyJointToOMPLState(ompl_state.get(), moveit_state, joint_model, joint_index);
     }
 
