@@ -31,4 +31,3 @@ RUN cd .. && \
 
 # Environment variable used in instructions on moveit.ros.org website for running clang-tidy
 ENV CATKIN_WS /root/ws_moveit
-
