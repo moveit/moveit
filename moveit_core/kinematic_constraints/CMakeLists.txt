@@ -20,4 +20,7 @@ install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 if(CATKIN_ENABLE_TESTING)
   catkin_add_gtest(test_constraints test/test_constraints.cpp)
   target_link_libraries(test_constraints moveit_test_utils ${MOVEIT_LIB_NAME})
+
+  catkin_add_gtest(test_orientation_constraints test/test_orientation_constraints.cpp)
+  target_link_libraries(test_orientation_constraints moveit_test_utils ${MOVEIT_LIB_NAME})
 endif()
