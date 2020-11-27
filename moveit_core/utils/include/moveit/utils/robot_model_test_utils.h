@@ -101,9 +101,11 @@ public:
    * the joints will be given this type. To add multiple types of joints, call this method multiple times
    * \param[in] joint_origins The "parent to joint" origins for the joints connecting the links. If not used, all
    * origins will default to the identity transform
+   * \param[in] joint_axis The joint axis specified in the joint frame defaults to (1,0,0)
    */
   void addChain(const std::string& section, const std::string& type,
-                const std::vector<geometry_msgs::Pose>& joint_origins = {});
+                const std::vector<geometry_msgs::Pose>& joint_origins = {},
+                urdf::Vector3 joint_axis = urdf::Vector3(1.0, 0.0, 0.0));
 
   /** \brief Adds a collision mesh to a specific link.
    *  \param[in] link_name The name of the link to which the mesh will be added. Must already be in the builder

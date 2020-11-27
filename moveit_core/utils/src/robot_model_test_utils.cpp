@@ -110,7 +110,7 @@ RobotModelBuilder::RobotModelBuilder(const std::string& name, const std::string&
 }
 
 void RobotModelBuilder::addChain(const std::string& section, const std::string& type,
-                                 const std::vector<geometry_msgs::Pose>& joint_origins)
+                                 const std::vector<geometry_msgs::Pose>& joint_origins, urdf::Vector3 joint_axis)
 {
   std::vector<std::string> link_names;
   boost::split_regex(link_names, section, boost::regex("->"));
@@ -182,7 +182,7 @@ void RobotModelBuilder::addChain(const std::string& section, const std::string& 
       return;
     }
 
-    joint->axis = urdf::Vector3(1.0, 0.0, 0.0);
+    joint->axis = joint_axis;
     if (joint->type == urdf::Joint::REVOLUTE || joint->type == urdf::Joint::PRISMATIC)
     {
       urdf::JointLimitsSharedPtr limits(new urdf::JointLimits);
