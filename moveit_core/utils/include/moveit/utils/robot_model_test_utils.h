@@ -104,7 +104,8 @@ public:
    * \param[in] joint_axis The joint axis specified in the joint frame defaults to (1,0,0)
    */
   void addChain(const std::string& section, const std::string& type,
-                const std::vector<geometry_msgs::Pose>& joint_origins = {}, urdf::Vector3 joint_axis = urdf::Vector3(1.0, 0.0, 0.0));
+                const std::vector<geometry_msgs::Pose>& joint_origins = {},
+                urdf::Vector3 joint_axis = urdf::Vector3(1.0, 0.0, 0.0));
 
   /** \brief Adds a collision mesh to a specific link.
    *  \param[in] link_name The name of the link to which the mesh will be added. Must already be in the builder
