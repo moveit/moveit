@@ -125,8 +125,6 @@ private:
   // collision request
   collision_detection::CollisionRequest collision_request_;
   collision_detection::CollisionResult collision_result_;
-  std::shared_ptr<collision_detection::CollisionDetectorAllocatorBullet> collision_det_allocation_;
-  collision_detection::CollisionEnvPtr collision_env_;
 
   // ROS
   ros::Timer timer_;
