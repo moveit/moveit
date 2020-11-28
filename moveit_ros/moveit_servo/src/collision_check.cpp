@@ -82,7 +82,7 @@ CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_servo::ServoPar
   acm_ = getLockedPlanningSceneRO()->getAllowedCollisionMatrix();
 
   // Set up Bullet collision detection
-  collision_det_allocation_ = std::make_shared<collision_detection::CollisionDetectorAllocatorBullet>();
+  collision_det_allocation_ = std::make_shared<collision_detection::CollisionDetectorAllocatorFCL>();
   const collision_detection::WorldPtr& world =
       planning_scene_monitor::LockedPlanningSceneRW(planning_scene_monitor_)->getWorldNonConst();
   collision_env_ = collision_det_allocation_->allocateEnv(world, getLockedPlanningSceneRO()->getRobotModel());
