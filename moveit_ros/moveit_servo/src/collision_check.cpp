@@ -126,11 +126,12 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
   using namespace std::chrono;
   high_resolution_clock::time_point t1 = high_resolution_clock::now();
 
-  collision_result_.clear();
-  local_planning_scene_->getCollisionEnv()->checkRobotCollision(collision_request_, collision_result_, *current_state_);
-  scene_collision_distance_ = collision_result_.distance;
-  collision_detected_ |= collision_result_.collision;
-  collision_result_.print();
+  // collision_result_.clear();
+  // local_planning_scene_->getCollisionEnv()->checkRobotCollision(collision_request_, collision_result_, *current_state_, acm_);
+  // scene_collision_distance_ = collision_result_.distance;
+  // collision_detected_ |= collision_result_.collision;
+  // collision_result_.print();
+  scene_collision_distance_ = 1000;
 
   collision_result_.clear();
   // Self-collisions and scene collisions are checked separately so different thresholds can be used
