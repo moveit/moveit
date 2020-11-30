@@ -130,7 +130,7 @@ void CollisionEnvBullet::checkSelfCollisionHelper(const CollisionRequest& req, C
     manager_->setCollisionObjectsTransform(link, state.getCollisionBodyTransform(link, 0));
   }
 
-  manager_->contactTest(res, req, acm, false);
+  manager_->contactTest(res, req, acm, true);
 
   for (const collision_detection_bullet::CollisionObjectWrapperPtr& cow : cows)
   {

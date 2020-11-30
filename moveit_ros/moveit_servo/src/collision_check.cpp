@@ -85,9 +85,12 @@ CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_servo::ServoPar
   current_state_ = planning_scene_monitor_->getStateMonitor()->getCurrentState();
   acm_ = getLockedPlanningSceneRO()->getAllowedCollisionMatrix();
 
+  // Maintain this local copy of the planning scene, to reduce locking of planning_scene_monitor_
+  local_planning_scene_ = std::make_unique<planning_scene::PlanningScene>(
+    getLockedPlanningSceneRO()->getRobotModel()
+    );
   // Use Bullet collision detection, for speed
-  planning_scene_monitor::LockedPlanningSceneRW(planning_scene_monitor_)->
-    setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorBullet::create());
+  local_planning_scene_->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorBullet::create());
 }
 
 planning_scene_monitor::LockedPlanningSceneRO CollisionCheck::getLockedPlanningSceneRO() const
@@ -117,30 +120,29 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
 
   // Update to the latest current state
   current_state_ = planning_scene_monitor_->getStateMonitor()->getCurrentState();
-  current_state_->updateCollisionBodyTransforms();
+  current_state_->update();
   collision_detected_ = false;
 
   using namespace std::chrono;
   high_resolution_clock::time_point t1 = high_resolution_clock::now();
 
   collision_result_.clear();
-  getLockedPlanningSceneRO()->getCollisionEnv()->checkRobotCollision(collision_request_, collision_result_,
-                                                                     *current_state_);
+  local_planning_scene_->getCollisionEnv()->checkRobotCollision(collision_request_, collision_result_, *current_state_);
   scene_collision_distance_ = collision_result_.distance;
   collision_detected_ |= collision_result_.collision;
   collision_result_.print();
 
   collision_result_.clear();
   // Self-collisions and scene collisions are checked separately so different thresholds can be used
-  getLockedPlanningSceneRO()->getCollisionEnvUnpadded()->checkSelfCollision(collision_request_, collision_result_,
-                                                                            *current_state_, acm_);
+  local_planning_scene_->checkSelfCollision(collision_request_, collision_result_, *current_state_, acm_);
   self_collision_distance_ = collision_result_.distance;
   collision_detected_ |= collision_result_.collision;
   collision_result_.print();
+  ROS_ERROR_STREAM_THROTTLE(0.05, self_collision_distance_);
 
   high_resolution_clock::time_point t2 = high_resolution_clock::now();
   duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
-  ROS_ERROR_STREAM_THROTTLE(0.05, time_span.count());
+//  ROS_ERROR_STREAM_THROTTLE(0.05, time_span.count());
 
   velocity_scale_ = 1;
   // If we're definitely in collision, stop immediately
