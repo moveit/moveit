@@ -96,9 +96,13 @@ private:
 
   // Pointer to the collision environment that was passed to the constructor
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
-  // Maintain this local copy of the planning scene, to reduce locking of planning_scene_monitor_
-  // Also, we want to use Bullet collision checking, not the default FCL
+  // Maintain this local copy of the planning scene, to reduce locking of planning_scene_monitor_.
+  // Also, we want to use Bullet collision checking for speed, not the default FCL.
+  // This is used for self-collision checking
   std::unique_ptr<planning_scene::PlanningScene> local_planning_scene_;
+  // A separate collision environment, for Bullet collision detection with the world
+  std::shared_ptr<collision_detection::CollisionDetectorAllocatorBullet> collision_det_allocation_;
+  collision_detection::CollisionEnvPtr collision_env_;
 
   // Robot state and collision matrix from planning scene
   std::shared_ptr<moveit::core::RobotState> current_state_;
