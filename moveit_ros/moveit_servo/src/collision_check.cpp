@@ -80,6 +80,12 @@ CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_servo::ServoPar
 
   current_state_ = planning_scene_monitor_->getStateMonitor()->getCurrentState();
   acm_ = getLockedPlanningSceneRO()->getAllowedCollisionMatrix();
+
+  // Set up Bullet collision detection
+  collision_det_allocation_ = std::make_shared<collision_detection::CollisionDetectorAllocatorBullet>();
+  const collision_detection::WorldPtr& world =
+      planning_scene_monitor::LockedPlanningSceneRW(planning_scene_monitor_)->getWorldNonConst();
+  collision_env_ = collision_det_allocation_->allocateEnv(world, getLockedPlanningSceneRO()->getRobotModel());
 }
 
 planning_scene_monitor::LockedPlanningSceneRO CollisionCheck::getLockedPlanningSceneRO() const
@@ -109,24 +115,19 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
 
   // Update to the latest current state
   current_state_ = planning_scene_monitor_->getStateMonitor()->getCurrentState();
-  current_state_->updateCollisionBodyTransforms();
+  current_state_->update();
   collision_detected_ = false;
 
-  // Do a timer-safe distance-based collision detection
   collision_result_.clear();
-  getLockedPlanningSceneRO()->getCollisionEnv()->checkRobotCollision(collision_request_, collision_result_,
-                                                                     *current_state_);
+  collision_env_->checkRobotCollision(collision_request_, collision_result_, *current_state_, acm_);
   scene_collision_distance_ = collision_result_.distance;
   collision_detected_ |= collision_result_.collision;
-  collision_result_.print();
 
   collision_result_.clear();
   // Self-collisions and scene collisions are checked separately so different thresholds can be used
-  getLockedPlanningSceneRO()->getCollisionEnvUnpadded()->checkSelfCollision(collision_request_, collision_result_,
-                                                                            *current_state_, acm_);
+  collision_env_->checkSelfCollision(collision_request_, collision_result_, *current_state_, acm_);
   self_collision_distance_ = collision_result_.distance;
   collision_detected_ |= collision_result_.collision;
-  collision_result_.print();
 
   velocity_scale_ = 1;
   // If we're definitely in collision, stop immediately

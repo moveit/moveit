@@ -39,6 +39,8 @@
 #pragma once
 
 #include <moveit/collision_detection/collision_common.h>
+#include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
+#include <moveit/collision_detection_bullet/collision_env_bullet.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <sensor_msgs/JointState.h>
@@ -92,7 +94,7 @@ private:
   // Parameters from yaml
   const ServoParameters& parameters_;
 
-  // Pointer to the collision environment
+  // Pointer to the collision environment that was passed to the constructor
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 
   // Robot state and collision matrix from planning scene
@@ -123,6 +125,8 @@ private:
   // collision request
   collision_detection::CollisionRequest collision_request_;
   collision_detection::CollisionResult collision_result_;
+  std::shared_ptr<collision_detection::CollisionDetectorAllocatorBullet> collision_det_allocation_;
+  collision_detection::CollisionEnvPtr collision_env_;
 
   // ROS
   ros::Timer timer_;
