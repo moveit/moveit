@@ -52,7 +52,7 @@ int main(int argc, char** argv)
   ros::AsyncSpinner spinner(ROS_THREADS);
   spinner.start();
 
-  ros::NodeHandle nh("~");
+  ros::NodeHandle nh(ros::this_node::getName());
 
   // Load the planning scene monitor
   auto planning_scene_monitor = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
