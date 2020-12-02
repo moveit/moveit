@@ -54,7 +54,7 @@ Bounds::Bounds(const std::vector<double>& lower, const std::vector<double>& uppe
 
 Eigen::VectorXd Bounds::penalty(const Eigen::Ref<const Eigen::VectorXd>& x) const
 {
-  assert((long) lower_.size() == x.size());
+  assert((long)lower_.size() == x.size());
   Eigen::VectorXd penalty(x.size());
 
   for (Eigen::Index i{ 0 }; i < x.size(); ++i)
@@ -71,7 +71,7 @@ Eigen::VectorXd Bounds::penalty(const Eigen::Ref<const Eigen::VectorXd>& x) cons
 
 Eigen::VectorXd Bounds::derivative(const Eigen::Ref<const Eigen::VectorXd>& x) const
 {
-  assert((long) lower_.size() == x.size());
+  assert((long)lower_.size() == x.size());
   Eigen::VectorXd derivative(x.size());
 
   for (Eigen::Index i{ 0 }; i < x.size(); ++i)
