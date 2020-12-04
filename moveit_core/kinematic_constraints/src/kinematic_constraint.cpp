@@ -58,6 +58,63 @@ static double normalizeAngle(double angle)
   return v;
 }
 
+// Normalizes an angles to an absolute angle.
+// The returned values will be in the following range [0, +pi]
+static double normalizeAbsoluteAngle(const double angle)
+{
+  const double normalized_angle = std::fmod(std::abs(angle), 2 * M_PI);
+  return std::min(2 * M_PI - normalized_angle, normalized_angle);
+}
+
+static Eigen::Vector3d normalizeAbsoluteAngles(const Eigen::Vector3d& angles)
+{
+  return angles.unaryExpr(&normalizeAbsoluteAngle);
+}
+
+/**
+ * This's copied from
+ * https://gitlab.com/libeigen/eigen/-/blob/master/unsupported/Eigen/src/EulerAngles/EulerSystem.h#L187
+ * Return the intrinsic Roll-Pitch-Yaw euler angles given the input rotation matrix and boolean indicating whether the
+ * there's a singularity in the input rotation matrix (true: the input rotation matrix don't have a singularity, false:
+ * the input rotation matrix have a singularity) The returned angles are in the ranges [-pi:pi]x[-pi/2:pi/2]x[-pi:pi]
+ */
+template <typename Derived>
+std::tuple<Eigen::Matrix<typename Eigen::MatrixBase<Derived>::Scalar, 3, 1>, bool>
+CalcEulerAngles(const Eigen::MatrixBase<Derived>& R)
+{
+  using std::atan2;
+  using std::sqrt;
+  EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Derived, 3, 3)
+  using Index = EIGEN_DEFAULT_DENSE_INDEX_TYPE;
+  using Scalar = typename Eigen::MatrixBase<Derived>::Scalar;
+  const Index i = 0;
+  const Index j = 1;
+  const Index k = 2;
+  Eigen::Matrix<Scalar, 3, 1> res;
+  const Scalar Rsum = sqrt((R(i, i) * R(i, i) + R(i, j) * R(i, j) + R(j, k) * R(j, k) + R(k, k) * R(k, k)) / 2);
+  res[1] = atan2(R(i, k), Rsum);
+  // There is a singularity when cos(beta) == 0
+  if (Rsum > 4 * Eigen::NumTraits<Scalar>::epsilon())
+  {  // cos(beta) != 0
+    res[0] = atan2(-R(j, k), R(k, k));
+    res[2] = atan2(-R(i, j), R(i, i));
+    return { res, true };
+  }
+  else if (R(i, k) > 0)
+  {                                         // cos(beta) == 0 and sin(beta) == 1
+    const Scalar spos = R(j, i) + R(k, j);  // 2*sin(alpha + gamma)
+    const Scalar cpos = R(j, j) - R(k, i);  // 2*cos(alpha + gamma)
+    res[0] = atan2(spos, cpos);
+    res[2] = 0;
+    return { res, false };
+  }                                       // cos(beta) == 0 and sin(beta) == -1
+  const Scalar sneg = R(k, j) - R(j, i);  // 2*sin(alpha + gamma)
+  const Scalar cneg = R(j, j) + R(k, i);  // 2*cos(alpha + gamma)
+  res[0] = atan2(sneg, cneg);
+  res[2] = 0;
+  return { res, false };
+}
+
 KinematicConstraint::KinematicConstraint(const moveit::core::RobotModelConstPtr& model)
   : type_(UNKNOWN_CONSTRAINT), robot_model_(model), constraint_weight_(std::numeric_limits<double>::epsilon())
 {
@@ -598,76 +655,40 @@ bool OrientationConstraint::enabled() const
   return link_model_;
 }
 
-/**
- * TODO(JafarAbdi): This's copied from
- * https://gitlab.com/libeigen/eigen/-/blob/master/unsupported/Eigen/src/EulerAngles/EulerSystem.h#L187
- * Return the intrinsic Roll-Pitch-Yaw euler angles given the input rotation matrix
- * The returned angles are in the ranges [-pi:pi]x[-pi/2:pi/2]x[-pi:pi]
- */
-template <typename Derived>
-Eigen::Matrix<typename Eigen::MatrixBase<Derived>::Scalar, 3, 1> CalcEulerAngles(const Eigen::MatrixBase<Derived>& R)
-{
-  using std::atan2;
-  using std::sqrt;
-  EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Derived, 3, 3)
-  using Index = EIGEN_DEFAULT_DENSE_INDEX_TYPE;
-  using Scalar = typename Eigen::MatrixBase<Derived>::Scalar;
-  const Index i = 0;
-  const Index j = 1;
-  const Index k = 2;
-  Eigen::Matrix<Scalar, 3, 1> res;
-  const Scalar Rsum = sqrt((R(i, i) * R(i, i) + R(i, j) * R(i, j) + R(j, k) * R(j, k) + R(k, k) * R(k, k)) / 2);
-  res[1] = atan2(R(i, k), Rsum);
-  // There is a singularity when cos(beta) == 0
-  if (Rsum > 4 * Eigen::NumTraits<Scalar>::epsilon())
-  {  // cos(beta) != 0
-    res[0] = atan2(-R(j, k), R(k, k));
-    res[2] = atan2(-R(i, j), R(i, i));
-  }
-  else if (R(i, k) > 0)
-  {                                         // cos(beta) == 0 and sin(beta) == 1
-    const Scalar spos = R(j, i) + R(k, j);  // 2*sin(alpha + gamma)
-    const Scalar cpos = R(j, j) - R(k, i);  // 2*cos(alpha + gamma)
-    res[0] = atan2(spos, cpos);
-    res[2] = 0;
-  }
-  else
-  {                                         // cos(beta) == 0 and sin(beta) == -1
-    const Scalar sneg = R(k, j) - R(j, i);  // 2*sin(alpha + gamma)
-    const Scalar cneg = R(j, j) + R(k, i);  // 2*cos(alpha + gamma)
-    res[0] = atan2(sneg, cneg);
-    res[2] = 0;
-  }
-  return res;
-}
-
 ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::RobotState& state, bool verbose) const
 {
   if (!link_model_)
     return ConstraintEvaluationResult(true, 0.0);
 
-  Eigen::Vector3d xyz;
+  std::tuple<Eigen::Vector3d, bool> euler_angles_error;
   if (mobile_frame_)
   {
-    // getFrameTransform() returns a valid isometry by contract
-    const Eigen::Vector3d desired_rpy =
-        CalcEulerAngles(state.getFrameTransform(desired_rotation_frame_id_).linear() * desired_rotation_matrix_);
-    // getGlobalLinkTransform() returns a valid isometry by contract
-    const Eigen::Vector3d current_rpy =
-        CalcEulerAngles(state.getGlobalLinkTransform(link_model_).linear());  // valid isometry
-    xyz = current_rpy - desired_rpy;
+    Eigen::Matrix3d tmp = state.getFrameTransform(desired_rotation_frame_id_).linear() * desired_rotation_matrix_;
+    Eigen::Isometry3d diff(tmp.transpose() * state.getGlobalLinkTransform(link_model_).linear());  // valid isometry
+    euler_angles_error = CalcEulerAngles(diff.rotation());
   }
   else
   {
-    const Eigen::Vector3d desired_rpy = CalcEulerAngles(desired_rotation_matrix_);
-    const Eigen::Vector3d current_rpy = CalcEulerAngles(state.getGlobalLinkTransform(link_model_).linear());
-    xyz = current_rpy - desired_rpy;
+    Eigen::Isometry3d diff(desired_rotation_matrix_inv_ * state.getGlobalLinkTransform(link_model_).linear());
+    euler_angles_error = CalcEulerAngles(diff.rotation());
   }
-  // Account for angle wrapping
-  xyz = xyz.unaryExpr([](const double angle) {
-    const double normalized_angle = std::fmod(std::abs(angle), boost::math::constants::two_pi<double>());
-    return std::min(boost::math::constants::two_pi<double>() - normalized_angle, normalized_angle);
-  });
+
+  // Converting from a rotation matrix to an intrinsic XYZ euler angles have 2 singularities:
+  // pitch ~= pi/2 ==> roll + yaw = theta
+  // pitch ~= -pi/2 ==> roll - yaw = theta
+  // in those cases CalcEulerAngles will set roll (xyz(0)) to theta and yaw (xyz(2)) to zero, so for us to be able to
+  // capture yaw tolerance violation we do the following, if theta violate the absolute yaw tolerance we think of it as
+  // pure yaw rotation and set roll to zero
+  auto& xyz = std::get<Eigen::Vector3d>(euler_angles_error);
+  if (!std::get<bool>(euler_angles_error))
+  {
+    if (normalizeAbsoluteAngle(xyz(0)) > absolute_z_axis_tolerance_ + std::numeric_limits<double>::epsilon())
+    {
+      xyz(2) = xyz(0);
+      xyz(0) = 0;
+    }
+  }
+  xyz = normalizeAbsoluteAngles(xyz);
 
   // 0,1,2 corresponds to XYZ, the convention used in sampling constraints
   bool result = xyz(2) < absolute_z_axis_tolerance_ + std::numeric_limits<double>::epsilon() &&
