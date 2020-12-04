@@ -1,8 +1,8 @@
 ---
-name: First Timers Only Issue
+name: First Timer Only Issue
 about: Create an issue to welcome a new contributor into the community.
 title: ''
-labels: first-timers-only
+labels: first-timer-only
 assignees: ''
 
 ---
