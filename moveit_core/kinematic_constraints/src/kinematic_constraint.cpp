@@ -91,10 +91,10 @@ CalcEulerAngles(const Eigen::MatrixBase<Derived>& R)
   const Index j = 1;
   const Index k = 2;
   Eigen::Matrix<Scalar, 3, 1> res;
-  const Scalar Rsum = sqrt((R(i, i) * R(i, i) + R(i, j) * R(i, j) + R(j, k) * R(j, k) + R(k, k) * R(k, k)) / 2);
-  res[1] = atan2(R(i, k), Rsum);
+  const Scalar rsum = sqrt((R(i, i) * R(i, i) + R(i, j) * R(i, j) + R(j, k) * R(j, k) + R(k, k) * R(k, k)) / 2);
+  res[1] = atan2(R(i, k), rsum);
   // There is a singularity when cos(beta) == 0
-  if (Rsum > 4 * Eigen::NumTraits<Scalar>::epsilon())
+  if (rsum > 4 * Eigen::NumTraits<Scalar>::epsilon())
   {  // cos(beta) != 0
     res[0] = atan2(-R(j, k), R(k, k));
     res[2] = atan2(-R(i, j), R(i, i));
@@ -663,14 +663,17 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
   std::tuple<Eigen::Vector3d, bool> euler_angles_error;
   if (mobile_frame_)
   {
+    // getFrameTransform() returns a valid isometry by contract
     Eigen::Matrix3d tmp = state.getFrameTransform(desired_rotation_frame_id_).linear() * desired_rotation_matrix_;
+    // getGlobalLinkTransform() returns a valid isometry by contract
     Eigen::Isometry3d diff(tmp.transpose() * state.getGlobalLinkTransform(link_model_).linear());  // valid isometry
-    euler_angles_error = CalcEulerAngles(diff.rotation());
+    euler_angles_error = CalcEulerAngles(diff.linear());
   }
   else
   {
+    // diff is valid isometry by construction
     Eigen::Isometry3d diff(desired_rotation_matrix_inv_ * state.getGlobalLinkTransform(link_model_).linear());
-    euler_angles_error = CalcEulerAngles(diff.rotation());
+    euler_angles_error = CalcEulerAngles(diff.linear());
   }
 
   // Converting from a rotation matrix to an intrinsic XYZ euler angles have 2 singularities:
@@ -688,6 +691,7 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
       xyz(0) = 0;
     }
   }
+  // Account for angle wrapping
   xyz = normalizeAbsoluteAngles(xyz);
 
   // 0,1,2 corresponds to XYZ, the convention used in sampling constraints
