@@ -58,7 +58,7 @@ static double normalizeAngle(double angle)
   return v;
 }
 
-// Normalizes an angles to an absolute angle.
+// Normalizes an angle to the interval [-pi, +pi] and then take the absolute value
 // The returned values will be in the following range [0, +pi]
 static double normalizeAbsoluteAngle(const double angle)
 {
