@@ -39,11 +39,6 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_eigen/tf2_eigen.h>
 
-using namespace std;
-using namespace boost;
-using namespace Eigen;
-using namespace mesh_filter;
-
 TransformProvider::TransformProvider(unsigned long interval_us) : stop_(true), interval_us_(interval_us)
 {
   tf_buffer_ = std::make_shared<tf2_ros::Buffer>();
@@ -60,7 +55,7 @@ TransformProvider::~TransformProvider()
 void TransformProvider::start()
 {
   stop_ = false;
-  thread_ = thread(&TransformProvider::run, this);
+  thread_ = boost::thread(&TransformProvider::run, this);
 }
 
 void TransformProvider::stop()
@@ -69,15 +64,15 @@ void TransformProvider::stop()
   thread_.join();
 }
 
-void TransformProvider::addHandle(MeshHandle handle, const string& name)
+void TransformProvider::addHandle(mesh_filter::MeshHandle handle, const std::string& name)
 {
   if (!stop_)
-    throw runtime_error("Can not add handles if TransformProvider is running");
+    throw std::runtime_error("Can not add handles if TransformProvider is running");
 
   handle2context_[handle].reset(new TransformContext(name));
 }
 
-void TransformProvider::setFrame(const string& frame)
+void TransformProvider::setFrame(const std::string& frame)
 {
   if (frame_id_ != frame)
   {
@@ -92,7 +87,7 @@ void TransformProvider::setFrame(const string& frame)
   }
 }
 
-bool TransformProvider::getTransform(MeshHandle handle, Isometry3d& transform) const
+bool TransformProvider::getTransform(mesh_filter::MeshHandle handle, Eigen::Isometry3d& transform) const
 {
   auto contextIt = handle2context_.find(handle);
 
@@ -110,7 +105,7 @@ bool TransformProvider::getTransform(MeshHandle handle, Isometry3d& transform) c
 void TransformProvider::run()
 {
   if (handle2context_.empty())
-    throw runtime_error("TransformProvider is listening to empty list of frames!");
+    throw std::runtime_error("TransformProvider is listening to empty list of frames!");
 
   while (!stop_)
   {
@@ -126,7 +121,7 @@ void TransformProvider::setUpdateInterval(unsigned long usecs)
 
 void TransformProvider::updateTransforms()
 {
-  static tf2::Stamped<Isometry3d> input_transform, output_transform;
+  static tf2::Stamped<Eigen::Isometry3d> input_transform, output_transform;
   static moveit::core::RobotStatePtr robot_state;
   robot_state = psm_->getStateMonitor()->getCurrentState();
   try
@@ -162,7 +157,7 @@ void TransformProvider::updateTransforms()
       ROS_ERROR("Caught %s while updating transforms", ex.what());
     }
     handle2context_[contextIt->first]->mutex_.lock();
-    handle2context_[contextIt->first]->transformation_ = static_cast<Isometry3d>(output_transform);
+    handle2context_[contextIt->first]->transformation_ = static_cast<Eigen::Isometry3d>(output_transform);
     handle2context_[contextIt->first]->mutex_.unlock();
   }
 }
