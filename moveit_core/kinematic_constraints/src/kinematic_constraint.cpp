@@ -66,11 +66,6 @@ static double normalizeAbsoluteAngle(const double angle)
   return std::min(2 * M_PI - normalized_angle, normalized_angle);
 }
 
-static Eigen::Vector3d normalizeAbsoluteAngles(const Eigen::Vector3d& angles)
-{
-  return angles.unaryExpr(&normalizeAbsoluteAngle);
-}
-
 /**
  * This's copied from
  * https://gitlab.com/libeigen/eigen/-/blob/master/unsupported/Eigen/src/EulerAngles/EulerSystem.h#L187
@@ -692,7 +687,7 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
     }
   }
   // Account for angle wrapping
-  xyz = normalizeAbsoluteAngles(xyz);
+  xyz = xyz.unaryExpr(&normalizeAbsoluteAngle);
 
   // 0,1,2 corresponds to XYZ, the convention used in sampling constraints
   bool result = xyz(2) < absolute_z_axis_tolerance_ + std::numeric_limits<double>::epsilon() &&
