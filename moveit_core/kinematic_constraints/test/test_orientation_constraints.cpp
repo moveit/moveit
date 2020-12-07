@@ -210,6 +210,33 @@ TEST_F(SphericalRobot, Test4)
   EXPECT_FALSE(oc.decide(robot_state).satisfied);
 }
 
+// Both the current and the desired orientations are in singularities
+TEST_F(SphericalRobot, Test5)
+{
+  kinematic_constraints::OrientationConstraint oc(robot_model_);
+
+  moveit::core::Transforms tf(robot_model_->getModelFrame());
+  moveit_msgs::OrientationConstraint ocm;
+
+  moveit::core::RobotState robot_state(robot_model_);
+  robot_state.setVariablePositions(getJointValues(0.0, boost::math::constants::half_pi<double>(), 0.0));
+  robot_state.update();
+
+  ocm.link_name = "yaw";
+  ocm.header.frame_id = robot_model_->getModelFrame();
+  tf2::convert(Eigen::Quaterniond(robot_state.getGlobalLinkTransform(ocm.link_name).linear()), ocm.orientation);
+  ocm.absolute_x_axis_tolerance = 0.0;
+  ocm.absolute_y_axis_tolerance = 0.0;
+  ocm.absolute_z_axis_tolerance = 1.0;
+  ocm.weight = 1.0;
+
+  robot_state.setVariablePositions(getJointValues(0.2, boost::math::constants::half_pi<double>(), 0.3));
+  robot_state.update();
+
+  EXPECT_TRUE(oc.configure(ocm, tf));
+  EXPECT_TRUE(oc.decide(robot_state, true).satisfied);
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
