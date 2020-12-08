@@ -56,9 +56,11 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 static const std::string PLANNING_GROUP = "panda_arm";
+static const std::string LOGNAME = "move_group_pick_place_test";
 constexpr double PLANNING_TIME_S = 45.0;
 constexpr double MAX_VELOCITY_SCALE = 1.0;
 constexpr double MAX_ACCELERATION_SCALE = 1.0;
+constexpr size_t MAX_PLANNING_ATTEMPTS = 10;
 
 class PickPlaceTestFixture : public ::testing::Test
 {
@@ -219,7 +221,17 @@ TEST_F(PickPlaceTestFixture, PickPlaceTest)
   // Set support surface as table1.
   move_group_->setSupportSurfaceName("table1");
   // Call pick to pick up the object using the grasps given
-  ASSERT_EQ(move_group_->pick("object", grasps), moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  moveit::planning_interface::MoveItErrorCode pick_result(moveit_msgs::MoveItErrorCodes::FAILURE);
+  for (size_t i = 0; i < MAX_PLANNING_ATTEMPTS && pick_result != moveit::planning_interface::MoveItErrorCode::SUCCESS;
+       ++i)
+  {
+    pick_result = move_group_->pick("object", grasps);
+    if (pick_result != moveit::planning_interface::MoveItErrorCode::SUCCESS)
+    {
+      ROS_WARN_NAMED(LOGNAME, "pick plan failed, retrying");
+    }
+  }
+  ASSERT_EQ(pick_result, moveit::planning_interface::MoveItErrorCode::SUCCESS);
 
   // Ideally, you would create a vector of place locations to be attempted although in this example, we only create
   // a single place location.
@@ -274,7 +286,17 @@ TEST_F(PickPlaceTestFixture, PickPlaceTest)
   // Set support surface as table2.
   move_group_->setSupportSurfaceName("table2");
   // Call place to place the object using the place locations given.
-  ASSERT_EQ(move_group_->place("object", place_location), moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  moveit::planning_interface::MoveItErrorCode place_result(moveit_msgs::MoveItErrorCodes::FAILURE);
+  for (size_t i = 0; i < MAX_PLANNING_ATTEMPTS && place_result != moveit::planning_interface::MoveItErrorCode::SUCCESS;
+       ++i)
+  {
+    place_result = move_group_->place("object", place_location);
+    if (place_result != moveit::planning_interface::MoveItErrorCode::SUCCESS)
+    {
+      ROS_WARN_NAMED(LOGNAME, "place plan failed, retrying");
+    }
+  }
+  ASSERT_EQ(place_result, moveit::planning_interface::MoveItErrorCode::SUCCESS);
 }
 
 int main(int argc, char** argv)
