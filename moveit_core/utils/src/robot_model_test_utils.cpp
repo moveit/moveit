@@ -342,6 +342,17 @@ void RobotModelBuilder::addGroup(const std::vector<std::string>& links, const st
   srdf_writer_->groups_.push_back(new_group);
 }
 
+void RobotModelBuilder::addEndEffector(const std::string& name, const std::string& parent_link,
+                                       const std::string& parent_group, const std::string& component_group)
+{
+  srdf::Model::EndEffector eef;
+  eef.name_ = name;
+  eef.parent_link_ = parent_link;
+  eef.parent_group_ = parent_group;
+  eef.component_group_ = component_group;
+  srdf_writer_->end_effectors_.push_back(eef);
+}
+
 bool RobotModelBuilder::isValid()
 {
   return is_valid_;
