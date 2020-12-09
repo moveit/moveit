@@ -614,14 +614,17 @@ public:
   void setJointGroupPositions(const std::string& joint_group_name, const std::vector<double>& gstate)
   {
     const JointModelGroup* jmg = robot_model_->getJointModelGroup(joint_group_name);
-    if (jmg)
+    if (jmg) {
+      assert(gstate.size() == jmg->getVariableCount());
       setJointGroupPositions(jmg, &gstate[0]);
+    }
   }
 
   /** \brief Given positions for the variables that make up a group, in the order found in the group (including values
    *   of mimic joints), set those as the new values that correspond to the group */
   void setJointGroupPositions(const JointModelGroup* group, const std::vector<double>& gstate)
   {
+    assert(gstate.size() == group->getVariableCount());
     setJointGroupPositions(group, &gstate[0]);
   }
 
@@ -634,8 +637,10 @@ public:
   void setJointGroupPositions(const std::string& joint_group_name, const Eigen::VectorXd& values)
   {
     const JointModelGroup* jmg = robot_model_->getJointModelGroup(joint_group_name);
-    if (jmg)
+    if (jmg) {
+      assert(values.size() == jmg->getVariableCount());
       setJointGroupPositions(jmg, values);
+    }
   }
 
   /** \brief Given positions for the variables that make up a group, in the order found in the group (including values
