@@ -164,6 +164,9 @@ public:
    */
   void addGroup(const std::vector<std::string>& links, const std::vector<std::string>& joints, const std::string& name);
 
+  void addEndEffector(const std::string& name, const std::string& parent_link, const std::string& parent_group = "",
+                      const std::string& component_group = "");
+
   /** \} */
 
   /** \brief Returns true if the building process so far has been valid. */
