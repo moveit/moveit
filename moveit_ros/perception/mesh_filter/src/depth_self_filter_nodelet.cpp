@@ -113,9 +113,9 @@ void mesh_filter::DepthSelfFiltering::filter(const sensor_msgs::ImageConstPtr& d
 
   const float* src = (const float*)&depth_msg->data[0];
   //*
-  static unsigned dataSize = 0;
-  static unsigned short* data = 0;
-  if (dataSize < depth_msg->width * depth_msg->height)
+  static unsigned data_size = 0;
+  static unsigned short* data = nullptr;
+  if (data_size < depth_msg->width * depth_msg->height)
     data = new unsigned short[depth_msg->width * depth_msg->height];
   for (unsigned idx = 0; idx < depth_msg->width * depth_msg->height; ++idx)
     data[idx] = (unsigned short)(src[idx] * 1000.0);
@@ -172,19 +172,19 @@ void mesh_filter::DepthSelfFiltering::filter(const sensor_msgs::ImageConstPtr& d
 
 void mesh_filter::DepthSelfFiltering::addMeshes(MeshFilter<StereoCameraModel>& mesh_filter)
 {
-  robot_model_loader::RobotModelLoader robotModelLoader("robot_description");
-  moveit::core::RobotModelConstPtr robotModel = robotModelLoader.getModel();
-  const auto& links = robotModel->getLinkModelsWithCollisionGeometry();
-  for (size_t i = 0; i < links.size(); ++i)
+  robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
+  moveit::core::RobotModelConstPtr robot_model = robot_model_loader.getModel();
+  const auto& links = robot_model->getLinkModelsWithCollisionGeometry();
+  for (auto link : links)
   {
-    const auto& shapes = links[i]->getShapes();
+    const auto& shapes = link->getShapes();
     for (const auto& shape : shapes)
     {
       if (shape->type == shapes::MESH)
       {
         const shapes::Mesh& m = static_cast<const shapes::Mesh&>(*shape);
         MeshHandle mesh_handle = mesh_filter.addMesh(m);
-        transform_provider_.addHandle(mesh_handle, links[i]->getName());
+        transform_provider_.addHandle(mesh_handle, link->getName());
       }
     }
   }

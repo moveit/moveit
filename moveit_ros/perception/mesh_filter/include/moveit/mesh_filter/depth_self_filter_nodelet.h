@@ -57,10 +57,10 @@ class DepthSelfFiltering : public nodelet::Nodelet
 {
 public:
   /** \brief Nodelet init callback*/
-  virtual void onInit();
+  void onInit() override;
 
 private:
-  ~DepthSelfFiltering();
+  ~DepthSelfFiltering() override;
 
   /**
    * \brief adding the meshes to a given mesh filter object.
