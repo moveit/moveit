@@ -6,14 +6,14 @@ add_library(${MOVEIT_LIB_NAME}
   src/stereo_camera_model.cpp
   src/gl_renderer.cpp
   src/gl_mesh.cpp
-  src/transform_provider.cpp
 )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${gl_LIBS} GLUT::GLUT ${GLEW_LIBRARIES})
 
 add_library(moveit_depth_self_filter
-        src/depth_self_filter_nodelet.cpp
+  src/depth_self_filter_nodelet.cpp
+  src/transform_provider.cpp
 )
 set_target_properties(moveit_depth_self_filter PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
