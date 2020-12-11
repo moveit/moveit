@@ -49,6 +49,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   moveit_msgs
   moveit_ros_occupancy_map_monitor
+  moveit_ros_planning
   nodelet
 )
 
@@ -84,6 +85,7 @@ catkin_package(
     moveit_core
     moveit_msgs
     moveit_ros_occupancy_map_monitor
+    moveit_ros_planning
     nodelet
     object_recognition_msgs
     roscpp
