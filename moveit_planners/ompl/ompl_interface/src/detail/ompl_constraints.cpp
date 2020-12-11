@@ -211,7 +211,7 @@ void EqualityPositionConstraint::parseConstraintMsg(const moveit_msgs::Constrain
   is_dim_constrained_ = { false, false, false };
   for (std::size_t i{ 0 }; i < dims.size(); ++i)
   {
-    if (dims[i] < equality_constraint_threshold_)
+    if (dims[i] < EQUALITY_CONSTRAINT_THRESHOLD_)
     {
       if (dims[i] < getTolerance())
       {
@@ -219,7 +219,7 @@ void EqualityPositionConstraint::parseConstraintMsg(const moveit_msgs::Constrain
             LOGNAME,
             "Dimension %li of position constraint is smaller than the tolerance used to evaluate the constraints. "
             "This will make all states invalid and planning will fail :( Please use a value between %f and %f. ",
-            i, getTolerance(), equality_constraint_threshold_);
+            i, getTolerance(), EQUALITY_CONSTRAINT_THRESHOLD_);
       }
       is_dim_constrained_.at(i) = true;
     }
