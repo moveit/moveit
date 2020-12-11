@@ -179,7 +179,8 @@ public:
    * */
   virtual Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& /*x*/) const
   {
-    ROS_ERROR_STREAM("Constraint method calcError was not overridden, so it should not be used.");
+    ROS_ERROR_STREAM_NAMED("ompl_constraints",
+                           "Constraint method calcError was not overridden, so it should not be used.");
     return Eigen::VectorXd::Zero(getCoDimension());
   }
 
@@ -197,7 +198,8 @@ public:
    * */
   virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& /*x*/) const
   {
-    ROS_ERROR_STREAM("Constraint method calcErrorJacobian was not overridden, so it should not be used.");
+    ROS_ERROR_STREAM_NAMED("ompl_constraints",
+                           "Constraint method calcErrorJacobian was not overridden, so it should not be used.");
     return Eigen::MatrixXd::Zero(getCoDimension(), n_);
   }
 
