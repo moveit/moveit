@@ -206,16 +206,13 @@ protected:
 
   void setupStateSpace()
   {
+    // note: make_shared throws if the allocations below fail, making the test fail when necessary
     ompl_interface::ModelBasedStateSpaceSpecification space_spec(robot_model_, group_name_);
     state_space_ = std::make_shared<ompl_interface::ConstrainedPlanningStateSpace>(space_spec);
     state_space_->computeLocations();  // this gets called in the state space factory normally
 
-    ASSERT_NE(state_space_, nullptr);
-
     auto dummy_constraint = std::make_shared<DummyConstraint>(num_dofs_);
     constrained_state_space_ = std::make_shared<ompl::base::ProjectedStateSpace>(state_space_, dummy_constraint);
-
-    ASSERT_NE(constrained_state_space_, nullptr);
   }
 
   void setupPlanningContext()
