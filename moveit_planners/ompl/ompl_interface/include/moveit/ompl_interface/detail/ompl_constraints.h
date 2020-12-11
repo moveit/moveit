@@ -296,20 +296,26 @@ public:
 private:
   /** \brief Position bounds under this threshold are interpreted as equality constraints, the others as unbounded.
    *
-   * This threshold value should be larger that the tolerance of the constraints specificied in ompl
-   * (ompl::magic::CONSTRAINT_PROJECTION_TOLERANCE = 1e-4).
+   * WARNING: Below follows the explanation of an ugly hack. Ideally, the user could specify equality constraints by
+   * setting the constraint dimension to zero. However, this would result in a constraint region primitive with a zero
+   * dimension in MoveIt, which the planner can (almost) never satisfy. Therefore we use a threshold value, below which
+   * the constraint is interpreted as an equality constraint. This threshold value is not used in the planning algorithm itself!
    *
+   * This threshold value should be larger than the tolerance of the constraints specified in OMPL
+   * (ompl::magic::CONSTRAINT_PROJECTION_TOLERANCE = 1e-4).
    *
    * This is necessary because the constraints are also checked by MoveIt in the StateValidity checker. If this check
    * would use a stricter tolerance than was used to satisfy the constraints in OMPL, all states would be invalid.
-   * Therefore the dimension of an equality constraint specified in the constraint message should be larger than OMPL's
-   * tolerance, and therefore this threshold should be too.
+   * Therefore the dimension of an equality constraint specified in the constraint message should be at least equal the
+   * the tolerance used by OMPL to project onto the constraints. To avoid checking for exact equality on floats, the
+   * threshold is made a bit larger.
    *
-   * equality_constraint_threshold_ > tolerance in constraint message > MoveIt constraint checker tolerance
+   * equality_constraint_threshold_ > tolerance in constraint message > OMPL projection tolerance
    *
    * That's why the value is 1e-3 > 1e-4.
+   * Now the user can specify any value between 1e-3 and 1e-4 to specify an equality constraint.
    * **/
-  double equality_constraint_threshold_{ 0.001 };
+  static constexpr double EQUALITY_CONSTRAINT_THRESHOLD_{ 0.001 };
 
   /** \brief Bool vector indicating which dimensions are constrained. **/
   std::vector<bool> is_dim_constrained_;
