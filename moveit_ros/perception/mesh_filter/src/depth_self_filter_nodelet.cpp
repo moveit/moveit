@@ -130,7 +130,8 @@ void mesh_filter::DepthSelfFiltering::filter(const sensor_msgs::ImageConstPtr& d
     filtered_depth_ptr_->encoding = sensor_msgs::image_encodings::TYPE_32FC1;
     filtered_depth_ptr_->header = depth_msg->header;
 
-    if (filtered_depth_ptr_->image.cols != depth_msg->width || filtered_depth_ptr_->image.rows != depth_msg->height)
+    if (static_cast<uint32_t>(filtered_depth_ptr_->image.cols) != depth_msg->width ||
+        static_cast<uint32_t>(filtered_depth_ptr_->image.rows) != depth_msg->height)
       filtered_depth_ptr_->image = cv::Mat(depth_msg->height, depth_msg->width, CV_32FC1);
     mesh_filter_->getFilteredDepth((float*)filtered_depth_ptr_->image.data);
     pub_filtered_depth_image_.publish(filtered_depth_ptr_->toImageMsg(), info_msg);
@@ -142,7 +143,8 @@ void mesh_filter::DepthSelfFiltering::filter(const sensor_msgs::ImageConstPtr& d
     model_depth_ptr_->encoding = sensor_msgs::image_encodings::TYPE_32FC1;
     model_depth_ptr_->header = depth_msg->header;
 
-    if (model_depth_ptr_->image.cols != depth_msg->width || model_depth_ptr_->image.rows != depth_msg->height)
+    if (static_cast<uint32_t>(model_depth_ptr_->image.cols) != depth_msg->width ||
+        static_cast<uint32_t>(model_depth_ptr_->image.rows) != depth_msg->height)
       model_depth_ptr_->image = cv::Mat(depth_msg->height, depth_msg->width, CV_32FC1);
     mesh_filter_->getModelDepth((float*)model_depth_ptr_->image.data);
     pub_model_depth_image_.publish(model_depth_ptr_->toImageMsg(), info_msg);
@@ -153,7 +155,8 @@ void mesh_filter::DepthSelfFiltering::filter(const sensor_msgs::ImageConstPtr& d
     filtered_label_ptr_->encoding = sensor_msgs::image_encodings::RGBA8;
     filtered_label_ptr_->header = depth_msg->header;
 
-    if (filtered_label_ptr_->image.cols != depth_msg->width || filtered_label_ptr_->image.rows != depth_msg->height)
+    if (static_cast<uint32_t>(filtered_label_ptr_->image.cols) != depth_msg->width ||
+        static_cast<uint32_t>(filtered_label_ptr_->image.rows) != depth_msg->height)
       filtered_label_ptr_->image = cv::Mat(depth_msg->height, depth_msg->width, CV_8UC4);
     mesh_filter_->getFilteredLabels((unsigned int*)filtered_label_ptr_->image.data);
     pub_filtered_label_image_.publish(filtered_label_ptr_->toImageMsg(), info_msg);
@@ -163,7 +166,8 @@ void mesh_filter::DepthSelfFiltering::filter(const sensor_msgs::ImageConstPtr& d
   {
     model_label_ptr_->encoding = sensor_msgs::image_encodings::RGBA8;
     model_label_ptr_->header = depth_msg->header;
-    if (model_label_ptr_->image.cols != depth_msg->width || model_label_ptr_->image.rows != depth_msg->height)
+    if (static_cast<uint32_t>(model_label_ptr_->image.cols) != depth_msg->width ||
+        static_cast<uint32_t>(model_label_ptr_->image.rows) != depth_msg->height)
       model_label_ptr_->image = cv::Mat(depth_msg->height, depth_msg->width, CV_8UC4);
     mesh_filter_->getModelLabels((unsigned int*)model_label_ptr_->image.data);
     pub_model_label_image_.publish(model_label_ptr_->toImageMsg(), info_msg);
