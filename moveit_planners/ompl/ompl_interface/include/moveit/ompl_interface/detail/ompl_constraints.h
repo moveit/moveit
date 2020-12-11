@@ -121,6 +121,8 @@ std::ostream& operator<<(std::ostream& os, const ompl_interface::Bounds& bounds)
 class BaseConstraint : public ompl::base::Constraint
 {
 public:
+  /** \brief Construct a BaseConstraint using 3 `num_cons` by default because all constraints currently implemented have
+   * 3 constraint equations. **/
   BaseConstraint(const robot_model::RobotModelConstPtr& robot_model, const std::string& group,
                  const unsigned int num_dofs, const unsigned int num_cons = 3);
 
