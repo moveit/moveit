@@ -126,8 +126,9 @@ private:
    * \brief Context Object for registered frames
    * \author Suat Gedikli (gedikli@willowgarage.com)
    */
-  struct TransformContext
+  class TransformContext
   {
+  public:
     TransformContext(const std::string& name) : frame_id_(name)
     {
       transformation_.matrix().setZero();

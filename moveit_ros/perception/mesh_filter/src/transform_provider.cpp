@@ -77,12 +77,12 @@ void TransformProvider::setFrame(const std::string& frame)
   if (frame_id_ != frame)
   {
     frame_id_ = frame;
-    for (auto & contextIt : handle2context_)
+    for (auto& context_it : handle2context_)
     {
       // invalidate transformations
-      contextIt.second->mutex_.lock();
-      contextIt.second->transformation_.matrix().setZero();
-      contextIt.second->mutex_.unlock();
+      context_it.second->mutex_.lock();
+      context_it.second->transformation_.matrix().setZero();
+      context_it.second->mutex_.unlock();
     }
   }
 }
@@ -137,27 +137,27 @@ void TransformProvider::updateTransforms()
   }
   input_transform.frame_id_ = psm_->getPlanningScene()->getPlanningFrame();
 
-  for (auto & contextIt : handle2context_)
+  for (auto& context_it : handle2context_)
   {
     try
     {
       // TODO: check logic here - which global collision body's transform should be used?
-      input_transform.setData(robot_state->getGlobalLinkTransform(contextIt.second->frame_id_));
+      input_transform.setData(robot_state->getGlobalLinkTransform(context_it.second->frame_id_));
       tf_buffer_->transform(input_transform, output_transform, frame_id_);
     }
     catch (const tf2::TransformException& ex)
     {
-      handle2context_[contextIt.first]->mutex_.lock();
-      handle2context_[contextIt.first]->transformation_.matrix().setZero();
-      handle2context_[contextIt.first]->mutex_.unlock();
+      handle2context_[context_it.first]->mutex_.lock();
+      handle2context_[context_it.first]->transformation_.matrix().setZero();
+      handle2context_[context_it.first]->mutex_.unlock();
       continue;
     }
     catch (std::exception& ex)
     {
       ROS_ERROR("Caught %s while updating transforms", ex.what());
     }
-    handle2context_[contextIt.first]->mutex_.lock();
-    handle2context_[contextIt.first]->transformation_ = static_cast<Eigen::Isometry3d>(output_transform);
-    handle2context_[contextIt.first]->mutex_.unlock();
+    handle2context_[context_it.first]->mutex_.lock();
+    handle2context_[context_it.first]->transformation_ = static_cast<Eigen::Isometry3d>(output_transform);
+    handle2context_[context_it.first]->mutex_.unlock();
   }
 }
