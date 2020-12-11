@@ -34,6 +34,17 @@
 
 /* Authors: Ioan Sucan, Jeroen De Maeyer */
 
+/** A state validity checker checks:
+ *
+ * - Bounds (joint limits).
+ * - Collision.
+ * - Kinematic path constraints.
+ * - Generic user-specified feasibility using the `isStateFeasible` of the planning scene.
+ *
+ * IMPORTANT: Although the isValid method takes the state as `const ompl::base::State* state`,
+ * it uses const_cast to modify the validity of the state with `markInvalid` and `markValid` for caching.
+ * **/
+
 #pragma once
 
 #include <moveit/ompl_interface/detail/threadsafe_state_storage.h>
