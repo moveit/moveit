@@ -47,17 +47,56 @@ using namespace trajectory_processing;
 class AddTimeOptimalParameterization : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
+  double path_tolerance = 0.1;
+  double resample_dt = 0.1;
+  double min_angle_change = 0.001;
+
   AddTimeOptimalParameterization() : planning_request_adapter::PlanningRequestAdapter()
   {
   }
 
-  void initialize(const ros::NodeHandle& /*nh*/) override
+  void initialize(const ros::NodeHandle& nh) override
   {
+
+    
+    double path_tolerance_override;
+    if (!nh.getParam("/path_tolerance", path_tolerance_override))
+    {
+        ROS_INFO("No param found for path_tolerance");
+    }
+    else
+    {
+        path_tolerance = path_tolerance_override;
+        ROS_INFO("Overriding path_tolerance parameters: %f", path_tolerance);
+    }
+     
+     double resample_override;
+    if (!nh.getParam("/resample_dt", resample_override))
+    {
+        ROS_INFO("No param found for resample_dt");
+    }
+    else
+    {
+        resample_dt = resample_override;
+        ROS_INFO("Overriding resample_dt parameters: %f", resample_dt);
+    }
+    
+    double min_angle_change_override;
+    if (!nh.getParam("/min_angle_change", min_angle_change_override))
+    {
+        ROS_INFO("No param found for min_angle_change");
+    }
+    else
+    {
+        min_angle_change = min_angle_change_override;
+        ROS_INFO("Overriding min_angle_change parameters: %f", min_angle_change);
+    }
+    
   }
 
   std::string getDescription() const override
   {
-    return "Add Time Optimal Parameterization";
+    return "Add Time Optimal Parameterization2";
   }
 
   bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
@@ -68,7 +107,8 @@ public:
     if (result && res.trajectory_)
     {
       ROS_DEBUG("Running '%s'", getDescription().c_str());
-      TimeOptimalTrajectoryGeneration totg;
+      TimeOptimalTrajectoryGeneration totg(path_tolerance, resample_dt, min_angle_change);
+      //TimeOptimalTrajectoryGeneration totg;
       if (!totg.computeTimeStamps(*res.trajectory_, req.max_velocity_scaling_factor,
                                   req.max_acceleration_scaling_factor))
       {
