@@ -59,34 +59,34 @@ public:
   void initialize(const ros::NodeHandle& nh) override
   {
 
-    if (!nh.getParam(PATH_TOL_PARAM_NAME, path_tolerance))
+    if (nh.getParam(PATH_TOL_PARAM_NAME, path_tolerance))
+    {
+      ROS_INFO_STREAM("Overriding path_tolerance parameters: %f", path_tolerance);
+    }
+    else
     {
       path_tolerance = 0.1;
       ROS_INFO_STREAM("Param '" << PATH_TOL_PARAM_NAME << "' was not set. Using default value: " << path_tolerance);
     }
-    else
-    {
-      ROS_INFO("Overriding path_tolerance parameters: %f", path_tolerance);
-    }
      
-    if (!nh.getParam(RESAMPLE_PARAM_NAME, resample_dt))
+    if (nh.getParam(RESAMPLE_PARAM_NAME, resample_dt))
+    {
+      ROS_INFO_STREAM("Overriding resample_dt parameters: %f", resample_dt);
+    }
+    else
     {
       resample_dt = 0.1;
       ROS_INFO_STREAM("Param '" << RESAMPLE_PARAM_NAME << "' was not set. Using default value: " << resample_dt);
     }
-    else
-    {
-      ROS_INFO("Overriding resample_dt parameters: %f", resample_dt);
-    }
     
-    if (!nh.getParam(MIN_ANGLE_PARAM_NAME, min_angle_change))
+    if (nh.getParam(MIN_ANGLE_PARAM_NAME, min_angle_change))
+    {
+      ROS_INFO_STREAM("Overriding min_angle_change parameters: %f", min_angle_change);
+    }
+    else
     {
       min_angle_change = 0.001;
       ROS_INFO_STREAM("Param '" << MIN_ANGLE_PARAM_NAME << "' was not set. Using default value: " << min_angle_change);
-    }
-    else
-    {
-      ROS_INFO("Overriding min_angle_change parameters: %f", min_angle_change);
     }
     
   }
