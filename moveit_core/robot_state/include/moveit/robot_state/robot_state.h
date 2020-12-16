@@ -911,7 +911,7 @@ public:
   /**
    * \brief Convert the frame of reference of the pose to that same frame as the IK solver expects
    * @param pose - the input to change
-   * @param ik_frame - the name of frame of reference of base of ik solver
+   * @param ik_frame - the previous frame of reference of the pose
    * @return true if no error
    */
   bool setToIKSolverFrame(Eigen::Isometry3d& pose, const std::string& ik_frame);
