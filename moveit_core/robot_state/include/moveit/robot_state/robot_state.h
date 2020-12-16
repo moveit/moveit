@@ -901,7 +901,7 @@ public:
    */
 
   /**
-   * \brief Convert the frame of reference of the pose to that same frame as the IK solver expects
+   * \brief Transform the frame of reference of the pose to that same frame as the IK solver expects
    * @param pose - the input to change
    * @param solver - a kin solver whose base frame is important to us
    * @return true if no error
@@ -909,7 +909,7 @@ public:
   bool setToIKSolverFrame(Eigen::Isometry3d& pose, const kinematics::KinematicsBaseConstPtr& solver);
 
   /**
-   * \brief Convert the frame of reference of the pose to that same frame as the IK solver expects
+   * \brief Transform the frame of reference of the pose to that same frame as the IK solver expects
    * @param pose - the input to change
    * @param ik_frame - the previous frame of reference of the pose
    * @return true if no error
