@@ -1755,7 +1755,7 @@ private:
    * @param ik_frame - the name of frame of reference of base of ik solver
    * @return true if no error
    */
-  inline bool setToIKSolverFrame(Eigen::Isometry3d& pose, const std::string& ik_frame);
+  bool setToIKSolverFrame(Eigen::Isometry3d& pose, const std::string& ik_frame);
 
   void markDirtyJointTransforms(const JointModel* joint)
   {
