@@ -900,14 +900,6 @@ public:
    *  @{
    */
 
-  /**
-   * \brief Transform pose from the robot model's base frame to the reference frame of the IK solver
-   * @param pose - the input to change
-   * @param solver - a kin solver whose base frame is important to us
-   * @return true if no error
-   */
-  bool setToIKSolverFrame(Eigen::Isometry3d& pose, const kinematics::KinematicsBaseConstPtr& solver);
-
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be
      set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
@@ -1752,10 +1744,18 @@ private:
   /**
    * \brief Transform pose from the robot model's base frame to the reference frame of the IK solver
    * @param pose - the input to change
+   * @param solver - a kin solver whose base frame is important to us
+   * @return true if no error
+   */
+  inline bool setToIKSolverFrame(Eigen::Isometry3d& pose, const kinematics::KinematicsBaseConstPtr& solver);
+
+  /**
+   * \brief Transform pose from the robot model's base frame to the reference frame of the IK solver
+   * @param pose - the input to change
    * @param ik_frame - the name of frame of reference of base of ik solver
    * @return true if no error
    */
-  bool setToIKSolverFrame(Eigen::Isometry3d& pose, const std::string& ik_frame);
+  inline bool setToIKSolverFrame(Eigen::Isometry3d& pose, const std::string& ik_frame);
 
   void markDirtyJointTransforms(const JointModel* joint)
   {
