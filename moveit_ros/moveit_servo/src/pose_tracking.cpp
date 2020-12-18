@@ -128,6 +128,11 @@ PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positiona
 
     // Compute servo command from PID controller output and send it to the Servo object, for execution
     twist_stamped_pub_.publish(calculateTwistCommand());
+
+    if (!loop_rate_.sleep())
+    {
+      ROS_WARN_STREAM_THROTTLE_NAMED(1, LOGNAME, "Target control rate was missed");
+    }
   }
 
   doPostMotionReset();
