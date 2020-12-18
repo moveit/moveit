@@ -80,7 +80,6 @@ public:
     }
     else
       ROS_INFO_STREAM("Param '" << DISTANCE_PARAM_NAME << "' was set to " << max_jiggle_distance_);
-    max_jiggle_distance_squared_ = max_jiggle_distance_ * max_jiggle_distance_;  // Square the rosparam
 
     if (!nh.getParam(ATTEMPTS_PARAM_NAME, max_sampling_attempts_))
     {
@@ -140,82 +139,62 @@ public:
               planning_scene->getRobotModel()->getJointModelGroup(req.group_name)->getJointModels() :
               planning_scene->getRobotModel()->getJointModels();
 
-      // Record the cartesian pose of every link to ensure no sudden movements will occur.
-      // The "furthest" links are checked first, as their movement is the largest.
-
-      // Check if an end effector link is set that is not part of the robot
-      const moveit::core::LinkModel* ee_link_model;
-      if (!req.goal_constraints.empty())
-      {
-        if (!req.goal_constraints[0].position_constraints.empty())
-          ee_link_model = start_state.getLinkModel(req.goal_constraints[0].position_constraints[0].link_name);
-        else if (!req.goal_constraints[0].orientation_constraints.empty())
-          ee_link_model = start_state.getLinkModel(req.goal_constraints[0].orientation_constraints[0].link_name);
-      }
-      else
-      {
-        ROS_ERROR("No goal constraint set; aborting FixStartStateCollision.");
-        return planner(planning_scene, req, res);
-      }
-
       // Collect the links that will be checked
       std::vector<const moveit::core::LinkModel*> link_models;
-      link_models.resize(jmodels.size());
-      for (std::size_t i = jmodels.size() - 1; i > 0; --i)
-        link_models[i] = jmodels[i]->getChildLinkModel();
+      auto insert_link_unique = [&link_models](const moveit::core::LinkModel* lm) {
+        if (std::find(link_models.begin(), link_models.end(), lm) == link_models.end())
+          link_models.push_back(lm);
+      };
 
-      if (std::find(link_models.begin(), link_models.end(), ee_link_model) == link_models.end())
-      {  // If the end effector is a separate link, add it to the front of the vector
-        link_models.resize(jmodels.size() + 1);
-        link_models[0] = ee_link_model;
-        for (std::size_t i = jmodels.size() - 1; i > 0; --i)
-          link_models[i + 1] = jmodels[i]->getChildLinkModel();
+      for (const auto& c : req.goal_constraints)
+      {
+        for (const auto& pc : c.position_constraints)
+          insert_link_unique(start_state.getLinkModel(pc.link_name));
+        for (const auto& oc : c.orientation_constraints)
+          insert_link_unique(start_state.getLinkModel(oc.link_name));
       }
+
+      link_models.reserve(link_models.size() + jmodels.size());
+      for (auto jm : jmodels)
+        insert_link_unique(jm->getChildLinkModel());
 
       // Store the unchanged link positions
       EigenSTL::vector_Isometry3d original_link_poses;
-      original_link_poses.resize(link_models.size());
-      Eigen::Isometry3d new_link_pose;
+      original_link_poses.reserve(link_models.size());
+      for (auto lm : link_models)
+        original_link_poses.emplace_back(start_state.getGlobalLinkTransform(lm));
 
-      for (std::size_t i = 0; i < link_models.size(); ++i)
-        original_link_poses[i] = start_state.getGlobalLinkTransform(link_models[i]);
-
-      double dist, max_dist;
+      double max_jiggle_distance_squared_ = max_jiggle_distance_ * max_jiggle_distance_;
       double local_jiggle_fraction = jiggle_fraction_;
       bool found = false;
       for (int c = 0; !found && c < max_sampling_attempts_; ++c)
       {
         // Change each joint slightly ("jiggle")
-        for (std::size_t i = 0; !found && i < jmodels.size(); ++i)
+        for (auto joint : jmodels)
         {
-          std::vector<double> sampled_variable_values(jmodels[i]->getVariableCount());
-          const double* original_values = original_state->getJointPositions(jmodels[i]);
-          jmodels[i]->getVariableRandomPositionsNearBy(rng, &sampled_variable_values[0], original_values,
-                                                       jmodels[i]->getMaximumExtent() * jiggle_fraction_);
-          start_state.setJointPositions(jmodels[i], sampled_variable_values);
+          std::vector<double> sampled_variable_values(joint->getVariableCount());
+          const double* original_values = original_state->getJointPositions(joint);
+          joint->getVariableRandomPositionsNearBy(rng, &sampled_variable_values[0], original_values,
+                                                  joint->getMaximumExtent() * jiggle_fraction_);
+          start_state.setJointPositions(joint, sampled_variable_values);
         }
 
         // Confirm that no links move far after jiggling
-        max_dist = -1;
-        bool euclidean_distance_ok = true;
-        for (std::size_t i = 0; !found && i < link_models.size(); ++i)
+        double max_dist = 0.0;
+        for (std::size_t i = 0; i < link_models.size(); ++i)
         {
-          new_link_pose = start_state.getGlobalLinkTransform(link_models[i]);
-          dist = (new_link_pose.translation() - original_link_poses[i].translation()).squaredNorm();
-
+          Eigen::Isometry3d new_link_pose = start_state.getGlobalLinkTransform(link_models[i]);
+          double dist = (new_link_pose.translation() - original_link_poses[i].translation()).squaredNorm();
           if (dist > max_dist)
             max_dist = dist;
-          if (dist > max_jiggle_distance_squared_)
-          {
-            // Reduce jiggle fraction if it caused excessive movement
-            // This implementation is an arbitrary choice and not tested for performance. Other approaches may be more efficient.
-            local_jiggle_fraction = local_jiggle_fraction * (max_sampling_attempts_ / (max_sampling_attempts_ + 2));
-            euclidean_distance_ok = false;
-            break;
-          }
         }
-        if (!euclidean_distance_ok)
+        if (max_dist > max_jiggle_distance_squared_)
+        {
+          // Reduce jiggle fraction if it caused excessive movement
+          local_jiggle_fraction *= max_jiggle_distance_squared_ / std::sqrt(max_dist) * max_sampling_attempts_ /
+                                   (max_sampling_attempts_ + 2);
           continue;
+        }
 
         // Check changed state for collision
         collision_detection::CollisionResult cres;
@@ -271,7 +250,6 @@ private:
   double max_dt_offset_;
   double jiggle_fraction_;
   double max_jiggle_distance_;
-  double max_jiggle_distance_squared_;
   int max_sampling_attempts_;
 };
 
