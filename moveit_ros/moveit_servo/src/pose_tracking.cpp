@@ -50,7 +50,7 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
   , loop_rate_(DEFAULT_LOOP_RATE)
   , transform_listener_(transform_buffer_)
   , stop_requested_(false)
-  , angular_error_(0)
+  , angular_error_(3.5)
 {
   readROSParams();
 
