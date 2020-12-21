@@ -122,12 +122,14 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
   collision_env_->checkRobotCollision(collision_request_, collision_result_, *current_state_, acm_);
   scene_collision_distance_ = collision_result_.distance;
   collision_detected_ |= collision_result_.collision;
+  collision_result_.print();
 
   collision_result_.clear();
   // Self-collisions and scene collisions are checked separately so different thresholds can be used
   collision_env_->checkSelfCollision(collision_request_, collision_result_, *current_state_, acm_);
   self_collision_distance_ = collision_result_.distance;
   collision_detected_ |= collision_result_.collision;
+  collision_result_.print();
 
   velocity_scale_ = 1;
   // If we're definitely in collision, stop immediately
