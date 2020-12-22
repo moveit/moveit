@@ -296,7 +296,7 @@ geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
   Eigen::AngleAxisd axis_angle(q_error);
   // Cache the angular error, for rotation tolerance checking
   if (angular_error_ == nullptr)
-    angular_error_ = std::make_shared<double>(axis_angle.angle());
+    angular_error_ = std::make_unique<double>(axis_angle.angle());
   else
     *angular_error_ = axis_angle.angle();
   double ang_vel_magnitude =
