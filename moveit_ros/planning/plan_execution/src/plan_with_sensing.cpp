@@ -150,7 +150,7 @@ bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan& plan,
   unsigned int look_attempts = 0;
 
   // this flag is set to true when all conditions for looking around are met, and the command is sent.
-  // the intention is for the planning looop not to terminate when having just looked around
+  // the intention is for the planning loop not to terminate when having just looked around
   bool just_looked_around = false;
 
   // this flag indicates whether the last lookAt() operation failed. If this operation fails once, we assume that
@@ -212,7 +212,7 @@ bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan& plan,
 
       bool looked_at_result = lookAt(cost_sources, plan.planning_scene_->getPlanningFrame());
       if (looked_at_result)
-        ROS_INFO("Sensor was succesfully actuated. Attempting to recompute a motion plan.");
+        ROS_INFO("Sensor was successfully actuated. Attempting to recompute a motion plan.");
       else
       {
         if (look_around_failed)
