@@ -220,7 +220,7 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan& p
       if (preempt_requested_)
         break;
 
-      // execute the trajectory, and monitor its executionm
+      // execute the trajectory, and monitor its execution
       plan.error_code_ = executeAndMonitor(plan);
     }
 
