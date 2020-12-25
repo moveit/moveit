@@ -614,7 +614,8 @@ public:
   void setJointGroupPositions(const std::string& joint_group_name, const std::vector<double>& gstate)
   {
     const JointModelGroup* jmg = robot_model_->getJointModelGroup(joint_group_name);
-    if (jmg) {
+    if (jmg)
+    {
       assert(gstate.size() == jmg->getVariableCount());
       setJointGroupPositions(jmg, &gstate[0]);
     }
@@ -637,7 +638,8 @@ public:
   void setJointGroupPositions(const std::string& joint_group_name, const Eigen::VectorXd& values)
   {
     const JointModelGroup* jmg = robot_model_->getJointModelGroup(joint_group_name);
-    if (jmg) {
+    if (jmg)
+    {
       assert(values.size() == jmg->getVariableCount());
       setJointGroupPositions(jmg, values);
     }
@@ -651,6 +653,37 @@ public:
    * in the order found in the group (excluding values of mimic joints), set those
    * as the new values that correspond to the group */
   void setJointGroupActivePositions(const JointModelGroup* group, const std::vector<double>& gstate);
+
+  /** \brief Given positions for the variables of active joints that make up a group,
+   * in the order found in the group (excluding values of mimic joints), set those
+   * as the new values that correspond to the group */
+  void setJointGroupActivePositions(const std::string& joint_group_name, const std::vector<double>& gstate)
+  {
+    const JointModelGroup* jmg = robot_model_->getJointModelGroup(joint_group_name);
+    if (jmg)
+    {
+      assert(gstate.size() == jmg->getVariableCount());
+      setJointGroupActivePositions(jmg, gstate);
+    }
+  }
+
+  /** \brief Given positions for the variables of active joints that make up a group,
+   * in the order found in the group (excluding values of mimic joints), set those
+   * as the new values that correspond to the group */
+  void setJointGroupActivePositions(const JointModelGroup* group, const Eigen::VectorXd& values);
+
+  /** \brief Given positions for the variables of active joints that make up a group,
+   * in the order found in the group (excluding values of mimic joints), set those
+   * as the new values that correspond to the group */
+  void setJointGroupActivePositions(const std::string& joint_group_name, const Eigen::VectorXd& values)
+  {
+    const JointModelGroup* jmg = robot_model_->getJointModelGroup(joint_group_name);
+    if (jmg)
+    {
+      assert(values.size() == jmg->getVariableCount());
+      setJointGroupActivePositions(jmg, values);
+    }
+  }
 
   /** \brief For a given group, copy the position values of the variables that make up the group into another location,
    * in the order that the variables are found in the group. This is not necessarily a contiguous block of memory in the

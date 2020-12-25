@@ -515,10 +515,24 @@ void RobotState::setJointGroupActivePositions(const JointModelGroup* group, cons
 {
   assert(gstate.size() == group->getActiveVariableCount());
   std::size_t i = 0;
-  for (const JointModel* jm : group->getActiveJointModels()) {
+  for (const JointModel* jm : group->getActiveJointModels())
+  {
     setJointPositions(jm, &gstate[i]);
     i += jm->getVariableCount();
   }
+  updateMimicJoints(group);
+}
+
+void RobotState::setJointGroupActivePositions(const JointModelGroup* group, const Eigen::VectorXd& values)
+{
+  assert(values.size() == group->getActiveVariableCount());
+  std::size_t i = 0;
+  for (const JointModel* jm : group->getActiveJointModels())
+  {
+    setJointPositions(jm, &values(i));
+    i += jm->getVariableCount();
+  }
+  updateMimicJoints(group);
 }
 
 void RobotState::copyJointGroupPositions(const JointModelGroup* group, double* gstate) const
