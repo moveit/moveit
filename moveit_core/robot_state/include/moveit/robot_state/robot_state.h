@@ -662,7 +662,7 @@ public:
     const JointModelGroup* jmg = robot_model_->getJointModelGroup(joint_group_name);
     if (jmg)
     {
-      assert(gstate.size() == jmg->getVariableCount());
+      assert(gstate.size() == jmg->getActiveVariableCount());
       setJointGroupActivePositions(jmg, gstate);
     }
   }
@@ -680,7 +680,7 @@ public:
     const JointModelGroup* jmg = robot_model_->getJointModelGroup(joint_group_name);
     if (jmg)
     {
-      assert(values.size() == jmg->getVariableCount());
+      assert(values.size() == jmg->getActiveVariableCount());
       setJointGroupActivePositions(jmg, values);
     }
   }
