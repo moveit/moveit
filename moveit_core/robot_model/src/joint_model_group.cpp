@@ -105,6 +105,7 @@ JointModelGroup::JointModelGroup(const std::string& group_name, const srdf::Mode
   , name_(group_name)
   , common_root_(nullptr)
   , variable_count_(0)
+  , active_variable_count_(0)
   , is_contiguous_index_list_(true)
   , is_chain_(false)
   , is_single_dof_(true)
@@ -133,6 +134,7 @@ JointModelGroup::JointModelGroup(const std::string& group_name, const srdf::Mode
         active_joint_model_name_vector_.push_back(joint_model->getName());
         active_joint_model_start_index_.push_back(variable_count_);
         active_joint_models_bounds_.push_back(&joint_model->getVariableBounds());
+        active_variable_count_ += vc;
       }
       else
         mimic_joints_.push_back(joint_model);
