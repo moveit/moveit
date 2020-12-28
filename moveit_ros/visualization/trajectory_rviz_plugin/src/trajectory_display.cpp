@@ -64,22 +64,29 @@ void TrajectoryDisplay::onInitialize()
 
 void TrajectoryDisplay::loadRobotModel()
 {
-  rdf_loader_.reset(new rdf_loader::RDFLoader(robot_description_property_->getStdString()));
-
-  if (!rdf_loader_->getURDF())
+  try
   {
-    this->setStatus(rviz::StatusProperty::Error, "Robot Model",
-                    "Failed to load from parameter " + robot_description_property_->getString());
-    return;
+    rdf_loader_.reset(new rdf_loader::RDFLoader(robot_description_property_->getStdString()));
+
+    if (!rdf_loader_->getURDF())
+    {
+      this->setStatus(rviz::StatusProperty::Error, "Robot Model",
+                      "Failed to load from parameter " + robot_description_property_->getString());
+      return;
+    }
+    this->setStatus(rviz::StatusProperty::Ok, "Robot Model", "Successfully loaded");
+
+    const srdf::ModelSharedPtr& srdf =
+        rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : srdf::ModelSharedPtr(new srdf::Model());
+    robot_model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
+
+    // Send to child class
+    trajectory_visual_->onRobotModelLoaded(robot_model_);
   }
-  this->setStatus(rviz::StatusProperty::Ok, "Robot Model", "Successfully loaded");
-
-  const srdf::ModelSharedPtr& srdf =
-      rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : srdf::ModelSharedPtr(new srdf::Model());
-  robot_model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
-
-  // Send to child class
-  trajectory_visual_->onRobotModelLoaded(robot_model_);
+  catch (std::exception& e)
+  {
+    setStatus(rviz::StatusProperty::Error, "RobotModel", QString("Loading failed: %1").arg(e.what()));
+  }
 }
 
 void TrajectoryDisplay::reset()
