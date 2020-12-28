@@ -366,20 +366,27 @@ void RobotStateDisplay::loadRobotModel()
 
   if (rdf_loader_->getURDF())
   {
-    const srdf::ModelSharedPtr& srdf =
-        rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : srdf::ModelSharedPtr(new srdf::Model());
-    robot_model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
-    robot_->load(*robot_model_->getURDF());
-    robot_state_.reset(new robot_state::RobotState(robot_model_));
-    robot_state_->setToDefaultValues();
-    bool old_state = root_link_name_property_->blockSignals(true);
-    root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
-    root_link_name_property_->blockSignals(old_state);
-    update_state_ = true;
-    setStatus(rviz::StatusProperty::Ok, "RobotModel", "Loaded successfully");
+    try
+    {
+      const srdf::ModelSharedPtr& srdf =
+          rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : srdf::ModelSharedPtr(new srdf::Model());
+      robot_model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
+      robot_->load(*robot_model_->getURDF());
+      robot_state_.reset(new robot_state::RobotState(robot_model_));
+      robot_state_->setToDefaultValues();
+      bool old_state = root_link_name_property_->blockSignals(true);
+      root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
+      root_link_name_property_->blockSignals(old_state);
+      update_state_ = true;
+      setStatus(rviz::StatusProperty::Ok, "RobotModel", "Loaded successfully");
 
-    changedEnableVisualVisible();
-    changedEnableCollisionVisible();
+      changedEnableVisualVisible();
+      changedEnableCollisionVisible();
+    }
+    catch (std::exception& e)
+    {
+      setStatus(rviz::StatusProperty::Error, "RobotModel", QString("Loading failed: %1").arg(e.what()));
+    }
   }
   else
     setStatus(rviz::StatusProperty::Error, "RobotModel", "Loading failed");
