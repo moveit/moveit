@@ -411,6 +411,13 @@ public:
     return variable_count_;
   }
 
+  /** \brief Get the number of variables that describe the active joints in this joint group. This excludes variables
+      necessary for mimic joints. */
+  unsigned int getActiveVariableCount() const
+  {
+    return active_variable_count_;
+  }
+
   /** \brief Set the names of the subgroups for this group */
   void setSubgroupNames(const std::vector<std::string>& subgroups);
 
@@ -693,6 +700,9 @@ protected:
 
   /** \brief The number of variables necessary to describe this group of joints */
   unsigned int variable_count_;
+
+  /** \brief The number of variables necessary to describe the active joints in this group of joints */
+  unsigned int active_variable_count_;
 
   /** \brief True if the state of this group is contiguous within the full robot state; this also means that
       the index values in variable_index_list_ are consecutive integers */
