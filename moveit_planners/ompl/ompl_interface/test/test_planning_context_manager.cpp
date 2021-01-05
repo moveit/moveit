@@ -54,8 +54,6 @@
 
 #include <gtest/gtest.h>
 
-#include <eigen_conversions/eigen_msg.h>
-
 #include <moveit/ompl_interface/planning_context_manager.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/planning_interface/planning_request.h>

@@ -47,7 +47,6 @@
 #include <Eigen/Geometry>
 #include <tf2_kdl/tf2_kdl.h>
 #include <tf2_eigen/tf2_eigen.h>
-#include <eigen_conversions/eigen_kdl.h>
 
 using namespace moveit::core;
 

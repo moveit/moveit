@@ -56,7 +56,7 @@
 
 // TF2
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 // 10um acuracy tested for position and orientation
 constexpr double EPSILON = 1e-5;

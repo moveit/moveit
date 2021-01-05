@@ -13,7 +13,6 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   tf2_kdl
   tf2_eigen
-  eigen_conversions
 )
 find_package(LAPACK REQUIRED)
 

@@ -56,7 +56,7 @@
 
 // TF2
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 constexpr double EPSILON = 1e-2;
 constexpr double Z_OFFSET = 0.01;
