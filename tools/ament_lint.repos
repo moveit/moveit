@@ -1,0 +1,13 @@
+repositories:
+  ament_cmake:
+    type: git
+    url: git@github.com:ament/ament_cmake.git
+    version: master
+  ament_lint:
+    type: git
+    url: git@github.com:tylerjw/ament_lint.git
+    version: develop
+  ament_package:
+    type: git
+    url: git@github.com:ament/ament_package.git
+    version: master
