@@ -762,19 +762,21 @@ void ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
   Eigen::ArrayXd velocity = delta_theta / parameters_.publish_period;
 
   std::size_t joint_delta_index = 0;
+  double velocity_scaling_factor = 1;
   for (const moveit::core::JointModel* joint : joint_model_group_->getActiveJointModels())
   {
     const auto& bounds = joint->getVariableBounds(joint->getName());
     if (bounds.velocity_bounded_)
     {
-      velocity(joint_delta_index) =
-          std::min(std::max(velocity(joint_delta_index), bounds.min_velocity_), bounds.max_velocity_);
+      const auto unbounded_velocity = velocity(joint_delta_index);
+      velocity(joint_delta_index) = std::min(std::max(unbounded_velocity, bounds.min_velocity_), bounds.max_velocity_);
+      velocity_scaling_factor = std::min(velocity_scaling_factor, unbounded_velocity / velocity(joint_delta_index));
       ++joint_delta_index;
     }
   }
 
   // Convert back to joint angle increments.
-  delta_theta = velocity * parameters_.publish_period;
+  delta_theta = velocity_scaling_factor * velocity * parameters_.publish_period;
 }
 
 bool ServoCalcs::enforcePositionLimits()
