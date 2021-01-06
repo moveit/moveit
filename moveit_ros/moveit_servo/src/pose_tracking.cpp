@@ -50,7 +50,7 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
   , loop_rate_(DEFAULT_LOOP_RATE)
   , transform_listener_(transform_buffer_)
   , stop_requested_(false)
-  , angular_error_(nullptr)
+  , angular_error_(boost::none)
 {
   readROSParams();
 
@@ -227,7 +227,7 @@ bool PoseTracking::satisfiesPoseTolerance(const Eigen::Vector3d& positional_tole
   double z_error = target_pose_.pose.position.z - command_frame_transform_.translation()(2);
 
   // If uninitialized, likely haven't received the target pose yet.
-  if (angular_error_ == nullptr)
+  if (!angular_error_)
     return false;
 
   return ((std::abs(x_error) < positional_tolerance(0)) && (std::abs(y_error) < positional_tolerance(1)) &&
@@ -295,10 +295,7 @@ geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
   // Convert axis-angle to angular velocity
   Eigen::AngleAxisd axis_angle(q_error);
   // Cache the angular error, for rotation tolerance checking
-  if (angular_error_ == nullptr)
-    angular_error_ = std::make_unique<double>(axis_angle.angle());
-  else
-    *angular_error_ = axis_angle.angle();
+  angular_error_ = axis_angle.angle();
   double ang_vel_magnitude =
       cartesian_orientation_pids_[0].computeCommand(*angular_error_, loop_rate_.expectedCycleTime());
   twist.angular.x = ang_vel_magnitude * axis_angle.axis()[0];
@@ -313,7 +310,7 @@ geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
 void PoseTracking::doPostMotionReset()
 {
   stop_requested_ = false;
-  angular_error_ = nullptr;
+  angular_error_ = boost::none;
 
   // Reset error integrals and previous errors of PID controllers
   cartesian_position_pids_[0].reset();
