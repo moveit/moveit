@@ -39,6 +39,8 @@
 # Author: Dave Coleman
 # Desc:   Rounds all the numbers to <decimal places> places
 
+from __future__ import print_function
+
 from lxml import etree
 import shlex
 import sys
@@ -78,7 +80,7 @@ if __name__ == "__main__":
         sys.exit(-1)
 
     print("\nCollada Number Rounder")
-    print("Rounding numbers to", decimal_places, " decimal places\n")
+    print("Rounding numbers to", decimal_places, "decimal places\n")
 
     # Read string from file
     f = open(input_file, "r")
