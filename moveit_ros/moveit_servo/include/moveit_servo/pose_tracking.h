@@ -39,6 +39,7 @@
 #pragma once
 
 #include <atomic>
+#include <boost/optional.hpp>
 #include <control_toolbox/pid.h>
 #include <moveit_servo/make_shared_from_pool.h>
 #include <moveit_servo/servo.h>
@@ -187,7 +188,7 @@ private:
   // Flag that a different thread has requested a stop.
   std::atomic<bool> stop_requested_;
 
-  double angular_error_;
+  boost::optional<double> angular_error_;
 };
 
 // using alias
