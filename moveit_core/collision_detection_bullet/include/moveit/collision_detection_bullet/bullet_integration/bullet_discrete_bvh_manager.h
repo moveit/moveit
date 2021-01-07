@@ -64,6 +64,12 @@ public:
   void contactTest(collision_detection::CollisionResult& collisions, const collision_detection::CollisionRequest& req,
                    const collision_detection::AllowedCollisionMatrix* acm, bool self) override;
 
+  /**@brief Perform a distance test for all objects
+   * @param collisions The Contact results data
+   * @param req The collision request data */
+  void distanceTest(collision_detection::DistanceResult& collisions,
+                    const collision_detection::DistanceRequest& req) override;
+
   /**@brief Add a bullet collision object to the manager
    *  @param cow The bullet collision object */
   void addCollisionObject(const CollisionObjectWrapperPtr& cow) override;

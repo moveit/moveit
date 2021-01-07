@@ -108,6 +108,12 @@ public:
                            const collision_detection::CollisionRequest& req,
                            const collision_detection::AllowedCollisionMatrix* acm, bool self) = 0;
 
+  /**@brief Perform a distance test for all objects
+   * @param collisions The Contact results data
+   * @param req The collision request data */
+  virtual void distanceTest(collision_detection::DistanceResult& collisions,
+                            const collision_detection::DistanceRequest& req) = 0;
+
   /**@brief Add a collision object to the checker
    *
    * All objects are added should initially be added as static objects. Use the setContactRequest method of defining

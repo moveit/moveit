@@ -167,4 +167,9 @@ void BulletCastBVHManager::addCollisionObject(const CollisionObjectWrapperPtr& c
                                link2cow_[name]->m_collisionFilterMask, dispatcher_.get()));
 }
 
+void BulletCastBVHManager::distanceTest(collision_detection::DistanceResult& collisions,
+                                        const collision_detection::DistanceRequest& req)
+{
+}
+
 }  // namespace collision_detection_bullet
