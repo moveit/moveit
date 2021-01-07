@@ -45,6 +45,7 @@
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_listener.h>
+#include <boost/optional.hpp>
 
 // Conventions:
 // Calculations are done in the planning_frame_ unless otherwise noted.
@@ -187,7 +188,7 @@ private:
   // Flag that a different thread has requested a stop.
   std::atomic<bool> stop_requested_;
 
-  std::unique_ptr<double> angular_error_;
+  boost::optional<double> angular_error_;
 };
 
 // using alias
