@@ -261,12 +261,12 @@ void RobotState::dropVelocities()
 
 void RobotState::dropAccelerations()
 {
-  has_velocity_ = false;
+  has_acceleration_ = false;
 }
 
 void RobotState::dropEffort()
 {
-  has_velocity_ = false;
+  has_effort_ = false;
 }
 
 void RobotState::dropDynamics()
