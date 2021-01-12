@@ -38,6 +38,7 @@
 
 #include <map>
 #include <vector>
+#include <string>
 
 namespace pilz_industrial_motion_planner
 {
