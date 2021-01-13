@@ -126,9 +126,9 @@ public:
     goal_orientation_tolerance_ = 1e-3;  // ~0.1 deg
     allowed_planning_time_ = 5.0;
     num_planning_attempts_ = 1;
-    node_handle_.param<double>("robot_description_planning/joint_limits/default_velocity_scaling_factor",
+    node_handle_.param<double>("robot_description_planning/default_velocity_scaling_factor",
                                max_velocity_scaling_factor_, 0.1);
-    node_handle_.param<double>("robot_description_planning/joint_limits/default_acceleration_scaling_factor",
+    node_handle_.param<double>("robot_description_planning/default_acceleration_scaling_factor",
                                max_acceleration_scaling_factor_, 0.1);
     initializing_constraints_ = false;
 
