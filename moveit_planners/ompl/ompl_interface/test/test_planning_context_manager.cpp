@@ -218,8 +218,8 @@ public:
     pconfig_settings.config = { { "enforce_joint_model_state_space", "0" },
                                 { "enforce_constrained_state_space", "1" },
                                 { "projection_evaluator", "joints(joint_1,joint_2)" },
-                                { "longest_valid_segment_fraction", "0.05" } };  //,
-    // { "default_planner_config", "RRTConnect" } };
+                                { "longest_valid_segment_fraction", "0.05" } };
+
     // RRTConnect configuration
     planning_interface::PlannerConfigurationSettings rrt_config;
     rrt_config.group = group_name_;
@@ -263,8 +263,7 @@ public:
     EXPECT_EQ(ss->getDimension(), num_dofs_);
 
     planning_interface::MotionPlanDetailedResponse res;
-    bool success = pc->solve(res);
-    EXPECT_TRUE(success);
+    EXPECT_TRUE(pc->solve(res));
   }
 
   // /***************************************************************************
@@ -387,6 +386,11 @@ TEST_F(PandaTestPlanningContext, testPathConstraints)
   testPathConstraints({ 0, -0.785, 0, -2.356, 0, 1.571, 0.785 }, { 0, -0.785, 0, -2.356, 0, 1.571, 0.685 });
 }
 
+TEST_F(PandaTestPlanningContext, testOMPLConstrainedPlanning)
+{
+  testOMPLConstrainedPlanning({ 0, -0.785, 0, -2.356, 0, 1.571, 0.785 }, { 0, -0.785, 0, -2.356, 0, 1.571, 0.685 });
+}
+
 /***************************************************************************
  * Run all tests on the Fanuc robot
  * ************************************************************************/
@@ -406,6 +410,11 @@ TEST_F(FanucTestPlanningContext, testSimpleRequest)
 TEST_F(FanucTestPlanningContext, testPathConstraints)
 {
   testPathConstraints({ 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0.1 });
+}
+
+TEST_F(FanucTestPlanningContext, testOMPLConstrainedPlanning)
+{
+  testOMPLConstrainedPlanning({ 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0.1 });
 }
 
 /***************************************************************************
