@@ -57,33 +57,33 @@ public:
 
     StateType() : ModelBasedStateSpace::StateType(), poses(nullptr)
     {
-      flags |= JOINTS_COMPUTED;
+      setflag(JOINTS_COMPUTED);
     }
 
     bool jointsComputed() const
     {
-      return flags & JOINTS_COMPUTED;
+      return flags() & JOINTS_COMPUTED;
     }
 
     bool poseComputed() const
     {
-      return flags & POSE_COMPUTED;
+      return flags() & POSE_COMPUTED;
     }
 
     void setJointsComputed(bool value)
     {
       if (value)
-        flags |= JOINTS_COMPUTED;
+        setflag(JOINTS_COMPUTED);
       else
-        flags &= ~JOINTS_COMPUTED;
+        clearflag(JOINTS_COMPUTED);
     }
 
     void setPoseComputed(bool value)
     {
       if (value)
-        flags |= POSE_COMPUTED;
+        setflag(POSE_COMPUTED);
       else
-        flags &= ~POSE_COMPUTED;
+        clearflag(POSE_COMPUTED);
     }
 
     ompl::base::SE3StateSpace::StateType** poses;

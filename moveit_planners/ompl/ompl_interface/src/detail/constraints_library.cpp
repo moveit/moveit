@@ -100,7 +100,7 @@ public:
   void sampleUniformNear(ob::State* state, const ob::State* near, const double distance) override
   {
     int index = -1;
-    int tag = near->as<ModelBasedStateSpace::StateType>()->tag;
+    int tag = near->as<ModelBasedStateSpace::StateType>()->tag();
 
     if (tag >= 0)
     {
@@ -149,8 +149,8 @@ protected:
 bool interpolateUsingStoredStates(const ConstraintApproximationStateStorage* state_storage, const ob::State* from,
                                   const ob::State* to, const double t, ob::State* state)
 {
-  int tag_from = from->as<ModelBasedStateSpace::StateType>()->tag;
-  int tag_to = to->as<ModelBasedStateSpace::StateType>()->tag;
+  int tag_from = from->as<ModelBasedStateSpace::StateType>()->tag();
+  int tag_to = to->as<ModelBasedStateSpace::StateType>()->tag();
 
   if (tag_from < 0 || tag_to < 0)
     return false;

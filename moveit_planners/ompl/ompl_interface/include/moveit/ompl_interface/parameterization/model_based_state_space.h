@@ -41,6 +41,7 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/constraint_samplers/constraint_sampler.h>
+#include <atomic>
 
 namespace ompl_interface
 {
@@ -74,6 +75,13 @@ OMPL_CLASS_FORWARD(ModelBasedStateSpace);
 class ModelBasedStateSpace : public ompl::base::StateSpace
 {
 public:
+  struct StateTypeAtomicBits
+  {
+    int tag;
+    int flags;
+    double distance;
+  };
+
   class StateType : public ompl::base::State
   {
   public:
@@ -86,84 +94,137 @@ public:
       IS_GOAL_STATE = 16
     };
 
-    StateType() : ompl::base::State(), values(nullptr), tag(-1), flags(0), distance(0.0)
+    StateType() : ompl::base::State(), atomic_bits(StateTypeAtomicBits{ -1, 0, 0.0 }), values(nullptr)
     {
     }
 
     void markValid(double d)
     {
-      distance = d;
-      flags |= GOAL_DISTANCE_KNOWN;
-      markValid();
+      StateTypeAtomicBits tmp;
+      do
+      {
+        tmp = atomic_bits.load();
+        tmp.distance = d;
+        tmp.flags |= VALIDITY_KNOWN | VALIDITY_TRUE | GOAL_DISTANCE_KNOWN;
+      } while (!atomic_bits.compare_exchange_weak(tmp));
     }
 
     void markValid()
     {
-      flags |= (VALIDITY_KNOWN | VALIDITY_TRUE);
+      setflag(VALIDITY_KNOWN | VALIDITY_TRUE);
     }
 
     void markInvalid(double d)
     {
-      distance = d;
-      flags |= GOAL_DISTANCE_KNOWN;
-      markInvalid();
+      StateTypeAtomicBits tmp;
+      do
+      {
+        tmp = atomic_bits.load();
+        tmp.distance = d;
+        tmp.flags &= ~VALIDITY_TRUE;
+        tmp.flags |= VALIDITY_KNOWN | GOAL_DISTANCE_KNOWN;
+      } while (!atomic_bits.compare_exchange_weak(tmp));
     }
 
     void markInvalid()
     {
-      flags &= ~VALIDITY_TRUE;
-      flags |= VALIDITY_KNOWN;
+      StateTypeAtomicBits tmp;
+      do
+      {
+        tmp = atomic_bits.load();
+        tmp.flags &= ~VALIDITY_TRUE;
+        tmp.flags |= VALIDITY_KNOWN;
+      } while (!atomic_bits.compare_exchange_weak(tmp));
     }
 
     bool isValidityKnown() const
     {
-      return flags & VALIDITY_KNOWN;
+      return flags() & VALIDITY_KNOWN;
     }
 
     void clearKnownInformation()
     {
-      flags = 0;
+      StateTypeAtomicBits tmp;
+      do
+      {
+        tmp = atomic_bits.load();
+        tmp.flags = 0;
+      } while (!atomic_bits.compare_exchange_weak(tmp));
     }
 
     bool isMarkedValid() const
     {
-      return flags & VALIDITY_TRUE;
+      return flags() & VALIDITY_TRUE;
     }
 
     bool isGoalDistanceKnown() const
     {
-      return flags & GOAL_DISTANCE_KNOWN;
+      return flags() & GOAL_DISTANCE_KNOWN;
     }
 
     bool isStartState() const
     {
-      return flags & IS_START_STATE;
+      return flags() & IS_START_STATE;
     }
 
     bool isGoalState() const
     {
-      return flags & IS_GOAL_STATE;
+      return flags() & IS_GOAL_STATE;
     }
 
     bool isInputState() const
     {
-      return flags & (IS_START_STATE | IS_GOAL_STATE);
+      return flags() & (IS_START_STATE | IS_GOAL_STATE);
     }
 
     void markStartState()
     {
-      flags |= IS_START_STATE;
+      setflag(IS_START_STATE);
     }
 
     void markGoalState()
     {
-      flags |= IS_GOAL_STATE;
+      setflag(IS_GOAL_STATE);
     }
 
+    int flags() const
+    {
+      return atomic_bits.load().flags;
+    }
+    void setflag(int flag)
+    {
+      StateTypeAtomicBits tmp;
+      do
+      {
+        tmp = atomic_bits.load();
+        tmp.flags |= flag;
+      } while (!atomic_bits.store(tmp));
+    }
+    void clearflag(int flag)
+    {
+      StateTypeAtomicBits tmp;
+      do
+      {
+        tmp = atomic_bits.load();
+        tmp.flags &= ~flag;
+      } while (!atomic_bits.compare_exchange_weak(tmp));
+    }
+    int tag() const
+    {
+      return atomic_bits.load().tag;
+    }
+    void settag(int tag)
+    {
+      StateTypeAtomicBits tmp;
+      do
+      {
+        tmp = atomic_bits.load();
+        tmp.tag = tag;
+      } while (!atomic_bits.compare_exchange_weak(tmp));
+    }
+
+    std::atomic<StateTypeAtomicBits> atomic_bits;
     double* values;
-    int tag;
-    int flags;
-    double distance;
   };
 
   ModelBasedStateSpace(ModelBasedStateSpaceSpecification spec);

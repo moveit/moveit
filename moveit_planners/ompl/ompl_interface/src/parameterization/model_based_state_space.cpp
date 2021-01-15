@@ -118,9 +118,7 @@ void ompl_interface::ModelBasedStateSpace::copyState(ompl::base::State* destinat
                                                      const ompl::base::State* source) const
 {
   memcpy(destination->as<StateType>()->values, source->as<StateType>()->values, state_values_size_);
-  destination->as<StateType>()->tag = source->as<StateType>()->tag;
-  destination->as<StateType>()->flags = source->as<StateType>()->flags;
-  destination->as<StateType>()->distance = source->as<StateType>()->distance;
+  destination->as<StateType>()->atomic_bits.store(source->as<StateType>()->atomic_bits.load());
 }
 
 unsigned int ompl_interface::ModelBasedStateSpace::getSerializationLength() const
@@ -130,13 +128,13 @@ unsigned int ompl_interface::ModelBasedStateSpace::getSerializationLength() cons
 
 void ompl_interface::ModelBasedStateSpace::serialize(void* serialization, const ompl::base::State* state) const
 {
-  *reinterpret_cast<int*>(serialization) = state->as<StateType>()->tag;
+  *reinterpret_cast<int*>(serialization) = state->as<StateType>()->tag();
   memcpy(reinterpret_cast<char*>(serialization) + sizeof(int), state->as<StateType>()->values, state_values_size_);
 }
 
 void ompl_interface::ModelBasedStateSpace::deserialize(ompl::base::State* state, const void* serialization) const
 {
-  state->as<StateType>()->tag = *reinterpret_cast<const int*>(serialization);
+  state->as<StateType>()->settag(*reinterpret_cast<const int*>(serialization));
   memcpy(state->as<StateType>()->values, reinterpret_cast<const char*>(serialization) + sizeof(int), state_values_size_);
 }
 
@@ -209,12 +207,14 @@ void ompl_interface::ModelBasedStateSpace::interpolate(const ompl::base::State* 
                                           state->as<StateType>()->values);
 
     // compute tag
-    if (from->as<StateType>()->tag >= 0 && t < 1.0 - tag_snap_to_segment_)
-      state->as<StateType>()->tag = from->as<StateType>()->tag;
-    else if (to->as<StateType>()->tag >= 0 && t > tag_snap_to_segment_)
-      state->as<StateType>()->tag = to->as<StateType>()->tag;
+    const auto from_tag = from->as<StateType>()->tag();
+    const auto to_tag = to->as<StateType>()->tag();
+    if (from_tag >= 0 && t < 1.0 - tag_snap_to_segment_)
+      state->as<StateType>()->settag(from_tag);
+    else if (to_tag >= 0 && t > tag_snap_to_segment_)
+      state->as<StateType>()->settag(to_tag);
     else
-      state->as<StateType>()->tag = -1;
+      state->as<StateType>()->settag(-1);
   }
 }
 
