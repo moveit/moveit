@@ -33,7 +33,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Felix von Drigalski, Jacob Aas, Tyler Weaver */
+/* Author: Felix von Drigalski, Jacob Aas, Tyler Weaver, Boston Cleek */
 
 /* This integration test is based on the tutorial for using subframes
  * https://ros-planning.github.io/moveit_tutorials/doc/subframes/subframes_tutorial.html
@@ -59,7 +59,8 @@
 #include <eigen_conversions/eigen_msg.h>
 
 constexpr double EPSILON = 1e-2;
-constexpr double Z_OFFSET = 0.01;
+constexpr double Z_OFFSET = 0.05;
+constexpr double PLANNING_TIME_S = 30.0;
 
 // Function copied from tutorial
 // a small helper function to create our planning requests and move the robot.
@@ -73,7 +74,9 @@ bool moveToCartPose(const geometry_msgs::PoseStamped& pose, moveit::planning_int
 
   moveit::planning_interface::MoveGroupInterface::Plan myplan;
   if (group.plan(myplan) && group.execute(myplan))
+  {
     return true;
+  }
 
   ROS_WARN("Failed to perform motion.");
   return false;
@@ -150,7 +153,7 @@ TEST(TestPlanUsingSubframes, SubframesTests)
   auto planning_scene_monitor = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
   moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
   moveit::planning_interface::MoveGroupInterface group("panda_arm");
-  group.setPlanningTime(10.0);
+  group.setPlanningTime(PLANNING_TIME_S);
 
   spawnCollisionObjects(planning_scene_interface);
   moveit_msgs::AttachedCollisionObject att_coll_object;
