@@ -54,8 +54,6 @@
 
 #include <gtest/gtest.h>
 
-#include <tf2_eigen/tf2_eigen.h>
-
 #include <moveit/ompl_interface/planning_context_manager.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/planning_interface/planning_request.h>
@@ -64,6 +62,8 @@
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
 #include <moveit/ompl_interface/parameterization/joint_space/constrained_planning_state_space.h>
+
+#include <tf2_eigen/tf2_eigen.h>
 
 /** \brief Generic implementation of the tests that can be executed on different robots. **/
 class TestPlanningContext : public ompl_interface_testing::LoadTestRobot, public testing::Test
@@ -237,8 +237,7 @@ public:
     // create path constraints around start state, to make sure they are satisfied
     robot_state_->setJointGroupPositions(joint_model_group_, start);
     Eigen::Isometry3d ee_pose = robot_state_->getGlobalLinkTransform(ee_link_name_);
-    // geometry_msgs::Quaternion ee_orientation;
-    // tf::quaternionEigenToMsg(Eigen::Quaterniond(ee_pose.rotation()), ee_orientation);
+    // const geometry_msgs::Quaternion ee_orientation = tf2::toMsg(Eigen::Quaterniond(ee_pose.rotation()));
     // request.path_constraints.orientation_constraints.push_back(createOrientationConstraint(ee_orientation));
     request.path_constraints.position_constraints.push_back(createPositionConstraint(
         { ee_pose.translation().x(), ee_pose.translation().y(), ee_pose.translation().z() }, { 1.0, 1.0, 1.0 }));

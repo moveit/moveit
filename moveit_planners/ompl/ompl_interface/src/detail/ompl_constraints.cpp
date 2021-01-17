@@ -39,7 +39,7 @@
 #include <moveit/ompl_interface/detail/threadsafe_state_storage.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit_msgs/Constraints.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 namespace ompl_interface
 {
@@ -176,8 +176,8 @@ void BoxConstraint::parseConstraintMsg(const moveit_msgs::Constraints& constrain
   geometry_msgs::Point position =
       constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).position;
   target_position_ << position.x, position.y, position.z;
-  tf::quaternionMsgToEigen(constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).orientation,
-                           target_orientation_);
+  tf2::fromMsg(constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).orientation,
+               target_orientation_);
 
   link_name_ = constraints.position_constraints.at(0).link_name;
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Position constraints applied to link: " << link_name_);
@@ -229,8 +229,8 @@ void EqualityPositionConstraint::parseConstraintMsg(const moveit_msgs::Constrain
   geometry_msgs::Point position =
       constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).position;
   target_position_ << position.x, position.y, position.z;
-  tf::quaternionMsgToEigen(constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).orientation,
-                           target_orientation_);
+  tf2::fromMsg(constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).orientation,
+               target_orientation_);
 
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Equality constraint on x-position? " << (is_dim_constrained_[0] ? "yes" : "no"));
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Equality constraint on y-position? " << (is_dim_constrained_[1] ? "yes" : "no"));
