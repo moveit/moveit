@@ -54,12 +54,11 @@ if(CATKIN_ENABLE_TESTING)
 
   # Unfortunately it is not possible to test the planning context manager without introducing a ROS dependency.
   find_package(rostest REQUIRED)
-  find_package(eigen_conversions REQUIRED)
 
   catkin_add_gtest(test_state_validity_checker test/test_state_validity_checker.cpp)
   target_link_libraries(test_state_validity_checker ${MOVEIT_LIB_NAME} ${OMPL_LIBRARIES} ${catkin_LIBRARIES})
   set_target_properties(test_state_validity_checker PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
-  
+
   catkin_add_gtest(test_constrained_planning_state_space test/test_constrained_planning_state_space.cpp)
   target_link_libraries(test_constrained_planning_state_space ${MOVEIT_LIB_NAME} ${OMPL_LIBRARIES} ${catkin_LIBRARIES})
   set_target_properties(test_constrained_planning_state_space PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
@@ -74,5 +73,5 @@ if(CATKIN_ENABLE_TESTING)
   add_rostest_gtest(test_planning_context_manager
     test/test_planning_context_manager.test
     test/test_planning_context_manager.cpp)
-  target_link_libraries(test_planning_context_manager ${MOVEIT_LIB_NAME} ${OMPL_LIBRARIES} ${catkin_LIBRARIES} ${eigen_conversions_LIBRARIES})
+  target_link_libraries(test_planning_context_manager ${MOVEIT_LIB_NAME} ${OMPL_LIBRARIES} ${catkin_LIBRARIES})
 endif()

@@ -51,7 +51,6 @@
 
 #include <gtest/gtest.h>
 #include <Eigen/Dense>
-#include <eigen_conversions/eigen_msg.h>
 
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
