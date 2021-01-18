@@ -128,7 +128,7 @@ public:
     robot_state_->setJointGroupPositions(joint_model_group_, start);
     Eigen::Isometry3d ee_pose = robot_state_->getGlobalLinkTransform(ee_link_name_);
     geometry_msgs::Quaternion ee_orientation;
-    tf::quaternionEigenToMsg(Eigen::Quaterniond(ee_pose.rotation()), ee_orientation);
+    tf2::convert(Eigen::Quaterniond(ee_pose.rotation()), ee_orientation);
 
     // setup the planning context manager
     ompl_interface::PlanningContextManager pcm(robot_model_, constraint_sampler_manager_);
