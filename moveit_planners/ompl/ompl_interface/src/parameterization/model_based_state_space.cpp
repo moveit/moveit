@@ -118,7 +118,7 @@ void ompl_interface::ModelBasedStateSpace::copyState(ompl::base::State* destinat
                                                      const ompl::base::State* source) const
 {
   memcpy(destination->as<StateType>()->values, source->as<StateType>()->values, state_values_size_);
-  destination->as<StateType>()->atomic_bits.store(source->as<StateType>()->atomic_bits.load());
+  destination->as<StateType>()->setCache(source->as<StateType>()->getCache());
 }
 
 unsigned int ompl_interface::ModelBasedStateSpace::getSerializationLength() const
@@ -303,7 +303,7 @@ void ompl_interface::ModelBasedStateSpace::printState(const ompl::base::State* s
       out << state->as<StateType>()->values[idx + i] << " ";
     out << std::endl;
   }
-  const StateType::AtomicBits loaded_state = state->as<StateType>()->atomic_bits.load();
+  const StateType::AtomicCache loaded_state = state->as<StateType>()->getCache();
 
   if (loaded_state.isStartState())
     out << "* start state" << std::endl;

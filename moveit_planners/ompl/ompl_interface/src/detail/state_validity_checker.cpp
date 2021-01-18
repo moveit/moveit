@@ -77,8 +77,8 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State* stat
 {
   // Use cached validity if it is available
   {
-    const ModelBasedStateSpace::StateType::AtomicBits loaded_state =
-        state->as<ModelBasedStateSpace::StateType>()->atomic_bits.load();
+    const ModelBasedStateSpace::StateType::AtomicCache loaded_state =
+        state->as<ModelBasedStateSpace::StateType>()->getCache();
     if (loaded_state.isValidityKnown())
       return loaded_state.isMarkedValid();
   }
@@ -128,8 +128,8 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State* stat
 {
   // Use cached validity and distance if they are available
   {
-    const ModelBasedStateSpace::StateType::AtomicBits loaded_state =
-        state->as<ModelBasedStateSpace::StateType>()->atomic_bits.load();
+    const ModelBasedStateSpace::StateType::AtomicCache loaded_state =
+        state->as<ModelBasedStateSpace::StateType>()->getCache();
     if (loaded_state.isValidityKnown() && loaded_state.isGoalDistanceKnown())
     {
       dist = loaded_state.distance;

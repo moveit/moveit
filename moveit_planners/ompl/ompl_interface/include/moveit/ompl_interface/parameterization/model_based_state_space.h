@@ -87,7 +87,7 @@ public:
       IS_GOAL_STATE = 16
     };
 
-    struct AtomicBits
+    struct alignas(16) AtomicCache
     {
       int tag;
       int flags;
@@ -123,20 +123,18 @@ public:
         return flags & (IS_START_STATE | IS_GOAL_STATE);
       }
     };
+    static_assert(sizeof(AtomicCache) == 16, "Cache Object size mismatch");
 
-    StateType() : ompl::base::State(), atomic_bits(AtomicBits{ -1, 0, 0.0 }), values(nullptr)
+    StateType() : ompl::base::State(), atomic_cache(AtomicCache{ -1, 0, 0.0 }), values(nullptr)
     {
     }
 
     void markValid(double d) const
     {
-      AtomicBits desired, expected = atomic_bits.load();
-      do
-      {
-        desired = expected;
+      modify_cache([d](AtomicCache& desired) {
         desired.distance = d;
-        desired.flags |= VALIDITY_KNOWN | VALIDITY_TRUE | GOAL_DISTANCE_KNOWN;
-      } while (!atomic_bits.compare_exchange_weak(expected, desired));
+        desired.flags |= (VALIDITY_KNOWN | VALIDITY_TRUE | GOAL_DISTANCE_KNOWN);
+      });
     }
 
     void markValid() const
@@ -146,35 +144,24 @@ public:
 
     void markInvalid(double d) const
     {
-      AtomicBits desired, expected = atomic_bits.load();
-      do
-      {
-        desired = expected;
+      modify_cache([d](AtomicCache& desired) {
         desired.distance = d;
         desired.flags &= ~VALIDITY_TRUE;
-        desired.flags |= VALIDITY_KNOWN | GOAL_DISTANCE_KNOWN;
-      } while (!atomic_bits.compare_exchange_weak(expected, desired));
+        desired.flags |= (VALIDITY_KNOWN | GOAL_DISTANCE_KNOWN);
+      });
     }
 
     void markInvalid() const
     {
-      AtomicBits desired, expected = atomic_bits.load();
-      do
-      {
-        desired = expected;
+      modify_cache([](AtomicCache& desired) {
         desired.flags &= ~VALIDITY_TRUE;
         desired.flags |= VALIDITY_KNOWN;
-      } while (!atomic_bits.compare_exchange_weak(expected, desired));
+      });
     }
 
     void clearKnownInformation()
     {
-      AtomicBits desired, expected = atomic_bits.load();
-      do
-      {
-        desired = expected;
-        desired.flags = 0;
-      } while (!atomic_bits.compare_exchange_weak(expected, desired));
+      modify_cache([](AtomicCache& desired) { desired.flags = 0; });
     }
 
     void markStartState()
@@ -189,41 +176,58 @@ public:
 
     int flags() const
     {
-      return atomic_bits.load().flags;
+      return atomic_cache.load().flags;
     }
     void setflag(int flag) const
     {
-      AtomicBits desired, expected = atomic_bits.load();
-      do
-      {
-        desired = expected;
-        desired.flags |= flag;
-      } while (!atomic_bits.compare_exchange_weak(expected, desired));
+      modify_cache([flag](AtomicCache& desired) { desired.flags |= ~flag; });
     }
     void clearflag(int flag) const
     {
-      AtomicBits desired, expected = atomic_bits.load();
-      do
-      {
-        desired = expected;
-        desired.flags &= ~flag;
-      } while (!atomic_bits.compare_exchange_weak(expected, desired));
+      modify_cache([flag](AtomicCache& desired) { desired.flags &= ~flag; });
     }
     int tag() const
     {
-      return atomic_bits.load().tag;
+      return atomic_cache.load().tag;
     }
     void settag(int tag)
     {
-      AtomicBits desired, expected = atomic_bits.load();
+      modify_cache([tag](AtomicCache& desired) { desired.tag = tag; });
+    }
+    AtomicCache getCache() const
+    {
+      return atomic_cache.load();
+    }
+    void setCache(const AtomicCache& cache)
+    {
+      atomic_cache.store(cache);
+    }
+
+  protected:
+    mutable std::atomic<AtomicCache> atomic_cache;
+    /**
+     * \brief Helper function to modify the cache in a compare-and-swap loop.
+     *
+     * The Lambda will be called at least one time.
+     * It takes a reference to a copy of the cache and should update it
+     * (e.g. set a bit in the flags). The copy is then written back,
+     * but only if the original cache was left untouched.
+     *
+     * \param func Lambda which takes exactly one parameter, an AtomicCache Reference.
+     *
+     */
+    template <class Func>
+    void modify_cache(Func func) const
+    {
+      AtomicCache desired, expected = atomic_cache.load();
       do
       {
         desired = expected;
-        desired.tag = tag;
-      } while (!atomic_bits.compare_exchange_weak(expected, desired));
+        func(desired);
+      } while (!atomic_cache.compare_exchange_weak(expected, desired));
     }
 
-    mutable std::atomic<AtomicBits> atomic_bits;
+  public:
     double* values;
   };
 
