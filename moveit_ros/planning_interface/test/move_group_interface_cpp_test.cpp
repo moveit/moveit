@@ -115,7 +115,7 @@ public:
     // get the pose of the end effector link after the movement
     geometry_msgs::PoseStamped actual_pose_stamped = move_group_->getCurrentPose();
     Eigen::Isometry3d actual_pose;
-    tf::poseMsgToEigen(actual_pose_stamped.pose, actual_pose);
+    tf2::convert(actual_pose_stamped.pose, actual_pose);
 
     // compare to planned pose
     testEigenPose(expected_pose, actual_pose);
@@ -125,7 +125,7 @@ public:
   {
     SCOPED_TRACE("testPose(const geometry_msgs::Pose&)");
     Eigen::Isometry3d expected_pose;
-    tf::poseMsgToEigen(expected_pose_msg, expected_pose);
+    tf2::convert(expected_pose_msg, expected_pose);
     testPose(expected_pose);
   }
 
@@ -163,13 +163,13 @@ TEST_F(MoveGroupTestFixture, MoveToPoseTest)
 
   // convert to eigen
   Eigen::Isometry3d eigen_target_pose;
-  tf::poseMsgToEigen(target_pose, eigen_target_pose);
+  tf2::convert(target_pose, eigen_target_pose);
 
   // set with eigen, get ros message representation
   move_group_->setPoseTarget(eigen_target_pose);
   geometry_msgs::PoseStamped set_target_pose = move_group_->getPoseTarget();
   Eigen::Isometry3d eigen_set_target_pose;
-  tf::poseMsgToEigen(set_target_pose.pose, eigen_set_target_pose);
+  tf2::convert(set_target_pose.pose, eigen_set_target_pose);
 
   // expect that they are identical
   testEigenPose(eigen_target_pose, eigen_set_target_pose);
