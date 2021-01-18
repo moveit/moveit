@@ -530,7 +530,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     {
       if (state_storage->size() < options.samples)
       {
-        temp->as<ModelBasedStateSpace::StateType>()->tag = state_storage->size();
+        temp->as<ModelBasedStateSpace::StateType>()->settag(state_storage->size());
         state_storage->addState(temp.get());
       }
     }
@@ -607,7 +607,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
             cass->getMetadata(i).second[j].first = state_storage->size();
             for (unsigned int k = 0; k < isteps; ++k)
             {
-              int_states[k]->as<ModelBasedStateSpace::StateType>()->tag = -1;
+              int_states[k]->as<ModelBasedStateSpace::StateType>()->settag(-1);
               state_storage->addState(int_states[k]);
             }
             cass->getMetadata(i).second[j].second = state_storage->size();

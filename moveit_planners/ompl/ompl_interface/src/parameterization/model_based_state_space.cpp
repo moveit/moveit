@@ -303,19 +303,20 @@ void ompl_interface::ModelBasedStateSpace::printState(const ompl::base::State* s
       out << state->as<StateType>()->values[idx + i] << " ";
     out << std::endl;
   }
+  const StateType::AtomicBits loaded_state = state->as<StateType>()->atomic_bits.load();
 
-  if (state->as<StateType>()->isStartState())
+  if (loaded_state.isStartState())
     out << "* start state" << std::endl;
-  if (state->as<StateType>()->isGoalState())
+  if (loaded_state.isGoalState())
     out << "* goal state" << std::endl;
-  if (state->as<StateType>()->isValidityKnown())
+  if (loaded_state.isValidityKnown())
   {
-    if (state->as<StateType>()->isMarkedValid())
+    if (loaded_state.isMarkedValid())
       out << "* valid state" << std::endl;
     else
       out << "* invalid state" << std::endl;
   }
-  out << "Tag: " << state->as<StateType>()->tag << std::endl;
+  out << "Tag: " << loaded_state.tag << std::endl;
 }
 
 void ompl_interface::ModelBasedStateSpace::copyToRobotState(moveit::core::RobotState& rstate,

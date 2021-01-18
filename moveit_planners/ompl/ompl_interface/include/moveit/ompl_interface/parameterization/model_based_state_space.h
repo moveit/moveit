@@ -75,13 +75,6 @@ OMPL_CLASS_FORWARD(ModelBasedStateSpace);
 class ModelBasedStateSpace : public ompl::base::StateSpace
 {
 public:
-  struct StateTypeAtomicBits
-  {
-    int tag;
-    int flags;
-    double distance;
-  };
-
   class StateType : public ompl::base::State
   {
   public:
@@ -94,87 +87,94 @@ public:
       IS_GOAL_STATE = 16
     };
 
-    StateType() : ompl::base::State(), atomic_bits(StateTypeAtomicBits{ -1, 0, 0.0 }), values(nullptr)
+    struct AtomicBits
+    {
+      int tag;
+      int flags;
+      double distance;
+
+      bool isValidityKnown() const
+      {
+        return flags & VALIDITY_KNOWN;
+      }
+
+      bool isMarkedValid() const
+      {
+        return flags & VALIDITY_TRUE;
+      }
+
+      bool isGoalDistanceKnown() const
+      {
+        return flags & GOAL_DISTANCE_KNOWN;
+      }
+
+      bool isStartState() const
+      {
+        return flags & IS_START_STATE;
+      }
+
+      bool isGoalState() const
+      {
+        return flags & IS_GOAL_STATE;
+      }
+
+      bool isInputState() const
+      {
+        return flags & (IS_START_STATE | IS_GOAL_STATE);
+      }
+    };
+
+    StateType() : ompl::base::State(), atomic_bits(AtomicBits{ -1, 0, 0.0 }), values(nullptr)
     {
     }
 
-    void markValid(double d)
+    void markValid(double d) const
     {
-      StateTypeAtomicBits tmp;
+      AtomicBits desired, expected = atomic_bits.load();
       do
       {
-        tmp = atomic_bits.load();
-        tmp.distance = d;
-        tmp.flags |= VALIDITY_KNOWN | VALIDITY_TRUE | GOAL_DISTANCE_KNOWN;
-      } while (!atomic_bits.compare_exchange_weak(tmp));
+        desired = expected;
+        desired.distance = d;
+        desired.flags |= VALIDITY_KNOWN | VALIDITY_TRUE | GOAL_DISTANCE_KNOWN;
+      } while (!atomic_bits.compare_exchange_weak(expected, desired));
     }
 
-    void markValid()
+    void markValid() const
     {
       setflag(VALIDITY_KNOWN | VALIDITY_TRUE);
     }
 
-    void markInvalid(double d)
+    void markInvalid(double d) const
     {
-      StateTypeAtomicBits tmp;
+      AtomicBits desired, expected = atomic_bits.load();
       do
       {
-        tmp = atomic_bits.load();
-        tmp.distance = d;
-        tmp.flags &= ~VALIDITY_TRUE;
-        tmp.flags |= VALIDITY_KNOWN | GOAL_DISTANCE_KNOWN;
-      } while (!atomic_bits.compare_exchange_weak(tmp));
+        desired = expected;
+        desired.distance = d;
+        desired.flags &= ~VALIDITY_TRUE;
+        desired.flags |= VALIDITY_KNOWN | GOAL_DISTANCE_KNOWN;
+      } while (!atomic_bits.compare_exchange_weak(expected, desired));
     }
 
-    void markInvalid()
+    void markInvalid() const
     {
-      StateTypeAtomicBits tmp;
+      AtomicBits desired, expected = atomic_bits.load();
       do
       {
-        tmp = atomic_bits.load();
-        tmp.flags &= ~VALIDITY_TRUE;
-        tmp.flags |= VALIDITY_KNOWN;
-      } while (!atomic_bits.compare_exchange_weak(tmp));
-    }
-
-    bool isValidityKnown() const
-    {
-      return flags() & VALIDITY_KNOWN;
+        desired = expected;
+        desired.flags &= ~VALIDITY_TRUE;
+        desired.flags |= VALIDITY_KNOWN;
+      } while (!atomic_bits.compare_exchange_weak(expected, desired));
     }
 
     void clearKnownInformation()
     {
-      StateTypeAtomicBits tmp;
+      AtomicBits desired, expected = atomic_bits.load();
       do
       {
-        tmp = atomic_bits.load();
-        tmp.flags = 0;
-      } while (!atomic_bits.compare_exchange_weak(tmp));
-    }
-
-    bool isMarkedValid() const
-    {
-      return flags() & VALIDITY_TRUE;
-    }
-
-    bool isGoalDistanceKnown() const
-    {
-      return flags() & GOAL_DISTANCE_KNOWN;
-    }
-
-    bool isStartState() const
-    {
-      return flags() & IS_START_STATE;
-    }
-
-    bool isGoalState() const
-    {
-      return flags() & IS_GOAL_STATE;
-    }
-
-    bool isInputState() const
-    {
-      return flags() & (IS_START_STATE | IS_GOAL_STATE);
+        desired = expected;
+        desired.flags = 0;
+      } while (!atomic_bits.compare_exchange_weak(expected, desired));
     }
 
     void markStartState()
@@ -191,23 +191,23 @@ public:
     {
       return atomic_bits.load().flags;
     }
-    void setflag(int flag)
+    void setflag(int flag) const
     {
-      StateTypeAtomicBits tmp;
+      AtomicBits desired, expected = atomic_bits.load();
       do
       {
-        tmp = atomic_bits.load();
-        tmp.flags |= flag;
-      } while (!atomic_bits.store(tmp));
+        desired = expected;
+        desired.flags |= flag;
+      } while (!atomic_bits.compare_exchange_weak(expected, desired));
     }
-    void clearflag(int flag)
+    void clearflag(int flag) const
     {
-      StateTypeAtomicBits tmp;
+      AtomicBits desired, expected = atomic_bits.load();
       do
       {
-        tmp = atomic_bits.load();
-        tmp.flags &= ~flag;
-      } while (!atomic_bits.compare_exchange_weak(tmp));
+        desired = expected;
+        desired.flags &= ~flag;
+      } while (!atomic_bits.compare_exchange_weak(expected, desired));
     }
     int tag() const
     {
@@ -215,15 +215,15 @@ public:
     }
     void settag(int tag)
     {
-      StateTypeAtomicBits tmp;
+      AtomicBits desired, expected = atomic_bits.load();
       do
       {
-        tmp = atomic_bits.load();
-        tmp.tag = tag;
-      } while (!atomic_bits.compare_exchange_weak(tmp));
+        desired = expected;
+        desired.tag = tag;
+      } while (!atomic_bits.compare_exchange_weak(expected, desired));
     }
 
-    std::atomic<StateTypeAtomicBits> atomic_bits;
+    mutable std::atomic<AtomicBits> atomic_bits;
     double* values;
   };
 
