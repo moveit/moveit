@@ -38,6 +38,7 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/convert.h>
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2_kdl/tf2_kdl.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 bool pilz_industrial_motion_planner::computePoseIK(const moveit::core::RobotModelConstPtr& robot_model,
@@ -223,8 +224,8 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
   for (std::vector<double>::const_iterator time_iter = time_samples.begin(); time_iter != time_samples.end();
        ++time_iter)
   {
-    tf::transformKDLToEigen(trajectory.Pos(*time_iter), pose_sample);
-
+    const geometry_msgs::Pose pose_msg = tf2::toMsg(trajectory.Pos(*time_iter));
+    tf2::fromMsg(pose_msg, pose_sample);
     if (!computePoseIK(robot_model, group_name, link_name, pose_sample, robot_model->getModelFrame(), ik_solution_last,
                        ik_solution, check_self_collision))
     {

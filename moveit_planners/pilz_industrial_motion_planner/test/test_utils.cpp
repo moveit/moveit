@@ -32,7 +32,6 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <eigen_conversions/eigen_msg.h>
 #include <gtest/gtest.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/robot_state/conversions.h>

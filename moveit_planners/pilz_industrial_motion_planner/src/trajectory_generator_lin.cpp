@@ -39,9 +39,6 @@
 #include <sstream>
 #include <time.h>
 
-#include <eigen_conversions/eigen_kdl.h>
-#include <eigen_conversions/eigen_msg.h>
-
 #include <moveit/robot_state/conversions.h>
 
 #include <kdl/path_line.hpp>
@@ -191,8 +188,10 @@ std::unique_ptr<KDL::Path> TrajectoryGeneratorLIN::setPathLIN(const Eigen::Affin
   ROS_DEBUG("Set Cartesian path for LIN command.");
 
   KDL::Frame kdl_start_pose, kdl_goal_pose;
-  tf::transformEigenToKDL(start_pose, kdl_start_pose);
-  tf::transformEigenToKDL(goal_pose, kdl_goal_pose);
+  geometry_msgs::Pose pose_msg = tf2::toMsg(start_pose);
+  tf2::fromMsg(pose_msg, kdl_start_pose);
+  pose_msg = tf2::toMsg(goal_pose);
+  tf2::fromMsg(pose_msg, kdl_goal_pose);
   double eqradius = planner_limits_.getCartesianLimits().getMaxTranslationalVelocity() /
                     planner_limits_.getCartesianLimits().getMaxRotationalVelocity();
   KDL::RotationalInterpolation* rot_interpo = new KDL::RotationalInterpolation_SingleAxis();

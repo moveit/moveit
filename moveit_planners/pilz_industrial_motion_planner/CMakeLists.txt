@@ -8,7 +8,6 @@ add_definitions(-Wextra)
 add_definitions(-Wno-unused-parameter)
 
 find_package(catkin REQUIRED COMPONENTS
-  eigen_conversions
   kdl_conversions
   moveit_core
   moveit_msgs

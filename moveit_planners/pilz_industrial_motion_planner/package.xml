@@ -18,7 +18,6 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <depend>eigen_conversions</depend>
   <depend>kdl_conversions</depend>
   <depend>moveit_ros_planning_interface</depend>
   <depend>moveit_msgs</depend>

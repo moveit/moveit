@@ -39,7 +39,6 @@
 #include <string>
 #include <vector>
 
-#include <eigen_conversions/eigen_msg.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/planning_interface/planning_request.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>

@@ -33,7 +33,6 @@
  *********************************************************************/
 
 #include "pilz_industrial_motion_planner/trajectory_generator_ptp.h"
-#include "eigen_conversions/eigen_msg.h"
 #include "moveit/robot_state/conversions.h"
 #include "ros/ros.h"
 

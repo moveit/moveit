@@ -38,8 +38,6 @@
 #include <cassert>
 #include <sstream>
 
-#include <eigen_conversions/eigen_kdl.h>
-#include <eigen_conversions/eigen_msg.h>
 #include <kdl/rotational_interpolation_sa.hpp>
 #include <kdl/trajectory_segment.hpp>
 #include <kdl/utilities/error.h>
@@ -219,11 +217,14 @@ std::unique_ptr<KDL::Path> TrajectoryGeneratorCIRC::setPathCIRC(const MotionPlan
   ROS_DEBUG("Set Cartesian path for CIRC command.");
 
   KDL::Frame start_pose, goal_pose;
-  tf::transformEigenToKDL(info.start_pose, start_pose);
-  tf::transformEigenToKDL(info.goal_pose, goal_pose);
+  geometry_msgs::Pose pose_msg = tf2::toMsg(info.start_pose);
+  tf2::fromMsg(pose_msg, start_pose);
+  pose_msg = tf2::toMsg(info.goal_pose);
+  tf2::fromMsg(pose_msg, goal_pose);
 
   KDL::Vector path_point;
-  tf::vectorEigenToKDL(info.circ_path_point.second, path_point);
+  const geometry_msgs::Point point_msg = tf2::toMsg(info.circ_path_point.second);
+  tf2::fromMsg(point_msg, path_point);
 
   // pass the ratio of translational by rotational velocity as equivalent radius
   // to get a trajectory with rotational speed, if no (or very little)

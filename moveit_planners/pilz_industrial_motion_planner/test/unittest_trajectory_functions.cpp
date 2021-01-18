@@ -40,7 +40,6 @@
 #include <vector>
 
 #include <Eigen/Geometry>
-#include <eigen_conversions/eigen_msg.h>
 #include <kdl/frames.hpp>
 #include <kdl/path_roundedcomposite.hpp>
 #include <kdl/rotational_interpolation_sa.hpp>
