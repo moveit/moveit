@@ -93,6 +93,12 @@ public:
     servo_calcs_->changeRobotLinkCommandFrame(new_command_frame);
   }
 
+  /** \brief Retrieve Servo status code */
+  StatusCode getStatus() const
+  {
+    return servo_calcs_->getStatus();
+  }
+
 private:
   bool readParameters();
 

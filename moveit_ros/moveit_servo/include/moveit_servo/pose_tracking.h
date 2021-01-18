@@ -118,6 +118,12 @@ public:
   /** \brief Re-initialize the target pose to an empty message. Can be used to reset motion between waypoints. */
   void resetTargetPose();
 
+  /** \brief Retrieve Servo status code */
+  StatusCode getServoStatus() const
+  {
+    return servo_->getStatus();
+  }
+
   // moveit_servo::Servo instance. Public so we can access member functions like setPaused()
   std::unique_ptr<moveit_servo::Servo> servo_;
 

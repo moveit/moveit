@@ -104,6 +104,12 @@ public:
    */
   void changeRobotLinkCommandFrame(const std::string& new_command_frame);
 
+  /** \brief Retrieve the status code */
+  StatusCode getStatus() const
+  {
+    return status_;
+  }
+
 private:
   /** \brief Run the main calculation loop */
   void mainCalcLoop();
