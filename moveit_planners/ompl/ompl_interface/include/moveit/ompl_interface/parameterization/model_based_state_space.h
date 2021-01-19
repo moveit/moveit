@@ -131,7 +131,7 @@ public:
 
     void markValid(double d) const
     {
-      modify_cache([d](AtomicCache& desired) {
+      modifyCache([d](AtomicCache& desired) {
         desired.distance = d;
         desired.flags |= (VALIDITY_KNOWN | VALIDITY_TRUE | GOAL_DISTANCE_KNOWN);
       });
@@ -139,12 +139,12 @@ public:
 
     void markValid() const
     {
-      setflag(VALIDITY_KNOWN | VALIDITY_TRUE);
+      setFlag(VALIDITY_KNOWN | VALIDITY_TRUE);
     }
 
     void markInvalid(double d) const
     {
-      modify_cache([d](AtomicCache& desired) {
+      modifyCache([d](AtomicCache& desired) {
         desired.distance = d;
         desired.flags &= ~VALIDITY_TRUE;
         desired.flags |= (VALIDITY_KNOWN | GOAL_DISTANCE_KNOWN);
@@ -153,7 +153,7 @@ public:
 
     void markInvalid() const
     {
-      modify_cache([](AtomicCache& desired) {
+      modifyCache([](AtomicCache& desired) {
         desired.flags &= ~VALIDITY_TRUE;
         desired.flags |= VALIDITY_KNOWN;
       });
@@ -161,38 +161,38 @@ public:
 
     void clearKnownInformation()
     {
-      modify_cache([](AtomicCache& desired) { desired.flags = 0; });
+      modifyCache([](AtomicCache& desired) { desired.flags = 0; });
     }
 
     void markStartState()
     {
-      setflag(IS_START_STATE);
+      setFlag(IS_START_STATE);
     }
 
     void markGoalState()
     {
-      setflag(IS_GOAL_STATE);
+      setFlag(IS_GOAL_STATE);
     }
 
     int flags() const
     {
       return atomic_cache.load().flags;
     }
-    void setflag(int flag) const
+    void setFlag(int flag) const
     {
-      modify_cache([flag](AtomicCache& desired) { desired.flags |= ~flag; });
+      modifyCache([flag](AtomicCache& desired) { desired.flags |= ~flag; });
     }
     void clearflag(int flag) const
     {
-      modify_cache([flag](AtomicCache& desired) { desired.flags &= ~flag; });
+      modifyCache([flag](AtomicCache& desired) { desired.flags &= ~flag; });
     }
     int tag() const
     {
       return atomic_cache.load().tag;
     }
-    void settag(int tag)
+    void setTag(int tag)
     {
-      modify_cache([tag](AtomicCache& desired) { desired.tag = tag; });
+      modifyCache([tag](AtomicCache& desired) { desired.tag = tag; });
     }
     AtomicCache getCache() const
     {
@@ -217,7 +217,7 @@ public:
      *
      */
     template <class Func>
-    void modify_cache(Func func) const
+    void modifyCache(Func func) const
     {
       AtomicCache desired, expected = atomic_cache.load();
       do

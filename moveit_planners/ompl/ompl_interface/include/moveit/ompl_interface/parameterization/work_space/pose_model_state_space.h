@@ -57,7 +57,7 @@ public:
 
     StateType() : ModelBasedStateSpace::StateType(), poses(nullptr)
     {
-      setflag(JOINTS_COMPUTED);
+      setFlag(JOINTS_COMPUTED);
     }
 
     bool jointsComputed() const
@@ -73,7 +73,7 @@ public:
     void setJointsComputed(bool value)
     {
       if (value)
-        setflag(JOINTS_COMPUTED);
+        setFlag(JOINTS_COMPUTED);
       else
         clearflag(JOINTS_COMPUTED);
     }
@@ -81,7 +81,7 @@ public:
     void setPoseComputed(bool value)
     {
       if (value)
-        setflag(POSE_COMPUTED);
+        setFlag(POSE_COMPUTED);
       else
         clearflag(POSE_COMPUTED);
     }

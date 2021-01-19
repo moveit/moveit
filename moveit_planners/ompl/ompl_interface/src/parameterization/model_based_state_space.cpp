@@ -134,7 +134,7 @@ void ompl_interface::ModelBasedStateSpace::serialize(void* serialization, const 
 
 void ompl_interface::ModelBasedStateSpace::deserialize(ompl::base::State* state, const void* serialization) const
 {
-  state->as<StateType>()->settag(*reinterpret_cast<const int*>(serialization));
+  state->as<StateType>()->setTag(*reinterpret_cast<const int*>(serialization));
   memcpy(state->as<StateType>()->values, reinterpret_cast<const char*>(serialization) + sizeof(int), state_values_size_);
 }
 
@@ -210,11 +210,11 @@ void ompl_interface::ModelBasedStateSpace::interpolate(const ompl::base::State* 
     const auto from_tag = from->as<StateType>()->tag();
     const auto to_tag = to->as<StateType>()->tag();
     if (from_tag >= 0 && t < 1.0 - tag_snap_to_segment_)
-      state->as<StateType>()->settag(from_tag);
+      state->as<StateType>()->setTag(from_tag);
     else if (to_tag >= 0 && t > tag_snap_to_segment_)
-      state->as<StateType>()->settag(to_tag);
+      state->as<StateType>()->setTag(to_tag);
     else
-      state->as<StateType>()->settag(-1);
+      state->as<StateType>()->setTag(-1);
   }
 }
 
