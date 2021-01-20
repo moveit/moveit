@@ -61,18 +61,18 @@ namespace pilz_industrial_motion_planner
  * @param solution: solution of IK
  * @param check_self_collision: true to enable self collision checking after IK
  * computation
- * @param max_attempt: maximal attempts of IK
+ * @param timeout: timeout for IK, if not set the default solver timeout is used
  * @return true if succeed
  */
 bool computePoseIK(const robot_model::RobotModelConstPtr& robot_model, const std::string& group_name,
                    const std::string& link_name, const Eigen::Isometry3d& pose, const std::string& frame_id,
                    const std::map<std::string, double>& seed, std::map<std::string, double>& solution,
-                   bool check_self_collision = true, const double timeout = 0.1);
+                   bool check_self_collision = true, const double timeout = 0.0);
 
 bool computePoseIK(const robot_model::RobotModelConstPtr& robot_model, const std::string& group_name,
                    const std::string& link_name, const geometry_msgs::Pose& pose, const std::string& frame_id,
                    const std::map<std::string, double>& seed, std::map<std::string, double>& solution,
-                   bool check_self_collision = true, const double timeout = 0.1);
+                   bool check_self_collision = true, const double timeout = 0.0);
 
 /**
  * @brief compute the pose of a link at give robot state
