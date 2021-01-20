@@ -42,12 +42,12 @@
 #include <kdl/trajectory_segment.hpp>
 #include <kdl/utilities/error.h>
 #include <kdl/utilities/utility.h>
-#include <kdl_conversions/kdl_msg.h>
 #include <moveit/robot_state/conversions.h>
 #include <ros/ros.h>
 #include <tf2/convert.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_kdl/tf2_kdl.h>
 
 namespace pilz_industrial_motion_planner
 {
@@ -222,9 +222,8 @@ std::unique_ptr<KDL::Path> TrajectoryGeneratorCIRC::setPathCIRC(const MotionPlan
   pose_msg = tf2::toMsg(info.goal_pose);
   tf2::fromMsg(pose_msg, goal_pose);
 
-  KDL::Vector path_point;
-  const geometry_msgs::Point point_msg = tf2::toMsg(info.circ_path_point.second);
-  tf2::fromMsg(point_msg, path_point);
+  const auto& eigen_path_point = info.circ_path_point.second;
+  const KDL::Vector path_point{ eigen_path_point.x(), eigen_path_point.y(), eigen_path_point.z() };
 
   // pass the ratio of translational by rotational velocity as equivalent radius
   // to get a trajectory with rotational speed, if no (or very little)
