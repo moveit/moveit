@@ -180,7 +180,7 @@ public:
     }
     void setFlag(int flag) const
     {
-      modifyCache([flag](AtomicCache& desired) { desired.flags |= ~flag; });
+      modifyCache([flag](AtomicCache& desired) { desired.flags |= flag; });
     }
     void clearflag(int flag) const
     {
@@ -217,7 +217,7 @@ public:
      *
      */
     template <class Func>
-    void modifyCache(Func func) const
+    void modifyCache(Func&& func) const
     {
       AtomicCache desired, expected = atomic_cache.load();
       do
