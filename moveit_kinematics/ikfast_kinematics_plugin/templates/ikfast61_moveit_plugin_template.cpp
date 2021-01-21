@@ -1386,7 +1386,8 @@ void IKFastKinematicsPlugin::transformToChainFrame(const geometry_msgs::Pose& ik
     if (base_transform_required_)
       ik_eigen_pose = chain_base_to_group_base_ * ik_eigen_pose;
 
-    tf2::fromMsg(ik_eigen_pose, ik_pose_chain);
+    const geometry_msgs::Pose tmp_pose_msg = tf2::toMsg(ik_eigen_pose);
+    tf2::fromMsg(tmp_pose_msg, ik_pose_chain);
   }
   else
   {
