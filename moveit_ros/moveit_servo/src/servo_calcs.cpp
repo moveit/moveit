@@ -231,14 +231,10 @@ void ServoCalcs::mainCalcLoop()
     // lock the input state mutex
     std::unique_lock<std::mutex> input_lock(input_mutex_);
 
-    // low latency mode
+    // low latency mode -- begin calculations as soon as a new command is received.
     if (parameters_.low_latency_mode)
     {
       input_cv_.wait(input_lock, [this] { return (new_input_cmd_ || stop_requested_); });
-
-      // break out of the loop if stop was requested
-      if (stop_requested_)
-        break;
     }
 
     // reset new_input_cmd_ flag
