@@ -86,7 +86,11 @@ geometry_msgs::TransformStamped convertIsometryToTransform(const Eigen::Isometry
 // Constructor for the class that handles servoing calculations
 ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
                        const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
-  : nh_(nh), parameters_(parameters), planning_scene_monitor_(planning_scene_monitor), stop_requested_(true)
+  : nh_(nh)
+  , parameters_(parameters)
+  , planning_scene_monitor_(planning_scene_monitor)
+  , stop_requested_(true)
+  , paused_(false)
 {
   // MoveIt Setup
   current_state_ = planning_scene_monitor_->getStateMonitor()->getCurrentState();
