@@ -279,7 +279,7 @@ private:
 
   // Status
   StatusCode status_ = StatusCode::NO_WARNING;
-  bool paused_ = false;
+  std::atomic<bool> paused_;
   bool twist_command_is_stale_ = false;
   bool joint_command_is_stale_ = false;
   bool ok_to_publish_ = false;
