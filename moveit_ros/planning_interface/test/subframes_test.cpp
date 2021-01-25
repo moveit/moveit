@@ -176,7 +176,7 @@ TEST(TestPlanUsingSubframes, SubframesTests)
     Eigen::Isometry3d eef = planning_scene->getFrameTransform("cylinder/tip");
     Eigen::Isometry3d box_subframe = planning_scene->getFrameTransform(target_pose_stamped.header.frame_id);
     Eigen::Isometry3d target_pose;
-    tf2::convert(target_pose_stamped.pose, target_pose);
+    tf2::fromMsg(target_pose_stamped.pose, target_pose);
 
     // expect that they are identical
     std::stringstream ss;

@@ -224,7 +224,7 @@ TEST_F(SphericalRobot, Test5)
 
   ocm.link_name = "yaw";
   ocm.header.frame_id = robot_model_->getModelFrame();
-  tf2::convert(Eigen::Quaterniond(robot_state.getGlobalLinkTransform(ocm.link_name).linear()), ocm.orientation);
+  ocm.orientation = tf2::toMsg(Eigen::Quaterniond(robot_state.getGlobalLinkTransform(ocm.link_name).linear()));
   ocm.absolute_x_axis_tolerance = 0.0;
   ocm.absolute_y_axis_tolerance = 0.0;
   ocm.absolute_z_axis_tolerance = 1.0;

@@ -108,7 +108,7 @@ moveit_msgs::RobotState CartesianConfiguration::toMoveitMsgsRobotState() const
 
   // set to Cartesian pose
   Eigen::Isometry3d start_pose;
-  tf2::convert(pose_, start_pose);
+  tf2::fromMsg(pose_, start_pose);
   if (!rstate.setFromIK(rstate.getRobotModel()->getJointModelGroup(group_name_), start_pose, link_name_))
   {
     std::ostringstream os;

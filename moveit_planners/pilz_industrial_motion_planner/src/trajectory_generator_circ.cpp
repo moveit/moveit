@@ -44,10 +44,9 @@
 #include <kdl/utilities/utility.h>
 #include <moveit/robot_state/conversions.h>
 #include <ros/ros.h>
-#include <tf2/convert.h>
 #include <tf2_eigen/tf2_eigen.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_kdl/tf2_kdl.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 namespace pilz_industrial_motion_planner
 {
@@ -146,7 +145,7 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_interface::Mo
         req.goal_constraints.front().position_constraints.front().constraint_region.primitive_poses.front().position;
     goal_pose_msg.orientation = req.goal_constraints.front().orientation_constraints.front().orientation;
     normalizeQuaternion(goal_pose_msg.orientation);
-    tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(goal_pose_msg, info.goal_pose);
+    tf2::fromMsg(goal_pose_msg, info.goal_pose);
   }
 
   assert(req.start_state.joint_state.name.size() == req.start_state.joint_state.position.size());
@@ -180,7 +179,7 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_interface::Mo
   }
 
   Eigen::Vector3d circ_path_point;
-  tf2::convert(req.path_constraints.position_constraints.front().constraint_region.primitive_poses.front().position,
+  tf2::fromMsg(req.path_constraints.position_constraints.front().constraint_region.primitive_poses.front().position,
                circ_path_point);
 
   info.circ_path_point.first = req.path_constraints.name;
@@ -217,10 +216,8 @@ std::unique_ptr<KDL::Path> TrajectoryGeneratorCIRC::setPathCIRC(const MotionPlan
   ROS_DEBUG("Set Cartesian path for CIRC command.");
 
   KDL::Frame start_pose, goal_pose;
-  geometry_msgs::Pose pose_msg = tf2::toMsg(info.start_pose);
-  tf2::fromMsg(pose_msg, start_pose);
-  pose_msg = tf2::toMsg(info.goal_pose);
-  tf2::fromMsg(pose_msg, goal_pose);
+  tf2::fromMsg(tf2::toMsg(info.start_pose), start_pose);
+  tf2::fromMsg(tf2::toMsg(info.goal_pose), goal_pose);
 
   const auto& eigen_path_point = info.circ_path_point.second;
   const KDL::Vector path_point{ eigen_path_point.x(), eigen_path_point.y(), eigen_path_point.z() };

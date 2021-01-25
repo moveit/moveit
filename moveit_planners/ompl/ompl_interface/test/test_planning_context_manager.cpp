@@ -128,8 +128,7 @@ public:
     // create path constraints around start state,  to make sure they are satisfied
     robot_state_->setJointGroupPositions(joint_model_group_, start);
     Eigen::Isometry3d ee_pose = robot_state_->getGlobalLinkTransform(ee_link_name_);
-    geometry_msgs::Quaternion ee_orientation;
-    tf2::convert(Eigen::Quaterniond(ee_pose.rotation()), ee_orientation);
+    geometry_msgs::Quaternion ee_orientation = tf2::toMsg(Eigen::Quaterniond(ee_pose.rotation()));
 
     // setup the planning context manager
     ompl_interface::PlanningContextManager pcm(robot_model_, constraint_sampler_manager_);
