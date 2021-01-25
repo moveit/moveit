@@ -317,6 +317,15 @@ void PoseTracking::doPostMotionReset()
   cartesian_position_pids_[1].reset();
   cartesian_position_pids_[2].reset();
   cartesian_orientation_pids_[0].reset();
+
+  // Send a 0 command to Servo to halt arm motion
+  auto msg = moveit::util::make_shared_from_pool<geometry_msgs::TwistStamped>();
+  {
+    std::lock_guard<std::mutex> lock(target_pose_mtx_);
+    msg->header.frame_id = target_pose_.header.frame_id;
+  }
+  msg->header.stamp = ros::Time::now();
+  twist_stamped_pub_.publish(msg);
 }
 
 void PoseTracking::updatePIDConfig(const double x_proportional_gain, const double x_integral_gain,
