@@ -1,0 +1,4 @@
+<launch>
+  <test pkg="moveit_ros_perception" type="pointcloud_octomap_updater_test" test-name="pointcloud_octomap_updater_test"
+        time-limit="30" args="" />
+</launch>

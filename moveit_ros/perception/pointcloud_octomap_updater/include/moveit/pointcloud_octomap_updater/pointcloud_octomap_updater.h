@@ -43,11 +43,26 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_updater.h>
 #include <moveit/point_containment_filter/shape_mask.h>
+#include <moveit_msgs/UpdatePointcloudOctomap.h>
 
 #include <memory>
+#include <mutex>
 
 namespace occupancy_map_monitor
 {
+/* Maintaining the octomap is supported in two ways:
+ * INCREMENTAL: Maintains a an octomap from multiple updates over time.
+                Cells that are marked occupied will remain so even if obscured from the camera view in subsequent
+                updates, and marked free only after they are seen to be free in multiple pointclouds.
+
+   SNAPSHOT:    Create an entirely new octomap from each pointcloud, forgetting previous data with each update.
+ */
+enum class UpdateMethod
+{
+  INCREMENTAL,
+  SNAPSHOT
+};
+
 class PointCloudOctomapUpdater : public OccupancyMapUpdater
 {
 public:
@@ -60,7 +75,37 @@ public:
   void start() override;
   void stop() override;
   ShapeHandle excludeShape(const shapes::ShapeConstPtr& shape) override;
+
+  /** @brief Exclude a shape from the octomap when processing.
+             Allows specifying an initial transform to put in the transform cache.
+             For use outside of the perception pipeline.
+      @param shape The shape to exclude
+      @param pose Pose of the shape in the sensor frame */
+  ShapeHandle excludeShape(const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& pose);
+
   void forgetShape(ShapeHandle handle) override;
+
+  /** @brief Process a pointcloud message and update the octomap.
+             Does not update the transform cache.
+
+             This function is intended for users maintaining their own Octree outside of the perception pipeline.
+             The user can directly add shapes to filter by passing a shape together with a pose to `excludeShape`, and
+             then can use Eigen for all poses, skipping any tf lookups.
+      @param cloud_msg The pointcloud to process
+      @param sensor_pose Eigen pose of the frame in which the pointcloud is given
+      @param update_method Whether to update the current octomap probabilities or to forget all previous octomap data */
+  bool processCloud(const sensor_msgs::PointCloud2& cloud_msg, const Eigen::Isometry3d& sensor_pose,
+                    UpdateMethod update_method);
+
+  /** @brief Process a pointcloud message and update the octomap.
+
+             This version of the function is used by PlanningSceneMonitor in the perception pipeline.
+             Uses tf to get the pose of the camera relative to the Octree, and a callback is used to get the poses of
+             all filtered shapes.
+             Thus, this requires setTransformCacheCallback to have been used to set a callback which is used to get the
+     poses of filtered shapes
+      @param cloud_msg The pointcloud to process */
+  bool processCloud(const sensor_msgs::PointCloud2& cloud_msg);
 
 protected:
   virtual void updateMask(const sensor_msgs::PointCloud2& cloud, const Eigen::Vector3d& sensor_origin,
@@ -68,9 +113,10 @@ protected:
 
 private:
   bool getShapeTransform(ShapeHandle h, Eigen::Isometry3d& transform) const;
-  void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg);
+  void cloudMsgCallback(const sensor_msgs::PointCloud2ConstPtr& cloud_msg);
   void stopHelper();
-
+  bool updatePointcloudOctomapService(moveit_msgs::UpdatePointcloudOctomap::Request& req,
+                                      moveit_msgs::UpdatePointcloudOctomap::Response& res);
   ros::NodeHandle root_nh_;
   ros::NodeHandle private_nh_;
 
@@ -86,8 +132,11 @@ private:
   double max_range_;
   unsigned int point_subsample_;
   double max_update_rate_;
+  UpdateMethod update_method_;
   std::string filtered_cloud_topic_;
+  std::string service_name_;
   ros::Publisher filtered_cloud_publisher_;
+  ros::ServiceServer update_service_;
 
   message_filters::Subscriber<sensor_msgs::PointCloud2>* point_cloud_subscriber_;
   tf2_ros::MessageFilter<sensor_msgs::PointCloud2>* point_cloud_filter_;

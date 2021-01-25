@@ -181,7 +181,7 @@ void OccupancyMapMonitor::initialize()
     }
   }
   else
-    ROS_ERROR_NAMED(LOGNAME, "Failed to find 3D sensor plugin parameters for octomap generation");
+    ROS_WARN_NAMED(LOGNAME, "Failed to find 3D sensor plugin parameters for octomap generation");
 
   /* advertise a service for loading octomaps from disk */
   save_map_srv_ = nh_.advertiseService("save_map", &OccupancyMapMonitor::saveMapCallback, this);
