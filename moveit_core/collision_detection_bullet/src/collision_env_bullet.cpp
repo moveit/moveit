@@ -176,6 +176,8 @@ void CollisionEnvBullet::checkRobotCollisionHelper(const CollisionRequest& req, 
     manager_->setContactDistanceThreshold(MAX_DISTANCE_MARGIN);
   }
 
+  auto originally_active_links = manager_->getActiveCollisionObjects();
+
   std::vector<collision_detection_bullet::CollisionObjectWrapperPtr> attached_cows;
   addAttachedOjects(state, attached_cows);
   updateTransformsFromState(state, manager_);
@@ -208,7 +210,8 @@ void CollisionEnvBullet::checkRobotCollisionHelper(const CollisionRequest& req, 
   // Reset
   if (!req.group_name.empty())
   {
-    ;//manager_->setActiveCollisionObjects(active_);  // All links
+    for (std::string& link : originally_active_links)
+      manager_->enableCollisionObject(link);
   }
   for (const collision_detection_bullet::CollisionObjectWrapperPtr& cow : attached_cows)
   {
