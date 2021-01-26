@@ -55,7 +55,7 @@ TransformProvider::~TransformProvider()
 void TransformProvider::start()
 {
   stop_ = false;
-  thread_ = boost::thread(&TransformProvider::run, this);
+  thread_ = std::thread(&TransformProvider::run, this);
 }
 
 void TransformProvider::stop()

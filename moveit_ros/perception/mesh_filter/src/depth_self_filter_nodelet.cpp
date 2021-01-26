@@ -72,10 +72,10 @@ void mesh_filter::DepthSelfFiltering::onInit()
   private_nh.param("tf_update_rate", tf_update_rate, 30.0);
   transform_provider_.setUpdateInterval(long(1000000.0 / tf_update_rate));
 
-  image_transport::SubscriberStatusCallback itssc = boost::bind(&DepthSelfFiltering::connectCb, this);
-  ros::SubscriberStatusCallback rssc = boost::bind(&DepthSelfFiltering::connectCb, this);
+  image_transport::SubscriberStatusCallback itssc = std::bind(&DepthSelfFiltering::connectCb, this);
+  ros::SubscriberStatusCallback rssc = std::bind(&DepthSelfFiltering::connectCb, this);
 
-  boost::lock_guard<boost::mutex> lock(connect_mutex_);
+  std::lock_guard<std::mutex> lock(connect_mutex_);
   pub_filtered_depth_image_ =
       filtered_depth_transport_->advertiseCamera("/filtered/depth", queue_size_, itssc, itssc, rssc, rssc);
   pub_filtered_label_image_ =
@@ -197,7 +197,7 @@ void mesh_filter::DepthSelfFiltering::addMeshes(MeshFilter<StereoCameraModel>& m
 // Handles (un)subscribing when clients (un)subscribe
 void mesh_filter::DepthSelfFiltering::connectCb()
 {
-  boost::lock_guard<boost::mutex> lock(connect_mutex_);
+  std::lock_guard<std::mutex> lock(connect_mutex_);
   if (pub_filtered_depth_image_.getNumSubscribers() == 0 && pub_filtered_label_image_.getNumSubscribers() == 0 &&
       pub_model_depth_image_.getNumSubscribers() == 0 && pub_model_label_image_.getNumSubscribers() == 0)
   {
