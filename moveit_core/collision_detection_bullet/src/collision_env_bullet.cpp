@@ -187,8 +187,34 @@ void CollisionEnvBullet::checkRobotCollisionHelper(const CollisionRequest& req, 
         cow->getName(), state.getAttachedBody(cow->getName())->getGlobalCollisionBodyTransforms()[0]);
   }
 
+  // Specify active collision links
+  if (!req.group_name.empty())
+  {
+    // auto joint_model_group = robot_model_->getJointModelGroup(req.group_name);
+    // // manager_->setActiveCollisionObjects(joint_model_group->getJointModelNames());
+    // // For this check, disable links that are not in the joint_model_group
+    // std::vector<std::string> joint_names = ;
+    // for (std::string object_name : joint_model_group->getJointModelNames())
+    // {
+    //   if (std::find(active_.begin(), active_.end(), object_name) == active_.end())
+    //   {
+    //     ROS_ERROR_STREAM("Disabling object: " << object_name);
+    //     manager_->disableCollisionObject(object_name);
+    //   }
+    //   ROS_ERROR_STREAM("---");
+    // }
+    manager_->disableCollisionObject("panda_hand");
+    manager_->disableCollisionObject("panda_leftfinger");
+    manager_->disableCollisionObject("panda_rightfinger");
+  }
+
   manager_->contactTest(res, req, acm, false);
 
+  // Reset
+  if (!req.group_name.empty())
+  {
+    ;//manager_->setActiveCollisionObjects(active_);  // All links
+  }
   for (const collision_detection_bullet::CollisionObjectWrapperPtr& cow : attached_cows)
   {
     manager_->removeCollisionObject(cow->getName());
