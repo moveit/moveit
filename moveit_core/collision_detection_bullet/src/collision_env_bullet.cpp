@@ -195,7 +195,7 @@ void CollisionEnvBullet::checkRobotCollisionHelper(const CollisionRequest& req, 
     auto joint_model_group = robot_model_->getJointModelGroup(req.group_name);
     std::vector<std::string> active_links = joint_model_group->getLinkModelNames();
     // Disable links that are not in the joint_model_group
-    for (std::string link_name : active_)
+    for (const std::string& link_name : active_)
     {
       auto pos = std::find(active_links.begin(), active_links.end(), link_name);
       if (pos == active_links.end())
@@ -210,7 +210,7 @@ void CollisionEnvBullet::checkRobotCollisionHelper(const CollisionRequest& req, 
   // Reset
   if (!req.group_name.empty())
   {
-    for (std::string& link : originally_active_links)
+    for (const std::string& link : originally_active_links)
       manager_->enableCollisionObject(link);
   }
   for (const collision_detection_bullet::CollisionObjectWrapperPtr& cow : attached_cows)
