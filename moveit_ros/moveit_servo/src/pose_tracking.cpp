@@ -307,16 +307,9 @@ geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
   return msg;
 }
 
-void PoseTracking::doPostMotionReset()
+void PoseTracking::stopMotion()
 {
-  stop_requested_ = false;
-  angular_error_ = boost::none;
-
-  // Reset error integrals and previous errors of PID controllers
-  cartesian_position_pids_[0].reset();
-  cartesian_position_pids_[1].reset();
-  cartesian_position_pids_[2].reset();
-  cartesian_orientation_pids_[0].reset();
+  stop_requested_ = true;
 
   // Send a 0 command to Servo to halt arm motion
   auto msg = moveit::util::make_shared_from_pool<geometry_msgs::TwistStamped>();
@@ -326,6 +319,19 @@ void PoseTracking::doPostMotionReset()
   }
   msg->header.stamp = ros::Time::now();
   twist_stamped_pub_.publish(msg);
+}
+
+void PoseTracking::doPostMotionReset()
+{
+  stopMotion();
+  stop_requested_ = false;
+  angular_error_ = boost::none;
+
+  // Reset error integrals and previous errors of PID controllers
+  cartesian_position_pids_[0].reset();
+  cartesian_position_pids_[1].reset();
+  cartesian_position_pids_[2].reset();
+  cartesian_orientation_pids_[0].reset();
 }
 
 void PoseTracking::updatePIDConfig(const double x_proportional_gain, const double x_integral_gain,
