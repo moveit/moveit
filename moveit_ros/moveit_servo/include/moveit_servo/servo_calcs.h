@@ -104,6 +104,9 @@ public:
    */
   void changeRobotLinkCommandFrame(const std::string& new_command_frame);
 
+  // Give test access to private/protected methods
+  friend class ServoFixture;
+
 private:
   /** \brief Run the main calculation loop */
   void mainCalcLoop();

@@ -32,11 +32,11 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Tyler Weaver
-   Desc:   Test for the low latency mode of servo
+/* Author: Tyler Weaver, Andy Zelenak
+   Desc:   Basic functionality tests
 */
 
-// C++
+// System
 #include <string>
 
 // ROS
@@ -49,7 +49,7 @@
 #include <moveit_servo/make_shared_from_pool.h>
 #include <moveit_servo/servo.h>
 
-static const std::string LOGNAME = "servo_low_latency_test";
+static const std::string LOGNAME = "basic_servo_tests";
 
 namespace moveit_servo
 {
@@ -82,6 +82,10 @@ public:
   }
 
 protected:
+  void enforceVelLimits(Eigen::ArrayXd& delta_theta)
+  {
+    servo_->servo_calcs_->enforceVelLimits(delta_theta);
+  }
   ros::NodeHandle nh_{ "~" };
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   moveit_servo::ServoPtr servo_;
@@ -169,6 +173,27 @@ TEST_F(ServoFixture, SendJointServoTest)
   EXPECT_GT(received_count, (unsigned)0);
   EXPECT_LT(received_count, num_commands + 20);
   servo_->setPaused(true);
+}
+
+// This a friend test of a private member function
+TEST_F(ServoFixture, EnforceVelLimitsTest)
+{
+  auto parameters = servo_->getParameters();
+  double publish_period = parameters.publish_period;
+
+  // Request joint angle changes that are too fast, given the control period in yaml file
+  Eigen::ArrayXd delta_theta(6);
+  delta_theta[0] = 0;  // rad
+  delta_theta[1] = 1;
+  delta_theta[2] = 2;
+  delta_theta[3] = 3;
+  delta_theta[4] = 4;
+  delta_theta[5] = 5;
+  enforceVelLimits(delta_theta);
+
+  double panda_max_joint_vel = 2.8710;  // From Panda URDF. rad/s
+  EXPECT_LT(delta_theta.maxCoeff() / publish_period, panda_max_joint_vel);
+  EXPECT_GT(delta_theta.minCoeff() / publish_period, -panda_max_joint_vel);
 }
 }  // namespace moveit_servo
 
