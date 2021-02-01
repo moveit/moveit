@@ -194,6 +194,16 @@ TEST_F(ServoFixture, EnforceVelLimitsTest)
   double panda_max_joint_vel = 2.8710;  // From Panda URDF. rad/s
   EXPECT_LT(delta_theta.maxCoeff() / publish_period, panda_max_joint_vel);
   EXPECT_GT(delta_theta.minCoeff() / publish_period, -panda_max_joint_vel);
+
+  // Now, negative velocities
+  delta_theta[0] = 0;  // rad
+  delta_theta[1] = -1;
+  delta_theta[2] = -2;
+  delta_theta[3] = -3;
+  delta_theta[4] = -4;
+  delta_theta[5] = -5;
+  EXPECT_LT(delta_theta.maxCoeff() / publish_period, panda_max_joint_vel);
+  EXPECT_GT(delta_theta.minCoeff() / publish_period, -panda_max_joint_vel);
 }
 }  // namespace moveit_servo
 
