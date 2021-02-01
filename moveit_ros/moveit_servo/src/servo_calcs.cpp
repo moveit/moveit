@@ -771,8 +771,8 @@ void ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
       const auto unbounded_velocity = velocity(joint_delta_index);
       velocity(joint_delta_index) = std::min(std::max(unbounded_velocity, bounds.min_velocity_), bounds.max_velocity_);
       velocity_scaling_factor = std::min(velocity_scaling_factor, unbounded_velocity / velocity(joint_delta_index));
-      ++joint_delta_index;
     }
+    ++joint_delta_index;
   }
 
   // Convert back to joint angle increments.
