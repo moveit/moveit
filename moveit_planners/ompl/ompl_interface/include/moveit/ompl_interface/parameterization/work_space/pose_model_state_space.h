@@ -75,7 +75,7 @@ public:
       if (value)
         setFlag(JOINTS_COMPUTED);
       else
-        clearflag(JOINTS_COMPUTED);
+        clearFlag(JOINTS_COMPUTED);
     }
 
     void setPoseComputed(bool value)
@@ -83,7 +83,7 @@ public:
       if (value)
         setFlag(POSE_COMPUTED);
       else
-        clearflag(POSE_COMPUTED);
+        clearFlag(POSE_COMPUTED);
     }
 
     ompl::base::SE3StateSpace::StateType** poses;

@@ -87,6 +87,17 @@ public:
       IS_GOAL_STATE = 16
     };
 
+    /** \brief Thread-safe container for cached values.
+     *
+     * OMPL requires all \c const qualified member functions to be thread-safe.
+     * Some classes like ompl_interface::StateValidityChecker use this State type
+     * to cache some results, using \c const_cast . This container is a \c mutable
+     * atomic member of the state, which allows caching results without UB and data races.
+     * It should only be modified with the help of modifyCache(),
+     * which ensures that the state itself is consistent to other threads.
+     * To process the data in the cache, always get a copy of the cache using getCache().
+     * The 16 byte alignment is needed for Compare-and-Exchange on x64.
+     */
     struct alignas(16) AtomicCache
     {
       int tag;
@@ -123,12 +134,18 @@ public:
         return flags & (IS_START_STATE | IS_GOAL_STATE);
       }
     };
-    static_assert(sizeof(AtomicCache) == 16, "Cache Object size mismatch");
+    static_assert(sizeof(AtomicCache) == 16, "Padding not well supported for CAS");
 
     StateType() : ompl::base::State(), atomic_cache(AtomicCache{ -1, 0, 0.0 }), values(nullptr)
     {
     }
 
+    /** \brief Mark state as valid and set the known distance.
+     *
+     * This function is \c const qualified to make it mutable from
+     * within OMPL interfaces which pass a <tt>const State *</tt>.
+     * \param d Distance
+     */
     void markValid(double d) const
     {
       modifyCache([d](AtomicCache& desired) {
@@ -137,11 +154,22 @@ public:
       });
     }
 
+    /** \brief Mark state as valid.
+     *
+     * This function is \c const qualified to make it mutable from
+     * within OMPL interfaces which pass a <tt>const State *</tt>.
+     */
     void markValid() const
     {
       setFlag(VALIDITY_KNOWN | VALIDITY_TRUE);
     }
 
+    /** \brief Mark state as invalid and set the known distance.
+     *
+     * This function is \c const qualified to make it mutable from
+     * within OMPL interfaces which pass a <tt>const State *</tt>.
+     * \param d Distance
+     */
     void markInvalid(double d) const
     {
       modifyCache([d](AtomicCache& desired) {
@@ -151,6 +179,11 @@ public:
       });
     }
 
+    /** \brief Mark state as invalid.
+     *
+     * This function is \c const qualified to make it mutable from
+     * within OMPL interfaces which pass a <tt>const State *</tt>.
+     */
     void markInvalid() const
     {
       modifyCache([](AtomicCache& desired) {
@@ -182,7 +215,7 @@ public:
     {
       modifyCache([flag](AtomicCache& desired) { desired.flags |= flag; });
     }
-    void clearflag(int flag) const
+    void clearFlag(int flag) const
     {
       modifyCache([flag](AtomicCache& desired) { desired.flags &= ~flag; });
     }
@@ -194,6 +227,13 @@ public:
     {
       modifyCache([tag](AtomicCache& desired) { desired.tag = tag; });
     }
+    /** \brief Get a copy of the cached data.
+     *
+     * Use this getter to get a consistent dataset
+     * (e.g. valid distance with GOAL_DISTANCE_KNOWN flag set)
+     * for further processing. Doing otherwise might result in data races.
+     * \return A valid and consistent dataset (flags, tag, distance).
+     */
     AtomicCache getCache() const
     {
       return atomic_cache.load();
