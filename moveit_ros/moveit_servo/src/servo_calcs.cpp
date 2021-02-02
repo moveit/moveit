@@ -761,16 +761,17 @@ void ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
   // Convert to joint angle velocities for checking and applying joint specific velocity limits.
   Eigen::ArrayXd velocity = delta_theta / parameters_.publish_period;
 
-  std::size_t joint_delta_index = 0;
-  double velocity_scaling_factor = 1;
+  std::size_t joint_delta_index{ 0 };
+  double velocity_scaling_factor{ 1.0 };
   for (const moveit::core::JointModel* joint : joint_model_group_->getActiveJointModels())
   {
     const auto& bounds = joint->getVariableBounds(joint->getName());
-    if (bounds.velocity_bounded_)
+    if (bounds.velocity_bounded_ && velocity(joint_delta_index) != 0.0)
     {
-      const auto unbounded_velocity = velocity(joint_delta_index);
-      velocity(joint_delta_index) = std::min(std::max(unbounded_velocity, bounds.min_velocity_), bounds.max_velocity_);
-      velocity_scaling_factor = std::min(velocity_scaling_factor, unbounded_velocity / velocity(joint_delta_index));
+      const double unbounded_velocity = velocity(joint_delta_index);
+      // Clamp each joint velocity to a joint specific [min_velocity, max_velocity] range.
+      const auto bounded_velocity = std::min(std::max(unbounded_velocity, bounds.min_velocity_), bounds.max_velocity_);
+      velocity_scaling_factor = std::min(velocity_scaling_factor, bounded_velocity / unbounded_velocity);
     }
     ++joint_delta_index;
   }
