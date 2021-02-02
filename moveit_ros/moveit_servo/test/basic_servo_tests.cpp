@@ -179,31 +179,65 @@ TEST_F(ServoFixture, SendJointServoTest)
 TEST_F(ServoFixture, EnforceVelLimitsTest)
 {
   auto parameters = servo_->getParameters();
-  double publish_period = parameters.publish_period;
+  const double publish_period = parameters.publish_period;
 
-  // Request joint angle changes that are too fast, given the control period in yaml file
-  Eigen::ArrayXd delta_theta(6);
+  // Request joint angle changes that are too fast, given the control period in servo settings YAML file.
+  Eigen::ArrayXd delta_theta(7);
   delta_theta[0] = 0;  // rad
-  delta_theta[1] = 1;
-  delta_theta[2] = 2;
-  delta_theta[3] = 3;
-  delta_theta[4] = 4;
-  delta_theta[5] = 5;
+  delta_theta[1] = 0.01;
+  delta_theta[2] = 0.02;
+  delta_theta[3] = 0.03;
+  delta_theta[4] = 0.04;
+  delta_theta[5] = 0.05;
+  delta_theta[6] = 0.06;
+
+  // Store the original joint commands for comparison before applying velocity scaling.
+  Eigen::ArrayXd orig_delta_theta = delta_theta;
   enforceVelLimits(delta_theta);
 
-  double panda_max_joint_vel = 2.8710;  // From Panda URDF. rad/s
-  EXPECT_LT(delta_theta.maxCoeff() / publish_period, panda_max_joint_vel);
-  EXPECT_GT(delta_theta.minCoeff() / publish_period, -panda_max_joint_vel);
+  // From Panda arm MoveIt joint_limits.yaml. The largest velocity limits for a joint.
+  const double panda_max_joint_vel = 2.610;  // rad/s
+  const double velocity_scaling_factor = panda_max_joint_vel / (orig_delta_theta.maxCoeff() / publish_period);
+  for (int i = 0; i < 7; ++i)
+  {
+    EXPECT_DOUBLE_EQ(orig_delta_theta(i) * velocity_scaling_factor, delta_theta(i));
+  }
 
-  // Now, negative velocities
+  // Now, negative joint angle deltas. Some will result to velocities
+  // greater than the arm joint velocity limits.
   delta_theta[0] = 0;  // rad
-  delta_theta[1] = -1;
-  delta_theta[2] = -2;
-  delta_theta[3] = -3;
-  delta_theta[4] = -4;
-  delta_theta[5] = -5;
-  EXPECT_LT(delta_theta.maxCoeff() / publish_period, panda_max_joint_vel);
-  EXPECT_GT(delta_theta.minCoeff() / publish_period, -panda_max_joint_vel);
+  delta_theta[1] = -0.01;
+  delta_theta[2] = -0.02;
+  delta_theta[3] = -0.03;
+  delta_theta[4] = -0.04;
+  delta_theta[5] = -0.05;
+  delta_theta[6] = -0.06;
+
+  // Store the original joint commands for comparison before applying velocity scaling.
+  orig_delta_theta = delta_theta;
+  enforceVelLimits(delta_theta);
+  for (int i = 0; i < 7; ++i)
+  {
+    EXPECT_DOUBLE_EQ(orig_delta_theta(i) * velocity_scaling_factor, delta_theta(i));
+  }
+
+  // Final test with joint angle deltas that will result in velocities
+  // below the lowest Panda arm joint velocity limit.
+  delta_theta[0] = 0;  // rad
+  delta_theta[1] = -0.013;
+  delta_theta[2] = 0.023;
+  delta_theta[3] = -0.004;
+  delta_theta[4] = 0.021;
+  delta_theta[5] = 0.012;
+  delta_theta[6] = 0.0075;
+
+  // Store the original joint commands for comparison before applying velocity scaling.
+  orig_delta_theta = delta_theta;
+  enforceVelLimits(delta_theta);
+  for (int i = 0; i < 7; ++i)
+  {
+    EXPECT_DOUBLE_EQ(orig_delta_theta(i), delta_theta(i));
+  }
 }
 }  // namespace moveit_servo
 
