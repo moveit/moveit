@@ -198,9 +198,10 @@ TEST_F(ServoFixture, EnforceVelLimitsTest)
   // From Panda arm MoveIt joint_limits.yaml. The largest velocity limits for a joint.
   const double panda_max_joint_vel = 2.610;  // rad/s
   const double velocity_scaling_factor = panda_max_joint_vel / (orig_delta_theta.maxCoeff() / publish_period);
+  const double tolerance = 5e-3;
   for (int i = 0; i < 7; ++i)
   {
-    EXPECT_DOUBLE_EQ(orig_delta_theta(i) * velocity_scaling_factor, delta_theta(i));
+    EXPECT_NEAR(orig_delta_theta(i) * velocity_scaling_factor, delta_theta(i), tolerance);
   }
 
   // Now, negative joint angle deltas. Some will result to velocities
@@ -218,7 +219,7 @@ TEST_F(ServoFixture, EnforceVelLimitsTest)
   enforceVelLimits(delta_theta);
   for (int i = 0; i < 7; ++i)
   {
-    EXPECT_DOUBLE_EQ(orig_delta_theta(i) * velocity_scaling_factor, delta_theta(i));
+    EXPECT_NEAR(orig_delta_theta(i) * velocity_scaling_factor, delta_theta(i), tolerance);
   }
 
   // Final test with joint angle deltas that will result in velocities
@@ -236,7 +237,7 @@ TEST_F(ServoFixture, EnforceVelLimitsTest)
   enforceVelLimits(delta_theta);
   for (int i = 0; i < 7; ++i)
   {
-    EXPECT_DOUBLE_EQ(orig_delta_theta(i), delta_theta(i));
+    EXPECT_NEAR(orig_delta_theta(i), delta_theta(i), tolerance);
   }
 }
 }  // namespace moveit_servo
