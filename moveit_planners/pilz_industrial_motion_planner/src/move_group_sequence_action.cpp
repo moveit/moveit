@@ -46,7 +46,6 @@
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
-#include <moveit/utils/message_checks.h>
 
 #include "pilz_industrial_motion_planner/command_list_manager.h"
 #include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"
@@ -130,7 +129,7 @@ void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(
   plan_execution::PlanExecution::Options opt;
 
   const moveit_msgs::PlanningScene& planning_scene_diff =
-      moveit::core::isEmpty(goal->planning_options.planning_scene_diff.robot_state) ?
+      planning_scene::PlanningScene::isEmpty(goal->planning_options.planning_scene_diff.robot_state) ?
           goal->planning_options.planning_scene_diff :
           clearSceneRobotState(goal->planning_options.planning_scene_diff);
 
@@ -186,7 +185,7 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const moveit_msgs::Mov
   planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
 
   const planning_scene::PlanningSceneConstPtr& the_scene =
-      (moveit::core::isEmpty(goal->planning_options.planning_scene_diff)) ?
+      (planning_scene::PlanningScene::isEmpty(goal->planning_options.planning_scene_diff)) ?
           static_cast<const planning_scene::PlanningSceneConstPtr&>(lscene) :
           lscene->diff(goal->planning_options.planning_scene_diff);
 
