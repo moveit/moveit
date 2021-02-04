@@ -1623,8 +1623,12 @@ void MoveGroupInterface::getJointValueTarget(std::vector<double>& group_variable
 
 bool MoveGroupInterface::setJointValueTarget(const std::vector<double>& joint_values)
 {
-  if (joint_values.size() != impl_->getJointModelGroup()->getVariableCount())
+  auto const n_group_joints =  impl_->getJointModelGroup()->getVariableCount();
+  if (joint_values.size() != n_group_joints)
+  {
+    ROS_DEBUG_STREAM_NAMED(LOGNAME, "Provided joint value list has length " << joint_values.size() << " but group has " << n_group_joints << " joints");
     return false;
+  }
   impl_->setTargetType(JOINT);
   impl_->getTargetRobotState().setJointGroupPositions(impl_->getJointModelGroup(), joint_values);
   return impl_->getTargetRobotState().satisfiesBounds(impl_->getJointModelGroup(), impl_->getGoalJointTolerance());
