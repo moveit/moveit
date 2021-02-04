@@ -1623,10 +1623,11 @@ void MoveGroupInterface::getJointValueTarget(std::vector<double>& group_variable
 
 bool MoveGroupInterface::setJointValueTarget(const std::vector<double>& joint_values)
 {
-  auto const n_group_joints =  impl_->getJointModelGroup()->getVariableCount();
+  auto const n_group_joints = impl_->getJointModelGroup()->getVariableCount();
   if (joint_values.size() != n_group_joints)
   {
-    ROS_DEBUG_STREAM_NAMED(LOGNAME, "Provided joint value list has length " << joint_values.size() << " but group has " << n_group_joints << " joints");
+    ROS_DEBUG_STREAM_NAMED(LOGNAME, "Provided joint value list has length " << joint_values.size() << " but group has "
+                                                                            << n_group_joints << " joints");
     return false;
   }
   impl_->setTargetType(JOINT);
