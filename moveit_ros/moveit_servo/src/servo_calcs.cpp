@@ -758,58 +758,26 @@ double ServoCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& co
 
 void ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
 {
+  // Convert to joint angle velocities for checking and applying joint specific velocity limits.
   Eigen::ArrayXd velocity = delta_theta / parameters_.publish_period;
 
-  std::size_t joint_delta_index = 0;
-  // Track the smallest velocity scaling factor required, across all joints
-  double velocity_limit_scaling_factor = 1;
-
-  for (auto joint : joint_model_group_->getActiveJointModels())
+  std::size_t joint_delta_index{ 0 };
+  double velocity_scaling_factor{ 1.0 };
+  for (const moveit::core::JointModel* joint : joint_model_group_->getActiveJointModels())
   {
-    // Some joints do not have bounds defined
-    const auto bounds = joint->getVariableBounds(joint->getName());
-
-    if (bounds.velocity_bounded_)
+    const auto& bounds = joint->getVariableBounds(joint->getName());
+    if (bounds.velocity_bounded_ && velocity(joint_delta_index) != 0.0)
     {
-      velocity(joint_delta_index) = delta_theta(joint_delta_index) / parameters_.publish_period;
-
-      bool clip_velocity = false;
-      double velocity_limit = 0.0;
-      if (velocity(joint_delta_index) < bounds.min_velocity_)
-      {
-        clip_velocity = true;
-        velocity_limit = bounds.min_velocity_;
-      }
-      else if (velocity(joint_delta_index) > bounds.max_velocity_)
-      {
-        clip_velocity = true;
-        velocity_limit = bounds.max_velocity_;
-      }
-
-      // Apply velocity bounds
-      if (clip_velocity)
-      {
-        const double scaling_factor =
-            fabs(velocity_limit * parameters_.publish_period) / fabs(delta_theta(joint_delta_index));
-
-        // Store the scaling factor if it's the smallest yet
-        if (scaling_factor < velocity_limit_scaling_factor)
-          velocity_limit_scaling_factor = scaling_factor;
-      }
+      const double unbounded_velocity = velocity(joint_delta_index);
+      // Clamp each joint velocity to a joint specific [min_velocity, max_velocity] range.
+      const auto bounded_velocity = std::min(std::max(unbounded_velocity, bounds.min_velocity_), bounds.max_velocity_);
+      velocity_scaling_factor = std::min(velocity_scaling_factor, bounded_velocity / unbounded_velocity);
     }
     ++joint_delta_index;
   }
 
-  // Apply the velocity scaling to all joints
-  if (velocity_limit_scaling_factor < 1)
-  {
-    for (joint_delta_index = 0; joint_delta_index < joint_model_group_->getActiveJointModels().size();
-         ++joint_delta_index)
-    {
-      delta_theta(joint_delta_index) = velocity_limit_scaling_factor * delta_theta(joint_delta_index);
-      velocity(joint_delta_index) = velocity_limit_scaling_factor * velocity(joint_delta_index);
-    }
-  }
+  // Convert back to joint angle increments.
+  delta_theta = velocity_scaling_factor * velocity * parameters_.publish_period;
 }
 
 bool ServoCalcs::enforcePositionLimits()
