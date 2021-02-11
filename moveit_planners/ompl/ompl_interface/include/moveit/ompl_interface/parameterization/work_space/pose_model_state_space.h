@@ -38,6 +38,7 @@
 
 #include <moveit/ompl_interface/parameterization/model_based_state_space.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
+#include <memory>
 
 namespace ompl_interface
 {
@@ -55,7 +56,7 @@ public:
       POSE_COMPUTED = 512
     };
 
-    StateType() : ModelBasedStateSpace::StateType(), poses(nullptr)
+    StateType() : ModelBasedStateSpace::StateType(), poses_(nullptr)
     {
       setFlag(JOINTS_COMPUTED);
     }
@@ -86,7 +87,23 @@ public:
         clearFlag(POSE_COMPUTED);
     }
 
-    ompl::base::SE3StateSpace::StateType** poses;
+    ompl::base::SE3StateSpace::StateType** poses()
+    {
+      return poses_.get();
+    }
+
+    const ompl::base::SE3StateSpace::StateType** poses() const
+    {
+      return const_cast<const ompl::base::SE3StateSpace::StateType**>(poses_.get());
+    }
+
+    void setPoses(std::unique_ptr<ompl::base::SE3StateSpace::StateType*[]> poses)
+    {
+      poses_ = std::move(poses);
+    }
+
+  protected:
+    std::unique_ptr<ompl::base::SE3StateSpace::StateType*[]> poses_;
   };
 
   PoseModelStateSpace(const ModelBasedStateSpaceSpecification& spec);

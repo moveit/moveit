@@ -42,6 +42,7 @@
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/constraint_samplers/constraint_sampler.h>
 #include <atomic>
+#include <memory>
 
 namespace ompl_interface
 {
@@ -136,7 +137,7 @@ public:
     };
     static_assert(sizeof(AtomicCache) == 16, "Padding not well supported for CAS");
 
-    StateType() : ompl::base::State(), atomic_cache(AtomicCache{ -1, 0, 0.0 }), values(nullptr)
+    StateType() : ompl::base::State(), atomic_cache(AtomicCache{ -1, 0, 0.0 }), values_(nullptr)
     {
     }
 
@@ -243,6 +244,21 @@ public:
       atomic_cache.store(cache);
     }
 
+    double* values()
+    {
+      return values_.get();
+    }
+
+    const double* values() const
+    {
+      return values_.get();
+    }
+
+    void setValues(std::unique_ptr<double[]> values)
+    {
+      values_ = std::move(values);
+    }
+
   protected:
     mutable std::atomic<AtomicCache> atomic_cache;
     /**
@@ -267,8 +283,7 @@ public:
       } while (!atomic_cache.compare_exchange_weak(expected, desired));
     }
 
-  public:
-    double* values;
+    std::unique_ptr<double[]> values_;
   };
 
   ModelBasedStateSpace(ModelBasedStateSpaceSpecification spec);
