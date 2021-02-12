@@ -16,6 +16,7 @@ TRAJOPT_IGNORE_WARNINGS_POP
 namespace trajopt
 {
 
+// converts a vector of contacts to a vector of distances
 void CollisionsToDistances(const std::vector<collision_detection::Contact>& dist_results, DblVec& dists)
 {
   dists.clear();
@@ -24,6 +25,7 @@ void CollisionsToDistances(const std::vector<collision_detection::Contact>& dist
   // how to get distance from MoveIt to feed dists
   // for (auto i = 0u; i < dist_results.size(); ++i)
   //   dists.push_back(dist_results[i].distance);
+
   for (auto i = 0u; i < dist_results.size(); ++i)
     dists.push_back(dist_results[i].depth);
 }
@@ -45,7 +47,7 @@ void CollisionsToDistanceExpressions(const std::vector<collision_detection::Cont
   // typedef std::vector<Var> VarVector
   // typedef std:vector<double> DblVec
 
-  Eigen::VectorXd dofvals = sco::getVec(x, vars);
+  Eigen::VectorXd dofvals = sco::getVec(x, vars); // joint values
   // const std::vector<std::string>& link_names = manip->getLinkNames();
   const std::vector<std::string>& link_names = planning_scene->getRobotModel()->getLinkModelNames();
 
@@ -58,8 +60,6 @@ void CollisionsToDistanceExpressions(const std::vector<collision_detection::Cont
 
   moveit::core::RobotState& robot_state = planning_scene->getCurrentState();
   const robot_state::JointModelGroup* joint_model_group = robot_state->getJointModelGroup(PLANNING_GROUP);
-  const LinkModel* link_1(res.body_name_1); // link_names[0] 
-  const LinkModel* link_2(res.body_name_2); // link_names[1] 
   std::vector<std::string> group_joint_names = joint_model_group->getActiveJointModelNames();
   int group_dof = group_joint_names.size();
 
@@ -70,6 +70,9 @@ void CollisionsToDistanceExpressions(const std::vector<collision_detection::Cont
     // => for each ContactResult in the total ContactResultVector that contains all the contacts of each pair and all the pairs
     // const tesseract::ContactResult& res = dist_results[i];
     const collision_detection::Contact& res = dist_results[i];
+
+    const LinkModel* link_1(res.body_name_1); // link_names[0] 
+    const LinkModel* link_2(res.body_name_2); // link_names[1] 
 
     // ContactResult in the original trajopt has two bodies and a distance
     // In MoveIt, we have Contact (corresponding to ContactResult in tesseract) type
@@ -102,7 +105,7 @@ void CollisionsToDistanceExpressions(const std::vector<collision_detection::Cont
                                       res.nearest_points[0],
                                       jac);
       
-   /**
+   /** tesseract:
    *  Calculated jacobian at a link given joint angles
    *  jac: jacobian Output jacobian for a given link
    *  change_base: The transform from the base frame of the manipulator to the desired frame.
@@ -141,29 +144,11 @@ void CollisionsToDistanceExpressions(const std::vector<collision_detection::Cont
     bool succeed = robot_state.getJacobian(
                   joint_model_group,
                   link_2, 
-                  (isTimestep1 && (res.cc_type == tesseract::ContinouseCollisionType::CCType_Between)) ?
+                  (isTimestep1 && (res.cc_type == trajopt::ContinouseCollisionType::CCType_Between)) ?
                    res.cc_nearest_points[1] :
                    res.nearest_points[1], 
                   jac);
-
-    // depending on ContinousCollisionType
-    // enum ContinouseCollisionType
-    // {
-    //   CCType_None,
-    //   CCType_Time0,
-    //   CCType_Time1,
-    //   CCType_Between
-    // };
-
-    // manip->calcJacobian(jac,
-    //                     change_base,
-    //                     dofvals,
-    //                     res.link_names[1],
-    //                     *state,
-    //                     (isTimestep1 && (res.cc_type == tesseract::ContinouseCollisionType::CCType_Between)) ?
-    //                         res.cc_nearest_points[1] :
-    //                         res.nearest_points[1]);
-    
+   
      
       dist_grad_b = res.normal.transpose() * jac.topRows(3);
       sco::exprInc(dist, sco::varDot(dist_grad_b, vars));
@@ -202,54 +187,81 @@ void CollisionsToDistanceExpressions(const tesseract::ContactResultVector& dist_
   }
 }
 
-// inline size_t hash(const DblVec& x) { return boost::hash_range(x.begin(), x.end()); }
-// // void CollisionEvaluator::GetCollisionsCached(const DblVec& x, tesseract::ContactResultVector& dist_results)
-// void CollisionEvaluator::GetCollisionsCached(const DblVec& x, std::vector<collision_detection::Contact>& dist_results)
-// {
-//   size_t key = hash(sco::getDblVec(x, GetVars()));
-//   tesseract::ContactResultVector* it = m_cache.get(key);
-//   if (it != nullptr)
-//   {
-//     LOG_DEBUG("using cached collision check\n");
-//     dist_results = *it;
-//   }
-//   else
-//   {
-//     LOG_DEBUG("not using cached collision check\n");
-//     CalcCollisions(x, dist_results);
-//     m_cache.put(key, dist_results);
-//   }
-// }
+inline size_t hash(const DblVec& x) { return boost::hash_range(x.begin(), x.end()); }
+void CollisionEvaluator::GetCollisionsCached(const DblVec& x, std::vector<collision_detection::Contact>& dist_results)
+void CollisionEvaluator::GetCollisionsCached(const DblVec& x, std::vector<collision_detection::Contact>& dist_results)
+{
+  size_t key = hash(sco::getDblVec(x, GetVars()));
+  // tesseract::ContactResultVector* it = m_cache.get(key);
+  std::vector<collision_detection::Contact>* it = m_cache.get(key);
+  
+  if (it != nullptr)
+  {
+    LOG_DEBUG("using cached collision check\n");
+    dist_results = *it;
+  }
+  else
+  {
+    LOG_DEBUG("not using cached collision check\n");
+    CalcCollisions(x, dist_results);
+    m_cache.put(key, dist_results);
+  }
+}
 
 SingleTimestepCollisionEvaluator::SingleTimestepCollisionEvaluator(planning_scene::PlanningSceneConstPtr planning_scene,
                                                                    SafetyMarginDataConstPtr safety_margin_data,
                                                                    const sco::VarVector& vars)
   : CollisionEvaluator(planning_scene, safety_margin_data), m_vars(vars)
 {
-  // contact_manager_ = env_->getDiscreteContactManager();
-  // contact_manager_->setActiveCollisionObjects(manip_->getLinkNames());
-  // contact_manager_->setContactDistanceThreshold(safety_margin_data_->getMaxSafetyMargin() +
-                                                0.04);  // The original implementation added a margin of 0.04;
+  contact_manager_ = env_->getDiscreteContactManager();
+  contact_manager_->setActiveCollisionObjects(manip_->getLinkNames());
+  contact_manager_->setContactDistanceThreshold(safety_margin_data_->getMaxSafetyMargin() +
+                                               0.04);  // The original implementation added a margin of 0.04;
 }
 
+// So, each pair has a vector of contacts, and this functions puts all of these vectors of all pairs to one big vector called dist_results
 //void SingleTimestepCollisionEvaluator::CalcCollisions(const DblVec& x, tesseract::ContactResultVector& dist_results)
 void SingleTimestepCollisionEvaluator::CalcCollisions(const DblVec& x, std::vector<collision_detection::Contact>& dist_results)
 {
   // tesseract::ContactResultMap contacts;
   // tesseract::EnvStatePtr state = env_->getState(manip_->getJointNames(), sco::getVec(x, m_vars));
+  // ===> getVec is defined as:
+  // Eigen::VectorXd getVec(const DblVec& x, const VarVector& vars) and
+  // DblVec is vector<double>
+  // VarVec is vector<Var>
+  // Var has VarRep (look in solver_interface) member which has properties like name and index 
+  // getVec extracts the index of VarRep of each Var of a VarVector and finds the element in DblVec with the 
+  // same index and creates the output as VectorXd. 
+  // Finally, getState(joint_names, joint_values)
+  // So, input x of this function, CalcCollisions, is represting the joint values 
+  // joint_values = sco::getVec(x, m_vars);
 
-  collision_detection::CollisionRequest collision_request;
-  collision_detection::CollisionResult collision_result;
-  planning_scene->checkCollision(collision_request, collision_result);
+  // So, I guess I need to set the robot state based on these joint values
+  Eigen::VectorXd joint_values = sco::getVec(x, m_vars);
+  std::vector<double> joint_values_DblVec = std::vector<double>(joint_values.data(), joint_values.data() + joint_values.size());
+  // TODO: set the state of the robot based on this joing values:
+  planning_scene->...
 
   // for (const auto& link_name : manip_->getLinkNames())
   //   contact_manager_->setCollisionObjectsTransform(link_name, state->transforms[link_name]);
+  // ====>
+  // setCollisionObjectTransform sets the transform of a collision object.
+  // contact manager has collision objects and has functions to remove/add them or 
+  // set their transforms. This is basically adding all the robot links as collision objects
+  // We already have this in planning_scene, calling fcl or bullet would consider all the robot links as collision object? 
 
   //contact_manager_->contactTest(contacts, tesseract::ContactTestTypes::ALL);
+  // ====> ContactTestTypes::ALL = > Return all contacts for a pair of objects
+
   // tesseract::moveContactResultsMapToContactResultsVector(contacts, dist_results);
-  // ContactTestTypes::ALL = > Return all contacts for a pair of objects
-  // this moveContactResultsMapToContactResultsVector moves the elements of ContactResultVector
+  // ====> moveContactResultsMapToContactResultsVector moves the elements of ContactResultVector
   // of each ContactResultMap in contacts to one ContactResultVector called dist_results
+
+  // ===> for MoveIt
+  collision_detection::CollisionRequest collision_request;
+  collision_detection::CollisionResult collision_result;
+  planning_scene->checkCollision(collision_request, collision_result);
+  // ====> checkCollision will check for both self-collisions and for collisions with the environment
 
   // tesseract:
   // ContactResultMap => AlignedMap<std::pair<std::string, std::string>, ContactResultVector>
@@ -285,19 +297,18 @@ void SingleTimestepCollisionEvaluator::CalcCollisions(const DblVec& x, std::vect
 
 }
 
+// so, given a set of joint values called x, this function converts the vector of contacts to the vector of distances
 void SingleTimestepCollisionEvaluator::CalcDists(const DblVec& x, DblVec& dists)
 {
   std::vector<collision_detection::Contact> dist_results;
-  // GetCollisionsCached(x, dist_results);
-  CalcCollisions(x, dist_results);
+  GetCollisionsCached(x, dist_results); 
   CollisionsToDistances(dist_results, dists);
 }
 
 void SingleTimestepCollisionEvaluator::CalcDistExpressions(const DblVec& x, sco::AffExprVector& exprs)
 {
   std::vector<collision_detection::Contact> dist_results;
-  // GetCollisionsCached(x, dist_results);
-  CalcCollisions(x, dist_results);
+  GetCollisionsCached(x, dist_results);
   CollisionsToDistanceExpressions(dist_results, env_, manip_, m_vars, x, exprs, false);
 
   LOG_DEBUG("%ld distance expressions\n", exprs.size());
@@ -312,38 +323,67 @@ CastCollisionEvaluator::CastCollisionEvaluator(planning_scene::PlanningSceneCons
                                                const sco::VarVector& vars1)
   : CollisionEvaluator(planning_scene, safety_margin_data), m_vars0(vars0), m_vars1(vars1)
 {
-  // contact_manager_ = env_->getContinuousContactManager();
-  // contact_manager_->setActiveCollisionObjects(manip_->getLinkNames());
-  // contact_manager_->setContactDistanceThreshold(safety_margin_data_->getMaxSafetyMargin() +
+  contact_manager_ = env_->getContinuousContactManager();
+  contact_manager_->setActiveCollisionObjects(manip_->getLinkNames());
+  contact_manager_->setContactDistanceThreshold(safety_margin_data_->getMaxSafetyMargin() +
                                                 0.04);  // The original implementation added a margin of 0.04;
 }
 
+// similar to CalcCollisions from SingleTimestepCollisionEvaluator except we need two states because it is the 
+// swept volume?
 void CastCollisionEvaluator::CalcCollisions(const DblVec& x, std::vector<collision_detection::Contact>& dist_results& dist_results)
 {
   // tesseract::ContactResultMap contacts;
   // tesseract::EnvStatePtr state0 = env_->getState(manip_->getJointNames(), sco::getVec(x, m_vars0));
   // tesseract::EnvStatePtr state1 = env_->getState(manip_->getJointNames(), sco::getVec(x, m_vars1));
-  // for (const auto& link_name : manip_->getLinkNames())
-  //   contact_manager_->setCollisionObjectsTransform(
-  //       link_name, state0->transforms[link_name], state1->transforms[link_name]);
+  // ===> so far they create two states based on two sets of joint values
 
+  // for (const auto& link_name : manip_->getLinkNames())
+  //   contact_manager_->setCollisionObjectsTransform(link_name, state0->transforms[link_name], state1->transforms[link_name]);
+  // ===>>> in here, they add two collision transforms for each link
+
+  // ===>>> in the folloinwg, considering two collision transforms for each link, they calculate all the contacts among them
   // contact_manager_->contactTest(contacts, tesseract::ContactTestTypes::ALL);
   // tesseract::moveContactResultsMapToContactResultsVector(contacts, dist_results);
 
-  // similar to CalcCollisions from SingleTimestep...
+  // =====>>> So, I need to do it for two states as well.
+  Eigen::VectorXd joint_values_state_1 = sco::getVec(x, m_vars0);
+  std::vector<double> joint_values_DblVec_1 = std::vector<double>(joint_values_state_1.data(), joint_values_state_1.data() + joint_values_state_1.size());  
+  collision_detection::CollisionRequest collision_request_1;
+  collision_detection::CollisionResult collision_result_1;
+  planning_scene->checkCollision(collision_request_1, collision_result_1);
+  // TODO: set the state of the robot based on this joing values:
+  planning_scene->...
+  for (it = collision_result_1.contacts.begin(); it != collision_result_1.contacts.end(); ++it)
+  {
+      ROS_INFO("Contact between: %s and %s", it->first.first.c_str(), it->first.second.c_str());
+      dist_results.insert(dist_results.end(), it->second.begin(), it->second.end())
+  }
+
+  Eigen::VectorXd joint_values_state_2 = sco::getVec(x, m_vars1);
+  std::vector<double> joint_values_DblVec_2 = std::vector<double>(joint_values_state_2.data(), joint_values_state_2.data() + joint_values_state_2.size());
+  collision_detection::CollisionRequest collision_request_2;
+  collision_detection::CollisionResult collision_result_2;
+  planning_scene->checkCollision(collision_request_2, collision_result_2);
+  // TODO: set the state of the robot based on this joing values:
+  planning_scene->...
+  for (it = collision_result_2.contacts.begin(); it != collision_result_2.contacts.end(); ++it)
+  {
+      ROS_INFO("Contact between: %s and %s", it->first.first.c_str(), it->first.second.c_str());
+      dist_results.insert(dist_results.end(), it->second.begin(), it->second.end())
+  }
 }
+
 void CastCollisionEvaluator::CalcDistExpressions(const DblVec& x, sco::AffExprVector& exprs)
 {
   std::vector<collision_detection::Contact> dist_results;
-  // GetCollisionsCached(x, dist_results);
-  CalcCollisions(x, dist_results);
+  GetCollisionsCached(x, dist_results);
   CollisionsToDistanceExpressions(dist_results, env_, manip_, m_vars0, m_vars1, x, exprs);
 }
 void CastCollisionEvaluator::CalcDists(const DblVec& x, DblVec& dists)
 {
   std::vector<collision_detection::Contact> dist_results;
-  // GetCollisionsCached(x, dist_results);
-  CalcCollisions(x, dist_results);
+  GetCollisionsCached(x, dist_results);
   CollisionsToDistances(dist_results, dists);
 }
 
@@ -391,8 +431,7 @@ double CollisionCost::value(const sco::DblVec& x)
   m_calc->CalcDists(x, dists);
 
   std::vector<collision_detection::Contact> dist_results;
-  // m_calc->GetCollisionsCached(x, dist_results);
-  m_calc->CalcCollisions(x, dist_results);
+  m_calc->GetCollisionsCached(x, dist_results);
   double out = 0;
   for (std::size_t i = 0; i < dists.size(); ++i)
   {
@@ -430,8 +469,7 @@ sco::ConvexConstraintsPtr CollisionConstraint::convex(const sco::DblVec& x, sco:
   m_calc->CalcDistExpressions(x, exprs);
 
   std::vector<collision_detection::Contact> dist_results;
-  // m_calc->GetCollisionsCached(x, dist_results);
-  m_calc->CalcCollisions(x, dist_results);
+  m_calc->GetCollisionsCached(x, dist_results);
   for (std::size_t i = 0; i < exprs.size(); ++i)
   {
     const Eigen::Vector2d& data = m_calc->getSafetyMarginData()->getPairSafetyMarginData(dist_results[i].body_name_1,

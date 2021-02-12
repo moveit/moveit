@@ -244,6 +244,42 @@ struct ContactResult
   }
 };
 
+// struct Contact
+// {
+//   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+//   /** \brief contact position */
+//   Eigen::Vector3d pos;
+
+//   /** \brief normal unit vector at contact */
+//   Eigen::Vector3d normal;
+
+//   /** \brief depth (penetration between bodies) */
+//   double depth;
+
+//   /** \brief The id of the first body involved in the contact */
+//   std::string body_name_1;
+
+//   /** \brief The type of the first body involved in the contact */
+//   BodyType body_type_1;
+
+//   /** \brief The id of the second body involved in the contact */
+//   std::string body_name_2;
+
+//   /** \brief The type of the second body involved in the contact */
+//   BodyType body_type_2;
+
+//   /** \brief The distance percentage between casted poses until collision.
+//    *
+//    *  If the value is 0, then the collision occured in the start pose. If the value is 1, then the collision occured in
+//    *  the end pose. */
+//   double percent_interpolation;
+
+//   /** \brief The two nearest points connecting the two bodies */
+//   Eigen::Vector3d nearest_points[2];
+// };
+
+
 // ContactResultVector: is an aligned vector which works with memory. It is a vector containing ContactResult
 typedef AlignedVector<ContactResult> ContactResultVector;
 typedef AlignedMap<std::pair<std::string, std::string>, ContactResultVector> ContactResultMap;

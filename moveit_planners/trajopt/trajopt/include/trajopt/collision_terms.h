@@ -26,15 +26,26 @@ struct CollisionEvaluator
   virtual void CalcDistExpressions(const DblVec& x, sco::AffExprVector& exprs) = 0;
   virtual void CalcDists(const DblVec& x, DblVec& exprs) = 0;
   virtual void CalcCollisions(const DblVec& x, std::vector<collision_detection::Contact>& dist_results) = 0;
-  // virtual void Plot(const tesseract::BasicPlottingPtr plotter, const DblVec& x) = 0;
+  void GetCollisionsCached(const DblVec& x, tesseract::ContactResultVector&);
+  //virtual void Plot(const tesseract::BasicPlottingPtr plotter, const DblVec& x) = 0;
   virtual sco::VarVector GetVars() = 0;
+
+  const SafetyMarginDataConstPtr getSafetyMarginData() const { return safety_margin_data_; }
+
 
   // I think we do not use cache in MoveIt, so we can delete this???
   // I am going to use CalcCollisions straight without using this Cached function
   // void GetCollisionsCached(const DblVec& x, std::vector<collision_detection::Contact>& dist_results);
   
-  const SafetyMarginDataConstPtr getSafetyMarginData() const { return safety_margin_data_; }
   // Cache<size_t, tesseract::ContactResultVector, 10> m_cache;
+  // this calss is not dependent to any  tesseract stuff, I just need to figure out ContactResulVector that is passed to it
+  // I do not understand what it is doing exactly though
+  // it is creating a buffer of ContactResultVector
+  Cache<size_t, std::vector<collision_detection::Contact>, 10> m_cache;
+
+  // what is ContactResultVector?
+  // is an aligned vector which works with memory. Basically, it is a vector containing ContactResult
+  // now what is ContactResult? it has all the informatin related to contact between two bodies
 
 protected:
   
@@ -84,8 +95,10 @@ public:
   void CalcCollisions(const DblVec& x,  std::vector<collision_detection::Contact>& dist_results) override;
   sco::VarVector GetVars() override { return concat(m_vars0, m_vars1); }
 private:
-  sco::VarVector m_vars0;
-  sco::VarVector m_vars1;
+// for castcollision, swpt volume, we need two states
+  sco::VarVector m_vars0; // contains joint values for state 0
+  sco::VarVector m_vars1; // contains joint values for state 1
+
 };
 
 // sco::Cost does not depend on tesseract. So whatever dependency is there should be here
