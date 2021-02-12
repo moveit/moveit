@@ -1,46 +1,45 @@
 #pragma once
-#include <tesseract_core/basic_env.h>
-#include <tesseract_core/basic_kin.h>
+
 #include <trajopt/cache.hxx>
 #include <trajopt/common.hpp>
 #include <trajopt_sco/modeling.hpp>
 #include <trajopt_sco/sco_fwd.hpp>
 
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/planning_scene/planning_scene.h>
+
 namespace trajopt
 {
+// template <typename T>
+// using AlignedVector = std::vector<T, Eigen::aligned_allocator<T>>;
+
 struct CollisionEvaluator
 {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  CollisionEvaluator(tesseract::BasicKinConstPtr manip,
-                     tesseract::BasicEnvConstPtr env,
+  CollisionEvaluator(planning_scene::PlanningSceneConstPtr planning_scene,
                      SafetyMarginDataConstPtr safety_margin_data)
-    : env_(env), manip_(manip), safety_margin_data_(safety_margin_data)
+    : planning_scene_(planning_scene), safety_margin_data_(safety_margin_data)
   {
   }
   virtual ~CollisionEvaluator() = default;
   virtual void CalcDistExpressions(const DblVec& x, sco::AffExprVector& exprs) = 0;
   virtual void CalcDists(const DblVec& x, DblVec& exprs) = 0;
-  virtual void CalcCollisions(const DblVec& x, tesseract::ContactResultVector& dist_results) = 0;
-  void GetCollisionsCached(const DblVec& x, tesseract::ContactResultVector&);
-  //virtual void Plot(const tesseract::BasicPlottingPtr plotter, const DblVec& x) = 0;
+  virtual void CalcCollisions(const DblVec& x, std::vector<collision_detection::Contact>& dist_results) = 0;
+  // virtual void Plot(const tesseract::BasicPlottingPtr plotter, const DblVec& x) = 0;
   virtual sco::VarVector GetVars() = 0;
 
-  const SafetyMarginDataConstPtr getSafetyMarginData() const { return safety_margin_data_; }
+  // I think we do not use cache in MoveIt, so we can delete this???
+  // I am going to use CalcCollisions straight without using this Cached function
+  // void GetCollisionsCached(const DblVec& x, std::vector<collision_detection::Contact>& dist_results);
   
-  Cache<size_t, tesseract::ContactResultVector, 10> m_cache;
-  // this calss is not dependent to any  tesseract stuff, I just need to figure out ContactResulVector that is passed to it
-  // I do not understand what it is doing exactly though
-
-  // what is ContactResultVector?
-  // is an aligned vector which works with memory. Basically, it is a vector containing ContactResult
-  // now what is ContactResult? it has all the informatin related to contact between two bodies
-
-  // so I need to find the similar type to ContactResult in MoveIt
+  const SafetyMarginDataConstPtr getSafetyMarginData() const { return safety_margin_data_; }
+  // Cache<size_t, tesseract::ContactResultVector, 10> m_cache;
 
 protected:
-  tesseract::BasicEnvConstPtr env_;
-  tesseract::BasicKinConstPtr manip_;
+  
+  planning_scene::PlanningSceneConstPtr planning_scene_;
+
   SafetyMarginDataConstPtr safety_margin_data_;
 
 private:
@@ -52,8 +51,7 @@ typedef std::shared_ptr<CollisionEvaluator> CollisionEvaluatorPtr;
 struct SingleTimestepCollisionEvaluator : public CollisionEvaluator
 {
 public:
-  SingleTimestepCollisionEvaluator(tesseract::BasicKinConstPtr manip,
-                                   tesseract::BasicEnvConstPtr env,
+  SingleTimestepCollisionEvaluator(planning_scene::PlanningSceneConstPtr planning_scene,
                                    SafetyMarginDataConstPtr safety_margin_data,
                                    const sco::VarVector& vars);
   /**
@@ -61,57 +59,51 @@ public:
   ;
   Do a collision check between robot and environment.
   For each contact generated, return a linearization of the signed distance
-  function
+  function.
   */
   void CalcDistExpressions(const DblVec& x, sco::AffExprVector& exprs) override;
   /**
    * Same as CalcDistExpressions, but just the distances--not the expressions
    */
   void CalcDists(const DblVec& x, DblVec& exprs) override;
-  void CalcCollisions(const DblVec& x, tesseract::ContactResultVector& dist_results) override;
-  void Plot(const tesseract::BasicPlottingPtr plotter, const DblVec& x) override;
+  void CalcCollisions(const DblVec& x, std::vector<collision_detection::Contact>& dist_results) override;
   sco::VarVector GetVars() override { return m_vars; }
 private:
   sco::VarVector m_vars;
-  tesseract::DiscreteContactManagerBasePtr contact_manager_;
 };
 
 struct CastCollisionEvaluator : public CollisionEvaluator
 {
 public:
-  CastCollisionEvaluator(tesseract::BasicKinConstPtr manip,
-                         tesseract::BasicEnvConstPtr env,
+  CastCollisionEvaluator(planning_scene::PlanningSceneConstPtr planning_scene,
                          SafetyMarginDataConstPtr safety_margin_data,
                          const sco::VarVector& vars0,
                          const sco::VarVector& vars1);
   void CalcDistExpressions(const DblVec& x, sco::AffExprVector& exprs) override;
   void CalcDists(const DblVec& x, DblVec& exprs) override;
-  void CalcCollisions(const DblVec& x, tesseract::ContactResultVector& dist_results) override;
-  void Plot(const tesseract::BasicPlottingPtr plotter, const DblVec& x) override;
+  void CalcCollisions(const DblVec& x,  std::vector<collision_detection::Contact>& dist_results) override;
   sco::VarVector GetVars() override { return concat(m_vars0, m_vars1); }
 private:
   sco::VarVector m_vars0;
   sco::VarVector m_vars1;
-  tesseract::ContinuousContactManagerBasePtr contact_manager_;
 };
 
-class TRAJOPT_API CollisionCost : public sco::Cost, public Plotter
+// sco::Cost does not depend on tesseract. So whatever dependency is there should be here
+class TRAJOPT_API CollisionCost : public sco::Cost
 {
 public:
-  /* constructor for single timestep */
-  CollisionCost(tesseract::BasicKinConstPtr manip,
-                tesseract::BasicEnvConstPtr env,
+  /* constructor for single timestep. 
+     This constructor initializes m_calc which is type of CollisionEvaluator */
+  CollisionCost(planning_scene::PlanningSceneConstPtr planning_scene,
                 SafetyMarginDataConstPtr safety_margin_data,
                 const sco::VarVector& vars);
   /* constructor for cast cost */
-  CollisionCost(tesseract::BasicKinConstPtr manip,
-                tesseract::BasicEnvConstPtr env,
+  CollisionCost(planning_scene::PlanningSceneConstPtr planning_scene,
                 SafetyMarginDataConstPtr safety_margin_data,
                 const sco::VarVector& vars0,
                 const sco::VarVector& vars1);
   virtual sco::ConvexObjectivePtr convex(const DblVec& x, sco::Model* model) override;
   virtual double value(const DblVec&) override;
-  void Plot(const tesseract::BasicPlottingPtr& plotter, const DblVec& x) override;
   sco::VarVector getVars() override { return m_calc->GetVars(); }
 private:
   CollisionEvaluatorPtr m_calc;
@@ -121,13 +113,11 @@ class TRAJOPT_API CollisionConstraint : public sco::IneqConstraint
 {
 public:
   /* constructor for single timestep */
-  CollisionConstraint(tesseract::BasicKinConstPtr manip,
-                      tesseract::BasicEnvConstPtr env,
+  CollisionConstraint(planning_scene::PlanningSceneConstPtr planning_scene,
                       SafetyMarginDataConstPtr safety_margin_data,
                       const sco::VarVector& vars);
   /* constructor for cast cost */
-  CollisionConstraint(tesseract::BasicKinConstPtr manip,
-                      tesseract::BasicEnvConstPtr env,
+  CollisionConstraint(planning_scene::PlanningSceneConstPtr planning_scene,
                       SafetyMarginDataConstPtr safety_margin_data,
                       const sco::VarVector& vars0,
                       const sco::VarVector& vars1);
