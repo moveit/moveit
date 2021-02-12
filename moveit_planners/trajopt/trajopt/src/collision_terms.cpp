@@ -169,6 +169,7 @@ void CollisionsToDistanceExpressions(const std::vector<collision_detection::Cont
       sco::exprInc(dist, sco::varDot(dist_grad_b, vars));
       sco::exprInc(dist, -dist_grad_b.dot(dofvals));
     }
+    // DebugPrintInfo(res, dist_grad_a, dist_grad_b, dofvals, i == 0);
 
     if (itA != link_names.end() || itB != link_names.end())
     {
@@ -191,7 +192,7 @@ void CollisionsToDistanceExpressions(const tesseract::ContactResultVector& dist_
   exprs.resize(exprs0.size());
   for (std::size_t i = 0; i < exprs0.size(); ++i)
   {
-    //assert(dist_results[i].cc_time >= 0.0 && dist_results[i].cc_time <= 1.0);
+    assert(dist_results[i].cc_time >= 0.0 && dist_results[i].cc_time <= 1.0);
     sco::exprScale(exprs0[i], (1 - dist_results[i].cc_time));
     sco::exprScale(exprs1[i], dist_results[i].cc_time);
     exprs[i] = sco::AffExpr(0);
