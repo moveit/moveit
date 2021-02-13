@@ -23,11 +23,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef TESSERACT_CORE_BASIC_TYPES_H
-#define TESSERACT_CORE_BASIC_TYPES_H
 
-#include <tesseract_core/macros.h>
-TESSERACT_IGNORE_WARNINGS_PUSH
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <Eigen/StdVector>
@@ -37,7 +33,8 @@ TESSERACT_IGNORE_WARNINGS_PUSH
 #include <memory>
 #include <functional>
 #include <map>
-TESSERACT_IGNORE_WARNINGS_POP
+
+//#include <moveit/planning_scene/planning_scene.h>
 
 namespace trajopt
 {
@@ -392,4 +389,3 @@ typedef AlignedUnorderedMap<std::string, AttachedBodyInfo> AttachedBodyInfoMap;
 typedef std::unordered_map<std::string, AttachableObjectConstPtr> AttachableObjectConstPtrMap;
 }
 
-#endif  // TESSERACT_CORE_BASIC_TYPES_H
