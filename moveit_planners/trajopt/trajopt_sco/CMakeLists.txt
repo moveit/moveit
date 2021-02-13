@@ -25,9 +25,6 @@ find_package(GUROBI QUIET)
 find_package(qpOASES QUIET)
 find_package(Eigen3 REQUIRED)
 
-
-
-
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(JSONCPP jsoncpp)
 
