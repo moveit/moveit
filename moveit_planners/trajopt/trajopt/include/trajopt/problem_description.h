@@ -260,6 +260,10 @@ public:
   {
     return planning_scene_;
   }
+  std::string GetPlanningGroup()
+  {
+    return planning_group_;
+  }
   void SetInitTraj(const trajopt::TrajArray& x)
   {
     matrix_init_traj = x;
