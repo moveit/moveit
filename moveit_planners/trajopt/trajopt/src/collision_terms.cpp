@@ -377,6 +377,11 @@ void CastCollisionEvaluator::CalcCollisions(const DblVec& x, std::vector<collisi
                                         collision_result, robot_state, robot_state_before);
 
   
+  // ????????
+  // should I extract the signed distance from collision_result for this swept volume collision
+  // checking? I need cc_nearest_points in CollisiontoDistanceExpression function
+
+
   for (it = collision_result_1.contacts.begin(); it != collision_result_1.contacts.end(); ++it)
   {
       ROS_INFO("Contact between: %s and %s", it->first.first.c_str(), it->first.second.c_str());
