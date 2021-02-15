@@ -394,7 +394,7 @@ void CastCollisionEvaluator::CalcCollisions(const DblVec& x, std::vector<trajopt
                                         collision_result, robot_state, robot_state_previous);
 
 
-  // ????? I have to calculate: cc_time, cc_type and cc_nearest_points here
+  // ????? I have to calculate: cc_time, cc_type and cc_nearest_points here. test
   
 
   for (it = collision_result.contacts.begin(); it != collision_result.contacts.end(); ++it)
