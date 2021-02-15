@@ -4,7 +4,7 @@ template <class KeyT, class ValueT, unsigned bufsize>
 class Cache
 {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+//  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   KeyT keybuf[bufsize];    // circular buffer
   ValueT valbuf[bufsize];  // circular buffer

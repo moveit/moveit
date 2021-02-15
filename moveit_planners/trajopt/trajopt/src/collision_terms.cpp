@@ -3,7 +3,8 @@ TRAJOPT_IGNORE_WARNINGS_PUSH
 #include <boost/functional/hash.hpp>
 TRAJOPT_IGNORE_WARNINGS_POP
 
-#include <trajopt/collision_terms.hpp>
+#include <trajopt/collision_terms.h>
+#include <trajopt/basic_types.h>
 #include <trajopt/utils.hpp>
 #include <trajopt_sco/expr_ops.hpp>
 #include <trajopt_sco/expr_vec_ops.hpp>
@@ -31,9 +32,13 @@ void CollisionsToDistances(const std::vector<collision_detection::Contact>& dist
 }
 
 // directly related to equation 16 in the TrajOpt paper (the version I have)
-// tesseract::ContactResultVector& dist_results
+// this function goes over all the contact in dist_results and calcualte the jac of the first link in contact
+// at the nearest point. Also it calculates the jac of the second link at the nearest point
+// However, if the collision type is set to CCType_Between, then the cc_nearest_point is used only for the 
+// second link's jacobian calculations.
 void CollisionsToDistanceExpressions(const std::vector<collision_detection::Contact>& dist_results,
                                      planning_scene::PlanningSceneConstPtr planning_scene,
+                                     std::string planning_group,
                                      const sco::VarVector& vars,
                                      const DblVec& x,
                                      sco::AffExprVector& exprs,
@@ -58,10 +63,10 @@ void CollisionsToDistanceExpressions(const std::vector<collision_detection::Cont
   // Eigen::Isometry3d change_base = state->transforms.at(manip->getBaseLinkName());
   // assert(change_base.isApprox(env->getState(manip->getJointNames(), dofvals)->transforms.at(manip->getBaseLinkName())));
 
-  moveit::core::RobotState& robot_state = planning_scene->getCurrentState();
-  const robot_state::JointModelGroup* joint_model_group = robot_state->getJointModelGroup(PLANNING_GROUP);
+  const moveit::core::RobotState robot_state = planning_scene->getCurrentState();
+  const robot_state::JointModelGroup* joint_model_group = robot_state.getJointModelGroup(planning_group);
   std::vector<std::string> group_joint_names = joint_model_group->getActiveJointModelNames();
-  int group_dof = group_joint_names.size();
+  int group_dof = (int)group_joint_names.size();
 
   exprs.clear();
   exprs.reserve(dist_results.size());
@@ -71,8 +76,12 @@ void CollisionsToDistanceExpressions(const std::vector<collision_detection::Cont
     // const tesseract::ContactResult& res = dist_results[i];
     const collision_detection::Contact& res = dist_results[i];
 
-    const LinkModel* link_1(res.body_name_1); // link_names[0] 
-    const LinkModel* link_2(res.body_name_2); // link_names[1] 
+    const moveit::core::LinkModel* link_0 = robot_state.getLinkModel(res.body_name_1); // link_names[0] 
+    const moveit::core::LinkModel* link_1 = robot_state.getLinkModel(res.body_name_2); // link_names[1] 
+
+    // cc_type is a member of ContactResult in tesseract and by defualt (in clear() function) is set
+    // to cc_type = ContinouseCollisionType::CCType_None; I do the same here:
+    trajopt::ContinouseCollisionType cc_type = ContinouseCollisionType::CCType_None;
 
     // ContactResult in the original trajopt has two bodies and a distance
     // In MoveIt, we have Contact (corresponding to ContactResult in tesseract) type
@@ -83,7 +92,7 @@ void CollisionsToDistanceExpressions(const std::vector<collision_detection::Cont
 
     Eigen::VectorXd dist_grad_a, dist_grad_b;
     // => find the name of linkA in collision
-    std::vector<std::string>::const_iterator itA = std::find(link_names.begin(), link_names.end(), res.link_names[0]);
+    std::vector<std::string>::const_iterator itA = std::find(link_names.begin(), link_names.end(), link_0);
     if (itA != link_names.end())
     {
       // => create a jacobian matrix
@@ -101,9 +110,12 @@ void CollisionsToDistanceExpressions(const std::vector<collision_detection::Cont
    */
       bool succeed = robot_state.getJacobian(
                                       joint_model_group,
-                                      link_1, 
+                                      link_0, 
                                       res.nearest_points[0],
                                       jac);
+  // joint values are fixed, we are chaning links in contacts to calculate the jacobian
+
+  // what does it meant to caluclate a jacobian at a given link and point ????????
       
    /** tesseract:
    *  Calculated jacobian at a link given joint angles
@@ -134,7 +146,7 @@ void CollisionsToDistanceExpressions(const std::vector<collision_detection::Cont
       // the above means: -dist_grad_a (dot_product) dofvals
     }
 
-    std::vector<std::string>::const_iterator itB = std::find(link_names.begin(), link_names.end(), res.link_names[1]);
+    std::vector<std::string>::const_iterator itB = std::find(link_names.begin(), link_names.end(), link_1);
     if (itB != link_names.end())
     {
       Eigen::MatrixXd jac;
@@ -143,12 +155,14 @@ void CollisionsToDistanceExpressions(const std::vector<collision_detection::Cont
     // how do I calculate cc_nearest_points, Contact in MoveIt does not have such a thing
     bool succeed = robot_state.getJacobian(
                   joint_model_group,
-                  link_2, 
-                  (isTimestep1 && (res.cc_type == trajopt::ContinouseCollisionType::CCType_Between)) ?
+                  link_1, 
+                  (isTimestep1 && (cc_type == trajopt::ContinouseCollisionType::CCType_Between)) ?
                    res.cc_nearest_points[1] :
                    res.nearest_points[1], 
                   jac);
    
+    
+
      
       dist_grad_b = res.normal.transpose() * jac.topRows(3);
       sco::exprInc(dist, sco::varDot(dist_grad_b, vars));
@@ -163,20 +177,23 @@ void CollisionsToDistanceExpressions(const std::vector<collision_detection::Cont
   }
 }
 
+// This function creates affine expression
 void CollisionsToDistanceExpressions(const std::vector<collision_detection::Contact>& dist_results,
                                      planning_scene::PlanningSceneConstPtr planning_scene,
+                                     std::string planning_group,
                                      const sco::VarVector& vars0,
                                      const sco::VarVector& vars1,
                                      const DblVec& x,
                                      sco::AffExprVector& exprs)
 {
   sco::AffExprVector exprs0, exprs1;
-  CollisionsToDistanceExpressions(dist_results, planning_scene, vars0, x, exprs0, false);
-  CollisionsToDistanceExpressions(dist_results, planning_scene, vars1, x, exprs1, true);
+  CollisionsToDistanceExpressions(dist_results, planning_scene, planning_group, vars0, x, exprs0, false);
+  CollisionsToDistanceExpressions(dist_results, planning_scene, planning_group, vars1, x, exprs1, true);
 
   exprs.resize(exprs0.size());
   for (std::size_t i = 0; i < exprs0.size(); ++i)
   {
+    // ??? dist_result: contact in MoveIt does not have cc_time
     assert(dist_results[i].cc_time >= 0.0 && dist_results[i].cc_time <= 1.0);
     sco::exprScale(exprs0[i], (1 - dist_results[i].cc_time));
     sco::exprScale(exprs1[i], dist_results[i].cc_time);
@@ -313,7 +330,7 @@ void SingleTimestepCollisionEvaluator::CalcDistExpressions(const DblVec& x, sco:
 {
   std::vector<collision_detection::Contact> dist_results;
   GetCollisionsCached(x, dist_results);
-  CollisionsToDistanceExpressions(dist_results, env_, manip_, m_vars, x, exprs, false);
+  CollisionsToDistanceExpressions(dist_results, planning_scene_, planning_group_, m_vars, x, exprs, false);
 
   LOG_DEBUG("%ld distance expressions\n", exprs.size());
 }
@@ -335,7 +352,7 @@ CastCollisionEvaluator::CastCollisionEvaluator(planning_scene::PlanningSceneCons
 
 // similar to CalcCollisions from SingleTimestepCollisionEvaluator except we need two states because it is the 
 // swept volume?
-void CastCollisionEvaluator::CalcCollisions(const DblVec& x, std::vector<collision_detection::Contact>& dist_results& dist_results)
+void CastCollisionEvaluator::CalcCollisions(const DblVec& x, std::vector<trajopt::ContactResult>& dist_results)
 {
   // tesseract::ContactResultMap contacts;
   // tesseract::EnvStatePtr state0 = env_->getState(manip_->getJointNames(), sco::getVec(x, m_vars0));
@@ -358,7 +375,6 @@ void CastCollisionEvaluator::CalcCollisions(const DblVec& x, std::vector<collisi
   Eigen::VectorXd joint_values_state_0 = sco::getVec(x, m_vars0);
   std::vector<double> joint_values_DblVec_0 = std::vector<double>(joint_values_state_0.data(), joint_values_state_0.data() + joint_values_state_0.size());  
   robot_state::RobotState& robot_state = planning_scene_->getCurrentStateNonConst();
-  const std::string PLANNING_GROUP = "panda_arm";
   const moveit::core::JointModelGroup* joint_model_group = rob_state->getJointModelGroup(planning_group_);
   robot_state.setToDefaultValues();
   robot_state.setJointGroupPositions(joint_model_group, joint_values_DblVec_0);
@@ -372,19 +388,21 @@ void CastCollisionEvaluator::CalcCollisions(const DblVec& x, std::vector<collisi
 
   // check collision between two states
   collision_detection::CollisionRequest collision_request;
+  // ??????? should we set the planning group in collision_request?
   collision_detection::CollisionResult collision_result;
   planning_scene_->getCollisionEnv()->checkRobotCollision(collision_request, 
-                                        collision_result, robot_state, robot_state_before);
+                                        collision_result, robot_state, robot_state_previous);
 
+
+  // ????? I have to calculate: cc_time, cc_type and cc_nearest_points here
   
-  // ????????
-  // should I extract the signed distance from collision_result for this swept volume collision
-  // checking? I need cc_nearest_points in CollisiontoDistanceExpression function
 
-
-  for (it = collision_result_1.contacts.begin(); it != collision_result_1.contacts.end(); ++it)
+  for (it = collision_result.contacts.begin(); it != collision_result.contacts.end(); ++it)
   {
       ROS_INFO("Contact between: %s and %s", it->first.first.c_str(), it->first.second.c_str());
+
+
+
       dist_results.insert(dist_results.end(), it->second.begin(), it->second.end())
   }
 }
@@ -393,7 +411,7 @@ void CastCollisionEvaluator::CalcDistExpressions(const DblVec& x, sco::AffExprVe
 {
   std::vector<collision_detection::Contact> dist_results;
   GetCollisionsCached(x, dist_results);
-  CollisionsToDistanceExpressions(dist_results, env_, manip_, m_vars0, m_vars1, x, exprs);
+  CollisionsToDistanceExpressions(dist_results, planning_scene_, planning_group_, m_vars0, m_vars1, x, exprs);
 }
 void CastCollisionEvaluator::CalcDists(const DblVec& x, DblVec& dists)
 {

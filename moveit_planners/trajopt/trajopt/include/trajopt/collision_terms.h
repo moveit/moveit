@@ -26,6 +26,7 @@ struct CollisionEvaluator
   virtual ~CollisionEvaluator() = default;
   virtual void CalcDistExpressions(const DblVec& x, sco::AffExprVector& exprs) = 0;
   virtual void CalcDists(const DblVec& x, DblVec& exprs) = 0;
+  // calculate the collision in planning scene
   virtual void CalcCollisions(const DblVec& x, std::vector<collision_detection::Contact>& dist_results) = 0;
   void GetCollisionsCached(const DblVec& x, std::vector<collision_detection::Contact>& dist_results);
   //virtual void Plot(const tesseract::BasicPlottingPtr plotter, const DblVec& x) = 0;
@@ -33,6 +34,13 @@ struct CollisionEvaluator
 
   const SafetyMarginDataConstPtr getSafetyMarginData() const { return safety_margin_data_; }
 
+  // CaclCollisions() : calculates the collisions in the scene
+  // CollisionsToDistance(): converts collisions contacts in the scenes to distances
+  // CollisionToDistanceExpressions(): is where acttual linearized math expressions is created
+  // CalcDistExpressions(): 
+  
+  // CalcDists():
+  // Value(): calls CalcDists()
 
   // I think we do not use cache in MoveIt, so we can delete this???
   // I am going to use CalcCollisions straight without using this Cached function
@@ -77,7 +85,7 @@ public:
    * Same as CalcDistExpressions, but just the distances--not the expressions
    */
   void CalcDists(const DblVec& x, DblVec& exprs) override;
-  void CalcCollisions(const DblVec& x, std::vector<collision_detection::Contact>& dist_results) override;
+  void CalcCollisions(const DblVec& x, std::vector<trajopt::CollisionResult>& dist_results) override;
   sco::VarVector GetVars() override { return m_vars; }
 private:
   sco::VarVector m_vars;

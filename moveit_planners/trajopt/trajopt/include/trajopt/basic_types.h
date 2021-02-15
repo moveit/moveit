@@ -239,43 +239,31 @@ struct ContactResult
     cc_time = -1;
     cc_type = ContinouseCollisionType::CCType_None;
   }
+
+  // convert collision_detection::Contact from MoveIt to trajopt::ContactResult (from tesseract)
+  ContactResult(collision_detection::Contact moveit_contact,
+                Eigen::Vector3d moveit_cc_nearest_points,
+                double moveit_cc_time,
+                ContinouseCollisionType moviet_cc_type)
+  {
+    distance = moveit_contact.depth;
+    nearest_points[0] = moveit_contact.nearest_points[0];
+    nearest_points[1] = moveit_contact.nearest_points[1];
+    link_names[0] = moveit_contact.body_name_1;
+    link_names[1] = moveit_contact.body_name_2;
+    // in tesseaerct_message: type_id # ROBOT_LINK = 0, ROBOT_ATTACHED = 1
+    type_id[0] = (moveit_contact.body_type_1 == collision_detection::BodyTypes::Type::ROBOT_LINK) ? 0 : 1);
+    type_id[1] = (moveit_contact.body_type_2 == collision_detection::BodyTypes::Type::ROBOT_LINK) ? 0 : 1);;
+    normal = moveit_contact.normal;
+    // to find out the correct information for the following, I probably need to look at 
+    // tesseract_collision/bullet_utils.h
+    cc_nearest_points[0] = moveit_cc_nearest_points[0]; // ???
+    cc_nearest_points[1] = moveit_cc_nearest_points[1]; // ???
+    cc_time = moveit_cc_time;
+    cc_type = moveit_cc_type;
+
+  }
 };
-
-// struct Contact
-// {
-//   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-//   /** \brief contact position */
-//   Eigen::Vector3d pos;
-
-//   /** \brief normal unit vector at contact */
-//   Eigen::Vector3d normal;
-
-//   /** \brief depth (penetration between bodies) */
-//   double depth;
-
-//   /** \brief The id of the first body involved in the contact */
-//   std::string body_name_1;
-
-//   /** \brief The type of the first body involved in the contact */
-//   BodyType body_type_1;
-
-//   /** \brief The id of the second body involved in the contact */
-//   std::string body_name_2;
-
-//   /** \brief The type of the second body involved in the contact */
-//   BodyType body_type_2;
-
-//   /** \brief The distance percentage between casted poses until collision.
-//    *
-//    *  If the value is 0, then the collision occured in the start pose. If the value is 1, then the collision occured in
-//    *  the end pose. */
-//   double percent_interpolation;
-
-//   /** \brief The two nearest points connecting the two bodies */
-//   Eigen::Vector3d nearest_points[2];
-// };
-
 
 // ContactResultVector: is an aligned vector which works with memory. It is a vector containing ContactResult
 typedef AlignedVector<ContactResult> ContactResultVector;

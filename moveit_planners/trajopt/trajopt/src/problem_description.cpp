@@ -50,6 +50,7 @@
 #include <trajopt/trajectory_costs.hpp>
 #include <trajopt/kinematic_terms.h>
 #include "trajopt/problem_description.h"
+#include "trajopt/collision_terms.h"
 
 /**
  * @brief Checks the size of the parameter given and throws if incorrect
@@ -548,7 +549,8 @@ void JointVelTermInfo::addObjectiveTerms(TrajOptProblem& prob)
 }
 
 void CollisionTermInfo::addObjectiveTerms(TrajOptProblem& prob)
-{
+{  
+
   //int n_dof = static_cast<int>(prob.GetKin()->numJoints());
   unsigned int n_dof = prob.GetNumDOF();
 
@@ -584,11 +586,11 @@ void CollisionTermInfo::addObjectiveTerms(TrajOptProblem& prob)
       for (int i = first_step; i < last_step; ++i)
       {
         prob.addIneqConstraint(sco::ConstraintPtr(new CollisionConstraint(
-                                                                          prob.GetPlanningScene(),
-                                                                          prob.GetPlanningGroup(),
-                                                                          info[static_cast<size_t>(i - first_step)],
-                                                                          prob.GetVarRow(i, 0, n_dof),
-                                                                          prob.GetVarRow(i + 1, 0, n_dof))));
+                                                            prob.GetPlanningScene(),
+                                                            prob.GetPlanningGroup(),
+                                                            info[static_cast<size_t>(i - first_step)],
+                                                            prob.GetVarRow(i, 0, n_dof),
+                                                            prob.GetVarRow(i + 1, 0, n_dof))));
         prob.getIneqConstraints().back()->setName((boost::format("%s_%i") % name.c_str() % i).str());
       }
     }
