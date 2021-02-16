@@ -51,8 +51,26 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_occupancy_map_monitor
 )
 
-find_package(Eigen3 REQUIRED)
+# # Find OpenMP https://stackoverflow.com/questions/46414660/macos-cmake-and-openmp
+if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    set(OpenMP_C "${CMAKE_C_COMPILER}")
+    set(OpenMP_C_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
+    set(OpenMP_C_LIB_NAMES "libomp" "libgomp" "libiomp5")
+    set(OpenMP_libomp_LIBRARY ${OpenMP_C_LIB_NAMES})
+    set(OpenMP_libgomp_LIBRARY ${OpenMP_C_LIB_NAMES})
+    set(OpenMP_libiomp5_LIBRARY ${OpenMP_C_LIB_NAMES})
+endif()
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(OpenMP_CXX "${CMAKE_CXX_COMPILER}")
+  set(OpenMP_CXX_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
+  set(OpenMP_CXX_LIB_NAMES "libomp" "libgomp" "libiomp5")
+  set(OpenMP_libomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
+  set(OpenMP_libgomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
+  set(OpenMP_libiomp5_LIBRARY ${OpenMP_CXX_LIB_NAMES})
+endif()
 find_package(OpenMP REQUIRED)
+
+find_package(Eigen3 REQUIRED)
 find_package(OpenCV)
 
 catkin_package(
