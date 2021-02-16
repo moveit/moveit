@@ -34,6 +34,7 @@
 #include <functional>
 #include <map>
 
+#include <moveit/collision_detection/collision_common.h>
 //#include <moveit/planning_scene/planning_scene.h>
 
 namespace trajopt
@@ -242,9 +243,9 @@ struct ContactResult
 
   // convert collision_detection::Contact from MoveIt to trajopt::ContactResult (from tesseract)
   ContactResult(collision_detection::Contact moveit_contact,
-                Eigen::Vector3d moveit_cc_nearest_points,
+                Eigen::Vector3d moveit_cc_nearest_points[2],
                 double moveit_cc_time,
-                ContinouseCollisionType moviet_cc_type)
+                ContinouseCollisionType moveit_cc_type)
   {
     distance = moveit_contact.depth;
     nearest_points[0] = moveit_contact.nearest_points[0];
@@ -252,16 +253,15 @@ struct ContactResult
     link_names[0] = moveit_contact.body_name_1;
     link_names[1] = moveit_contact.body_name_2;
     // in tesseaerct_message: type_id # ROBOT_LINK = 0, ROBOT_ATTACHED = 1
-    type_id[0] = (moveit_contact.body_type_1 == collision_detection::BodyTypes::Type::ROBOT_LINK) ? 0 : 1);
-    type_id[1] = (moveit_contact.body_type_2 == collision_detection::BodyTypes::Type::ROBOT_LINK) ? 0 : 1);;
+    type_id[0] = (moveit_contact.body_type_1 == collision_detection::BodyTypes::Type::ROBOT_LINK) ? 0 : 1;
+    type_id[1] = (moveit_contact.body_type_2 == collision_detection::BodyTypes::Type::ROBOT_LINK) ? 0 : 1;
     normal = moveit_contact.normal;
     // to find out the correct information for the following, I probably need to look at 
     // tesseract_collision/bullet_utils.h
-    cc_nearest_points[0] = moveit_cc_nearest_points[0]; // ???
-    cc_nearest_points[1] = moveit_cc_nearest_points[1]; // ???
+    cc_nearest_points[0] = moveit_cc_nearest_points[0]; 
+    cc_nearest_points[1] = moveit_cc_nearest_points[1]; 
     cc_time = moveit_cc_time;
     cc_type = moveit_cc_type;
-
   }
 };
 

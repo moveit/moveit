@@ -4,10 +4,12 @@
 #include <trajopt/common.hpp>
 #include <trajopt_sco/modeling.hpp>
 #include <trajopt_sco/sco_fwd.hpp>
+#include <trajopt/basic_types.h>
 
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/planning_scene/planning_scene.h> 
 #include <moveit/collision_detection/collision_common.h>
+
 
 namespace trajopt
 {
@@ -27,8 +29,8 @@ struct CollisionEvaluator
   virtual void CalcDistExpressions(const DblVec& x, sco::AffExprVector& exprs) = 0;
   virtual void CalcDists(const DblVec& x, DblVec& exprs) = 0;
   // calculate the collision in planning scene
-  virtual void CalcCollisions(const DblVec& x, std::vector<collision_detection::Contact>& dist_results) = 0;
-  void GetCollisionsCached(const DblVec& x, std::vector<collision_detection::Contact>& dist_results);
+  virtual void CalcCollisions(const DblVec& x, ContactResultVector& dist_results) = 0;
+  void GetCollisionsCached(const DblVec& x, ContactResultVector& dist_results);
   //virtual void Plot(const tesseract::BasicPlottingPtr plotter, const DblVec& x) = 0;
   virtual sco::VarVector GetVars() = 0;
 
@@ -46,11 +48,11 @@ struct CollisionEvaluator
   // I am going to use CalcCollisions straight without using this Cached function
   // void GetCollisionsCached(const DblVec& x, std::vector<collision_detection::Contact>& dist_results);
   
-  // Cache<size_t, tesseract::ContactResultVector, 10> m_cache;
+  Cache<size_t, trajopt::ContactResultVector, 10> m_cache;
   // this calss is not dependent to any  tesseract stuff, I just need to figure out ContactResulVector that is passed to it
   // I do not understand what it is doing exactly though
   // it is creating a buffer of ContactResultVector
-  Cache<size_t, std::vector<collision_detection::Contact>, 10> m_cache;
+  // Cache<size_t, std::vector<collision_detection::Contact>, 10> m_cache;
 
   // what is ContactResultVector?
   // is an aligned vector which works with memory. Basically, it is a vector containing ContactResult
@@ -85,7 +87,7 @@ public:
    * Same as CalcDistExpressions, but just the distances--not the expressions
    */
   void CalcDists(const DblVec& x, DblVec& exprs) override;
-  void CalcCollisions(const DblVec& x, std::vector<trajopt::CollisionResult>& dist_results) override;
+  void CalcCollisions(const DblVec& x, ContactResultVector& dist_results) override;
   sco::VarVector GetVars() override { return m_vars; }
 private:
   sco::VarVector m_vars;
@@ -100,7 +102,7 @@ public:
                          const sco::VarVector& vars1);
   void CalcDistExpressions(const DblVec& x, sco::AffExprVector& exprs) override;
   void CalcDists(const DblVec& x, DblVec& exprs) override;
-  void CalcCollisions(const DblVec& x,  std::vector<collision_detection::Contact>& dist_results) override;
+  void CalcCollisions(const DblVec& x,  ContactResultVector& dist_results) override;
   sco::VarVector GetVars() override { return concat(m_vars0, m_vars1); }
 private:
 // for castcollision, swpt volume, we need two states

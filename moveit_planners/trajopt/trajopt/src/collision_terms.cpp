@@ -4,7 +4,7 @@ TRAJOPT_IGNORE_WARNINGS_PUSH
 TRAJOPT_IGNORE_WARNINGS_POP
 
 #include <trajopt/collision_terms.h>
-#include <trajopt/basic_types.h>
+//#include <trajopt/basic_types.h>
 #include <trajopt/utils.hpp>
 #include <trajopt_sco/expr_ops.hpp>
 #include <trajopt_sco/expr_vec_ops.hpp>
@@ -14,21 +14,23 @@ TRAJOPT_IGNORE_WARNINGS_POP
 #include <trajopt_utils/logging.hpp>
 #include <trajopt_utils/stl_to_string.hpp>
 
+#include <moveit/collision_detection/collision_common.h>
+
 namespace trajopt
 {
 
 // converts a vector of contacts to a vector of distances
-void CollisionsToDistances(const std::vector<collision_detection::Contact>& dist_results, DblVec& dists)
+void CollisionsToDistances(const trajopt::ContactResultVector& dist_results, DblVec& dists)
 {
   dists.clear();
   dists.reserve(dist_results.size());
 
   // how to get distance from MoveIt to feed dists
-  // for (auto i = 0u; i < dist_results.size(); ++i)
-  //   dists.push_back(dist_results[i].distance);
-
   for (auto i = 0u; i < dist_results.size(); ++i)
-    dists.push_back(dist_results[i].depth);
+    dists.push_back(dist_results[i].distance);
+
+  // for (auto i = 0u; i < dist_results.size(); ++i)
+  //   dists.push_back(dist_results[i].depth);
 }
 
 // directly related to equation 16 in the TrajOpt paper (the version I have)
@@ -36,7 +38,7 @@ void CollisionsToDistances(const std::vector<collision_detection::Contact>& dist
 // at the nearest point. Also it calculates the jac of the second link at the nearest point
 // However, if the collision type is set to CCType_Between, then the cc_nearest_point is used only for the 
 // second link's jacobian calculations.
-void CollisionsToDistanceExpressions(const std::vector<collision_detection::Contact>& dist_results,
+void CollisionsToDistanceExpressions(const trajopt::ContactResultVector& dist_results,
                                      planning_scene::PlanningSceneConstPtr planning_scene,
                                      std::string planning_group,
                                      const sco::VarVector& vars,
@@ -74,10 +76,10 @@ void CollisionsToDistanceExpressions(const std::vector<collision_detection::Cont
   {
     // => for each ContactResult in the total ContactResultVector that contains all the contacts of each pair and all the pairs
     // const tesseract::ContactResult& res = dist_results[i];
-    const collision_detection::Contact& res = dist_results[i];
+    const trajopt::ContactResult& res = dist_results[i];
 
-    const moveit::core::LinkModel* link_0 = robot_state.getLinkModel(res.body_name_1); // link_names[0] 
-    const moveit::core::LinkModel* link_1 = robot_state.getLinkModel(res.body_name_2); // link_names[1] 
+    const moveit::core::LinkModel* link_0 = robot_state.getLinkModel(res.link_names[0]);  
+    const moveit::core::LinkModel* link_1 = robot_state.getLinkModel(res.link_names[1]); 
 
     // cc_type is a member of ContactResult in tesseract and by defualt (in clear() function) is set
     // to cc_type = ContinouseCollisionType::CCType_None; I do the same here:
@@ -86,13 +88,13 @@ void CollisionsToDistanceExpressions(const std::vector<collision_detection::Cont
     // ContactResult in the original trajopt has two bodies and a distance
     // In MoveIt, we have Contact (corresponding to ContactResult in tesseract) type
     // which has depth (penetration between bodies). I am going to use this depth 
-    // sco::AffExpr dist(res.distance);
-    sco::AffExpr dist(res.depth); // depth could be positive or negative, if I use bullet
+    sco::AffExpr dist(res.distance);
+    // sco::AffExpr dist(res.depth); // depth could be positive or negative, if I use bullet
     // is that a problem here?
 
     Eigen::VectorXd dist_grad_a, dist_grad_b;
     // => find the name of linkA in collision
-    std::vector<std::string>::const_iterator itA = std::find(link_names.begin(), link_names.end(), link_0);
+    std::vector<std::string>::const_iterator itA = std::find(link_names.begin(), link_names.end(), link_0->getName());
     if (itA != link_names.end())
     {
       // => create a jacobian matrix
@@ -146,7 +148,7 @@ void CollisionsToDistanceExpressions(const std::vector<collision_detection::Cont
       // the above means: -dist_grad_a (dot_product) dofvals
     }
 
-    std::vector<std::string>::const_iterator itB = std::find(link_names.begin(), link_names.end(), link_1);
+    std::vector<std::string>::const_iterator itB = std::find(link_names.begin(), link_names.end(), link_1->getName());
     if (itB != link_names.end())
     {
       Eigen::MatrixXd jac;
@@ -178,7 +180,7 @@ void CollisionsToDistanceExpressions(const std::vector<collision_detection::Cont
 }
 
 // This function creates affine expression
-void CollisionsToDistanceExpressions(const std::vector<collision_detection::Contact>& dist_results,
+void CollisionsToDistanceExpressions(const trajopt::ContactResultVector& dist_results,
                                      planning_scene::PlanningSceneConstPtr planning_scene,
                                      std::string planning_group,
                                      const sco::VarVector& vars0,
@@ -205,12 +207,11 @@ void CollisionsToDistanceExpressions(const std::vector<collision_detection::Cont
 }
 
 inline size_t hash(const DblVec& x) { return boost::hash_range(x.begin(), x.end()); }
-void CollisionEvaluator::GetCollisionsCached(const DblVec& x, std::vector<collision_detection::Contact>& dist_results)
-void CollisionEvaluator::GetCollisionsCached(const DblVec& x, std::vector<collision_detection::Contact>& dist_results)
+
+void CollisionEvaluator::GetCollisionsCached(const DblVec& x, trajopt::ContactResultVector& dist_results)
 {
   size_t key = hash(sco::getDblVec(x, GetVars()));
-  // tesseract::ContactResultVector* it = m_cache.get(key);
-  std::vector<collision_detection::Contact>* it = m_cache.get(key);
+  trajopt::ContactResultVector* it = m_cache.get(key);
   
   if (it != nullptr)
   {
@@ -239,7 +240,7 @@ SingleTimestepCollisionEvaluator::SingleTimestepCollisionEvaluator(
 
 // So, each pair has a vector of contacts, and this functions puts all of these vectors of all pairs to one big vector called dist_results
 //void SingleTimestepCollisionEvaluator::CalcCollisions(const DblVec& x, tesseract::ContactResultVector& dist_results)
-void SingleTimestepCollisionEvaluator::CalcCollisions(const DblVec& x, std::vector<collision_detection::Contact>& dist_results)
+void SingleTimestepCollisionEvaluator::CalcCollisions(const DblVec& x, trajopt::ContactResultVector& dist_results)
 {
   // tesseract::ContactResultMap contacts;
   // tesseract::EnvStatePtr state = env_->getState(manip_->getJointNames(), sco::getVec(x, m_vars));
@@ -257,8 +258,8 @@ void SingleTimestepCollisionEvaluator::CalcCollisions(const DblVec& x, std::vect
   // So, I guess I need to set the robot state based on these joint values
   Eigen::VectorXd joint_values = sco::getVec(x, m_vars);
   std::vector<double> joint_values_DblVec = std::vector<double>(joint_values.data(), joint_values.data() + joint_values.size());
-  robot_state::RobotState& rob_state = planning_scene_->getCurrentStateNonConst();
-  const moveit::core::JointModelGroup* joint_model_group = rob_state->getJointModelGroup(planning_group_);
+  moveit::core::RobotState rob_state = planning_scene_->getCurrentState();
+  const moveit::core::JointModelGroup* joint_model_group = rob_state.getJointModelGroup(planning_group_);
   rob_state.setToDefaultValues();
   rob_state.setJointGroupPositions(joint_model_group, joint_values_DblVec);
   rob_state.update();
@@ -309,11 +310,24 @@ void SingleTimestepCollisionEvaluator::CalcCollisions(const DblVec& x, std::vect
   // Fill dist_result with all the Contacts of all the collision pairs. Each pair has a vector of contacts
   // and we have many pairs. Here we are putting all of these contact to one big vector. Not sure why that is ???
   // This happens in moveContactResultsMapToContactResultsVector
-  for (it = collision_result.contacts.begin(); it != collision_result.contacts.end(); ++it)
+  for (auto it = collision_result.contacts.begin(); it != collision_result.contacts.end(); ++it)
   {
       ROS_INFO("Contact between: %s and %s", it->first.first.c_str(), it->first.second.c_str());
-      // std::move(it->second.begin(), it->second.end(), dist_results)      
-      dist_results.insert(dist_results.end(), it->second.begin(), it->second.end())
+      
+      std::vector<collision_detection::Contact> contact_vector = it->second;
+      for(size_t k = 0; k < contact_vector.size(); ++k)
+      {
+        // convert Contact from MoveIt to ContactResult ????
+        Eigen::Vector3d moveit_cc_nearest_points[2] = contact_vector[k].nearest_points;
+        double moveit_cc_time = -1;
+        trajopt::ContinouseCollisionType moviet_cc_type = trajopt::ContinouseCollisionType::CCType_None;
+
+        ContactResult contact_result(contact_vector[k],
+                                     moveit_cc_nearest_points,
+                                     moveit_cc_time,
+                                     moviet_cc_type);
+        dist_results.push_back(contact_result);
+      }
   }
 
 }
@@ -321,14 +335,14 @@ void SingleTimestepCollisionEvaluator::CalcCollisions(const DblVec& x, std::vect
 // so, given a set of joint values called x, this function converts the vector of contacts to the vector of distances
 void SingleTimestepCollisionEvaluator::CalcDists(const DblVec& x, DblVec& dists)
 {
-  std::vector<collision_detection::Contact> dist_results;
+  trajopt::ContactResultVector dist_results;
   GetCollisionsCached(x, dist_results); 
   CollisionsToDistances(dist_results, dists);
 }
 
 void SingleTimestepCollisionEvaluator::CalcDistExpressions(const DblVec& x, sco::AffExprVector& exprs)
 {
-  std::vector<collision_detection::Contact> dist_results;
+  trajopt::ContactResultVector dist_results;
   GetCollisionsCached(x, dist_results);
   CollisionsToDistanceExpressions(dist_results, planning_scene_, planning_group_, m_vars, x, exprs, false);
 
@@ -344,15 +358,15 @@ CastCollisionEvaluator::CastCollisionEvaluator(planning_scene::PlanningSceneCons
                                                const sco::VarVector& vars1)
   : CollisionEvaluator(planning_scene, planning_group, safety_margin_data), m_vars0(vars0), m_vars1(vars1)
 {
-  contact_manager_ = env_->getContinuousContactManager();
-  contact_manager_->setActiveCollisionObjects(manip_->getLinkNames());
-  contact_manager_->setContactDistanceThreshold(safety_margin_data_->getMaxSafetyMargin() +
-                                                0.04);  // The original implementation added a margin of 0.04;
+  // contact_manager_ = env_->getContinuousContactManager();
+  // contact_manager_->setActiveCollisionObjects(manip_->getLinkNames());
+  // contact_manager_->setContactDistanceThreshold(safety_margin_data_->getMaxSafetyMargin() +
+  //                                               0.04);  // The original implementation added a margin of 0.04;
 }
 
 // similar to CalcCollisions from SingleTimestepCollisionEvaluator except we need two states because it is the 
 // swept volume?
-void CastCollisionEvaluator::CalcCollisions(const DblVec& x, std::vector<trajopt::ContactResult>& dist_results)
+void CastCollisionEvaluator::CalcCollisions(const DblVec& x, trajopt::ContactResultVector& dist_results)
 {
   // tesseract::ContactResultMap contacts;
   // tesseract::EnvStatePtr state0 = env_->getState(manip_->getJointNames(), sco::getVec(x, m_vars0));
@@ -374,48 +388,66 @@ void CastCollisionEvaluator::CalcCollisions(const DblVec& x, std::vector<trajopt
   // =====>>> So, I need to do it for two states as well.
   Eigen::VectorXd joint_values_state_0 = sco::getVec(x, m_vars0);
   std::vector<double> joint_values_DblVec_0 = std::vector<double>(joint_values_state_0.data(), joint_values_state_0.data() + joint_values_state_0.size());  
-  robot_state::RobotState& robot_state = planning_scene_->getCurrentStateNonConst();
-  const moveit::core::JointModelGroup* joint_model_group = rob_state->getJointModelGroup(planning_group_);
-  robot_state.setToDefaultValues();
-  robot_state.setJointGroupPositions(joint_model_group, joint_values_DblVec_0);
-  robot_state.update();
-  robot_state::RobotState robot_state_previous(robot_state);
+  robot_state::RobotState rob_state = planning_scene_->getCurrentState();
+  const moveit::core::JointModelGroup* joint_model_group = rob_state.getJointModelGroup(planning_group_);
+  rob_state.setToDefaultValues();
+  rob_state.setJointGroupPositions(joint_model_group, joint_values_DblVec_0);
+  rob_state.update();
+  robot_state::RobotState rob_state_previous(rob_state);
 
   Eigen::VectorXd joint_values_state_1 = sco::getVec(x, m_vars1);
   std::vector<double> joint_values_DblVec_1 = std::vector<double>(joint_values_state_1.data(), joint_values_state_1.data() + joint_values_state_1.size());  
-  robot_state.setJointGroupPositions(joint_model_group, joint_values_DblVec_1);
-  robot_state.update();
+  rob_state.setJointGroupPositions(joint_model_group, joint_values_DblVec_1);
+  rob_state.update();
 
   // check collision between two states
   collision_detection::CollisionRequest collision_request;
   // ??????? should we set the planning group in collision_request?
   collision_detection::CollisionResult collision_result;
   planning_scene_->getCollisionEnv()->checkRobotCollision(collision_request, 
-                                        collision_result, robot_state, robot_state_previous);
+                                        collision_result, rob_state, rob_state_previous);
 
 
   // ????? I have to calculate: cc_time, cc_type and cc_nearest_points here. test
   
+  // when we use bullet in MoveIt, CollisionResult returns all the contacts in the scene by ContactMap data type.
+  // ContactMap < <link_1, link_2>, vector<contact>>
+  // when using bullet, vector<Contact> has only one member while fcl might return multiple contact points for 
+  // each pair in contact
 
-  for (it = collision_result.contacts.begin(); it != collision_result.contacts.end(); ++it)
+  for (auto it = collision_result.contacts.begin(); it != collision_result.contacts.end(); ++it)
   {
       ROS_INFO("Contact between: %s and %s", it->first.first.c_str(), it->first.second.c_str());
 
+      // using bullet returns one contact point per pair of contact objects but just in case, I traverse through
+      // all the element of the vector<collision_detection::Contact>
+      std::vector<collision_detection::Contact> contact_vector = it->second;
+      for(size_t k = 0; k < contact_vector.size(); ++k)
+      {
+        // convert Contact from MoveIt to ContactResult ????
+        Eigen::Vector3d moveit_cc_nearest_points[2] = contact_vector[k].nearest_points;
+        double moveit_cc_time = 0.5;
+        trajopt::ContinouseCollisionType moviet_cc_type = trajopt::ContinouseCollisionType::CCType_Between;
 
-
-      dist_results.insert(dist_results.end(), it->second.begin(), it->second.end())
+        ContactResult contact_result(contact_vector[k],
+                                     moveit_cc_nearest_points,
+                                     moveit_cc_time,
+                                     moviet_cc_type);
+        dist_results.push_back(contact_result);
+      }
+      // dist_results.insert(dist_results.end(), it->second.begin(), it->second.end())
   }
 }
 
 void CastCollisionEvaluator::CalcDistExpressions(const DblVec& x, sco::AffExprVector& exprs)
 {
-  std::vector<collision_detection::Contact> dist_results;
+  trajopt::ContactResultVector dist_results;
   GetCollisionsCached(x, dist_results);
   CollisionsToDistanceExpressions(dist_results, planning_scene_, planning_group_, m_vars0, m_vars1, x, exprs);
 }
 void CastCollisionEvaluator::CalcDists(const DblVec& x, DblVec& dists)
 {
-  std::vector<collision_detection::Contact> dist_results;
+  trajopt::ContactResultVector dist_results;
   GetCollisionsCached(x, dist_results);
   CollisionsToDistances(dist_results, dists);
 }
@@ -443,13 +475,13 @@ sco::ConvexObjectivePtr CollisionCost::convex(const sco::DblVec& x, sco::Model* 
   sco::AffExprVector exprs;
   m_calc->CalcDistExpressions(x, exprs);
 
-  std::vector<collision_detection::Contact> dist_results;
+  trajopt::ContactResultVector dist_results;
   m_calc->GetCollisionsCached(x, dist_results);
   for (std::size_t i = 0; i < exprs.size(); ++i)
   {
     //??? link_name from dist_results in MoveIt 
-    const Eigen::Vector2d& data = m_calc->getSafetyMarginData()->getPairSafetyMarginData(dist_results[i].body_name_1,
-                                                                                         dist_results[i].body_name_2);
+    const Eigen::Vector2d& data = m_calc->getSafetyMarginData()->getPairSafetyMarginData(dist_results[i].link_names[0],
+                                                                                         dist_results[i].link_names[1]);
 
     sco::AffExpr viol = sco::exprSub(sco::AffExpr(data[0]), exprs[i]);
     out->addHinge(viol, data[1]);
@@ -462,14 +494,14 @@ double CollisionCost::value(const sco::DblVec& x)
   DblVec dists;
   m_calc->CalcDists(x, dists);
 
-  std::vector<collision_detection::Contact> dist_results;
+  trajopt::ContactResultVector dist_results;
   m_calc->GetCollisionsCached(x, dist_results);
   double out = 0;
   for (std::size_t i = 0; i < dists.size(); ++i)
   {
     //??? link_name from dist_results in MoveIt 
-    const Eigen::Vector2d& data = m_calc->getSafetyMarginData()->getPairSafetyMarginData(dist_results[i].body_name_1,
-                                                                                         dist_results[i].body_name_2);
+    const Eigen::Vector2d& data = m_calc->getSafetyMarginData()->getPairSafetyMarginData(dist_results[i].link_names[0],
+                                                                                         dist_results[i].link_names[1]);
     out += sco::pospart(data[0] - dists[i]) * data[1];
   }
   return out;
@@ -480,7 +512,7 @@ double CollisionCost::value(const sco::DblVec& x)
 CollisionConstraint::CollisionConstraint(planning_scene::PlanningSceneConstPtr planning_scene, std::string planning_group, 
                                          SafetyMarginDataConstPtr safety_margin_data,
                                          const sco::VarVector& vars)
-  : m_calc(new SingleTimestepCollisionEvaluator(planning_scene, safety_margin_data, vars))
+  : m_calc(new SingleTimestepCollisionEvaluator(planning_scene, planning_group, safety_margin_data, vars))
 {
   name_ = "collision";
 }
@@ -489,7 +521,7 @@ CollisionConstraint::CollisionConstraint(planning_scene::PlanningSceneConstPtr p
                                          SafetyMarginDataConstPtr safety_margin_data,
                                          const sco::VarVector& vars0,
                                          const sco::VarVector& vars1)
-  : m_calc(new CastCollisionEvaluator(planning_scene, safety_margin_data, vars0, vars1))
+  : m_calc(new CastCollisionEvaluator(planning_scene, planning_group, safety_margin_data, vars0, vars1))
 {
   name_ = "collision";
 }
@@ -500,12 +532,12 @@ sco::ConvexConstraintsPtr CollisionConstraint::convex(const sco::DblVec& x, sco:
   sco::AffExprVector exprs;
   m_calc->CalcDistExpressions(x, exprs);
 
-  std::vector<collision_detection::Contact> dist_results;
+  trajopt::ContactResultVector dist_results;
   m_calc->GetCollisionsCached(x, dist_results);
   for (std::size_t i = 0; i < exprs.size(); ++i)
   {
-    const Eigen::Vector2d& data = m_calc->getSafetyMarginData()->getPairSafetyMarginData(dist_results[i].body_name_1,
-                                                                                         dist_results[i].body_name_1);
+    const Eigen::Vector2d& data = m_calc->getSafetyMarginData()->getPairSafetyMarginData(dist_results[i].link_names[0],
+                                                                                         dist_results[i].link_names[1]);
 
     sco::AffExpr viol = sco::exprSub(sco::AffExpr(data[0]), exprs[i]);
     out->addIneqCnt(sco::exprMult(viol, data[1]));
@@ -518,7 +550,7 @@ DblVec CollisionConstraint::value(const sco::DblVec& x)
   DblVec dists;
   m_calc->CalcDists(x, dists);
 
-  std::vector<collision_detection::Contact> dist_results;
+  trajopt::ContactResultVector dist_results;
   m_calc->GetCollisionsCached(x, dist_results);
   DblVec out(dists.size());
   for (std::size_t i = 0; i < dists.size(); ++i)
