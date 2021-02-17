@@ -174,7 +174,9 @@ void OccupancyMapMonitor::initialize()
     }
   }
   else
-    ROS_ERROR("Failed to find 3D sensor plugin parameters for octomap generation");
+  {
+    ROS_INFO("No 3D sensor plugin(s) defined for octomap updates");
+  }
 
   /* advertise a service for loading octomaps from disk */
   save_map_srv_ = nh_.advertiseService("save_map", &OccupancyMapMonitor::saveMapCallback, this);
