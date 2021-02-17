@@ -42,7 +42,6 @@
 #include "pilz_industrial_motion_planner_testutils/xml_testdata_loader.h"
 #include "test_utils.h"
 
-#include <eigen_conversions/eigen_msg.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>

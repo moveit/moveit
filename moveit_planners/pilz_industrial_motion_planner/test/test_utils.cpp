@@ -32,11 +32,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <eigen_conversions/eigen_msg.h>
 #include <gtest/gtest.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/robot_state/conversions.h>
-#include <tf2/convert.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
@@ -109,7 +107,7 @@ bool testutils::getExpectedGoalPose(const moveit::core::RobotModelConstPtr& robo
       req.goal_constraints.front().position_constraints.front().constraint_region.primitive_poses.front().position;
   goal_pose_msg.orientation = req.goal_constraints.front().orientation_constraints.front().orientation;
   normalizeQuaternion(goal_pose_msg.orientation);
-  tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(goal_pose_msg, goal_pose_expect);
+  tf2::fromMsg(goal_pose_msg, goal_pose_expect);
   return true;
 }
 
@@ -553,7 +551,7 @@ bool testutils::toTCPPose(const moveit::core::RobotModelConstPtr& robot_model, c
     {
       return false;
     }
-    tf2::convert<Eigen::Isometry3d, geometry_msgs::Pose>(eig_pose, pose);
+    pose = tf2::toMsg(eig_pose);
     return true;
   }
 }

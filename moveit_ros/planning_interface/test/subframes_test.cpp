@@ -56,7 +56,7 @@
 
 // TF2
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 constexpr double EPSILON = 1e-2;
 constexpr double Z_OFFSET = 0.05;
@@ -179,7 +179,7 @@ TEST(TestPlanUsingSubframes, SubframesTests)
     Eigen::Isometry3d eef = planning_scene->getFrameTransform("cylinder/tip");
     Eigen::Isometry3d box_subframe = planning_scene->getFrameTransform(target_pose_stamped.header.frame_id);
     Eigen::Isometry3d target_pose;
-    tf::poseMsgToEigen(target_pose_stamped.pose, target_pose);
+    tf2::fromMsg(target_pose_stamped.pose, target_pose);
 
     // expect that they are identical
     std::stringstream ss;

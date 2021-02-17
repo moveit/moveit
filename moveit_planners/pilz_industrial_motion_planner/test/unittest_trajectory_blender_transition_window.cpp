@@ -36,13 +36,11 @@
 
 #include <gtest/gtest.h>
 
-#include <eigen_conversions/eigen_msg.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/DisplayTrajectory.h>
-#include <tf2/convert.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
@@ -649,9 +647,8 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testNonLinearBlending)
 
       // get pose
       CartesianTrajectoryPoint waypoint;
-      geometry_msgs::Pose waypoint_pose;
-      Eigen::Isometry3d eigen_pose{ lin_traj->getWayPointPtr(i)->getFrameTransform(target_link_) };
-      tf2::convert<Eigen::Isometry3d, geometry_msgs::Pose>(eigen_pose, waypoint_pose);
+      const Eigen::Isometry3d eigen_pose{ lin_traj->getWayPointPtr(i)->getFrameTransform(target_link_) };
+      geometry_msgs::Pose waypoint_pose = tf2::toMsg(eigen_pose);
 
       // add scaled sine function
       waypoint_pose.position.x += sine_scaling_factor * sin(sine_arg);

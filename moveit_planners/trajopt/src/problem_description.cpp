@@ -42,7 +42,6 @@
 #include <trajopt/trajectory_costs.hpp>
 #include <trajopt_sco/expr_op_overloads.hpp>
 #include <trajopt_sco/expr_ops.hpp>
-#include <trajopt_utils/eigen_conversions.hpp>
 #include <trajopt_utils/eigen_slicing.hpp>
 #include <trajopt_utils/logging.hpp>
 #include <trajopt_utils/vector_ops.hpp>

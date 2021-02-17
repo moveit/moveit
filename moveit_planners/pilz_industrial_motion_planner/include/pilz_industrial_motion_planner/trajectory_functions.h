@@ -35,8 +35,6 @@
 #pragma once
 
 #include <Eigen/Geometry>
-#include <eigen_conversions/eigen_kdl.h>
-#include <eigen_conversions/eigen_msg.h>
 #include <kdl/trajectory.hpp>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
