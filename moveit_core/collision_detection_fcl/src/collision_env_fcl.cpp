@@ -47,6 +47,7 @@
 namespace collision_detection
 {
 const std::string CollisionDetectorAllocatorFCL::NAME("FCL");
+constexpr char LOGNAME[] = "collision_detection.fcl";
 
 CollisionEnvFCL::CollisionEnvFCL(const moveit::core::RobotModelConstPtr& model, double padding, double scale)
   : CollisionEnv(model, padding, scale)
@@ -74,8 +75,7 @@ CollisionEnvFCL::CollisionEnvFCL(const moveit::core::RobotModelConstPtr& model, 
             FCLCollisionObjectConstPtr(new fcl::CollisionObjectd(link_geometry->collision_geometry_));
       }
       else
-        ROS_ERROR_NAMED("collision_detection.fcl", "Unable to construct collision geometry for link '%s'",
-                        link->getName().c_str());
+        ROS_ERROR_NAMED(LOGNAME, "Unable to construct collision geometry for link '%s'", link->getName().c_str());
     }
 
   auto m = new fcl::DynamicAABBTreeCollisionManagerd();
@@ -112,8 +112,7 @@ CollisionEnvFCL::CollisionEnvFCL(const moveit::core::RobotModelConstPtr& model, 
         robot_fcl_objs_[index] = FCLCollisionObjectConstPtr(new fcl::CollisionObjectd(g->collision_geometry_));
       }
       else
-        ROS_ERROR_NAMED("collision_detection.fcl", "Unable to construct collision geometry for link '%s'",
-                        link->getName().c_str());
+        ROS_ERROR_NAMED(LOGNAME, "Unable to construct collision geometry for link '%s'", link->getName().c_str());
     }
 
   auto m = new fcl::DynamicAABBTreeCollisionManagerd();
@@ -273,7 +272,7 @@ void CollisionEnvFCL::checkRobotCollision(const CollisionRequest& req, Collision
                                           const moveit::core::RobotState& state1,
                                           const moveit::core::RobotState& state2) const
 {
-  ROS_ERROR_NAMED("collision_detection.bullet", "Continuous collision not implemented");
+  ROS_ERROR_NAMED(LOGNAME, "Continuous collision not implemented");
 }
 
 void CollisionEnvFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
@@ -281,7 +280,7 @@ void CollisionEnvFCL::checkRobotCollision(const CollisionRequest& req, Collision
                                           const moveit::core::RobotState& state2,
                                           const AllowedCollisionMatrix& acm) const
 {
-  ROS_ERROR_NAMED("collision_detection.fcl", "Not implemented");
+  ROS_ERROR_NAMED(LOGNAME, "Not implemented");
 }
 
 void CollisionEnvFCL::checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
@@ -429,7 +428,7 @@ void CollisionEnvFCL::updatedPaddingOrScaling(const std::vector<std::string>& li
       }
     }
     else
-      ROS_ERROR_NAMED("collision_detection.fcl", "Updating padding or scaling for unknown link: '%s'", link.c_str());
+      ROS_ERROR_NAMED(LOGNAME, "Updating padding or scaling for unknown link: '%s'", link.c_str());
   }
 }
 

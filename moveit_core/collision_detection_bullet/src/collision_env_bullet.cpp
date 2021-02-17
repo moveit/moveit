@@ -45,6 +45,7 @@ namespace collision_detection
 {
 const std::string CollisionDetectorAllocatorBullet::NAME("Bullet");
 const double MAX_DISTANCE_MARGIN = 99;
+constexpr char LOGNAME[] = "collision_detection.bullet";
 
 CollisionEnvBullet::CollisionEnvBullet(const moveit::core::RobotModelConstPtr& model, double padding, double scale)
   : CollisionEnv(model, padding, scale)
@@ -227,13 +228,13 @@ void CollisionEnvBullet::checkRobotCollisionHelperCCD(const CollisionRequest& re
 void CollisionEnvBullet::distanceSelf(const DistanceRequest& req, DistanceResult& res,
                                       const moveit::core::RobotState& state) const
 {
-  ROS_INFO_NAMED("collision_detection.bullet", "Distance to self not implemented yet.");
+  ROS_INFO_NAMED(LOGNAME, "distanceSelf is not implemented for Bullet.");
 }
 
 void CollisionEnvBullet::distanceRobot(const DistanceRequest& req, DistanceResult& res,
                                        const moveit::core::RobotState& state) const
 {
-  ROS_INFO_NAMED("collision_detection.bullet", "Distance to self not implemented yet.");
+  ROS_INFO_NAMED(LOGNAME, "distanceRobot is not implemented for Bullet.");
 }
 
 void CollisionEnvBullet::addToManager(const World::Object* obj)

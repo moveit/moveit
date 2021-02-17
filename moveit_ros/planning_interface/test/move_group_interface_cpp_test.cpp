@@ -33,7 +33,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Tyler Weaver */
+/* Author: Tyler Weaver, Boston Cleek */
 
 /* These integration tests are based on the tutorials for using move_group:
  * https://ros-planning.github.io/moveit_tutorials/doc/move_group_interface/move_group_interface_tutorial.html
@@ -150,16 +150,27 @@ protected:
   moveit::planning_interface::PlanningSceneInterface planning_scene_interface_;
 };
 
-TEST_F(MoveGroupTestFixture, MoveToPoseTest)
+TEST_F(MoveGroupTestFixture, PathConstraintCollisionTest)
 {
-  SCOPED_TRACE("MoveToPoseTest");
+  SCOPED_TRACE("PathConstraintCollisionTest");
 
+  ////////////////////////////////////////////////////////////////////
+  // set a custom start state
+  // this simplifies planning for the orientation constraint bellow
+  geometry_msgs::Pose start_pose;
+  start_pose.orientation.w = 1.0;
+  start_pose.position.x = 0.3;
+  start_pose.position.y = 0.0;
+  start_pose.position.z = 0.6;
+  planAndMoveToPose(start_pose);
+
+  ////////////////////////////////////////////////////////////////////
   // Test setting target pose with eigen and with geometry_msgs
   geometry_msgs::Pose target_pose;
   target_pose.orientation.w = 1.0;
-  target_pose.position.x = 0.28;
-  target_pose.position.y = -0.2;
-  target_pose.position.z = 0.5;
+  target_pose.position.x = 0.3;
+  target_pose.position.y = -0.3;
+  target_pose.position.z = 0.6;
 
   // convert to eigen
   Eigen::Isometry3d eigen_target_pose;
@@ -174,11 +185,108 @@ TEST_F(MoveGroupTestFixture, MoveToPoseTest)
   // expect that they are identical
   testEigenPose(eigen_target_pose, eigen_set_target_pose);
 
+  ////////////////////////////////////////////////////////////////////
+  // create an orientation constraint
+  moveit_msgs::OrientationConstraint ocm;
+  ocm.link_name = move_group_->getEndEffectorLink();
+  ocm.header.frame_id = move_group_->getPlanningFrame();
+  ocm.orientation.w = 1.0;
+  ocm.absolute_x_axis_tolerance = 0.1;
+  ocm.absolute_y_axis_tolerance = 0.1;
+  ocm.absolute_z_axis_tolerance = 0.1;
+  ocm.weight = 1.0;
+  moveit_msgs::Constraints test_constraints;
+  test_constraints.orientation_constraints.push_back(ocm);
+  move_group_->setPathConstraints(test_constraints);
+
+  ////////////////////////////////////////////////////////////////////
+  // Define a collision object ROS message.
+  moveit_msgs::CollisionObject collision_object;
+  collision_object.header.frame_id = move_group_->getPlanningFrame();
+
+  // The id of the object is used to identify it.
+  collision_object.id = "box1";
+
+  // Define a box to add to the world.
+  shape_msgs::SolidPrimitive primitive;
+  primitive.type = primitive.BOX;
+  primitive.dimensions.resize(3);
+  primitive.dimensions[0] = 0.1;
+  primitive.dimensions[1] = 1.0;
+  primitive.dimensions[2] = 1.0;
+
+  // Define a pose for the box (specified relative to frame_id)
+  geometry_msgs::Pose box_pose;
+  box_pose.orientation.w = 1.0;
+  box_pose.position.x = 0.5;
+  box_pose.position.y = 0.0;
+  box_pose.position.z = 0.5;
+
+  collision_object.primitives.push_back(primitive);
+  collision_object.primitive_poses.push_back(box_pose);
+  collision_object.operation = collision_object.ADD;
+
+  std::vector<moveit_msgs::CollisionObject> collision_objects;
+  collision_objects.push_back(collision_object);
+
+  // Now, let's add the collision object into the world
+  planning_scene_interface_.addCollisionObjects(collision_objects);
+
+  ////////////////////////////////////////////////////////////////////
   // plan and move
   planAndMove();
 
   // get the pose after the movement
   testPose(eigen_target_pose);
+
+  // clear path constraints
+  move_group_->clearPathConstraints();
+
+  // attach and detach collision object
+  EXPECT_TRUE(move_group_->attachObject(collision_object.id));
+  EXPECT_EQ(planning_scene_interface_.getAttachedObjects().size(), std::size_t(1));
+  EXPECT_TRUE(move_group_->detachObject(collision_object.id));
+  EXPECT_EQ(planning_scene_interface_.getAttachedObjects().size(), std::size_t(0));
+
+  // remove object from world
+  const std::vector<std::string> object_ids = { collision_object.id };
+  EXPECT_EQ(planning_scene_interface_.getObjects().size(), std::size_t(1));
+  planning_scene_interface_.removeCollisionObjects(object_ids);
+  EXPECT_EQ(planning_scene_interface_.getObjects().size(), std::size_t(0));
+}
+
+TEST_F(MoveGroupTestFixture, CartPathTest)
+{
+  SCOPED_TRACE("CartPathTest");
+
+  // Plan from current pose
+  const geometry_msgs::PoseStamped start_pose = move_group_->getCurrentPose();
+
+  std::vector<geometry_msgs::Pose> waypoints;
+  waypoints.push_back(start_pose.pose);
+
+  geometry_msgs::Pose target_waypoint = start_pose.pose;
+  target_waypoint.position.z -= 0.2;
+  waypoints.push_back(target_waypoint);  // down
+
+  target_waypoint.position.y -= 0.2;
+  waypoints.push_back(target_waypoint);  // right
+
+  target_waypoint.position.z += 0.2;
+  target_waypoint.position.y += 0.2;
+  target_waypoint.position.x -= 0.2;
+  waypoints.push_back(target_waypoint);  // up and left
+
+  moveit_msgs::RobotTrajectory trajectory;
+  const auto jump_threshold = 0.0;
+  const auto eef_step = 0.01;
+  move_group_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory);
+
+  // Execute trajectory
+  EXPECT_EQ(move_group_->execute(trajectory), moveit::planning_interface::MoveItErrorCode::SUCCESS);
+
+  // get the pose after the movement
+  testPose(target_waypoint);
 }
 
 TEST_F(MoveGroupTestFixture, JointSpaceGoalTest)
@@ -200,154 +308,6 @@ TEST_F(MoveGroupTestFixture, JointSpaceGoalTest)
 
   // test that we moved to the expected joint positions
   testJointPositions(plan_joint_positions);
-}
-
-TEST_F(MoveGroupTestFixture, PathConstraintTest)
-{
-  SCOPED_TRACE("PathConstraintTest");
-
-  // set a custom start state
-  geometry_msgs::Pose start_pose;
-  start_pose.orientation.w = 1.0;
-  start_pose.position.x = 0.55;
-  start_pose.position.y = -0.05;
-  start_pose.position.z = 0.8;
-  planAndMoveToPose(start_pose);
-
-  // create an orientation constraint
-  moveit_msgs::OrientationConstraint ocm;
-  ocm.link_name = move_group_->getEndEffectorLink();
-  ocm.header.frame_id = move_group_->getPlanningFrame();
-  ocm.orientation.w = 1.0;
-  ocm.absolute_x_axis_tolerance = 0.1;
-  ocm.absolute_y_axis_tolerance = 0.1;
-  ocm.absolute_z_axis_tolerance = 0.1;
-  ocm.weight = 1.0;
-  moveit_msgs::Constraints test_constraints;
-  test_constraints.orientation_constraints.push_back(ocm);
-  move_group_->setPathConstraints(test_constraints);
-
-  // move to a custom target pose
-  geometry_msgs::Pose target_pose;
-  target_pose.orientation.w = 1.0;
-  target_pose.position.x = 0.28;
-  target_pose.position.y = -0.2;
-  target_pose.position.z = 0.5;
-  planAndMoveToPose(target_pose);
-
-  // clear path constraints
-  move_group_->clearPathConstraints();
-
-  // get the pose after the movement
-  testPose(target_pose);
-}
-
-TEST_F(MoveGroupTestFixture, CartPathTest)
-{
-  SCOPED_TRACE("CartPathTest");
-
-  // set a custom start state
-  geometry_msgs::Pose start_pose;
-  start_pose.orientation.w = 1.0;
-  start_pose.position.x = 0.55;
-  start_pose.position.y = -0.05;
-  start_pose.position.z = 0.8;
-  planAndMoveToPose(start_pose);
-
-  std::vector<geometry_msgs::Pose> waypoints;
-  waypoints.push_back(start_pose);
-
-  geometry_msgs::Pose target_waypoint = start_pose;
-  target_waypoint.position.z -= 0.2;
-  waypoints.push_back(target_waypoint);  // down
-
-  target_waypoint.position.y -= 0.2;
-  waypoints.push_back(target_waypoint);  // right
-
-  target_waypoint.position.z += 0.2;
-  target_waypoint.position.y += 0.2;
-  target_waypoint.position.x -= 0.2;
-  waypoints.push_back(target_waypoint);  // up and left
-
-  moveit_msgs::RobotTrajectory trajectory;
-  const double jump_threshold = 0.0;
-  const double eef_step = 0.01;
-  move_group_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory);
-
-  // Execute trajectory
-  EXPECT_EQ(move_group_->execute(trajectory), moveit::planning_interface::MoveItErrorCode::SUCCESS);
-
-  // get the pose after the movement
-  testPose(target_waypoint);
-}
-
-TEST_F(MoveGroupTestFixture, CollisionObjectsTest)
-{
-  SCOPED_TRACE("CollisionObjectsTest");
-
-  // set a custom start state
-  geometry_msgs::Pose start_pose;
-  start_pose.orientation.w = 1.0;
-  start_pose.position.x = 0.28;
-  start_pose.position.y = -0.2;
-  start_pose.position.z = 0.5;
-  planAndMoveToPose(start_pose);
-
-  // Define a collision object ROS message.
-  moveit_msgs::CollisionObject collision_object;
-  collision_object.header.frame_id = move_group_->getPlanningFrame();
-
-  // The id of the object is used to identify it.
-  collision_object.id = "box1";
-
-  // Define a box to add to the world.
-  shape_msgs::SolidPrimitive primitive;
-  primitive.type = primitive.BOX;
-  primitive.dimensions.resize(3);
-  primitive.dimensions[0] = 0.4;
-  primitive.dimensions[1] = 0.1;
-  primitive.dimensions[2] = 0.1;
-
-  // Define a pose for the box (specified relative to frame_id)
-  geometry_msgs::Pose box_pose;
-  box_pose.orientation.w = 1.0;
-  box_pose.position.x = 0.4;
-  box_pose.position.y = -0.2;
-  box_pose.position.z = 0.8;
-
-  collision_object.primitives.push_back(primitive);
-  collision_object.primitive_poses.push_back(box_pose);
-  collision_object.operation = collision_object.ADD;
-
-  std::vector<moveit_msgs::CollisionObject> collision_objects;
-  collision_objects.push_back(collision_object);
-
-  // Now, let's add the collision object into the world
-  planning_scene_interface_.addCollisionObjects(collision_objects);
-
-  // plan trajectory avoiding object
-  geometry_msgs::Pose target_pose;
-  target_pose.orientation.w = 0.0;
-  target_pose.position.x = 0.4;
-  target_pose.position.y = -0.4;
-  target_pose.position.z = 0.7;
-  planAndMoveToPose(target_pose);
-
-  // get the pose after the movement
-  testPose(target_pose);
-
-  // attach and detach collision object
-  EXPECT_TRUE(move_group_->attachObject(collision_object.id));
-  EXPECT_EQ(planning_scene_interface_.getAttachedObjects().size(), std::size_t(1));
-  EXPECT_TRUE(move_group_->detachObject(collision_object.id));
-  EXPECT_EQ(planning_scene_interface_.getAttachedObjects().size(), std::size_t(0));
-
-  // remove object from world
-  std::vector<std::string> object_ids;
-  object_ids.push_back(collision_object.id);
-  EXPECT_EQ(planning_scene_interface_.getObjects().size(), std::size_t(1));
-  planning_scene_interface_.removeCollisionObjects(object_ids);
-  EXPECT_EQ(planning_scene_interface_.getObjects().size(), std::size_t(0));
 }
 
 int main(int argc, char** argv)

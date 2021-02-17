@@ -389,17 +389,15 @@ void PlanningScene::clearDiffs()
 
     if (it.second->parent_)
     {
-      it.second->cenv_ = it.second->alloc_->allocateEnv(it.second->parent_->cenv_, world_);
-      it.second->cenv_const_ = it.second->cenv_;
-
       it.second->cenv_unpadded_ = it.second->alloc_->allocateEnv(it.second->parent_->cenv_unpadded_, world_);
       it.second->cenv_unpadded_const_ = it.second->cenv_unpadded_;
-    }
-    else
-    {
-      it.second->copyPadding(*parent_->active_collision_);
 
       it.second->cenv_ = it.second->alloc_->allocateEnv(it.second->parent_->cenv_, world_);
+      it.second->cenv_const_ = it.second->cenv_;
+    }
+    else  // This is the parent CollisionDetector
+    {
+      it.second->copyPadding(*parent_->active_collision_);
       it.second->cenv_const_ = it.second->cenv_;
     }
   }

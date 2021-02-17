@@ -165,22 +165,22 @@ install(DIRECTORY config DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
 
+  # basic functionality
+  add_rostest_gtest(basic_servo_tests
+    test/basic_servo_tests.test
+    test/basic_servo_tests.cpp
+  )
+  target_link_libraries(basic_servo_tests
+    ${SERVO_LIB_NAME}
+    ${catkin_LIBRARIES}
+  )
+
   # servo_cpp_interface
   add_rostest_gtest(servo_cpp_interface_test
     test/servo_cpp_interface_test.test
     test/servo_cpp_interface_test.cpp
   )
   target_link_libraries(servo_cpp_interface_test
-    ${SERVO_LIB_NAME}
-    ${catkin_LIBRARIES}
-  )
-
-  # low_latency
-  add_rostest_gtest(servo_low_latency_test
-    test/servo_low_latency_test.test
-    test/servo_low_latency_test.cpp
-  )
-  target_link_libraries(servo_low_latency_test
     ${SERVO_LIB_NAME}
     ${catkin_LIBRARIES}
   )

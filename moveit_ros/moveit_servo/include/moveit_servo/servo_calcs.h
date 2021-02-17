@@ -42,6 +42,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <thread>
+#include <atomic>
 
 // ROS
 #include <control_msgs/JointJog.h>
@@ -103,6 +104,9 @@ public:
    * This must be a link on the robot since MoveIt tracks the transform (not tf)
    */
   void changeRobotLinkCommandFrame(const std::string& new_command_frame);
+
+  // Give test access to private/protected methods
+  friend class ServoFixture;
 
 private:
   /** \brief Run the main calculation loop */
@@ -279,7 +283,7 @@ private:
 
   // Status
   StatusCode status_ = StatusCode::NO_WARNING;
-  bool paused_ = false;
+  std::atomic<bool> paused_;
   bool twist_command_is_stale_ = false;
   bool joint_command_is_stale_ = false;
   bool ok_to_publish_ = false;

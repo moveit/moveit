@@ -413,7 +413,7 @@ void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr& handle
   for (visualization_msgs::Marker& marker : marker_array.markers)
   {
     marker.header = im.header;
-    marker.mesh_use_embedded_materials = true;
+    marker.mesh_use_embedded_materials = !marker.mesh_resource.empty();
     // - - - - - - Do some math for the offset - - - - - -
     tf2::Transform tf_root_to_im, tf_root_to_mesh, tf_im_to_eef;
     tf2::fromMsg(im.pose, tf_root_to_im);
