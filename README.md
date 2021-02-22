@@ -11,10 +11,10 @@ Currently we support ROS Indigo, Kinetic, and Melodic.
 
 ## Branches Policy
 
-We develop all new 1.0 features on ``master``. The ``*-devel`` branches correspond to
-released and stable versions of MoveIt for specific distributions of ROS.
-Bug fixes occationally get backported to these released versions of MoveIt.
-The next version of MoveIt 1.0 will be branched to ``noetic-devel`` around May 2020.
+- We develop latest features on ``master``.
+- The ``*-devel`` branches correspond to released and stable versions of MoveIt for specific distributions of ROS.
+- Bug fixes occasionally get backported to these released versions of MoveIt.
+- For MoveIt 2 development, see [moveit2](https://github.com/ros-planning/moveit2).
 
 For MoveIt 2.0 development, see [moveit2](https://github.com/ros-planning/moveit2).
 
