@@ -337,7 +337,17 @@ public:
   }
   double getMaximumExtent(const JointBoundsVector& active_joint_bounds) const;
 
+  /** \brief Return the sum of joint distances between two states. Only considers active joints. */
   double distance(const double* state1, const double* state2) const;
+
+  /**
+   * Interpolate between "from" state, to "to" state. Mimic joints are correctly updated.
+   *
+   * @param from interpolate from this state
+   * @param to to this state
+   * @param t a fraction in the range [0 1]. If 1, the result matches "to" state exactly.
+   * @param state holds the result
+   */
   void interpolate(const double* from, const double* to, double t, double* state) const;
 
   /** \name Access to joint groups
