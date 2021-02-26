@@ -1694,6 +1694,12 @@ bool PlanningScene::processCollisionObjectMsg(const moveit_msgs::CollisionObject
     if (object.operation == moveit_msgs::CollisionObject::ADD && world_->hasObject(object.id))
       world_->removeObject(object.id);
 
+    if (!getTransforms().canTransform(object.header.frame_id))
+    {
+      ROS_ERROR_STREAM_NAMED("planning_scene", "Cannot transform to object's frame_id '" << object.header.frame_id << "'");
+      return false;
+    }
+
     const Eigen::Affine3d& t = getTransforms().getTransform(object.header.frame_id);
 
     for (std::size_t i = 0; i < object.primitives.size(); ++i)
