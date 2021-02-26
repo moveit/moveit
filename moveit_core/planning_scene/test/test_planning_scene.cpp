@@ -167,6 +167,33 @@ TEST(PlanningScene, isStateValid)
   }
 }
 
+TEST(PlanningScene, AttachToNonExistent)
+{
+  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  urdf::ModelInterfaceSharedPtr urdf_model;
+  loadRobotModel(urdf_model);
+
+  planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(urdf_model, srdf_model));
+
+  moveit_msgs::CollisionObject obj;
+  obj.operation = moveit_msgs::CollisionObject::ADD;
+  obj.id = "new_object";
+  obj.header.frame_id = "non_existant_frame";
+
+  obj.primitives.resize(1);
+  obj.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
+  obj.primitives[0].dimensions.push_back(1.0);
+  obj.primitives[0].dimensions.push_back(1.0);
+  obj.primitives[0].dimensions.push_back(1.0);
+  obj.primitive_poses.resize(1);
+  obj.primitive_poses[0].position.x = 0;
+  obj.primitive_poses[0].position.y = 0;
+  obj.primitive_poses[0].position.z = 2.0;
+  obj.primitive_poses[0].orientation.w = 1.0;
+
+  EXPECT_FALSE(ps->processCollisionObjectMsg(obj));
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
