@@ -235,6 +235,12 @@ class PlanningSceneInterface(object):
         """
         return self._psi.apply_collision_object(conversions.msg_to_string(collision_object_message))
     
+    def apply_planning_scene(self, planning_scene_message):
+        """
+        Applies the planning scene message.
+        """
+        return self._psi.apply_planning_scene(conversions.msg_to_string(planning_scene_message))
+
     @staticmethod
     def __make_existing(name):
         """
