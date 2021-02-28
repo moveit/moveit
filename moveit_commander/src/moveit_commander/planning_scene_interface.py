@@ -56,8 +56,9 @@ except:
 
 class PlanningSceneInterface(object):
     """ 
-    Python interface for a planning scene.
-    Uses both C++ wrapped methods and scene manipulation topics.
+    Python interface for a C++ PlanningSceneInterface.
+    Uses both C++ wrapped methods and scene manipulation topics 
+    to manipulate the PlanningScene managed by the PlanningSceneMonitor.
     See wrap_python_planning_scene_interface.cpp for the wrapped methods.
     """
 
