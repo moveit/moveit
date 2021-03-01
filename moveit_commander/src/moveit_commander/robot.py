@@ -191,9 +191,9 @@ class RobotCommander(object):
 
     def get_active_joint_names(self, group=None):
         """
-        Get the names of all the movable joints that make up a group
-        If no group name is specified, all joints in the robot model are returned
-        Excludes mimic and fixed joints.
+        Get the names of all the movable joints that make up a group.
+        If no group name is specified, all joints in the robot model are returned.
+        Excludes fixed and mimic joints.
         """
         if group is not None:
             if self.has_group(group):
@@ -205,8 +205,9 @@ class RobotCommander(object):
 
     def get_joint_names(self, group=None):
         """
-        Get the names of all the movable joints that make up a group
-        If no group name is specified, all joints in the robot model are returned
+        Get the names of all the movable joints that make up a group.
+        If no group name is specified, all joints in the robot model are returned.
+        Includes fixed and mimic joints.
         """
         if group is not None:
             if self.has_group(group):
