@@ -272,6 +272,7 @@ void RobotModel::buildJointInfo()
       {
         active_joint_model_start_index_.push_back(variable_count_);
         active_joint_model_vector_.push_back(joint_model_vector_[i]);
+        active_joint_model_names_vector_.push_back(joint_model_vector_[i]->getName());
         active_joint_model_vector_const_.push_back(joint_model_vector_[i]);
         active_joint_models_bounds_.push_back(&joint_model_vector_[i]->getVariableBounds());
       }

@@ -163,6 +163,12 @@ public:
     return active_joint_model_vector_const_;
   }
 
+  /** \brief Get the array of active joint names, in the order they appear in the robot state. */
+  const std::vector<std::string>& getActiveJointModelNames() const
+  {
+    return active_joint_model_names_vector_;
+  }
+
   /** \brief Get the array of joints that are active (not fixed, not mimic) in this model */
   const std::vector<JointModel*>& getActiveJointModels()
   {
@@ -514,6 +520,9 @@ protected:
 
   /** \brief The vector of joints in the model, in the order they appear in the state vector */
   std::vector<JointModel*> active_joint_model_vector_;
+
+  /** \brief The vector of joint names that corresponds to active_joint_model_vector_ */
+  std::vector<std::string> active_joint_model_names_vector_;
 
   /** \brief The vector of joints in the model, in the order they appear in the state vector */
   std::vector<const JointModel*> active_joint_model_vector_const_;

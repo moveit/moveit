@@ -189,12 +189,24 @@ class RobotCommander(object):
         """Get the name of the root link of the robot model """
         return self._r.get_robot_root_link()
 
+    def get_active_joint_names(self, group=None):
+        """
+        Get the names of all the movable joints that make up a group
+        If no group name is specified, all joints in the robot model are returned
+        Excludes mimic and fixed joints.
+        """
+        if group is not None:
+            if self.has_group(group):
+                return self._r.get_group_active_joint_names(group)
+            else:
+                raise MoveItCommanderException("There is no group named %s" % group)
+        else:
+            return self._r.get_active_joint_names()
+
     def get_joint_names(self, group=None):
         """
         Get the names of all the movable joints that make up a group
-        (mimic joints and fixed joints are excluded). If no group name is
-        specified, all joints in the robot model are returned, including
-        fixed and mimic joints.
+        If no group name is specified, all joints in the robot model are returned
         """
         if group is not None:
             if self.has_group(group):
