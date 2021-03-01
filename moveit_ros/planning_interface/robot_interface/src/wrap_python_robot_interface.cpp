@@ -72,6 +72,20 @@ public:
     return robot_model_->getName().c_str();
   }
 
+  bp::list getActiveJointNames() const
+  {
+    return py_bindings_tools::listFromString(robot_model_->getActiveJointModelNames());
+  }
+
+  bp::list getGroupActiveJointNames(const std::string& group) const
+  {
+    const moveit::core::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
+    if (jmg)
+      return py_bindings_tools::listFromString(jmg->getActiveJointModelNames());
+    else
+      return bp::list();
+  }
+
   bp::list getJointNames() const
   {
     return py_bindings_tools::listFromString(robot_model_->getJointModelNames());
@@ -380,6 +394,8 @@ static void wrap_robot_interface()
 
   robot_class.def("get_joint_names", &RobotInterfacePython::getJointNames);
   robot_class.def("get_group_joint_names", &RobotInterfacePython::getGroupJointNames);
+  robot_class.def("get_active_joint_names", &RobotInterfacePython::getActiveJointNames);
+  robot_class.def("get_group_active_joint_names", &RobotInterfacePython::getGroupActiveJointNames);
   robot_class.def("get_group_default_states", &RobotInterfacePython::getDefaultStateNames);
   robot_class.def("get_group_joint_tips", &RobotInterfacePython::getGroupJointTips);
   robot_class.def("get_group_names", &RobotInterfacePython::getGroupNames);
