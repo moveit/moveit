@@ -57,7 +57,12 @@ except:
 
 
 class PlanningSceneInterface(object):
-    """ Simple interface to making updates to a planning scene """
+    """
+    Python interface for a C++ PlanningSceneInterface.
+    Uses both C++ wrapped methods and scene manipulation topics
+    to manipulate the PlanningScene managed by the PlanningSceneMonitor.
+    See wrap_python_planning_scene_interface.cpp for the wrapped methods.
+    """
 
     def __init__(self, ns="", synchronous=False, service_timeout=5.0):
         """ Create a planning scene interface; it uses both C++ wrapped methods and scene manipulation topics. """
@@ -87,6 +92,12 @@ class PlanningSceneInterface(object):
                 self._pub_aco.publish(collision_object)
             else:
                 self._pub_co.publish(collision_object)
+
+    def add_object(self, collision_object):
+        """
+        Add an object to the planning scene
+        """
+        self.__submit(collision_object, attach=False)
 
     def add_sphere(self, name, pose, radius=1):
         """
@@ -128,6 +139,12 @@ class PlanningSceneInterface(object):
         co.planes = [p]
         co.plane_poses = [pose.pose]
         self.__submit(co, attach=False)
+
+    def attach_object(self, attached_collision_object):
+        """
+        Attach an object in the planning scene
+        """
+        self.__submit(attached_collision_object, attach=True)
 
     def attach_mesh(
         self, link, name, pose=None, filename="", size=(1, 1, 1), touch_links=[]
@@ -229,6 +246,14 @@ class PlanningSceneInterface(object):
             conversions.msg_from_string(msg, ser_aobjs[key])
             aobjs[key] = msg
         return aobjs
+
+    def apply_planning_scene(self, planning_scene_message):
+        """
+        Applies the planning scene message.
+        """
+        return self._psi.apply_planning_scene(
+            conversions.msg_to_string(planning_scene_message)
+        )
 
     @staticmethod
     def __make_existing(name):
