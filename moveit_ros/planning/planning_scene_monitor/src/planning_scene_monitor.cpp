@@ -545,7 +545,7 @@ void PlanningSceneMonitor::clearOctomap()
     else
     {
       ROS_WARN_NAMED(LOGNAME, "Unable to clear octomap since no octomap monitor has been initialized");
-    }
+    }  // Lift the scoped lock before calling triggerSceneUpdateEvent to avoid deadlock
   }
 
   if (removed)
