@@ -92,9 +92,9 @@ public:
       return poses_.get();
     }
 
-    const ompl::base::SE3StateSpace::StateType** poses() const
+    const ompl::base::SE3StateSpace::StateType* const* poses() const
     {
-      return const_cast<const ompl::base::SE3StateSpace::StateType**>(poses_.get());
+      return poses_.get();
     }
 
     void setPoses(std::unique_ptr<ompl::base::SE3StateSpace::StateType*[]> poses)
