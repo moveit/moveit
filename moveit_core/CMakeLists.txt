@@ -1,33 +1,33 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(moveit_core)
 
-if(NOT "${CMAKE_CXX_STANDARD}")
-  set(CMAKE_CXX_STANDARD 14)
-endif()
+if (NOT "${CMAKE_CXX_STANDARD}")
+    set(CMAKE_CXX_STANDARD 14)
+endif ()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  # Enable warnings
-  add_compile_options(-Wall -Wextra
-    -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wcast-qual
-    -Wno-unused-parameter -Wno-unused-function)
-endif()
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  # This too often has false-positives
-  add_compile_options(-Wno-maybe-uninitialized)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-endif()
+if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # Enable warnings
+    add_compile_options(-Wall -Wextra
+            -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wcast-qual
+            -Wno-unused-parameter -Wno-unused-function)
+endif ()
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    # This too often has false-positives
+    add_compile_options(-Wno-maybe-uninitialized)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+endif ()
 
-if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-  message("${PROJECT_NAME}: You did not request a specific build type: Choosing 'Release' for maximum performance")
-  set(CMAKE_BUILD_TYPE Release)
-endif()
+if (NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+    message("${PROJECT_NAME}: You did not request a specific build type: Choosing 'Release' for maximum performance")
+    set(CMAKE_BUILD_TYPE Release)
+endif ()
 
 # boost::iostreams on Windows depends on boost::zlib
-if(WIN32)
-  set(EXTRA_BOOST_COMPONENTS zlib)
-endif()
+if (WIN32)
+    set(EXTRA_BOOST_COMPONENTS zlib)
+endif ()
 find_package(Boost REQUIRED system filesystem date_time thread iostreams regex ${EXTRA_BOOST_COMPONENTS})
 find_package(Eigen3 REQUIRED)
 
@@ -37,24 +37,24 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 find_package(Bullet 2.87)
 
 # TODO(j-petit): Version check can be dropped when Xenial reaches end-of-life
-if(BULLET_FOUND)
-  set(BULLET_ENABLE "BULLET")
-  set(BULLET_LIB "moveit_collision_detection_bullet")
-  set(BULLET_INC "collision_detection_bullet/include")
-  message(STATUS "Compiling with Bullet")
-else()
-  message(STATUS "Version of Bullet too old or not available: disabling Bullet collision detection plugin. Try using Ubuntu 18.04 or later.")
-endif()
+if (BULLET_FOUND)
+    set(BULLET_ENABLE "BULLET")
+    set(BULLET_LIB "moveit_collision_detection_bullet")
+    set(BULLET_INC "collision_detection_bullet/include")
+    message(STATUS "Compiling with Bullet")
+else ()
+    message(STATUS "Version of Bullet too old or not available: disabling Bullet collision detection plugin. Try using Ubuntu 18.04 or later.")
+endif ()
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBFCL_PC REQUIRED fcl)
 set(LIBFCL_INCLUDE_DIRS ${LIBFCL_PC_INCLUDE_DIRS})
 # find *absolute* paths to LIBFCL_LIBRARIES
 set(LIBFCL_LIBRARIES)
-foreach(_lib ${LIBFCL_PC_LIBRARIES})
-  find_library(_lib_${_lib} ${_lib} HINTS ${LIBFCL_PC_LIBRARY_DIRS})
-  list(APPEND LIBFCL_LIBRARIES ${_lib_${_lib}})
-endforeach()
+foreach (_lib ${LIBFCL_PC_LIBRARIES})
+    find_library(_lib_${_lib} ${_lib} HINTS ${LIBFCL_PC_LIBRARY_DIRS})
+    list(APPEND LIBFCL_LIBRARIES ${_lib_${_lib}})
+endforeach ()
 
 find_package(octomap REQUIRED)
 find_package(urdfdom REQUIRED)
@@ -70,6 +70,7 @@ COMPONENTS
   kdl_parser
   moveit_msgs
   octomap_msgs
+  pybind11_catkin
   random_numbers
   roslib
   rostime
@@ -84,6 +85,8 @@ COMPONENTS
   xmlrpcpp
 )
 
+catkin_python_setup()
+
 set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
 # Pass the folder of the generated version.h to catkin_package() for export in devel-space
 # This is how gencpp adds the folder of generated message code to the include dirs, see:
@@ -92,101 +95,101 @@ list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${VERSION_FILE_PATH})
 file(MAKE_DIRECTORY "${VERSION_FILE_PATH}/moveit")
 
 set(THIS_PACKAGE_INCLUDE_DIRS
-    background_processing/include
-    exceptions/include
-    backtrace/include
-    collision_detection/include
-    collision_detection_fcl/include
-    ${BULLET_INC}
-    constraint_samplers/include
-    controller_manager/include
-    distance_field/include
-    collision_distance_field/include
-    dynamics_solver/include
-    kinematics_base/include
-    kinematics_metrics/include
-    robot_model/include
-    transforms/include
-    robot_state/include
-    robot_trajectory/include
-    kinematic_constraints/include
-    macros/include
-    planning_interface/include
-    planning_request_adapter/include
-    planning_scene/include
-    profiler/include
-    sensor_manager/include
-    trajectory_processing/include
-    utils/include
-)
+        background_processing/include
+        exceptions/include
+        backtrace/include
+        collision_detection/include
+        collision_detection_fcl/include
+        ${BULLET_INC}
+        constraint_samplers/include
+        controller_manager/include
+        distance_field/include
+        collision_distance_field/include
+        dynamics_solver/include
+        kinematics_base/include
+        kinematics_metrics/include
+        robot_model/include
+        transforms/include
+        robot_state/include
+        robot_trajectory/include
+        kinematic_constraints/include
+        macros/include
+        planning_interface/include
+        planning_request_adapter/include
+        planning_scene/include
+        profiler/include
+        sensor_manager/include
+        trajectory_processing/include
+        utils/include
+        )
 
 catkin_package(
-  INCLUDE_DIRS
-    ${THIS_PACKAGE_INCLUDE_DIRS}
-  LIBRARIES
-    moveit_exceptions
-    moveit_background_processing
-    moveit_kinematics_base
-    moveit_robot_model
-    moveit_transforms
-    moveit_robot_state
-    moveit_robot_trajectory
-    moveit_planning_interface
-    moveit_collision_detection
-    moveit_collision_detection_fcl
-    ${BULLET_LIB}
-    moveit_kinematic_constraints
-    moveit_planning_scene
-    moveit_constraint_samplers
-    moveit_planning_request_adapter
-    moveit_profiler
-    moveit_trajectory_processing
-    moveit_distance_field
-    moveit_collision_distance_field
-    moveit_kinematics_metrics
-    moveit_dynamics_solver
-    moveit_utils
-    moveit_test_utils
-    ${OCTOMAP_LIBRARIES}
-  CATKIN_DEPENDS
-    eigen_stl_containers
-    geometric_shapes
-    geometry_msgs
-    kdl_parser
-    moveit_msgs
-    octomap_msgs
-    random_numbers
-    sensor_msgs
-    shape_msgs
-    srdfdom
-    std_msgs
-    tf2_eigen
-    tf2_geometry_msgs
-    trajectory_msgs
-    visualization_msgs
-  DEPENDS
-    Boost
-    EIGEN3
-    LIBFCL
-    OCTOMAP
-    urdfdom
-    urdfdom_headers
-    ${BULLET_ENABLE}
-    )
+        INCLUDE_DIRS
+        ${THIS_PACKAGE_INCLUDE_DIRS}
+        LIBRARIES
+        moveit_exceptions
+        moveit_background_processing
+        moveit_kinematics_base
+        moveit_robot_model
+        moveit_transforms
+        moveit_robot_state
+        moveit_robot_trajectory
+        moveit_planning_interface
+        moveit_collision_detection
+        moveit_collision_detection_fcl
+        ${BULLET_LIB}
+        moveit_kinematic_constraints
+        moveit_planning_scene
+        moveit_constraint_samplers
+        moveit_planning_request_adapter
+        moveit_profiler
+        moveit_trajectory_processing
+        moveit_distance_field
+        moveit_collision_distance_field
+        moveit_kinematics_metrics
+        moveit_dynamics_solver
+        moveit_utils
+        moveit_test_utils
+        ${OCTOMAP_LIBRARIES}
+        CATKIN_DEPENDS
+        eigen_stl_containers
+        geometric_shapes
+        geometry_msgs
+        kdl_parser
+        moveit_msgs
+        octomap_msgs
+        random_numbers
+        sensor_msgs
+        shape_msgs
+        srdfdom
+        std_msgs
+        tf2_eigen
+        tf2_geometry_msgs
+        trajectory_msgs
+        visualization_msgs
+        DEPENDS
+        Boost
+        EIGEN3
+        LIBFCL
+        OCTOMAP
+        urdfdom
+        urdfdom_headers
+        ${BULLET_ENABLE}
+)
 
 include_directories(SYSTEM ${catkin_INCLUDE_DIRS}
-                           ${Boost_INCLUDE_DIRS}
-                           ${EIGEN3_INCLUDE_DIRS}
-                           ${urdfdom_INCLUDE_DIRS}
-                           ${urdfdom_headers_INCLUDE_DIRS}
-                           ${LIBFCL_INCLUDE_DIRS}
-                           ${BULLET_INCLUDE_DIRS}
-                           ${OCTOMAP_INCLUDE_DIRS}
-                    )
+        ${Boost_INCLUDE_DIRS}
+        ${EIGEN3_INCLUDE_DIRS}
+        ${urdfdom_INCLUDE_DIRS}
+        ${urdfdom_headers_INCLUDE_DIRS}
+        ${LIBFCL_INCLUDE_DIRS}
+        ${BULLET_INCLUDE_DIRS}
+        ${OCTOMAP_INCLUDE_DIRS}
+        )
 
 #catkin_lint: ignore_once external_directory  (${VERSION_FILE_PATH})
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
-                    ${VERSION_FILE_PATH})
+        ${VERSION_FILE_PATH})
 
 # Generate and install version.h
 string(REGEX REPLACE "^([0-9]+)\\..*" "\\1" MOVEIT_VERSION_MAJOR "${${PROJECT_NAME}_VERSION}")
@@ -226,8 +229,25 @@ add_subdirectory(collision_distance_field)
 add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
 
-if(BULLET_ENABLE)
-  add_subdirectory(collision_detection_bullet)
-else()
-  install(FILES collision_detection_bullet/empty_description.xml DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} RENAME collision_detector_bullet_description.xml)
-endif()
+set(pymoveit_libs
+        moveit_planning_scene
+        moveit_collision_detection
+        moveit_robot_model
+        )
+
+if (pybind11_catkin_FOUND)
+    pybind_add_module(pymoveit
+            pymoveit.cpp
+            collision_detection/src/pycollision_detection.cpp
+            robot_model/src/pyrobot_model.cpp
+            planning_scene/src/pyplanning_scene.cpp
+            )
+    target_include_directories(pymoveit SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
+    target_link_libraries(pymoveit PUBLIC ${pymoveit_libs} ${catkin_LIBRARIES})
+endif ()
+
+if (BULLET_ENABLE)
+    add_subdirectory(collision_detection_bullet)
+else ()
+    install(FILES collision_detection_bullet/empty_description.xml DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} RENAME collision_detector_bullet_description.xml)
+endif ()

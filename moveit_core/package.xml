@@ -37,6 +37,7 @@
   <depend>moveit_msgs</depend>
   <depend>octomap</depend>
   <depend>octomap_msgs</depend>
+  <build_depend>pybind11_catkin</build_depend>
   <depend>random_numbers</depend>
   <depend>roslib</depend>
   <depend>rostime</depend>
