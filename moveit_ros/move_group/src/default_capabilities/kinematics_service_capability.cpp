@@ -145,6 +145,10 @@ void MoveGroupKinematicsService::computeIK(moveit_msgs::PositionIKRequest& req, 
 bool MoveGroupKinematicsService::computeIKService(moveit_msgs::GetPositionIK::Request& req,
                                                   moveit_msgs::GetPositionIK::Response& res)
 {
+  if (req.ik_request.robot_state.joint_state.position.empty())
+  {
+    ROS_WARN("Empty joint_state position in GetPositionIK::Request msgs. Starting from the current robot state");
+  }
   context_->planning_scene_monitor_->updateFrameTransforms();
 
   // check if the planning scene needs to be kept locked; if so, call computeIK() in the scope of the lock
