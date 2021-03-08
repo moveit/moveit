@@ -163,6 +163,12 @@ public:
     return active_joint_model_vector_const_;
   }
 
+  /** \brief Get the array of active joint names, in the order they appear in the robot state. */
+  const std::vector<std::string>& getActiveJointModelNames() const
+  {
+    return active_joint_model_names_vector_;
+  }
+
   /** \brief Get the array of joints that are active (not fixed, not mimic) in this model */
   const std::vector<JointModel*>& getActiveJointModels()
   {
@@ -338,7 +344,17 @@ public:
   }
   double getMaximumExtent(const JointBoundsVector& active_joint_bounds) const;
 
+  /** \brief Return the sum of joint distances between two states. Only considers active joints. */
   double distance(const double* state1, const double* state2) const;
+
+  /**
+   * Interpolate between "from" state, to "to" state. Mimic joints are correctly updated.
+   *
+   * @param from interpolate from this state
+   * @param to to this state
+   * @param t a fraction in the range [0 1]. If 1, the result matches "to" state exactly.
+   * @param state holds the result
+   */
   void interpolate(const double* from, const double* to, double t, double* state) const;
 
   /** \name Access to joint groups
@@ -504,6 +520,9 @@ protected:
 
   /** \brief The vector of joints in the model, in the order they appear in the state vector */
   std::vector<JointModel*> active_joint_model_vector_;
+
+  /** \brief The vector of joint names that corresponds to active_joint_model_vector_ */
+  std::vector<std::string> active_joint_model_names_vector_;
 
   /** \brief The vector of joints in the model, in the order they appear in the state vector */
   std::vector<const JointModel*> active_joint_model_vector_const_;
