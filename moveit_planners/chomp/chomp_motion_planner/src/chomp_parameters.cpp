@@ -80,4 +80,18 @@ void ChompParameters::setRecoveryParams(double learning_rate, double ridge_facto
   this->planning_time_limit_ = planning_time_limit;
   this->max_iterations_ = max_iterations;
 }
+
+const std::vector<std::string> ChompParameters::VALID_INITIALIZATION_METHODS{ "quintic-spline", "linear", "cubic",
+                                                                              "fillTrajectory" };
+
+bool ChompParameters::setTrajectoryInitializationMethod(std::string method)
+{
+  if (std::find(VALID_INITIALIZATION_METHODS.cbegin(), VALID_INITIALIZATION_METHODS.cend(), method) !=
+      VALID_INITIALIZATION_METHODS.end())
+  {
+    this->trajectory_initialization_method_ = std::move(method);
+    return true;
+  }
+  return false;
+}
 }  // namespace chomp
