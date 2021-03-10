@@ -159,9 +159,11 @@ public:
                       << params_.trajectory_initialization_method_);
     }
     else if (!params_.setTrajectoryInitializationMethod(trajectory_initialization_method))
+    {
       ROS_ERROR_STREAM("Param trajectory_initialization_method set to invalid value '"
                        << trajectory_initialization_method << "'. Using '" << params_.trajectory_initialization_method_
                        << "' instead.");
+    }
   }
 
   std::string getDescription() const override
