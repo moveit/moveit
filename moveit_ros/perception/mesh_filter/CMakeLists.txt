@@ -6,10 +6,18 @@ add_library(${MOVEIT_LIB_NAME}
   src/stereo_camera_model.cpp
   src/gl_renderer.cpp
   src/gl_mesh.cpp
-  )
+)
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${gl_LIBS} GLUT::GLUT ${GLEW_LIBRARIES})
+
+add_library(moveit_depth_self_filter
+  src/depth_self_filter_nodelet.cpp
+  src/transform_provider.cpp
+)
+set_target_properties(moveit_depth_self_filter PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
+
+target_link_libraries(moveit_depth_self_filter ${catkin_LIBRARIES} ${MOVEIT_LIB_NAME})
 
 if (CATKIN_ENABLE_TESTING)
   #catkin_lint: ignore_once env_var
@@ -24,7 +32,7 @@ if (CATKIN_ENABLE_TESTING)
   endif()
 endif()
 
-install(TARGETS ${MOVEIT_LIB_NAME}
+install(TARGETS ${MOVEIT_LIB_NAME} moveit_depth_self_filter
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})

@@ -39,12 +39,6 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_eigen/tf2_eigen.h>
 
-using namespace std;
-using namespace boost;
-using namespace Eigen;
-using namespace tf;
-using namespace mesh_filter;
-
 TransformProvider::TransformProvider(unsigned long interval_us) : stop_(true), interval_us_(interval_us)
 {
   tf_buffer_ = std::make_shared<tf2_ros::Buffer>();
@@ -61,7 +55,7 @@ TransformProvider::~TransformProvider()
 void TransformProvider::start()
 {
   stop_ = false;
-  thread_ = thread(&TransformProvider::run, this);
+  thread_ = std::thread(&TransformProvider::run, this);
 }
 
 void TransformProvider::stop()
@@ -70,49 +64,48 @@ void TransformProvider::stop()
   thread_.join();
 }
 
-void TransformProvider::addHandle(MeshHandle handle, const string& name)
+void TransformProvider::addHandle(mesh_filter::MeshHandle handle, const std::string& name)
 {
   if (!stop_)
-    throw runtime_error("Can not add handles if TransformProvider is running");
+    throw std::runtime_error("Can not add handles if TransformProvider is running");
 
   handle2context_[handle].reset(new TransformContext(name));
 }
 
-void TransformProvider::setFrame(const string& frame)
+void TransformProvider::setFrame(const std::string& frame)
 {
   if (frame_id_ != frame)
   {
     frame_id_ = frame;
-    for (map<MeshHandle, shared_ptr<TransformContext> >::iterator contextIt = handle2context_.begin();
-         contextIt != handle2context_.end(); ++contextIt)
+    for (auto& context_it : handle2context_)
     {
       // invalidate transformations
-      contextIt->second->mutex_.lock();
-      contextIt->second->transformation_.matrix().setZero();
-      contextIt->second->mutex_.unlock();
+      context_it.second->mutex_.lock();
+      context_it.second->transformation_.matrix().setZero();
+      context_it.second->mutex_.unlock();
     }
   }
 }
 
-bool TransformProvider::getTransform(MeshHandle handle, Isometry3d& transform) const
+bool TransformProvider::getTransform(mesh_filter::MeshHandle handle, Eigen::Isometry3d& transform) const
 {
-  map<MeshHandle, shared_ptr<TransformContext> >::const_iterator contextIt = handle2context_.find(handle);
+  auto context_it = handle2context_.find(handle);
 
-  if (contextIt == handle2context_.end())
+  if (context_it == handle2context_.end())
   {
     ROS_ERROR("Unable to find mesh with handle %d", handle);
     return false;
   }
-  contextIt->second->mutex_.lock();
-  transform = contextIt->second->transformation_;
-  contextIt->second->mutex_.unlock();
+  context_it->second->mutex_.lock();
+  transform = context_it->second->transformation_;
+  context_it->second->mutex_.unlock();
   return !(transform.matrix().isZero(0));
 }
 
 void TransformProvider::run()
 {
   if (handle2context_.empty())
-    throw runtime_error("TransformProvider is listening to empty list of frames!");
+    throw std::runtime_error("TransformProvider is listening to empty list of frames!");
 
   while (!stop_)
   {
@@ -128,45 +121,43 @@ void TransformProvider::setUpdateInterval(unsigned long usecs)
 
 void TransformProvider::updateTransforms()
 {
-  static tf2::Stamped<Isometry3d> input_transform, output_transform;
+  static tf2::Stamped<Eigen::Isometry3d> input_transform, output_transform;
   static moveit::core::RobotStatePtr robot_state;
   robot_state = psm_->getStateMonitor()->getCurrentState();
   try
   {
     geometry_msgs::TransformStamped common_tf =
         tf_buffer_->lookupTransform(frame_id_, psm_->getPlanningScene()->getPlanningFrame(), ros::Time(0.0));
+    input_transform.stamp_ = common_tf.header.stamp;
   }
   catch (tf2::TransformException& ex)
   {
     ROS_ERROR("TF Problem: %s", ex.what());
     return;
   }
-  input_transform.stamp_ = common_tf.header.stamp;
   input_transform.frame_id_ = psm_->getPlanningScene()->getPlanningFrame();
 
-  for (map<MeshHandle, shared_ptr<TransformContext> >::const_iterator contextIt = handle2context_.begin();
-       contextIt != handle2context_.end(); ++contextIt)
+  for (auto& context_it : handle2context_)
   {
     try
     {
       // TODO: check logic here - which global collision body's transform should be used?
-      input_transform.setData(
-          robot_state->getAttachedBody(contextIt->second->frame_id_)->getGlobalCollisionBodyTransforms()[0]);
+      input_transform.setData(robot_state->getGlobalLinkTransform(context_it.second->frame_id_));
       tf_buffer_->transform(input_transform, output_transform, frame_id_);
     }
     catch (const tf2::TransformException& ex)
     {
-      handle2context_[contextIt->first]->mutex_.lock();
-      handle2context_[contextIt->first]->transformation_.matrix().setZero();
-      handle2context_[contextIt->first]->mutex_.unlock();
+      handle2context_[context_it.first]->mutex_.lock();
+      handle2context_[context_it.first]->transformation_.matrix().setZero();
+      handle2context_[context_it.first]->mutex_.unlock();
       continue;
     }
     catch (std::exception& ex)
     {
       ROS_ERROR("Caught %s while updating transforms", ex.what());
     }
-    handle2context_[contextIt->first]->mutex_.lock();
-    handle2context_[contextIt->first]->transformation_ = static_cast<Isometry3d>(output_transform);
-    handle2context_[contextIt->first]->mutex_.unlock();
+    handle2context_[context_it.first]->mutex_.lock();
+    handle2context_[context_it.first]->transformation_ = static_cast<Eigen::Isometry3d>(output_transform);
+    handle2context_[context_it.first]->mutex_.unlock();
   }
 }
