@@ -52,7 +52,7 @@ using namespace std;
 using namespace Eigen;
 using shapes::Mesh;
 
-mesh_filter::MeshFilter::MeshFilter(const boost::function<bool(MeshFilter::MeshHandle, Isometry3d&)>& transform_callback)
+mesh_filter::MeshFilter::MeshFilter(const std::function<bool(MeshFilter::MeshHandle, Isometry3d&)>& transform_callback)
   : mesh_renderer_(640, 480, 0.3, 10)  // some default values for buffer sizes and clipping planes
   , depth_filter_(640, 480, 0.3, 10)
   , next_handle_(FirstLabel)  // 0 and 1 are reserved!
@@ -117,7 +117,7 @@ void mesh_filter::MeshFilter::setSize(unsigned width, unsigned height)
 }
 
 void mesh_filter::MeshFilter::setTransformCallback(
-    const boost::function<bool(mesh_filter::MeshFilter::MeshHandle, Isometry3d&)>& transform_callback)
+    const std::function<bool(mesh_filter::MeshFilter::MeshHandle, Isometry3d&)>& transform_callback)
 {
   transform_callback_ = transform_callback;
 }

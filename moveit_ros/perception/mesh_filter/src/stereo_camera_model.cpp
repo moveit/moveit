@@ -37,8 +37,6 @@
 #include <moveit/mesh_filter/stereo_camera_model.h>
 #include <moveit/mesh_filter/gl_renderer.h>
 
-using namespace std;
-
 mesh_filter::StereoCameraModel::Parameters::Parameters(unsigned width, unsigned height,
                                                        float near_clipping_plane_distance,
                                                        float far_clipping_plane_distance, float fx, float fy, float cx,
@@ -112,7 +110,7 @@ void mesh_filter::StereoCameraModel::Parameters::setFilterParameters(GLRenderer&
 const mesh_filter::StereoCameraModel::Parameters& mesh_filter::StereoCameraModel::REGISTERED_PSDK_PARAMS =
     mesh_filter::StereoCameraModel::Parameters(640, 480, 0.4, 10.0, 525, 525, 319.5, 239.5, 0.075, 0.125);
 
-const string mesh_filter::StereoCameraModel::RENDER_VERTEX_SHADER_SOURCE =
+const std::string mesh_filter::StereoCameraModel::RENDER_VERTEX_SHADER_SOURCE =
     "#version 120\n"
     "uniform vec3 padding_coefficients;"
     "void main()"
@@ -127,22 +125,23 @@ const string mesh_filter::StereoCameraModel::RENDER_VERTEX_SHADER_SOURCE =
     "  gl_Position.y = -gl_Position.y;"
     "}";
 
-const string mesh_filter::StereoCameraModel::RENDER_FRAGMENT_SHADER_SOURCE = "#version 120\n"
-                                                                             "void main()"
-                                                                             "{"
-                                                                             "  gl_FragColor = gl_Color;"
-                                                                             "}";
+const std::string mesh_filter::StereoCameraModel::RENDER_FRAGMENT_SHADER_SOURCE = "#version 120\n"
+                                                                                  "void main()"
+                                                                                  "{"
+                                                                                  "  gl_FragColor = gl_Color;"
+                                                                                  "}";
 
-const string mesh_filter::StereoCameraModel::FILTER_VERTEX_SHADER_SOURCE = "#version 120\n"
-                                                                           "void main ()"
-                                                                           "{"
-                                                                           "     gl_FrontColor = gl_Color;"
-                                                                           "     gl_TexCoord[0] = gl_MultiTexCoord0;"
-                                                                           "     gl_Position = gl_Vertex;"
-                                                                           "  gl_Position.w = 1.0;"
-                                                                           "}";
+const std::string mesh_filter::StereoCameraModel::FILTER_VERTEX_SHADER_SOURCE =
+    "#version 120\n"
+    "void main ()"
+    "{"
+    "     gl_FrontColor = gl_Color;"
+    "     gl_TexCoord[0] = gl_MultiTexCoord0;"
+    "     gl_Position = gl_Vertex;"
+    "  gl_Position.w = 1.0;"
+    "}";
 
-const string mesh_filter::StereoCameraModel::FILTER_FRAGMENT_SHADER_SOURCE =
+const std::string mesh_filter::StereoCameraModel::FILTER_FRAGMENT_SHADER_SOURCE =
     "#version 120\n"
     "uniform sampler2D sensor;"
     "uniform sampler2D depth;"

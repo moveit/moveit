@@ -47,7 +47,6 @@
 #include <fstream>
 #include <stdexcept>
 #include <vector>
-#include <boost/thread.hpp>
 #include <ros/console.h>
 
 using namespace std;
@@ -352,8 +351,8 @@ GLuint mesh_filter::GLRenderer::loadShaders(const string& vertex_source, const s
   return program_id;
 }
 
-map<boost::thread::id, pair<unsigned, GLuint> > mesh_filter::GLRenderer::context_;
-boost::mutex mesh_filter::GLRenderer::context_lock_;
+map<std::thread::id, pair<unsigned, GLuint> > mesh_filter::GLRenderer::context_;
+std::mutex mesh_filter::GLRenderer::context_lock_;
 bool mesh_filter::GLRenderer::glutInitialized_ = false;
 
 namespace
@@ -363,7 +362,7 @@ void nullDisplayFunction(){};
 
 void mesh_filter::GLRenderer::createGLContext()
 {
-  boost::mutex::scoped_lock _(context_lock_);
+  std::unique_lock<std::mutex> _(context_lock_);
   if (!glutInitialized_)
   {
     char buffer[1];
@@ -376,8 +375,8 @@ void mesh_filter::GLRenderer::createGLContext()
   }
 
   // check if our thread is initialized
-  boost::thread::id thread_id = boost::this_thread::get_id();
-  map<boost::thread::id, pair<unsigned, GLuint> >::iterator context_it = context_.find(thread_id);
+  std::thread::id thread_id = std::this_thread::get_id();
+  map<std::thread::id, pair<unsigned, GLuint> >::iterator context_it = context_.find(thread_id);
 
   if (context_it == context_.end())
   {
@@ -410,9 +409,9 @@ void mesh_filter::GLRenderer::createGLContext()
 
 void mesh_filter::GLRenderer::deleteGLContext()
 {
-  boost::mutex::scoped_lock _(context_lock_);
-  boost::thread::id thread_id = boost::this_thread::get_id();
-  map<boost::thread::id, pair<unsigned, GLuint> >::iterator context_it = context_.find(thread_id);
+  std::unique_lock<std::mutex> _(context_lock_);
+  std::thread::id thread_id = std::this_thread::get_id();
+  map<std::thread::id, pair<unsigned, GLuint> >::iterator context_it = context_.find(thread_id);
   if (context_it == context_.end())
   {
     stringstream error_msg;
