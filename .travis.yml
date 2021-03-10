@@ -37,6 +37,8 @@ jobs:
     - env: TEST=code-coverage
 
 before_script:
+  - test -n "$DOCKER_USERNAME" && docker login -u "$DOCKER_USERNAME" --password "$DOCKER_PASSWORD" 
+  - test -n "$DOCKER_USERNAME" || echo "Docker Hub credentials unavailable, pulling auonymously"
   - git clone -q --depth=1 https://github.com/ros-planning/moveit_ci.git .moveit_ci
 
 script:
