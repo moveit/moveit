@@ -57,6 +57,12 @@ public:
    */
   void setRecoveryParams(double learning_rate, double ridge_factor, int planning_time_limit, int max_iterations);
 
+  /**
+   * sets a valid trajectory initialization method
+   * @return true if a valid method (one of VALID_INITIALIZATION_METHODS) was specified
+   */
+  bool setTrajectoryInitializationMethod(std::string method);
+
 public:
   double planning_time_limit_;  /// maximum time the optimizer can take to find a solution before terminating
   int max_iterations_;          /// maximum number of iterations that the planner can take to find a good solution while
@@ -90,7 +96,10 @@ public:
   double collision_threshold_;  /// the collision threshold cost that needs to be mainted to avoid collisions
   bool filter_mode_;
   // double random_jump_amount_;
+
+  static const std::vector<std::string> VALID_INITIALIZATION_METHODS;
   std::string trajectory_initialization_method_;  /// trajectory initialization method to be specified
+
   bool enable_failure_recovery_;  /// if set to true, CHOMP tries to vary certain parameters to try and find a path if
                                   /// an initial path is not found with the specified chomp parameters
   int max_recovery_attempts_;     /// this the maximum recovery attempts to find a collision free path after an initial

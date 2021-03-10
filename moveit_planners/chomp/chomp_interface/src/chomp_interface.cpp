@@ -69,8 +69,13 @@ void CHOMPInterface::loadParams()
   nh_.param("collision_threshold", params_.collision_threshold_, 0.07);
   // nh_.param("random_jump_amount", params_.random_jump_amount_, 1.0);
   nh_.param("use_stochastic_descent", params_.use_stochastic_descent_, true);
-  nh_.param("trajectory_initialization_method", params_.trajectory_initialization_method_,
-            std::string("quintic-spline"));
+  {
+    params_.trajectory_initialization_method_ = "quintic-spline";
+    std::string method;
+    if (nh_.getParam("trajectory_initialization_method", method) && !params_.setTrajectoryInitializationMethod(method))
+      ROS_ERROR_STREAM("Attempted to set trajectory_initialization_method to invalid value '"
+                       << method << "'. Using default '" << params_.trajectory_initialization_method_ << "' instead.");
+  }
   nh_.param("enable_failure_recovery", params_.enable_failure_recovery_, false);
   nh_.param("max_recovery_attempts", params_.max_recovery_attempts_, 5);
 }
