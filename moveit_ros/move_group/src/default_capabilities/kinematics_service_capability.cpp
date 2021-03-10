@@ -75,7 +75,10 @@ void MoveGroupKinematicsService::computeIK(moveit_msgs::PositionIKRequest& req, 
   const robot_state::JointModelGroup* jmg = rs.getJointModelGroup(req.group_name);
   if (jmg)
   {
-    robot_state::robotStateMsgToRobotState(req.robot_state, rs);
+    if (!planning_scene::PlanningScene::isEmpty(req.robot_state))
+    {
+      moveit::core::robotStateMsgToRobotState(req.robot_state, rs);
+    }
     const std::string& default_frame = context_->planning_scene_monitor_->getRobotModel()->getModelFrame();
 
     if (req.pose_stamped_vector.empty() || req.pose_stamped_vector.size() == 1)
