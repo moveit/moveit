@@ -12,7 +12,7 @@ notifications:
 
 env:
   global:
-    - MOVEIT_CI_TRAVIS_TIMEOUT=85  # Travis grants us 90 min, but we add a safety margin of 5 min
+    - MOVEIT_CI_TRAVIS_TIMEOUT=125  # Some limit for execution time
     - ROS_DISTRO=noetic
     - ROS_REPO=ros-testing
     - UPSTREAM_WORKSPACE=moveit.rosinstall

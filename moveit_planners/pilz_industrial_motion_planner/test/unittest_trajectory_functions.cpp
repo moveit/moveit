@@ -40,7 +40,6 @@
 #include <vector>
 
 #include <Eigen/Geometry>
-#include <eigen_conversions/eigen_msg.h>
 #include <kdl/frames.hpp>
 #include <kdl/path_roundedcomposite.hpp>
 #include <kdl/rotational_interpolation_sa.hpp>
@@ -53,7 +52,6 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit_msgs/RobotState.h>
 #include <moveit_msgs/RobotTrajectory.h>
-#include <tf2/convert.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
@@ -222,8 +220,7 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testIKSolver)
     // sample random robot state
     rstate.setToRandomPositions(jmg, rng_);
     rstate.update();
-    geometry_msgs::Pose pose_expect;
-    tf2::convert<Eigen::Isometry3d, geometry_msgs::Pose>(rstate.getFrameTransform(ik_fast_link_), pose_expect);
+    geometry_msgs::Pose pose_expect = tf2::toMsg(rstate.getFrameTransform(ik_fast_link_));
 
     // prepare inverse kinematics
     std::vector<geometry_msgs::Pose> ik_poses;
@@ -445,7 +442,7 @@ TEST_P(TrajectoryFunctionsTestOnlyGripper, testComputePoseIKSelfCollisionForVali
   pose.orientation.w = -0.1296328;
   Eigen::Isometry3d pose_expect;
   normalizeQuaternion(pose.orientation);
-  tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(pose, pose_expect);
+  tf2::fromMsg(pose, pose_expect);
 
   // compute the ik without self collision check and expect the resulting pose
   // to be in self collission.

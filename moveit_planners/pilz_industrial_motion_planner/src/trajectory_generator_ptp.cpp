@@ -33,14 +33,12 @@
  *********************************************************************/
 
 #include "pilz_industrial_motion_planner/trajectory_generator_ptp.h"
-#include "eigen_conversions/eigen_msg.h"
 #include "moveit/robot_state/conversions.h"
 #include "ros/ros.h"
 
 #include <iostream>
 #include <sstream>
 
-#include <tf2/convert.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
@@ -241,7 +239,7 @@ void TrajectoryGeneratorPTP::extractMotionPlanInfo(const planning_interface::Mot
     pose.orientation = req.goal_constraints.at(0).orientation_constraints.at(0).orientation;
     Eigen::Isometry3d pose_eigen;
     normalizeQuaternion(pose.orientation);
-    tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(pose, pose_eigen);
+    tf2::fromMsg(pose, pose_eigen);
     if (!computePoseIK(robot_model_, req.group_name, req.goal_constraints.at(0).position_constraints.at(0).link_name,
                        pose_eigen, robot_model_->getModelFrame(), info.start_joint_position, info.goal_joint_position))
     {

@@ -39,8 +39,6 @@
 #include <sstream>
 
 #include <boost/optional.hpp>
-
-#include <eigen_conversions/eigen_msg.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <moveit/robot_model/robot_model.h>

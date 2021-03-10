@@ -47,7 +47,6 @@
 #include <Eigen/Geometry>
 #include <tf2_kdl/tf2_kdl.h>
 #include <tf2_eigen/tf2_eigen.h>
-#include <eigen_conversions/eigen_kdl.h>
 
 using namespace moveit::core;
 
@@ -1387,7 +1386,7 @@ void IKFastKinematicsPlugin::transformToChainFrame(const geometry_msgs::Pose& ik
     if (base_transform_required_)
       ik_eigen_pose = chain_base_to_group_base_ * ik_eigen_pose;
 
-    tf::transformEigenToKDL(ik_eigen_pose, ik_pose_chain);
+    tf2::fromMsg(tf2::toMsg(ik_eigen_pose), ik_pose_chain);
   }
   else
   {

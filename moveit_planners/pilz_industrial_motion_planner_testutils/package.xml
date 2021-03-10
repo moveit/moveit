@@ -16,9 +16,9 @@
   <url type="bugtracker">https://github.com/ros-planning/moveit/issues</url>
   <url type="repository">https://github.com/ros-planning/moveit</url>
 
-  <build_depend>eigen_conversions</build_depend>
   <build_depend>moveit_core</build_depend>
   <build_depend>moveit_msgs</build_depend>
+  <build_depend>tf2_eigen</build_depend>
 
   <run_depend>moveit_core</run_depend>
   <run_depend>moveit_msgs</run_depend>

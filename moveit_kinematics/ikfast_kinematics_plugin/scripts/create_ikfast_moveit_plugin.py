@@ -260,8 +260,8 @@ def update_ikfast_package(args):
   package_xml = etree.parse(package_file_name, parser).getroot()
 
   # Make sure at least all required dependencies are in the depends lists
-  build_deps = ["liblapack-dev", "moveit_core", "pluginlib", "roscpp", "tf2_kdl", "tf2_eigen", "eigen_conversions"]
-  run_deps = ["liblapack-dev", "moveit_core", "pluginlib", "roscpp", "eigen_conversions"]
+  build_deps = ["liblapack-dev", "moveit_core", "pluginlib", "roscpp", "tf2_kdl", "tf2_eigen"]
+  run_deps = ["liblapack-dev", "moveit_core", "pluginlib", "roscpp"]
 
   update_deps(build_deps, "build_depend", package_xml)
   update_deps(run_deps, "exec_depend", package_xml)

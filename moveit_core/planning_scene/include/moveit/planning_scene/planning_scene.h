@@ -774,8 +774,10 @@ public:
   void removeObjectType(const std::string& id);
   void getKnownObjectTypes(ObjectTypeMap& kc) const;
 
-  /** \brief Clear the diffs accumulated for this planning scene, with respect to the parent. This function is a no-op
-   * if there is no parent specified. */
+  /** \brief Clear the diffs accumulated for this planning scene, with respect to:
+   * the parent PlanningScene (if it exists)
+   * the parent CollisionDetector (if it exists)
+   * This function is a no-op if there is no parent planning scene. */
   void clearDiffs();
 
   /** \brief If there is a parent specified for this scene, then the diffs with respect to that parent are applied to a

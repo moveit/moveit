@@ -39,16 +39,13 @@
 #include <sstream>
 #include <time.h>
 
-#include <eigen_conversions/eigen_kdl.h>
-#include <eigen_conversions/eigen_msg.h>
-
 #include <moveit/robot_state/conversions.h>
 
 #include <kdl/path_line.hpp>
 #include <kdl/trajectory_segment.hpp>
 #include <kdl/utilities/error.h>
 
-#include <tf2/convert.h>
+#include <tf2_kdl/tf2_kdl.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
@@ -123,7 +120,7 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_interface::Mot
         req.goal_constraints.front().position_constraints.front().constraint_region.primitive_poses.front().position;
     goal_pose_msg.orientation = req.goal_constraints.front().orientation_constraints.front().orientation;
     normalizeQuaternion(goal_pose_msg.orientation);
-    tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(goal_pose_msg, info.goal_pose);
+    tf2::fromMsg(goal_pose_msg, info.goal_pose);
   }
 
   assert(req.start_state.joint_state.name.size() == req.start_state.joint_state.position.size());
@@ -191,8 +188,8 @@ std::unique_ptr<KDL::Path> TrajectoryGeneratorLIN::setPathLIN(const Eigen::Affin
   ROS_DEBUG("Set Cartesian path for LIN command.");
 
   KDL::Frame kdl_start_pose, kdl_goal_pose;
-  tf::transformEigenToKDL(start_pose, kdl_start_pose);
-  tf::transformEigenToKDL(goal_pose, kdl_goal_pose);
+  tf2::fromMsg(tf2::toMsg(start_pose), kdl_start_pose);
+  tf2::fromMsg(tf2::toMsg(goal_pose), kdl_goal_pose);
   double eqradius = planner_limits_.getCartesianLimits().getMaxTranslationalVelocity() /
                     planner_limits_.getCartesianLimits().getMaxRotationalVelocity();
   KDL::RotationalInterpolation* rot_interpo = new KDL::RotationalInterpolation_SingleAxis();

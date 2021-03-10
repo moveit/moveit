@@ -8,8 +8,7 @@ add_definitions(-Wextra)
 add_definitions(-Wno-unused-parameter)
 
 find_package(catkin REQUIRED COMPONENTS
-  eigen_conversions
-  kdl_conversions
+  joint_limits_interface
   moveit_core
   moveit_msgs
   moveit_ros_move_group

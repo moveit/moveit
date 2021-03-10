@@ -39,7 +39,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <moveit/utils/xmlrpc_casts.h>
 #include <moveit/utils/message_checks.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 using namespace moveit::core;
 
@@ -550,7 +550,7 @@ bool kinematic_constraints::resolveConstraintFrames(const moveit::core::RobotSta
       Eigen::Vector3d offset_robot_link = robot_link_to_link_name * offset_link_name;
 
       c.link_name = robot_link->getName();
-      tf::vectorEigenToMsg(offset_robot_link, c.target_point_offset);
+      tf2::toMsg(offset_robot_link, c.target_point_offset);
     }
   }
 
@@ -571,8 +571,8 @@ bool kinematic_constraints::resolveConstraintFrames(const moveit::core::RobotSta
       Eigen::Quaterniond link_name_to_robot_link(transform.linear().transpose() *
                                                  state.getGlobalLinkTransform(robot_link).linear());
       Eigen::Quaterniond quat_target;
-      tf::quaternionMsgToEigen(c.orientation, quat_target);
-      tf::quaternionEigenToMsg(quat_target * link_name_to_robot_link, c.orientation);
+      tf2::fromMsg(c.orientation, quat_target);
+      c.orientation = tf2::toMsg(quat_target * link_name_to_robot_link);
     }
   }
   return true;
