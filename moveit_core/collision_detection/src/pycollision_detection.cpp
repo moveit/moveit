@@ -9,7 +9,7 @@ namespace py = pybind11;
 
 using namespace collision_detection;
 
-auto SET_ENTRY1 = py::overload_cast<const std::string &, const std::string &, bool>(&AllowedCollisionMatrix::setEntry);
+auto SET_ENTRY1 = py::overload_cast<const std::string&, const std::string&, bool>(&AllowedCollisionMatrix::setEntry);
 
 void def_collision_detect_bindings(py::module& m)
 {
@@ -38,9 +38,7 @@ void def_collision_detect_bindings(py::module& m)
       .def("clear", &CollisionResult::clear)
       //
       ;
-  py::class_<AllowedCollisionMatrix>(m, "AllowedCollisionMatrix")
-      .def(py::init<>())
-      .def("setEntry", SET_ENTRY1)
+  py::class_<AllowedCollisionMatrix>(m, "AllowedCollisionMatrix").def(py::init<>()).def("setEntry", SET_ENTRY1)
       //
       ;
 }

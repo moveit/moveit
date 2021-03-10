@@ -12,9 +12,9 @@ namespace py = pybind11;
 using namespace kinematic_constraints;
 
 auto CONSTRUCT_GOAL_CONSTRAINTS1 = py::overload_cast<const std::string&,                 //
-                                                   const geometry_msgs::PoseStamped&,  //
-                                                   double,                             //
-                                                   double>(&constructGoalConstraints);
+                                                     const geometry_msgs::PoseStamped&,  //
+                                                     double,                             //
+                                                     double>(&constructGoalConstraints);
 
 auto ADD1 = py::overload_cast<const moveit_msgs::Constraints&,  //
                               const moveit::core::Transforms&>(&KinematicConstraintSet::add);
@@ -25,7 +25,7 @@ void def_kinematic_constraints_bindings(py::module& m)
 {
   m.doc() = "Class for joint, position, visibility, and other constraints";
   m.def("constructGoalConstraints",
-        CONSTRUCT_GOAL_CONSTRAINTS1,        //
+        CONSTRUCT_GOAL_CONSTRAINTS1,      //
         py::arg("link_name"),             //
         py::arg("pose"),                  //
         py::arg("tolerance_pos") = 1e-3,  //
@@ -37,7 +37,6 @@ void def_kinematic_constraints_bindings(py::module& m)
       .def_readwrite("distance", &ConstraintEvaluationResult::distance)
       //
       ;
-
 
   py::class_<KinematicConstraintSet, KinematicConstraintSetPtr>(m, "KinematicConstraintSet")
       .def(py::init<robot_model::RobotModelConstPtr>(), py::arg("robot_model"))
