@@ -7,7 +7,7 @@
 
 namespace py = pybind11;
 
-void def_collision_detect_bindings(py::module& m);
+void def_collision_detect_bindings(py::module& contact);
 
 void def_robot_model_bindings(py::module& m);
 

@@ -1,5 +1,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/eigen.h>
 #include <moveit/collision_detection/world.h>
 #include <moveit/collision_detection/collision_matrix.h>
 #include <moveit/collision_detection/collision_common.h>
@@ -41,4 +42,26 @@ void def_collision_detect_bindings(py::module& m)
   py::class_<AllowedCollisionMatrix>(m, "AllowedCollisionMatrix").def(py::init<>()).def("setEntry", SET_ENTRY1)
       //
       ;
+  py::class_<Contact>(m, "Contact")
+      .def(py::init<>())
+      .def_readwrite("body_name_1", &Contact::body_name_1)
+      .def_readwrite("body_name_2", &Contact::body_name_2)
+      .def_readwrite("body_type_1", &Contact::body_type_1)
+      .def_readwrite("body_type_2", &Contact::body_type_2)
+      .def_readwrite("depth", &Contact::depth)
+      .def_property_readonly("nearest_points",
+                             [](const Contact & contact) {
+                               std::vector<Eigen::Vector3d> v{ contact.nearest_points[0], contact.nearest_points[1] };
+                               return v;
+                             })
+      .def_readwrite("normal", &Contact::normal)
+      .def_readwrite("percent_interpolation", &Contact::percent_interpolation)
+      .def_readwrite("pos", &Contact::pos)
+      //
+      ;
+  py::enum_<BodyType>(m, "BodyType")
+      .value("ROBOT_ATTACHED", BodyType::ROBOT_ATTACHED)
+      .value("ROBOT_LINK", BodyType::ROBOT_LINK)
+      .value("WORLD_OBJECT", BodyType::WORLD_OBJECT)
+      .export_values();
 }
