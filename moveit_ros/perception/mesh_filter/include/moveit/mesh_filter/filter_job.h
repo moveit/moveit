@@ -38,9 +38,6 @@
 #define MOVEIT_MESH_FILTER_FILTER_JOB_
 
 #include <moveit/macros/class_forward.h>
-#include <boost/thread/condition.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/locks.hpp>
 
 namespace mesh_filter
 {
@@ -65,20 +62,20 @@ public:
 
 protected:
   bool done_;
-  mutable boost::condition_variable condition_;
-  mutable boost::mutex mutex_;
+  mutable std::condition_variable condition_;
+  mutable std::mutex mutex_;
 };
 
 void Job::wait() const
 {
-  boost::unique_lock<boost::mutex> lock(mutex_);
+  std::unique_lock<std::mutex> lock(mutex_);
   while (!done_)
     condition_.wait(lock);
 }
 
 void Job::cancel()
 {
-  boost::unique_lock<boost::mutex> lock(mutex_);
+  std::unique_lock<std::mutex> lock(mutex_);
   done_ = true;
   condition_.notify_all();
 }
@@ -92,21 +89,21 @@ template <typename ReturnType>
 class FilterJob : public Job
 {
 public:
-  FilterJob(const boost::function<ReturnType()>& exec) : Job(), exec_(exec)
+  FilterJob(const std::function<ReturnType()>& exec) : Job(), exec_(exec)
   {
   }
   void execute() override;
   const ReturnType& getResult() const;
 
 private:
-  boost::function<ReturnType()> exec_;
+  std::function<ReturnType()> exec_;
   ReturnType result_;
 };
 
 template <typename ReturnType>
 void FilterJob<ReturnType>::execute()
 {
-  boost::unique_lock<boost::mutex> lock(mutex_);
+  std::unique_lock<std::mutex> lock(mutex_);
   if (!done_)  // not canceled !
     result_ = exec_();
 
@@ -125,12 +122,12 @@ template <>
 class FilterJob<void> : public Job
 {
 public:
-  FilterJob(const boost::function<void()>& exec) : Job(), exec_(exec)
+  FilterJob(const std::function<void()>& exec) : Job(), exec_(exec)
   {
   }
   void execute() override
   {
-    boost::unique_lock<boost::mutex> lock(mutex_);
+    std::unique_lock<std::mutex> lock(mutex_);
     if (!done_)  // not canceled !
       exec_();
 
@@ -139,7 +136,7 @@ public:
   }
 
 private:
-  boost::function<void()> exec_;
+  std::function<void()> exec_;
 };
 }  // namespace mesh_filter
 #endif

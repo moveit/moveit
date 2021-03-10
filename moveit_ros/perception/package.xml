@@ -38,6 +38,8 @@
   <depend>tf2_geometry_msgs</depend>
   <depend>tf2_ros</depend>
   <depend>moveit_ros_occupancy_map_monitor</depend>
+  <depend>moveit_ros_planning</depend>
+  <depend>nodelet</depend>
 
   <build_depend>eigen</build_depend>
 
@@ -46,6 +48,7 @@
   <export>
     <moveit_ros_perception plugin="${prefix}/pointcloud_octomap_updater_plugin_description.xml"/>
     <moveit_ros_perception plugin="${prefix}/depth_image_octomap_updater_plugin_description.xml"/>
+    <nodelet plugin="${prefix}/moveit_depth_self_filter.xml"/>
   </export>
 
 </package>

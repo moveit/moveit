@@ -38,8 +38,6 @@
 #define MOVEIT_MESH_FILTER_TRANSFORM_PROVIDER_
 
 #include <string>
-#include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
 #include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/mesh_filter/mesh_filter_base.h>
@@ -127,8 +125,9 @@ private:
    * \brief Context Object for registered frames
    * \author Suat Gedikli (gedikli@willowgarage.com)
    */
-  struct TransformContext
+  class TransformContext
   {
+  public:
     TransformContext(const std::string& name) : frame_id_(name)
     {
       transformation_.matrix().setZero();
@@ -136,7 +135,7 @@ private:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     std::string frame_id_;
     Eigen::Isometry3d transformation_;
-    boost::mutex mutex_;
+    std::mutex mutex_;
   };
 
   /**
@@ -159,7 +158,7 @@ private:
   std::string frame_id_;
 
   /** \brief thread object*/
-  boost::thread thread_;
+  std::thread thread_;
 
   /** \flag to leave the update loop*/
   bool stop_;

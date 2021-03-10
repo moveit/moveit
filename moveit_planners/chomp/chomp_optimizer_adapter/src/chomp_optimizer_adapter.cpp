@@ -149,7 +149,7 @@ public:
     // default
     params_.trajectory_initialization_method_ = std::string("fillTrajectory");
     std::string trajectory_initialization_method;
-    if (!nh.getParam("trajectory_initialization_method", trajectory_initialization_method))
+    if (!nh_.getParam("trajectory_initialization_method", trajectory_initialization_method))
     {
       ROS_INFO_STREAM("Param trajectory_initialization_method was not set. Using value: "
                       << params_.trajectory_initialization_method_);

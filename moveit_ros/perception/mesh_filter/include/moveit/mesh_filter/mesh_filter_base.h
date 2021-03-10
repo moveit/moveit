@@ -41,10 +41,11 @@
 #include <moveit/macros/class_forward.h>
 #include <moveit/mesh_filter/gl_renderer.h>
 #include <moveit/mesh_filter/sensor_model.h>
-#include <boost/function.hpp>
-#include <boost/thread/mutex.hpp>
 #include <Eigen/Geometry>  // for Isometry3d
 #include <queue>
+#include <thread>
+#include <condition_variable>
+#include <mutex>
 
 // forward declarations
 namespace shapes
@@ -64,7 +65,7 @@ class MeshFilterBase
 {
   // inner types and typedefs
 public:
-  typedef boost::function<bool(MeshHandle, Eigen::Isometry3d&)> TransformCallback;
+  typedef std::function<bool(MeshHandle, Eigen::Isometry3d&)> TransformCallback;
   // \todo @suat: to avoid a few comparisons, it would be much nicer if background = 14 and shadow = 15 (near/far clip
   // can be anything below that)
   // this would allow me to do a single comparison instead of 3, in the code i write
@@ -246,22 +247,22 @@ protected:
   MeshHandle min_handle_;
 
   /** \brief the filtering thread that also holds the OpenGL context*/
-  boost::thread filter_thread_;
+  std::thread filter_thread_;
 
   /** \brief condition variable to notify the filtering thread if a new image arrived*/
-  mutable boost::condition_variable jobs_condition_;
+  mutable std::condition_variable jobs_condition_;
 
   /** \brief mutex required for synchronization of condition states*/
-  mutable boost::mutex jobs_mutex_;
+  mutable std::mutex jobs_mutex_;
 
   /** \brief OpenGL job queue that need to be processed by the worker thread*/
   mutable std::queue<JobPtr> jobs_queue_;
 
   /** \brief mutex for synchronization of updating filtered meshes */
-  mutable boost::mutex meshes_mutex_;
+  mutable std::mutex meshes_mutex_;
 
   /** \brief mutex for synchronization of setting/calling transform_callback_ */
-  mutable boost::mutex transform_callback_mutex_;
+  mutable std::mutex transform_callback_mutex_;
 
   /** \brief indicates whether the filtering loop should stop*/
   bool stop_;
