@@ -150,11 +150,19 @@ public:
       ROS_INFO_STREAM(
           "Param use_stochastic_descent was not set. Using default value: " << params_.use_stochastic_descent_);
     }
-    if (!nh.getParam("trajectory_initialization_method", params_.trajectory_initialization_method_))
+    // default
+    params_.trajectory_initialization_method_ = std::string("fillTrajectory");
+    std::string trajectory_initialization_method;
+    if (!nh.getParam("trajectory_initialization_method", trajectory_initialization_method))
     {
-      params_.trajectory_initialization_method_ = std::string("fillTrajectory");
-      ROS_INFO_STREAM("Param trajectory_initialization_method was not set. Using New value as: "
+      ROS_INFO_STREAM("Param trajectory_initialization_method was not set. Using value: "
                       << params_.trajectory_initialization_method_);
+    }
+    else if (!params_.setTrajectoryInitializationMethod(trajectory_initialization_method))
+    {
+      ROS_ERROR_STREAM("Param trajectory_initialization_method set to invalid value '"
+                       << trajectory_initialization_method << "'. Using '" << params_.trajectory_initialization_method_
+                       << "' instead.");
     }
   }
 
