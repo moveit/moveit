@@ -70,7 +70,6 @@ COMPONENTS
   kdl_parser
   moveit_msgs
   octomap_msgs
-  pybind11_catkin
   random_numbers
   roslib
   rostime
@@ -84,6 +83,8 @@ COMPONENTS
   visualization_msgs
   xmlrpcpp
 )
+
+find_package(catkin COMPONENTS pybind11_catkin)
 
 catkin_python_setup()
 
