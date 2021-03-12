@@ -68,9 +68,9 @@ void mesh_filter::DepthSelfFiltering::onInit()
   private_nh.param("shadow_threshold", shadow_threshold_, 0.3);
   private_nh.param("padding_scale", padding_scale_, 1.0);
   private_nh.param("padding_offset", padding_offset_, 0.005);
-  double tf_update_rate = 30;
+  double tf_update_rate = 30.;
   private_nh.param("tf_update_rate", tf_update_rate, 30.0);
-  transform_provider_.setUpdateInterval(long(1000000.0 / tf_update_rate));
+  transform_provider_.setUpdateRate(tf_update_rate);
 
   image_transport::SubscriberStatusCallback itssc = std::bind(&DepthSelfFiltering::connectCb, this);
   ros::SubscriberStatusCallback rssc = std::bind(&DepthSelfFiltering::connectCb, this);
