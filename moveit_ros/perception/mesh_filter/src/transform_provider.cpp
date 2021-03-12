@@ -107,7 +107,7 @@ void TransformProvider::run()
   if (handle2context_.empty())
     throw std::runtime_error("TransformProvider is listening to empty list of frames!");
 
-  while (!stop_)
+  while (ros::ok() && !stop_)
   {
     updateTransforms();
     update_rate_.sleep();
