@@ -9,39 +9,13 @@
 namespace py = pybind11;
 using namespace robot_state;
 
-auto SET_TO_RANDOM_POSITIONS1 = py::overload_cast<>(&RobotState::setToRandomPositions);
-auto SET_TO_RANDOM_POSITIONS2 = py::overload_cast<const JointModelGroup*>(&RobotState::setToRandomPositions);
-auto SET_TO_RANDOM_POSITIONS3 = py::overload_cast<const JointModelGroup*,                 //
-                                                  random_numbers::RandomNumberGenerator&  //
-                                                  >(&RobotState::setToRandomPositions);
-
-auto SET_JOINT_GROUP_POSITIONS1 = py::overload_cast<const std::string&,         //
-                                                    const std::vector<double>&  //
-                                                    >(&RobotState::setJointGroupPositions);
-auto SET_JOINT_GROUP_POSITIONS2 = py::overload_cast<const JointModelGroup*,     //
-                                                    const std::vector<double>&  //
-                                                    >(&RobotState::setJointGroupPositions);
-
-auto SATISFIES_BOUNDS1 = py::overload_cast<const JointModelGroup*, double>(&RobotState::satisfiesBounds, py::const_);
-
-auto ROBOT_STATE_MSG_TO_ROBOT_STATE1 = py::overload_cast<const Transforms&,               //
-                                                         const moveit_msgs::RobotState&,  //
-                                                         RobotState&,                     //
-                                                         bool                             //
-                                                         >(robotStateMsgToRobotState);
-auto ROBOT_STATE_MSG_TO_ROBOT_STATE2 = py::overload_cast<const moveit_msgs::RobotState&,  //
-                                                         RobotState&,                     //
-                                                         bool                             //
-                                                         >(robotStateMsgToRobotState);
-
 void def_robot_state_bindings(py::module& m)
 {
   m.doc() = "Representation of a robot's state. This includes position, velocity, acceleration and effort.";
   py::class_<RobotState, RobotStatePtr>(m, "RobotState")
       .def(py::init<const robot_model::RobotModelConstPtr&>(), py::arg("robot_model"))
-      .def("setToRandomPositions", SET_TO_RANDOM_POSITIONS1)
-      .def("setToRandomPositions", SET_TO_RANDOM_POSITIONS2)
-      .def("setToRandomPositions", SET_TO_RANDOM_POSITIONS3)
+      .def("setToRandomPositions", py::overload_cast<>(&RobotState::setToRandomPositions))
+      .def("setToRandomPositions", py::overload_cast<const JointModelGroup*>(&RobotState::setToRandomPositions))
       .def("getJointModelGroup", &RobotState::getJointModelGroup, py::return_value_policy::reference)
       .def("getJointModel", &RobotState::getJointModel, py::return_value_policy::reference)
       .def("getLinkModel", &RobotState::getLinkModel, py::return_value_policy::reference)
@@ -50,9 +24,13 @@ void def_robot_state_bindings(py::module& m)
            py::return_value_policy::reference)
       .def("getVariableCount", &RobotState::getVariableCount)
       .def("hasVelocities", &RobotState::hasVelocities)
-      .def("setJointGroupPositions", SET_JOINT_GROUP_POSITIONS1)
-      .def("setJointGroupPositions", SET_JOINT_GROUP_POSITIONS2)
-      .def("satisfiesBounds", SATISFIES_BOUNDS1, py::arg("joint_model_group"), py::arg("margin") = 0.0)
+      .def("setJointGroupPositions",
+           py::overload_cast<const std::string&, const std::vector<double>&>(&RobotState::setJointGroupPositions))
+      .def("setJointGroupPositions",
+           py::overload_cast<const JointModelGroup*, const std::vector<double>&>(&RobotState::setJointGroupPositions))
+      .def("satisfiesBounds",
+           py::overload_cast<const JointModelGroup*, double>(&RobotState::satisfiesBounds, py::const_),
+           py::arg("joint_model_group"), py::arg("margin") = 0.0)
       .def("update", &RobotState::update, py::arg("force") = false)
       .def("printStateInfo",
            [](const RobotState& s) {
@@ -76,8 +54,6 @@ void def_robot_state_bindings(py::module& m)
       ;
 
   m.def("jointStateToRobotState", &jointStateToRobotState);
-  m.def("robotStateMsgToRobotState", ROBOT_STATE_MSG_TO_ROBOT_STATE1);
-  m.def("robotStateMsgToRobotState", ROBOT_STATE_MSG_TO_ROBOT_STATE2);
   m.def(
       "robotStateToRobotStateMsg",
       [](const RobotState& state, bool copy_attached_bodies) {

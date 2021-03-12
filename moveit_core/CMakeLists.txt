@@ -82,9 +82,9 @@ COMPONENTS
   urdf
   visualization_msgs
   xmlrpcpp
+OPTIONAL_COMPONENTS
+  pybind11_catkin
 )
-
-find_package(catkin COMPONENTS pybind11_catkin)
 
 catkin_python_setup()
 
@@ -239,7 +239,6 @@ set(pymoveit_libs
   moveit_python
   moveit_robot_model
   moveit_robot_state
-  moveit_transforms
 )
 
 if(pybind11_catkin_FOUND)
@@ -250,7 +249,6 @@ if(pybind11_catkin_FOUND)
       collision_detection/src/pycollision_detection.cpp
       robot_model/src/pyrobot_model.cpp
       robot_state/src/pyrobot_state.cpp
-      transforms/src/pytransforms.cpp
       planning_scene/src/pyplanning_scene.cpp
       kinematic_constraints/src/pykinematic_constraint.cpp
   )

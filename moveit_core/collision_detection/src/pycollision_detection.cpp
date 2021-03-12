@@ -10,8 +10,6 @@ namespace py = pybind11;
 
 using namespace collision_detection;
 
-auto SET_ENTRY1 = py::overload_cast<const std::string&, const std::string&, bool>(&AllowedCollisionMatrix::setEntry);
-
 void def_collision_detect_bindings(py::module& m)
 {
   m.doc() = "contains collision detection, the world, and allowed collision matrices";
@@ -28,14 +26,14 @@ void def_collision_detect_bindings(py::module& m)
       .def_readwrite("body_type_2", &Contact::body_type_2)
       .def_readwrite("depth", &Contact::depth)
       .def_property_readonly("nearest_points",
-                             [](const Contact & contact) {
+                             [](const Contact& contact) {
                                std::vector<Eigen::Vector3d> v{ contact.nearest_points[0], contact.nearest_points[1] };
                                return v;
                              })
       .def_readwrite("normal", &Contact::normal)
       .def_readwrite("percent_interpolation", &Contact::percent_interpolation)
       .def_readwrite("pos", &Contact::pos)
-    //
+      //
       ;
   py::class_<CollisionRequest>(m, "CollisionRequest")
       .def(py::init<>())
@@ -60,7 +58,10 @@ void def_collision_detect_bindings(py::module& m)
       .def("clear", &CollisionResult::clear)
       //
       ;
-  py::class_<AllowedCollisionMatrix>(m, "AllowedCollisionMatrix").def(py::init<>()).def("setEntry", SET_ENTRY1)
+  py::class_<AllowedCollisionMatrix>(m, "AllowedCollisionMatrix")
+      .def(py::init<>())
+      .def("setEntry",
+           py::overload_cast<const std::string&, const std::string&, bool>(&AllowedCollisionMatrix::setEntry))
       //
       ;
   py::class_<World, WorldPtr>(m, "World").def(py::init<>());
