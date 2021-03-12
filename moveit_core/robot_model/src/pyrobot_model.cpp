@@ -23,7 +23,6 @@ void def_robot_model_bindings(py::module& m)
   py::class_<RobotModel, RobotModelPtr>(m, "RobotModel")
       .def(py::init<const urdf::ModelInterfaceSharedPtr&, const srdf::ModelConstSharedPtr&>(), py::arg("urdf_model"),
            py::arg("srdf_model"))
-      .def("getURDF", &RobotModel::getURDF)
       .def("getName", &RobotModel::getName)
       .def("getLinkModelNames", &RobotModel::getLinkModelNames)
       .def("getJointModelNames", &RobotModel::getJointModelNames)
