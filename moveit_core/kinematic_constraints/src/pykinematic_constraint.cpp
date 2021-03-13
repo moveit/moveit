@@ -14,12 +14,6 @@ using namespace kinematic_constraints;
 void def_kinematic_constraints_bindings(py::module& m)
 {
   m.doc() = "Class for joint, position, visibility, and other constraints";
-  m.def("constructGoalConstraints",
-        py::overload_cast<const std::string&, const geometry_msgs::PoseStamped&, double, double>(
-            &constructGoalConstraints),
-        py::arg("link_name"), py::arg("pose"), py::arg("tolerance_pos") = 1e-3, py::arg("tolerance_angle") = 1e-2)
-      //
-      ;
 
   py::class_<ConstraintEvaluationResult, std::shared_ptr<ConstraintEvaluationResult>>(m, "ConstraintEvaluationResult")
       .def(py::init<>())
@@ -35,6 +29,13 @@ void def_kinematic_constraints_bindings(py::module& m)
       .def("decide",
            py::overload_cast<const moveit::core::RobotState&, bool>(&KinematicConstraintSet::decide, py::const_),
            py::arg("state"), py::arg("verbose") = false)
+      //
+      ;
+
+  m.def("constructGoalConstraints",
+        py::overload_cast<const std::string&, const geometry_msgs::PoseStamped&, double, double>(
+            &constructGoalConstraints),
+        py::arg("link_name"), py::arg("pose"), py::arg("tolerance_pos") = 1e-3, py::arg("tolerance_angle") = 1e-2)
       //
       ;
 }

@@ -10,7 +10,7 @@ namespace py = pybind11;
 
 using namespace collision_detection;
 
-void def_collision_detect_bindings(py::module& m)
+void def_collision_detection_bindings(py::module& m)
 {
   m.doc() = "contains collision detection, the world, and allowed collision matrices";
   py::enum_<BodyType>(m, "BodyType")

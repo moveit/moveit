@@ -245,8 +245,8 @@ set(pymoveit_libs
 if(pybind11_catkin_FOUND)
   add_subdirectory(python)
 
-  pybind_add_module(pymoveit
-      python/src/pymoveit.cpp
+  pybind_add_module(pymoveit_core
+      python/src/pymoveit_core.cpp
       collision_detection/src/pycollision_detection.cpp
       robot_model/src/pyrobot_model.cpp
       robot_state/src/pyrobot_state.cpp
@@ -254,8 +254,8 @@ if(pybind11_catkin_FOUND)
       planning_scene/src/pyplanning_scene.cpp
       kinematic_constraints/src/pykinematic_constraint.cpp
   )
-  target_include_directories(pymoveit SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
-  target_link_libraries(pymoveit PUBLIC ${pymoveit_libs} ${catkin_LIBRARIES})
+  target_include_directories(pymoveit_core SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
+  target_link_libraries(pymoveit_core PUBLIC ${pymoveit_libs} ${catkin_LIBRARIES})
 endif()
 
 if(BULLET_ENABLE)

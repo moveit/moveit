@@ -11,6 +11,7 @@ void def_planning_scene_bindings(py::module& m)
 {
   m.doc() = "The planning scene represents the state of the world and the robot, "
             "and can be used for collision checking";
+
   py::class_<PlanningScene, PlanningScenePtr>(m, "PlanningScene")
       .def(py::init<const moveit::core::RobotModelConstPtr&, const collision_detection::WorldPtr&>(),
            py::arg("robot_model"), py::arg("world") = collision_detection::WorldPtr(new collision_detection::World()))
