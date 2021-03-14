@@ -76,3 +76,4 @@ void def_planning_scene_bindings(py::module& m)
       //
       ;
 }
+
