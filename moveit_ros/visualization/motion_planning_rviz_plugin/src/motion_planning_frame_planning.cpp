@@ -377,7 +377,34 @@ void MotionPlanningFrame::updateQueryStateHelper(moveit::core::RobotState& state
     state.setToDefaultValues(jmg, v);
 }
 
-void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfaceDescription& desc)
+void MotionPlanningFrame::populatePlannersList(const std::vector<moveit_msgs::PlannerInterfaceDescription>& desc)
+{
+  ui_->planning_pipeline_combo_box->clear();
+
+  planner_descriptions_ = desc;
+  size_t default_planner_index = 0;
+  for (auto& d : planner_descriptions_)
+  {
+    QString item_text(d.pipeline_id.c_str());
+    // Check for default planning pipeline
+    if (d.pipeline_id == default_planning_pipeline_)
+    {
+      if (item_text.isEmpty())
+        item_text = QString::fromStdString(d.name);
+      default_planner_index = ui_->planning_pipeline_combo_box->count();
+    }
+    ui_->planning_pipeline_combo_box->addItem(item_text);
+  }
+  QFont font;
+  font.setBold(true);
+  ui_->planning_pipeline_combo_box->setItemData(default_planner_index, font, Qt::FontRole);
+
+  // Select default pipeline - triggers populatePlannerDescription() via callback
+  if (!planner_descriptions_.empty())
+    ui_->planning_pipeline_combo_box->setCurrentIndex(default_planner_index);
+}
+
+void MotionPlanningFrame::populatePlannerDescription(const moveit_msgs::PlannerInterfaceDescription& desc)
 {
   std::string group = planning_display_->getCurrentPlanningGroup();
   ui_->planning_algorithm_combo_box->clear();
@@ -409,6 +436,7 @@ void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfa
   if (ui_->planning_algorithm_combo_box->count() == 0 && !found_group)
     for (const std::string& planner_id : desc.planner_ids)
       ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(planner_id));
+
   ui_->planning_algorithm_combo_box->insertItem(0, "<unspecified>");
 
   // retrieve default planner config from parameter server
@@ -417,6 +445,10 @@ void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfa
   if (default_index < 0)
     default_index = 0;  // 0 is <unspecified> fallback
   ui_->planning_algorithm_combo_box->setCurrentIndex(default_index);
+
+  QFont font;
+  font.setBold(true);
+  ui_->planning_algorithm_combo_box->setItemData(default_index, font, Qt::FontRole);
 }
 
 void MotionPlanningFrame::populateConstraintsList()
