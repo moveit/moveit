@@ -59,11 +59,20 @@ bool MoveGroupPlanService::computePlanService(moveit_msgs::GetMotionPlan::Reques
     context_->planning_scene_monitor_->waitForCurrentRobotState(ros::Time::now());
   context_->planning_scene_monitor_->updateFrameTransforms();
 
+  // Select planning_pipeline to handle request
+  const planning_pipeline::PlanningPipelinePtr planning_pipeline =
+      resolvePlanningPipeline(req.motion_plan_request.pipeline_id);
+  if (!planning_pipeline)
+  {
+    res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+    return true;
+  }
+
   planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
   try
   {
     planning_interface::MotionPlanResponse mp_res;
-    context_->planning_pipeline_->generatePlan(ps, req.motion_plan_request, mp_res);
+    planning_pipeline->generatePlan(ps, req.motion_plan_request, mp_res);
     mp_res.getMessage(res.motion_plan_response);
   }
   catch (std::exception& ex)
