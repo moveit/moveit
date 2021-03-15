@@ -38,7 +38,7 @@ jobs:
 
 before_script:
   - test -n "$DOCKER_USERNAME" && docker login -u "$DOCKER_USERNAME" --password "$DOCKER_PASSWORD" 
-  - test -n "$DOCKER_USERNAME" || echo "Docker Hub credentials unavailable, pulling auonymously"
+  - test -n "$DOCKER_USERNAME" || echo "Docker Hub credentials unavailable, pulling anonymously"
   - git clone -q --depth=1 https://github.com/ros-planning/moveit_ci.git .moveit_ci
 
 script:
