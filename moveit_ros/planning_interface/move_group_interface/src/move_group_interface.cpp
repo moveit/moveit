@@ -279,6 +279,19 @@ public:
     return false;
   }
 
+  bool getInterfaceDescriptions(std::vector<moveit_msgs::PlannerInterfaceDescription>& desc)
+  {
+    moveit_msgs::QueryPlannerInterfaces::Request req;
+    moveit_msgs::QueryPlannerInterfaces::Response res;
+    if (query_service_.call(req, res))
+      if (!res.planner_interfaces.empty())
+      {
+        desc = res.planner_interfaces;
+        return true;
+      }
+    return false;
+  }
+
   std::map<std::string, std::string> getPlannerParams(const std::string& planner_id, const std::string& group = "")
   {
     moveit_msgs::GetPlannerParams::Request req;
@@ -310,10 +323,40 @@ public:
     set_params_service_.call(req, res);
   }
 
+  std::string getDefaultPlanningPipelineId() const
+  {
+    std::string default_planning_pipeline;
+    node_handle_.getParam("move_group/default_planning_pipeline", default_planning_pipeline);
+    return default_planning_pipeline;
+  }
+
+  void setPlanningPipelineId(const std::string& pipeline_id)
+  {
+    if (pipeline_id != planning_pipeline_id_)
+    {
+      planning_pipeline_id_ = pipeline_id;
+
+      // Reset planner_id if planning pipeline changed
+      planner_id_ = "";
+    }
+  }
+
+  const std::string& getPlanningPipelineId() const
+  {
+    return planning_pipeline_id_;
+  }
+
   std::string getDefaultPlannerId(const std::string& group) const
   {
+    // Check what planning pipeline config should be used
+    std::string pipeline_id = getDefaultPlanningPipelineId();
+    if (!planning_pipeline_id_.empty())
+      pipeline_id = planning_pipeline_id_;
+
     std::stringstream param_name;
     param_name << "move_group";
+    if (!pipeline_id.empty())
+      param_name << "/planning_pipelines/" << pipeline_id;
     if (!group.empty())
       param_name << "/" << group;
     param_name << "/default_planner_config";
@@ -1039,6 +1082,7 @@ public:
     request.max_velocity_scaling_factor = max_velocity_scaling_factor_;
     request.max_acceleration_scaling_factor = max_acceleration_scaling_factor_;
     request.allowed_planning_time = allowed_planning_time_;
+    request.pipeline_id = planning_pipeline_id_;
     request.planner_id = planner_id_;
     request.workspace_parameters = workspace_parameters_;
 
@@ -1271,6 +1315,7 @@ private:
   moveit::core::RobotStatePtr considered_start_state_;
   moveit_msgs::WorkspaceParameters workspace_parameters_;
   double allowed_planning_time_;
+  std::string planning_pipeline_id_;
   std::string planner_id_;
   unsigned int num_planning_attempts_;
   double max_velocity_scaling_factor_;
@@ -1389,6 +1434,11 @@ bool MoveGroupInterface::getInterfaceDescription(moveit_msgs::PlannerInterfaceDe
   return impl_->getInterfaceDescription(desc);
 }
 
+bool MoveGroupInterface::getInterfaceDescriptions(std::vector<moveit_msgs::PlannerInterfaceDescription>& desc) const
+{
+  return impl_->getInterfaceDescriptions(desc);
+}
+
 std::map<std::string, std::string> MoveGroupInterface::getPlannerParams(const std::string& planner_id,
                                                                         const std::string& group) const
 {
@@ -1399,6 +1449,21 @@ void MoveGroupInterface::setPlannerParams(const std::string& planner_id, const s
                                           const std::map<std::string, std::string>& params, bool replace)
 {
   impl_->setPlannerParams(planner_id, group, params, replace);
+}
+
+std::string MoveGroupInterface::getDefaultPlanningPipelineId() const
+{
+  return impl_->getDefaultPlanningPipelineId();
+}
+
+void MoveGroupInterface::setPlanningPipelineId(const std::string& pipeline_id)
+{
+  impl_->setPlanningPipelineId(pipeline_id);
+}
+
+const std::string& MoveGroupInterface::getPlanningPipelineId() const
+{
+  return impl_->getPlanningPipelineId();
 }
 
 std::string MoveGroupInterface::getDefaultPlannerId(const std::string& group) const

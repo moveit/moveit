@@ -1,6 +1,6 @@
 <launch>
     <!-- Specify the config files to use -->
-    <rosparam ns="moveit_cpp_test" command="load" file="$(find moveit_ros_planning_interface)/test/moveit_cpp.yaml" />
+    <rosparam ns="moveit_cpp_test" command="load" file="$(find moveit_ros_planning)/moveit_cpp/test/moveit_cpp.yaml" />
 
     <!-- Planning Pipeline -->
     <include ns="/moveit_cpp_test/ompl" file="$(find moveit_resources_panda_moveit_config)/launch/ompl_planning_pipeline.launch.xml"/>
@@ -30,5 +30,5 @@
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
 
     <!-- Unit Test /-->
-    <test test-name="moveit_cpp_test" pkg="moveit_ros_planning_interface" type="moveit_cpp_test" />
+    <test test-name="moveit_cpp_test" pkg="moveit_ros_planning" type="moveit_cpp_test" />
 </launch>

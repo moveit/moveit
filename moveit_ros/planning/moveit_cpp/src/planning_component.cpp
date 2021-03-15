@@ -35,27 +35,14 @@
 /* Author: Henning Kayser */
 
 #include <stdexcept>
-#include <sstream>
-#include <memory>
-#include <moveit/kinematic_constraints/utils.h>
-#include <moveit/move_group/capability_names.h>
+
 #include <moveit/moveit_cpp/planning_component.h>
-#include <moveit/planning_scene_monitor/current_state_monitor.h>
+#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/planning_scene_interface/planning_scene_interface.h>
-#include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
-#include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/robot_state/conversions.h>
 
-#include <tf2/utils.h>
-#include <tf2_eigen/tf2_eigen.h>
-#include <tf2_ros/transform_listener.h>
-#include <ros/console.h>
-#include <ros/ros.h>
-
-namespace moveit
-{
-namespace planning_interface
+namespace moveit_cpp
 {
 constexpr char LOGNAME[] = "planning_component";
 
@@ -324,5 +311,4 @@ void PlanningComponent::clearContents()
   moveit_cpp_.reset();
   planning_pipeline_names_.clear();
 }
-}  // namespace planning_interface
-}  // namespace moveit
+}  // namespace moveit_cpp

@@ -217,7 +217,10 @@ public:
    * of DOF. */
   unsigned int getVariableCount() const;
 
-  /** \brief Get the description of the planning plugin loaded by the action server */
+  /** \brief Get the descriptions of all planning plugins loaded by the action server */
+  bool getInterfaceDescriptions(std::vector<moveit_msgs::PlannerInterfaceDescription>& desc) const;
+
+  /** \brief Get the description of the default planning plugin loaded by the action server */
   bool getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription& desc) const;
 
   /** \brief Get the planner parameters for given group and planner_id */
@@ -227,6 +230,14 @@ public:
   /** \brief Set the planner parameters for given group and planner_id */
   void setPlannerParams(const std::string& planner_id, const std::string& group,
                         const std::map<std::string, std::string>& params, bool bReplace = false);
+
+  std::string getDefaultPlanningPipelineId() const;
+
+  /** \brief Specify a planning pipeline to be used for further planning */
+  void setPlanningPipelineId(const std::string& pipeline_id);
+
+  /** \brief Get the current planning_pipeline_id */
+  const std::string& getPlanningPipelineId() const;
 
   /** \brief Get the default planner for a given group (or global default) */
   std::string getDefaultPlannerId(const std::string& group = "") const;
