@@ -89,6 +89,10 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   nh_.param<double>("robot_description_planning/default_acceleration_scaling_factor", factor, 0.1);
   ui_->acceleration_scaling_factor->setValue(factor);
 
+  // Query default planning pipeline id
+  nh_.getParam(planning_display_->getMoveGroupNS() + "/move_group/default_planning_pipeline",
+               default_planning_pipeline_);
+
   // connect bottons to actions; each action usually registers the function pointer for the actual computation,
   // to keep the GUI more responsive (using the background job processing)
   connect(ui_->plan_button, SIGNAL(clicked()), this, SLOT(planButtonClicked()));
@@ -110,8 +114,8 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->allow_looking, SIGNAL(toggled(bool)), this, SLOT(allowLookingToggled(bool)));
   connect(ui_->allow_replanning, SIGNAL(toggled(bool)), this, SLOT(allowReplanningToggled(bool)));
   connect(ui_->allow_external_program, SIGNAL(toggled(bool)), this, SLOT(allowExternalProgramCommunication(bool)));
-  connect(ui_->planning_algorithm_combo_box, SIGNAL(currentIndexChanged(int)), this,
-          SLOT(planningAlgorithmIndexChanged(int)));
+  connect(ui_->planning_pipeline_combo_box, SIGNAL(currentIndexChanged(int)), this,
+          SLOT(planningPipelineIndexChanged(int)));
   connect(ui_->planning_algorithm_combo_box, SIGNAL(currentIndexChanged(int)), this,
           SLOT(planningAlgorithmIndexChanged(int)));
   connect(ui_->clear_scene_button, SIGNAL(clicked()), this, SLOT(clearScene()));
@@ -394,8 +398,8 @@ void MotionPlanningFrame::changePlanningGroupHelper()
       move_group_->allowReplanning(ui_->allow_replanning->isChecked());
       bool has_unique_endeffector = !move_group_->getEndEffectorLink().empty();
       planning_display_->addMainLoopJob([=]() { ui_->use_cartesian_path->setEnabled(has_unique_endeffector); });
-      moveit_msgs::PlannerInterfaceDescription desc;
-      if (move_group_->getInterfaceDescription(desc))
+      std::vector<moveit_msgs::PlannerInterfaceDescription> desc;
+      if (move_group_->getInterfaceDescriptions(desc))
         planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlannersList, this, desc));
       planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this),
                                           "populateConstraintsList");

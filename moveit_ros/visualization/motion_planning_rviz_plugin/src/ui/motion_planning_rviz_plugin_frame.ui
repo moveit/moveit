@@ -58,6 +58,16 @@
              </widget>
             </item>
             <item>
+             <widget class="QComboBox" name="planning_pipeline_combo_box">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QComboBox" name="planning_algorithm_combo_box">
               <property name="sizePolicy">
                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">

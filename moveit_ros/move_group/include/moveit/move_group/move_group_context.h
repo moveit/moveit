@@ -38,6 +38,11 @@
 
 #include <moveit/macros/class_forward.h>
 
+namespace moveit_cpp
+{
+MOVEIT_CLASS_FORWARD(MoveItCpp);
+}
+
 namespace planning_scene_monitor
 {
 MOVEIT_CLASS_FORWARD(PlanningSceneMonitor);  // Defines PlanningSceneMonitorPtr, ConstPtr, WeakPtr... etc
@@ -65,12 +70,13 @@ MOVEIT_STRUCT_FORWARD(MoveGroupContext);
 
 struct MoveGroupContext
 {
-  MoveGroupContext(const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
+  MoveGroupContext(const moveit_cpp::MoveItCppPtr& moveit_cpp, const std::string& default_planning_pipeline,
                    bool allow_trajectory_execution = false, bool debug = false);
   ~MoveGroupContext();
 
   bool status() const;
 
+  moveit_cpp::MoveItCppPtr moveit_cpp_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;
   planning_pipeline::PlanningPipelinePtr planning_pipeline_;

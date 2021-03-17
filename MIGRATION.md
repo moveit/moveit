@@ -17,6 +17,7 @@ API changes in MoveIt releases
 - `CollisionRobot` and `CollisionWorld` are combined into a single `CollisionEnv` class. This applies for all derived collision checkers as `FCL`, `ALL_VALID`, `HYBRID` and `DISTANCE_FIELD`. Consequently, `getCollisionRobot[Unpadded] / getCollisionWorld` functions are replaced through a `getCollisionEnv` in the planning scene and return the new combined environment. This unified collision environment provides the union of all member functions of `CollisionRobot` and `CollisionWorld`. Note that calling `checkRobotCollision` of the `CollisionEnv` does not take a `CollisionRobot` as an argument anymore as it is implicitly contained in the `CollisionEnv`.
 - `RobotTrajectory` provides a copy constructor that allows a shallow (default) and deep copy of waypoints
 - Replace the redundant namespaces `robot_state::` and `robot_model::` with the actual namespace `moveit::core::`. The additional namespaces will disappear in the future (ROS2).
+- Moved the library `moveit_cpp` to `moveit_ros_planning`. The classes are now in namespace `moveit_cpp`, access via `moveit::planning_interface` is deprecated.
 
 ## ROS Melodic
 

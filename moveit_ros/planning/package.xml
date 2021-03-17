@@ -37,6 +37,9 @@
 
   <build_depend>eigen</build_depend>
 
+  <test_depend>moveit_resources_panda_moveit_config</test_depend>
+  <test_depend>rostest</test_depend>
+
   <export>
     <moveit_core plugin="${prefix}/planning_request_adapters_plugin_description.xml"/>
   </export>

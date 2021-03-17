@@ -34,9 +34,13 @@
 
 /* Author: Ioan Sucan */
 
+#include <moveit/moveit_cpp/moveit_cpp.h>
 #include <moveit/move_group/move_group_capability.h>
 #include <moveit/robot_state/conversions.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
+#include <sstream>
+#include <string>
 
 void move_group::MoveGroupCapability::setContext(const MoveGroupContextPtr& context)
 {
@@ -197,4 +201,30 @@ bool move_group::MoveGroupCapability::performTransform(geometry_msgs::PoseStampe
     return false;
   }
   return true;
+}
+
+planning_pipeline::PlanningPipelinePtr
+move_group::MoveGroupCapability::resolvePlanningPipeline(const std::string& pipeline_id) const
+{
+  if (pipeline_id.empty())
+  {
+    // Without specified planning pipeline we use the default
+    return context_->planning_pipeline_;
+  }
+  else
+  {
+    // Attempt to get the planning pipeline for the specified identifier
+    try
+    {
+      auto pipeline = context_->moveit_cpp_->getPlanningPipelines().at(pipeline_id);
+      ROS_INFO_NAMED(getName(), "Using planning pipeline '%s'", pipeline_id.c_str());
+      return pipeline;
+    }
+    catch (const std::out_of_range&)
+    {
+      ROS_WARN_NAMED(getName(), "Couldn't find requested planning pipeline '%s'", pipeline_id.c_str());
+    }
+  }
+
+  return planning_pipeline::PlanningPipelinePtr();
 }

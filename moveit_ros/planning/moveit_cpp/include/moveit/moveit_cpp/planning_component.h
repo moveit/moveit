@@ -37,17 +37,11 @@
 
 #pragma once
 
+#include <ros/ros.h>
 #include <moveit/moveit_cpp/moveit_cpp.h>
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/planning_pipeline/planning_pipeline.h>
-#include <moveit/robot_state/robot_state.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 
-namespace moveit
-{
-namespace planning_interface
+namespace moveit_cpp
 {
 MOVEIT_CLASS_FORWARD(PlanningComponent);  // Defines PlanningComponentPtr, ConstPtr, WeakPtr... etc
 
@@ -225,5 +219,13 @@ private:
   /** \brief Reset all member variables */
   void clearContents();
 };
+}  // namespace moveit_cpp
+
+namespace moveit
+{
+namespace planning_interface
+{
+using PlanningComponent [[deprecated("use moveit_cpp")]] = moveit_cpp::PlanningComponent;
+[[deprecated("use moveit_cpp")]] MOVEIT_DECLARE_PTR(PlanningComponent, moveit_cpp::PlanningComponent);
 }  // namespace planning_interface
 }  // namespace moveit

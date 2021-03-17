@@ -57,6 +57,19 @@ void MotionPlanningFrame::databaseConnectButtonClicked()
                                       "connect to database");
 }
 
+void MotionPlanningFrame::planningPipelineIndexChanged(int index)
+{
+  // Refresh planner interface description for selected pipeline
+  if (index >= 0 && static_cast<size_t>(index) < planner_descriptions_.size())
+  {
+    // Set the selected pipeline id
+    if (move_group_)
+      move_group_->setPlanningPipelineId(planner_descriptions_[index].pipeline_id);
+
+    populatePlannerDescription(planner_descriptions_[index]);
+  }
+}
+
 void MotionPlanningFrame::planningAlgorithmIndexChanged(int index)
 {
   std::string planner_id = ui_->planning_algorithm_combo_box->itemText(index).toStdString();
@@ -64,6 +77,7 @@ void MotionPlanningFrame::planningAlgorithmIndexChanged(int index)
     planner_id = "";
 
   ui_->planner_param_treeview->setPlannerId(planner_id);
+
   if (move_group_)
     move_group_->setPlannerId(planner_id);
 }
