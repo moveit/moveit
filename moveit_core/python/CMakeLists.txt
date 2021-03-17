@@ -1,4 +1,4 @@
-set(MOVEIT_LIB_NAME moveit_python)
+set(MOVEIT_LIB_NAME moveit_python_tools)
 
 add_library(${MOVEIT_LIB_NAME}
   src/pybind_rosmsg_typecasters.cpp

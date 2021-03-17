@@ -145,7 +145,7 @@ catkin_package(
     moveit_constraint_samplers
     moveit_planning_request_adapter
     moveit_profiler
-    moveit_python
+    moveit_python_tools
     moveit_trajectory_processing
     moveit_distance_field
     moveit_collision_distance_field
@@ -236,7 +236,7 @@ set(pymoveit_libs
   moveit_collision_detection
   moveit_kinematic_constraints
   moveit_planning_scene
-  moveit_python
+  moveit_python_tools
   moveit_robot_model
   moveit_robot_state
   moveit_transforms
