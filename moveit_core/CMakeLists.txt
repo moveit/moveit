@@ -256,6 +256,9 @@ if(pybind11_catkin_FOUND)
   )
   target_include_directories(pymoveit_core SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
   target_link_libraries(pymoveit_core PUBLIC ${pymoveit_libs} ${catkin_LIBRARIES})
+
+  install(TARGETS pymoveit_core LIBRARY DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION}
+)
 endif()
 
 if(BULLET_ENABLE)
