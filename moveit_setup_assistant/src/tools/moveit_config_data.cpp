@@ -1171,6 +1171,14 @@ bool MoveItConfigData::outputJointLimitsYAML(const std::string& file_path)
     const moveit::core::VariableBounds& b = joint->getVariableBounds()[0];
 
     // Output property
+    emitter << YAML::Key << "has_position_limits";
+    emitter << YAML::Value << "false";
+
+    // Output property
+    emitter << YAML::Key << "max_position";
+    emitter << YAML::Value << std::min(fabs(b.max_position_), fabs(b.min_position_));
+    
+    // Output property
     emitter << YAML::Key << "has_velocity_limits";
     if (b.velocity_bounded_)
       emitter << YAML::Value << "true";
