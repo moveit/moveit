@@ -20,8 +20,8 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'moveit_core'
-copyright = '2021, peter'
-author = 'peter'
+copyright = '2021, MoveIt maintainer team'
+author = 'MoveIt maintainer team'
 
 # The short X.Y version
 version = ''

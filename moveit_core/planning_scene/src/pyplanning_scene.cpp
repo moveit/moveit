@@ -85,7 +85,8 @@ void def_planning_scene_bindings(py::module& m)
            py::overload_cast<const moveit::core::RobotState&, const moveit_msgs::Constraints&, bool>(
                &PlanningScene::isStateConstrained, py::const_),
            py::arg("state"), py::arg("constr"), py::arg("verbose") = false)
-      .def("getTransforms", py::overload_cast<>(&PlanningScene::getTransforms, py::const_), py::return_value_policy::reference)
+      .def("getTransforms", py::overload_cast<>(&PlanningScene::getTransforms, py::const_),
+           py::return_value_policy::reference)
       //      .def("setStateFeasibilityPredicate", &PlanningScene::setStateFeasibilityPredicate)
       .def("isStateValid",
            py::overload_cast<const moveit_msgs::RobotState&, const std::string&, bool>(&PlanningScene::isStateValid,
@@ -112,4 +113,3 @@ void def_planning_scene_bindings(py::module& m)
       //
       ;
 }
-
