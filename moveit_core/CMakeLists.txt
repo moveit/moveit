@@ -119,7 +119,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     planning_request_adapter/include
     planning_scene/include
     profiler/include
-    python/include
+    python/tools/include
     sensor_manager/include
     trajectory_processing/include
     utils/include
@@ -232,21 +232,21 @@ add_subdirectory(collision_distance_field)
 add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
 
-set(pymoveit_libs
-  moveit_collision_detection
-  moveit_kinematic_constraints
-  moveit_planning_scene
-  moveit_python_tools
-  moveit_robot_model
-  moveit_robot_state
-  moveit_transforms
-)
-
 if(pybind11_catkin_FOUND)
   add_subdirectory(python)
 
+  set(pymoveit_libs
+    moveit_collision_detection
+    moveit_kinematic_constraints
+    moveit_planning_scene
+    moveit_python_tools
+    moveit_robot_model
+    moveit_robot_state
+    moveit_transforms
+  )
+
   pybind_add_module(pymoveit_core
-      python/src/pymoveit_core.cpp
+      python/pymoveit_core.cpp
       collision_detection/src/pycollision_detection.cpp
       robot_model/src/pyrobot_model.cpp
       robot_state/src/pyrobot_state.cpp
@@ -257,8 +257,7 @@ if(pybind11_catkin_FOUND)
   target_include_directories(pymoveit_core SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
   target_link_libraries(pymoveit_core PUBLIC ${pymoveit_libs} ${catkin_LIBRARIES})
 
-  install(TARGETS pymoveit_core LIBRARY DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION}
-)
+  install(TARGETS pymoveit_core LIBRARY DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
 endif()
 
 if(BULLET_ENABLE)
