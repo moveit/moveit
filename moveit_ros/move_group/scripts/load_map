@@ -5,10 +5,10 @@ from moveit_msgs.srv import LoadMap
 
 filename = sys.argv[1]
 
-rospy.init_node('load_map', anonymous=True)
+rospy.init_node("load_map", anonymous=True)
 
-load_map_service = rospy.ServiceProxy('move_group/load_map', LoadMap)
+load_map_service = rospy.ServiceProxy("move_group/load_map", LoadMap)
 if load_map_service(filename):
-    rospy.loginfo('Succeeded')
+    rospy.loginfo("Succeeded")
 else:
-    rospy.loginfo('Failed')
+    rospy.loginfo("Failed")
