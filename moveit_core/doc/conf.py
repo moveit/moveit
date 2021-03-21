@@ -19,7 +19,7 @@ import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
-project = 'moveit_core'
+project = 'moveit.core'
 copyright = '2021, MoveIt maintainer team'
 author = 'MoveIt maintainer team'
 
@@ -45,8 +45,13 @@ extensions = [
     "sphinx_rtd_theme",
 ]
 
+# NOTE: Important variables that make auto-generation work,
+#  see https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
 autosummary_generate = True
+autosummary_imported_members = True
 autoclass_content = "both"  # Add __init__ doc (ie. params) to class summaries
+
+# Customization, not as important
 html_show_sourcelink = True  # Remove 'view source code' from top of page (for html, not python)
 autodoc_inherit_docstrings = True  # If no docstring, inherit from base class
 set_type_checking_flag = True  # Enable 'expensive' imports for sphinx_autodoc_typehints
@@ -191,4 +196,4 @@ epub_exclude_files = ['search.html']
 # -- Options for intersphinx extension ---------------------------------------
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {'https://docs.python.org/3': None}
