@@ -54,6 +54,13 @@ namespace moveit_setup_assistant
 // File system
 namespace fs = boost::filesystem;
 
+std::string toString(double val)
+{
+    std::stringstream ss("");
+    ss << val;
+    return ss.str();
+}
+
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
@@ -1137,10 +1144,9 @@ bool MoveItConfigData::outputJointLimitsYAML(const std::string& file_path)
   emitter << YAML::Comment("Specific joint properties can be changed with the keys "
                            "[max_position, min_position, max_velocity, max_acceleration]")
           << YAML::Newline;
-  emitter << YAML::Comment("Joint limits can be turned off with [has_velocity_limits, has_acceleration_limits]");
-
-  emitter << YAML::Key << "joint_limits";
-  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Comment("Joint limits can be turned off with [has_velocity_limits, has_acceleration_limits]")
+          << YAML::Newline;
+  emitter << YAML::Comment("joint_limits:") << YAML::Newline;
 
   // Union all the joints in groups. Uses a custom comparator to allow the joints to be sorted by name
   std::set<const moveit::core::JointModel*, JointModelCompare> joints;
@@ -1165,45 +1171,42 @@ bool MoveItConfigData::outputJointLimitsYAML(const std::string& file_path)
   // Add joints to yaml file, if no more than 1 dof
   for (const moveit::core::JointModel* joint : joints)
   {
-    emitter << YAML::Key << joint->getName();
-    emitter << YAML::Value << YAML::BeginMap;
+    std::string joint_name = "  " + joint->getName() + ":";
+    emitter << YAML::Comment(joint_name) << YAML::Newline;
 
     const moveit::core::VariableBounds& b = joint->getVariableBounds()[0];
 
     // Output property
-    emitter << YAML::Key << "has_position_limits";
-    emitter << YAML::Value << "false";
+    if (b.position_bounded_)
+      emitter << YAML::Comment("    has_position_limits: true") << YAML::Newline;
+    else
+      emitter << YAML::Comment("    has_position_limits: false") << YAML::Newline;
 
     // Output property
-    emitter << YAML::Key << "max_position";
-    emitter << YAML::Value << std::min(fabs(b.max_position_), fabs(b.min_position_));
-    
+    std::string max_position_str = "    max_position: " + toString(std::min(fabs(b.max_position_), fabs(b.min_position_)));
+    emitter << YAML::Comment(max_position_str) << YAML::Newline;
+
     // Output property
-    emitter << YAML::Key << "has_velocity_limits";
     if (b.velocity_bounded_)
-      emitter << YAML::Value << "true";
+      emitter << YAML::Comment("    has_velocity_limits: true") << YAML::Newline;
     else
-      emitter << YAML::Value << "false";
+      emitter << YAML::Comment("    has_velocity_limits: false") << YAML::Newline;
 
     // Output property
-    emitter << YAML::Key << "max_velocity";
-    emitter << YAML::Value << std::min(fabs(b.max_velocity_), fabs(b.min_velocity_));
+    std::string max_velocity_str = "    max_velocity: " + toString(std::min(fabs(b.max_velocity_), fabs(b.min_velocity_)));
+    emitter << YAML::Comment(max_velocity_str) << YAML::Newline;
 
     // Output property
-    emitter << YAML::Key << "has_acceleration_limits";
     if (b.acceleration_bounded_)
-      emitter << YAML::Value << "true";
+      emitter << YAML::Comment("    has_acceleration_limits: true") << YAML::Newline;
     else
-      emitter << YAML::Value << "false";
+      emitter << YAML::Comment("    has_acceleration_limits: false") << YAML::Newline;
 
     // Output property
-    emitter << YAML::Key << "max_acceleration";
-    emitter << YAML::Value << std::min(fabs(b.max_acceleration_), fabs(b.min_acceleration_));
+    std::string max_acceleration_str = "    max_acceleration: " + toString(std::min(fabs(b.max_acceleration_), fabs(b.min_acceleration_)));
+    emitter << YAML::Comment(max_acceleration_str) << YAML::Newline;
 
-    emitter << YAML::EndMap;
   }
-
-  emitter << YAML::EndMap;
 
   std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
   if (!output_stream.good())
