@@ -58,7 +58,7 @@ $DIFF
 
 Don’t hesitate to ask questions or to get help if you feel like you are getting stuck. For example leave a comment below!
 
-💬️ - You can even ping us by using an `@ mention` in the comments.
+💬️ - You can even ping us by using an `@mention` in the comments.
 
 Furthermore, you find helpful resources here:
 * [MoveIt FAQ](https://moveit.ros.org/documentation/faqs/)
