@@ -1,0 +1,105 @@
+# This config uses industrial_ci (https://github.com/ros-industrial/industrial_ci.git).
+# For troubleshooting, see readme (https://github.com/ros-industrial/industrial_ci/blob/master/README.rst)
+
+name: BuildAndTest
+
+# this is a test change, affects no projects
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - master
+      - "[kmn]*-devel"
+
+jobs:
+  industrial_ci:
+    strategy:
+      matrix:
+        env:
+          - IMAGE: 'master-ci'
+            CCOV: true
+          - IMAGE: 'master-ci-shadow-fixed'
+            CATKIN_LINT: true
+          - IMAGE: 'melodic-ci'
+            IKFAST_TEST: true
+            CLANG_TIDY: true
+    env:
+      DOCKER_IMAGE: moveit/moveit:${{ matrix.env.IMAGE }}
+      UPSTREAM_WORKSPACE: moveit.rosinstall
+      AFTER_SETUP_UPSTREAM_WORKSPACE: 'vcs pull $BASEDIR/upstream_ws/src'
+      BEFORE_TARGET_TEST_EMBED: ${{ matrix.env.IKFAST_TEST && 'set +u && source moveit_kinematics/test/test_ikfast_plugins.sh && set -u' || '' }}
+      AFTER_RUN_TARGET_TEST: ${{ matrix.env.CCOV && './.ci.prepare_codecov' || '' }}
+      TARGET_CMAKE_ARGS: >
+        -DCMAKE_BUILD_TYPE=${{ matrix.env.CCOV && 'RelWithDebInfo' || 'Release'}}
+        ${{ matrix.env.CCOV && '-DCMAKE_CXX_FLAGS="--coverage" --no-warn-unused-cli' || '' }}
+      CCACHE_DIR: "${{ github.workspace }}/.ccache"
+      BASEDIR: ${{ github.workspace }}/.work
+      CACHE_PREFIX: "${{ matrix.env.IMAGE }}${{ matrix.env.CCOV && '-ccov' || '' }}"
+      CLANG_TIDY_BASE_REF: "${{ github.base_ref || github.ref }}"
+
+    name: "${{ matrix.env.IMAGE }}${{ matrix.env.CATKIN_LINT && ' + catkin_lint' || ''}}${{ matrix.env.CCOV && ' + ccov' || ''}}${{ matrix.env.IKFAST_TEST && ' + ikfast' || ''}}${{ matrix.env.CLANG_TIDY && ' + clang-tidy' || '' }}"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Free up disk space"
+        if: ${{ matrix.env.CCOV }}
+        run: |
+          sudo apt-get -qq purge build-essential ghc*
+          sudo apt-get clean
+          # cleanup docker images not used by us
+          docker system prune -af
+          # shift ccache folder to /mnt on a separate disk
+          sudo mkdir /mnt/ccache
+          mkdir ${{ env.CCACHE_DIR }}
+          sudo mount --bind ${{ env.CCACHE_DIR }} /mnt/ccache
+          # free up a lot of stuff from /usr/local
+          sudo rm -rf /usr/local/*
+          df -h
+      - uses: actions/checkout@v2
+      - name: cache upstream_ws
+        uses: pat-s/always-upload-cache@v2.1.3
+        with:
+          path: ${{ env.BASEDIR }}/upstream_ws
+          key: upstream_ws-${{ env.CACHE_PREFIX }}-${{ hashFiles('moveit2.repos') }}-${{ github.run_id }}
+          restore-keys: |
+            upstream_ws-${{ env.CACHE_PREFIX }}-${{ hashFiles('moveit2.repos') }}
+      # The target directory cache doesn't include the source directory because
+      # that comes from the checkout.  See "prepare target_ws for cache" task below
+      - name: cache target_ws
+        if: ${{ ! matrix.env.CCOV }}
+        uses: pat-s/always-upload-cache@v2.1.3
+        with:
+          path: ${{ env.BASEDIR }}/target_ws
+          key: target_ws-${{ env.CACHE_PREFIX }}-${{ hashFiles('**/CMakeLists.txt', '**/package.xml') }}-${{ github.run_id }}
+          restore-keys: |
+            target_ws-${{ env.CACHE_PREFIX }}-${{ hashFiles('**/CMakeLists.txt', '**/package.xml') }}
+      - name: cache ccache
+        uses: pat-s/always-upload-cache@v2.1.3
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ccache-${{ env.CACHE_PREFIX }}-${{ github.sha }}-${{ github.run_id }}
+          restore-keys: |
+            ccache-${{ env.CACHE_PREFIX }}-${{ github.sha }}
+            ccache-${{ env.CACHE_PREFIX }}
+      - name: industrial_ci
+        uses: 'tylerjw/industrial_ci@clang-tidy-modified-filter'
+        env: ${{ matrix.env }}
+      - name: upload test artifacts (on failure)
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: test-results
+          path: ${{ env.BASEDIR }}/target_ws/**/test_results/**/*.xml
+      - name: upload codecov report
+        uses: codecov/codecov-action@v1
+        if: ${{ matrix.env.CCOV }}
+        with:
+          files: ${{ env.BASEDIR }}/coverage.info
+      - name: prepare target_ws for cache
+        if: ${{ always() && ! matrix.env.CCOV }}
+        run: |
+          du -sh ${{ env.BASEDIR }}/target_ws
+          sudo find ${{ env.BASEDIR }}/target_ws -wholename '*/test_results/*' -delete
+          sudo rm -rf ${{ env.BASEDIR }}/target_ws/src
+          du -sh ${{ env.BASEDIR }}/target_ws
