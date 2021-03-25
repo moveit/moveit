@@ -170,4 +170,4 @@ void SBPLMetaInterface::runSolver(bool use_first, const planning_scene::Planning
     std::cerr << "Interruption requested\n";
   }
 }
-}
+}  // namespace sbpl_interface

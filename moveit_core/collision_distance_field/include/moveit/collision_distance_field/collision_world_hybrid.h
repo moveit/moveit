@@ -109,6 +109,6 @@ public:
 protected:
   CollisionWorldDistanceFieldPtr cworld_distance_;
 };
-}
+}  // namespace collision_detection
 
 #endif

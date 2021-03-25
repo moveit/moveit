@@ -98,6 +98,6 @@ protected:
   std::vector<FCLGeometryConstPtr> geoms_;
   std::vector<FCLCollisionObjectConstPtr> fcl_objs_;
 };
-}
+}  // namespace collision_detection
 
 #endif

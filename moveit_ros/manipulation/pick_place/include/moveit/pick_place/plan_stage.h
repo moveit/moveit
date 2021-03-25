@@ -57,6 +57,6 @@ private:
   planning_scene::PlanningSceneConstPtr planning_scene_;
   planning_pipeline::PlanningPipelinePtr planning_pipeline_;
 };
-}
+}  // namespace pick_place
 
 #endif

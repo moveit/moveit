@@ -159,6 +159,6 @@ private:
   void loadControllerScreen(moveit_setup_assistant::ROSControlConfig* this_controller);
 };
 
-}  // namespace moveit_setup_assistant
+}  // namespace moveit_ros_control
 
 #endif

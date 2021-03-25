@@ -2,9 +2,9 @@
 \mainpage
 \htmlinclude manifest.html
 
-\b kinematics_cache 
+\b kinematics_cache
 
-<!-- 
+<!--
 Provide an overview of your package.
 -->
 

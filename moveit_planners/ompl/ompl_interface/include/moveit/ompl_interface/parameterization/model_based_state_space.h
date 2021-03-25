@@ -270,6 +270,6 @@ protected:
 };
 
 typedef same_shared_ptr<ModelBasedStateSpace, ompl::base::StateSpacePtr>::type ModelBasedStateSpacePtr;
-}
+}  // namespace ompl_interface
 
 #endif

@@ -198,7 +198,7 @@ protected:
   std::string target_frame_;
   FixedTransformsMap transforms_;
 };
-}
-}
+}  // namespace core
+}  // namespace moveit
 
 #endif

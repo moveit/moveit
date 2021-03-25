@@ -76,7 +76,7 @@ void hexToMsg(const std::string& hex, T& msg)
   ros::serialization::IStream stream_arg(buffer_arg.get(), serial_size_arg);
   ros::serialization::deserialize(stream_arg, msg);
 }
-}
+}  // namespace
 
 class ConstraintApproximationStateSampler : public ob::StateSampler
 {
@@ -197,7 +197,7 @@ allocConstraintApproximationStateSampler(const ob::StateSpace* space, const std:
   else
     return ompl::base::StateSamplerPtr(new ConstraintApproximationStateSampler(space, state_storage, milestones));
 }
-}
+}  // namespace ompl_interface
 
 ompl_interface::ConstraintApproximation::ConstraintApproximation(
     const std::string& group, const std::string& state_space_parameterization, bool explicit_motions,
@@ -319,8 +319,9 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
       std::size_t sum = 0;
       for (std::size_t i = 0; i < cass->size(); ++i)
         sum += cass->getMetadata(i).first.size();
-      ROS_INFO_NAMED("constraints_library", "Loaded %lu states (%lu milestones) and %lu connections (%0.1lf per state) "
-                                            "for constraint named '%s'%s",
+      ROS_INFO_NAMED("constraints_library",
+                     "Loaded %lu states (%lu milestones) and %lu connections (%0.1lf per state) "
+                     "for constraint named '%s'%s",
                      cass->size(), cap->getMilestoneCount(), sum, (double)sum / (double)cap->getMilestoneCount(),
                      msg.name.c_str(), explicit_motions ? ". Explicit motions included." : "");
     }

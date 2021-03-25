@@ -65,6 +65,6 @@ protected:
 
 /// \brief Load a database connection
 typename warehouse_ros::DatabaseConnection::Ptr loadDatabase();
-}
+}  // namespace moveit_warehouse
 
 #endif

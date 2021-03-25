@@ -83,6 +83,6 @@ protected:
   bool signal_stop_;
   bool verbose_;
 };
-}
+}  // namespace pick_place
 
 #endif

@@ -223,6 +223,6 @@ private:
   void computeJointProperties(int trajectoryPoint);
   bool isCurrentTrajectoryMeshToMeshCollisionFree() const;
 };
-}
+}  // namespace chomp
 
 #endif /* CHOMP_OPTIMIZER_H_ */

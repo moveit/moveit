@@ -314,6 +314,6 @@ inline double ChompTrajectory::getDuration() const
 {
   return duration_;
 }
-}
+}  // namespace chomp
 
 #endif /* CHOMP_TRAJECTORY_H_ */

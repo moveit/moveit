@@ -337,4 +337,4 @@ void PerceptionWidget::loadSensorPluginsComboBox()
   }
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

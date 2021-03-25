@@ -178,8 +178,8 @@ void OccupancyMapMonitor::addUpdater(const OccupancyMapUpdaterPtr& updater)
     if (map_updaters_.size() > 1)
     {
       mesh_handles_.resize(map_updaters_.size());
-      if (map_updaters_.size() ==
-          2)  // when we had one updater only, we passed direcly the transform cache callback to that updater
+      if (map_updaters_.size() == 2)  // when we had one updater only, we passed direcly the transform cache callback to
+                                      // that updater
       {
         map_updaters_[0]->setTransformCacheCallback(
             boost::bind(&OccupancyMapMonitor::getShapeTransformCache, this, 0, _1, _2, _3));
@@ -342,4 +342,4 @@ OccupancyMapMonitor::~OccupancyMapMonitor()
 {
   stopMonitor();
 }
-}
+}  // namespace occupancy_map_monitor

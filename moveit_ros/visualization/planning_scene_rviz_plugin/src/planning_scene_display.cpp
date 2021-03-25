@@ -65,8 +65,9 @@ namespace moveit_rviz_plugin
 PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool show_scene_robot)
   : Display(), model_is_loading_(false), planning_scene_needs_render_(true), current_scene_time_(0.0f)
 {
-  move_group_ns_property_ = new rviz::StringProperty("Move Group Namespace", "", "The name of the ROS namespace in "
-                                                                                 "which the move_group node is running",
+  move_group_ns_property_ = new rviz::StringProperty("Move Group Namespace", "",
+                                                     "The name of the ROS namespace in "
+                                                     "which the move_group node is running",
                                                      this, SLOT(changedMoveGroupNS()), this);
   robot_description_property_ = new rviz::StringProperty(
       "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
@@ -113,25 +114,27 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
   octree_coloring_property_->addOption("Z-Axis", OCTOMAP_Z_AXIS_COLOR);
   octree_coloring_property_->addOption("Cell Probability", OCTOMAP_PROBABLILTY_COLOR);
 
-  scene_display_time_property_ =
-      new rviz::FloatProperty("Scene Display Time", 0.2f, "The amount of wall-time to wait in between rendering "
-                                                          "updates to the planning scene (if any)",
-                              scene_category_, SLOT(changedSceneDisplayTime()), this);
+  scene_display_time_property_ = new rviz::FloatProperty("Scene Display Time", 0.2f,
+                                                         "The amount of wall-time to wait in between rendering "
+                                                         "updates to the planning scene (if any)",
+                                                         scene_category_, SLOT(changedSceneDisplayTime()), this);
   scene_display_time_property_->setMin(0.0001);
 
   if (show_scene_robot)
   {
     robot_category_ = new rviz::Property("Scene Robot", QVariant(), "", this);
 
-    scene_robot_visual_enabled_property_ = new rviz::BoolProperty(
-        "Show Robot Visual", true, "Indicates whether the robot state specified by the planning scene should be "
-                                   "displayed as defined for visualisation purposes.",
-        robot_category_, SLOT(changedSceneRobotVisualEnabled()), this);
+    scene_robot_visual_enabled_property_ =
+        new rviz::BoolProperty("Show Robot Visual", true,
+                               "Indicates whether the robot state specified by the planning scene should be "
+                               "displayed as defined for visualisation purposes.",
+                               robot_category_, SLOT(changedSceneRobotVisualEnabled()), this);
 
-    scene_robot_collision_enabled_property_ = new rviz::BoolProperty(
-        "Show Robot Collision", false, "Indicates whether the robot state specified by the planning scene should be "
-                                       "displayed as defined for collision detection purposes.",
-        robot_category_, SLOT(changedSceneRobotCollisionEnabled()), this);
+    scene_robot_collision_enabled_property_ =
+        new rviz::BoolProperty("Show Robot Collision", false,
+                               "Indicates whether the robot state specified by the planning scene should be "
+                               "displayed as defined for collision detection purposes.",
+                               robot_category_, SLOT(changedSceneRobotCollisionEnabled()), this);
 
     robot_alpha_property_ = new rviz::FloatProperty("Robot Alpha", 1.0f, "Specifies the alpha for the robot links",
                                                     robot_category_, SLOT(changedRobotSceneAlpha()), this);

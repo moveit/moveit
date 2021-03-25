@@ -191,7 +191,7 @@ void computeCommonRootsHelper(const JointModel* joint, std::vector<int>& common_
     computeCommonRootsHelper(ch[i], common_roots, size);
   }
 }
-}
+}  // namespace
 
 void RobotModel::computeCommonRoots()
 {
@@ -341,14 +341,16 @@ void RobotModel::buildGroupStates(const srdf::Model& srdf_model)
             for (std::size_t j = 0; j < vn.size(); ++j)
               state[vn[j]] = jt->second[j];
           else
-            ROS_ERROR_NAMED(LOGNAME, "The model for joint '%s' requires %d variable values, "
-                                     "but only %d variable values were supplied in default state '%s' for group '%s'",
+            ROS_ERROR_NAMED(LOGNAME,
+                            "The model for joint '%s' requires %d variable values, "
+                            "but only %d variable values were supplied in default state '%s' for group '%s'",
                             jt->first.c_str(), (int)vn.size(), (int)jt->second.size(), ds[i].name_.c_str(),
                             jmg->getName().c_str());
         }
         else
-          ROS_ERROR_NAMED(LOGNAME, "Group state '%s' specifies value for joint '%s', "
-                                   "but that joint is not part of group '%s'",
+          ROS_ERROR_NAMED(LOGNAME,
+                          "Group state '%s' specifies value for joint '%s', "
+                          "but that joint is not part of group '%s'",
                           ds[i].name_.c_str(), jt->first.c_str(), jmg->getName().c_str());
       }
       if (!state.empty())
@@ -606,8 +608,9 @@ void RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& srdf_model)
                                 eefs[k].parent_group_.c_str(), eefs[k].name_.c_str());
             }
             else
-              ROS_ERROR_NAMED(LOGNAME, "Group '%s' was specified as parent group for end-effector '%s' "
-                                       "but it does not include the parent link '%s'",
+              ROS_ERROR_NAMED(LOGNAME,
+                              "Group '%s' was specified as parent group for end-effector '%s' "
+                              "but it does not include the parent link '%s'",
                               eefs[k].parent_group_.c_str(), eefs[k].name_.c_str(), eefs[k].parent_link_.c_str());
           }
           else
@@ -842,7 +845,7 @@ static inline VariableBounds jointBoundsFromURDF(const urdf::Joint* urdf_joint)
   }
   return b;
 }
-}
+}  // namespace
 
 JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const urdf::Link* child_link,
                                             const srdf::Model& srdf_model)
@@ -854,8 +857,7 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
   {
     switch (urdf_joint->type)
     {
-      case urdf::Joint::REVOLUTE:
-      {
+      case urdf::Joint::REVOLUTE: {
         RevoluteJointModel* j = new RevoluteJointModel(urdf_joint->name);
         j->setVariableBounds(j->getName(), jointBoundsFromURDF(urdf_joint));
         j->setContinuous(false);
@@ -863,8 +865,7 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
         result = j;
       }
       break;
-      case urdf::Joint::CONTINUOUS:
-      {
+      case urdf::Joint::CONTINUOUS: {
         RevoluteJointModel* j = new RevoluteJointModel(urdf_joint->name);
         j->setVariableBounds(j->getName(), jointBoundsFromURDF(urdf_joint));
         j->setContinuous(true);
@@ -872,8 +873,7 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
         result = j;
       }
       break;
-      case urdf::Joint::PRISMATIC:
-      {
+      case urdf::Joint::PRISMATIC: {
         PrismaticJointModel* j = new PrismaticJointModel(urdf_joint->name);
         j->setVariableBounds(j->getName(), jointBoundsFromURDF(urdf_joint));
         j->setAxis(Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z));
@@ -901,8 +901,9 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
     {
       if (vjoints[i].child_link_ != child_link->name)
       {
-        ROS_WARN_NAMED(LOGNAME, "Skipping virtual joint '%s' because its child frame '%s' "
-                                "does not match the URDF frame '%s'",
+        ROS_WARN_NAMED(LOGNAME,
+                       "Skipping virtual joint '%s' because its child frame '%s' "
+                       "does not match the URDF frame '%s'",
                        vjoints[i].name_.c_str(), vjoints[i].child_link_.c_str(), child_link->name.c_str());
       }
       else if (vjoints[i].parent_frame_.empty())
@@ -963,7 +964,7 @@ static inline Eigen::Affine3d urdfPose2Affine3d(const urdf::Pose& pose)
   Eigen::Affine3d af(Eigen::Translation3d(pose.position.x, pose.position.y, pose.position.z) * q.toRotationMatrix());
   return af;
 }
-}
+}  // namespace
 
 LinkModel* RobotModel::constructLinkModel(const urdf::Link* urdf_link)
 {
@@ -1043,8 +1044,7 @@ shapes::ShapePtr RobotModel::constructShape(const urdf::Geometry* geom)
     case urdf::Geometry::SPHERE:
       result = new shapes::Sphere(static_cast<const urdf::Sphere*>(geom)->radius);
       break;
-    case urdf::Geometry::BOX:
-    {
+    case urdf::Geometry::BOX: {
       urdf::Vector3 dim = static_cast<const urdf::Box*>(geom)->dim;
       result = new shapes::Box(dim.x, dim.y, dim.z);
     }
@@ -1053,8 +1053,7 @@ shapes::ShapePtr RobotModel::constructShape(const urdf::Geometry* geom)
       result = new shapes::Cylinder(static_cast<const urdf::Cylinder*>(geom)->radius,
                                     static_cast<const urdf::Cylinder*>(geom)->length);
       break;
-    case urdf::Geometry::MESH:
-    {
+    case urdf::Geometry::MESH: {
       const urdf::Mesh* mesh = static_cast<const urdf::Mesh*>(geom);
       if (!mesh->filename.empty())
       {

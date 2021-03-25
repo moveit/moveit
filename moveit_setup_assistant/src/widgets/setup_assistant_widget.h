@@ -79,7 +79,7 @@ namespace rviz
 class GridDisplay;
 class RenderPanel;
 class VisualizationManager;
-}
+}  // namespace rviz
 
 namespace moveit_rviz_plugin
 {
@@ -236,6 +236,6 @@ private:
   // Private Functions
   // ******************************************************************************************
 };
-}
+}  // namespace moveit_setup_assistant
 
 #endif

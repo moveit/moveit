@@ -177,7 +177,7 @@ private:
   std::shared_ptr<pluginlib::ClassLoader<MoveGroupCapability> > capability_plugin_loader_;
   std::vector<MoveGroupCapabilityPtr> capabilities_;
 };
-}
+}  // namespace move_group
 
 int main(int argc, char** argv)
 {

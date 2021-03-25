@@ -78,6 +78,6 @@ private:
 
   RobotStateCollection state_collection_;
 };
-}
+}  // namespace moveit_warehouse
 
 #endif

@@ -54,10 +54,10 @@ VirtualJointsWidget::VirtualJointsWidget(QWidget* parent, moveit_setup_assistant
 
   // Top Header Area ------------------------------------------------
 
-  HeaderWidget* header =
-      new HeaderWidget("Define Virtual Joints", "Create a virtual joint between a robot link and an external frame of "
-                                                "reference (considered fixed with respect to the robot).",
-                       this);
+  HeaderWidget* header = new HeaderWidget("Define Virtual Joints",
+                                          "Create a virtual joint between a robot link and an external frame of "
+                                          "reference (considered fixed with respect to the robot).",
+                                          this);
   layout->addWidget(header);
 
   // Create contents screens ---------------------------------------
@@ -628,4 +628,4 @@ void VirtualJointsWidget::focusGiven()
   loadChildLinksComboBox();
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

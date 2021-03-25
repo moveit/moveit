@@ -99,4 +99,4 @@ bool WarehouseConnector::connectToDatabase(const std::string& dirname)
   }
   return true;
 }
-}
+}  // namespace moveit_warehouse

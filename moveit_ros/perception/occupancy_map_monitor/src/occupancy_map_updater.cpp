@@ -81,4 +81,4 @@ bool OccupancyMapUpdater::updateTransformCache(const std::string& target_frame, 
     return false;
   }
 }
-}
+}  // namespace occupancy_map_monitor

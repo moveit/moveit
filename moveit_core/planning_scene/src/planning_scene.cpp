@@ -401,8 +401,9 @@ PlanningScene::getCollisionRobotUnpadded(const std::string& collision_detector_n
   CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
   if (it == collision_.end())
   {
-    ROS_ERROR_NAMED("planning_scene", "Could not get CollisionRobotUnpadded named '%s'. "
-                                      "Returning active CollisionRobotUnpadded '%s' instead",
+    ROS_ERROR_NAMED("planning_scene",
+                    "Could not get CollisionRobotUnpadded named '%s'. "
+                    "Returning active CollisionRobotUnpadded '%s' instead",
                     collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
     return active_collision_->getCollisionRobotUnpadded();
   }
@@ -808,7 +809,7 @@ private:
   moveit_msgs::CollisionObject* obj_;
   const geometry_msgs::Pose* pose_;
 };
-}
+}  // namespace
 
 bool PlanningScene::getCollisionObjectMsg(moveit_msgs::CollisionObject& collision_obj, const std::string& ns) const
 {
@@ -1112,8 +1113,9 @@ void PlanningScene::setCurrentState(const moveit_msgs::RobotState& state)
   {
     if (!state.is_diff && state.attached_collision_objects[i].object.operation != moveit_msgs::CollisionObject::ADD)
     {
-      ROS_ERROR_NAMED("planning_scene", "The specified RobotState is not marked as is_diff. "
-                                        "The request to modify the object '%s' is not supported. Object is ignored.",
+      ROS_ERROR_NAMED("planning_scene",
+                      "The specified RobotState is not marked as is_diff. "
+                      "The request to modify the object '%s' is not supported. Object is ignored.",
                       state.attached_collision_objects[i].object.id.c_str());
       continue;
     }
@@ -1476,8 +1478,9 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         }
         else
         {
-          ROS_ERROR_NAMED("planning_scene", "Attempting to attach object '%s' to link '%s' but no geometry specified "
-                                            "and such an object does not exist in the collision world",
+          ROS_ERROR_NAMED("planning_scene",
+                          "Attempting to attach object '%s' to link '%s' but no geometry specified "
+                          "and such an object does not exist in the collision world",
                           object.object.id.c_str(), object.link_name.c_str());
           return false;
         }
@@ -1555,8 +1558,9 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
       {
         // there should not exist an attached object with this name
         if (kstate_->clearAttachedBody(object.object.id))
-          ROS_DEBUG_NAMED("planning_scene", "The robot state already had an object named '%s' attached to link '%s'. "
-                                            "The object was replaced.",
+          ROS_DEBUG_NAMED("planning_scene",
+                          "The robot state already had an object named '%s' attached to link '%s'. "
+                          "The object was replaced.",
                           object.object.id.c_str(), object.link_name.c_str());
         kstate_->attachBody(object.object.id, shapes, poses, object.touch_links, object.link_name,
                             object.detach_posture);

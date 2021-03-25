@@ -196,6 +196,6 @@ private:
 };
 
 MOVEIT_CLASS_FORWARD(PlanningPipeline);
-}
+}  // namespace planning_pipeline
 
 #endif

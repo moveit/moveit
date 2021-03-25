@@ -336,6 +336,6 @@ public:
   void setKinematicsQueryOptionsForGroup(const std::string& group_name,
                                          const kinematics::KinematicsQueryOptions& options);
 };
-}
+}  // namespace robot_interaction
 
 #endif

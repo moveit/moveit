@@ -201,6 +201,6 @@ moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name,
  * @return was the construction successful?
  */
 bool constructConstraints(XmlRpc::XmlRpcValue& params, moveit_msgs::Constraints& constraints);
-}
+}  // namespace kinematic_constraints
 
 #endif

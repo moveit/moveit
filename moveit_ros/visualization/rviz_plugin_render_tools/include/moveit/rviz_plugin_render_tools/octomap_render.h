@@ -55,7 +55,7 @@ class SceneNode;
 class AxisAlignedBox;
 class Vector3;
 class Quaternion;
-}
+}  // namespace Ogre
 
 namespace moveit_rviz_plugin
 {
@@ -99,5 +99,5 @@ private:
   double colorFactor_;
   std::size_t octree_depth_;
 };
-}
+}  // namespace moveit_rviz_plugin
 #endif

@@ -274,10 +274,10 @@ struct IKSamplingPose
   IKSamplingPose(const kinematic_constraints::PositionConstraintPtr& pc,
                  const kinematic_constraints::OrientationConstraintPtr& oc);
 
-  kinematic_constraints::PositionConstraintPtr position_constraint_; /**< \brief Holds the position constraint for
-                                                                        sampling */
-  kinematic_constraints::OrientationConstraintPtr
-      orientation_constraint_; /**< \brief Holds the orientation constraint for sampling */
+  kinematic_constraints::PositionConstraintPtr position_constraint_;       /**< \brief Holds the position constraint for
+                                                                              sampling */
+  kinematic_constraints::OrientationConstraintPtr orientation_constraint_; /**< \brief Holds the orientation constraint
+                                                                              for sampling */
 };
 
 MOVEIT_CLASS_FORWARD(IKConstraintSampler);
@@ -525,6 +525,6 @@ protected:
                                         frame of the end effector */
   Eigen::Affine3d eef_to_ik_tip_transform_; /**< \brief Holds the transformation from end effector to IK tip frame */
 };
-}
+}  // namespace constraint_samplers
 
 #endif

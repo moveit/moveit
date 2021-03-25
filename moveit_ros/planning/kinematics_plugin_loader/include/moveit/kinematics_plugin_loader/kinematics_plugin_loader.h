@@ -123,6 +123,6 @@ private:
   double default_solver_timeout_;
   unsigned int default_ik_attempts_;
 };
-}
+}  // namespace kinematics_plugin_loader
 
 #endif

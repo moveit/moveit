@@ -70,6 +70,6 @@ public:
     active = false;
   };
 };
-}
+}  // namespace lma_kinematics_plugin
 
 #endif

@@ -220,8 +220,7 @@ void MotionPlanningFrame::removeStateButtonClicked()
 
     switch (ret)
     {
-      case QMessageBox::Yes:
-      {
+      case QMessageBox::Yes: {
         QList<QListWidgetItem*> found_items = ui_->list_states->selectedItems();
         for (int i = 0; i < found_items.size(); ++i)
         {
@@ -249,4 +248,4 @@ void MotionPlanningFrame::clearStatesButtonClicked()
   populateRobotStatesList();
 }
 
-}  // namespace
+}  // namespace moveit_rviz_plugin

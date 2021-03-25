@@ -23,4 +23,3 @@ collision_clearence: 0.2
 collision_threshold: 0.07
 random_jump_amount: 1.0
 use_stochastic_descent: true
-

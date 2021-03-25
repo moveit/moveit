@@ -29,4 +29,3 @@ install(TARGETS
   moveit_kinematics_speed_and_validity_evaluator
   moveit_publish_scene_from_text
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-

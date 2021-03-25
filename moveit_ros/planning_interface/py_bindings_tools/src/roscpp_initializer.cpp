@@ -83,7 +83,7 @@ struct InitProxy
       ros::shutdown();
   }
 };
-}
+}  // namespace
 
 static void roscpp_init_or_stop(bool init)
 {

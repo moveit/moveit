@@ -169,6 +169,6 @@ private:
 
   std::shared_ptr<ros::ServiceClient> ik_service_client_;
 };
-}
+}  // namespace srv_kinematics_plugin
 
 #endif

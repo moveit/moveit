@@ -142,6 +142,6 @@ struct ManipulationPlan
   // An id for this plan; this is usually the index of the Grasp / PlaceLocation in the input request
   std::size_t id_;
 };
-}
+}  // namespace pick_place
 
 #endif

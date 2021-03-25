@@ -165,5 +165,5 @@ private:
   class DynamicReconfigureImpl;
   DynamicReconfigureImpl* reconfigure_impl_;
 };
-}
+}  // namespace plan_execution
 #endif

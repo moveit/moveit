@@ -468,8 +468,8 @@ bool ConfigurationFilesWidget::loadGenFiles()
                       "trajectory_execution_manager::TrajectoryExecutionManager.";
   file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   file.write_on_changes = 0;
-  gen_files_.push_back(
-      file);  // trajectory_execution.launch ------------------------------------------------------------------
+  gen_files_.push_back(file);  // trajectory_execution.launch
+                               // ------------------------------------------------------------------
 
   file.file_name_ = "fake_moveit_controller_manager.launch.xml";
   file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
@@ -689,8 +689,9 @@ void ConfigurationFilesWidget::changeCheckedState(QListWidgetItem* item)
 
   if (!generate && (gen_files_[index].write_on_changes & config_data_->changes))
   {
-    QMessageBox::warning(this, "Package Generation", "You should generate this file to ensure your changes will take "
-                                                     "effect.");
+    QMessageBox::warning(this, "Package Generation",
+                         "You should generate this file to ensure your changes will take "
+                         "effect.");
   }
 
   // Enable/disable file
@@ -885,8 +886,9 @@ bool ConfigurationFilesWidget::generatePackage()
   // Check that a valid stack package name has been given
   if (new_package_path.empty())
   {
-    QMessageBox::warning(this, "Error Generating", "No package path provided. Please choose a directory location to "
-                                                   "generate the MoveIt! configuration files.");
+    QMessageBox::warning(this, "Error Generating",
+                         "No package path provided. Please choose a directory location to "
+                         "generate the MoveIt! configuration files.");
     return false;
   }
 
@@ -968,10 +970,11 @@ bool ConfigurationFilesWidget::generatePackage()
     if (!file->gen_func_(absolute_path))
     {
       // Error occured
-      QMessageBox::critical(this, "Error Generating File", QString("Failed to generate folder or file: '")
-                                                               .append(file->rel_path_.c_str())
-                                                               .append("' at location:\n")
-                                                               .append(absolute_path.c_str()));
+      QMessageBox::critical(this, "Error Generating File",
+                            QString("Failed to generate folder or file: '")
+                                .append(file->rel_path_.c_str())
+                                .append("' at location:\n")
+                                .append(absolute_path.c_str()));
       return false;
     }
     updateProgress();  // Increment and update GUI
@@ -985,10 +988,9 @@ bool ConfigurationFilesWidget::generatePackage()
 // ******************************************************************************************
 void ConfigurationFilesWidget::exitSetupAssistant()
 {
-  if (has_generated_pkg_ ||
-      QMessageBox::question(this, "Exit Setup Assistant",
-                            QString("Are you sure you want to exit the MoveIt! Setup Assistant?"),
-                            QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Ok)
+  if (has_generated_pkg_ || QMessageBox::question(this, "Exit Setup Assistant",
+                                                  QString("Are you sure you want to exit the MoveIt! Setup Assistant?"),
+                                                  QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Ok)
   {
     QApplication::quit();
   }
@@ -1207,4 +1209,4 @@ bool ConfigurationFilesWidget::createFolder(const std::string& output_path)
   return true;
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

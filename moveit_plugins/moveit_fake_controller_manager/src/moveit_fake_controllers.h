@@ -122,6 +122,6 @@ protected:
 private:
   ros::WallRate rate_;
 };
-}
+}  // namespace moveit_fake_controller_manager
 
 #endif

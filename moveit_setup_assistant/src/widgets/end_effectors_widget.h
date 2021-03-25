@@ -183,6 +183,6 @@ private:
   void edit(const std::string& name);
 };
 
-}  // namespace
+}  // namespace moveit_setup_assistant
 
 #endif

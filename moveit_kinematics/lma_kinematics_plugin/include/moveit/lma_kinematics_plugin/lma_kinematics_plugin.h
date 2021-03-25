@@ -204,6 +204,6 @@ private:
   double epsilon_;
   std::vector<JointMimic> mimic_joints_;
 };
-}
+}  // namespace lma_kinematics_plugin
 
 #endif

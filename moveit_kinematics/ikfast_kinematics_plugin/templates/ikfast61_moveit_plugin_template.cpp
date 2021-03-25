@@ -327,11 +327,11 @@ private:
   bool getCount(int& count, const int& max_count, const int& min_count) const;
 
   /**
-  * @brief samples the designated redundant joint using the chosen discretization method
-  * @param  method              An enumeration flag indicating the discretization method to be used
-  * @param  sampled_joint_vals  Sampled joint values for the redundant joint
-  * @return True if sampling succeeded.
-  */
+   * @brief samples the designated redundant joint using the chosen discretization method
+   * @param  method              An enumeration flag indicating the discretization method to be used
+   * @param  sampled_joint_vals  Sampled joint values for the redundant joint
+   * @return True if sampling succeeded.
+   */
   bool sampleRedundantJoint(kinematics::DiscretizationMethod method, std::vector<double>& sampled_joint_vals) const;
 
 };  // end class
@@ -937,8 +937,8 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
 
   if (ik_seed_state.size() != num_joints_)
   {
-    ROS_ERROR_STREAM_NAMED(name_, "Seed state must have size " << num_joints_ << " instead of size "
-                                                               << ik_seed_state.size());
+    ROS_ERROR_STREAM_NAMED(name_,
+                           "Seed state must have size " << num_joints_ << " instead of size " << ik_seed_state.size());
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }
@@ -1360,8 +1360,7 @@ bool IKFastKinematicsPlugin::sampleRedundantJoint(kinematics::DiscretizationMeth
 
   switch (method)
   {
-    case kinematics::DiscretizationMethods::ALL_DISCRETIZED:
-    {
+    case kinematics::DiscretizationMethods::ALL_DISCRETIZED: {
       int steps = std::ceil((joint_max - joint_min) / joint_dscrt);
       for (unsigned int i = 0; i < steps; i++)
       {
@@ -1370,8 +1369,7 @@ bool IKFastKinematicsPlugin::sampleRedundantJoint(kinematics::DiscretizationMeth
       sampled_joint_vals.push_back(joint_max);
     }
     break;
-    case kinematics::DiscretizationMethods::ALL_RANDOM_SAMPLED:
-    {
+    case kinematics::DiscretizationMethods::ALL_RANDOM_SAMPLED: {
       int steps = std::ceil((joint_max - joint_min) / joint_dscrt);
       steps = steps > 0 ? steps : 1;
       double diff = joint_max - joint_min;
@@ -1393,7 +1391,7 @@ bool IKFastKinematicsPlugin::sampleRedundantJoint(kinematics::DiscretizationMeth
   return true;
 }
 
-}  // end namespace
+}  // namespace ikfast_kinematics_plugin
 
 // register IKFastKinematicsPlugin as a KinematicsBase implementation
 #include <pluginlib/class_list_macros.hpp>

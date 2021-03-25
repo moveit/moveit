@@ -81,8 +81,9 @@ void MotionPlanningFrame::planningAlgorithmIndexChanged(int index)
 
 void MotionPlanningFrame::resetDbButtonClicked()
 {
-  if (QMessageBox::warning(this, "Data about to be deleted", "The following dialog will allow you to drop a MoveIt! "
-                                                             "Warehouse database. Are you sure you want to continue?",
+  if (QMessageBox::warning(this, "Data about to be deleted",
+                           "The following dialog will allow you to drop a MoveIt! "
+                           "Warehouse database. Are you sure you want to continue?",
                            QMessageBox::Yes | QMessageBox::No) == QMessageBox::No)
     return;
 
@@ -215,4 +216,4 @@ void MotionPlanningFrame::computeResetDbButtonClicked(const std::string& db)
   else if (db == "Planning Scenes")
     planning_scene_storage_->reset();
 }
-}
+}  // namespace moveit_rviz_plugin

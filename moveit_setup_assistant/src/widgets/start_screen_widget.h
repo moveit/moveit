@@ -189,6 +189,6 @@ public:
   QPushButton* btn_exist_;
   QTextEdit* widget_instructions_;
 };
-}
+}  // namespace moveit_setup_assistant
 
 #endif

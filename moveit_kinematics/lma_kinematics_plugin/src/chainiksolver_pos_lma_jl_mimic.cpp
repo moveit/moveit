@@ -167,4 +167,4 @@ ChainIkSolverPos_LMA_JL_Mimic::~ChainIkSolverPos_LMA_JL_Mimic()
 {
 }
 
-}  // namespace
+}  // namespace KDL

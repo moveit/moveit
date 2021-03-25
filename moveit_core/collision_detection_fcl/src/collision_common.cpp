@@ -88,10 +88,11 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
       {
         always_allow_collision = true;
         if (cdata->req_->verbose)
-          ROS_DEBUG_NAMED(
-              "collision_detection.fcl", "Collision between '%s' (type '%s') and '%s' (type '%s') is always allowed. "
-                                         "No contacts are computed.",
-              cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(), cd2->getTypeString().c_str());
+          ROS_DEBUG_NAMED("collision_detection.fcl",
+                          "Collision between '%s' (type '%s') and '%s' (type '%s') is always allowed. "
+                          "No contacts are computed.",
+                          cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(),
+                          cd2->getTypeString().c_str());
       }
       else if (type == AllowedCollision::CONDITIONAL)
       {
@@ -171,9 +172,10 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
     std::size_t num_max_cost_sources = cdata->req_->max_cost_sources;
     bool enable_contact = true;
     fcl::CollisionResult col_result;
-    int num_contacts = fcl::collide(o1, o2, fcl::CollisionRequest(std::numeric_limits<size_t>::max(), enable_contact,
-                                                                  num_max_cost_sources, enable_cost),
-                                    col_result);
+    int num_contacts = fcl::collide(
+        o1, o2,
+        fcl::CollisionRequest(std::numeric_limits<size_t>::max(), enable_contact, num_max_cost_sources, enable_cost),
+        col_result);
     if (num_contacts > 0)
     {
       if (cdata->req_->verbose)
@@ -203,8 +205,9 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
                              cd1->getID().c_str(), cd2->getID().c_str());
           }
           else if (cdata->req_->verbose)
-            ROS_INFO_NAMED("collision_detection.fcl", "Found unacceptable contact between '%s' (type '%s') and '%s' "
-                                                      "(type '%s'). Contact was stored.",
+            ROS_INFO_NAMED("collision_detection.fcl",
+                           "Found unacceptable contact between '%s' (type '%s') and '%s' "
+                           "(type '%s'). Contact was stored.",
                            cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(),
                            cd2->getTypeString().c_str());
           cdata->res_->collision = true;
@@ -256,8 +259,9 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
         }
 
         if (cdata->req_->verbose)
-          ROS_INFO_NAMED("collision_detection.fcl", "Found %d contacts between '%s' (type '%s') and '%s' (type '%s'), "
-                                                    "which constitute a collision. %d contacts will be stored",
+          ROS_INFO_NAMED("collision_detection.fcl",
+                         "Found %d contacts between '%s' (type '%s') and '%s' (type '%s'), "
+                         "which constitute a collision. %d contacts will be stored",
                          num_contacts_initial, cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(),
                          cd2->getTypeString().c_str(), num_contacts);
 
@@ -301,9 +305,10 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
       {
         cdata->res_->collision = true;
         if (cdata->req_->verbose)
-          ROS_INFO_NAMED("collision_detection.fcl", "Found a contact between '%s' (type '%s') and '%s' (type '%s'), "
-                                                    "which constitutes a collision. "
-                                                    "Contact information is not stored.",
+          ROS_INFO_NAMED("collision_detection.fcl",
+                         "Found a contact between '%s' (type '%s') and '%s' (type '%s'), "
+                         "which constitutes a collision. "
+                         "Contact information is not stored.",
                          cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(),
                          cd2->getTypeString().c_str());
       }
@@ -340,8 +345,9 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
   {
     cdata->done_ = cdata->req_->is_done(*cdata->res_);
     if (cdata->done_ && cdata->req_->verbose)
-      ROS_INFO_NAMED("collision_detection.fcl", "Collision checking is considered complete due to external callback. "
-                                                "%s was found. %u contacts are stored.",
+      ROS_INFO_NAMED("collision_detection.fcl",
+                     "Collision checking is considered complete due to external callback. "
+                     "%s was found. %u contacts are stored.",
                      cdata->res_->collision ? "Collision" : "No collision", (unsigned int)cdata->res_->contact_count);
   }
 
@@ -748,8 +754,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
     // handle cases individually
     switch (shape->type)
     {
-      case shapes::PLANE:
-      {
+      case shapes::PLANE: {
         const shapes::Plane* p = static_cast<const shapes::Plane*>(shape.get());
         cg_g = new fcl::Plane(p->a, p->b, p->c, p->d);
       }
@@ -762,33 +767,28 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
   {
     switch (shape->type)
     {
-      case shapes::SPHERE:
-      {
+      case shapes::SPHERE: {
         const shapes::Sphere* s = static_cast<const shapes::Sphere*>(shape.get());
         cg_g = new fcl::Sphere(s->radius);
       }
       break;
-      case shapes::BOX:
-      {
+      case shapes::BOX: {
         const shapes::Box* s = static_cast<const shapes::Box*>(shape.get());
         const double* size = s->size;
         cg_g = new fcl::Box(size[0], size[1], size[2]);
       }
       break;
-      case shapes::CYLINDER:
-      {
+      case shapes::CYLINDER: {
         const shapes::Cylinder* s = static_cast<const shapes::Cylinder*>(shape.get());
         cg_g = new fcl::Cylinder(s->radius, s->length);
       }
       break;
-      case shapes::CONE:
-      {
+      case shapes::CONE: {
         const shapes::Cone* s = static_cast<const shapes::Cone*>(shape.get());
         cg_g = new fcl::Cone(s->radius, s->length);
       }
       break;
-      case shapes::MESH:
-      {
+      case shapes::MESH: {
         auto g = new fcl::BVHModel<BV>();
         const shapes::Mesh* mesh = static_cast<const shapes::Mesh*>(shape.get());
         if (mesh->vertex_count > 0 && mesh->triangle_count > 0)
@@ -809,8 +809,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
         cg_g = g;
       }
       break;
-      case shapes::OCTREE:
-      {
+      case shapes::OCTREE: {
         const shapes::OcTree* g = static_cast<const shapes::OcTree*>(shape.get());
         cg_g = new fcl::OcTree(g->octree);
       }
@@ -897,7 +896,7 @@ void cleanCollisionGeometryCache()
     cache2.bumpUseCount(true);
   }
 }
-}
+}  // namespace collision_detection
 
 void collision_detection::CollisionData::enableGroup(const robot_model::RobotModelConstPtr& kmodel)
 {

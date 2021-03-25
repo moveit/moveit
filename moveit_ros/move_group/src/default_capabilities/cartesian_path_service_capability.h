@@ -56,6 +56,6 @@ private:
   ros::Publisher display_path_;
   bool display_computed_paths_;
 };
-}
+}  // namespace move_group
 
 #endif

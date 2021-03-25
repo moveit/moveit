@@ -48,6 +48,6 @@ public:
 
   JointModelStateSpace(const ModelBasedStateSpaceSpecification& spec);
 };
-}
+}  // namespace ompl_interface
 
 #endif

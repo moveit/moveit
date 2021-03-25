@@ -128,4 +128,4 @@ int RotatedHeaderView::sectionSizeHint(int logicalIndex) const
   qDebug() << logicalIndex << size << hint;
   return qMax(minimumSectionSize(), hint);
 }
-}
+}  // namespace moveit_setup_assistant

@@ -274,6 +274,6 @@ private:
   };
   std::vector<Observer*> observers_;
 };
-}
+}  // namespace collision_detection
 
 #endif

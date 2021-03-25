@@ -104,4 +104,4 @@ void ChompCost::scale(double scale)
 ChompCost::~ChompCost()
 {
 }
-}
+}  // namespace chomp

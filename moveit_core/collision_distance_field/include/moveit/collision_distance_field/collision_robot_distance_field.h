@@ -266,6 +266,6 @@ protected:
 
   planning_scene::PlanningScenePtr planning_scene_;
 };
-}
+}  // namespace collision_detection
 
 #endif

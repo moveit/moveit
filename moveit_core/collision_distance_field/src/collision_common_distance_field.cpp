@@ -220,4 +220,4 @@ void getBodySphereVisualizationMarkers(GroupStateRepresentationConstPtr& gsr, st
     }
   }
 }
-}
+}  // namespace collision_detection

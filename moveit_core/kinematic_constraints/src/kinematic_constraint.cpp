@@ -107,8 +107,9 @@ bool JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
       }
       else if (joint_model_->getVariableCount() > 1)
       {
-        ROS_ERROR_NAMED("kinematic_constraints", "Joint '%s' has more than one parameter to constrain. "
-                                                 "This type of constraint is not supported.",
+        ROS_ERROR_NAMED("kinematic_constraints",
+                        "Joint '%s' has more than one parameter to constrain. "
+                        "This type of constraint is not supported.",
                         jc.joint_name.c_str());
         joint_model_ = nullptr;
       }
@@ -166,16 +167,18 @@ bool JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
       {
         joint_position_ = bounds.min_position_;
         joint_tolerance_above_ = std::numeric_limits<double>::epsilon();
-        ROS_WARN_NAMED("kinematic_constraints", "Joint %s is constrained to be below the minimum bounds. "
-                                                "Assuming minimum bounds instead.",
+        ROS_WARN_NAMED("kinematic_constraints",
+                       "Joint %s is constrained to be below the minimum bounds. "
+                       "Assuming minimum bounds instead.",
                        jc.joint_name.c_str());
       }
       else if (bounds.max_position_ < joint_position_ - joint_tolerance_below_)
       {
         joint_position_ = bounds.max_position_;
         joint_tolerance_below_ = std::numeric_limits<double>::epsilon();
-        ROS_WARN_NAMED("kinematic_constraints", "Joint %s is constrained to be above the maximum bounds. "
-                                                "Assuming maximum bounds instead.",
+        ROS_WARN_NAMED("kinematic_constraints",
+                       "Joint %s is constrained to be above the maximum bounds. "
+                       "Assuming maximum bounds instead.",
                        jc.joint_name.c_str());
       }
     }
@@ -230,8 +233,9 @@ ConstraintEvaluationResult JointConstraint::decide(const robot_state::RobotState
   bool result = dif <= (joint_tolerance_above_ + 2.0 * std::numeric_limits<double>::epsilon()) &&
                 dif >= (-joint_tolerance_below_ - 2.0 * std::numeric_limits<double>::epsilon());
   if (verbose)
-    ROS_INFO_NAMED("kinematic_constraints", "Constraint %s:: Joint name: '%s', actual value: %f, desired value: %f, "
-                                            "tolerance_above: %f, tolerance_below: %f",
+    ROS_INFO_NAMED("kinematic_constraints",
+                   "Constraint %s:: Joint name: '%s', actual value: %f, desired value: %f, "
+                   "tolerance_above: %f, tolerance_below: %f",
                    result ? "satisfied" : "violated", joint_variable_name_.c_str(), current_joint_position,
                    joint_position_, joint_tolerance_above_, joint_tolerance_below_);
   return ConstraintEvaluationResult(result, constraint_weight_ * fabs(dif));
@@ -505,8 +509,9 @@ bool OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& 
   tf::quaternionMsgToEigen(oc.orientation, q);
   if (fabs(q.norm() - 1.0) > 1e-3)
   {
-    ROS_WARN_NAMED("kinematic_constraints", "Orientation constraint for link '%s' is probably incorrect: %f, %f, %f, "
-                                            "%f. Assuming identity instead.",
+    ROS_WARN_NAMED("kinematic_constraints",
+                   "Orientation constraint for link '%s' is probably incorrect: %f, %f, %f, "
+                   "%f. Assuming identity instead.",
                    oc.link_name.c_str(), oc.orientation.x, oc.orientation.y, oc.orientation.z, oc.orientation.w);
     q = Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0);
   }
@@ -675,8 +680,9 @@ bool VisibilityConstraint::configure(const moveit_msgs::VisibilityConstraint& vc
 
   if (vc.cone_sides < 3)
   {
-    ROS_WARN_NAMED("kinematic_constraints", "The number of sides for the visibility region must be 3 or more. "
-                                            "Assuming 3 sides instead of the specified %d",
+    ROS_WARN_NAMED("kinematic_constraints",
+                   "The number of sides for the visibility region must be 3 or more. "
+                   "Assuming 3 sides instead of the specified %d",
                    vc.cone_sides);
     cone_sides_ = 3;
   }
@@ -948,8 +954,9 @@ ConstraintEvaluationResult VisibilityConstraint::decide(const robot_state::Robot
       if (max_view_angle_ < ang)
       {
         if (verbose)
-          ROS_INFO_NAMED("kinematic_constraints", "Visibility constraint is violated because the view angle is %lf "
-                                                  "(above the maximum allowed of %lf)",
+          ROS_INFO_NAMED("kinematic_constraints",
+                         "Visibility constraint is violated because the view angle is %lf "
+                         "(above the maximum allowed of %lf)",
                          ang, max_view_angle_);
         return ConstraintEvaluationResult(false, 0.0);
       }
@@ -970,8 +977,9 @@ ConstraintEvaluationResult VisibilityConstraint::decide(const robot_state::Robot
       if (max_range_angle_ < ang)
       {
         if (verbose)
-          ROS_INFO_NAMED("kinematic_constraints", "Visibility constraint is violated because the range angle is %lf "
-                                                  "(above the maximum allowed of %lf)",
+          ROS_INFO_NAMED("kinematic_constraints",
+                         "Visibility constraint is violated because the range angle is %lf "
+                         "(above the maximum allowed of %lf)",
                          ang, max_range_angle_);
         return ConstraintEvaluationResult(false, 0.0);
       }

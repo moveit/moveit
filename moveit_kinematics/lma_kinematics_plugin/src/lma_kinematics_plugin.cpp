@@ -444,8 +444,8 @@ bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
 
   if (ik_seed_state.size() != dimension_)
   {
-    ROS_ERROR_STREAM_NAMED("lma", "Seed state must have size " << dimension_ << " instead of size "
-                                                               << ik_seed_state.size());
+    ROS_ERROR_STREAM_NAMED("lma",
+                           "Seed state must have size " << dimension_ << " instead of size " << ik_seed_state.size());
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }
@@ -619,4 +619,4 @@ const std::vector<std::string>& LMAKinematicsPlugin::getLinkNames() const
   return ik_chain_info_.link_names;
 }
 
-}  // namespace
+}  // namespace lma_kinematics_plugin

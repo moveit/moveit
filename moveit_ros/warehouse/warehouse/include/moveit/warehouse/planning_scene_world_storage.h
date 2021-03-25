@@ -72,6 +72,6 @@ private:
 
   PlanningSceneWorldCollection planning_scene_world_collection_;
 };
-}
+}  // namespace moveit_warehouse
 
 #endif

@@ -254,6 +254,6 @@ protected:
   void jointSolutionCallback(const KDL::JntArray& jnt_array, const KDL::Frame& ik_pose,
                              moveit_msgs::MoveItErrorCodes& error_code) const;
 };
-}
+}  // namespace pr2_arm_kinematics
 
 #endif

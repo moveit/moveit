@@ -64,7 +64,7 @@ bool transformToEndEffectorGoal(const geometry_msgs::PoseStamped& goal_pose,
   tf::poseEigenToMsg(end_effector_transform, place_pose.pose);
   return true;
 }
-}
+}  // namespace
 
 bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::PlaceGoal& goal)
 {
@@ -103,8 +103,8 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene
       const std::vector<std::string>& eef_names = jmg->getAttachedEndEffectorNames();
       if (eef_names.empty())
       {
-        ROS_ERROR_STREAM_NAMED("manipulation", "There are no end-effectors specified for group '" << goal.group_name
-                                                                                                  << "'");
+        ROS_ERROR_STREAM_NAMED("manipulation",
+                               "There are no end-effectors specified for group '" << goal.group_name << "'");
         error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
         return false;
       }
@@ -391,4 +391,4 @@ PlacePlanPtr PickPlace::planPlace(const planning_scene::PlanningSceneConstPtr& p
 
   return p;
 }
-}
+}  // namespace pick_place

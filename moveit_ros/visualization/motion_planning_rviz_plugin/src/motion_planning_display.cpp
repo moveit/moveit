@@ -124,8 +124,9 @@ MotionPlanningDisplay::MotionPlanningDisplay()
   planning_group_property_ = new rviz::EditableEnumProperty(
       "Planning Group", "", "The name of the group of links to plan for (from the ones defined in the SRDF)",
       plan_category_, SLOT(changedPlanningGroup()), this);
-  show_workspace_property_ = new rviz::BoolProperty("Show Workspace", false, "Shows the axis-aligned bounding box for "
-                                                                             "the workspace allowed for planning",
+  show_workspace_property_ = new rviz::BoolProperty("Show Workspace", false,
+                                                    "Shows the axis-aligned bounding box for "
+                                                    "the workspace allowed for planning",
                                                     plan_category_, SLOT(changedWorkspace()), this);
   query_start_state_property_ =
       new rviz::BoolProperty("Query Start State", false, "Set a custom start state for the motion planning query",
@@ -554,7 +555,7 @@ inline void copyItemIfExists(const std::map<std::string, double>& source, std::m
   if (it != source.end())
     dest[key] = it->second;
 }
-}
+}  // namespace
 
 void MotionPlanningDisplay::displayMetrics(bool start)
 {

@@ -264,4 +264,4 @@ void LazyFreeSpaceUpdater::lazyUpdateThread()
     }
   }
 }
-}
+}  // namespace occupancy_map_monitor

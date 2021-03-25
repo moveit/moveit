@@ -187,4 +187,4 @@ void NavDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, c
 
   painter->restore();
 }
-}
+}  // namespace moveit_setup_assistant
