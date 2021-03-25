@@ -3,8 +3,6 @@
 
 name: BuildAndTest
 
-# this is a test change, affects no projects
-
 on:
   workflow_dispatch:
   pull_request:
