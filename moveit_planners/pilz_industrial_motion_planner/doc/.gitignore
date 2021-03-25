@@ -4,9 +4,9 @@
 *.dvi
 *.log
 *.ps
-*.tps 
-*.fdb_latexmk 
-*.fls 
+*.tps
+*.fdb_latexmk
+*.fls
 *.out
 *.synctex.gz
 *.pdf

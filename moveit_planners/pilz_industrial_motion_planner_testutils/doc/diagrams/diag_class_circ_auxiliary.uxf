@@ -32,7 +32,7 @@
       <w>470</w>
       <h>80</h>
     </coordinates>
-    <panel_attributes>template=ConfigType&gt; 
+    <panel_attributes>template=ConfigType&gt;
 CircAuxiliary
 {abstract}
 --
@@ -47,7 +47,7 @@ CircAuxiliary
       <w>230</w>
       <h>50</h>
     </coordinates>
-    <panel_attributes>template=ConfigType, Builder&gt; 
+    <panel_attributes>template=ConfigType, Builder&gt;
 Center</panel_attributes>
     <additional_attributes/>
   </element>
@@ -59,7 +59,7 @@ Center</panel_attributes>
       <w>220</w>
       <h>50</h>
     </coordinates>
-    <panel_attributes>template=ConfigType, Builder&gt; 
+    <panel_attributes>template=ConfigType, Builder&gt;
 Interim</panel_attributes>
     <additional_attributes/>
   </element>
@@ -94,7 +94,7 @@ Interim</panel_attributes>
       <h>130</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;.
-&lt;&lt;bind&gt;&gt; 
+&lt;&lt;bind&gt;&gt;
 &lt;ConfigType-&gt;CartesianConfiguration&gt;
 &lt;Builder-&gt;CartesianPathConstraintsBuilder&gt;</panel_attributes>
     <additional_attributes>10.0;10.0;10.0;110.0</additional_attributes>
@@ -125,7 +125,7 @@ Interim</panel_attributes>
 
 
 
-&lt;&lt;bind&gt;&gt; 
+&lt;&lt;bind&gt;&gt;
 &lt;ConfigType-&gt;CartesianConfiguration&gt;
 &lt;Builder-&gt;CartesianPathConstraintsBuilder&gt;</panel_attributes>
     <additional_attributes>10.0;10.0;10.0;190.0</additional_attributes>

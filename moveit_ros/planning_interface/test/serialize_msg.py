@@ -35,17 +35,21 @@
 # Author: Bjarne von Horn
 #
 
-from moveit_ros_planning_interface._moveit_planning_interface_test_serialize_msg_cpp_helper import ByteStringTestHelper
+from moveit_ros_planning_interface._moveit_planning_interface_test_serialize_msg_cpp_helper import (
+    ByteStringTestHelper,
+)
 from geometry_msgs.msg import Vector3
 import unittest
 
 try:
     # Try Python 2.7 behaviour first
     from StringIO import StringIO
+
     py_version_maj = 2
 except ImportError:
     # Use Python 3.x behaviour as fallback and choose the non-unicode version
     from io import BytesIO as StringIO
+
     py_version_maj = 3
 
 
@@ -98,13 +102,15 @@ class PythonMsgSerializeTest(unittest.TestCase):
 
     def test_rejectUnicode(self):
         with self.assertRaisesRegexp(Exception, "Python argument types in"):
-            self.helper.compareEmbeddedZeros(u'kdasd')
+            self.helper.compareEmbeddedZeros(u"kdasd")
 
     @unittest.skipIf(py_version_maj == 2, "does not trigger with python 2.7")
     def test_rejectUnicodeTuple(self):
-        with self.assertRaisesRegexp(RuntimeError, "Underlying python object is not a Bytes/String instance"):
-            self.helper.compareVectorTuple((u'kdasd',))
+        with self.assertRaisesRegexp(
+            RuntimeError, "Underlying python object is not a Bytes/String instance"
+        ):
+            self.helper.compareVectorTuple((u"kdasd",))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
