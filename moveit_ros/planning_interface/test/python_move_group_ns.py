@@ -43,7 +43,9 @@ import rospy
 import rostest
 import os
 
-from moveit_ros_planning_interface._moveit_move_group_interface import MoveGroupInterface
+from moveit_ros_planning_interface._moveit_move_group_interface import (
+    MoveGroupInterface,
+)
 
 
 class PythonMoveGroupNsTest(unittest.TestCase):
@@ -52,7 +54,11 @@ class PythonMoveGroupNsTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.group = MoveGroupInterface(self.PLANNING_GROUP, "%srobot_description"%self.PLANNING_NS, self.PLANNING_NS)
+        self.group = MoveGroupInterface(
+            self.PLANNING_GROUP,
+            "%srobot_description" % self.PLANNING_NS,
+            self.PLANNING_NS,
+        )
 
     @classmethod
     def tearDown(self):
@@ -63,16 +69,20 @@ class PythonMoveGroupNsTest(unittest.TestCase):
             args = [expect]
         self.group.set_joint_value_target(*args)
         res = self.group.get_joint_value_target()
-        self.assertTrue(np.all(np.asarray(res) == np.asarray(expect)),
-                        "Setting failed for %s, values: %s" % (type(args[0]), res))
+        self.assertTrue(
+            np.all(np.asarray(res) == np.asarray(expect)),
+            "Setting failed for %s, values: %s" % (type(args[0]), res),
+        )
 
     def test_target_setting(self):
         n = self.group.get_variable_count()
         self.check_target_setting([0.1] * n)
         self.check_target_setting((0.2,) * n)
         self.check_target_setting(np.zeros(n))
-        self.check_target_setting([0.3] * n, {name: 0.3 for name in self.group.get_active_joints()})
-        self.check_target_setting([0.5] + [0.3]*(n-1), "joint_1", 0.5)
+        self.check_target_setting(
+            [0.3] * n, {name: 0.3 for name in self.group.get_active_joints()}
+        )
+        self.check_target_setting([0.5] + [0.3] * (n - 1), "joint_1", 0.5)
 
     def plan(self, target):
         self.group.set_joint_value_target(target)
@@ -95,8 +105,8 @@ class PythonMoveGroupNsTest(unittest.TestCase):
         self.assertTrue(self.group.execute(plan3))
 
 
-if __name__ == '__main__':
-    PKGNAME = 'moveit_ros_planning_interface'
-    NODENAME = 'moveit_test_python_move_group'
+if __name__ == "__main__":
+    PKGNAME = "moveit_ros_planning_interface"
+    NODENAME = "moveit_test_python_move_group"
     rospy.init_node(NODENAME)
     rostest.rosrun(PKGNAME, NODENAME, PythonMoveGroupNsTest)

@@ -37,7 +37,7 @@
 
   <class name="default_planner_request_adapters/AddTimeOptimalParameterization" type="default_planner_request_adapters::AddTimeOptimalParameterization" base_class_type="planning_request_adapter::PlanningRequestAdapter">
     <description>
-      This is an improved time parameterization using Time-Optimal Trajectory Generation for Path Following With Bounded Acceleration and Velocity (Kunz and Stilman, RSS 2008) 
+      This is an improved time parameterization using Time-Optimal Trajectory Generation for Path Following With Bounded Acceleration and Velocity (Kunz and Stilman, RSS 2008)
     </description>
   </class>
 

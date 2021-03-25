@@ -39,5 +39,5 @@
   <group ns="$(arg robot_description)_kinematics">
     <rosparam command="load" file="$(find moveit_resources_prbt_moveit_config)/config/kinematics.yaml"/>
   </group>
-  
+
 </launch>

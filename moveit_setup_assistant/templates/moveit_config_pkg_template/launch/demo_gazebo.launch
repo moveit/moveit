@@ -57,7 +57,7 @@
     <arg name="info" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
     <arg name="load_robot_description" value="$(arg load_robot_description)"/>
-  </include>  
+  </include>
 
   <!-- Run Rviz and load the default config to see the state of the move_group node -->
   <include file="$(find [GENERATED_PACKAGE_NAME])/launch/moveit_rviz.launch">

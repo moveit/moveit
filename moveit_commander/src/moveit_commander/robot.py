@@ -40,7 +40,6 @@ import moveit_commander.conversions as conversions
 
 
 class RobotCommander(object):
-
     class Joint(object):
         def __init__(self, robot, name):
             self._robot = robot
@@ -116,7 +115,10 @@ class RobotCommander(object):
             """
             group = self._robot.get_default_owner_group(self.name())
             if group is None:
-                raise MoveItCommanderException("There is no known group containing joint %s. Cannot move." % self._name)
+                raise MoveItCommanderException(
+                    "There is no known group containing joint %s. Cannot move."
+                    % self._name
+                )
             gc = self._robot.get_group(group)
             if gc is not None:
                 gc.set_joint_value_target(gc.get_current_joint_values())
@@ -143,7 +145,10 @@ class RobotCommander(object):
             """
             @rtype: geometry_msgs.Pose
             """
-            return conversions.list_to_pose_stamped(self._robot._r.get_link_pose(self._name), self._robot.get_planning_frame())
+            return conversions.list_to_pose_stamped(
+                self._robot._r.get_link_pose(self._name),
+                self._robot.get_planning_frame(),
+            )
 
     def __init__(self, robot_description="robot_description", ns=""):
         self._robot_description = robot_description
@@ -264,7 +269,9 @@ class RobotCommander(object):
         if not name in self._groups:
             if not self.has_group(name):
                 raise MoveItCommanderException("There is no group named %s" % name)
-            self._groups[name] = MoveGroupCommander(name, self._robot_description, self._ns)
+            self._groups[name] = MoveGroupCommander(
+                name, self._robot_description, self._ns
+            )
         return self._groups[name]
 
     def has_group(self, name):
@@ -286,7 +293,9 @@ class RobotCommander(object):
                     if group is None:
                         group = g
                     else:
-                        if len(self.get_link_names(g)) < len(self.get_link_names(group)):
+                        if len(self.get_link_names(g)) < len(
+                            self.get_link_names(group)
+                        ):
                             group = g
             self._joint_owner_groups[joint_name] = group
         return self._joint_owner_groups[joint_name]
