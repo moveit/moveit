@@ -30,4 +30,3 @@ benchmark_config:
         - plugin: stomp_moveit/StompPlannerManager
           planners:
             - STOMP
-

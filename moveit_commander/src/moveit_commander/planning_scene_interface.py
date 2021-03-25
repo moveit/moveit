@@ -51,21 +51,31 @@ except:
         import pyassimp
     except:
         pyassimp = False
-        print("Failed to import pyassimp, see https://github.com/ros-planning/moveit/issues/86 for more info")
+        print(
+            "Failed to import pyassimp, see https://github.com/ros-planning/moveit/issues/86 for more info"
+        )
 
 
 class PlanningSceneInterface(object):
     """ Simple interface to making updates to a planning scene """
 
-    def __init__(self, ns='', synchronous=False, service_timeout=5.0):
+    def __init__(self, ns="", synchronous=False, service_timeout=5.0):
         """ Create a planning scene interface; it uses both C++ wrapped methods and scene manipulation topics. """
         self._psi = _moveit_planning_scene_interface.PlanningSceneInterface(ns)
 
-        self._pub_co = rospy.Publisher(ns_join(ns, 'collision_object'), CollisionObject, queue_size=100)
-        self._pub_aco = rospy.Publisher(ns_join(ns, 'attached_collision_object'), AttachedCollisionObject, queue_size=100)
+        self._pub_co = rospy.Publisher(
+            ns_join(ns, "collision_object"), CollisionObject, queue_size=100
+        )
+        self._pub_aco = rospy.Publisher(
+            ns_join(ns, "attached_collision_object"),
+            AttachedCollisionObject,
+            queue_size=100,
+        )
         self.__synchronous = synchronous
         if self.__synchronous:
-            self._apply_planning_scene_diff = rospy.ServiceProxy(ns_join(ns, 'apply_planning_scene'), ApplyPlanningScene)
+            self._apply_planning_scene_diff = rospy.ServiceProxy(
+                ns_join(ns, "apply_planning_scene"), ApplyPlanningScene
+            )
             self._apply_planning_scene_diff.wait_for_service(service_timeout)
 
     def __submit(self, collision_object, attach=False):
@@ -119,7 +129,9 @@ class PlanningSceneInterface(object):
         co.plane_poses = [pose.pose]
         self.__submit(co, attach=False)
 
-    def attach_mesh(self, link, name, pose=None, filename='', size=(1, 1, 1), touch_links=[]):
+    def attach_mesh(
+        self, link, name, pose=None, filename="", size=(1, 1, 1), touch_links=[]
+    ):
         aco = AttachedCollisionObject()
         if (pose is not None) and filename:
             aco.object = self.__make_mesh(name, pose, filename, size)
@@ -171,12 +183,16 @@ class PlanningSceneInterface(object):
         """
         return self._psi.get_known_object_names(with_type)
 
-    def get_known_object_names_in_roi(self, minx, miny, minz, maxx, maxy, maxz, with_type=False):
+    def get_known_object_names_in_roi(
+        self, minx, miny, minz, maxx, maxy, maxz, with_type=False
+    ):
         """
         Get the names of known objects in the world that are located within a bounding region (specified in the frame reported by
         get_planning_frame()). If with_type is set to true, only return objects that have a known type.
         """
-        return self._psi.get_known_object_names_in_roi(minx, miny, minz, maxx, maxy, maxz, with_type)
+        return self._psi.get_known_object_names_in_roi(
+            minx, miny, minz, maxx, maxy, maxz, with_type
+        )
 
     def get_object_poses(self, object_ids):
         """
@@ -241,7 +257,8 @@ class PlanningSceneInterface(object):
         co = CollisionObject()
         if pyassimp is False:
             raise MoveItCommanderException(
-                "Pyassimp needs patch https://launchpadlibrarian.net/319496602/patchPyassim.txt")
+                "Pyassimp needs patch https://launchpadlibrarian.net/319496602/patchPyassim.txt"
+            )
         scene = pyassimp.load(filename)
         if not scene.meshes or len(scene.meshes) == 0:
             raise MoveItCommanderException("There are no meshes in the file")
@@ -253,22 +270,26 @@ class PlanningSceneInterface(object):
 
         mesh = Mesh()
         first_face = scene.meshes[0].faces[0]
-        if hasattr(first_face, '__len__'):
+        if hasattr(first_face, "__len__"):
             for face in scene.meshes[0].faces:
                 if len(face) == 3:
                     triangle = MeshTriangle()
                     triangle.vertex_indices = [face[0], face[1], face[2]]
                     mesh.triangles.append(triangle)
-        elif hasattr(first_face, 'indices'):
+        elif hasattr(first_face, "indices"):
             for face in scene.meshes[0].faces:
                 if len(face.indices) == 3:
                     triangle = MeshTriangle()
-                    triangle.vertex_indices = [face.indices[0],
-                                               face.indices[1],
-                                               face.indices[2]]
+                    triangle.vertex_indices = [
+                        face.indices[0],
+                        face.indices[1],
+                        face.indices[2],
+                    ]
                     mesh.triangles.append(triangle)
         else:
-            raise MoveItCommanderException("Unable to build triangles from mesh due to mesh object structure")
+            raise MoveItCommanderException(
+                "Unable to build triangles from mesh due to mesh object structure"
+            )
         for vertex in scene.meshes[0].vertices:
             point = Point()
             point.x = vertex[0] * scale[0]

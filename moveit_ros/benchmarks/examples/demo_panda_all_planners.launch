@@ -28,4 +28,3 @@
     <rosparam command="load" file="$(arg bench_opts)"/>
   </node>
 </launch>
-

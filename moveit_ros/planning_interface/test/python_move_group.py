@@ -6,7 +6,9 @@ import rospy
 import rostest
 import os
 
-from moveit_ros_planning_interface._moveit_move_group_interface import MoveGroupInterface
+from moveit_ros_planning_interface._moveit_move_group_interface import (
+    MoveGroupInterface,
+)
 
 
 class PythonMoveGroupTest(unittest.TestCase):
@@ -14,7 +16,9 @@ class PythonMoveGroupTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.group = MoveGroupInterface(self.PLANNING_GROUP, "robot_description", rospy.get_namespace())
+        self.group = MoveGroupInterface(
+            self.PLANNING_GROUP, "robot_description", rospy.get_namespace()
+        )
 
     @classmethod
     def tearDown(self):
@@ -25,16 +29,20 @@ class PythonMoveGroupTest(unittest.TestCase):
             args = [expect]
         self.group.set_joint_value_target(*args)
         res = self.group.get_joint_value_target()
-        self.assertTrue(np.all(np.asarray(res) == np.asarray(expect)),
-                        "Setting failed for %s, values: %s" % (type(args[0]), res))
+        self.assertTrue(
+            np.all(np.asarray(res) == np.asarray(expect)),
+            "Setting failed for %s, values: %s" % (type(args[0]), res),
+        )
 
     def test_target_setting(self):
         n = self.group.get_variable_count()
         self.check_target_setting([0.1] * n)
         self.check_target_setting((0.2,) * n)
         self.check_target_setting(np.zeros(n))
-        self.check_target_setting([0.3] * n, {name: 0.3 for name in self.group.get_active_joints()})
-        self.check_target_setting([0.5] + [0.3]*(n-1), "joint_1", 0.5)
+        self.check_target_setting(
+            [0.3] * n, {name: 0.3 for name in self.group.get_active_joints()}
+        )
+        self.check_target_setting([0.5] + [0.3] * (n - 1), "joint_1", 0.5)
 
     def plan(self, target):
         self.group.set_joint_value_target(target)
@@ -60,24 +68,33 @@ class PythonMoveGroupTest(unittest.TestCase):
         current = self.group.get_current_joint_values()
         result = self.group.get_jacobian_matrix(current)
         # Value check by known value at the initial pose
-        expected = np.array([[ 0.  ,  0.8 , -0.2 ,  0.  ,  0.  ,  0.  ],
-                             [ 0.89,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
-                             [ 0.  , -0.74,  0.74,  0.  ,  0.1 ,  0.  ],
-                             [ 0.  ,  0.  ,  0.  , -1.  ,  0.  , -1.  ],
-                             [ 0.  ,  1.  , -1.  ,  0.  , -1.  ,  0.  ],
-                             [ 1.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
+        expected = np.array(
+            [
+                [0.0, 0.8, -0.2, 0.0, 0.0, 0.0],
+                [0.89, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [0.0, -0.74, 0.74, 0.0, 0.1, 0.0],
+                [0.0, 0.0, 0.0, -1.0, 0.0, -1.0],
+                [0.0, 1.0, -1.0, 0.0, -1.0, 0.0],
+                [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            ]
+        )
         self.assertTrue(np.allclose(result, expected))
 
         result = self.group.get_jacobian_matrix(current, [1.0, 1.0, 1.0])
-        expected = np.array([[ 1.  ,  1.8 , -1.2 ,  0.  , -1.  ,  0.  ],
-                             [ 1.89,  0.  ,  0.  ,  1.  ,  0.  ,  1.  ],
-                             [ 0.  , -1.74,  1.74,  1.  ,  1.1 ,  1.  ],
-                             [ 0.  ,  0.  ,  0.  , -1.  ,  0.  , -1.  ],
-                             [ 0.  ,  1.  , -1.  ,  0.  , -1.  ,  0.  ],
-                             [ 1.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
+        expected = np.array(
+            [
+                [1.0, 1.8, -1.2, 0.0, -1.0, 0.0],
+                [1.89, 0.0, 0.0, 1.0, 0.0, 1.0],
+                [0.0, -1.74, 1.74, 1.0, 1.1, 1.0],
+                [0.0, 0.0, 0.0, -1.0, 0.0, -1.0],
+                [0.0, 1.0, -1.0, 0.0, -1.0, 0.0],
+                [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            ]
+        )
 
-if __name__ == '__main__':
-    PKGNAME = 'moveit_ros_planning_interface'
-    NODENAME = 'moveit_test_python_move_group'
+
+if __name__ == "__main__":
+    PKGNAME = "moveit_ros_planning_interface"
+    NODENAME = "moveit_test_python_move_group"
     rospy.init_node(NODENAME)
     rostest.rosrun(PKGNAME, NODENAME, PythonMoveGroupTest)

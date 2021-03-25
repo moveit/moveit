@@ -339,7 +339,7 @@ if(CATKIN_ENABLE_TESTING)
     test/unittest_velocity_profile_atrap.cpp
     src/velocity_profile_atrap.cpp
   )
-  target_link_libraries(unittest_velocity_profile_atrap 
+  target_link_libraries(unittest_velocity_profile_atrap
     ${catkin_LIBRARIES}
   )
 
@@ -502,7 +502,7 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_gmock(unittest_get_solver_tip_frame
     test/unittest_get_solver_tip_frame.cpp
   )
-  target_link_libraries(unittest_get_solver_tip_frame 
+  target_link_libraries(unittest_get_solver_tip_frame
     ${catkin_LIBRARIES}
   )
 

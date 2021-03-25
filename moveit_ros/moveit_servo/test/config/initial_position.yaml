@@ -8,4 +8,3 @@ zeros:
   panda_joint6: 1.571
   panda_joint7: 0.785
 publish_default_positions: True
-
