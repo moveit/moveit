@@ -66,4 +66,3 @@ left_gripper:FK Default: 0.017607s (0.401701%), [1e-06s --> 3.5e-05 s], 10000 pa
 right_gripper:FK Random: 0.011327s (0.258424%), [1e-06s --> 1.2e-05 s], 10000 parts, 1.1327e-06 s on average (882846 /s)
 left_gripper:FK Random: 0.011019s (0.251397%), [1e-06s --> 9e-06 s], 10000 parts, 1.1019e-06 s on average (907523 /s)
 Unaccounted time : 0.061805 (1.41007 %)
-

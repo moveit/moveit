@@ -5,14 +5,19 @@ import rospy
 import unittest
 from actionlib import SimpleActionClient
 import moveit_commander
-from moveit_msgs.msg import MoveItErrorCodes, MoveGroupGoal, Constraints, JointConstraint, MoveGroupAction
+from moveit_msgs.msg import (
+    MoveItErrorCodes,
+    MoveGroupGoal,
+    Constraints,
+    JointConstraint,
+    MoveGroupAction,
+)
 
 
 class TestMoveActionCancelDrop(unittest.TestCase):
-
     def setUp(self):
         # create a action client of move group
-        self._move_client = SimpleActionClient('move_group', MoveGroupAction)
+        self._move_client = SimpleActionClient("move_group", MoveGroupAction)
         self._move_client.wait_for_server()
 
         moveit_commander.roscpp_initialize(sys.argv)
@@ -57,7 +62,10 @@ class TestMoveActionCancelDrop(unittest.TestCase):
 
         # check the error code in result
         # error code is 0 if the server ends with RECALLED status
-        self.assertTrue(result.error_code.val == MoveItErrorCodes.PREEMPTED or result.error_code.val == 0)
+        self.assertTrue(
+            result.error_code.val == MoveItErrorCodes.PREEMPTED
+            or result.error_code.val == 0
+        )
 
     def test_cancel_drop_plan_only(self):
         # set the plan only flag
@@ -80,7 +88,10 @@ class TestMoveActionCancelDrop(unittest.TestCase):
 
         # check the error code in result
         # error code is 0 if the server ends with RECALLED status
-        self.assertTrue(result.error_code.val == MoveItErrorCodes.PREEMPTED or result.error_code.val == 0)
+        self.assertTrue(
+            result.error_code.val == MoveItErrorCodes.PREEMPTED
+            or result.error_code.val == 0
+        )
 
     def test_cancel_resend(self):
         # send the goal
@@ -105,7 +116,12 @@ class TestMoveActionCancelDrop(unittest.TestCase):
         self.assertEqual(result.error_code.val, MoveItErrorCodes.SUCCESS)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import rostest
-    rospy.init_node('cancel_before_plan_execution')
-    rostest.rosrun('moveit_ros_move_group', 'test_cancel_before_plan_execution', TestMoveActionCancelDrop)
+
+    rospy.init_node("cancel_before_plan_execution")
+    rostest.rosrun(
+        "moveit_ros_move_group",
+        "test_cancel_before_plan_execution",
+        TestMoveActionCancelDrop,
+    )

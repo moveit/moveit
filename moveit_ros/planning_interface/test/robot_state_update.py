@@ -6,7 +6,9 @@ import rospy
 import rostest
 import os
 
-from moveit_ros_planning_interface._moveit_move_group_interface import MoveGroupInterface
+from moveit_ros_planning_interface._moveit_move_group_interface import (
+    MoveGroupInterface,
+)
 from moveit_msgs.msg import MoveItErrorCodes
 
 
@@ -15,7 +17,9 @@ class RobotStateUpdateTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.group = MoveGroupInterface(self.PLANNING_GROUP, "robot_description", rospy.get_namespace())
+        self.group = MoveGroupInterface(
+            self.PLANNING_GROUP, "robot_description", rospy.get_namespace()
+        )
 
     @classmethod
     def tearDown(self):
@@ -33,7 +37,9 @@ class RobotStateUpdateTest(unittest.TestCase):
             error_code1, plan, time = self.plan(target)
             error_code = MoveItErrorCodes()
             error_code.deserialize(error_code1)
-            if (error_code.val == MoveItErrorCodes.SUCCESS) and self.group.execute(plan):
+            if (error_code.val == MoveItErrorCodes.SUCCESS) and self.group.execute(
+                plan
+            ):
                 actual = np.asarray(self.group.get_current_joint_values())
                 self.assertTrue(np.allclose(target, actual, atol=1e-4, rtol=0.0))
             # otherwise current state should be still the same
@@ -42,9 +48,9 @@ class RobotStateUpdateTest(unittest.TestCase):
                 self.assertTrue(np.allclose(current, actual, atol=1e-4, rtol=0.0))
 
 
-if __name__ == '__main__':
-    PKGNAME = 'moveit_ros_planning_interface'
-    NODENAME = 'moveit_test_robot_state_update'
+if __name__ == "__main__":
+    PKGNAME = "moveit_ros_planning_interface"
+    NODENAME = "moveit_test_robot_state_update"
     rospy.init_node(NODENAME)
     rostest.rosrun(PKGNAME, NODENAME, RobotStateUpdateTest)
 
