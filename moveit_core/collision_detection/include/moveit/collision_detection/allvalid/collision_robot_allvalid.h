@@ -86,6 +86,6 @@ public:
                              const CollisionRobot& other_robot,
                              const robot_state::RobotState& other_state) const override;
 };
-}
+}  // namespace collision_detection
 
 #endif

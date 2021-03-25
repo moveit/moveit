@@ -140,9 +140,9 @@ public:
                                                    const moveit_msgs::Constraints& constr);
 
 private:
-  std::vector<ConstraintSamplerAllocatorPtr>
-      sampler_alloc_; /**< \brief Holds the constraint sampler allocators, which will be tested in order  */
+  std::vector<ConstraintSamplerAllocatorPtr> sampler_alloc_; /**< \brief Holds the constraint sampler allocators, which
+                                                                will be tested in order  */
 };
-}
+}  // namespace constraint_samplers
 
 #endif

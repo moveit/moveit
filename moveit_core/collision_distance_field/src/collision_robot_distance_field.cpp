@@ -1372,4 +1372,4 @@ bool CollisionRobotDistanceField::compareCacheEntryToAllowedCollisionMatrix(
 //     if(dfce->acm.find
 //   }
 // }
-}
+}  // namespace collision_detection

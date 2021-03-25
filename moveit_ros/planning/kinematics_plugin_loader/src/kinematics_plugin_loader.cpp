@@ -242,7 +242,7 @@ private:
   std::map<const robot_model::JointModelGroup*, std::vector<kinematics::KinematicsBasePtr> > instances_;
   boost::mutex lock_;
 };
-}
+}  // namespace kinematics_plugin_loader
 
 void kinematics_plugin_loader::KinematicsPluginLoader::status() const
 {

@@ -57,7 +57,7 @@ class MoveGroup : public MoveGroupInterface
 {
   using MoveGroupInterface::MoveGroupInterface;
 } MOVEIT_DEPRECATED;
-}
-}
+}  // namespace planning_interface
+}  // namespace moveit
 
 #endif

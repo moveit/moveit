@@ -201,7 +201,7 @@ bool host_is_big_endian(void)
   } bint = { 0x01020304 };
   return bint.c[0] == 1;
 }
-}
+}  // namespace
 
 static const bool HOST_IS_BIG_ENDIAN = host_is_big_endian();
 
@@ -285,8 +285,9 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
       {
         failed_tf_++;
         if (failed_tf_ > good_tf_)
-          ROS_WARN_THROTTLE(1, "More than half of the image messages discared due to TF being unavailable (%u%%). "
-                               "Transform error of sensor data: %s; quitting callback.",
+          ROS_WARN_THROTTLE(1,
+                            "More than half of the image messages discared due to TF being unavailable (%u%%). "
+                            "Transform error of sensor data: %s; quitting callback.",
                             (100 * failed_tf_) / (good_tf_ + failed_tf_), err.c_str());
         else
           ROS_DEBUG_THROTTLE(1, "Transform error of sensor data: %s; quitting callback", err.c_str());
@@ -545,4 +546,4 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
 
   ROS_DEBUG("Processed depth image in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
 }
-}
+}  // namespace occupancy_map_monitor

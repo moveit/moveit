@@ -930,7 +930,7 @@ private:
   class MoveGroupInterfaceImpl;
   MoveGroupInterfaceImpl* impl_;
 };
-}
-}
+}  // namespace planning_interface
+}  // namespace moveit
 
 #endif

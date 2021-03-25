@@ -125,6 +125,6 @@ private:
   /* used to unregister the notifier */
   std::weak_ptr<World> world_;
 };
-}
+}  // namespace collision_detection
 
 #endif

@@ -61,11 +61,11 @@ SimulationWidget::SimulationWidget(QWidget* parent, moveit_setup_assistant::Move
 
   // Top Header Area ------------------------------------------------
 
-  HeaderWidget* header =
-      new HeaderWidget("Simulate With Gazebo", "The following tool will auto-generate the URDF changes needed "
-                                               "for Gazebo compatibility with ROSControl and MoveIt!. The "
-                                               "needed changes are shown in green.",
-                       this);
+  HeaderWidget* header = new HeaderWidget("Simulate With Gazebo",
+                                          "The following tool will auto-generate the URDF changes needed "
+                                          "for Gazebo compatibility with ROSControl and MoveIt!. The "
+                                          "needed changes are shown in green.",
+                                          this);
   layout->addWidget(header);
 
   // Spacing
@@ -224,4 +224,4 @@ void SimulationWidget::copyURDF(const QString& link)
   simulation_text_->copy();
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

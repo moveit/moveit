@@ -88,9 +88,10 @@ private:
 
 ConstraintSamplerManagerLoader::ConstraintSamplerManagerLoader(
     const constraint_samplers::ConstraintSamplerManagerPtr& csm)
-  : constraint_sampler_manager_(csm ? csm : constraint_samplers::ConstraintSamplerManagerPtr(
-                                                new constraint_samplers::ConstraintSamplerManager()))
+  : constraint_sampler_manager_(
+        csm ? csm :
+              constraint_samplers::ConstraintSamplerManagerPtr(new constraint_samplers::ConstraintSamplerManager()))
   , impl_(new Helper(constraint_sampler_manager_))
 {
 }
-}
+}  // namespace constraint_sampler_manager_loader

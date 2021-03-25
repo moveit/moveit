@@ -106,6 +106,6 @@ private:
   std::unique_ptr<boost::thread> record_states_thread_;
   TrajectoryStateAddedCallback state_add_callback_;
 };
-}
+}  // namespace planning_scene_monitor
 
 #endif

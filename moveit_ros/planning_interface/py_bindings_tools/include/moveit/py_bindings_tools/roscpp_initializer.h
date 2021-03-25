@@ -71,7 +71,7 @@ void roscpp_init(boost::python::list& argv);
 void roscpp_init();
 
 void roscpp_shutdown();
-}
-}
+}  // namespace py_bindings_tools
+}  // namespace moveit
 
 #endif

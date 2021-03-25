@@ -200,6 +200,6 @@ protected:
   GroupStateRepresentationPtr last_gsr_;
   World::ObserverHandle observer_handle_;
 };
-}
+}  // namespace collision_detection
 
 #endif

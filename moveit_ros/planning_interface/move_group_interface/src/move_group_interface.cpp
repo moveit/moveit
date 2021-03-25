@@ -174,8 +174,8 @@ public:
 
     plan_grasps_service_ = node_handle_.serviceClient<moveit_msgs::GraspPlanning>(GRASP_PLANNING_SERVICE_NAME);
 
-    ROS_INFO_STREAM_NAMED("move_group_interface", "Ready to take commands for planning group " << opt.group_name_
-                                                                                               << ".");
+    ROS_INFO_STREAM_NAMED("move_group_interface",
+                          "Ready to take commands for planning group " << opt.group_name_ << ".");
   }
 
   template <typename T>
@@ -766,8 +766,8 @@ public:
 
     if (objects.size() < 1)
     {
-      ROS_ERROR_STREAM_NAMED("move_group_interface", "Asked for grasps for the object '"
-                                                         << object << "', but the object could not be found");
+      ROS_ERROR_STREAM_NAMED("move_group_interface",
+                             "Asked for grasps for the object '" << object << "', but the object could not be found");
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::INVALID_OBJECT_NAME);
     }
 
@@ -1361,8 +1361,8 @@ private:
   std::unique_ptr<boost::thread> constraints_init_thread_;
   bool initializing_constraints_;
 };
-}
-}
+}  // namespace planning_interface
+}  // namespace moveit
 
 moveit::planning_interface::MoveGroupInterface::MoveGroupInterface(const std::string& group_name,
                                                                    const boost::shared_ptr<tf::Transformer>& tf,
@@ -1405,8 +1405,8 @@ moveit::planning_interface::MoveGroupInterface::MoveGroupInterface(MoveGroupInte
   other.impl_ = nullptr;
 }
 
-moveit::planning_interface::MoveGroupInterface& moveit::planning_interface::MoveGroupInterface::
-operator=(MoveGroupInterface&& other)
+moveit::planning_interface::MoveGroupInterface&
+moveit::planning_interface::MoveGroupInterface::operator=(MoveGroupInterface&& other)
 {
   if (this != &other)
   {
@@ -1925,7 +1925,7 @@ inline void transformPose(const tf::Transformer& tf, const std::string& desired_
     tf::poseTFToMsg(stamped_target_out, target.pose);
   }
 }
-}
+}  // namespace
 
 bool moveit::planning_interface::MoveGroupInterface::setPositionTarget(double x, double y, double z,
                                                                        const std::string& end_effector_link)

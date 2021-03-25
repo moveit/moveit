@@ -309,6 +309,6 @@ private:
   std::shared_ptr<ompl::msg::OutputHandler> output_handler_;
 };
 
-}  // ompl_interface
+}  // namespace ompl_interface
 
 CLASS_LOADER_REGISTER_CLASS(ompl_interface::OMPLPlannerManager, planning_interface::PlannerManager);

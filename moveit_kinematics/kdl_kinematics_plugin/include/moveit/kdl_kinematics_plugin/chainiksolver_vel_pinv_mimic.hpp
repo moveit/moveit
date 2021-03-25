@@ -170,5 +170,5 @@ private:
   unsigned int num_redundant_joints;
   bool redundant_joints_locked;
 };
-}
+}  // namespace KDL
 #endif

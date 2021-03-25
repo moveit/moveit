@@ -379,10 +379,11 @@ void MotionPlanningFrame::importResource(const std::string& path)
 
       if (planning_display_->getPlanningSceneRO()->getCurrentState().hasAttachedBody(name))
       {
-        QMessageBox::warning(this, QString("Duplicate names"), QString("An attached object named '")
-                                                                   .append(name.c_str())
-                                                                   .append("' already exists. Please rename the "
-                                                                           "attached object before importing."));
+        QMessageBox::warning(this, QString("Duplicate names"),
+                             QString("An attached object named '")
+                                 .append(name.c_str())
+                                 .append("' already exists. Please rename the "
+                                         "attached object before importing."));
         return;
       }
 
@@ -409,14 +410,14 @@ void MotionPlanningFrame::importResource(const std::string& path)
               }
             }
             break;
-          case QMessageBox::No:
-          {
+          case QMessageBox::No: {
             // Don't overwrite was clicked. Ask for another name
             bool ok = false;
             QString text = QInputDialog::getText(
                 this, tr("Choose a new name"), tr("Import the new object under the name:"), QLineEdit::Normal,
-                QString::fromStdString(name + "-" + boost::lexical_cast<std::string>(
-                                                        planning_display_->getPlanningSceneRO()->getWorld()->size())),
+                QString::fromStdString(
+                    name + "-" +
+                    boost::lexical_cast<std::string>(planning_display_->getPlanningSceneRO()->getWorld()->size())),
                 &ok);
             if (ok)
             {
@@ -498,4 +499,4 @@ void MotionPlanningFrame::updateExternalCommunication()
   }
 }
 
-}  // namespace
+}  // namespace moveit_rviz_plugin

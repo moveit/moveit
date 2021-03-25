@@ -92,22 +92,19 @@ void RenderShapes::renderShape(Ogre::SceneNode* node, const shapes::Shape* s, co
 
   switch (s->type)
   {
-    case shapes::SPHERE:
-    {
+    case shapes::SPHERE: {
       ogre_shape = new rviz::Shape(rviz::Shape::Sphere, context_->getSceneManager(), node);
       double d = 2.0 * static_cast<const shapes::Sphere*>(s)->radius;
       ogre_shape->setScale(Ogre::Vector3(d, d, d));
     }
     break;
-    case shapes::BOX:
-    {
+    case shapes::BOX: {
       ogre_shape = new rviz::Shape(rviz::Shape::Cube, context_->getSceneManager(), node);
       const double* sz = static_cast<const shapes::Box*>(s)->size;
       ogre_shape->setScale(Ogre::Vector3(sz[0], sz[1], sz[2]));
     }
     break;
-    case shapes::CYLINDER:
-    {
+    case shapes::CYLINDER: {
       ogre_shape = new rviz::Shape(rviz::Shape::Cylinder, context_->getSceneManager(), node);
       double d = 2.0 * static_cast<const shapes::Cylinder*>(s)->radius;
       double z = static_cast<const shapes::Cylinder*>(s)->length;
@@ -115,8 +112,7 @@ void RenderShapes::renderShape(Ogre::SceneNode* node, const shapes::Shape* s, co
                                                      // as major axis (assuming z is upright);
     }
     break;
-    case shapes::MESH:
-    {
+    case shapes::MESH: {
       const shapes::Mesh* mesh = static_cast<const shapes::Mesh*>(s);
       if (mesh->triangle_count > 0)
       {
@@ -154,8 +150,7 @@ void RenderShapes::renderShape(Ogre::SceneNode* node, const shapes::Shape* s, co
     }
     break;
 
-    case shapes::OCTREE:
-    {
+    case shapes::OCTREE: {
       OcTreeRenderPtr octree(new OcTreeRender(static_cast<const shapes::OcTree*>(s)->octree, octree_voxel_rendering,
                                               octree_color_mode, 0u, context_->getSceneManager(), node));
       octree->setPosition(position);
@@ -186,4 +181,4 @@ void RenderShapes::renderShape(Ogre::SceneNode* node, const shapes::Shape* s, co
     scene_shapes_.emplace_back(ogre_shape);
   }
 }
-}
+}  // namespace moveit_rviz_plugin

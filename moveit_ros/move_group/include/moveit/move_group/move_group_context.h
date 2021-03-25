@@ -53,7 +53,7 @@ namespace plan_execution
 {
 MOVEIT_CLASS_FORWARD(PlanExecution);
 MOVEIT_CLASS_FORWARD(PlanWithSensing);
-}
+}  // namespace plan_execution
 
 namespace trajectory_execution_manager
 {
@@ -80,6 +80,6 @@ struct MoveGroupContext
   bool allow_trajectory_execution_;
   bool debug_;
 };
-}
+}  // namespace move_group
 
 #endif

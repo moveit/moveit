@@ -178,9 +178,8 @@ public:
 
     for (std::size_t i = 0; i < response.scene.world.collision_objects.size(); ++i)
     {
-      if (object_ids.empty() ||
-          std::find(object_ids.begin(), object_ids.end(), response.scene.world.collision_objects[i].id) !=
-              object_ids.end())
+      if (object_ids.empty() || std::find(object_ids.begin(), object_ids.end(),
+                                          response.scene.world.collision_objects[i].id) != object_ids.end())
       {
         result[response.scene.world.collision_objects[i].id] = response.scene.world.collision_objects[i];
       }
@@ -390,5 +389,5 @@ void PlanningSceneInterface::removeCollisionObjects(const std::vector<std::strin
 {
   impl_->removeCollisionObjects(object_ids);
 }
-}
-}
+}  // namespace planning_interface
+}  // namespace moveit

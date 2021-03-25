@@ -104,11 +104,11 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
   right_layout->setAlignment(right_image_label_, Qt::AlignRight | Qt::AlignTop);
 
   // Top Label Area ---------------------------------------------------
-  HeaderWidget* header =
-      new HeaderWidget("MoveIt! Setup Assistant", "These tools will assist you in creating a Semantic Robot "
-                                                  "Description Format (SRDF) file, various yaml configuration and many "
-                                                  "roslaunch files for utilizing all aspects of MoveIt! functionality.",
-                       this);
+  HeaderWidget* header = new HeaderWidget("MoveIt! Setup Assistant",
+                                          "These tools will assist you in creating a Semantic Robot "
+                                          "Description Format (SRDF) file, various yaml configuration and many "
+                                          "roslaunch files for utilizing all aspects of MoveIt! functionality.",
+                                          this);
   layout->addWidget(header);
 
   // Select Mode Area -------------------------------------------------
@@ -490,8 +490,9 @@ bool StartScreenWidget::loadNewFiles()
   QApplication::processEvents();
 
   // Create blank SRDF file
-  const std::string blank_srdf = "<?xml version='1.0'?><robot name='" + config_data_->urdf_model_->getName() + "'></"
-                                                                                                               "robot>";
+  const std::string blank_srdf = "<?xml version='1.0'?><robot name='" + config_data_->urdf_model_->getName() +
+                                 "'></"
+                                 "robot>";
 
   // Load a blank SRDF file to the parameter server
   if (!setSRDFFile(blank_srdf))
@@ -730,10 +731,11 @@ bool StartScreenWidget::createFullURDFPath()
   {
     if (config_data_->urdf_path_.empty())  // no path could be resolved
     {
-      QMessageBox::warning(this, "Error Loading Files", QString("ROS was unable to find the package name '")
-                                                            .append(config_data_->urdf_pkg_name_.c_str())
-                                                            .append("'. Verify this package is inside your ROS "
-                                                                    "workspace and is a proper ROS package."));
+      QMessageBox::warning(this, "Error Loading Files",
+                           QString("ROS was unable to find the package name '")
+                               .append(config_data_->urdf_pkg_name_.c_str())
+                               .append("'. Verify this package is inside your ROS "
+                                       "workspace and is a proper ROS package."));
     }
     else
     {
@@ -862,4 +864,4 @@ SelectModeWidget::SelectModeWidget(QWidget* parent) : QFrame(parent)
   btn_new_->setCheckable(true);
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

@@ -1027,6 +1027,6 @@ private:
   // a map of object types
   std::unique_ptr<ObjectTypeMap> object_types_;
 };
-}
+}  // namespace planning_scene
 
 #endif

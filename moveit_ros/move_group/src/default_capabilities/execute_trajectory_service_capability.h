@@ -58,6 +58,6 @@ private:
   ros::CallbackQueue callback_queue_;
   ros::AsyncSpinner spinner_;
 };
-}
+}  // namespace move_group
 
 #endif

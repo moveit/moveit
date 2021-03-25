@@ -154,8 +154,9 @@ void TrajectoryExecutionManager::initialize()
       if (classes.size() == 1)
       {
         controller = classes[0];
-        ROS_WARN_NAMED(name_, "Parameter '~moveit_controller_manager' is not specified but only one "
-                              "matching plugin was found: '%s'. Using that one.",
+        ROS_WARN_NAMED(name_,
+                       "Parameter '~moveit_controller_manager' is not specified but only one "
+                       "matching plugin was found: '%s'. Using that one.",
                        controller.c_str());
       }
       else
@@ -171,8 +172,8 @@ void TrajectoryExecutionManager::initialize()
       }
       catch (pluginlib::PluginlibException& ex)
       {
-        ROS_FATAL_STREAM_NAMED(name_, "Exception while loading controller manager '" << controller
-                                                                                     << "': " << ex.what());
+        ROS_FATAL_STREAM_NAMED(name_,
+                               "Exception while loading controller manager '" << controller << "': " << ex.what());
       }
   }
 
@@ -677,7 +678,7 @@ struct OrderPotentialControllerCombination
   std::vector<std::size_t> nrjoints;
   std::vector<std::size_t> nractive;
 };
-}
+}  // namespace
 
 bool TrajectoryExecutionManager::findControllers(const std::set<std::string>& actuated_joints,
                                                  std::size_t controller_count,
@@ -986,8 +987,9 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
         jm->enforcePositionBounds(&traj_position);
         if (jm->distance(&cur_position, &traj_position) > allowed_start_tolerance_)
         {
-          ROS_ERROR_NAMED(name_, "\nInvalid Trajectory: start point deviates from current robot state more than %g"
-                                 "\njoint '%s': expected: %g, current: %g",
+          ROS_ERROR_NAMED(name_,
+                          "\nInvalid Trajectory: start point deviates from current robot state more than %g"
+                          "\njoint '%s': expected: %g, current: %g",
                           allowed_start_tolerance_, joint_names[i].c_str(), traj_position, cur_position);
           return false;
         }
@@ -1482,8 +1484,9 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
         if (!handles[i]->waitForExecution(expected_trajectory_duration))
           if (!execution_complete_ && ros::Time::now() - current_time > expected_trajectory_duration)
           {
-            ROS_ERROR_NAMED(name_, "Controller is taking too long to execute trajectory (the expected upper "
-                                   "bound for the trajectory execution was %lf seconds). Stopping trajectory.",
+            ROS_ERROR_NAMED(name_,
+                            "Controller is taking too long to execute trajectory (the expected upper "
+                            "bound for the trajectory execution was %lf seconds). Stopping trajectory.",
                             expected_trajectory_duration.toSec());
             {
               boost::mutex::scoped_lock slock(execution_state_mutex_);
@@ -1775,4 +1778,4 @@ void TrajectoryExecutionManager::loadControllerParams()
     }
   }
 }
-}
+}  // namespace trajectory_execution_manager

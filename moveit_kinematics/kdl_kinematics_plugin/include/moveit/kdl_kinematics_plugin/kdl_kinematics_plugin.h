@@ -203,6 +203,6 @@ private:
   double epsilon_;
   std::vector<JointMimic> mimic_joints_;
 };
-}
+}  // namespace kdl_kinematics_plugin
 
 #endif

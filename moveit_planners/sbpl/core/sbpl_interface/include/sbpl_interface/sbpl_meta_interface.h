@@ -76,6 +76,6 @@ protected:
 
   PlanningStatistics last_planning_statistics_;
 };
-}
+}  // namespace sbpl_interface
 
 #endif

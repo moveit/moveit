@@ -8,8 +8,8 @@ import subprocess
 import rospkg
 import roslib.packages
 
-PKGNAME = 'moveit_ros_planning_interface'
-NODENAME = 'moveit_cleanup_tests'
+PKGNAME = "moveit_ros_planning_interface"
+NODENAME = "moveit_cleanup_tests"
 
 # As issue #592 is related to a crash during program exit,
 # we cannot perform a standard unit test.
@@ -22,12 +22,15 @@ class CleanupTest(unittest.TestCase):
         self._rospack = rospkg.RosPack()
 
     def test_py(self):
-        cmd = roslib.packages.find_node(PKGNAME, "movegroup_interface.py", self._rospack)
+        cmd = roslib.packages.find_node(
+            PKGNAME, "movegroup_interface.py", self._rospack
+        )
         self.assertTrue(subprocess.call(cmd) == 0)
 
     def test_cpp(self):
         cmd = roslib.packages.find_node(PKGNAME, "test_cleanup", self._rospack)
         self.assertTrue(subprocess.call(cmd) == 0)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     rostest.rosrun(PKGNAME, NODENAME, CleanupTest)

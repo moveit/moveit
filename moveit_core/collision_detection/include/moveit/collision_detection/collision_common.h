@@ -65,7 +65,7 @@ enum Type
   /** \brief A body in the environment */
   WORLD_OBJECT
 };
-}
+}  // namespace BodyTypes
 
 /** \brief The types of bodies that are considered for collision */
 typedef BodyTypes::Type BodyType;
@@ -381,6 +381,6 @@ struct DistanceResult
     distances.clear();
   }
 };
-}
+}  // namespace collision_detection
 
 #endif

@@ -71,7 +71,7 @@ SharedStorage& getSharedStorage()
   return *storage;
 #endif
 }
-}
+}  // namespace
 
 namespace moveit
 {

@@ -106,6 +106,6 @@ private:
   bool obeysLimits(const KDL::JntArray& q_out);           // Checks that a set of joint angles obey the urdf limits
   bool position_ik;
 };
-}
+}  // namespace KDL
 
 #endif

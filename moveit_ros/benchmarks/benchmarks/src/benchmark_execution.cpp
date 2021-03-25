@@ -88,8 +88,8 @@ void checkHeader(moveit_msgs::Constraints& c, const std::string& header_frame)
       c.orientation_constraints[i].header.stamp = ros::Time::now();
     }
 }
-}
-}
+}  // namespace
+}  // namespace moveit_benchmarks
 
 moveit_benchmarks::BenchmarkExecution::BenchmarkExecution(const planning_scene::PlanningScenePtr& scene,
                                                           warehouse_ros::DatabaseConnection::Ptr conn)
@@ -895,7 +895,7 @@ bool isIKSolutionCollisionFree(const planning_scene::PlanningScene* scene, robot
   else
     return true;
 }
-}
+}  // namespace
 
 void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkRequest& req)
 {
@@ -1002,8 +1002,9 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
         ROS_ERROR("Planning interface '%s' has no planners defined", it->first.c_str());
     }
     else
-      ROS_WARN_STREAM("Planning interface '" << it->second->getDescription() << "' is not able to solve the specified "
-                                                                                "benchmark problem.");
+      ROS_WARN_STREAM("Planning interface '" << it->second->getDescription()
+                                             << "' is not able to solve the specified "
+                                                "benchmark problem.");
   }
 
   // error check

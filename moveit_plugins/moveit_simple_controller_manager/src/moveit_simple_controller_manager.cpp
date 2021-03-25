@@ -91,8 +91,8 @@ public:
 
         if (controller_list[i]["joints"].getType() != XmlRpc::XmlRpcValue::TypeArray)
         {
-          ROS_ERROR_STREAM_NAMED("manager", "The list of joints for controller " << name
-                                                                                 << " is not specified as an array");
+          ROS_ERROR_STREAM_NAMED("manager",
+                                 "The list of joints for controller " << name << " is not specified as an array");
           continue;
         }
 
@@ -225,8 +225,9 @@ public:
     }
     else
     {
-      ROS_WARN_NAMED("manager", "The joints for controller '%s' are not known. Perhaps the controller configuration is "
-                                "not loaded on the param server?",
+      ROS_WARN_NAMED("manager",
+                     "The joints for controller '%s' are not known. Perhaps the controller configuration is "
+                     "not loaded on the param server?",
                      name.c_str());
       joints.clear();
     }

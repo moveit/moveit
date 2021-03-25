@@ -74,4 +74,4 @@ void CHOMPInterface::loadParams()
   nh_.param("enable_failure_recovery", params_.enable_failure_recovery_, false);
   nh_.param("max_recovery_attempts", params_.max_recovery_attempts_, 5);
 }
-}
+}  // namespace chomp_interface

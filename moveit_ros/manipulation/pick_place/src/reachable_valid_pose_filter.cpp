@@ -87,7 +87,7 @@ bool isStateCollisionFree(const planning_scene::PlanningScene* planning_scene,
     }
   return planning_scene->isStateFeasible(*state);
 }
-}
+}  // namespace
 
 bool pick_place::ReachableAndValidPoseFilter::isEndEffectorFree(const ManipulationPlanPtr& plan,
                                                                 robot_state::RobotState& token_state) const

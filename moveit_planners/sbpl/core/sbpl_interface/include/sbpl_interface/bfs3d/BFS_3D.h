@@ -76,6 +76,6 @@ public:
 
   int getDistance(int, int, int);
 };
-}
+}  // namespace sbpl_interface
 
 #endif

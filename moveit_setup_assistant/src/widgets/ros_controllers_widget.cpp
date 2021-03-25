@@ -844,4 +844,4 @@ void ROSControllersWidget::itemSelectionChanged()
   }
 }
 
-}  // namespace
+}  // namespace moveit_ros_control

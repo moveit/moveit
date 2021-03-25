@@ -75,6 +75,6 @@ public:
   virtual void distanceWorld(const DistanceRequest& req, DistanceResult& res,
                              const CollisionWorld& world) const override;
 };
-}
+}  // namespace collision_detection
 
 #endif

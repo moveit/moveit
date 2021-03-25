@@ -95,6 +95,6 @@ private:
   void qMimicToq(const JntArray& q, JntArray& q_result);  // Convert from the "full" state to the "reduced" state
   bool position_ik;
 };
-}
+}  // namespace KDL
 
 #endif

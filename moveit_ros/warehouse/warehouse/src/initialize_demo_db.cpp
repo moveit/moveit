@@ -55,9 +55,10 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "initialize_demo_db", ros::init_options::AnonymousName);
 
   boost::program_options::options_description desc;
-  desc.add_options()("help", "Show help message")("host", boost::program_options::value<std::string>(), "Host for the "
-                                                                                                        "DB.")(
-      "port", boost::program_options::value<std::size_t>(), "Port for the DB.");
+  desc.add_options()("help", "Show help message")("host", boost::program_options::value<std::string>(),
+                                                  "Host for the "
+                                                  "DB.")("port", boost::program_options::value<std::size_t>(),
+                                                         "Port for the DB.");
 
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);

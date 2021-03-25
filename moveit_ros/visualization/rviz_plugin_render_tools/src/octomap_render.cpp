@@ -250,4 +250,4 @@ void OcTreeRender::octreeDecoding(const std::shared_ptr<const octomap::OcTree>& 
     pointBuf_[i].clear();
   }
 }
-}
+}  // namespace moveit_rviz_plugin

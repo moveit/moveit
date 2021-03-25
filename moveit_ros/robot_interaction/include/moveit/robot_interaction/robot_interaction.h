@@ -283,6 +283,6 @@ public:
       const robot_state::GroupStateValidityCallbackFn& validity_callback = robot_state::GroupStateValidityCallbackFn(),
       const kinematics::KinematicsQueryOptions& kinematics_query_options = kinematics::KinematicsQueryOptions());
 };
-}
+}  // namespace robot_interaction
 
 #endif

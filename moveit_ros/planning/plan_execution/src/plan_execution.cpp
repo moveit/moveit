@@ -67,7 +67,7 @@ private:
   PlanExecution* owner_;
   dynamic_reconfigure::Server<PlanExecutionDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
-}
+}  // namespace plan_execution
 
 plan_execution::PlanExecution::PlanExecution(
     const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,

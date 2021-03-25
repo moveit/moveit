@@ -54,7 +54,7 @@
     <arg name="fake_execution" value="false"/>
     <arg name="info" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
-  </include>  
+  </include>
 
   <!-- Run Rviz and load the default config to see the state of the move_group node -->
   <include file="$(find [GENERATED_PACKAGE_NAME])/launch/moveit_rviz.launch">

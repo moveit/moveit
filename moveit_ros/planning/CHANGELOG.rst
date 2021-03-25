@@ -20,7 +20,7 @@ Changelog for package moveit_ros_planning
 
 0.9.15 (2018-10-29)
 -------------------
-* [fix] Build regression (`#1134 <https://github.com/ros-planning/moveit/issues/1134>`_) 
+* [fix] Build regression (`#1134 <https://github.com/ros-planning/moveit/issues/1134>`_)
 * [improvement] Exploit the fact that our transforms are isometries (instead of general affine transformations). `#1091 <https://github.com/ros-planning/moveit/issues/1091>`_
 * Contributors: Robert Haschke
 

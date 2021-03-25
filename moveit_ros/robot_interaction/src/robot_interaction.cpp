@@ -92,8 +92,9 @@ void RobotInteraction::decideActiveComponents(const std::string& group, Interact
   decideActiveEndEffectors(group, style);
   decideActiveJoints(group);
   if (!group.empty() && active_eef_.empty() && active_vj_.empty() && active_generic_.empty())
-    ROS_INFO_NAMED("robot_interaction", "No active joints or end effectors found for group '%s'. "
-                                        "Make sure that kinematics.yaml is loaded in this node's namespace.",
+    ROS_INFO_NAMED("robot_interaction",
+                   "No active joints or end effectors found for group '%s'. "
+                   "Make sure that kinematics.yaml is loaded in this node's namespace.",
                    group.c_str());
 }
 
@@ -855,4 +856,4 @@ void RobotInteraction::decideActiveEndEffectors(const std::string& group, EndEff
 {
   decideActiveEndEffectors(group, (InteractionStyle::InteractionStyle)(int)style);
 }
-}
+}  // namespace robot_interaction

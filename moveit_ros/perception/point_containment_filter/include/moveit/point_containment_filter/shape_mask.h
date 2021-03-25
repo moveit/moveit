@@ -128,6 +128,6 @@ private:
   std::map<ShapeHandle, std::set<SeeShape, SortBodies>::iterator> used_handles_;
   std::vector<bodies::BoundingSphere> bspheres_;
 };
-}
+}  // namespace point_containment_filter
 
 #endif

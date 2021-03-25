@@ -674,8 +674,8 @@ static void wrap_move_group_interface()
   bp::class_<MoveGroupWrapper, bp::bases<MoveGroupInterfaceWrapper>, boost::noncopyable> MoveGroupClass(
       "MoveGroup", bp::init<std::string, std::string>());
 }
-}
-}
+}  // namespace planning_interface
+}  // namespace moveit
 
 BOOST_PYTHON_MODULE(_moveit_move_group_interface)
 {

@@ -66,7 +66,7 @@ double toDouble(const std::string& s);
  \throws std::runtime_exception if not a valid number
 */
 float toFloat(const std::string& s);
-}
-}
+}  // namespace core
+}  // namespace moveit
 
 #endif

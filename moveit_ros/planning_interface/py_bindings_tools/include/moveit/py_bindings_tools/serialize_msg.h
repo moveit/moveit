@@ -69,7 +69,7 @@ void deserializeMsg(const std::string& data, T& msg)
   ros::serialization::IStream stream_arg(const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(&data[0])), data.size());
   ros::serialization::deserialize(stream_arg, msg);
 }
-}
-}
+}  // namespace py_bindings_tools
+}  // namespace moveit
 
 #endif

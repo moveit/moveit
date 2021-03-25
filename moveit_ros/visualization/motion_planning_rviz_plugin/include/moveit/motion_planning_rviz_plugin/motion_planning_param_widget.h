@@ -45,7 +45,7 @@ namespace planning_interface
 {
 MOVEIT_CLASS_FORWARD(MoveGroupInterface);
 }
-}
+}  // namespace moveit
 
 namespace moveit_rviz_plugin
 {
@@ -75,6 +75,6 @@ private:
   std::string group_name_;
   std::string planner_id_;
 };
-}
+}  // namespace moveit_rviz_plugin
 
 #endif

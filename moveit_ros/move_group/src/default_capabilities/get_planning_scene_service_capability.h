@@ -55,6 +55,6 @@ private:
 
   ros::ServiceServer get_scene_service_;
 };
-}
+}  // namespace move_group
 
 #endif

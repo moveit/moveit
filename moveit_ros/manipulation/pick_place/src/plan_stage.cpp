@@ -120,4 +120,4 @@ bool PlanStage::evaluate(const ManipulationPlanPtr& plan) const
 
   return false;
 }
-}
+}  // namespace pick_place

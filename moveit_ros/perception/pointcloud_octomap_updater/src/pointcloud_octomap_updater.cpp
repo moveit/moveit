@@ -356,4 +356,4 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
     filtered_cloud_publisher_.publish(*filtered_cloud);
   }
 }
-}
+}  // namespace occupancy_map_monitor

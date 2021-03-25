@@ -62,6 +62,6 @@ private:
   ros::ServiceServer fk_service_;
   ros::ServiceServer ik_service_;
 };
-}
+}  // namespace move_group
 
 #endif
