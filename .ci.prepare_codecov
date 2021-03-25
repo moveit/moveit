@@ -1,0 +1,21 @@
+#!/bin/bash
+pushd $BASEDIR
+
+BLUE='\033[0;34m'
+NOCOLOR='\033[0m'
+
+apt-get install -qq lcov
+
+echo -e "${BLUE}Capture coverage info${NOCOLOR}"
+lcov --capture --directory target_ws --output-file coverage.info
+
+echo -e "${BLUE}Extract repository files${NOCOLOR}"
+lcov --extract coverage.info "$BASEDIR/target_ws/src/$TARGET_REPO_NAME/*" --output-file coverage.info
+
+echo -e "${BLUE}Filter out test files${NOCOLOR}"
+lcov --remove coverage.info '*/test/*' --output-file coverage.info
+
+echo -e "${BLUE}Output coverage data for debugging${NOCOLOR}"
+lcov --list coverage.info
+
+popd
