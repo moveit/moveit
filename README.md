@@ -9,11 +9,12 @@ Currently we support ROS Indigo, Kinetic, and Melodic.
 - [Documentation](http://moveit.ros.org/documentation/)
 - [Get Involved](http://moveit.ros.org/documentation/contributing/)
 
-## Travis - Continuous Integration
+<<<<<<< HEAD
+## Continuous Integration
 
-Indigo | Kinetic | Lunar
+Indigo | Kinetic / Lunar
 ------ | ---- | -------
-[![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=indigo-devel)](https://travis-ci.org/ros-planning/moveit) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=kinetic-devel)](https://travis-ci.org/ros-planning/moveit) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=kinetic-devel)](https://travis-ci.org/ros-planning/moveit) |
+[![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=indigo-devel)](https://travis-ci.org/ros-planning/moveit) | [![Format](https://github.com/ros-planning/moveit/actions/workflows/format.yml/badge.svg?branch=kinetic-devel)](https://github.com/ros-planning/moveit/actions/workflows/format.yml?branch=kinetic-devel) [![BuildAndTest](https://github.com/ros-planning/moveit/actions/workflows/industrial_ci_action.yml/badge.svg?branch=kinetic-devel)](https://github.com/ros-planning/moveit/actions/workflows/industrial_ci_action.yml?branch=kinetic-devel) [![codecov](https://codecov.io/gh/ros-planning/moveit/branch/kinetic-devel/graph/badge.svg?token=W7uHKcY0ly)](https://codecov.io/gh/ros-planning/moveit) |
 
 ## Docker Containers
 
