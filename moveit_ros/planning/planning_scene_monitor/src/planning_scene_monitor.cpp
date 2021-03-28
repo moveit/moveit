@@ -222,7 +222,7 @@ void PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr& sc
     scene_const_ = scene_;
     if (scene_)
     {
-      // The scene_ is loded on the collision loeader only if it was correctly instantiated
+      // The scene_ is loaded on the collision loader only if it was correctly instantiated
       collision_loader_.setupScene(nh_, scene_);
       scene_->setAttachedBodyUpdateCallback(
           boost::bind(&PlanningSceneMonitor::currentStateAttachedBodyUpdateCallback, this, _1, _2));
