@@ -4,4 +4,3 @@
    :recursive:
 
    moveit.core
-
