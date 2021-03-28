@@ -218,7 +218,7 @@ void PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr& sc
         scene_.reset();
       }
     }
-    // scene_const_ is set regardless scene_ is null or not
+    // scene_const_ is set regardless if scene_ is null or not
     scene_const_ = scene_;
     if (scene_)
     {
