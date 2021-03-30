@@ -82,7 +82,6 @@ COMPONENTS
   urdf
   visualization_msgs
   xmlrpcpp
-OPTIONAL_COMPONENTS
   pybind11_catkin
 )
 
@@ -232,33 +231,31 @@ add_subdirectory(collision_distance_field)
 add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
 
-if(pybind11_catkin_FOUND)
-  add_subdirectory(python)
+add_subdirectory(python)
+set(pymoveit_libs
+  moveit_collision_detection
+  moveit_kinematic_constraints
+  moveit_planning_scene
+  moveit_python_tools
+  moveit_robot_model
+  moveit_robot_state
+  moveit_transforms
+)
 
-  set(pymoveit_libs
-    moveit_collision_detection
-    moveit_kinematic_constraints
-    moveit_planning_scene
-    moveit_python_tools
-    moveit_robot_model
-    moveit_robot_state
-    moveit_transforms
-  )
+pybind_add_module(pymoveit_core
+    python/pymoveit_core.cpp
+    collision_detection/src/pycollision_detection.cpp
+    robot_model/src/pyrobot_model.cpp
+    robot_state/src/pyrobot_state.cpp
+    transforms/src/pytransforms.cpp
+    planning_scene/src/pyplanning_scene.cpp
+    kinematic_constraints/src/pykinematic_constraint.cpp
+)
+target_include_directories(pymoveit_core SYSTEM PRIVATE ${catkin_INCLUDE_DIRS})
+target_link_libraries(pymoveit_core PRIVATE ${pymoveit_libs} ${catkin_LIBRARIES})
 
-  pybind_add_module(pymoveit_core
-      python/pymoveit_core.cpp
-      collision_detection/src/pycollision_detection.cpp
-      robot_model/src/pyrobot_model.cpp
-      robot_state/src/pyrobot_state.cpp
-      transforms/src/pytransforms.cpp
-      planning_scene/src/pyplanning_scene.cpp
-      kinematic_constraints/src/pykinematic_constraint.cpp
-  )
-  target_include_directories(pymoveit_core SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
-  target_link_libraries(pymoveit_core PUBLIC ${pymoveit_libs} ${catkin_LIBRARIES})
-
-  install(TARGETS pymoveit_core LIBRARY DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
-endif()
+#catkin_lint: ignore_once undefined_target (pymoveit_core is defined by pybind_add_module)
+install(TARGETS pymoveit_core LIBRARY DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
 
 if(BULLET_ENABLE)
   add_subdirectory(collision_detection_bullet)
