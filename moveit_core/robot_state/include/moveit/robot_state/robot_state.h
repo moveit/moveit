@@ -1799,11 +1799,6 @@ public:
 
   std::string getStateTreeString(const std::string& prefix = "") const;
 
-private:
-  void allocMemory();
-  void initTransforms();
-  void copyFrom(const RobotState& other);
-
   /**
    * \brief Transform pose from the robot model's base frame to the reference frame of the IK solver
    * @param pose - the input to change
@@ -1826,6 +1821,11 @@ private:
     dirty_link_transforms_ =
         dirty_link_transforms_ == nullptr ? joint : robot_model_->getCommonRoot(dirty_link_transforms_, joint);
   }
+
+private:
+  void allocMemory();
+  void initTransforms();
+  void copyFrom(const RobotState& other);
 
   void markDirtyJointTransforms(const JointModelGroup* group)
   {
