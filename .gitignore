@@ -58,3 +58,6 @@ CATKIN_IGNORE
 .moveit_ci
 
 *.pyc
+
+_build
+_autosummary
