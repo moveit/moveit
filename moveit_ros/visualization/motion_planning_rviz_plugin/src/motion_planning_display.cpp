@@ -298,11 +298,14 @@ void MotionPlanningDisplay::reset()
   // Planned Path Display
   trajectory_visual_->reset();
 
+  bool enabled = this->isEnabled();
   frame_->disable();
-  frame_->enable();
-
-  query_robot_start_->setVisible(query_start_state_property_->getBool());
-  query_robot_goal_->setVisible(query_goal_state_property_->getBool());
+  if (enabled)
+  {
+    frame_->enable();
+    query_robot_start_->setVisible(query_start_state_property_->getBool());
+    query_robot_goal_->setVisible(query_goal_state_property_->getBool());
+  }
 }
 
 void MotionPlanningDisplay::setName(const QString& name)
