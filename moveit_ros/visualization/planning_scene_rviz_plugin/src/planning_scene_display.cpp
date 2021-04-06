@@ -647,9 +647,9 @@ void PlanningSceneDisplay::update(float wall_dt, float ros_dt)
 void PlanningSceneDisplay::updateInternal(float wall_dt, float ros_dt)
 {
   current_scene_time_ += wall_dt;
-  if ((current_scene_time_ > scene_display_time_property_->getFloat() && planning_scene_render_ &&
-       robot_state_needs_render_) ||
-      planning_scene_needs_render_)
+  if (planning_scene_render_ &&
+      ((current_scene_time_ > scene_display_time_property_->getFloat() && robot_state_needs_render_) ||
+       planning_scene_needs_render_))
   {
     renderPlanningScene();
     calculateOffsetPosition();
