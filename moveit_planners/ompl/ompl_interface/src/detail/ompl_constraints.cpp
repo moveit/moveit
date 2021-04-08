@@ -277,11 +277,11 @@ OrientationConstraint::OrientationConstraint(const robot_model::RobotModelConstP
 
 void OrientationConstraint::parseConstraintMsg(const moveit_msgs::Constraints& constraints)
 {
-  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsing Orientation constraints for OMPL constrained state space.");
+  ROS_INFO_STREAM_NAMED(LOGNAME, "Parsing Orientation constraints for OMPL constrained state space.");
   assert(bounds_.size() == 0);
   bounds_ = orientationConstraintMsgToBoundVector(constraints.orientation_constraints.at(0));
-  ROS_DEBUG_NAMED(LOGNAME, "Parsed Orientation constraints");
-  ROS_DEBUG_STREAM_NAMED(LOGNAME,  bounds_);
+  ROS_INFO_NAMED(LOGNAME, "Parsed Orientation constraints");
+  ROS_INFO_STREAM_NAMED(LOGNAME,  bounds_);
   // ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsed rx / roll constraints" << bounds_[0]);
   // ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsed ry / pitch constraints" << bounds_[1]);
   // ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsed rz / yaw constraints" << bounds_[2]);
@@ -292,9 +292,14 @@ void OrientationConstraint::parseConstraintMsg(const moveit_msgs::Constraints& c
   // target_position_ << position.x, position.y, position.z;
   tf2::fromMsg(constraints.orientation_constraints.at(0).orientation,
                target_orientation_);
+  ROS_INFO_NAMED(LOGNAME, "Quaternion desired");
+  ROS_INFO_STREAM_NAMED(LOGNAME,  target_orientation_.x());
+  ROS_INFO_STREAM_NAMED(LOGNAME,  target_orientation_.y());
+  ROS_INFO_STREAM_NAMED(LOGNAME,  target_orientation_.z());
+  ROS_INFO_STREAM_NAMED(LOGNAME,  target_orientation_.w());
 
   link_name_ = constraints.orientation_constraints.at(0).link_name;
-  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Orientation constraints applied to link: " << link_name_);
+  ROS_INFO_STREAM_NAMED(LOGNAME, "Orientation constraints applied to link: " << link_name_);
 }
 
 
@@ -392,8 +397,9 @@ std::shared_ptr<BaseConstraint> createOMPLConstraint(const robot_model::RobotMod
   }
   else if (num_ori_con > 0)
   {
-    ROS_ERROR_NAMED(LOGNAME, "OMPL is using orientation constraints.");
-    auto ori_con = std::make_shared<OrientationConstraint>(robot_model, group, num_dofs);
+    ROS_INFO_NAMED(LOGNAME, "OMPL is using orientation constraints.");
+    BaseConstraintPtr ori_con;
+    ori_con = std::make_shared<OrientationConstraint>(robot_model, group, num_dofs);
     ori_con->init(constraints);
     return ori_con;
   }
