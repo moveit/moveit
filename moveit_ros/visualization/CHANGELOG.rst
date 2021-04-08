@@ -2,6 +2,24 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2021-04-08)
+------------------
+* Merge pull request `#2588 <https://github.com/ros-planning/moveit/issues/2588>`_ from ubi-agni/fix-psd-display
+  Fix PlanningScene / MotionPlanning displays
+* Fix deadlock in PlanningSceneDisplay
+  Only trigger loadRobotModel() if display is enabled. Otherwise, it tries
+  to waitForMainLoopJobs(), which are never called because update() isn't called anymore.
+* Call renderPlanningScene() only if planning_scene_render\_ is valid
+* Keep MotionPlanningFrame hidden on Display::reset()
+* Fix formatting errors
+* Support multiple planning pipelines with MoveGroup via MoveItCpp (`#2127 <https://github.com/ros-planning/moveit/issues/2127>`_)
+* Allow selecting planning pipeline in RViz MotionPlanningDisplay
+  * Format default pipeline / planner as bold
+  Co-Authored-By: Robert Haschke <rhaschke@users.noreply.github.com>
+* Catch exceptions during RobotModel loading in rviz (`#2468 <https://github.com/ros-planning/moveit/issues/2468>`_)
+* Fix QObject::connect: Cannot queue arguments of type 'QVector<int>' (`#2392 <https://github.com/ros-planning/moveit/issues/2392>`_)
+* Contributors: Henning Kayser, Michael Görner, Robert Haschke, Simon Schmeisser, Tyler Weaver
+
 1.1.1 (2020-10-13)
 ------------------
 * [feature] Clean up Rviz Motion Planning plugin, add tooltips (`#2310 <https://github.com/ros-planning/moveit/issues/2310>`_)
