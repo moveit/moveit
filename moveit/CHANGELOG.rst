@@ -2,6 +2,11 @@
 Changelog for package moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2021-04-08)
+------------------
+* Fix formatting errors
+* Contributors: Tyler Weaver
+
 1.1.1 (2020-10-13)
 ------------------
 * [feature][visualization] Clean up Rviz Motion Planning plugin, add tooltips (`#2310 <https://github.com/ros-planning/moveit/issues/2310>`_)

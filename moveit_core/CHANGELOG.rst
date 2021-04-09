@@ -2,6 +2,28 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2021-04-08)
+------------------
+* Make setToIKSolverFrame accessible again (`#2580 <https://github.com/ros-planning/moveit/issues/2580>`_)
+* Python bindings for moveit_core (`#2547 <https://github.com/ros-planning/moveit/issues/2547>`_)
+* Fix formatting errors
+* add get_active_joint_names (`#2533 <https://github.com/ros-planning/moveit/issues/2533>`_)
+* Update doxygen comments for distance() and interpolate() (`#2528 <https://github.com/ros-planning/moveit/issues/2528>`_)
+* Replaced eigen+kdl conversions with tf2_eigen + tf2_kdl (`#2472 <https://github.com/ros-planning/moveit/issues/2472>`_)
+* Fix logic, improve function comment for clearDiffs() (`#2497 <https://github.com/ros-planning/moveit/issues/2497>`_)
+* Clean up collision-related log statements (`#2480 <https://github.com/ros-planning/moveit/issues/2480>`_)
+* Fix RobotState::dropAccelerations/dropEffort to not drop velocities (`#2478 <https://github.com/ros-planning/moveit/issues/2478>`_)
+* Provide a function to set the position of active joints in a JointModelGroup (`#2456 <https://github.com/ros-planning/moveit/issues/2456>`_)
+* Fix doxygen documentation for setToIKSolverFrame (`#2461 <https://github.com/ros-planning/moveit/issues/2461>`_)
+* Fix validation of orientation constraints (`#2434 <https://github.com/ros-planning/moveit/issues/2434>`_)
+* RobotModelBuilder: Add parameter to specify the joint rotation axis
+* RobotModelBuilder: Allow adding end effectors (`#2454 <https://github.com/ros-planning/moveit/issues/2454>`_)
+* Delete CollisionRequest min_cost_density
+* Fix OrientationConstraint::decide (`#2414 <https://github.com/ros-planning/moveit/issues/2414>`_)
+* Changed processing_thread\_ spin to use std::make_unique instead of new (`#2412 <https://github.com/ros-planning/moveit/issues/2412>`_)
+* Update collision-related comments (`#2382 <https://github.com/ros-planning/moveit/issues/2382>`_) (`#2388 <https://github.com/ros-planning/moveit/issues/2388>`_)
+* Contributors: AndyZe, JafarAbdi, Michael Görner, Peter Mitrano, Robert Haschke, Simon Schmeisser, Stuart Anderson, Thomas G, Tyler Weaver, petkovich, sevangelatos
+
 1.1.1 (2020-10-13)
 ------------------
 * [feature] Handle multiple link libraries for FCL (`#2325 <https://github.com/ros-planning/moveit/issues/2325>`_)

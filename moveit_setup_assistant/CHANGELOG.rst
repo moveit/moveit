@@ -2,6 +2,18 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2021-04-08)
+------------------
+* Fix formatting errors
+* Fix segfault in MSA (`#2564 <https://github.com/ros-planning/moveit/issues/2564>`_)
+* Support multiple planning pipelines with MoveGroup via MoveItCpp (`#2127 <https://github.com/ros-planning/moveit/issues/2127>`_)
+* Update MSA launch templates for multi-pipeline support
+* Missing RViz and moveit_simple_controller_manager dependencies in MSA template (`#2455 <https://github.com/ros-planning/moveit/issues/2455>`_)
+* Fix empty sequence in moveit_setup_assistant (`#2406 <https://github.com/ros-planning/moveit/issues/2406>`_)
+* Add Pilz industrial motion planner (`#1893 <https://github.com/ros-planning/moveit/issues/1893>`_)
+* MSA launch files: fix indentation (`#2371 <https://github.com/ros-planning/moveit/issues/2371>`_)
+* Contributors: Christian Henkel, David V. Lu!!, Henning Kayser, Michael Görner, Tyler Weaver
+
 1.1.1 (2020-10-13)
 ------------------
 * [feature] Allow showing both, visual and collision geometry (`#2352 <https://github.com/ros-planning/moveit/issues/2352>`_)

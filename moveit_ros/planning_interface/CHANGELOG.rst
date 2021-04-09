@@ -2,6 +2,21 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2021-04-08)
+------------------
+* Fix formatting errors
+* Support multiple planning pipelines with MoveGroup via MoveItCpp (`#2127 <https://github.com/ros-planning/moveit/issues/2127>`_)
+* Move moveit_cpp to moveit_ros_planning
+* Add get_active_joint_names (`#2533 <https://github.com/ros-planning/moveit/issues/2533>`_)
+* Add debugging log statement for a common error (`#2509 <https://github.com/ros-planning/moveit/issues/2509>`_)
+* Replaced eigen+kdl conversions with tf2_eigen + tf2_kdl (`#2472 <https://github.com/ros-planning/moveit/issues/2472>`_)
+* Improve robustness of subframes test (`#2488 <https://github.com/ros-planning/moveit/issues/2488>`_)
+* Improve robustness of move group interface test (`#2484 <https://github.com/ros-planning/moveit/issues/2484>`_)
+* Fix scaling factor parameter names (`#2452 <https://github.com/ros-planning/moveit/issues/2452>`_)
+* Python interface improvements. Fix `#1966 <https://github.com/ros-planning/moveit/issues/1966>`_, add enforceBounds (`#2356 <https://github.com/ros-planning/moveit/issues/2356>`_)
+* Unit Test for ByteString-based ROS msg conversion (`#2362 <https://github.com/ros-planning/moveit/issues/2362>`_)
+* Contributors: Bjar Ne, Boston Cleek, Henning Kayser, Peter Mitrano, Shota Aoki, Tyler Weaver, petkovich
+
 1.1.1 (2020-10-13)
 ------------------
 * [feature] moveit_cpp: more informative error message, cover another potential failure condition. (`#2336 <https://github.com/ros-planning/moveit/issues/2336>`_)

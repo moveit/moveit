@@ -2,6 +2,14 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2021-04-08)
+------------------
+* Fix formatting errors
+* Add utility functions to Python PSI: add/detach objects, apply_planning_scene() (`#2532 <https://github.com/ros-planning/moveit/issues/2532>`_)
+* add get_active_joint_names (`#2533 <https://github.com/ros-planning/moveit/issues/2533>`_)
+* Add get_current_state_bounded(), get_current_state(), enforce_bounds() to MoveGroupCommander (`#2356 <https://github.com/ros-planning/moveit/issues/2356>`_)
+* Contributors: Felix von Drigalski, Peter Mitrano, Tyler Weaver
+
 1.1.1 (2020-10-13)
 ------------------
 * [feature] MGC: Improve exception messages (`#2318 <https://github.com/ros-planning/moveit/issues/2318>`_)

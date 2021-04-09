@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_warehouse
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.2 (2021-04-08)
+------------------
+* Fix formatting errors
+* Contributors: Tyler Weaver
+
 1.1.1 (2020-10-13)
 ------------------
 * [maint] Cleanup MSA includes (`#2351 <https://github.com/ros-planning/moveit/issues/2351>`_)
