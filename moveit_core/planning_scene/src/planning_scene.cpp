@@ -38,6 +38,7 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
 #include <geometric_shapes/shape_operations.h>
+#include <moveit/collision_detection/occupancy_map.h>
 #include <moveit/collision_detection/collision_tools.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/robot_state/conversions.h>
@@ -503,6 +504,16 @@ void PlanningScene::checkCollision(const collision_detection::CollisionRequest& 
                                    const moveit::core::RobotState& robot_state,
                                    const collision_detection::AllowedCollisionMatrix& acm) const
 {
+  // lock the octomap if there is any as it might be shared with other PlanningScenes
+  collision_detection::OccMapTree::ReadLock lock;
+  collision_detection::CollisionEnv::ObjectConstPtr map = world_->getObject(OCTOMAP_NS);
+  if (map && map->shapes_.size() == 1)
+  {
+    const shapes::OcTree* o = static_cast<const shapes::OcTree*>(map->shapes_[0].get());
+    const collision_detection::OccMapTree* occ = static_cast<const collision_detection::OccMapTree*>(o->octree.get());
+    lock = occ->reading();
+  }
+
   // check collision with the world using the padded version
   getCollisionEnv()->checkRobotCollision(req, res, robot_state, acm);
 

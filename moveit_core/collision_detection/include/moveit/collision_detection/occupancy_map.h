@@ -86,7 +86,7 @@ public:
   using ReadLock = boost::shared_lock<boost::shared_mutex>;
   using WriteLock = boost::unique_lock<boost::shared_mutex>;
 
-  ReadLock reading()
+  ReadLock reading() const
   {
     return ReadLock(tree_mutex_);
   }
@@ -109,7 +109,7 @@ public:
   }
 
 private:
-  boost::shared_mutex tree_mutex_;
+  mutable boost::shared_mutex tree_mutex_;
   boost::function<void()> update_callback_;
 };
 
