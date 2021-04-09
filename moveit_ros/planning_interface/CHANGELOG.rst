@@ -7,8 +7,7 @@ Changelog for package moveit_ros_planning_interface
 * Fix formatting errors
 * Support multiple planning pipelines with MoveGroup via MoveItCpp (`#2127 <https://github.com/ros-planning/moveit/issues/2127>`_)
 * Move moveit_cpp to moveit_ros_planning
-  Deprecate namespace moveit::planning_interface:: in favor of moveit_cpp::
-* add get_active_joint_names (`#2533 <https://github.com/ros-planning/moveit/issues/2533>`_)
+* Add get_active_joint_names (`#2533 <https://github.com/ros-planning/moveit/issues/2533>`_)
 * Add debugging log statement for a common error (`#2509 <https://github.com/ros-planning/moveit/issues/2509>`_)
 * Replaced eigen+kdl conversions with tf2_eigen + tf2_kdl (`#2472 <https://github.com/ros-planning/moveit/issues/2472>`_)
 * Improve robustness of subframes test (`#2488 <https://github.com/ros-planning/moveit/issues/2488>`_)

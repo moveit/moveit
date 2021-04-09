@@ -5,17 +5,9 @@ Changelog for package moveit_commander
 1.1.2 (2021-04-08)
 ------------------
 * Fix formatting errors
-* Add utility functions to Python PSI (`#2532 <https://github.com/ros-planning/moveit/issues/2532>`_)
-  * Add/detach objects through Python PSI
-  * Add missing apply_planning_scene function (cpp-side already existed)
+* Add utility functions to Python PSI: add/detach objects, apply_planning_scene() (`#2532 <https://github.com/ros-planning/moveit/issues/2532>`_)
 * add get_active_joint_names (`#2533 <https://github.com/ros-planning/moveit/issues/2533>`_)
-  add get_active_joint_names and getActiveJointModelNames to Python and C++, respectively.
-  To keep calling costs constant we add the additional vector<string> to the RobotModel class.
-  Co-authored-by: Peter Mitrano <pmitrano@armstorm>
-* Python interface improvements. Fix `#1966 <https://github.com/ros-planning/moveit/issues/1966>`_, add enforceBounds (`#2356 <https://github.com/ros-planning/moveit/issues/2356>`_)
-  * implement get state and get state bounded
-  * add enforceBounds
-  Co-authored-by: Peter <pmitrano@storm20.04>
+* Add get_current_state_bounded(), get_current_state(), enforce_bounds() to MoveGroupCommander (`#2356 <https://github.com/ros-planning/moveit/issues/2356>`_)
 * Contributors: Felix von Drigalski, Peter Mitrano, Tyler Weaver
 
 1.1.1 (2020-10-13)

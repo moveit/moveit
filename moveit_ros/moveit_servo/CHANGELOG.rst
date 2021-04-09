@@ -5,16 +5,16 @@ Changelog for package moveit_servo
 1.1.2 (2021-04-08)
 ------------------
 * Fix formatting errors
-* [Servo] Halt Servo command on Pose Tracking stop (`#2501 <https://github.com/ros-planning/moveit/issues/2501>`_)
+* Halt Servo command on Pose Tracking stop (`#2501 <https://github.com/ros-planning/moveit/issues/2501>`_)
 * stop_requested\_ flag clearing fix (`#2537 <https://github.com/ros-planning/moveit/issues/2537>`_)
-* Servo: add missing include (`#2519 <https://github.com/ros-planning/moveit/issues/2519>`_)
+* Add missing include (`#2519 <https://github.com/ros-planning/moveit/issues/2519>`_)
 * Refactor Servo velocity bounds enforcement (`#2471 <https://github.com/ros-planning/moveit/issues/2471>`_)
 * Protect paused\_ flag, for thread safety (`#2494 <https://github.com/ros-planning/moveit/issues/2494>`_)
 * Do not break out of loop -- need to update low pass filters (`#2496 <https://github.com/ros-planning/moveit/issues/2496>`_)
-* [Servo] Fix initial angle error is always 0 (`#2464 <https://github.com/ros-planning/moveit/issues/2464>`_)
+* Fix initial angle error is always 0 (`#2464 <https://github.com/ros-planning/moveit/issues/2464>`_)
 * Add an important sleep in Servo pose tracking (`#2463 <https://github.com/ros-planning/moveit/issues/2463>`_)
 * Prevent moveit_servo transforms between fixed frames from causing timeout (`#2418 <https://github.com/ros-planning/moveit/issues/2418>`_)
-* [feature] Low latency mode (`#2401 <https://github.com/ros-planning/moveit/issues/2401>`_)
+* Low latency mode (`#2401 <https://github.com/ros-planning/moveit/issues/2401>`_)
 * Move timer initialization down to fix potential race condition
 * Fix pose tracking race condition (`#2395 <https://github.com/ros-planning/moveit/issues/2395>`_)
 * Cleanup current state handling in servo (`#2372 <https://github.com/ros-planning/moveit/issues/2372>`_)

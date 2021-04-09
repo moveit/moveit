@@ -10,7 +10,6 @@ Changelog for package moveit_core
 * add get_active_joint_names (`#2533 <https://github.com/ros-planning/moveit/issues/2533>`_)
 * Update doxygen comments for distance() and interpolate() (`#2528 <https://github.com/ros-planning/moveit/issues/2528>`_)
 * Replaced eigen+kdl conversions with tf2_eigen + tf2_kdl (`#2472 <https://github.com/ros-planning/moveit/issues/2472>`_)
-  Replaced eigen_conversions and kdl_conversions with modern tf2 variants: tf2_eigen and tf2_kdl
 * Fix logic, improve function comment for clearDiffs() (`#2497 <https://github.com/ros-planning/moveit/issues/2497>`_)
 * Clean up collision-related log statements (`#2480 <https://github.com/ros-planning/moveit/issues/2480>`_)
 * Fix RobotState::dropAccelerations/dropEffort to not drop velocities (`#2478 <https://github.com/ros-planning/moveit/issues/2478>`_)
