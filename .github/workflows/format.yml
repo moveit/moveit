@@ -10,7 +10,7 @@ on:
 
 jobs:
   pre-commit:
-    name: Format
+    name: pre-commit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
