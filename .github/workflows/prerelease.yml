@@ -1,0 +1,43 @@
+# This config uses industrial_ci (https://github.com/ros-industrial/industrial_ci.git).
+# For troubleshooting, see readme (https://github.com/ros-industrial/industrial_ci/blob/master/README.rst)
+
+name: pre-release
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  default:
+    strategy:
+      matrix:
+        distro: [noetic]
+
+    env:
+      ROS_DISTRO: ${{ matrix.distro }}
+      PRERELEASE: true
+      BASEDIR: ${{ github.workspace }}/.work
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CACHE_PREFIX: "${{ matrix.env.IMAGE }}${{ matrix.env.CCOV && '-ccov' || '' }}"
+
+    if: github.event_name == 'workflow_dispatch'  # only allow manual triggering
+    name: "${{ matrix.distro }}"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: cache ccache
+        uses: pat-s/always-upload-cache@v2.1.3
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ccache-${{ env.CACHE_PREFIX }}-${{ github.sha }}-${{ github.run_id }}
+          restore-keys: |
+            ccache-${{ env.CACHE_PREFIX }}-${{ github.sha }}
+            ccache-${{ env.CACHE_PREFIX }}
+      - name: industrial_ci
+        uses: tylerjw/industrial_ci@clang-tidy-modified-filter
+      - name: upload test artifacts (on failure)
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: test-results
+          path: ${{ env.BASEDIR }}/target_ws/**/test_results/**/*.xml
