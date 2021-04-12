@@ -123,6 +123,9 @@ protected:
     new collision_detection_bullet::BulletCastBVHManager()
   };
 
+  // Lock manager_ and manager_CCD_, for thread-safe collision tests
+  mutable std::mutex collision_env_mutex_;
+
   /** \brief Adds a world object to the collision managers */
   void addToManager(const World::Object* obj);
 
@@ -141,8 +144,5 @@ private:
   void notifyObjectChange(const ObjectConstPtr& obj, World::Action action);
 
   World::ObserverHandle observer_handle_;
-
-  // Lock the collision environment, for thread safety
-  mutable std::mutex collision_env_mutex_;
 };
 }  // namespace collision_detection
