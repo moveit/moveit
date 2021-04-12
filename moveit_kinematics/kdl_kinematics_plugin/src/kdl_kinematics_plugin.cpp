@@ -535,14 +535,19 @@ bool KDLKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_nam
     return false;
   }
 
-  KDL::Frame p_out;
   KDL::JntArray jnt_pos_in(dimension_);
   jnt_pos_in.data = Eigen::Map<const Eigen::VectorXd>(joint_angles.data(), joint_angles.size());
 
   bool valid = true;
   for (unsigned int i = 0; i < poses.size(); i++)
   {
-    if (fk_solver_->JntToCart(jnt_pos_in, p_out) >= 0)
+    KDL::Frame p_out;
+
+    int link_index = joint_model_group_->getLinkModel(link_names[i])->getLinkIndex();
+
+    ROS_INFO("Link index = %d", link_index);
+
+    if (fk_solver_->JntToCart(jnt_pos_in, p_out, link_index) >= 0)
     {
       poses[i] = tf2::toMsg(p_out);
     }
