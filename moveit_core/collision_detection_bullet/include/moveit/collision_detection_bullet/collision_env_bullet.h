@@ -39,6 +39,7 @@
 #include <moveit/collision_detection/collision_env.h>
 #include <moveit/collision_detection_bullet/bullet_integration/bullet_discrete_bvh_manager.h>
 #include <moveit/collision_detection_bullet/bullet_integration/bullet_cast_bvh_manager.h>
+#include <mutex>
 
 namespace collision_detection
 {
@@ -113,14 +114,17 @@ protected:
   void addLinkAsCollisionObject(const urdf::LinkSharedPtr& link);
 
   /** \brief Handles self collision checks */
-  mutable collision_detection_bullet::BulletDiscreteBVHManagerPtr manager_{
+  collision_detection_bullet::BulletDiscreteBVHManagerPtr manager_{
     new collision_detection_bullet::BulletDiscreteBVHManager()
   };
 
   /** \brief Handles continuous robot world collision checks */
-  mutable collision_detection_bullet::BulletCastBVHManagerPtr manager_CCD_{
+  collision_detection_bullet::BulletCastBVHManagerPtr manager_CCD_{
     new collision_detection_bullet::BulletCastBVHManager()
   };
+
+  // Lock manager_ and manager_CCD_, for thread-safe collision tests
+  mutable std::mutex collision_env_mutex_;
 
   /** \brief Adds a world object to the collision managers */
   void addToManager(const World::Object* obj);
