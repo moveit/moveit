@@ -834,9 +834,9 @@ void ServoCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory)
   // being 0 seconds in the past, the smallest supported timestep is added as time from start to the trajectory point.
   point.time_from_start.fromNSec(1);
 
-  if (parameters_->publish_joint_positions)
+  if (parameters_.publish_joint_positions)
     point.positions.resize(num_joints_);
-  if (parameters_->publish_joint_velocities)
+  if (parameters_.publish_joint_velocities)
     point.velocities.resize(num_joints_);
 
   // Assert the following loop is safe to execute
