@@ -41,7 +41,7 @@ namespace occupancy_map_monitor
 {
 static const std::string LOGNAME = "lazy_free_space_updater";
 
-LazyFreeSpaceUpdater::LazyFreeSpaceUpdater(const OccMapTreePtr& tree, unsigned int max_batch_size)
+LazyFreeSpaceUpdater::LazyFreeSpaceUpdater(const collision_detection::OccMapTreePtr& tree, unsigned int max_batch_size)
   : tree_(tree)
   , running_(true)
   , max_batch_size_(max_batch_size)
