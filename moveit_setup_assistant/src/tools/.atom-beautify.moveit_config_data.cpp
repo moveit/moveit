@@ -1178,8 +1178,7 @@ bool MoveItConfigData::outputJointLimitsYAML(const std::string& file_path)
       emitter << YAML::Comment("    has_position_limits: false") << YAML::Newline;
 
     // Output property
-    std::string max_position_str =
-        "    max_position: " + moveit::core::toString(std::min(fabs(b.max_position_), fabs(b.min_position_)));
+    std::string max_position_str = "    max_position: " + moveit::core::toString(std::min(fabs(b.max_position_), fabs(b.min_position_)));
     emitter << YAML::Comment(max_position_str) << YAML::Newline;
 
     // Output property
@@ -1189,8 +1188,7 @@ bool MoveItConfigData::outputJointLimitsYAML(const std::string& file_path)
       emitter << YAML::Comment("    has_velocity_limits: false") << YAML::Newline;
 
     // Output property
-    std::string max_velocity_str =
-        "    max_velocity: " + moveit::core::toString(std::min(fabs(b.max_velocity_), fabs(b.min_velocity_)));
+    std::string max_velocity_str = "    max_velocity: " + moveit::core::toString(std::min(fabs(b.max_velocity_), fabs(b.min_velocity_)));
     emitter << YAML::Comment(max_velocity_str) << YAML::Newline;
 
     // Output property
@@ -1200,10 +1198,9 @@ bool MoveItConfigData::outputJointLimitsYAML(const std::string& file_path)
       emitter << YAML::Comment("    has_acceleration_limits: false") << YAML::Newline;
 
     // Output property
-    std::string max_acceleration_str =
-        "    max_acceleration: " +
-        moveit::core::toString(std::min(fabs(b.max_acceleration_), fabs(b.min_acceleration_)));
+    std::string max_acceleration_str = "    max_acceleration: " + moveit::core::toString(std::min(fabs(b.max_acceleration_), fabs(b.min_acceleration_)));
     emitter << YAML::Comment(max_acceleration_str) << YAML::Newline;
+
   }
 
   std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
