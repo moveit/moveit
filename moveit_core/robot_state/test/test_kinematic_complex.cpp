@@ -233,16 +233,17 @@ TEST_F(LoadPlanningModelsPr2, FullTest)
   moveit::core::RobotState ks2(robot_model);
   ks2.setToDefaultValues();
 
+  const auto identity = Eigen::Isometry3d::Identity();
   std::vector<shapes::ShapeConstPtr> shapes;
   EigenSTL::vector_Isometry3d poses;
   shapes::Shape* shape = new shapes::Box(.1, .1, .1);
   shapes.push_back(shapes::ShapeConstPtr(shape));
-  poses.push_back(Eigen::Isometry3d::Identity());
+  poses.push_back(identity);
   std::set<std::string> touch_links;
 
   trajectory_msgs::JointTrajectory empty_state;
   moveit::core::AttachedBody* attached_body = new moveit::core::AttachedBody(
-      robot_model->getLinkModel("r_gripper_palm_link"), "box", poses[0], shapes, poses, touch_links, empty_state);
+      robot_model->getLinkModel("r_gripper_palm_link"), "box", identity, shapes, poses, touch_links, empty_state);
   ks.attachBody(attached_body);
 
   std::vector<const moveit::core::AttachedBody*> attached_bodies_1;
