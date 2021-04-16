@@ -88,8 +88,8 @@ void World::addToObject(const std::string& object_id, const Eigen::Isometry3d& p
     action |= CREATE;
     obj->pose_ = pose;
   }
-
-  ensureUnique(obj);
+  else
+    ensureUnique(obj);
 
   for (std::size_t i = 0; i < shapes.size(); ++i)
     addToObjectInternal(obj, shapes[i], shape_poses[i]);
@@ -246,27 +246,30 @@ bool World::moveObject(const std::string& object_id, const Eigen::Isometry3d& tr
     return false;
   if (transform.isApprox(Eigen::Isometry3d::Identity()))
     return true;  // object already at correct location
-  ensureUnique(it->second);
-  ASSERT_ISOMETRY(transform)  // unsanitized input, could contain a non-isometry
-  const Eigen::Isometry3d new_pose = transform * it->second->pose_;
-  setObjectPose(object_id, new_pose);
 
-  updateGlobalPosesInternal(it->second);
-  notify(it->second, MOVE_SHAPE);
-  return true;
+  ASSERT_ISOMETRY(transform)  // unsanitized input, could contain a non-isometry
+  return setObjectPose(object_id, transform * it->second->pose_);
 }
 
-bool World::moveObjectAbsolute(const std::string& object_id, const Eigen::Isometry3d& transform)
+bool World::setObjectPose(const std::string& object_id, const Eigen::Isometry3d& pose)
 {
-  auto it = objects_.find(object_id);
-  if (it == objects_.end())
-    return false;
-  ASSERT_ISOMETRY(transform)  // unsanitized input, could contain a non-isometry
-  ensureUnique(it->second);
-  setObjectPose(object_id, transform);  // TODO(felixvd): This can be optimized to use it->second
-  updateGlobalPosesInternal(it->second);
+  ASSERT_ISOMETRY(pose);  // unsanitized input, could contain a non-isometry
+  ObjectPtr& obj = objects_[object_id];
+  int action;
+  if (!obj)
+  {
+    obj = std::make_shared<Object>(object_id);
+    action = CREATE;
+  }
+  else
+  {
+    ensureUnique(obj);
+    action = obj->shapes_.empty() ? 0 : MOVE_SHAPE;
+  }
 
-  notify(it->second, MOVE_SHAPE);
+  obj->pose_ = pose;
+  updateGlobalPosesInternal(obj);
+  notify(obj, Action(action));
   return true;
 }
 
@@ -331,23 +334,6 @@ bool World::setSubframesOfObject(const std::string& object_id, const moveit::cor
   obj_pair->second->subframe_poses_ = subframe_poses;
 
   updateGlobalPosesInternal(obj_pair->second, false, true);
-  return true;
-}
-
-bool World::setObjectPose(const std::string& object_id, const Eigen::Isometry3d& pose)
-{
-  ASSERT_ISOMETRY(pose);  // unsanitized input, could contain a non-isometry
-  ObjectPtr& obj = objects_[object_id];
-  int action = 0;
-  if (!obj)
-  {
-    obj.reset(new Object(object_id));
-    action |= CREATE;
-  }
-  ensureUnique(obj);
-  obj->pose_ = pose;
-  updateGlobalPosesInternal(obj);
-  notify(obj, Action(action));
   return true;
 }
 

@@ -443,7 +443,7 @@ TEST(World, ObjectPoseAndSubframes)
   EXPECT_EQ(2.0, obj->shape_poses_[1](2, 3));
 
   // Move object absolute, check object pose
-  world.moveObjectAbsolute("mix1", Eigen::Isometry3d(Eigen::Translation3d(0, 0, 1)));
+  world.setObjectPose("mix1", Eigen::Isometry3d(Eigen::Translation3d(0, 0, 1)));
   pose = world.getTransform("mix1", found_ok);
   EXPECT_TRUE(found_ok);
   EXPECT_EQ(1.0, pose(2, 3));  // z

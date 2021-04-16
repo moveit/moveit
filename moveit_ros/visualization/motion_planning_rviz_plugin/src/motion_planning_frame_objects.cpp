@@ -401,7 +401,7 @@ void MotionPlanningFrame::updateCollisionObjectPose(bool update_marker_position)
            Eigen::AngleAxisd(ui_->object_ry->value(), Eigen::Vector3d::UnitY()) *
            Eigen::AngleAxisd(ui_->object_rz->value(), Eigen::Vector3d::UnitZ()));
 
-      ps->getWorldNonConst()->moveObjectAbsolute(obj->id_, p);
+      ps->getWorldNonConst()->setObjectPose(obj->id_, p);
       planning_display_->queueRenderSceneGeometry();
       setLocalSceneEdited();
 
