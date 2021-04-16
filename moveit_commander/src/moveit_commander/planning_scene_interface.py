@@ -93,36 +93,26 @@ class PlanningSceneInterface(object):
                 self._pub_co.publish(collision_object)
 
     def add_object(self, collision_object):
-        """
-        Add an object to the planning scene
-        """
+        """ Add an object to the planning scene """
         self.__submit(collision_object, attach=False)
 
     def add_sphere(self, name, pose, radius=1):
-        """
-        Add a sphere to the planning scene
-        """
+        """ Add a sphere to the planning scene """
         co = self.__make_sphere(name, pose, radius)
         self.__submit(co, attach=False)
 
     def add_cylinder(self, name, pose, height, radius):
-        """
-        Add a cylinder to the planning scene
-        """
+        """ Add a cylinder to the planning scene """
         co = self.__make_cylinder(name, pose, height, radius)
         self.__submit(co, attach=False)
 
     def add_mesh(self, name, pose, filename, size=(1, 1, 1)):
-        """
-        Add a mesh to the planning scene
-        """
+        """ Add a mesh to the planning scene """
         co = self.__make_mesh(name, pose, filename, size)
         self.__submit(co, attach=False)
 
     def add_box(self, name, pose, size=(1, 1, 1)):
-        """
-        Add a box to the planning scene
-        """
+        """ Add a box to the planning scene """
         co = self.__make_box(name, pose, size)
         self.__submit(co, attach=False)
 
@@ -140,9 +130,7 @@ class PlanningSceneInterface(object):
         self.__submit(co, attach=False)
 
     def attach_object(self, attached_collision_object):
-        """
-        Attach an object in the planning scene
-        """
+        """ Attach an object in the planning scene """
         self.__submit(attached_collision_object, attach=True)
 
     def attach_mesh(
@@ -267,7 +255,7 @@ class PlanningSceneInterface(object):
     @staticmethod
     def __make_existing(name):
         """
-        Create an empty Collision Object, used when the object already exists
+        Create an empty Collision Object. Used when the object already exists
         """
         co = CollisionObject()
         co.id = name
