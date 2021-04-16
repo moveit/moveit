@@ -172,6 +172,11 @@ class PlanningSceneInterface(object):
             aco.touch_links = [link]
         self.__submit(aco, attach=True)
 
+    def clear(self):
+        """ Remove all objects from the planning scene """
+        self.remove_attached_object()
+        self.remove_world_object()
+
     def remove_world_object(self, name=None):
         """
         Remove an object from planning scene, or all if no name is provided
