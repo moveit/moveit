@@ -186,7 +186,10 @@ public:
    * This function makes repeated calls to addToObjectInternal() to add the
    * shapes one by one. */
   void addToObject(const std::string& object_id, const std::vector<shapes::ShapeConstPtr>& shapes,
-                   const EigenSTL::vector_Isometry3d& shape_poses);
+                   const EigenSTL::vector_Isometry3d& shape_poses)
+  {
+    addToObject(object_id, Eigen::Isometry3d::Identity(), shapes, shape_poses);
+  }
 
   /** \brief Add a pose and shape to an object.
    * If the object already exists, this call will add the shape to the object
@@ -194,15 +197,20 @@ public:
    * specified shape is added. This calls addToObjectInternal().
    * shape_pose is defined relative to the object's pose, not to the world frame. */
   void addToObject(const std::string& object_id, const Eigen::Isometry3d& pose, const shapes::ShapeConstPtr& shape,
-                   const Eigen::Isometry3d& shape_pose);
+                   const Eigen::Isometry3d& shape_pose)
+  {
+    addToObject(object_id, pose, { shape }, { shape_pose });
+  }
 
   /** \brief Add a shape to an object.
    * If the object already exists, this call will add the shape to the object
    * at the specified pose. Otherwise, the object is created and the
    * specified shape is added. This calls addToObjectInternal().
    * shape_pose is defined relative to the object's pose, not to the world frame. */
-  void addToObject(const std::string& object_id, const shapes::ShapeConstPtr& shape,
-                   const Eigen::Isometry3d& shape_pose);
+  void addToObject(const std::string& object_id, const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& shape_pose)
+  {
+    addToObject(object_id, Eigen::Isometry3d::Identity(), { shape }, { shape_pose });
+  }
 
   /** \brief Update the pose of a shape in an object. Shape equality is
    * verified by comparing pointers. Returns true on success. */

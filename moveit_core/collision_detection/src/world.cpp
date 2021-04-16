@@ -94,40 +94,7 @@ void World::addToObject(const std::string& object_id, const Eigen::Isometry3d& p
   for (std::size_t i = 0; i < shapes.size(); ++i)
     addToObjectInternal(obj, shapes[i], shape_poses[i]);
 
-  updateGlobalPosesInternal(obj, true, false);
   notify(obj, Action(action));
-}
-
-void World::addToObject(const std::string& object_id, const std::vector<shapes::ShapeConstPtr>& shapes,
-                        const EigenSTL::vector_Isometry3d& shape_poses)
-{
-  addToObject(object_id, Eigen::Isometry3d::Identity(), shapes, shape_poses);
-}
-
-void World::addToObject(const std::string& object_id, const Eigen::Isometry3d& pose, const shapes::ShapeConstPtr& shape,
-                        const Eigen::Isometry3d& shape_pose)
-{
-  int action = ADD_SHAPE;
-
-  ObjectPtr& obj = objects_[object_id];
-  if (!obj)
-  {
-    obj = std::make_shared<Object>(object_id);
-    action |= CREATE;
-    obj->pose_ = pose;
-  }
-
-  ensureUnique(obj);
-  addToObjectInternal(obj, shape, shape_pose);
-  updateGlobalPosesInternal(obj, true, false);
-
-  notify(obj, Action(action));
-}
-
-void World::addToObject(const std::string& object_id, const shapes::ShapeConstPtr& shape,
-                        const Eigen::Isometry3d& shape_pose)
-{
-  addToObject(object_id, Eigen::Isometry3d::Identity(), shape, shape_pose);
 }
 
 std::vector<std::string> World::getObjectIds() const
