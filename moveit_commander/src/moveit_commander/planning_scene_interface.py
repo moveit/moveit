@@ -182,13 +182,18 @@ class PlanningSceneInterface(object):
             co.id = name
         self.__submit(co, attach=False)
 
-    def remove_attached_object(self, link, name=None):
+    def remove_attached_object(self, link=None, name=None):
         """
-        Remove an attached object from planning scene, or all objects attached to this link if no name is provided
+        Remove an attached object from the robot, or all objects attached to the link if no name is provided,
+        or all attached objects in the scene if neither link nor name are provided.
+
+        Removed attached objects remain in the scene as world objects.
+        Call remove_world_object afterwards to remove them from the scene.
         """
         aco = AttachedCollisionObject()
         aco.object.operation = CollisionObject.REMOVE
-        aco.link_name = link
+        if link is not None:
+            aco.link_name = link
         if name is not None:
             aco.object.id = name
         self.__submit(aco, attach=True)
