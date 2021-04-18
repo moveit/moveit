@@ -1616,11 +1616,12 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
       {
         const moveit::core::AttachedBody* ab = robot_state_->getAttachedBody(object.object.id);
 
-        bool pose_msg_is_populated = (object.object.pose.position.x == 0 && object.object.pose.position.y == 0 &&
-                                      object.object.pose.position.z == 0 && object.object.pose.orientation.x == 0 &&
-                                      object.object.pose.orientation.y == 0 && object.object.pose.orientation.z == 0 &&
-                                      object.object.pose.orientation.w == 0);
-        object_pose_in_link = pose_msg_is_populated ? ab->getPose() : object_pose_in_link;
+        // Allow overriding the body's pose if provided, otherwise keep the old one
+        if (object.object.pose.position.x == 0 && object.object.pose.position.y == 0 &&
+            object.object.pose.position.z == 0 && object.object.pose.orientation.x == 0 &&
+            object.object.pose.orientation.y == 0 && object.object.pose.orientation.z == 0 &&
+            object.object.pose.orientation.w == 0)
+          object_pose_in_link = ab->getPose();  // Keep old pose
 
         shapes.insert(shapes.end(), ab->getShapes().begin(), ab->getShapes().end());
         shape_poses.insert(shape_poses.end(), ab->getShapePoses().begin(), ab->getShapePoses().end());
