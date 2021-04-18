@@ -114,8 +114,8 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
     for (std::size_t j = 0; j < object->shapes_.size(); ++j)
     {
       render_shapes_->renderShape(planning_scene_geometry_node_, object->shapes_[j].get(),
-                                  scene->getWorld()->getGlobalShapeTransform(id, j), octree_voxel_rendering,
-                                  octree_color_mode, color, alpha);
+                                  object->global_shape_poses_[j], octree_voxel_rendering, octree_color_mode, color,
+                                  alpha);
     }
   }
 }
