@@ -840,13 +840,10 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem* item)
     if (obj)
     {
       known_collision_objects_[item->type()].first = item_text;
-      const Eigen::Isometry3d pose = obj->pose_;
-      const moveit::core::FixedTransformsMap subframes = obj->subframe_poses_;  // Keep subframes
-
       ps->getWorldNonConst()->removeObject(obj->id_);
-      ps->getWorldNonConst()->addToObject(known_collision_objects_[item->type()].first, obj->shapes_, obj->shape_poses_);
-      ps->getWorldNonConst()->setObjectPose(obj->id_, pose);
-      ps->getWorldNonConst()->setSubframesOfObject(obj->id_, subframes);
+      ps->getWorldNonConst()->addToObject(known_collision_objects_[item->type()].first, obj->pose_, obj->shapes_,
+                                          obj->shape_poses_);
+      ps->getWorldNonConst()->setSubframesOfObject(obj->id_, obj->subframe_poses_);
       if (scene_marker_)
       {
         scene_marker_.reset();

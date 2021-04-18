@@ -455,8 +455,7 @@ void PlanningScene::pushDiffs(const PlanningScenePtr& scene)
       {
         const collision_detection::World::Object& obj = *world_->getObject(it.first);
         scene->world_->removeObject(obj.id_);
-        scene->world_->setObjectPose(obj.id_, obj.pose_);
-        scene->world_->addToObject(obj.id_, obj.shapes_, obj.shape_poses_);
+        scene->world_->addToObject(obj.id_, obj.pose_, obj.shapes_, obj.shape_poses_);
         if (hasObjectColor(it.first))
           scene->setObjectColor(it.first, getObjectColor(it.first));
         if (hasObjectType(it.first))
