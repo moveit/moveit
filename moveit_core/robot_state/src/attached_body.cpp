@@ -68,9 +68,7 @@ AttachedBody::AttachedBody(const LinkModel* parent_link_model, const std::string
     ASSERT_ISOMETRY(t.second)  // unsanitized input, could contain a non-isometry
   }
 
-  // TODO(felixvd): These are initialized as identity because the parent link transform is not
-  //                known to the AttachedBody. Is computeTransform called before they are used?
-  //                Otherwise they will not be correct.
+  // Global poses are initialized to identity to allow efficient Isometry calculations
   global_pose_.setIdentity();
   global_collision_body_transforms_.resize(shape_poses.size());
   for (Eigen::Isometry3d& global_collision_body_transform : global_collision_body_transforms_)
