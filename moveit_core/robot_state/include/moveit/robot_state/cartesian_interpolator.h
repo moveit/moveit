@@ -84,7 +84,7 @@ struct MaxEEFStep
   {
   }
 
-  MaxEEFStep(double translation) : translation(translation), rotation(3.5 * translation)  // 0.035 rad = 2 deg
+  MaxEEFStep(double step_size) : translation(step_size), rotation(3.5 * step_size)  // 0.035 rad = 2 deg
   {
   }
 
