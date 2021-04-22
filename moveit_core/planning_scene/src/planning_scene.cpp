@@ -851,6 +851,12 @@ bool PlanningScene::getOctomapMsg(octomap_msgs::OctomapWithPose& octomap) const
     if (map->shapes_.size() == 1)
     {
       const shapes::OcTree* o = static_cast<const shapes::OcTree*>(map->shapes_[0].get());
+
+      // lock the octomap if there is any as it might be shared with other PlanningScenes
+      collision_detection::OccMapTree::ReadLock lock;
+      const collision_detection::OccMapTree* occ = static_cast<const collision_detection::OccMapTree*>(o->octree.get());
+      lock = occ->reading();
+
       octomap_msgs::fullMapToMsg(*o->octree, octomap.octomap);
       octomap.origin = tf2::toMsg(map->shape_poses_[0]);
       return true;
