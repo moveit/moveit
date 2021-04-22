@@ -480,14 +480,7 @@ void PlanningScene::checkCollision(const collision_detection::CollisionRequest& 
                                    collision_detection::CollisionResult& res,
                                    const moveit::core::RobotState& robot_state) const
 {
-  // check collision with the world using the padded version
-  getCollisionEnv()->checkRobotCollision(req, res, robot_state, getAllowedCollisionMatrix());
-
-  if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
-  {
-    // do self-collision checking with the unpadded version of the robot
-    getCollisionEnvUnpadded()->checkSelfCollision(req, res, robot_state, getAllowedCollisionMatrix());
-  }
+  checkCollision(req, res, robot_state, getAllowedCollisionMatrix());
 }
 
 void PlanningScene::checkSelfCollision(const collision_detection::CollisionRequest& req,
