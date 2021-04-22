@@ -529,6 +529,16 @@ void PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionR
                                            const moveit::core::RobotState& robot_state,
                                            const collision_detection::AllowedCollisionMatrix& acm) const
 {
+  // lock the octomap if there is any as it might be shared with other PlanningScenes
+  collision_detection::OccMapTree::ReadLock lock;
+  collision_detection::CollisionEnv::ObjectConstPtr map = world_->getObject(OCTOMAP_NS);
+  if (map && map->shapes_.size() == 1)
+  {
+    const shapes::OcTree* o = static_cast<const shapes::OcTree*>(map->shapes_[0].get());
+    const collision_detection::OccMapTree* occ = static_cast<const collision_detection::OccMapTree*>(o->octree.get());
+    lock = occ->reading();
+  }
+
   // check collision with the world using the unpadded version
   getCollisionEnvUnpadded()->checkRobotCollision(req, res, robot_state, acm);
 
