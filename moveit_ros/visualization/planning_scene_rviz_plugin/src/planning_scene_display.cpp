@@ -203,7 +203,6 @@ void PlanningSceneDisplay::onInitialize()
 
 void PlanningSceneDisplay::reset()
 {
-  planning_scene_render_.reset();
   if (planning_scene_robot_)
     planning_scene_robot_->clear();
   Display::reset();
