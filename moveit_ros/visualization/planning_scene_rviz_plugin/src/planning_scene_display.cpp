@@ -539,12 +539,11 @@ void PlanningSceneDisplay::loadRobotModel()
     planning_scene_monitor_.swap(psm);
     planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanningSceneDisplay::sceneMonitorReceivedUpdate, this, _1));
     addMainLoopJob(boost::bind(&PlanningSceneDisplay::onRobotModelLoaded, this));
-    setStatus(rviz::StatusProperty::Ok, "PlanningScene", "Planning Scene Loaded Successfully");
     waitForAllMainLoopJobs();
   }
   else
   {
-    setStatus(rviz::StatusProperty::Error, "PlanningScene", "No Planning Scene Loaded");
+    addMainLoopJob([this]() { setStatus(rviz::StatusProperty::Error, "PlanningScene", "No Planning Scene Loaded"); });
   }
 
   model_is_loading_ = false;
@@ -569,6 +568,8 @@ void PlanningSceneDisplay::onRobotModelLoaded()
   bool old_state = scene_name_property_->blockSignals(true);
   scene_name_property_->setStdString(ps->getName());
   scene_name_property_->blockSignals(old_state);
+
+  setStatus(rviz::StatusProperty::Ok, "PlanningScene", "Planning Scene Loaded Successfully");
 }
 
 void PlanningSceneDisplay::onNewPlanningSceneState()
