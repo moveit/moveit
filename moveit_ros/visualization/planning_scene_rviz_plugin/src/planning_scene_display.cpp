@@ -64,7 +64,7 @@ namespace moveit_rviz_plugin
 // Base class contructor
 // ******************************************************************************************
 PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool show_scene_robot)
-  : Display(), model_is_loading_(false), planning_scene_needs_render_(true), current_scene_time_(0.0f)
+  : Display(), planning_scene_needs_render_(true), current_scene_time_(0.0f)
 {
   move_group_ns_property_ = new rviz::StringProperty("Move Group Namespace", "",
                                                      "The name of the ROS namespace in "
@@ -524,7 +524,6 @@ void PlanningSceneDisplay::loadRobotModel()
 {
   // wait for other robot loadRobotModel() calls to complete;
   boost::mutex::scoped_lock _(robot_model_loading_lock_);
-  model_is_loading_ = true;
 
   // we need to make sure the clearing of the robot model is in the main thread,
   // so that rendering operations do not have data removed from underneath,
@@ -545,8 +544,6 @@ void PlanningSceneDisplay::loadRobotModel()
   {
     addMainLoopJob([this]() { setStatus(rviz::StatusProperty::Error, "PlanningScene", "No Planning Scene Loaded"); });
   }
-
-  model_is_loading_ = false;
 }
 
 // This should always run in the main GUI thread!
