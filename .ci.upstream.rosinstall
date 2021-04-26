@@ -1,5 +1,0 @@
-# This file is intended for use by CI
-- git:
-    local-name: moveit_resources
-    uri: https://github.com/ros-planning/moveit_resources.git
-    version: master
