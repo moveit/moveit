@@ -64,7 +64,7 @@ namespace moveit_rviz_plugin
 // Base class contructor
 // ******************************************************************************************
 PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool show_scene_robot)
-  : Display(), model_is_loading_(false), planning_scene_needs_render_(true), current_scene_time_(0.0f)
+  : Display(), planning_scene_needs_render_(true), current_scene_time_(0.0f)
 {
   move_group_ns_property_ = new rviz::StringProperty("Move Group Namespace", "",
                                                      "The name of the ROS namespace in "
@@ -203,7 +203,6 @@ void PlanningSceneDisplay::onInitialize()
 
 void PlanningSceneDisplay::reset()
 {
-  planning_scene_render_.reset();
   if (planning_scene_robot_)
     planning_scene_robot_->clear();
   Display::reset();
@@ -524,7 +523,6 @@ void PlanningSceneDisplay::loadRobotModel()
 {
   // wait for other robot loadRobotModel() calls to complete;
   boost::mutex::scoped_lock _(robot_model_loading_lock_);
-  model_is_loading_ = true;
 
   // we need to make sure the clearing of the robot model is in the main thread,
   // so that rendering operations do not have data removed from underneath,
@@ -539,15 +537,12 @@ void PlanningSceneDisplay::loadRobotModel()
     planning_scene_monitor_.swap(psm);
     planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanningSceneDisplay::sceneMonitorReceivedUpdate, this, _1));
     addMainLoopJob(boost::bind(&PlanningSceneDisplay::onRobotModelLoaded, this));
-    setStatus(rviz::StatusProperty::Ok, "PlanningScene", "Planning Scene Loaded Successfully");
     waitForAllMainLoopJobs();
   }
   else
   {
-    setStatus(rviz::StatusProperty::Error, "PlanningScene", "No Planning Scene Loaded");
+    addMainLoopJob([this]() { setStatus(rviz::StatusProperty::Error, "PlanningScene", "No Planning Scene Loaded"); });
   }
-
-  model_is_loading_ = false;
 }
 
 // This should always run in the main GUI thread!
@@ -569,6 +564,8 @@ void PlanningSceneDisplay::onRobotModelLoaded()
   bool old_state = scene_name_property_->blockSignals(true);
   scene_name_property_->setStdString(ps->getName());
   scene_name_property_->blockSignals(old_state);
+
+  setStatus(rviz::StatusProperty::Ok, "PlanningScene", "Planning Scene Loaded Successfully");
 }
 
 void PlanningSceneDisplay::onNewPlanningSceneState()
