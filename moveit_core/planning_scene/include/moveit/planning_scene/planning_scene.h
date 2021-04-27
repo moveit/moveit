@@ -56,6 +56,18 @@
 #include <boost/concept_check.hpp>
 #include <memory>
 
+// Import/export for windows dll's and visibility for gcc shared libraries.
+
+#ifdef ROS_BUILD_SHARED_LIBS          // ros is being built around shared libraries
+#ifdef moveit_planning_scene_EXPORTS  // we are building a shared lib/dll
+#define MOVEIT_PLANNING_SCENE_DECL ROS_HELPER_EXPORT
+#else  // we are using shared lib/dll
+#define MOVEIT_PLANNING_SCENE_DECL ROS_HELPER_IMPORT
+#endif
+#else  // ros is being built around static libraries
+#define MOVEIT_PLANNING_SCENE_DECL
+#endif
+
 /** \brief This namespace includes the central class for representing planning contexts */
 namespace planning_scene
 {
@@ -98,8 +110,8 @@ public:
       const urdf::ModelInterfaceSharedPtr& urdf_model, const srdf::ModelConstSharedPtr& srdf_model,
       const collision_detection::WorldPtr& world = collision_detection::WorldPtr(new collision_detection::World()));
 
-  static const std::string OCTOMAP_NS;
-  static const std::string DEFAULT_SCENE_NAME;
+  static MOVEIT_PLANNING_SCENE_DECL const std::string OCTOMAP_NS;
+  static MOVEIT_PLANNING_SCENE_DECL const std::string DEFAULT_SCENE_NAME;
 
   ~PlanningScene();
 

@@ -72,10 +72,7 @@ template <class CollisionEnvType, class CollisionDetectorAllocatorType>
 class CollisionDetectorAllocatorTemplate : public CollisionDetectorAllocator
 {
 public:
-  const std::string& getName() const override
-  {
-    return CollisionDetectorAllocatorType::NAME;
-  }
+  virtual const std::string& getName() const = 0;
 
   CollisionEnvPtr allocateEnv(const WorldPtr& world, const moveit::core::RobotModelConstPtr& robot_model) const override
   {

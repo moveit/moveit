@@ -43,9 +43,12 @@
 
 namespace collision_detection
 {
-const std::string CollisionDetectorAllocatorBullet::NAME("Bullet");
+namespace
+{
+static const std::string NAME = "Bullet";
 const double MAX_DISTANCE_MARGIN = 99;
 constexpr char LOGNAME[] = "collision_detection.bullet";
+}  // namespace
 
 CollisionEnvBullet::CollisionEnvBullet(const moveit::core::RobotModelConstPtr& model, double padding, double scale)
   : CollisionEnv(model, padding, scale)
@@ -436,4 +439,9 @@ void CollisionEnvBullet::addLinkAsCollisionObject(const urdf::LinkSharedPtr& lin
   }
 }
 
-}  // end of namespace collision_detection
+const std::string& CollisionDetectorAllocatorBullet::getName() const
+{
+  return NAME;
+}
+
+}  // namespace collision_detection
