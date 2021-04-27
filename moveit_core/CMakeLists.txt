@@ -24,10 +24,6 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-# boost::iostreams on Windows depends on boost::zlib
-if(WIN32)
-  set(EXTRA_BOOST_COMPONENTS zlib)
-endif()
 find_package(Boost REQUIRED system filesystem date_time thread iostreams regex ${EXTRA_BOOST_COMPONENTS})
 find_package(Eigen3 REQUIRED)
 
@@ -46,15 +42,21 @@ else()
   message(STATUS "Version of Bullet too old or not available: disabling Bullet collision detection plugin. Try using Ubuntu 18.04 or later.")
 endif()
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBFCL_PC REQUIRED fcl)
-set(LIBFCL_INCLUDE_DIRS ${LIBFCL_PC_INCLUDE_DIRS})
-# find *absolute* paths to LIBFCL_LIBRARIES
-set(LIBFCL_LIBRARIES)
-foreach(_lib ${LIBFCL_PC_LIBRARIES})
-  find_library(_lib_${_lib} ${_lib} HINTS ${LIBFCL_PC_LIBRARY_DIRS})
-  list(APPEND LIBFCL_LIBRARIES ${_lib_${_lib}})
-endforeach()
+find_package(fcl QUIET)
+if (fcl_FOUND)
+  set(LIBFCL_LIBRARIES ${FCL_LIBRARIES})
+  set(LIBFCL_INCLUDE_DIRS ${FCL_INCLUDE_DIRS})
+else()
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(LIBFCL_PC REQUIRED fcl)
+  set(LIBFCL_INCLUDE_DIRS ${LIBFCL_PC_INCLUDE_DIRS})
+  # find *absolute* paths to LIBFCL_LIBRARIES
+  set(LIBFCL_LIBRARIES)
+  foreach(_lib ${LIBFCL_PC_LIBRARIES})
+    find_library(_lib_${_lib} ${_lib} HINTS ${LIBFCL_PC_LIBRARY_DIRS})
+    list(APPEND LIBFCL_LIBRARIES ${_lib_${_lib}})
+  endforeach()
+endif()
 
 find_package(octomap REQUIRED)
 find_package(urdfdom REQUIRED)
@@ -83,6 +85,7 @@ COMPONENTS
   visualization_msgs
   xmlrpcpp
   pybind11_catkin
+  pluginlib
 )
 
 catkin_python_setup()
