@@ -533,19 +533,19 @@ class MoveGroupCommander(object):
         return self._g.get_planning_time()
 
     def set_planning_pipeline_id(self, planning_pipeline):
-        """ Specify which planning pipeline to use when motion planning (e.g. OMPL, pilz_industrial_motion_planner) """
+        """ Specify which planning pipeline to use when motion planning (e.g. ompl, pilz_industrial_motion_planner) """
         self._g.set_planning_pipeline_id(planning_pipeline)
 
     def get_planning_pipeline_id(self, planning_pipeline):
-        """ Get the current planning_pipeline_id (e.g. OMPL, pilz_industrial_motion_planner) """
+        """ Get the current planning_pipeline_id (e.g. ompl, pilz_industrial_motion_planner) """
         self._g.get_planning_pipeline_id(planning_pipeline)
 
     def set_planner_id(self, planner_id):
-        """ Specify which planner to use when motion planning (e.g. RRTConnect, LIN) """
+        """ Specify which planner of the currently selected pipeline to use when motion planning (e.g. RRTConnect, LIN) """
         self._g.set_planner_id(planner_id)
 
     def get_planner_id(self):
-        """ Get the current planner_id (e.g. RRTConnect, LIN) """
+        """ Get the current planner_id (e.g. RRTConnect, LIN) of the currently selected pipeline """
         return self._g.get_planner_id()
 
     def set_num_planning_attempts(self, num_planning_attempts):
