@@ -239,7 +239,7 @@ public:
   /** \brief Get the current planning_pipeline_id */
   const std::string& getPlanningPipelineId() const;
 
-  /** \brief Get the default planner for a given group (or global default) */
+  /** \brief Get the default planner of the current planning pipeline for the given group (or the pipeline's default) */
   std::string getDefaultPlannerId(const std::string& group = "") const;
 
   /** \brief Specify a planner to be used for further planning */
