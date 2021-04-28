@@ -2,6 +2,13 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.3 (2021-04-28)
+------------------
+* Let users override fake execution type from demo.launch (`#2602 <https://github.com/ros-planning/moveit/issues/2602>`_)
+  This should be the main entry point for simulated robot systems
+  and we specifically want to support `last point` here for rostests.
+* Contributors: Michael Görner
+
 1.1.2 (2021-04-08)
 ------------------
 * Fix formatting errors

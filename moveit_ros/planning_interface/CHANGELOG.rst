@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.3 (2021-04-28)
+------------------
+* fix docstring in MGI API (`#2626 <https://github.com/ros-planning/moveit/issues/2626>`_)
+* Contributors: Michael Görner
+
 1.1.2 (2021-04-08)
 ------------------
 * Fix formatting errors

@@ -2,6 +2,9 @@
 Changelog for package pilz_industrial_motion_planner_testutils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.3 (2021-04-28)
+------------------
+
 1.1.2 (2021-04-08)
 ------------------
 * Fix formatting errors

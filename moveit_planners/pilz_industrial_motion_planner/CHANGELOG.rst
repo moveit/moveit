@@ -2,6 +2,13 @@
 Changelog for package pilz_industrial_motion_planner
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.3 (2021-04-28)
+------------------
+* Velocity limit error (`#2610 <https://github.com/ros-planning/moveit/issues/2610>`_)
+  * do not check fixed joint model groups
+  * clang formatting
+* Contributors: Christian Landgraf
+
 1.1.2 (2021-04-08)
 ------------------
 * Fix formatting errors

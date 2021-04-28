@@ -2,6 +2,16 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.3 (2021-04-28)
+------------------
+* Merge pull request `#2618 <https://github.com/ros-planning/moveit/issues/2618>`_ from ubi-agni/cleanup-PSD
+  Minor fixups in PlanningSceneDisplay
+* Remove redundant planning_scene_render\_.reset();
+  This is also called as part of clearRobotModel().
+* Remove unused model_is_loading\_
+* Call setStatus from main GUI thread only
+* Contributors: Michael Görner, Robert Haschke
+
 1.1.2 (2021-04-08)
 ------------------
 * Fix various issues in PlanningScene / MotionPlanning displays (`#2588 <https://github.com/ros-planning/moveit/issues/2588>`_)
