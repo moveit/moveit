@@ -228,7 +228,15 @@ public:
   void setPlannerParams(const std::string& planner_id, const std::string& group,
                         const std::map<std::string, std::string>& params, bool bReplace = false);
 
-  /** \brief Get the default planner for a given group (or global default) */
+  std::string getDefaultPlanningPipelineId() const;
+
+  /** \brief Specify a planning pipeline to be used for further planning */
+  void setPlanningPipelineId(const std::string& pipeline_id);
+
+  /** \brief Get the current planning_pipeline_id */
+  const std::string& getPlanningPipelineId() const;
+
+  /** \brief Get the default planner of the current planning pipeline for the given group (or the pipeline's default) */
   std::string getDefaultPlannerId(const std::string& group = "") const;
 
   /** \brief Specify a planner to be used for further planning */
