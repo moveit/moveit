@@ -72,7 +72,14 @@ bool OccupancyMapUpdater::updateTransformCache(const std::string& target_frame, 
 {
   transform_cache_.clear();
   if (transform_provider_callback_)
-    return transform_provider_callback_(target_frame, target_time, transform_cache_);
+  {
+    bool success = transform_provider_callback_(target_frame, target_time, transform_cache_);
+    if (!success)
+      ROS_ERROR_THROTTLE(
+          1, "Transform cache was not updated. Self-filtering may fail. If transforms were not available yet, consider "
+             "setting robot_description_planning/shape_transform_cache_lookup_wait_time to wait longer for transforms");
+    return success;
+  }
   else
   {
     ROS_WARN_THROTTLE(1, "No callback provided for updating the transform cache for octomap updaters");

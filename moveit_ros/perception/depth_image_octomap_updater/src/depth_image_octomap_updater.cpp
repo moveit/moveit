@@ -309,10 +309,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
   }
 
   if (!updateTransformCache(depth_msg->header.frame_id, depth_msg->header.stamp))
-  {
-    ROS_ERROR_THROTTLE(1, "Transform cache was not updated. Self-filtering may fail.");
     return;
-  }
 
   if (depth_msg->is_bigendian && !HOST_IS_BIG_ENDIAN)
     ROS_ERROR_THROTTLE(1, "endian problem: received image data does not match host");

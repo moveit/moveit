@@ -213,10 +213,7 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
   Eigen::Vector3d sensor_origin_eigen(sensor_origin_tf.getX(), sensor_origin_tf.getY(), sensor_origin_tf.getZ());
 
   if (!updateTransformCache(cloud_msg->header.frame_id, cloud_msg->header.stamp))
-  {
-    ROS_ERROR_THROTTLE(1, "Transform cache was not updated. Self-filtering may fail.");
     return;
-  }
 
   /* mask out points on the robot */
   shape_mask_->maskContainment(*cloud_msg, sensor_origin_eigen, 0.0, max_range_, mask_);
