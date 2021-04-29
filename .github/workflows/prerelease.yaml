@@ -24,20 +24,19 @@ jobs:
     name: "${{ matrix.distro }}"
     runs-on: ubuntu-latest
     steps:
+      - name: "Free up disk space"
+        run: |
+          sudo apt-get -qq purge build-essential ghc*
+          sudo apt-get clean
+          # cleanup docker images not used by us
+          docker system prune -af
+          # shift ccache folder to /mnt on a separate disk
+          sudo mkdir /mnt/ccache
+          mkdir ${{ env.CCACHE_DIR }}
+          sudo mount --bind ${{ env.CCACHE_DIR }} /mnt/ccache
+          # free up a lot of stuff from /usr/local
+          sudo rm -rf /usr/local/*
+          df -h
       - uses: actions/checkout@v2
-      - name: cache ccache
-        uses: pat-s/always-upload-cache@v2.1.3
-        with:
-          path: ${{ env.CCACHE_DIR }}
-          key: ccache-${{ env.CACHE_PREFIX }}-${{ github.sha }}-${{ github.run_id }}
-          restore-keys: |
-            ccache-${{ env.CACHE_PREFIX }}-${{ github.sha }}
-            ccache-${{ env.CACHE_PREFIX }}
       - name: industrial_ci
-        uses: tylerjw/industrial_ci@clang-tidy-modified-filter
-      - name: upload test artifacts (on failure)
-        uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-          name: test-results
-          path: ${{ env.BASEDIR }}/target_ws/**/test_results/**/*.xml
+        uses: ros-industrial/industrial_ci@master
