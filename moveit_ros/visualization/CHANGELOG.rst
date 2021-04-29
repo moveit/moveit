@@ -2,12 +2,14 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.3 (2021-04-29)
+------------------
+* Several minor fixups in PlanningSceneDisplay (`#2618 <https://github.com/ros-planning/moveit/issues/2618>`_)
+* Contributors: Michael Görner, Robert Haschke
+
 1.1.2 (2021-04-08)
 ------------------
 * Fix various issues in PlanningScene / MotionPlanning displays (`#2588 <https://github.com/ros-planning/moveit/issues/2588>`_)
-  * Fix deadlock in PlanningSceneDisplay
-  * Keep MotionPlanningFrame hidden on Display::reset()
-* Fix formatting errors
 * Support multiple planning pipelines with MoveGroup via MoveItCpp (`#2127 <https://github.com/ros-planning/moveit/issues/2127>`_)
 * Allow selecting planning pipeline in RViz MotionPlanningDisplay
 * Catch exceptions during RobotModel loading in rviz (`#2468 <https://github.com/ros-planning/moveit/issues/2468>`_)

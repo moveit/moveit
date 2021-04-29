@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.3 (2021-04-29)
+------------------
+
 1.1.2 (2021-04-08)
 ------------------
 * Suppress warnings "mesh_use_embedded_materials is ignored"

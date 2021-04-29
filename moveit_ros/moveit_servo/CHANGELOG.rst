@@ -2,6 +2,11 @@
 Changelog for package moveit_servo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.3 (2021-04-29)
+------------------
+* Avoid joint jump when SuddenHalt() is called in velocity mode (`#2594 <https://github.com/ros-planning/moveit/issues/2594>`_)
+* Contributors: Nathan Brooks
+
 1.1.2 (2021-04-08)
 ------------------
 * Fix formatting errors

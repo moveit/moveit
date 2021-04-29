@@ -2,13 +2,16 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.3 (2021-04-29)
+------------------
+
 1.1.2 (2021-04-08)
 ------------------
 * Fix formatting errors
 * PlanExecution: Correctly handle preempt-requested flag (`#2554 <https://github.com/ros-planning/moveit/issues/2554>`_)
 * Support multiple planning pipelines with MoveGroup via MoveItCpp (`#2127 <https://github.com/ros-planning/moveit/issues/2127>`_)
 * Move moveit_cpp to moveit_ros_planning
-  Deprecate namespace moveit::planning_interface:: in favor of moveit_cpp::
+  Deprecate namespace ``moveit::planning_interface::`` in favor of ``moveit_cpp::``
 * thread safety in clear octomap & only update geometry (`#2500 <https://github.com/ros-planning/moveit/issues/2500>`_)
 * Fix some typos in comments (`#2466 <https://github.com/ros-planning/moveit/issues/2466>`_)
 * FixStartStateBounds: Copy attached bodies when adapting the start state (`#2398 <https://github.com/ros-planning/moveit/issues/2398>`_)

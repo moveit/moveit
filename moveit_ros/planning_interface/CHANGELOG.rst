@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.3 (2021-04-29)
+------------------
+* Add planning_pipeline_id setting to Python MGI (`#2622 <https://github.com/ros-planning/moveit/issues/2622>`_)
+* Fix docstring in MGI API (`#2626 <https://github.com/ros-planning/moveit/issues/2626>`_)
+* Contributors: Felix von Drigalski, Michael Görner
+
 1.1.2 (2021-04-08)
 ------------------
 * Fix formatting errors
