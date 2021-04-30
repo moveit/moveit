@@ -191,15 +191,11 @@ void PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr& sc
   {
     robot_model_ = rm_loader_->getModel();
     scene_ = scene;
-    collision_loader_.setupScene(nh_, scene_);
-    scene_const_ = scene_;
     if (!scene_)
     {
       try
       {
         scene_.reset(new planning_scene::PlanningScene(rm_loader_->getModel()));
-        collision_loader_.setupScene(nh_, scene_);
-        scene_const_ = scene_;
         configureCollisionMatrix(scene_);
         configureDefaultPadding();
 
@@ -219,11 +215,14 @@ void PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr& sc
       {
         ROS_ERROR_NAMED(LOGNAME, "Configuration of planning scene failed");
         scene_.reset();
-        scene_const_ = scene_;
       }
     }
+    // scene_const_ is set regardless if scene_ is null or not
+    scene_const_ = scene_;
     if (scene_)
     {
+      // The scene_ is loaded on the collision loader only if it was correctly instantiated
+      collision_loader_.setupScene(nh_, scene_);
       scene_->setAttachedBodyUpdateCallback(
           boost::bind(&PlanningSceneMonitor::currentStateAttachedBodyUpdateCallback, this, _1, _2));
       scene_->setCollisionObjectUpdateCallback(
