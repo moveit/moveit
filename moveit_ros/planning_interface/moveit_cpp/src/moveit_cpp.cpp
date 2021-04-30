@@ -177,8 +177,8 @@ bool MoveItCpp::loadPlanningPipelines(const PlanningPipelineOptions& options)
 
   if (planning_pipelines_.empty())
   {
-    return false;
     ROS_ERROR_NAMED(LOGNAME, "Failed to load any planning pipelines.");
+    return false;
   }
 
   // Retrieve group/pipeline mapping for faster lookup
