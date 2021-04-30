@@ -41,7 +41,7 @@ jobs:
       - name: "Free up disk space"
         if: ${{ matrix.env.CCOV }}
         run: |
-          sudo apt-get -qq purge build-essential ghc*
+          sudo apt-get -qq purge build-essential "ghc*"
           sudo apt-get clean
           # cleanup docker images not used by us
           docker system prune -af
@@ -50,7 +50,7 @@ jobs:
           mkdir ${{ env.CCACHE_DIR }}
           sudo mount --bind ${{ env.CCACHE_DIR }} /mnt/ccache
           # free up a lot of stuff from /usr/local
-          sudo rm -rf /usr/local/*
+          sudo rm -rf /usr/local
           df -h
       - uses: actions/checkout@v2
       - name: cache upstream_ws
