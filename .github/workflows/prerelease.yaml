@@ -17,10 +17,8 @@ jobs:
       ROS_DISTRO: ${{ matrix.distro }}
       PRERELEASE: true
       BASEDIR: ${{ github.workspace }}/.work
-      CCACHE_DIR: ${{ github.workspace }}/.ccache
-      CACHE_PREFIX: "${{ matrix.env.IMAGE }}${{ matrix.env.CCOV && '-ccov' || '' }}"
 
-    if: github.event_name == 'workflow_dispatch'  # only allow manual triggering
+    if: github.event_name == 'workflow_dispatch' # only allow manual triggering
     name: "${{ matrix.distro }}"
     runs-on: ubuntu-latest
     steps:
@@ -30,10 +28,6 @@ jobs:
           sudo apt-get clean
           # cleanup docker images not used by us
           docker system prune -af
-          # shift ccache folder to /mnt on a separate disk
-          sudo mkdir /mnt/ccache
-          mkdir ${{ env.CCACHE_DIR }}
-          sudo mount --bind ${{ env.CCACHE_DIR }} /mnt/ccache
           # free up a lot of stuff from /usr/local
           sudo rm -rf /usr/local
           df -h
