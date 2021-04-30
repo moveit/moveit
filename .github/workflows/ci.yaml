@@ -81,7 +81,7 @@ jobs:
             ccache-${{ env.CACHE_PREFIX }}-${{ github.sha }}
             ccache-${{ env.CACHE_PREFIX }}
       - name: industrial_ci
-        uses: tylerjw/industrial_ci@clang-tidy-modified-filter
+        uses: ros-industrial/industrial_ci@master
         env: ${{ matrix.env }}
       - name: upload test artifacts (on failure)
         uses: actions/upload-artifact@v2
