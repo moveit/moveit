@@ -6,6 +6,8 @@ TRAJOPT_IGNORE_WARNINGS_POP
 
 #include <trajopt/typedefs.hpp>
 
+#include <iostream>
+
 namespace trajopt
 {
 template <typename Key, typename Value>
@@ -149,4 +151,19 @@ inline std::vector<SafetyMarginDataPtr> createSafetyMarginDataVector(int num_ele
   }
   return info;
 }
+
+/**
+ * Print a vector
+ * */
+template <typename K>
+void printVector(std::string str, std::vector<K> v)
+{
+  std::stringstream ss;
+  ss << str << " ";
+  for (std::size_t i = 0; i < v.size(); ++i)
+      ss << v[i] << " ";
+
+  std::cout << ss.str() << std::endl;
+}
+
 }

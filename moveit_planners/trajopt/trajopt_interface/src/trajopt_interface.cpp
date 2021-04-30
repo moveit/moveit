@@ -36,7 +36,7 @@
 
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/robot_state/conversions.h>
-
+#include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 
 #include <trajopt_sco/sco_common.hpp>
@@ -97,8 +97,9 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   int dof = group_joint_names.size();
   std::vector<double> current_joint_values;
   current_state->copyJointGroupPositions(joint_model_group, current_joint_values);
+  trajopt::printVector("===>>> from interface upper:): ", current_joint_values);
 
-  // Current state is different from star state in general
+   // Current state is different from star state in general
   ROS_INFO(" ======================================= Extract start state infromation");
   trajopt::DblVec start_joint_values = extractStartJointValues(req, group_joint_names);
 
@@ -242,6 +243,18 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   joint_vel->term_type = trajopt::TT_COST;
   problem_info.cost_infos.push_back(joint_vel);
 
+  ROS_INFO(" ======================================= Collision Cost, hard-coded");
+  // TODO: should be defined by user, its parametes should be added to trajopt_planning.yaml
+  trajopt::CollisionTermInfoPtr collision(new trajopt::CollisionTermInfo);
+  collision->name = "collision";
+  collision->term_type = trajopt::TT_COST;
+  collision->continuous = false;
+  collision->first_step = 0;
+  collision->last_step = problem_info.basic_info.n_steps - 1;
+  collision->gap = 1;
+  collision->info = trajopt::createSafetyMarginDataVector(problem_info.basic_info.n_steps, 0.025, 40);
+  problem_info.cost_infos.push_back(collision);
+
   ROS_INFO(" ======================================= Visibility Constraints");
   if (!req.goal_constraints[0].visibility_constraints.empty())
   {
@@ -295,10 +308,9 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
 
   opt.setParameters(params_);
   opt.initialize(trajopt::trajToDblVec(trajopt_problem_->GetInitTraj()));
-
+  
   // Add all callbacks
   for (const sco::Optimizer::Callback& callback : optimizer_callbacks_)
-
   {
     opt.addCallback(callback);
   }

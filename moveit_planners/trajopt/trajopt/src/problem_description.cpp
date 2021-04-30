@@ -191,6 +191,7 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
 
   std::vector<double> current_joint_values;
   current_state.copyJointGroupPositions(joint_model_group, current_joint_values);
+  // trajopt::printVector("===>> from problem_description: ", current_joint_values);
 
   trajopt::TrajArray init_traj;
   generateInitialTrajectory(pci, current_joint_values, init_traj);
@@ -258,11 +259,13 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
 
   for (const TermInfoPtr& ci : pci.cost_infos)
   {
+    ROS_INFO("problem description: the name of the cost: %s", ci->name.c_str());
     ci->addObjectiveTerms(*prob);
   }
 
   for (const TermInfoPtr& ci : pci.cnt_infos)
   {
+    ROS_INFO("problem description:: the name of the constraint: %s", ci->name.c_str());
     ci->addObjectiveTerms(*prob);
   }
   return prob;

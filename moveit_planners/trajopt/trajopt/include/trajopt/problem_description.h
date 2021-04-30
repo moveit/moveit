@@ -88,6 +88,9 @@ MOVEIT_CLASS_FORWARD(CartPoseTermInfo);  // Defines CartPoseTermInfoPtr, ConstPt
 struct JointVelTermInfo;
 MOVEIT_CLASS_FORWARD(JointVelTermInfo);  // Defines JointVelTermInfoPtr, ConstPtr, WeakPtr... etc
 
+struct CollisionTermInfo;
+MOVEIT_CLASS_FORWARD(CollisionTermInfo);  // Defines JointVelTermInfoPtr, ConstPtr, WeakPtr... etc
+
 struct ProblemInfo;
 TrajOptProblemPtr ConstructProblem(const ProblemInfo&);
 
@@ -256,7 +259,7 @@ public:
   {
     return dof_;
   }
-  planning_scene::PlanningSceneConstPtr GetPlanningScene()
+  planning_scene::PlanningSceneConstPtr& GetPlanningScene()
   {
     return planning_scene_;
   }
@@ -415,13 +418,6 @@ struct CollisionTermInfo : public TermInfo
   /** @brief optimization, etc. */
   std::vector<SafetyMarginDataPtr> info;
 
-  /** @brief Used to add term to pci from json */
-  // void fromJson(ProblemConstructionInfo& pci, const Json::Value& v) override;
-
-  CollisionTermInfo() : TermInfo(TT_COST | TT_CNT) 
-  {
-  }
-
   /** @brief Converts term info into cost/constraint and adds it to trajopt problem */
   void addObjectiveTerms(TrajOptProblem& prob) override;
 
@@ -429,6 +425,10 @@ struct CollisionTermInfo : public TermInfo
   {
     TermInfoPtr out(new CollisionTermInfo());
     return out;
+  }
+
+  CollisionTermInfo() : TermInfo(TT_COST | TT_CNT) 
+  {
   }
 };
 

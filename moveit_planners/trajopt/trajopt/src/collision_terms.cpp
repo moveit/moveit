@@ -15,6 +15,8 @@ TRAJOPT_IGNORE_WARNINGS_POP
 #include <trajopt_utils/stl_to_string.hpp>
 
 #include <moveit/collision_detection/collision_common.h>
+#include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
+
 
 namespace trajopt
 {
@@ -34,8 +36,8 @@ void CollisionsToDistances(const trajopt::ContactResultVector& dist_results, Dbl
 }
 
 // directly related to equation 16 in the TrajOpt paper (the version I have)
-// this function goes over all the contact in dist_results and calcualte the jac of the first link in contact
-// at the nearest point. Also it calculates the jac of the second link at the nearest point
+// this function goes over all the contact in dist_results and calcualte the jac of the first-link-in-contact
+// at the nearest point. Also it calculates the jac of the second-link-in-contact at the nearest point
 // However, if the collision type is set to CCType_Between, then the cc_nearest_point is used only for the 
 // second link's jacobian calculations.
 void CollisionsToDistanceExpressions(const trajopt::ContactResultVector& dist_results,
@@ -68,8 +70,9 @@ void CollisionsToDistanceExpressions(const trajopt::ContactResultVector& dist_re
   const moveit::core::RobotState robot_state = planning_scene->getCurrentState();
   const robot_state::JointModelGroup* joint_model_group = robot_state.getJointModelGroup(planning_group);
   std::vector<std::string> group_joint_names = joint_model_group->getActiveJointModelNames();
+  // trajopt::printVector("===>>> group joint names", group_joint_names);
   int group_dof = (int)group_joint_names.size();
-
+  
   exprs.clear();
   exprs.reserve(dist_results.size());
   for (auto i = 0u; i < dist_results.size(); ++i)
@@ -77,9 +80,6 @@ void CollisionsToDistanceExpressions(const trajopt::ContactResultVector& dist_re
     // => for each ContactResult in the total ContactResultVector that contains all the contacts of each pair and all the pairs
     // const tesseract::ContactResult& res = dist_results[i];
     const trajopt::ContactResult& res = dist_results[i];
-
-    const moveit::core::LinkModel* link_0 = robot_state.getLinkModel(res.link_names[0]);  
-    const moveit::core::LinkModel* link_1 = robot_state.getLinkModel(res.link_names[1]); 
 
     // cc_type is a member of ContactResult in tesseract and by defualt (in clear() function) is set
     // to cc_type = ContinouseCollisionType::CCType_None; I do the same here:
@@ -94,12 +94,15 @@ void CollisionsToDistanceExpressions(const trajopt::ContactResultVector& dist_re
 
     Eigen::VectorXd dist_grad_a, dist_grad_b;
     // => find the name of linkA in collision
-    std::vector<std::string>::const_iterator itA = std::find(link_names.begin(), link_names.end(), link_0->getName());
+    std::vector<std::string>::const_iterator itA = std::find(link_names.begin(), link_names.end(), res.link_names[0]);
     if (itA != link_names.end())
     {
       // => create a jacobian matrix
       Eigen::MatrixXd jac;
       jac.resize(6, group_dof);
+
+      const moveit::core::LinkModel* link_0 = robot_state.getLinkModel(res.link_names[0]);  
+
 
    /* Compute the Jacobian with reference to a particular point on a given link, for a specified group.
    *  - group: The group to compute the Jacobian for
@@ -148,11 +151,14 @@ void CollisionsToDistanceExpressions(const trajopt::ContactResultVector& dist_re
       // the above means: -dist_grad_a (dot_product) dofvals
     }
 
-    std::vector<std::string>::const_iterator itB = std::find(link_names.begin(), link_names.end(), link_1->getName());
+    std::vector<std::string>::const_iterator itB = std::find(link_names.begin(), link_names.end(), res.link_names[1]);
     if (itB != link_names.end())
     {
       Eigen::MatrixXd jac;
       jac.resize(6, group_dof);
+
+      const moveit::core::LinkModel* link_1 = robot_state.getLinkModel(res.link_names[1]); 
+
 
     // how do I calculate cc_nearest_points, Contact in MoveIt does not have such a thing
     bool succeed = robot_state.getJacobian(
@@ -227,7 +233,7 @@ void CollisionEvaluator::GetCollisionsCached(const DblVec& x, trajopt::ContactRe
 }
 
 SingleTimestepCollisionEvaluator::SingleTimestepCollisionEvaluator(
-                planning_scene::PlanningSceneConstPtr planning_scene, std::string planning_group,
+                planning_scene::PlanningSceneConstPtr& planning_scene, std::string planning_group,
                 SafetyMarginDataConstPtr safety_margin_data,
                 const sco::VarVector& vars)
   : CollisionEvaluator(planning_scene, planning_group, safety_margin_data), m_vars(vars)
@@ -258,11 +264,40 @@ void SingleTimestepCollisionEvaluator::CalcCollisions(const DblVec& x, trajopt::
   // So, I guess I need to set the robot state based on these joint values
   Eigen::VectorXd joint_values = sco::getVec(x, m_vars);
   std::vector<double> joint_values_DblVec = std::vector<double>(joint_values.data(), joint_values.data() + joint_values.size());
-  moveit::core::RobotState rob_state = planning_scene_->getCurrentState();
+  // the following robot state will be a copy not a pointer so it wont make any change in the planning scene
+  moveit::core::RobotState& rob_state = planning_scene_->getCurrentStateNonConst();
   const moveit::core::JointModelGroup* joint_model_group = rob_state.getJointModelGroup(planning_group_);
-  rob_state.setToDefaultValues();
+  // rob_state.setToDefaultValues();
   rob_state.setJointGroupPositions(joint_model_group, joint_values_DblVec);
-  rob_state.update();
+  rob_state.update();	 
+  // Here is the point: I created a copy of the robot_state from planning_scene_->getCurrentState()
+  // and updated that copy but that does not change anything in the planning_scene_
+  // as it is a const pointer. const pointer planning scene comes from planning_context and
+  // I can not change that.
+  // planning_scene->setCurrentState(rob_state);
+  std::vector<double> vv;
+  planning_scene_->getCurrentState().copyJointGroupPositions(joint_model_group, vv);
+  // trajopt::printVector("current state joint values: ", vv);
+
+  // std::cout << "===>>> collision detection name: " << planning_scene_->getActiveCollisionDetectorName() << std::endl;
+  // std::cout << "planning scene's name: " << planning_scene_->getName() << std::endl;
+
+  // does planning_scene include the collision box?
+  // std::vector<moveit_msgs::CollisionObject> collision_objs;
+  // planning_scene_->getCollisionObjectMsgs(collision_objs);
+  // for(std::size_t z = 0; z < collision_objs.size(); ++z)
+  //   std::cout << "===>>> name of the collision object: " << collision_objs[z].id << " ";
+  // std::cout << std::endl;
+  
+  // std::cout << "===>>> robot model: " << std::endl;
+  // std::cout << "name: " << planning_scene_->getRobotModel()->getName() << std::endl;
+  // std::cout << "root joint: " <<  planning_scene_->getRobotModel()->getRootJointName() << std::endl;
+  // std::cout << "root link: " <<  planning_scene_->getRobotModel()->getRootLinkName() << std::endl;
+  // std::cout << "joint name: " <<  planning_scene_->getRobotModel()->getJointModelNames()[0] << std::endl;
+
+  // std::vector<std::string> lnames = planning_scene_->getRobotModel()->getLinkModelNames(); 
+  // trajopt::printVector("link model names: ", lnames);
+
 
   // for (const auto& link_name : manip_->getLinkNames())
   //   contact_manager_->setCollisionObjectsTransform(link_name, state->transforms[link_name]);
@@ -282,8 +317,24 @@ void SingleTimestepCollisionEvaluator::CalcCollisions(const DblVec& x, trajopt::
   // ===> for MoveIt
   collision_detection::CollisionRequest collision_request;
   collision_detection::CollisionResult collision_result;
+  collision_request.group_name = planning_group_;
+  // collision_request.distance = true; // If true, compute proximity distance 
+  collision_request.contacts = true; // If true, compute contacts. Otherwise only a binary collision yes/no is reported
+  // collision_request.max_contacts = 100;
+  // collision_request.max_contacts_per_pair = 5;
+  // collision_request.verbose = false;
+
+  // planning_scene_->printKnownObjects();
+  // collision_objs[0].operation == moveit_msgs::CollisionObject::REMOVE;
+  // planning_scene_->processCollisionObjectMsg(collision_objs[0]);
+  // collision_objs[0].operation == moveit_msgs::CollisionObject::ADD;
+  // planning_scene_->processCollisionObjectMsg(collision_objs[0]);
+
   planning_scene_->checkCollision(collision_request, collision_result);
+  // planning_scene->checkCollision(collision_request, collision_result, rob_state);
   // ====> checkCollision will check for both self-collisions and for collisions with the environment
+  // std::cout << "+++++++++++++++ single time step in collision -------- " << collision_result.collision << std::endl;
+  // std::cout << "+++++++++++++++ number of contacts ------------------- " << collision_result.contact_count << std::endl;
 
   // tesseract:
   // ContactResultMap => AlignedMap<std::pair<std::string, std::string>, ContactResultVector>
@@ -317,8 +368,10 @@ void SingleTimestepCollisionEvaluator::CalcCollisions(const DblVec& x, trajopt::
       std::vector<collision_detection::Contact> contact_vector = it->second;
       for(size_t k = 0; k < contact_vector.size(); ++k)
       {
-        // convert Contact from MoveIt to ContactResult ????
-        Eigen::Vector3d moveit_cc_nearest_points[2] = contact_vector[k].nearest_points;
+        // convert Contact from MoveIt to ContactResult 
+        Eigen::Vector3d moveit_cc_nearest_points[2];
+        moveit_cc_nearest_points[0].setZero();
+        moveit_cc_nearest_points[1].setZero();
         double moveit_cc_time = -1;
         trajopt::ContinouseCollisionType moviet_cc_type = trajopt::ContinouseCollisionType::CCType_None;
 
@@ -345,7 +398,6 @@ void SingleTimestepCollisionEvaluator::CalcDistExpressions(const DblVec& x, sco:
   trajopt::ContactResultVector dist_results;
   GetCollisionsCached(x, dist_results);
   CollisionsToDistanceExpressions(dist_results, planning_scene_, planning_group_, m_vars, x, exprs, false);
-
   LOG_DEBUG("%ld distance expressions\n", exprs.size());
 }
 
@@ -362,12 +414,14 @@ CastCollisionEvaluator::CastCollisionEvaluator(planning_scene::PlanningSceneCons
   // contact_manager_->setActiveCollisionObjects(manip_->getLinkNames());
   // contact_manager_->setContactDistanceThreshold(safety_margin_data_->getMaxSafetyMargin() +
   //                                               0.04);  // The original implementation added a margin of 0.04;
+
 }
 
 // similar to CalcCollisions from SingleTimestepCollisionEvaluator except we need two states because it is the 
 // swept volume?
 void CastCollisionEvaluator::CalcCollisions(const DblVec& x, trajopt::ContactResultVector& dist_results)
 {
+    std::cout << "CastCollisionEvaluator::CalcCollisions() is calleeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeed" << std::endl;
   // tesseract::ContactResultMap contacts;
   // tesseract::EnvStatePtr state0 = env_->getState(manip_->getJointNames(), sco::getVec(x, m_vars0));
   // tesseract::EnvStatePtr state1 = env_->getState(manip_->getJointNames(), sco::getVec(x, m_vars1));
@@ -386,34 +440,60 @@ void CastCollisionEvaluator::CalcCollisions(const DblVec& x, trajopt::ContactRes
   // All I have to do here is use that function for two 
 
   // =====>>> So, I need to do it for two states as well.
+  // x has joint valus for all time steps: [j1_0 j2_0 ... j7_0, j1_1 j2_1 ... j7_1 ... j1_n j2_n ... j7_n]
   Eigen::VectorXd joint_values_state_0 = sco::getVec(x, m_vars0);
-  std::vector<double> joint_values_DblVec_0 = std::vector<double>(joint_values_state_0.data(), joint_values_state_0.data() + joint_values_state_0.size());  
-  robot_state::RobotState rob_state = planning_scene_->getCurrentState();
-  const moveit::core::JointModelGroup* joint_model_group = rob_state.getJointModelGroup(planning_group_);
-  rob_state.setToDefaultValues();
-  rob_state.setJointGroupPositions(joint_model_group, joint_values_DblVec_0);
-  rob_state.update();
-  robot_state::RobotState rob_state_previous(rob_state);
+  std::vector<double> joint_values_DblVec_0 = std::vector<double>(joint_values_state_0.data(), joint_values_state_0.data() + joint_values_state_0.size());
+
+  // planning_scene::PlanningScenePtr planning_scene = planning_scene_->diff();
+
+  robot_state::RobotStatePtr rob_state(new robot_state::RobotState(planning_scene_->getCurrentStateNonConst())); 
+  const moveit::core::JointModelGroup* joint_model_group = rob_state->getJointModelGroup(planning_group_);
+
+  collision_detection::CollisionRequest collision_request;
+  collision_detection::CollisionResult collision_result;
+  collision_request.group_name = planning_group_;
+  collision_request.distance = true;
+  collision_request.contacts = true;
+  collision_request.max_contacts = 100;
+  collision_request.max_contacts_per_pair = 5;
+  collision_request.verbose = false;
+
+  rob_state->setToDefaultValues();
+  rob_state->setJointGroupPositions(joint_model_group, joint_values_DblVec_0);
+  rob_state->update();
+  robot_state::RobotState rob_state_previous(*rob_state);
+
+  Eigen::VectorXd first_values;
+  rob_state->copyJointGroupPositions(joint_model_group, first_values);
+  std::cout << "===>>> first state joint values: " << first_values.transpose() << std::endl;
 
   Eigen::VectorXd joint_values_state_1 = sco::getVec(x, m_vars1);
   std::vector<double> joint_values_DblVec_1 = std::vector<double>(joint_values_state_1.data(), joint_values_state_1.data() + joint_values_state_1.size());  
-  rob_state.setJointGroupPositions(joint_model_group, joint_values_DblVec_1);
-  rob_state.update();
+  rob_state->setJointGroupPositions(joint_model_group, joint_values_DblVec_1);
+  rob_state->update();
+
+  Eigen::VectorXd second_values;
+  rob_state->copyJointGroupPositions(joint_model_group, second_values);
+  std::cout << "===>>> second state joint values: " << second_values.transpose() << std::endl;
 
   // check collision between two states
-  collision_detection::CollisionRequest collision_request;
-  // ??????? should we set the planning group in collision_request?
-  collision_detection::CollisionResult collision_result;
-  planning_scene_->getCollisionEnv()->checkRobotCollision(collision_request, 
-                                        collision_result, rob_state, rob_state_previous);
+  planning_scene_->getCollisionEnv()->checkRobotCollision(collision_request, collision_result,
+                                                         *rob_state, rob_state_previous);
 
+  std::cout << "---------- in continous collision -------- " << collision_result.collision << std::endl;
 
+  // std::cout << "+++++++++++++++ start state is in collision? " << collision_res.collision << std::endl;
+  // std::cout << "+++++++++++++++ number of contacts " << collision_res.contact_count << std::endl;
+
+    
   // ????? I have to calculate: cc_time, cc_type and cc_nearest_points here. test
   
   // when we use bullet in MoveIt, CollisionResult returns all the contacts in the scene by ContactMap data type.
   // ContactMap < <link_1, link_2>, vector<contact>>
   // when using bullet, vector<Contact> has only one member while fcl might return multiple contact points for 
   // each pair in contact
+
+
 
   for (auto it = collision_result.contacts.begin(); it != collision_result.contacts.end(); ++it)
   {
@@ -424,7 +504,7 @@ void CastCollisionEvaluator::CalcCollisions(const DblVec& x, trajopt::ContactRes
       std::vector<collision_detection::Contact> contact_vector = it->second;
       for(size_t k = 0; k < contact_vector.size(); ++k)
       {
-        // convert Contact from MoveIt to ContactResult ????
+        // convert Contact from MoveIt to ContactResult in tesseract:
         Eigen::Vector3d moveit_cc_nearest_points[2] = contact_vector[k].nearest_points;
         double moveit_cc_time = 0.5;
         trajopt::ContinouseCollisionType moviet_cc_type = trajopt::ContinouseCollisionType::CCType_Between;
@@ -434,8 +514,12 @@ void CastCollisionEvaluator::CalcCollisions(const DblVec& x, trajopt::ContactRes
                                      moveit_cc_time,
                                      moviet_cc_type);
         dist_results.push_back(contact_result);
+
+        std::cout << " ******* " << contact_vector[k].nearest_points[0] << std::endl;
+        std::cout << " ******* " << contact_vector[k].nearest_points[1] << std::endl;
       }
       // dist_results.insert(dist_results.end(), it->second.begin(), it->second.end())
+      std::cout << "----------------- *************** ---------------" << std::endl;
   }
 }
 
@@ -454,14 +538,14 @@ void CastCollisionEvaluator::CalcDists(const DblVec& x, DblVec& dists)
 
 //////////////////////////////////////////
 
-CollisionCost::CollisionCost(planning_scene::PlanningSceneConstPtr planning_scene, std::string planning_group,
+CollisionCost::CollisionCost(planning_scene::PlanningSceneConstPtr& planning_scene, std::string planning_group,
                              SafetyMarginDataConstPtr safety_margin_data,
                              const sco::VarVector& vars)
   : Cost("collision"), m_calc(new SingleTimestepCollisionEvaluator(planning_scene, planning_group, safety_margin_data, vars))
 {
 }
 
-CollisionCost::CollisionCost(planning_scene::PlanningSceneConstPtr planning_scene, std::string planning_group,
+CollisionCost::CollisionCost(planning_scene::PlanningSceneConstPtr& planning_scene, std::string planning_group,
                              SafetyMarginDataConstPtr safety_margin_data,
                              const sco::VarVector& vars0,
                              const sco::VarVector& vars1)
@@ -479,7 +563,6 @@ sco::ConvexObjectivePtr CollisionCost::convex(const sco::DblVec& x, sco::Model* 
   m_calc->GetCollisionsCached(x, dist_results);
   for (std::size_t i = 0; i < exprs.size(); ++i)
   {
-    //??? link_name from dist_results in MoveIt 
     const Eigen::Vector2d& data = m_calc->getSafetyMarginData()->getPairSafetyMarginData(dist_results[i].link_names[0],
                                                                                          dist_results[i].link_names[1]);
 

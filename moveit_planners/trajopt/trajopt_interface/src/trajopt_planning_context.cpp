@@ -59,6 +59,7 @@ TrajOptPlanningContext::TrajOptPlanningContext(const std::string& context_name, 
 bool TrajOptPlanningContext::solve(planning_interface::MotionPlanDetailedResponse& res)
 {
   moveit_msgs::MotionPlanDetailedResponse res_msg;
+
   bool trajopt_solved = trajopt_interface_->solve(planning_scene_, request_, res_msg);
 
   if (trajopt_solved)

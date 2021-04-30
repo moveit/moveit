@@ -20,10 +20,17 @@ struct CollisionEvaluator
 {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  CollisionEvaluator(planning_scene::PlanningSceneConstPtr planning_scene, std::string planning_group,
+  CollisionEvaluator(planning_scene::PlanningSceneConstPtr& planning_scene, std::string planning_group,
                      SafetyMarginDataConstPtr safety_margin_data)
-    : planning_scene_(planning_scene), safety_margin_data_(safety_margin_data), planning_group_(planning_group)
+    :safety_margin_data_(safety_margin_data), planning_group_(planning_group)
   {
+    // we need a child of planning scene so I can do the changing robot states and do collsiiong detenction    
+    planning_scene_ = planning_scene->diff();
+    // planning_scene_->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorFCL::create(), true);
+
+
+    // OR
+    //planning_scene_ = planning_scene::PlanningScene::clone(planning_scene);
   }
   virtual ~CollisionEvaluator() = default;
   virtual void CalcDistExpressions(const DblVec& x, sco::AffExprVector& exprs) = 0;
@@ -44,10 +51,6 @@ struct CollisionEvaluator
   // CalcDists():
   // Value(): calls CalcDists()
 
-  // I think we do not use cache in MoveIt, so we can delete this???
-  // I am going to use CalcCollisions straight without using this Cached function
-  // void GetCollisionsCached(const DblVec& x, std::vector<collision_detection::Contact>& dist_results);
-  
   Cache<size_t, trajopt::ContactResultVector, 10> m_cache;
   // this calss is not dependent to any  tesseract stuff, I just need to figure out ContactResulVector that is passed to it
   // I do not understand what it is doing exactly though
@@ -59,8 +62,15 @@ struct CollisionEvaluator
   // now what is ContactResult? it has all the informatin related to contact between two bodies
 
 protected:
-  
-  planning_scene::PlanningSceneConstPtr planning_scene_;
+  //from MoveIt macros:
+  // typedef std::shared_ptr<const PlanningScene> PlanningSceneConstPtr;
+  // the object the pointer is pointing to is const, i.e. the planning scene is constant
+  // Also, PlanningScen is noncopyable
+  // setActiveCollisionDetector is a non-const member of PlanningScene which is not accisible from 
+  // a PlanningSceneConstPtr. So I have to deal with the const ptr of planning scene here and 
+  // let the user set the collision detector to bullet
+
+  planning_scene::PlanningScenePtr planning_scene_;
   std::string planning_group_; 
   SafetyMarginDataConstPtr safety_margin_data_;
 
@@ -73,7 +83,7 @@ typedef std::shared_ptr<CollisionEvaluator> CollisionEvaluatorPtr;
 struct SingleTimestepCollisionEvaluator : public CollisionEvaluator
 {
 public:
-  SingleTimestepCollisionEvaluator(planning_scene::PlanningSceneConstPtr planning_scene, std::string planning_group,
+  SingleTimestepCollisionEvaluator(planning_scene::PlanningSceneConstPtr& planning_scene, std::string planning_group,
                                    SafetyMarginDataConstPtr safety_margin_data,
                                    const sco::VarVector& vars);
   /**
@@ -117,11 +127,11 @@ class TRAJOPT_API CollisionCost : public sco::Cost
 public:
   /* constructor for single timestep. 
      This constructor initializes m_calc which is type of CollisionEvaluator */
-  CollisionCost(planning_scene::PlanningSceneConstPtr planning_scene, std::string planning_group,
+  CollisionCost(planning_scene::PlanningSceneConstPtr& planning_scene, std::string planning_group,
                 SafetyMarginDataConstPtr safety_margin_data,
                 const sco::VarVector& vars);
   /* constructor for cast cost */
-  CollisionCost(planning_scene::PlanningSceneConstPtr planning_scene, std::string planning_group,
+  CollisionCost(planning_scene::PlanningSceneConstPtr& planning_scene, std::string planning_group,
                 SafetyMarginDataConstPtr safety_margin_data,
                 const sco::VarVector& vars0,
                 const sco::VarVector& vars1);

@@ -95,6 +95,14 @@ public:
     ROS_INFO(" ======================================= getPlanningContext() is called ");
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
 
+    std::string collision_detector = planning_scene->getActiveCollisionDetectorName();
+    ROS_INFO(" ======================================= collision detector is set to %s", collision_detector.c_str());
+    if( collision_detector != "Bullet")
+    {
+      ROS_WARN("Colllision detector used in trajopt must be Bullet"); // change this to ROS_ERROR afte I figure out how to use bullet instead of FCL
+      // TODO: sholuld I just force bullet using diff() and setActiveColisionDetector()
+    }
+
     if (req.group_name.empty())
     {
       ROS_ERROR("No group specified to plan for");
@@ -111,9 +119,6 @@ public:
 
     // create PlanningScene using hybrid collision detector
     planning_scene::PlanningScenePtr ps = planning_scene->diff();
-
-    // set FCL for the collision
-    ps->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorFCL::create(), true);
 
     // retrieve and configure existing context
     const TrajOptPlanningContextPtr& context = planning_contexts_.at(req.group_name);
