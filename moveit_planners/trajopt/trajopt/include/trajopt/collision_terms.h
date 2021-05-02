@@ -9,6 +9,7 @@
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/planning_scene/planning_scene.h> 
 #include <moveit/collision_detection/collision_common.h>
+#include <moveit/collision_detection/world.h>
 
 
 namespace trajopt
@@ -26,10 +27,17 @@ struct CollisionEvaluator
   {
     // we need a child of planning scene so I can do the changing robot states and do collsiiong detenction    
     planning_scene_ = planning_scene->diff();
-    // planning_scene_->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorFCL::create(), true);
+    // remove/add magic objects in planning scene
+    std::vector<std::string> objectIds = planning_scene_->getWorld()->getObjectIds();
+    for (auto objectId : objectIds)
+    {
+      collision_detection::World::ObjectConstPtr objPtr = planning_scene_->getWorld()->getObject(objectId);
+      planning_scene_->getWorldNonConst()->removeObject(objectId);  
+      planning_scene_->getWorldNonConst()->addToObject(objPtr->id_, objPtr->shapes_, objPtr->shape_poses_);
+    }
+    
 
-
-    // OR
+    // OR ?
     //planning_scene_ = planning_scene::PlanningScene::clone(planning_scene);
   }
   virtual ~CollisionEvaluator() = default;

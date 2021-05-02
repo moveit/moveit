@@ -270,9 +270,15 @@ OptStatus BasicTrustRegionSQP::optimize()
 
   OptStatus retval = INVALID;
 
-  for (int merit_increases = 0; merit_increases < param_.max_merit_coeff_increases; ++merit_increases)
+
+  //Strategy: with a start merit_increase value, start iteration (iter = 1). if the trust region is expanded, it goes to the next iteration (iter = 2)
+  // if the improv is not good enough, it stays in the while loop (it does not go to the next iter) and keep shrinking the trust region. if by this
+  // decreasing the improv is not achieved, then it says it is converged becasue the trust region is tiny. Then it increase the merit_increase and repeat 
+  // the process
+  for (int merit_increases = 0; merit_increases < param_.max_merit_coeff_increases; ++merit_increases) // I think: PenaltyIteration
   { /* merit adjustment loop */
-    for (int iter = 1;; ++iter)
+    LOG_INFO("merit increases: %i", merit_increases);
+    for (int iter = 1;; ++iter) // I think: ConvexifyIteration
     { /* sqp loop */
       callCallbacks();
 
@@ -328,7 +334,7 @@ OptStatus BasicTrustRegionSQP::optimize()
       //      printer(model_cost_vals), printer(cost_vals));
       //    }
 
-      while (param_.trust_box_size >= param_.min_trust_box_size)
+      while (param_.trust_box_size >= param_.min_trust_box_size) // I think: TrustRegionIteration
       {
         setTrustBoxConstraints(results_.x);
         CvxOptStatus status = model_->optimize();

@@ -185,7 +185,6 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   if (!req.goal_constraints[0].position_constraints.empty() && !req.goal_constraints[0].orientation_constraints.empty())
   {
     trajopt::CartPoseTermInfoPtr cart_goal_pos(new trajopt::CartPoseTermInfo);
-
     // TODO: Feed cart_goal_pos with request information and the needed param to the setup.yaml file
     // TODO: Multiple Cartesian constraints
 
@@ -231,7 +230,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   setJointPoseTermInfoParams(joint_start_pos, "start_pos");
   problem_info.cnt_infos.push_back(joint_start_pos);
 
-  ROS_INFO(" ======================================= Velocity Constraints, hard-coded");
+  ROS_INFO(" ======================================= Velocity Cost, hard-coded");
   // TODO: should be defined by user, its parametes should be added to setup.yaml
   trajopt::JointVelTermInfoPtr joint_vel(new trajopt::JointVelTermInfo);
 
@@ -239,16 +238,34 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   joint_vel->targets = std::vector<double>(dof, 0.0);
   joint_vel->first_step = 0;
   joint_vel->last_step = problem_info.basic_info.n_steps - 1;
-  joint_vel->name = "joint_vel";
+  joint_vel->name = "joint_velocity";
   joint_vel->term_type = trajopt::TT_COST;
   problem_info.cost_infos.push_back(joint_vel);
+
+  ROS_INFO(" ======================================= Velocity Constraint, hard-coded");
+  // TODO: should be defined by user, its parametes should be added to setup.yaml
+  trajopt::JointVelTermInfoPtr joint_vel_cnt(new trajopt::JointVelTermInfo);
+
+  // Add a velocity cnt with time to insure that robot dynamics are obeyed
+  std::vector<double> vel_lower_lim{ 0, 0, 0, 0, 0, 0, 0 };
+  std::vector<double> vel_upper_lim{ 150 *3.14/180, 150 *3.14/180, 150 *3.14/180, 150 *3.14/180, 180 *3.14/180, 180 *3.14/180, 180 *3.14/180};
+
+  joint_vel_cnt->targets = std::vector<double>(dof, 0.0);
+  joint_vel_cnt->coeffs = std::vector<double>(dof, 50.0);
+  joint_vel_cnt->lower_tols = vel_lower_lim;
+  joint_vel_cnt->upper_tols = vel_upper_lim;
+  joint_vel_cnt->term_type = (trajopt::TT_CNT | trajopt::TT_USE_TIME);
+  joint_vel_cnt->first_step = 0;
+  joint_vel_cnt->last_step = problem_info.basic_info.n_steps - 1;
+  joint_vel_cnt->name = "joint_velocity_cnt";
+  // problem_info.cnt_infos.push_back(joint_vel_cnt);
 
   ROS_INFO(" ======================================= Collision Cost, hard-coded");
   // TODO: should be defined by user, its parametes should be added to trajopt_planning.yaml
   trajopt::CollisionTermInfoPtr collision(new trajopt::CollisionTermInfo);
   collision->name = "collision";
   collision->term_type = trajopt::TT_COST;
-  collision->continuous = false;
+  collision->continuous = true;
   collision->first_step = 0;
   collision->last_step = problem_info.basic_info.n_steps - 1;
   collision->gap = 1;
@@ -367,12 +384,12 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
              constraint.tolerance_above);
     constraints_are_ok = constraints_are_ok and joint_cnt.configure(constraint);
     constraints_are_ok = constraints_are_ok and joint_cnt.decide(last_state).satisfied;
-    if (not constraints_are_ok)
-    {
-      ROS_ERROR_STREAM_NAMED("trajopt_planner", "Goal constraints are violated: " << constraint.joint_name);
-      res.error_code.val = moveit_msgs::MoveItErrorCodes::GOAL_CONSTRAINTS_VIOLATED;
-      return false;
-    }
+    // if (not constraints_are_ok)
+    // {
+    //   ROS_ERROR_STREAM_NAMED("trajopt_planner", "Goal constraints are violated: " << constraint.joint_name);
+    //   res.error_code.val = moveit_msgs::MoveItErrorCodes::GOAL_CONSTRAINTS_VIOLATED;
+    //   return false;
+    // }
     joint_cnt_index = joint_cnt_index + 1;
   }
 

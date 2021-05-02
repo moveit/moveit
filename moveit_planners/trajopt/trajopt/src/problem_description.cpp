@@ -656,6 +656,7 @@ void generateInitialTrajectory(const ProblemInfo& pci, const std::vector<double>
   // Currently all trajectories are generated without time then appended here
   if (pci.basic_info.use_time)
   {
+    std::cout << "heeeeeeeeeeeeeeeeeeeeeeeer " << std::endl;
     // add on time (default to 1 sec)
     init_traj.conservativeResize(Eigen::NoChange_t(), init_traj.cols() + 1);
 
