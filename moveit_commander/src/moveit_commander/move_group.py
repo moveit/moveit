@@ -588,7 +588,7 @@ class MoveGroupCommander(object):
                 "Expected value in the range from 0 to 1 for scaling factor"
             )
 
-    def go(self, joints=None, wait=True, planning_pipeline=None, planner_id=None):
+    def go(self, joints=None, wait=True, planning_pipeline="", planner_id=""):
         """Set the target of the group and then move the group to the specified target.
         If wait is True, the command waits until planning and execution have finished.
 
@@ -610,34 +610,22 @@ class MoveGroupCommander(object):
             except TypeError:
                 self.set_joint_value_target(joints)
 
-        planner_specified = False
-        if planning_pipeline and planner_id:
-            planner_specified = True
-        elif planning_pipeline and not planner_id:
-            rospy.logwarn(
-                "Only planner_id "
-                + planner_id
-                + " was specified. Please specify the planning pipeline. Planning with currently set pipeline and planner instead."
-            )
-        elif not planning_pipeline and planner_id:
-            rospy.logwarn(
-                "Only planning pipeline "
-                + planner_id
-                + " was specified. Please specify the planner id. Planning with currently set pipeline and planner instead."
-            )
+        # If only planner_id set, specify planning pipeline too
+        if planner_id and not planning_pipeline:
+            planning_pipeline = self.get_planning_pipeline_id()
 
         if wait:
-            if planner_specified:
+            if planning_pipeline:
                 return self._g.move(planning_pipeline, planner_id)
             else:
                 return self._g.move()
         else:
-            if planner_specified:
+            if planning_pipeline:
                 return self._g.async_move(planning_pipeline, planner_id)
             else:
                 return self._g.async_move()
 
-    def plan(self, joints=None, planning_pipeline=None, planner_id=None):
+    def plan(self, joints=None, planning_pipeline="", planner_id=""):
         """Return a tuple of the motion planning results of the format:
         (success flag : boolean, trajectory message : RobotTrajectory,
          planning time : float, error code : MoveitErrorCodes)
@@ -656,23 +644,15 @@ class MoveGroupCommander(object):
             except MoveItCommanderException:
                 self.set_joint_value_target(joints)
 
-        if planning_pipeline and planner_id:
+        # If only planner_id set, specify planning pipeline too
+        if planner_id and not planning_pipeline:
+            planning_pipeline = self.get_planning_pipeline_id()
+
+        if planning_pipeline:
             (error_code_msg, trajectory_msg, planning_time) = self._g.plan(
                 planning_pipeline, planner_id
             )
         else:
-            if planning_pipeline and not planner_id:
-                rospy.logwarn(
-                    "Only planner_id "
-                    + planner_id
-                    + " was specified. Please specify the planning pipeline. Planning with currently set pipeline and planner instead."
-                )
-            elif not planning_pipeline and planner_id:
-                rospy.logwarn(
-                    "Only planning pipeline "
-                    + planner_id
-                    + " was specified. Please specify the planner id. Planning with currently set pipeline and planner instead."
-                )
             (error_code_msg, trajectory_msg, planning_time) = self._g.plan()
 
         error_code = MoveItErrorCodes()

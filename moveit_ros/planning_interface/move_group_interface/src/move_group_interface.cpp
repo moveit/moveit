@@ -809,19 +809,10 @@ public:
     goal.planning_options.planning_scene_diff.is_diff = true;
     goal.planning_options.planning_scene_diff.robot_state.is_diff = true;
 
-    if (!pipeline_id.empty() && !planner_id.empty())  // Overwrite default setting with supplied parameters
-    {
+    if (pipeline_id != "_")  // Overwrite default setting with supplied parameters
       goal.request.pipeline_id = planning_pipeline_id_;
+    if (planner_id != "_")
       goal.request.planner_id = planner_id_;
-    }
-    else if (pipeline_id.empty() != planner_id.empty())  // If only one is specified
-    {
-      ROS_WARN_STREAM_NAMED(LOGNAME, "Either pipeline_id ("
-                                         << pipeline_id << ") or planner_id (" << planner_id
-                                         << ") were not specified. Both need to be specified. Planning with currently "
-                                            "set pipeline and planner instead: "
-                                         << goal.request.pipeline_id << ", " << goal.request.planner_id << "");
-    }
 
     move_action_client_->sendGoal(goal);
     if (!move_action_client_->waitForResult())
@@ -865,19 +856,10 @@ public:
     goal.planning_options.planning_scene_diff.is_diff = true;
     goal.planning_options.planning_scene_diff.robot_state.is_diff = true;
 
-    if (!pipeline_id.empty() && !planner_id.empty())  // Overwrite default setting with supplied parameters
-    {
+    if (pipeline_id != "_")  // Overwrite default setting with supplied parameters
       goal.request.pipeline_id = planning_pipeline_id_;
+    if (planner_id != "_")
       goal.request.planner_id = planner_id_;
-    }
-    else if (pipeline_id.empty() != planner_id.empty())  // If only one is specified
-    {
-      ROS_WARN_STREAM_NAMED(LOGNAME, "Either pipeline_id ("
-                                         << pipeline_id << ") or planner_id (" << planner_id
-                                         << ") were not specified. Both need to be specified. Planning with currently "
-                                            "set pipeline and planner instead: "
-                                         << goal.request.pipeline_id << ", " << goal.request.planner_id << "");
-    }
 
     move_action_client_->sendGoal(goal);
     if (!wait)
