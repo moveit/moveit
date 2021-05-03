@@ -31,7 +31,6 @@
   <depend>geometry_msgs</depend>
   <depend>kdl_parser</depend>
   <depend>libconsole-bridge-dev</depend>
-  <depend>urdf</depend>
   <depend>liburdfdom-dev</depend>
   <depend>liburdfdom-headers-dev</depend>
   <depend>moveit_msgs</depend>
@@ -50,9 +49,9 @@
   <depend>tf2_eigen</depend>
   <depend>tf2_geometry_msgs</depend>
   <depend>trajectory_msgs</depend>
+  <depend>urdf</depend>
   <depend>visualization_msgs</depend>
   <depend>xmlrpcpp</depend>
-
 
   <test_depend>moveit_resources_panda_moveit_config</test_depend>
   <test_depend>moveit_resources_pr2_description</test_depend>
