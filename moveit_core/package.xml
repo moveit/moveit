@@ -38,10 +38,11 @@
   <depend>octomap</depend>
   <depend>octomap_msgs</depend>
   <depend>pybind11_catkin</depend>
+  <depend>python3-sphinx-rtd-theme</depend>
   <depend>random_numbers</depend>
+  <depend>rosconsole</depend>
   <depend>roslib</depend>
   <depend>rostime</depend>
-  <depend>rosconsole</depend>
   <depend>sensor_msgs</depend>
   <depend>shape_msgs</depend>
   <depend>srdfdom</depend>
@@ -51,6 +52,7 @@
   <depend>trajectory_msgs</depend>
   <depend>visualization_msgs</depend>
   <depend>xmlrpcpp</depend>
+
 
   <test_depend>moveit_resources_panda_moveit_config</test_depend>
   <test_depend>moveit_resources_pr2_description</test_depend>
