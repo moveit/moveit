@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>moveit_core</name>
-  <version>1.1.3</version>
+  <version>1.1.2</version>
   <description>Core libraries used by MoveIt</description>
   <author email="isucan@google.com">Ioan Sucan</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
@@ -31,17 +31,17 @@
   <depend>geometry_msgs</depend>
   <depend>kdl_parser</depend>
   <depend>libconsole-bridge-dev</depend>
+  <depend>urdf</depend>
   <depend>liburdfdom-dev</depend>
   <depend>liburdfdom-headers-dev</depend>
   <depend>moveit_msgs</depend>
   <depend>octomap</depend>
   <depend>octomap_msgs</depend>
   <depend>pybind11_catkin</depend>
-  <depend>python3-sphinx-rtd-theme</depend>
   <depend>random_numbers</depend>
-  <depend>rosconsole</depend>
   <depend>roslib</depend>
   <depend>rostime</depend>
+  <depend>rosconsole</depend>
   <depend>sensor_msgs</depend>
   <depend>shape_msgs</depend>
   <depend>srdfdom</depend>
@@ -49,9 +49,10 @@
   <depend>tf2_eigen</depend>
   <depend>tf2_geometry_msgs</depend>
   <depend>trajectory_msgs</depend>
-  <depend>urdf</depend>
   <depend>visualization_msgs</depend>
   <depend>xmlrpcpp</depend>
+
+  <doc_depend>python3-sphinx-rtd-theme</doc_depend>
 
   <test_depend>moveit_resources_panda_moveit_config</test_depend>
   <test_depend>moveit_resources_pr2_description</test_depend>
