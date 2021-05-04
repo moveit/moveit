@@ -52,6 +52,8 @@
   <depend>visualization_msgs</depend>
   <depend>xmlrpcpp</depend>
 
+  <doc_depend>python3-sphinx-rtd-theme</doc_depend>
+
   <test_depend>moveit_resources_panda_moveit_config</test_depend>
   <test_depend>moveit_resources_pr2_description</test_depend>
   <test_depend>angles</test_depend>
