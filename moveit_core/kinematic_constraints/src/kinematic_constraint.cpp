@@ -613,7 +613,7 @@ bool OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& 
       parameterization_ != moveit_msgs::OrientationConstraint::ROTATION_VECTOR)
   {
     ROS_WARN_NAMED("kinematic_constraints",
-                   "Unkown parameterization for orientation constraint tolerance, using default (XYZ_EULER_ANGLES).");
+                   "Unknown parameterization for orientation constraint tolerance, using default (XYZ_EULER_ANGLES).");
     parameterization_ = moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES;
   }
 
