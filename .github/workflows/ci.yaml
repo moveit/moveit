@@ -14,6 +14,7 @@ on:
 jobs:
   default:
     strategy:
+      fail-fast: false
       matrix:
         env:
           - IMAGE: master-ci
