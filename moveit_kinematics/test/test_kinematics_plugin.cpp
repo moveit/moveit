@@ -43,7 +43,7 @@
 #include <tf2_eigen/tf2_eigen.h>
 #include <xmlrpcpp/XmlRpcValue.h>
 
-// MoveIt!
+// MoveIt
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/rdf_loader/rdf_loader.h>
 #include <moveit/robot_model/robot_model.h>
