@@ -14,6 +14,8 @@ jobs:
         distro: [noetic]
 
     env:
+      # https://github.com/ros-industrial/industrial_ci/issues/666
+      BUILDER: catkin_make_isolated
       ROS_DISTRO: ${{ matrix.distro }}
       PRERELEASE: true
       BASEDIR: ${{ github.workspace }}/.work
