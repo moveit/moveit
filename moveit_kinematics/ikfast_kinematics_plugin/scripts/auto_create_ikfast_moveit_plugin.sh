@@ -97,7 +97,7 @@ RUN apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E
     apt-get install -y --no-install-recommends python-pip build-essential liblapack-dev ros-indigo-collada-urdf && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 # enforce a specific version of sympy, which is known to work with OpenRave
-RUN pip install sympy==0.7.1
+RUN pip install git+https://github.com/sympy/sympy.git@sympy-0.7.1
 EOF
    # When running in quiet mode, save stdout as 3, then redirect stdout to /dev/null
    test "$QUIET" == "1" && STDOUT=3 && exec 3>&1 1>/dev/null
