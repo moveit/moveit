@@ -1289,6 +1289,26 @@ bool PlanningScene::usePlanningSceneMsg(const moveit_msgs::PlanningScene& scene_
     return setPlanningSceneMsg(scene_msg);
 }
 
+collision_detection::OccMapTreePtr createOctomap(const octomap_msgs::Octomap& map)
+{
+  std::shared_ptr<collision_detection::OccMapTree> om =
+      std::make_shared<collision_detection::OccMapTree>(map.resolution);
+  if (map.binary)
+  {
+    octomap_msgs::readTree(om.get(), map);
+  }
+  else
+  {
+    std::stringstream datastream;
+    if (map.data.size() > 0)
+    {
+      datastream.write((const char*)&map.data[0], map.data.size());
+      om->readData(datastream);
+    }
+  }
+  return om;
+}
+
 void PlanningScene::processOctomapMsg(const octomap_msgs::Octomap& map)
 {
   // each octomap replaces any previous one
@@ -1303,7 +1323,7 @@ void PlanningScene::processOctomapMsg(const octomap_msgs::Octomap& map)
     return;
   }
 
-  std::shared_ptr<octomap::OcTree> om(static_cast<octomap::OcTree*>(octomap_msgs::msgToMap(map)));
+  std::shared_ptr<collision_detection::OccMapTree> om = createOctomap(map);
   if (!map.header.frame_id.empty())
   {
     const Eigen::Isometry3d& t = getFrameTransform(map.header.frame_id);
@@ -1341,7 +1361,8 @@ void PlanningScene::processOctomapMsg(const octomap_msgs::OctomapWithPose& map)
     return;
   }
 
-  std::shared_ptr<octomap::OcTree> om(static_cast<octomap::OcTree*>(octomap_msgs::msgToMap(map.octomap)));
+  std::shared_ptr<collision_detection::OccMapTree> om = createOctomap(map.octomap);
+
   const Eigen::Isometry3d& t = getFrameTransform(map.header.frame_id);
   Eigen::Isometry3d p;
   tf2::fromMsg(map.origin, p);
