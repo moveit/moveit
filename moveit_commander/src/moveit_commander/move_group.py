@@ -44,6 +44,7 @@ from moveit_msgs.msg import (
     MoveItErrorCodes,
     TrajectoryConstraints,
     PlannerInterfaceDescription,
+    MotionPlanRequest,
 )
 from sensor_msgs.msg import JointState
 import rospy
@@ -636,6 +637,11 @@ class MoveGroupCommander(object):
             planning_time,
             error_code,
         )
+
+    def construct_motion_plan_request(self):
+        """ Returns a MotionPlanRequest filled with the current goals of the move_group_interface"""
+        mpr = MotionPlanRequest()
+        return mpr.deserialize(self._g.construct_motion_plan_request())
 
     def compute_cartesian_path(
         self,
