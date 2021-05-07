@@ -259,7 +259,7 @@ bool MoveGroupSequenceAction::planUsingSequenceManager(const moveit_msgs::Motion
     plan.error_code_.val = ex.getErrorCode();
     return false;
   }
-  // LCOV_EXCL_START // Keep moveit up even if lower parts throw
+  // LCOV_EXCL_START // Keep MoveIt up even if lower parts throw
   catch (const std::exception& ex)
   {
     ROS_ERROR_STREAM("Planning pipeline threw an exception: " << ex.what());
