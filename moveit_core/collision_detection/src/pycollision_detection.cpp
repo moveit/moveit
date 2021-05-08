@@ -61,13 +61,7 @@ void def_collision_detection_bindings(py::module& m)
       .def_readwrite("body_type_1", &Contact::body_type_1)
       .def_readwrite("body_type_2", &Contact::body_type_2)
       .def_readwrite("depth", &Contact::depth)
-      .def_property_readonly("nearest_points",
-                             [](const Contact& contact) {
-                               std::vector<Eigen::Vector3d> v{ contact.nearest_points[0], contact.nearest_points[1] };
-                               return v;
-                             })
       .def_readwrite("normal", &Contact::normal)
-      .def_readwrite("percent_interpolation", &Contact::percent_interpolation)
       .def_readwrite("pos", &Contact::pos)
       //
       ;
