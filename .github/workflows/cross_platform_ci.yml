@@ -1,4 +1,4 @@
-name: Build Moveit Core on all platforms
+name: Cross CI
 
 on:
   workflow_dispatch:
@@ -15,20 +15,25 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+
     steps:
     - uses: actions/checkout@v2
-    - name: Build Moveit Core on Unix
+
+    - name: Set up Build Dependencies
+      uses: mamba-org/provision-with-micromamba@main
+      with:
+        environment-file: .github/ci_cross_platform_env.yml
+        micromamba-version: latest
+
+    - name: Set up Moveit Core Dependencies on Unix
       if: runner.os == 'Linux' || runner.os == 'macOS'
       shell: bash -l -eo pipefail {0}
       run: |
-        export CTEST_OUTPUT_ON_FAILURE=1
-        cd moveit_core
-        ls -al
-
-    - name: Set up Dependencies
-      uses: mamba-org/provision-with-micromamba@main
-      with:
-        environment-file: .github/ci_env.yml
+        micromamba activate test
+        export PATH=$HOME/micromamba-bin:$PATH
+        rosdep init
+        rosdep update
+        rosdep install --from-paths moveit_core --ignore-src -r -y
 
     - name: Build Moveit Core on Unix
       if: runner.os == 'Linux' || runner.os == 'macOS'
@@ -49,12 +54,16 @@ jobs:
         ninja
         ninja run_tests
 
-    - name: Build Moveit Core on Windows
+    - name: Set up Moveit Core Dependencies on Windows
       if: runner.os == 'Windows'
-      shell: powershell
+      shell: cmd
       run: |
-        micromamba shell hook -s cmd.exe -p C:\Users\runneradmin\micromamba
-        Get-Content -Path C:\Users\runneradmin\micromamba\condabin\mamba_hook.bat
+        echo "Activate environment, and use rosdep to install dependencies"
+        call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate test
+
+        rosdep init
+        rosdep update
+        rosdep install --from-paths moveit_core --ignore-src -r -y
 
     - name: Build Moveit Core on Windows
       if: runner.os == 'Windows'
@@ -62,7 +71,6 @@ jobs:
       run: |
 
         echo "Remove unnecessary / colliding things from PATH"
-
         set "PATH=%PATH:C:\ProgramData\Chocolatey\bin;=%"
         set "PATH=%PATH:C:\Program Files (x86)\sbt\bin;=%"
         set "PATH=%PATH:C:\Rust\.cargo\bin;=%"
@@ -76,14 +84,13 @@ jobs:
         set "PATH=%PATH:C:\Strawberry\perl\bin;=%"
         set "PATH=%PATH:C:\Strawberry\perl\site\bin;=%"
         set "PATH=%PATH:c:\tools\php;=%"
-        :: Make paths like C:\\hostedtoolcache\\windows\\Ruby\\2.5.7\\x64\\bin garbage
         set "PATH=%PATH:ostedtoolcache=%"
-
-        echo "Activate environment, and compile"
 
         call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate test
 
-        SET "PYTHONPATH=%CONDA_PREFIX%\Library\lib\site-packages"
+        echo "%PATH%"
+
+        python -c "import sys; print(sys.version)"
 
         cd moveit_core
         mkdir build
