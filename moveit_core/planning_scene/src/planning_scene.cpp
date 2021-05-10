@@ -38,6 +38,7 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
 #include <geometric_shapes/shape_operations.h>
+#include <moveit/collision_detection/occupancy_map.h>
 #include <moveit/collision_detection/collision_tools.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/robot_state/conversions.h>
@@ -479,14 +480,7 @@ void PlanningScene::checkCollision(const collision_detection::CollisionRequest& 
                                    collision_detection::CollisionResult& res,
                                    const moveit::core::RobotState& robot_state) const
 {
-  // check collision with the world using the padded version
-  getCollisionEnv()->checkRobotCollision(req, res, robot_state, getAllowedCollisionMatrix());
-
-  if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
-  {
-    // do self-collision checking with the unpadded version of the robot
-    getCollisionEnvUnpadded()->checkSelfCollision(req, res, robot_state, getAllowedCollisionMatrix());
-  }
+  checkCollision(req, res, robot_state, getAllowedCollisionMatrix());
 }
 
 void PlanningScene::checkSelfCollision(const collision_detection::CollisionRequest& req,
@@ -503,6 +497,16 @@ void PlanningScene::checkCollision(const collision_detection::CollisionRequest& 
                                    const moveit::core::RobotState& robot_state,
                                    const collision_detection::AllowedCollisionMatrix& acm) const
 {
+  // lock the octomap if there is any as it might be shared with other PlanningScenes
+  collision_detection::OccMapTree::ReadLock lock;
+  collision_detection::CollisionEnv::ObjectConstPtr map = world_->getObject(OCTOMAP_NS);
+  if (map && map->shapes_.size() == 1)
+  {
+    const shapes::OcTree* o = static_cast<const shapes::OcTree*>(map->shapes_[0].get());
+    const collision_detection::OccMapTree* occ = static_cast<const collision_detection::OccMapTree*>(o->octree.get());
+    lock = occ->reading();
+  }
+
   // check collision with the world using the padded version
   getCollisionEnv()->checkRobotCollision(req, res, robot_state, acm);
 
@@ -525,6 +529,16 @@ void PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionR
                                            const moveit::core::RobotState& robot_state,
                                            const collision_detection::AllowedCollisionMatrix& acm) const
 {
+  // lock the octomap if there is any as it might be shared with other PlanningScenes
+  collision_detection::OccMapTree::ReadLock lock;
+  collision_detection::CollisionEnv::ObjectConstPtr map = world_->getObject(OCTOMAP_NS);
+  if (map && map->shapes_.size() == 1)
+  {
+    const shapes::OcTree* o = static_cast<const shapes::OcTree*>(map->shapes_[0].get());
+    const collision_detection::OccMapTree* occ = static_cast<const collision_detection::OccMapTree*>(o->octree.get());
+    lock = occ->reading();
+  }
+
   // check collision with the world using the unpadded version
   getCollisionEnvUnpadded()->checkRobotCollision(req, res, robot_state, acm);
 
@@ -837,6 +851,12 @@ bool PlanningScene::getOctomapMsg(octomap_msgs::OctomapWithPose& octomap) const
     if (map->shapes_.size() == 1)
     {
       const shapes::OcTree* o = static_cast<const shapes::OcTree*>(map->shapes_[0].get());
+
+      // lock the octomap if there is any as it might be shared with other PlanningScenes
+      collision_detection::OccMapTree::ReadLock lock;
+      const collision_detection::OccMapTree* occ = static_cast<const collision_detection::OccMapTree*>(o->octree.get());
+      lock = occ->reading();
+
       octomap_msgs::fullMapToMsg(*o->octree, octomap.octomap);
       octomap.origin = tf2::toMsg(map->shape_poses_[0]);
       return true;
@@ -1269,6 +1289,26 @@ bool PlanningScene::usePlanningSceneMsg(const moveit_msgs::PlanningScene& scene_
     return setPlanningSceneMsg(scene_msg);
 }
 
+collision_detection::OccMapTreePtr createOctomap(const octomap_msgs::Octomap& map)
+{
+  std::shared_ptr<collision_detection::OccMapTree> om =
+      std::make_shared<collision_detection::OccMapTree>(map.resolution);
+  if (map.binary)
+  {
+    octomap_msgs::readTree(om.get(), map);
+  }
+  else
+  {
+    std::stringstream datastream;
+    if (map.data.size() > 0)
+    {
+      datastream.write((const char*)&map.data[0], map.data.size());
+      om->readData(datastream);
+    }
+  }
+  return om;
+}
+
 void PlanningScene::processOctomapMsg(const octomap_msgs::Octomap& map)
 {
   // each octomap replaces any previous one
@@ -1283,7 +1323,7 @@ void PlanningScene::processOctomapMsg(const octomap_msgs::Octomap& map)
     return;
   }
 
-  std::shared_ptr<octomap::OcTree> om(static_cast<octomap::OcTree*>(octomap_msgs::msgToMap(map)));
+  std::shared_ptr<collision_detection::OccMapTree> om = createOctomap(map);
   if (!map.header.frame_id.empty())
   {
     const Eigen::Isometry3d& t = getFrameTransform(map.header.frame_id);
@@ -1321,7 +1361,8 @@ void PlanningScene::processOctomapMsg(const octomap_msgs::OctomapWithPose& map)
     return;
   }
 
-  std::shared_ptr<octomap::OcTree> om(static_cast<octomap::OcTree*>(octomap_msgs::msgToMap(map.octomap)));
+  std::shared_ptr<collision_detection::OccMapTree> om = createOctomap(map.octomap);
+
   const Eigen::Isometry3d& t = getFrameTransform(map.header.frame_id);
   Eigen::Isometry3d p;
   tf2::fromMsg(map.origin, p);
