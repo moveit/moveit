@@ -98,26 +98,58 @@ public:
   /** @brief Query whether we have joint state information for all DOFs in the kinematic model
    *  @return False if we have no joint state information for one or more of the joints
    */
-  bool haveCompleteState() const;
+  inline bool haveCompleteState() const
+  {
+    return haveCompleteStateHelper(ros::Time(0), nullptr);
+  }
 
   /** @brief Query whether we have joint state information for all DOFs in the kinematic model
+   *  @param oldest_allowed_update_time All joint information must be from this time or more current
+   *  @return False if we have no joint state information for one of the joints or if our state
+   *  information is more than \e age old*/
+  inline bool haveCompleteState(const ros::Time& oldest_allowed_update_time) const
+  {
+    return haveCompleteStateHelper(oldest_allowed_update_time, nullptr);
+  }
+
+  /** @brief Query whether we have joint state information for all DOFs in the kinematic model
+   *  @param age Joint information must be at most this old
    *  @return False if we have no joint state information for one of the joints or if our state
    *  information is more than \e age old
    */
-  bool haveCompleteState(const ros::Duration& age) const;
+  inline bool haveCompleteState(const ros::Duration& age) const
+  {
+    return haveCompleteStateHelper(ros::Time::now() - age, nullptr);
+  }
 
   /** @brief Query whether we have joint state information for all DOFs in the kinematic model
    *  @param missing_joints Returns the list of joints that are missing
    *  @return False if we have no joint state information for one or more of the joints
    */
-  bool haveCompleteState(std::vector<std::string>& missing_joints) const;
+  inline bool haveCompleteState(std::vector<std::string>& missing_joints) const
+  {
+    return haveCompleteStateHelper(ros::Time(0), &missing_joints);
+  }
 
   /** @brief Query whether we have joint state information for all DOFs in the kinematic model
-   *  @param age The max allowed age of the joint state information
-   *  @param missing_states Returns the list of joints that are missing
+   *  @param oldest_allowed_update_time All joint information must be from this time or more current
+   *  @param missing_joints Returns the list of joints that are missing
    *  @return False if we have no joint state information for one of the joints or if our state
    *  information is more than \e age old*/
-  bool haveCompleteState(const ros::Duration& age, std::vector<std::string>& missing_states) const;
+  inline bool haveCompleteState(const ros::Time& oldest_allowed_update_time,
+                                std::vector<std::string>& missing_joints) const
+  {
+    return haveCompleteStateHelper(oldest_allowed_update_time, &missing_joints);
+  }
+
+  /** @brief Query whether we have joint state information for all DOFs in the kinematic model
+   *  @return False if we have no joint state information for one of the joints or if our state
+   *  information is more than \e age old
+   */
+  inline bool haveCompleteState(const ros::Duration& age, std::vector<std::string>& missing_joints) const
+  {
+    return haveCompleteStateHelper(ros::Time::now() - age, &missing_joints);
+  }
 
   /** @brief Get the current state
    *  @return Returns the current state */
@@ -189,6 +221,9 @@ public:
   }
 
 private:
+  bool haveCompleteStateHelper(const ros::Time& oldest_allowed_update_time,
+                               std::vector<std::string>* missing_joints) const;
+
   void jointStateCallback(const sensor_msgs::JointStateConstPtr& joint_state);
   void tfCallback();
 
