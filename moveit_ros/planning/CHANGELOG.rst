@@ -2,6 +2,14 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.4 (2021-05-12)
+------------------
+* Lock the octomap/octree while collision checking (`#2596 <https://github.com/ros-planning/moveit/issues/2596>`_)
+* Use private NodeHandle instead of child for PlanningPipeline topics (`#2652 <https://github.com/ros-planning/moveit/issues/2652>`_)
+* Print an error if the planning pipelines are empty (`#2639 <https://github.com/ros-planning/moveit/issues/2639>`_)
+* Simplify logic in PSM (`#2632 <https://github.com/ros-planning/moveit/issues/2632>`_)
+* Contributors: Henning Kayser, Luc Bettaieb, Michael Görner, Simon Schmeisser, Rojas Rafael
+
 1.1.3 (2021-04-29)
 ------------------
 

@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.4 (2021-05-12)
+------------------
+* planning_interface: synchronize async interfaces in unit tests (`#2640 <https://github.com/ros-planning/moveit/issues/2640>`_)
+* Contributors: Michael Görner
+
 1.1.3 (2021-04-29)
 ------------------
 * Add planning_pipeline_id setting to Python MGI (`#2622 <https://github.com/ros-planning/moveit/issues/2622>`_)

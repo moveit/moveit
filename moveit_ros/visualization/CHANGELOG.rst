@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.4 (2021-05-12)
+------------------
+
 1.1.3 (2021-04-29)
 ------------------
 * Several minor fixups in PlanningSceneDisplay (`#2618 <https://github.com/ros-planning/moveit/issues/2618>`_)

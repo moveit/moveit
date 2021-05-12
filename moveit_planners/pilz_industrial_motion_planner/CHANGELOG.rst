@@ -2,6 +2,9 @@
 Changelog for package pilz_industrial_motion_planner
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.4 (2021-05-12)
+------------------
+
 1.1.3 (2021-04-29)
 ------------------
 * Skip fixed joints when checking velocity limits (`#2610 <https://github.com/ros-planning/moveit/issues/2610>`_)
