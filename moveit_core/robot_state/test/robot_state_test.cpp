@@ -560,6 +560,38 @@ TEST_F(OneRobot, testPrintCurrentPositionWithJointLimits)
   state.printStatePositionsWithJointLimits(joint_model_group);
 }
 
+TEST_F(OneRobot, testInterpolation)
+{
+  moveit::core::RobotState state_a(robot_model_);
+  state_a.setToDefaultValues();
+  moveit::core::RobotState state_b(state_a);
+  moveit::core::RobotState interpolated_state(state_a);
+  state_a.interpolate(state_b, 0.1, interpolated_state, robot_model_->getJointModelGroup("base_from_base_to_e"));
+  ASSERT_TRUE(state_a.distance(state_b) < 1e-12);
+
+  for (const auto& link_name : robot_model_->getLinkModelNames())
+  {
+    ASSERT_FALSE(interpolated_state.getCollisionBodyTransform(link_name, 0).matrix().hasNaN());
+  }
+
+  std::map<std::string, double> joint_values;
+  joint_values["base_joint/x"] = 1.0;
+  joint_values["base_joint/y"] = 1.0;
+  state_a.setVariablePositions(joint_values);
+  joint_values["base_joint/x"] = 0.0;
+  joint_values["base_joint/y"] = 2.0;
+  state_b.setVariablePositions(joint_values);
+  ASSERT_TRUE(std::abs(state_a.distance(state_b) - 3 * std::sqrt(2)) < 1e-9);
+
+  state_a.interpolate(state_b, 0.5, interpolated_state, robot_model_->getJointModelGroup("base_from_base_to_e"));
+  ASSERT_TRUE(std::abs(state_a.distance(interpolated_state) - state_b.distance(interpolated_state)) < 1e-9);
+  ASSERT_TRUE(std::abs(interpolated_state.getVariablePosition("base_joint/x") - 0.5) < 1e-9);
+  ASSERT_TRUE(std::abs(interpolated_state.getVariablePosition("base_joint/y") - 1.5) < 1e-9);
+  state_a.interpolate(state_b, 0.1, interpolated_state, robot_model_->getJointModelGroup("base_from_base_to_e"));
+  ASSERT_TRUE(std::abs(interpolated_state.getVariablePosition("base_joint/x") - 0.9) < 1e-9);
+  ASSERT_TRUE(std::abs(interpolated_state.getVariablePosition("base_joint/y") - 1.1) < 1e-9);
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
