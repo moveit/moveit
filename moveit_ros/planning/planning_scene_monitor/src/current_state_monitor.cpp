@@ -194,9 +194,20 @@ bool CurrentStateMonitor::haveCompleteState(std::vector<std::string>& missing_jo
   return haveCompleteStateHelper(ros::Time(0), &missing_joints);
 }
 
+bool CurrentStateMonitor::haveCompleteState(const ros::Time& oldest_allowed_update_time) const
+{
+  return haveCompleteStateHelper(oldest_allowed_update_time, nullptr);
+}
+
 bool CurrentStateMonitor::haveCompleteState(const ros::Duration& age) const
 {
   return haveCompleteStateHelper(ros::Time::now() - age, nullptr);
+}
+
+bool CurrentStateMonitor::haveCompleteState(const ros::Time& oldest_allowed_update_time,
+                                            std::vector<std::string>& missing_joints) const
+{
+  return haveCompleteStateHelper(oldest_allowed_update_time, &missing_joints);
 }
 
 bool CurrentStateMonitor::haveCompleteState(const ros::Duration& age, std::vector<std::string>& missing_joints) const
@@ -204,7 +215,7 @@ bool CurrentStateMonitor::haveCompleteState(const ros::Duration& age, std::vecto
   return haveCompleteStateHelper(ros::Time::now() - age, &missing_joints);
 }
 
-bool CurrentStateMonitor::haveCompleteStateHelper(const ros::Time& min_update_time,
+bool CurrentStateMonitor::haveCompleteStateHelper(const ros::Time& oldest_allowed_update_time,
                                                   std::vector<std::string>* missing_joints) const
 {
   const std::vector<const moveit::core::JointModel*>& active_joints = robot_model_->getActiveJointModels();
@@ -216,10 +227,10 @@ bool CurrentStateMonitor::haveCompleteStateHelper(const ros::Time& min_update_ti
     {
       ROS_DEBUG_NAMED(LOGNAME, "Joint '%s' has never been updated", joint->getName().c_str());
     }
-    else if (it->second < min_update_time)
+    else if (it->second < oldest_allowed_update_time)
     {
       ROS_DEBUG_NAMED(LOGNAME, "Joint '%s' was last updated %0.3lf seconds before requested time",
-                      joint->getName().c_str(), (min_update_time - it->second).toSec());
+                      joint->getName().c_str(), (oldest_allowed_update_time - it->second).toSec());
     }
     else
       continue;
