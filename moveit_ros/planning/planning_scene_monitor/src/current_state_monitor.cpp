@@ -41,6 +41,8 @@
 
 #include <limits>
 
+constexpr char LOGNAME[] = "current_state_monitor";
+
 namespace planning_scene_monitor
 {
 CurrentStateMonitor::CurrentStateMonitor(const moveit::core::RobotModelConstPtr& robot_model,
@@ -140,7 +142,7 @@ void CurrentStateMonitor::startStateMonitor(const std::string& joint_states_topi
   {
     joint_time_.clear();
     if (joint_states_topic.empty())
-      ROS_ERROR("The joint states topic cannot be an empty string");
+      ROS_ERROR_NAMED(LOGNAME, "The joint states topic cannot be an empty string");
     else
       joint_state_subscriber_ = nh_.subscribe(joint_states_topic, 25, &CurrentStateMonitor::jointStateCallback, this);
     if (tf_buffer_ && !robot_model_->getMultiDOFJointModels().empty())
@@ -150,7 +152,7 @@ void CurrentStateMonitor::startStateMonitor(const std::string& joint_states_topi
     }
     state_monitor_started_ = true;
     monitor_start_time_ = ros::Time::now();
-    ROS_DEBUG("Listening to joint states on topic '%s'", nh_.resolveName(joint_states_topic).c_str());
+    ROS_DEBUG_NAMED(LOGNAME, "Listening to joint states on topic '%s'", nh_.resolveName(joint_states_topic).c_str());
   }
 }
 
@@ -169,7 +171,7 @@ void CurrentStateMonitor::stopStateMonitor()
       tf_buffer_->_removeTransformsChangedListener(*tf_connection_);
       tf_connection_.reset();
     }
-    ROS_DEBUG("No longer listening for joint states");
+    ROS_DEBUG_NAMED(LOGNAME, "No longer listening for joint states");
     state_monitor_started_ = false;
   }
 }
@@ -212,12 +214,12 @@ bool CurrentStateMonitor::haveCompleteStateHelper(const ros::Time& min_update_ti
     std::map<const moveit::core::JointModel*, ros::Time>::const_iterator it = joint_time_.find(joint);
     if (it == joint_time_.end())
     {
-      ROS_DEBUG("Joint '%s' has never been updated", joint->getName().c_str());
+      ROS_DEBUG_NAMED(LOGNAME, "Joint '%s' has never been updated", joint->getName().c_str());
     }
     else if (it->second < min_update_time)
     {
-      ROS_DEBUG("Joint '%s' was last updated %0.3lf seconds before requested time", joint->getName().c_str(),
-                (min_update_time - it->second).toSec());
+      ROS_DEBUG_NAMED(LOGNAME, "Joint '%s' was last updated %0.3lf seconds before requested time",
+                      joint->getName().c_str(), (min_update_time - it->second).toSec());
     }
     else
       continue;
@@ -243,9 +245,10 @@ bool CurrentStateMonitor::waitForCurrentState(const ros::Time t, double wait_tim
     elapsed = ros::WallTime::now() - start;
     if (elapsed > timeout)
     {
-      ROS_INFO_STREAM("Didn't received robot state (joint angles) with recent timestamp within "
-                      << wait_time << " seconds.\n"
-                      << "Check clock synchronization if your are running ROS across multiple machines!");
+      ROS_INFO_STREAM_NAMED(LOGNAME,
+                            "Didn't receive robot state (joint angles) with recent timestamp within "
+                                << wait_time << " seconds.\n"
+                                << "Check clock synchronization if your are running ROS across multiple machines!");
       return false;
     }
   }
@@ -296,8 +299,10 @@ void CurrentStateMonitor::jointStateCallback(const sensor_msgs::JointStateConstP
 {
   if (joint_state->name.size() != joint_state->position.size())
   {
-    ROS_ERROR_THROTTLE(1, "State monitor received invalid joint state (number of joint names does not match number of "
-                          "positions)");
+    ROS_ERROR_THROTTLE_NAMED(
+        1, LOGNAME,
+        "State monitor received invalid joint state (number of joint names does not match number of "
+        "positions)");
     return;
   }
   bool update = false;
@@ -395,9 +400,10 @@ void CurrentStateMonitor::tfCallback()
       }
       catch (tf2::TransformException& ex)
       {
-        ROS_WARN_STREAM_ONCE("Unable to update multi-DOF joint '"
-                             << joint->getName() << "': Failure to lookup transform between '" << parent_frame.c_str()
-                             << "' and '" << child_frame.c_str() << "' with TF exception: " << ex.what());
+        ROS_WARN_STREAM_ONCE_NAMED(LOGNAME, "Unable to update multi-DOF joint '"
+                                                << joint->getName() << "': Failure to lookup transform between '"
+                                                << parent_frame.c_str() << "' and '" << child_frame.c_str()
+                                                << "' with TF exception: " << ex.what());
         continue;
       }
 
