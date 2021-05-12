@@ -902,6 +902,8 @@ double RobotState::distance(const RobotState& other, const JointModelGroup* join
 
 void RobotState::interpolate(const RobotState& to, double t, RobotState& state) const
 {
+  ROS_WARN_STREAM_COND_NAMED(std::isnan(t) || t < 0. || t > 1., LOGNAME,
+                             "Interpolation paramter is not in the range [0, 1]: " << t);
   robot_model_->interpolate(getVariablePositions(), to.getVariablePositions(), t, state.getVariablePositions());
 
   memset(state.dirty_joint_transforms_, 1, state.robot_model_->getJointModelCount() * sizeof(unsigned char));
@@ -910,6 +912,8 @@ void RobotState::interpolate(const RobotState& to, double t, RobotState& state) 
 
 void RobotState::interpolate(const RobotState& to, double t, RobotState& state, const JointModelGroup* joint_group) const
 {
+  ROS_WARN_STREAM_COND_NAMED(std::isnan(t) || t < 0. || t > 1., LOGNAME,
+                             "Interpolation paramter is not in the range [0, 1]: " << t);
   const std::vector<const JointModel*>& jm = joint_group->getActiveJointModels();
   for (const JointModel* joint : jm)
   {
