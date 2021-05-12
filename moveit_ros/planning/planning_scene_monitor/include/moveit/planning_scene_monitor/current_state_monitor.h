@@ -188,6 +188,9 @@ public:
   }
 
 private:
+  bool haveCompleteStateHelper(const ros::Time& oldest_allowed_update_time,
+                               std::vector<std::string>* missing_joints) const;
+
   void jointStateCallback(const sensor_msgs::JointStateConstPtr& joint_state);
   void tfCallback();
 

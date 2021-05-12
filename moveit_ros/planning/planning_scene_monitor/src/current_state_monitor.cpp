@@ -184,90 +184,50 @@ std::string CurrentStateMonitor::getMonitoredTopic() const
 
 bool CurrentStateMonitor::haveCompleteState() const
 {
-  bool result = true;
-  const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getActiveJointModels();
-  boost::mutex::scoped_lock slock(state_update_lock_);
-  for (const moveit::core::JointModel* joint : joints)
-    if (joint_time_.find(joint) == joint_time_.end())
-    {
-      if (!joint->isPassive() && !joint->getMimic())
-      {
-        ROS_DEBUG("Joint '%s' has never been updated", joint->getName().c_str());
-        result = false;
-      }
-    }
-  return result;
+  return haveCompleteStateHelper(ros::Time(0), nullptr);
 }
 
 bool CurrentStateMonitor::haveCompleteState(std::vector<std::string>& missing_joints) const
 {
-  bool result = true;
-  const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getActiveJointModels();
-  boost::mutex::scoped_lock slock(state_update_lock_);
-  for (const moveit::core::JointModel* joint : joints)
-    if (joint_time_.find(joint) == joint_time_.end())
-      if (!joint->isPassive() && !joint->getMimic())
-      {
-        missing_joints.push_back(joint->getName());
-        result = false;
-      }
-  return result;
+  return haveCompleteStateHelper(ros::Time(0), &missing_joints);
 }
 
 bool CurrentStateMonitor::haveCompleteState(const ros::Duration& age) const
 {
-  bool result = true;
-  const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getActiveJointModels();
-  ros::Time now = ros::Time::now();
-  ros::Time old = now - age;
-  boost::mutex::scoped_lock slock(state_update_lock_);
-  for (const moveit::core::JointModel* joint : joints)
-  {
-    if (joint->isPassive() || joint->getMimic())
-      continue;
-    std::map<const moveit::core::JointModel*, ros::Time>::const_iterator it = joint_time_.find(joint);
-    if (it == joint_time_.end())
-    {
-      ROS_DEBUG("Joint '%s' has never been updated", joint->getName().c_str());
-      result = false;
-    }
-    else if (it->second < old)
-    {
-      ROS_DEBUG("Joint '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
-                joint->getName().c_str(), (now - it->second).toSec(), age.toSec());
-      result = false;
-    }
-  }
-  return result;
+  return haveCompleteStateHelper(ros::Time::now() - age, nullptr);
 }
 
 bool CurrentStateMonitor::haveCompleteState(const ros::Duration& age, std::vector<std::string>& missing_joints) const
 {
-  bool result = true;
-  const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getActiveJointModels();
-  ros::Time now = ros::Time::now();
-  ros::Time old = now - age;
+  return haveCompleteStateHelper(ros::Time::now() - age, &missing_joints);
+}
+
+bool CurrentStateMonitor::haveCompleteStateHelper(const ros::Time& min_update_time,
+                                                  std::vector<std::string>* missing_joints) const
+{
+  const std::vector<const moveit::core::JointModel*>& active_joints = robot_model_->getActiveJointModels();
   boost::mutex::scoped_lock slock(state_update_lock_);
-  for (const moveit::core::JointModel* joint : joints)
+  for (const moveit::core::JointModel* joint : active_joints)
   {
-    if (joint->isPassive() || joint->getMimic())
-      continue;
     std::map<const moveit::core::JointModel*, ros::Time>::const_iterator it = joint_time_.find(joint);
     if (it == joint_time_.end())
     {
       ROS_DEBUG("Joint '%s' has never been updated", joint->getName().c_str());
-      missing_joints.push_back(joint->getName());
-      result = false;
     }
-    else if (it->second < old)
+    else if (it->second < min_update_time)
     {
-      ROS_DEBUG("Joint '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
-                joint->getName().c_str(), (now - it->second).toSec(), age.toSec());
-      missing_joints.push_back(joint->getName());
-      result = false;
+      ROS_DEBUG("Joint '%s' was last updated %0.3lf seconds before requested time", joint->getName().c_str(),
+                (min_update_time - it->second).toSec());
     }
+    else
+      continue;
+
+    if (missing_joints)
+      missing_joints->push_back(joint->getName());
+    else
+      return false;
   }
-  return result;
+  return (missing_joints == nullptr) || missing_joints->empty();
 }
 
 bool CurrentStateMonitor::waitForCurrentState(const ros::Time t, double wait_time) const
