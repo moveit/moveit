@@ -563,17 +563,24 @@ TEST_F(OneRobot, testPrintCurrentPositionWithJointLimits)
 TEST_F(OneRobot, testInterpolation)
 {
   moveit::core::RobotState state_a(robot_model_);
+
+  // Interpolate with itself
   state_a.setToDefaultValues();
   moveit::core::RobotState state_b(state_a);
   moveit::core::RobotState interpolated_state(state_a);
-  state_a.interpolate(state_b, 0.1, interpolated_state, robot_model_->getJointModelGroup("base_from_base_to_e"));
-  ASSERT_TRUE(state_a.distance(state_b) < 1e-12);
-
-  for (const auto& link_name : robot_model_->getLinkModelNames())
+  for (size_t i = 0; i <= 10; ++i)
   {
-    ASSERT_FALSE(interpolated_state.getCollisionBodyTransform(link_name, 0).matrix().hasNaN());
+    state_a.interpolate(state_b, static_cast<double>(i) / 10., interpolated_state,
+                        robot_model_->getJointModelGroup("base_from_base_to_e"));
+    EXPECT_TRUE(state_a.distance(state_b) < 1e-12);
+
+    for (const auto& link_name : robot_model_->getLinkModelNames())
+    {
+      EXPECT_FALSE(interpolated_state.getCollisionBodyTransform(link_name, 0).matrix().hasNaN());
+    }
   }
 
+  // Some simple interpolation
   std::map<std::string, double> joint_values;
   joint_values["base_joint/x"] = 1.0;
   joint_values["base_joint/y"] = 1.0;
@@ -581,15 +588,55 @@ TEST_F(OneRobot, testInterpolation)
   joint_values["base_joint/x"] = 0.0;
   joint_values["base_joint/y"] = 2.0;
   state_b.setVariablePositions(joint_values);
-  ASSERT_TRUE(std::abs(state_a.distance(state_b) - 3 * std::sqrt(2)) < 1e-9);
+  EXPECT_NEAR(3 * std::sqrt(2), state_a.distance(state_b), 1e-9);
 
   state_a.interpolate(state_b, 0.5, interpolated_state, robot_model_->getJointModelGroup("base_from_base_to_e"));
-  ASSERT_TRUE(std::abs(state_a.distance(interpolated_state) - state_b.distance(interpolated_state)) < 1e-9);
-  ASSERT_TRUE(std::abs(interpolated_state.getVariablePosition("base_joint/x") - 0.5) < 1e-9);
-  ASSERT_TRUE(std::abs(interpolated_state.getVariablePosition("base_joint/y") - 1.5) < 1e-9);
+  EXPECT_NEAR(0., state_a.distance(interpolated_state) - state_b.distance(interpolated_state), 1e-9);
+  EXPECT_NEAR(0.5, interpolated_state.getVariablePosition("base_joint/x"), 1e-9);
+  EXPECT_NEAR(1.5, interpolated_state.getVariablePosition("base_joint/y"), 1e-9);
   state_a.interpolate(state_b, 0.1, interpolated_state, robot_model_->getJointModelGroup("base_from_base_to_e"));
-  ASSERT_TRUE(std::abs(interpolated_state.getVariablePosition("base_joint/x") - 0.9) < 1e-9);
-  ASSERT_TRUE(std::abs(interpolated_state.getVariablePosition("base_joint/y") - 1.1) < 1e-9);
+  EXPECT_NEAR(0.9, interpolated_state.getVariablePosition("base_joint/x"), 1e-9);
+  EXPECT_NEAR(1.1, interpolated_state.getVariablePosition("base_joint/y"), 1e-9);
+
+  state_a.printStatePositions();
+
+  // Interpolate all the joints
+  joint_values["base_joint/x"] = 0.0;
+  joint_values["base_joint/y"] = 20.0;
+  joint_values["base_joint/theta"] = 2;
+  joint_values["joint_a"] = -2.5;
+  joint_values["joint_c"] = 0.0;
+  joint_values["joint_f"] = 1.0;
+  state_a.setVariablePositions(joint_values);
+
+  joint_values["base_joint/x"] = 10.0;
+  joint_values["base_joint/y"] = 0.0;
+  joint_values["base_joint/theta"] = -2;
+  joint_values["joint_a"] = 2.5;
+  joint_values["joint_c"] = 0.07;
+  joint_values["joint_f"] = 0.0;
+  state_b.setVariablePositions(joint_values);
+
+  for (size_t i = 0; i <= 5; ++i)
+  {
+    double t = static_cast<double>(i) / 5.;
+    state_a.interpolate(state_b, t, interpolated_state, robot_model_->getJointModelGroup("base_from_base_to_e"));
+    EXPECT_NEAR(10.0 * t, interpolated_state.getVariablePosition("base_joint/x"), 1e-9);
+    EXPECT_NEAR(20.0 * (1 - t), interpolated_state.getVariablePosition("base_joint/y"), 1e-9);
+    if (t < 0.5)
+    {
+      EXPECT_NEAR(2 + (2 * M_PI - 4) * t, interpolated_state.getVariablePosition("base_joint/theta"), 1e-9);
+      EXPECT_NEAR(-2.5 - (2 * M_PI - 5) * t, interpolated_state.getVariablePosition("joint_a"), 1e-9);
+    }
+    else
+    {
+      EXPECT_NEAR(-2 - (2 * M_PI - 4) * (1 - t), interpolated_state.getVariablePosition("base_joint/theta"), 1e-9);
+      EXPECT_NEAR(2.5 + (2 * M_PI - 5) * (1 - t), interpolated_state.getVariablePosition("joint_a"), 1e-9);
+    }
+    EXPECT_NEAR(0.07 * t, interpolated_state.getVariablePosition("joint_c"), 1e-9);
+    EXPECT_NEAR(1 - t, interpolated_state.getVariablePosition("joint_f"), 1e-9);
+    EXPECT_NEAR(1.5 * (1 - t) + 0.1, interpolated_state.getVariablePosition("mim_f"), 1e-9);
+  }
 }
 
 int main(int argc, char** argv)
