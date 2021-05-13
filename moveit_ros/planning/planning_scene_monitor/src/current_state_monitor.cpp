@@ -184,37 +184,6 @@ std::string CurrentStateMonitor::getMonitoredTopic() const
     return "";
 }
 
-bool CurrentStateMonitor::haveCompleteState() const
-{
-  return haveCompleteStateHelper(ros::Time(0), nullptr);
-}
-
-bool CurrentStateMonitor::haveCompleteState(std::vector<std::string>& missing_joints) const
-{
-  return haveCompleteStateHelper(ros::Time(0), &missing_joints);
-}
-
-bool CurrentStateMonitor::haveCompleteState(const ros::Time& oldest_allowed_update_time) const
-{
-  return haveCompleteStateHelper(oldest_allowed_update_time, nullptr);
-}
-
-bool CurrentStateMonitor::haveCompleteState(const ros::Duration& age) const
-{
-  return haveCompleteStateHelper(ros::Time::now() - age, nullptr);
-}
-
-bool CurrentStateMonitor::haveCompleteState(const ros::Time& oldest_allowed_update_time,
-                                            std::vector<std::string>& missing_joints) const
-{
-  return haveCompleteStateHelper(oldest_allowed_update_time, &missing_joints);
-}
-
-bool CurrentStateMonitor::haveCompleteState(const ros::Duration& age, std::vector<std::string>& missing_joints) const
-{
-  return haveCompleteStateHelper(ros::Time::now() - age, &missing_joints);
-}
-
 bool CurrentStateMonitor::haveCompleteStateHelper(const ros::Time& oldest_allowed_update_time,
                                                   std::vector<std::string>* missing_joints) const
 {
