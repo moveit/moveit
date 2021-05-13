@@ -598,21 +598,19 @@ TEST_F(OneRobot, testInterpolation)
   EXPECT_NEAR(0.9, interpolated_state.getVariablePosition("base_joint/x"), 1e-9);
   EXPECT_NEAR(1.1, interpolated_state.getVariablePosition("base_joint/y"), 1e-9);
 
-  state_a.printStatePositions();
-
   // Interpolate all the joints
   joint_values["base_joint/x"] = 0.0;
   joint_values["base_joint/y"] = 20.0;
-  joint_values["base_joint/theta"] = 2;
-  joint_values["joint_a"] = -2.5;
+  joint_values["base_joint/theta"] = 3 * M_PI / 4;
+  joint_values["joint_a"] = -4 * M_PI / 5;
   joint_values["joint_c"] = 0.0;
   joint_values["joint_f"] = 1.0;
   state_a.setVariablePositions(joint_values);
 
   joint_values["base_joint/x"] = 10.0;
   joint_values["base_joint/y"] = 0.0;
-  joint_values["base_joint/theta"] = -2;
-  joint_values["joint_a"] = 2.5;
+  joint_values["base_joint/theta"] = -3 * M_PI / 4;
+  joint_values["joint_a"] = 4 * M_PI / 5;
   joint_values["joint_c"] = 0.07;
   joint_values["joint_f"] = 0.0;
   state_b.setVariablePositions(joint_values);
@@ -625,13 +623,14 @@ TEST_F(OneRobot, testInterpolation)
     EXPECT_NEAR(20.0 * (1 - t), interpolated_state.getVariablePosition("base_joint/y"), 1e-9);
     if (t < 0.5)
     {
-      EXPECT_NEAR(2 + (2 * M_PI - 4) * t, interpolated_state.getVariablePosition("base_joint/theta"), 1e-9);
-      EXPECT_NEAR(-2.5 - (2 * M_PI - 5) * t, interpolated_state.getVariablePosition("joint_a"), 1e-9);
+      EXPECT_NEAR(3 * M_PI / 4 + (M_PI / 2) * t, interpolated_state.getVariablePosition("base_joint/theta"), 1e-9);
+      EXPECT_NEAR(-4 * M_PI / 5 - (2 * M_PI / 5) * t, interpolated_state.getVariablePosition("joint_a"), 1e-9);
     }
     else
     {
-      EXPECT_NEAR(-2 - (2 * M_PI - 4) * (1 - t), interpolated_state.getVariablePosition("base_joint/theta"), 1e-9);
-      EXPECT_NEAR(2.5 + (2 * M_PI - 5) * (1 - t), interpolated_state.getVariablePosition("joint_a"), 1e-9);
+      EXPECT_NEAR(-3 * M_PI / 4 - (M_PI / 2) * (1 - t), interpolated_state.getVariablePosition("base_joint/theta"),
+                  1e-9);
+      EXPECT_NEAR(4 * M_PI / 5 + (2 * M_PI / 5) * (1 - t), interpolated_state.getVariablePosition("joint_a"), 1e-9);
     }
     EXPECT_NEAR(0.07 * t, interpolated_state.getVariablePosition("joint_c"), 1e-9);
     EXPECT_NEAR(1 - t, interpolated_state.getVariablePosition("joint_f"), 1e-9);
