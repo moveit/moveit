@@ -217,22 +217,22 @@ bool CurrentStateMonitor::waitForCurrentState(const ros::Time t, double wait_tim
   ros::WallTime start = ros::WallTime::now();
   ros::WallDuration elapsed(0, 0);
   ros::WallDuration timeout(wait_time);
+  ros::Time start_d = ros::Time::now();
 
-  boost::mutex::scoped_lock lock(state_update_lock_);
-  while (current_state_time_ < t)
+  while (elapsed < timeout)
   {
-    state_update_condition_.wait_for(lock, boost::chrono::nanoseconds((timeout - elapsed).toNSec()));
-    elapsed = ros::WallTime::now() - start;
-    if (elapsed > timeout)
     {
-      ROS_INFO_STREAM_NAMED(LOGNAME,
-                            "Didn't receive robot state (joint angles) with recent timestamp within "
-                                << wait_time << " seconds.\n"
-                                << "Check clock synchronization if your are running ROS across multiple machines!");
-      return false;
+      boost::mutex::scoped_lock lock(state_update_lock_);
+      state_update_condition_.wait_for(lock, boost::chrono::nanoseconds((timeout - elapsed).toNSec()));
     }
+    elapsed = ros::WallTime::now() - start;
+    if (haveCompleteState(start_d))
+      return true;
   }
-  return true;
+  ROS_INFO_STREAM("Didn't receive full robot state (joint angles) with recent timestamp within "
+                  << wait_time << " seconds.\n"
+                  << "Check clock synchronization if you are running ROS across multiple machines!");
+  return false;
 }
 
 bool CurrentStateMonitor::waitForCompleteState(double wait_time) const
