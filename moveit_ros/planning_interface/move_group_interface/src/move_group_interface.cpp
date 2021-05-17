@@ -638,7 +638,11 @@ public:
 
     // if needed, start the monitor and wait up to 5 seconds for a full robot state
     if (!current_state_monitor_->isActive())
+    {
+      ROS_WARN_NAMED(LOGNAME, "getCurrentState was called before a current_state_monitor was initialized. Call "
+                              "startStateMonitor() after starting up the move_group_interface!");
       current_state_monitor_->startStateMonitor();
+    }
 
     if (!current_state_monitor_->waitForCurrentState(ros::Time::now(), wait_seconds))
     {
