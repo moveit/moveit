@@ -217,7 +217,6 @@ bool CurrentStateMonitor::waitForCurrentState(const ros::Time t, double wait_tim
   ros::WallTime start = ros::WallTime::now();
   ros::WallDuration elapsed(0, 0);
   ros::WallDuration timeout(wait_time);
-  ros::Time start_d = ros::Time::now();
 
   while (elapsed < timeout)
   {
@@ -226,7 +225,7 @@ bool CurrentStateMonitor::waitForCurrentState(const ros::Time t, double wait_tim
       state_update_condition_.wait_for(lock, boost::chrono::nanoseconds((timeout - elapsed).toNSec()));
     }
     elapsed = ros::WallTime::now() - start;
-    if (haveCompleteState(start_d))
+    if (haveCompleteState(t))
       return true;
   }
   ROS_INFO_STREAM("Didn't receive full robot state (joint angles) with recent timestamp within "
