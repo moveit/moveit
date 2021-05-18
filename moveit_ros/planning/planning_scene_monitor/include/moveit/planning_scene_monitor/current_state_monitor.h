@@ -171,13 +171,20 @@ public:
   /** @brief Wait for at most \e wait_time seconds (default 1 s) for a robot state more recent than \e t
    *  @return true on success, false if an up-to-date robot state message wasn't received within \e wait_time
    */
-  bool waitForCurrentState(const ros::Time t = ros::Time::now(), double wait_time = 1.0) const;
+  inline bool waitForCurrentState(const ros::Time t = ros::Time::now(), double wait_time = 1.0) const
+  {
+    return waitForCurrentState(robot_model_->getJointModels(), t, wait_time);
+  }
 
   /** @brief Wait for at most \e wait_time seconds (default 1 s) for a robot state more recent than \e t,
    *         containing the joints in \e group
    *  @return true on success, false if up-to-date robot state wasn't received within \e wait_time
    */
-  bool waitForCurrentState(const std::string& group, const ros::Time t = ros::Time::now(), double wait_time = 1.0) const;
+  inline bool waitForCurrentState(const std::string& group, const ros::Time t = ros::Time::now(),
+                                  double wait_time = 1.0) const
+  {
+    return waitForCurrentState(robot_model_->getJointModelGroup(group)->getJointModels(), t, wait_time);
+  }
 
   /** @brief Wait for at most \e wait_time seconds (default 1 s) until all the joints in \e joint_model_group
    *         are from a robot state message more recent than \e t

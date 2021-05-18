@@ -212,19 +212,6 @@ bool CurrentStateMonitor::haveCompleteStateHelper(const ros::Time& oldest_allowe
   return (missing_joints == nullptr) || missing_joints->empty();
 }
 
-bool CurrentStateMonitor::waitForCurrentState(const ros::Time t, double wait_time) const
-{
-  const std::vector<const moveit::core::JointModel*> joint_models = robot_model_->getJointModels();
-  return waitForCurrentState(joint_models, t, wait_time);
-}
-
-bool CurrentStateMonitor::waitForCurrentState(const std::string& group, const ros::Time t, double wait_time) const
-{
-  const std::vector<const moveit::core::JointModel*> joint_models =
-      robot_model_->getJointModelGroup(group)->getJointModels();
-  return waitForCurrentState(joint_models, t, wait_time);
-}
-
 bool CurrentStateMonitor::waitForCurrentState(const std::vector<const moveit::core::JointModel*>& joint_model_group,
                                               const ros::Time t, double wait_time) const
 {
