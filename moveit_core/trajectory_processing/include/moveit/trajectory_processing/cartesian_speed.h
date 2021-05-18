@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2011, Willow Garage, Inc.
+ *  Copyright (c) 2020, Benjamin Scholz
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,38 +32,16 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ken Anderson */
+/* Author: Benjamin Scholz */
 
 #pragma once
 
 #include <moveit/robot_trajectory/robot_trajectory.h>
+#include <moveit/robot_state/robot_state.h>
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
 
 namespace trajectory_processing
 {
-/// \brief This class  modifies the timestamps of a trajectory to respect
-/// velocity and acceleration constraints.
-class IterativeParabolicTimeParameterization
-{
-public:
-  IterativeParabolicTimeParameterization(unsigned int max_iterations = 100, double max_time_change_per_it = .01);
-  ~IterativeParabolicTimeParameterization() = default;
-
-  bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory, const double max_velocity_scaling_factor = 1.0,
-                         const double max_acceleration_scaling_factor = 1.0) const;
-
-private:
-  unsigned int max_iterations_;    /// @brief maximum number of iterations to find solution
-  double max_time_change_per_it_;  /// @brief maximum allowed time change per iteration in seconds
-
-  void applyVelocityConstraints(robot_trajectory::RobotTrajectory& rob_trajectory, std::vector<double>& time_diff,
-                                const double max_velocity_scaling_factor) const;
-
-  void applyAccelerationConstraints(robot_trajectory::RobotTrajectory& rob_trajectory, std::vector<double>& time_diff,
-                                    const double max_acceleration_scaling_factor) const;
-
-  double findT1(const double d1, const double d2, double t1, const double t2, const double a_max) const;
-  double findT2(const double d1, const double d2, const double t1, double t2, const double a_max) const;
-};
-
-void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory, const std::vector<double>& time_diff);
-}  // namespace trajectory_processing
+bool setMaxCartesianEndEffectorSpeed(robot_trajectory::RobotTrajectory& trajectory, const double speed,
+                                     std::string end_effector = "");
+}
