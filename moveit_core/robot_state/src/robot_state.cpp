@@ -51,7 +51,10 @@ namespace moveit
 {
 namespace core
 {
-const std::string LOGNAME = "robot_state";
+namespace
+{
+constexpr char LOGNAME[] = "robot_state";
+}  // namespace
 
 RobotState::RobotState(const RobotModelConstPtr& robot_model)
   : robot_model_(robot_model)
@@ -902,6 +905,7 @@ double RobotState::distance(const RobotState& other, const JointModelGroup* join
 
 void RobotState::interpolate(const RobotState& to, double t, RobotState& state) const
 {
+  moveit::core::checkInterpolationParamBounds(LOGNAME, t);
   robot_model_->interpolate(getVariablePositions(), to.getVariablePositions(), t, state.getVariablePositions());
 
   memset(state.dirty_joint_transforms_, 1, state.robot_model_->getJointModelCount() * sizeof(unsigned char));
@@ -910,6 +914,7 @@ void RobotState::interpolate(const RobotState& to, double t, RobotState& state) 
 
 void RobotState::interpolate(const RobotState& to, double t, RobotState& state, const JointModelGroup* joint_group) const
 {
+  moveit::core::checkInterpolationParamBounds(LOGNAME, t);
   const std::vector<const JointModel*>& jm = joint_group->getActiveJointModels();
   for (const JointModel* joint : jm)
   {
