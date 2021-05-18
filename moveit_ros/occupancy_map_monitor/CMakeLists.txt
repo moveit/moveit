@@ -34,6 +34,7 @@ catkin_package(
     include
   LIBRARIES
     ${MOVEIT_LIB_NAME}
+    ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     moveit_core
     moveit_msgs
@@ -47,6 +48,7 @@ catkin_package(
 include_directories(include
                     ${Boost_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
+                    ${OCTOMAP_INCLUDE_DIRS}
                     )
 include_directories(SYSTEM
                     ${EIGEN3_INCLUDE_DIRS}
