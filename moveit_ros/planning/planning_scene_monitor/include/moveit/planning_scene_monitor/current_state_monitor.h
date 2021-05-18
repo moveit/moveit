@@ -168,10 +168,16 @@ public:
    *  @return Returns the map from joint names to joint state values*/
   std::map<std::string, double> getCurrentStateValues() const;
 
-  /** @brief Wait for at most \e wait_time seconds (default 1s) for a robot state more recent than t
-   *  @return true on success, false if up-to-date robot state wasn't received within \e wait_time
+  /** @brief Wait for at most \e wait_time seconds (default 1 s) for a robot state more recent than t
+   *  @return true on success, false if an up-to-date robot state message wasn't received within \e wait_time
    */
   bool waitForCurrentState(const ros::Time t = ros::Time::now(), double wait_time = 1.0) const;
+
+  /** @brief Wait for at most \e wait_time seconds (default 1 s) for a robot state more recent than t,
+   *         containing the joints in \e group
+   *  @return true on success, false if up-to-date robot state wasn't received within \e wait_time
+   */
+  bool waitForCurrentState(const std::string& group, const ros::Time t = ros::Time::now(), double wait_time = 1.0) const;
 
   /** @brief Wait for at most \e wait_time seconds until the complete robot state is known.
       @return true if the full state is known */

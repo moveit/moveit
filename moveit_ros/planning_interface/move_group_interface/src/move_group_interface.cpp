@@ -644,7 +644,7 @@ public:
       current_state_monitor_->startStateMonitor();
     }
 
-    if (!current_state_monitor_->waitForCurrentState(ros::Time::now(), wait_seconds))
+    if (!current_state_monitor_->waitForCurrentState(opt_.group_name_, ros::Time::now(), wait_seconds))
     {
       ROS_ERROR_NAMED(LOGNAME, "Failed to fetch current robot state");
       return false;

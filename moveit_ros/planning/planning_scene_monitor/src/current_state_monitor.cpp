@@ -234,6 +234,32 @@ bool CurrentStateMonitor::waitForCurrentState(const ros::Time t, double wait_tim
   return false;
 }
 
+bool CurrentStateMonitor::waitForCurrentState(const std::string& group, const ros::Time t, double wait_time) const
+{
+  ros::WallTime start = ros::WallTime::now();
+  ros::WallDuration elapsed(0, 0);
+  ros::WallDuration timeout(wait_time);
+
+  auto joint_models = robot_model_->getJointModelGroup(group)->getJointModels();
+
+  while (elapsed < timeout)
+  {
+    {
+      boost::mutex::scoped_lock lock(state_update_lock_);
+      state_update_condition_.wait_for(lock, boost::chrono::nanoseconds((timeout - elapsed).toNSec()));
+    }
+    elapsed = ros::WallTime::now() - start;
+    for (auto joint_model : joint_models)
+      if (joint_time_.at(joint_model) < t)  // Joint is old
+        continue;
+    return true;
+  }
+  ROS_INFO_STREAM("Didn't receive full robot state (joint angles) with recent timestamp within "
+                  << wait_time << " seconds.\n"
+                  << "Check clock synchronization if you are running ROS across multiple machines!");
+  return false;
+}
+
 bool CurrentStateMonitor::waitForCompleteState(double wait_time) const
 {
   double slept_time = 0.0;
