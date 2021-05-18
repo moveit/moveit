@@ -61,7 +61,7 @@ namespace core
 {
 MOVEIT_CLASS_FORWARD(RobotModel);  // Defines RobotModelPtr, ConstPtr, WeakPtr... etc
 
-static inline void checkInterpolationParamBounds(const char LOGNAME[], const double& t)
+static inline void checkInterpolationParamBounds(const char LOGNAME[], double t)
 {
   if (std::isnan(t) || std::isinf(t))
   {
