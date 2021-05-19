@@ -481,6 +481,13 @@ public:
                           plan.planning_time_);
   }
 
+  py_bindings_tools::ByteString constructMotionPlanRequestPython()
+  {
+    moveit_msgs::MotionPlanRequest request;
+    constructMotionPlanRequest(request);
+    return py_bindings_tools::serializeMsg(request);
+  }
+
   bp::tuple computeCartesianPathPython(const bp::list& waypoints, double eef_step, double jump_threshold,
                                        bool avoid_collisions)
   {
@@ -765,6 +772,8 @@ static void wrap_move_group_interface()
   move_group_interface_class.def("get_planning_pipeline_id", &MoveGroupInterfaceWrapper::getPlanningPipelineIdCStr);
   move_group_interface_class.def("set_num_planning_attempts", &MoveGroupInterfaceWrapper::setNumPlanningAttempts);
   move_group_interface_class.def("plan", &MoveGroupInterfaceWrapper::planPython);
+  move_group_interface_class.def("construct_motion_plan_request",
+                                 &MoveGroupInterfaceWrapper::constructMotionPlanRequestPython);
   move_group_interface_class.def("compute_cartesian_path", &MoveGroupInterfaceWrapper::computeCartesianPathPython);
   move_group_interface_class.def("compute_cartesian_path",
                                  &MoveGroupInterfaceWrapper::computeCartesianPathConstrainedPython);
