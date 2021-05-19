@@ -949,6 +949,8 @@ public:
     req.path_constraints = path_constraints;
     req.avoid_collisions = avoid_collisions;
     req.link_name = getEndEffectorLink();
+    req.cartesian_speed_end_effector_link = cartesian_end_effector_link_;
+    req.max_cartesian_speed = max_cartesian_speed_;
 
     if (cartesian_path_service_.call(req, res))
     {
