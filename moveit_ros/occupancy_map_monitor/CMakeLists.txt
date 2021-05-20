@@ -34,7 +34,6 @@ catkin_package(
     include
   LIBRARIES
     ${MOVEIT_LIB_NAME}
-    ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     moveit_core
     moveit_msgs
