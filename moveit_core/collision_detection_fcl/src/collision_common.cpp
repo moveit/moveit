@@ -540,6 +540,12 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
   {
     DistanceResultsData dist_result;
     dist_result.distance = fcl_result.min_distance;
+
+    // Careful here: Get the collision geometry data again, since FCL might
+    // swap o1 and o2 in the result.
+    const CollisionGeometryData* res_cd1 = static_cast<const CollisionGeometryData*>(fcl_result.o1->getUserData());
+    const CollisionGeometryData* res_cd2 = static_cast<const CollisionGeometryData*>(fcl_result.o2->getUserData());
+
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
     dist_result.nearest_points[0] = fcl_result.nearest_points[0];
     dist_result.nearest_points[1] = fcl_result.nearest_points[1];
@@ -547,10 +553,10 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
     dist_result.nearest_points[0] = Eigen::Vector3d(fcl_result.nearest_points[0].data.vs);
     dist_result.nearest_points[1] = Eigen::Vector3d(fcl_result.nearest_points[1].data.vs);
 #endif
-    dist_result.link_names[0] = cd1->getID();
-    dist_result.link_names[1] = cd2->getID();
-    dist_result.body_types[0] = cd1->type;
-    dist_result.body_types[1] = cd2->type;
+    dist_result.link_names[0] = res_cd1->getID();
+    dist_result.link_names[1] = res_cd2->getID();
+    dist_result.body_types[0] = res_cd1->type;
+    dist_result.body_types[1] = res_cd2->type;
     if (cdata->req->enable_nearest_points)
     {
       dist_result.normal = (dist_result.nearest_points[1] - dist_result.nearest_points[0]).normalized();
@@ -586,12 +592,26 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
         dist_result.nearest_points[0] = contact.pos;
         dist_result.nearest_points[1] = contact.pos;
-        dist_result.normal = contact.normal;
 #else
         dist_result.nearest_points[0] = Eigen::Vector3d(contact.pos.data.vs);
         dist_result.nearest_points[1] = Eigen::Vector3d(contact.pos.data.vs);
-        dist_result.normal = Eigen::Vector3d(contact.normal.data.vs);
+        Eigen::Vector3d normal(contact.normal.data.vs);
 #endif
+
+        if (cdata->req->enable_nearest_points)
+        {
+#if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
+          Eigen::Vector3d normal = contact.normal;
+#else
+          Eigen::Vector3d normal(contact.normal.data.vs);
+#endif
+
+          // Check order of o1/o2 again, we might need to flip the normal
+          if (contact.o1 == o1->collisionGeometry().get())
+            dist_result.normal = normal;
+          else
+            dist_result.normal = -normal;
+        }
       }
     }
 
