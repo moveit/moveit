@@ -42,7 +42,7 @@
 #include <boost/function.hpp>
 #include <memory>
 
-namespace collision_detection
+namespace occupancy_map_monitor
 {
 typedef octomap::OcTreeNode OccMapNode;
 
@@ -86,7 +86,7 @@ public:
   using ReadLock = boost::shared_lock<boost::shared_mutex>;
   using WriteLock = boost::unique_lock<boost::shared_mutex>;
 
-  ReadLock reading() const
+  ReadLock reading()
   {
     return ReadLock(tree_mutex_);
   }
@@ -109,10 +109,10 @@ public:
   }
 
 private:
-  mutable boost::shared_mutex tree_mutex_;
+  boost::shared_mutex tree_mutex_;
   boost::function<void()> update_callback_;
 };
 
 using OccMapTreePtr = std::shared_ptr<OccMapTree>;
 using OccMapTreeConstPtr = std::shared_ptr<const OccMapTree>;
-}  // namespace collision_detection
+}  // namespace occupancy_map_monitor

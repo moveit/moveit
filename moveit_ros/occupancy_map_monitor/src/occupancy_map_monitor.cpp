@@ -99,7 +99,7 @@ void OccupancyMapMonitor::initialize()
                                                      << "\" specified but no TF instance (buffer) specified. "
                                                         "No transforms will be applied to received data.");
 
-  tree_.reset(new collision_detection::OccMapTree(map_resolution_));
+  tree_.reset(new OccMapTree(map_resolution_));
   tree_const_ = tree_;
 
   XmlRpc::XmlRpcValue sensor_list;

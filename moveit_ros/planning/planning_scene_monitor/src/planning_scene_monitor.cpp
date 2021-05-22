@@ -338,7 +338,7 @@ void PlanningSceneMonitor::scenePublishingThread()
   {
     moveit_msgs::PlanningScene msg;
     {
-      collision_detection::OccMapTree::ReadLock lock;
+      occupancy_map_monitor::OccMapTree::ReadLock lock;
       if (octomap_monitor_)
         lock = octomap_monitor_->getOcTreePtr()->reading();
       scene_->getPlanningSceneMsg(msg);
@@ -365,7 +365,7 @@ void PlanningSceneMonitor::scenePublishingThread()
             is_full = true;
           else
           {
-            collision_detection::OccMapTree::ReadLock lock;
+            occupancy_map_monitor::OccMapTree::ReadLock lock;
             if (octomap_monitor_)
               lock = octomap_monitor_->getOcTreePtr()->reading();
             scene_->getPlanningSceneDiffMsg(msg);
@@ -395,7 +395,7 @@ void PlanningSceneMonitor::scenePublishingThread()
           }
           if (is_full)
           {
-            collision_detection::OccMapTree::ReadLock lock;
+            occupancy_map_monitor::OccMapTree::ReadLock lock;
             if (octomap_monitor_)
               lock = octomap_monitor_->getOcTreePtr()->reading();
             scene_->getPlanningSceneMsg(msg);
