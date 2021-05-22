@@ -304,7 +304,66 @@ TYPED_TEST_P(DistanceCheckPandaTest, DistanceSingle)
   }
 }
 
+// FCL < 0.6 completely fails the DistancePoints test, so we have two test
+// suites, one with and one without the test.
+template <class CollisionAllocatorType>
+class DistanceFullPandaTest : public DistanceCheckPandaTest<CollisionAllocatorType>
+{
+};
+
+TYPED_TEST_CASE_P(DistanceFullPandaTest);
+
+/** \brief Tests if nearest points are computed correctly. */
+TYPED_TEST_P(DistanceFullPandaTest, DistancePoints)
+{
+  // Adding the box right in front of the robot hand
+  shapes::Box* shape = new shapes::Box(0.1, 0.1, 0.1);
+  shapes::ShapeConstPtr shape_ptr(shape);
+
+  Eigen::Isometry3d pos{ Eigen::Isometry3d::Identity() };
+  pos.translation().x() = 0.43;
+  pos.translation().y() = 0;
+  pos.translation().z() = 0.55;
+  this->cenv_->getWorld()->addToObject("box", shape_ptr, pos);
+
+  collision_detection::DistanceRequest req;
+  req.acm = &*this->acm_;
+  req.type = collision_detection::DistanceRequestTypes::SINGLE;
+  req.enable_nearest_points = true;
+  req.max_contacts_per_body = 1;
+
+  collision_detection::DistanceResult res;
+  this->cenv_->distanceRobot(req, res, *this->robot_state_);
+
+  // Checks a particular point is inside the box
+  auto checkInBox = [&](const Eigen::Vector3d& p) {
+    Eigen::Vector3d inBox = pos.inverse() * p;
+
+    constexpr double EPS = 1e-5;
+    EXPECT_LE(std::abs(inBox.x()), shape->size[0] + EPS);
+    EXPECT_LE(std::abs(inBox.y()), shape->size[1] + EPS);
+    EXPECT_LE(std::abs(inBox.z()), shape->size[2] + EPS);
+  };
+
+  // Check that all points reported on "box" are actually on the box and not
+  // on the robot
+  for (auto& distance : res.distances)
+  {
+    for (auto& pair : distance.second)
+    {
+      if (pair.link_names[0] == "box")
+        checkInBox(pair.nearest_points[0]);
+      else if (pair.link_names[1] == "box")
+        checkInBox(pair.nearest_points[1]);
+      else
+        ADD_FAILURE() << "Unrecognized link names";
+    }
+  }
+}
+
 REGISTER_TYPED_TEST_CASE_P(CollisionDetectorPandaTest, InitOK, DefaultNotInCollision, LinksInCollision,
                            RobotWorldCollision_1, RobotWorldCollision_2, PaddingTest, DistanceSelf, DistanceWorld);
 
 REGISTER_TYPED_TEST_CASE_P(DistanceCheckPandaTest, DistanceSingle);
+
+REGISTER_TYPED_TEST_CASE_P(DistanceFullPandaTest, DistancePoints);
