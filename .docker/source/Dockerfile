@@ -27,7 +27,8 @@ RUN cd .. && \
     catkin config --extend /opt/ros/$ROS_DISTRO --install --cmake-args -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON && \
     # Status rate is limited so that just enough info is shown to keep Docker from timing out,
     # but not too much such that the Docker log gets too long (another form of timeout)
-    catkin build --limit-status-rate 0.001 --no-notify
+    catkin build --limit-status-rate 0.001 --no-notify && \
+    source $ROS_UNDERLAY/setup.bash
 
 # Environment variable used in instructions on moveit.ros.org website for running clang-tidy
-ENV CATKIN_WS /root/ws_moveit
+ENV CATKIN_WS $(realpath $ROS_UNDERLAY/..)
