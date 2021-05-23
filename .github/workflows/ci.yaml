@@ -23,7 +23,7 @@ jobs:
             CLANG_TIDY: true
     env:
       DOCKER_IMAGE: moveit/moveit:${{ matrix.env.IMAGE }}
-      AFTER_SETUP_UPSTREAM_WORKSPACE: vcs pull $BASEDIR/upstream_ws/src
+      TARGET_WORKSPACE: $TARGET_REPO_PATH github:ros-planning/moveit_resources#melodic-devel
       AFTER_RUN_TARGET_TEST: ${{ matrix.env.CCOV && './.ci.prepare_codecov' || '' }}
       TARGET_CMAKE_ARGS: >
         -DCMAKE_BUILD_TYPE=${{ matrix.env.CCOV && 'RelWithDebInfo' || 'Release'}}
