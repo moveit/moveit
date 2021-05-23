@@ -78,7 +78,7 @@ Changelog for package pilz_industrial_motion_planner
 0.3.0 (2018-11-28)
 ------------------
 * add append method for avoiding duplicate points in robot_trajectory trajectories
-* Relax the precondition on trajectory generators from v_start==0 to |v_start| < 1e-10 to gain robustness
+* Relax the precondition on trajectory generators `from v_start==0` to `|v_start| < 1e-10` to gain robustness
 * Set last point of generated trajectories to have vel=acc=0 to match the first point.
 * add sequence action and service capabilities to concatenate multiple requests
 * Contributors: Pilz GmbH and Co. KG

@@ -8,11 +8,10 @@ on:
   pull_request:
   push:
     branches:
-      - master
-      - "[kmn]*-devel"
+      - melodic-devel
 
 jobs:
-  industrial_ci:
+  default:
     strategy:
       matrix:
         env:
@@ -21,21 +20,20 @@ jobs:
           - IMAGE: melodic-ci-shadow-fixed
             IKFAST_TEST: true
             CATKIN_LINT: true
+            CLANG_TIDY: true
     env:
       DOCKER_IMAGE: moveit/moveit:${{ matrix.env.IMAGE }}
-      UPSTREAM_WORKSPACE: github:ros-planning/moveit_resources#melodic-devel
       AFTER_SETUP_UPSTREAM_WORKSPACE: vcs pull $BASEDIR/upstream_ws/src
-      BEFORE_TARGET_TEST_EMBED: ${{ matrix.env.IKFAST_TEST && 'set +u && source moveit_kinematics/test/test_ikfast_plugins.sh && set -u' || '' }}
       AFTER_RUN_TARGET_TEST: ${{ matrix.env.CCOV && './.ci.prepare_codecov' || '' }}
       TARGET_CMAKE_ARGS: >
         -DCMAKE_BUILD_TYPE=${{ matrix.env.CCOV && 'RelWithDebInfo' || 'Release'}}
         ${{ matrix.env.CCOV && '-DCMAKE_CXX_FLAGS="--coverage" --no-warn-unused-cli' || '' }}
-      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_DIR: "${{ github.workspace }}/.ccache"
       BASEDIR: ${{ github.workspace }}/.work
-      CACHE_PREFIX: ${{ matrix.env.IMAGE }}${{ matrix.env.CCOV && '-ccov' || '' }}
-      CLANG_TIDY_BASE_REF: ${{ github.base_ref || github.ref }}
+      CACHE_PREFIX: "${{ matrix.env.IMAGE }}${{ matrix.env.CCOV && '-ccov' || '' }}"
+      CLANG_TIDY_BASE_REF: "${{ github.base_ref || github.ref }}"
 
-    name: ${{ matrix.env.IMAGE }}${{ matrix.env.CATKIN_LINT && ' + catkin_lint' || ''}}${{ matrix.env.CCOV && ' + ccov' || ''}}${{ matrix.env.IKFAST_TEST && ' + ikfast' || ''}}${{ matrix.env.CLANG_TIDY && ' + clang-tidy' || '' }}
+    name: "${{ matrix.env.IMAGE }}${{ matrix.env.CATKIN_LINT && ' + catkin_lint' || ''}}${{ matrix.env.CCOV && ' + ccov' || ''}}${{ matrix.env.IKFAST_TEST && ' + ikfast' || ''}}${{ matrix.env.CLANG_TIDY && ' + clang-tidy' || '' }}"
     runs-on: ubuntu-latest
     steps:
       - name: "Free up disk space"
@@ -57,9 +55,9 @@ jobs:
         uses: pat-s/always-upload-cache@v2.1.3
         with:
           path: ${{ env.BASEDIR }}/upstream_ws
-          key: upstream_ws-${{ env.CACHE_PREFIX }}-${{ hashFiles('.ci.upstream.rosinstall') }}-${{ github.run_id }}
+          key: upstream_ws-${{ env.CACHE_PREFIX }}-${{ github.run_id }}
           restore-keys: |
-            upstream_ws-${{ env.CACHE_PREFIX }}-${{ hashFiles('.ci.upstream.rosinstall') }}
+            upstream_ws-${{ env.CACHE_PREFIX }}
       # The target directory cache doesn't include the source directory because
       # that comes from the checkout.  See "prepare target_ws for cache" task below
       - name: cache target_ws
@@ -78,6 +76,10 @@ jobs:
           restore-keys: |
             ccache-${{ env.CACHE_PREFIX }}-${{ github.sha }}
             ccache-${{ env.CACHE_PREFIX }}
+      - name: generate ikfast packages
+        if: ${{ matrix.env.IKFAST_TEST }}
+        run: |
+          bash moveit_kinematics/test/test_ikfast_plugins.sh
       - name: industrial_ci
         uses: ros-industrial/industrial_ci@master
         env: ${{ matrix.env }}

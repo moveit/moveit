@@ -5,6 +5,7 @@ name: pre-release
 
 on:
   workflow_dispatch:
+  push:
 
 jobs:
   default:
@@ -13,13 +14,13 @@ jobs:
         distro: [melodic]
 
     env:
-      ROS_DISTRO: ${{ matrix.distro }}
-      PRERELEASE: true
       # https://github.com/ros-industrial/industrial_ci/issues/666
       BUILDER: catkin_make_isolated
-      UPSTREAM_WORKSPACE: github:ros-planning/moveit_resources#melodic-devel
+      ROS_DISTRO: ${{ matrix.distro }}
+      PRERELEASE: true
       BASEDIR: ${{ github.workspace }}/.work
 
+    if: github.event_name == 'workflow_dispatch' # only allow manual triggering
     name: "${{ matrix.distro }}"
     runs-on: ubuntu-latest
     steps:
