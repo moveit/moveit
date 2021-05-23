@@ -2,6 +2,15 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.8 (2021-05-23)
+------------------
+* Let users override fake execution type from demo.launch (`#2602 <https://github.com/ros-planning/moveit/issues/2602>`_)
+* Fix segfault in MSA when a group was defined without ``ns`` attribute (`#2564 <https://github.com/ros-planning/moveit/issues/2564>`_)
+* Missing RViz and moveit_simple_controller_manager dependencies in MSA template (`#2455 <https://github.com/ros-planning/moveit/issues/2455>`_)
+* Fix empty sequence in moveit_setup_assistant (`#2406 <https://github.com/ros-planning/moveit/issues/2406>`_)
+* Add pilz_industrial_motion_planner to moveit_planners (`#2507 <https://github.com/ros-planning/moveit/issues/2507>`_)
+* Contributors: David V. Lu!!, Immanuel Martini, Michael Görner, Tyler Weaver
+
 1.0.7 (2020-11-20)
 ------------------
 * [feature] MSA: Fix group editing (`#2350 <https://github.com/ros-planning/moveit/issues/2350>`_)

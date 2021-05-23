@@ -2,6 +2,9 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.8 (2021-05-23)
+------------------
+
 1.0.7 (2020-11-20)
 ------------------
 * [feature] Melodic backports in ompl interface (cleanup) (`#2277 <https://github.com/ros-planning/moveit/issues/2277>`_)

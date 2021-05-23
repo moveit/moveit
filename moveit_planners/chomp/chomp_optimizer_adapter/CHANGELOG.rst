@@ -2,6 +2,12 @@
 Changelog for package moveit_chomp_optimizer_adapter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.8 (2021-05-23)
+------------------
+* Enable mesh filter (`#2448 <https://github.com/ros-planning/moveit/issues/2448>`_)
+* Sanitize CHOMP initialization method parameter (`#2540 <https://github.com/ros-planning/moveit/issues/2540>`_)
+* Contributors: Cong Liu, Jafar Abdi
+
 1.0.7 (2020-11-20)
 ------------------
 

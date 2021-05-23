@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.8 (2021-05-23)
+------------------
+* Fix missing isEmpty() check in compute_ik service (`#2544 <https://github.com/ros-planning/moveit/issues/2544>`_)
+* Contributors: Michael Görner
+
 1.0.7 (2020-11-20)
 ------------------
 * [feature] Start new joint_state_publisher_gui on param use_gui (`#2257 <https://github.com/ros-planning/moveit/issues/2257>`_)

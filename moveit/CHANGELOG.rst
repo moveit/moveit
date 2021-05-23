@@ -2,6 +2,9 @@
 Changelog for package moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.8 (2021-05-23)
+------------------
+
 1.0.7 (2020-11-20)
 ------------------
 * [feature][moveit_setup_assistant] Fix group editing (`#2350 <https://github.com/ros-planning/moveit/issues/2350>`_)

@@ -2,6 +2,16 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.8 (2021-05-23)
+------------------
+* Unify and simplify CSM::haveCompleteState overloads (`#2663 <https://github.com/ros-planning/moveit/issues/2663>`_)
+* FixStartStateBounds: Copy attached bodies when adapting the start state (`#2398 <https://github.com/ros-planning/moveit/issues/2398>`_)
+* PlanExecution: Correctly handle preempt-requested flag (`#2554 <https://github.com/ros-planning/moveit/issues/2554>`_)
+* thread safety in clear octomap & only update geometry (`#2500 <https://github.com/ros-planning/moveit/issues/2500>`_)
+* Fix some typos in comments (`#2466 <https://github.com/ros-planning/moveit/issues/2466>`_)
+* Simplify logic in PSM (`#2632 <https://github.com/ros-planning/moveit/issues/2632>`_) (`#2637 <https://github.com/ros-planning/moveit/issues/2637>`_)
+* Contributors: Jafar Abdi, Michael Görner, Robert Haschke, Simon Schmeisser, Tyler Weaver, Udbhavbisarya23
+
 1.0.7 (2020-11-20)
 ------------------
 * [fix] Fix "Clear Octomap" button, disable when no octomap is published (`#2320 <https://github.com/ros-planning/moveit/issues/2320>`_)

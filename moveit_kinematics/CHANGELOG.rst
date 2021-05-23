@@ -2,6 +2,13 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.8 (2021-05-23)
+------------------
+* Improve ikfast QUIET handling (`#2685 <https://github.com/ros-planning/moveit/issues/2685>`_)
+* ikfast script: install sympy 0.7.1 from git (`#2650 <https://github.com/ros-planning/moveit/issues/2650>`_)
+* Python3 compatibility for ikfast's round_collada_numbers.py (`#2473 <https://github.com/ros-planning/moveit/issues/2473>`_)
+* Contributors: Tobias Fischer, ags-dy, Robert Haschke
+
 1.0.7 (2020-11-20)
 ------------------
 * [fix] Fix IKfast tests (`#2331 <https://github.com/ros-planning/moveit/issues/2331>`_)

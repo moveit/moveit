@@ -2,6 +2,17 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.8 (2021-05-23)
+------------------
+* planning_interface: synchronize async interfaces in test (`#2640 <https://github.com/ros-planning/moveit/issues/2640>`_)
+* Print an error indicating that the planning pipelines are empty before returning (`#2639 <https://github.com/ros-planning/moveit/issues/2639>`_)
+* Fix docstring in MGI API (`#2626 <https://github.com/ros-planning/moveit/issues/2626>`_)
+* Enable mesh filter (`#2448 <https://github.com/ros-planning/moveit/issues/2448>`_)
+* add get_active_joint_names (`#2533 <https://github.com/ros-planning/moveit/issues/2533>`_)
+* Improve robustness of move group interface test (`#2484 <https://github.com/ros-planning/moveit/issues/2484>`_)
+* Fix scaling factor parameter names (`#2452 <https://github.com/ros-planning/moveit/issues/2452>`_)
+* Contributors: Luc Bettaieb, Boston Cleek, Jafar Abdi, Michael Görner, Peter Mitrano, Shota Aoki, Tyler Weaver
+
 1.0.7 (2020-11-20)
 ------------------
 * [feature] Python interface improvements. (`#2356 <https://github.com/ros-planning/moveit/issues/2356>`_)

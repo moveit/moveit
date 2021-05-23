@@ -2,6 +2,16 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.8 (2021-05-23)
+------------------
+* Remove unused model_is_loading\_
+* Fix deadlock in PlanningSceneDisplay
+* Call renderPlanningScene() only if planning_scene_render\_ is valid
+* Keep MotionPlanningFrame hidden on Display::reset()
+* Catch exceptions during RobotModel loading in rviz (`#2468 <https://github.com/ros-planning/moveit/issues/2468>`_)
+* Fix QObject::connect: Cannot queue arguments of type 'QVector<int>' (`#2392 <https://github.com/ros-planning/moveit/issues/2392>`_)
+* Contributors: Robert Haschke, Simon Schmeisser, Tyler Weaver
+
 1.0.7 (2020-11-20)
 ------------------
 * [feature] Clean up Rviz Motion Planning plugin, add tooltips (`#2310 <https://github.com/ros-planning/moveit/issues/2310>`_)

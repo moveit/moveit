@@ -2,6 +2,13 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.8 (2021-05-23)
+------------------
+* Add clear() to Python PSI + Allow empty call to remove_attached_object() (`#2609 <https://github.com/ros-planning/moveit/issues/2609>`_)
+* Add utility functions to Python PSI (`#2532 <https://github.com/ros-planning/moveit/issues/2532>`_)
+* Add get_active_joint_names (`#2533 <https://github.com/ros-planning/moveit/issues/2533>`_)
+* Contributors: Felix von Drigalski, Peter Mitrano, Tyler Weaver
+
 1.0.7 (2020-11-20)
 ------------------
 * [feature] Python interface improvements.  (`#2356 <https://github.com/ros-planning/moveit/issues/2356>`_)
