@@ -50,6 +50,7 @@ include_directories(include
                     )
 include_directories(SYSTEM
                     ${EIGEN3_INCLUDE_DIRS}
+                    ${OCTOMAP_INCLUDE_DIRS}
                     ${X11_INCLUDE_DIR}
                     )
 
