@@ -75,9 +75,9 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const moveit::core::RobotM
                                                       const std::string& planner_plugin_name,
                                                       const std::vector<std::string>& adapter_plugin_names)
   : pipeline_nh_(pipeline_nh)
+  , private_nh_("~")
   , planner_plugin_name_(planner_plugin_name)
   , adapter_plugin_names_(adapter_plugin_names)
-  , private_nh_("~")
   , robot_model_(model)
 {
   configure();
