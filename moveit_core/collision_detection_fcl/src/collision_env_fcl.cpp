@@ -46,8 +46,6 @@
 
 namespace collision_detection
 {
-namespace
-{
 static const std::string NAME = "FCL";
 constexpr char LOGNAME[] = "collision_detection.fcl";
 

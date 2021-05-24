@@ -1,4 +1,4 @@
-name: Cross CI
+name: MoveIt core cross-platform RoboStack build
 
 on:
   workflow_dispatch:
@@ -7,6 +7,7 @@ on:
     branches:
       - master
       - "[kmn]*-devel"
+      - tests_with_conda_pkgs
 
 jobs:
   run_moveit_core_compilation:
@@ -26,7 +27,7 @@ jobs:
         environment-file: .github/ci_cross_platform_env.yml
         micromamba-version: latest
 
-    - name: Set up Moveit Core Dependencies on Unix
+    - name: Set up MoveIt Core Dependencies on Unix
       if: runner.os == 'Linux' || runner.os == 'macOS'
       shell: bash -l -eo pipefail {0}
       run: |
@@ -36,7 +37,7 @@ jobs:
         rosdep update
         rosdep install --from-paths moveit_core --ignore-src -r -y
 
-    - name: Build Moveit Core on Unix
+    - name: Build MoveIt Core on Unix
       if: runner.os == 'Linux' || runner.os == 'macOS'
       shell: bash -l -eo pipefail {0}
       run: |
@@ -55,7 +56,7 @@ jobs:
         ninja
         ninja run_tests
 
-    - name: Set up Moveit Core Dependencies on Windows
+    - name: Set up MoveIt Core Dependencies on Windows
       if: runner.os == 'Windows'
       shell: cmd
       run: |
@@ -66,7 +67,7 @@ jobs:
         rosdep update
         rosdep install --from-paths moveit_core --ignore-src -r -y
 
-    - name: Build Moveit Core on Windows
+    - name: Build MoveIt Core on Windows
       if: runner.os == 'Windows'
       shell: cmd
       run: |
