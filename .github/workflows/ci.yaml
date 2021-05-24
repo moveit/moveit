@@ -25,6 +25,7 @@ jobs:
           - IMAGE: melodic-ci
             CATKIN_LINT: true
     env:
+      CXXFLAGS: "-Werror -Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-deprecated-copy"
       DOCKER_IMAGE: moveit/moveit:${{ matrix.env.IMAGE }}
       UPSTREAM_WORKSPACE: moveit.rosinstall
       # Pull any updates to the upstream workspace (since after restoring it from cache)
