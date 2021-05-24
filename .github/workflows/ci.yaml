@@ -41,7 +41,7 @@ jobs:
       BASEDIR: ${{ github.workspace }}/.work
       CLANG_TIDY_BASE_REF: "${{ github.base_ref || github.ref }}"
       AFTER_SETUP_TARGET_WORKSPACE: >
-          find ${{ env.BASEDIR }} -name robot_model.h;
+          find ${{ github.workspace }}/.work -name robot_model.h;
           find /opt/ros -name robot_model.h
 
     name: "${{ matrix.env.IMAGE }}${{ matrix.env.CATKIN_LINT && ' + catkin_lint' || ''}}${{ matrix.env.CCOV && ' + ccov' || ''}}${{ matrix.env.IKFAST_TEST && ' + ikfast' || ''}}${{ matrix.env.CLANG_TIDY && ' + clang-tidy' || '' }}"
