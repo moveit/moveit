@@ -11,7 +11,8 @@ WORKDIR $ROS_UNDERLAY/../src
 # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#minimize-the-number-of-layers
 RUN \
     # Download moveit source so that we can get necessary dependencies
-    wstool init . https://raw.githubusercontent.com/ros-planning/moveit/${ROS_DISTRO}-devel/moveit.rosinstall && \
+    wstool init --shallow . https://raw.githubusercontent.com/ros-planning/moveit/${ROS_DISTRO}-devel/.github/workflows/upstream.rosinstall && \
+    git clone --depth 1 --branch ${ROS_DISTRO}-devel https://github/ros-planning/moveit && \
     #
     # Update apt package list as cache is cleared in previous container
     # Usually upgrading involves a few packages only (if container builds became out-of-sync)
