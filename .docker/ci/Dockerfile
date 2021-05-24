@@ -26,7 +26,8 @@ RUN \
         ccache && \
     #
     # Download MoveIt source, so that we can fetch all necessary dependencies
-    wstool init --shallow src https://raw.githubusercontent.com/ros-planning/moveit/${ROS_DISTRO}-devel/moveit.rosinstall && \
+    wstool init --shallow src https://raw.githubusercontent.com/ros-planning/moveit/master/.github/workflows/upstream.rosinstall && \
+    git clone --depth 1 --branch master https://github.com/ros-planning/moveit src/moveit && \
     #
     # Download all dependencies of MoveIt
     rosdep update && \
