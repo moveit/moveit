@@ -33,9 +33,6 @@ jobs:
       # Pull any updates to the upstream workspace (after restoring it from cache)
       AFTER_SETUP_UPSTREAM_WORKSPACE: vcs pull $BASEDIR/upstream_ws/src
       AFTER_SETUP_DOWNSTREAM_WORKSPACE: vcs pull $BASEDIR/downstream_ws/src
-      AFTER_SETUP_TARGET_WORKSPACE: |
-          find ${{ env.BASEDIR }} -name robot_model.h
-          find /opt/ros -name robot_model.h
       AFTER_RUN_TARGET_TEST: ${{ matrix.env.CCOV && './.ci.prepare_codecov' || '' }}
       TARGET_CMAKE_ARGS: >
         -DCMAKE_BUILD_TYPE=${{ matrix.env.CCOV && 'RelWithDebInfo' || 'Release'}}
@@ -43,6 +40,9 @@ jobs:
       CCACHE_DIR: "${{ github.workspace }}/.ccache"
       BASEDIR: ${{ github.workspace }}/.work
       CLANG_TIDY_BASE_REF: "${{ github.base_ref || github.ref }}"
+      AFTER_SETUP_TARGET_WORKSPACE: >
+          find ${{ env.BASEDIR }} -name robot_model.h;
+          find /opt/ros -name robot_model.h
 
     name: "${{ matrix.env.IMAGE }}${{ matrix.env.CATKIN_LINT && ' + catkin_lint' || ''}}${{ matrix.env.CCOV && ' + ccov' || ''}}${{ matrix.env.IKFAST_TEST && ' + ikfast' || ''}}${{ matrix.env.CLANG_TIDY && ' + clang-tidy' || '' }}"
     runs-on: ubuntu-latest
