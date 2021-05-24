@@ -13,6 +13,7 @@ RUN \
     # Download moveit source so that we can get necessary dependencies
     wstool init --shallow . https://raw.githubusercontent.com/ros-planning/moveit/master/.github/workflows/upstream.rosinstall && \
     git clone --depth 1 --branch master https://github.com/ros-planning/moveit && \
+	 git clone --depth 1 --branch master https://github.com/ros-planning/moveit_resources && \
     #
     # Update apt package list as cache is cleared in previous container
     # Usually upgrading involves a few packages only (if container builds became out-of-sync)
