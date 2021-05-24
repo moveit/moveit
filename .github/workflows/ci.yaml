@@ -23,6 +23,9 @@ jobs:
             CATKIN_LINT: true
             CLANG_TIDY: true
     env:
+      CXXFLAGS: >-
+        -Werror -Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls
+        -Wno-deprecated-copy -Wno-unused-parameter -Wno-unused-but-set-parameter
       DOCKER_IMAGE: moveit/moveit:${{ matrix.env.IMAGE }}
       UPSTREAM_WORKSPACE: .github/workflows/upstream.rosinstall
       TARGET_WORKSPACE: $TARGET_REPO_PATH github:ros-planning/moveit_resources#melodic-devel
@@ -33,7 +36,9 @@ jobs:
       AFTER_RUN_TARGET_TEST: ${{ matrix.env.CCOV && './.ci.prepare_codecov' || '' }}
       TARGET_CMAKE_ARGS: >
         -DCMAKE_BUILD_TYPE=${{ matrix.env.CCOV && 'RelWithDebInfo' || 'Release'}}
-        ${{ matrix.env.CCOV && '-DCMAKE_CXX_FLAGS="--coverage" --no-warn-unused-cli' || '' }}
+        ${{ matrix.env.CCOV && '-DCMAKE_CXX_FLAGS="$CXXFLAGS --coverage"' || '' }}
+      UPSTREAM_CMAKE_ARGS: "-DCMAKE_CXX_FLAGS=''"
+      DOWNSTREAM_CMAKE_ARGS: "-DCMAKE_CXX_FLAGS=''"
       CCACHE_DIR: "${{ github.workspace }}/.ccache"
       BASEDIR: ${{ github.workspace }}/.work
       CLANG_TIDY_BASE_REF: "${{ github.base_ref || github.ref }}"
