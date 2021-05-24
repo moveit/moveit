@@ -11,6 +11,7 @@ on:
 jobs:
   run_moveit_core_compilation:
     runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -87,10 +88,6 @@ jobs:
         set "PATH=%PATH:ostedtoolcache=%"
 
         call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate test
-
-        echo "%PATH%"
-
-        python -c "import sys; print(sys.version)"
 
         cd moveit_core
         mkdir build
