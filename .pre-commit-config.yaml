@@ -40,6 +40,12 @@ repos:
 
   - repo: local
     hooks:
+      - id: misspelled-moveit
+        name: misspelled-moveit
+        description: MoveIt should be spelled exactly as MoveIt
+        language: pygrep
+        entry: Moveit\W|MoveIt!
+        exclude: .pre-commit-config.yaml
       - id: clang-format
         name: clang-format
         description: Format files with ClangFormat.
