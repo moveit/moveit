@@ -62,7 +62,7 @@ void checkFCLCapabilities(const DistanceRequest& req)
     //   https://github.com/flexible-collision-library/fcl/pull/288
     ROS_ERROR_THROTTLE_NAMED(2.0, LOGNAME,
                              "You requested a distance check with enable_nearest_points=true, "
-                             "but the FCL version MoveIt! was compiled against (%d.%d.%d) "
+                             "but the FCL version MoveIt was compiled against (%d.%d.%d) "
                              "is known to return bogus nearest points. Please update your FCL "
                              "to at least 0.6.0.",
                              FCL_MAJOR_VERSION, FCL_MINOR_VERSION, FCL_PATCH_VERSION);
