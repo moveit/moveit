@@ -37,7 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 <!-- simulated environment for testing pilz_industrial_motion_planner with a panda robot -->
 
 <launch>
-  <!-- The planning and execution components of MoveIt! configured to run -->
+  <!-- The planning and execution components of MoveIt configured to run -->
   <!-- using the ROS-Industrial interface. -->
 
   <!-- Choose planning pipeline -->
