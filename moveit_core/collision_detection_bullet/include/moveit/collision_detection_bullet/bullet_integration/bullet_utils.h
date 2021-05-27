@@ -55,7 +55,7 @@ const btScalar BULLET_EPSILON = 1e-3f;                   // numerical precision 
 const btScalar BULLET_DEFAULT_CONTACT_DISTANCE = 0.00f;  // All pairs closer than this distance get reported
 const bool BULLET_COMPOUND_USE_DYNAMIC_AABB = true;
 
-MOVEIT_CLASS_FORWARD(CollisionObjectWrapper)
+MOVEIT_CLASS_FORWARD(CollisionObjectWrapper);
 
 /** \brief Allowed = true */
 inline bool acmCheck(const std::string& body_1, const std::string& body_2,

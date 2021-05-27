@@ -39,7 +39,7 @@
 
 namespace collision_detection_bullet
 {
-MOVEIT_CLASS_FORWARD(BulletDiscreteBVHManager)
+MOVEIT_CLASS_FORWARD(BulletDiscreteBVHManager);
 
 /** @brief A bounding volume hierarchy (BVH) implementaiton of a discrete bullet manager */
 class BulletDiscreteBVHManager : public BulletBVHManager
