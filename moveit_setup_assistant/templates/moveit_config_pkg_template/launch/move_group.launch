@@ -58,7 +58,7 @@
     </include>
 
     <!-- Pilz Industrial Motion-->
-    <include ns="pilz_industrial_motion_planner" file="$(find moveit_resources_prbt_moveit_config)/launch/planning_pipeline.launch.xml">
+    <include ns="pilz_industrial_motion_planner" file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_pipeline.launch.xml">
       <arg name="pipeline" value="pilz_industrial_motion_planner" />
     </include>
 
