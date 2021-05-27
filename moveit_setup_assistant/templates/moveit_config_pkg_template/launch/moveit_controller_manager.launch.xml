@@ -1,5 +1,8 @@
 <launch>
 
+  <!-- this argument is not used here, only necessary so that this launch file has the same args as fake_moveit_controller_manager.launch -->
+  <arg name="execution_type" default="unused" />
+
   <!-- loads moveit_controller_manager on the parameter server which is taken as argument
     if no argument is passed, moveit_simple_controller_manager will be set -->
   <arg name="moveit_controller_manager" default="moveit_simple_controller_manager/MoveItSimpleControllerManager" />
