@@ -19,7 +19,9 @@ find_package(catkin REQUIRED COMPONENTS
   pluginlib
   roscpp
   tf2
+  tf2_eigen
   tf2_kdl
+  eigen_conversions
 )
 
 set(THIS_PACKAGE_INCLUDE_DIRS
@@ -48,11 +50,20 @@ include_directories(SYSTEM
                     ${EIGEN3_INCLUDE_DIRS}
                     )
 
+# generic plugins
 add_subdirectory(kdl_kinematics_plugin)
 add_subdirectory(lma_kinematics_plugin)
 add_subdirectory(srv_kinematics_plugin)
-add_subdirectory(ikfast_kinematics_plugin)
+
+# wrapper plugin
 add_subdirectory(cached_ik_kinematics_plugin)
+
+# IKfast plugin generator
+add_subdirectory(ikfast_kinematics_plugin)
+
+# special purpose solver to complement the PRBT config in moveit_resources
+add_subdirectory(prbt_manipulator_ikfast_plugin)
+
 add_subdirectory(test)
 
 install(
@@ -61,5 +72,6 @@ install(
     lma_kinematics_plugin_description.xml
     srv_kinematics_plugin_description.xml
     cached_ik_kinematics_plugin_description.xml
+    prbt_manipulator_ikfast_plugin_description.xml
   DESTINATION
     ${CATKIN_PACKAGE_SHARE_DESTINATION})

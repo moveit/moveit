@@ -25,7 +25,9 @@
   <depend>moveit_core</depend>
   <depend version_gte="1.11.2">pluginlib</depend>
   <depend>eigen</depend>
+  <depend>eigen_conversions</depend>
   <depend>tf2</depend>
+  <depend>tf2_eigen</depend>
   <depend>tf2_kdl</depend>
   <depend condition="$ROS_DISTRO != noetic">orocos_kdl</depend>
   <depend condition="$ROS_DISTRO == noetic">liborocos-kdl-dev</depend>
@@ -50,6 +52,7 @@
     <moveit_core plugin="${prefix}/lma_kinematics_plugin_description.xml"/>
     <moveit_core plugin="${prefix}/srv_kinematics_plugin_description.xml"/>
     <moveit_core plugin="${prefix}/cached_ik_kinematics_plugin_description.xml"/>
+    <moveit_core plugin="${prefix}/prbt_manipulator_ikfast_plugin_description.xml"/>
   </export>
 
 </package>

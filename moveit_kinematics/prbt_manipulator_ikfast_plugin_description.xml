@@ -1,0 +1,9 @@
+<library path="lib/libmoveit_prbt_manipulator_ikfast_plugin">
+  <class name="prbt_manipulator/IKFastKinematicsPlugin" base_class_type="kinematics::KinematicsBase" type="prbt_manipulator::IKFastKinematicsPlugin">
+    <description>
+IKFast61 plugin for closed-form kinematics of prbt manipulator.
+
+This plugin is used with the PRBT models in moveit_resources.
+    </description>
+  </class>
+</library>

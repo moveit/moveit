@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<package format="2">
+  <name>moveit_resources_prbt_ikfast_manipulator_plugin</name>
+  <version>0.8.0</version>
+  <description>The prbt_ikfast_manipulator_plugin package</description>
+  <maintainer email="a.gutenkunst@pilz.de">Alexander Gutenkunst</maintainer>
+  <maintainer email="c.henkel@pilz.de">Christian Henkel</maintainer>
+  <maintainer email="h.slusarek@pilz.de">Hagen Slusarek</maintainer>
+  <maintainer email="i.martini@pilz.de">Immanuel Martini</maintainer>
+  <license>Apache 2.0</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit-resources/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit-resources</url>
+  <export>
+    <moveit_core plugin="${prefix}/prbt_manipulator_moveit_ikfast_plugin_description.xml"/>
+  </export>
+  <build_depend>eigen_conversions</build_depend>
+  <build_depend>moveit_core</build_depend>
+  <build_depend>pluginlib</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>tf2_eigen</build_depend>
+  <build_depend>tf2_kdl</build_depend>
+  <exec_depend>eigen_conversions</exec_depend>
+  <exec_depend>moveit_core</exec_depend>
+  <exec_depend>pluginlib</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>tf2_kdl</exec_depend>
+</package>
