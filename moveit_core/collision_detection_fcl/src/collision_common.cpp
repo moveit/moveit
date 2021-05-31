@@ -51,8 +51,6 @@
 #include <memory>
 #include <thread>
 
-#include <chrono>
-
 namespace collision_detection
 {
 bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data)
@@ -412,9 +410,6 @@ struct FCLShapeCache
 
 bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& min_dist)
 {
-  using namespace std::chrono;
-  high_resolution_clock::time_point t1 = high_resolution_clock::now();
-
   thread_local DistanceData* cdata;
   cdata = reinterpret_cast<DistanceData*>(data);
 
@@ -677,10 +672,6 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
       cdata->done = true;
     }
   }
-
-  high_resolution_clock::time_point t2 = high_resolution_clock::now();
-  auto duration(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1));
-  ROS_ERROR_STREAM(duration.count());
 
   return cdata->done;
 }
