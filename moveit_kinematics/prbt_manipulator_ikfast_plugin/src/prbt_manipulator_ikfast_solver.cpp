@@ -202,7 +202,7 @@ struct CheckValue
 };
 
 template <typename T>
-inline CheckValue<T> IKatan2WithCheck(T fy, T fx, T epsilon)
+inline CheckValue<T> IKatan2WithCheck(T fy, T fx, T /*epsilon*/)
 {
     CheckValue<T> ret;
     ret.valid = false;
@@ -370,7 +370,7 @@ unsigned char _ij0[2], _nj0,_ij1[2], _nj1,_ij2[2], _nj2,_ij3[2], _nj3,_ij4[2], _
 
 IkReal j100, cj100, sj100;
 unsigned char _ij100[2], _nj100;
-bool ComputeIk(const IkReal* eetrans, const IkReal* eerot, const IkReal* pfree, IkSolutionListBase<IkReal>& solutions) {
+bool ComputeIk(const IkReal* eetrans, const IkReal* eerot, const IkReal* /*pfree*/, IkSolutionListBase<IkReal>& solutions) {
 j0=numeric_limits<IkReal>::quiet_NaN(); _ij0[0] = -1; _ij0[1] = -1; _nj0 = -1; j1=numeric_limits<IkReal>::quiet_NaN(); _ij1[0] = -1; _ij1[1] = -1; _nj1 = -1; j2=numeric_limits<IkReal>::quiet_NaN(); _ij2[0] = -1; _ij2[1] = -1; _nj2 = -1; j3=numeric_limits<IkReal>::quiet_NaN(); _ij3[0] = -1; _ij3[1] = -1; _nj3 = -1; j4=numeric_limits<IkReal>::quiet_NaN(); _ij4[0] = -1; _ij4[1] = -1; _nj4 = -1; j5=numeric_limits<IkReal>::quiet_NaN(); _ij5[0] = -1; _ij5[1] = -1; _nj5 = -1;
 for(int dummyiter = 0; dummyiter < 1; ++dummyiter) {
     solutions.Clear();
@@ -20056,7 +20056,7 @@ IKSolver solver;
 return solver.ComputeIk(eetrans,eerot,pfree,solutions);
 }
 
-IKFAST_API bool ComputeIk2(const IkReal* eetrans, const IkReal* eerot, const IkReal* pfree, IkSolutionListBase<IkReal>& solutions, void* pOpenRAVEManip) {
+IKFAST_API bool ComputeIk2(const IkReal* eetrans, const IkReal* eerot, const IkReal* pfree, IkSolutionListBase<IkReal>& solutions, void* /*pOpenRAVEManip*/) {
 IKSolver solver;
 return solver.ComputeIk(eetrans,eerot,pfree,solutions);
 }

@@ -542,7 +542,7 @@ void IKFastKinematicsPlugin::setSearchDiscretization(const std::map<unsigned int
   redundant_joint_discretization_[redundant_joint_indices_[0]] = discretization.begin()->second;
 }
 
-bool IKFastKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& redundant_joint_indices)
+bool IKFastKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& /*redundant_joint_indices*/)
 {
   ROS_ERROR_STREAM_NAMED(name_, "Changing the redundant joints isn't permitted by this group's solver ");
   return false;
@@ -849,7 +849,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
 }
 
 bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose,
-                                              const std::vector<double>& ik_seed_state, double timeout,
+                                              const std::vector<double>& ik_seed_state, double /*timeout*/,
                                               const std::vector<double>& consistency_limits,
                                               std::vector<double>& solution, const IKCallbackFn& solution_callback,
                                               moveit_msgs::MoveItErrorCodes& error_code,
@@ -1081,7 +1081,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
 // Used when there are no redundant joints - aka no free params
 bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
                                            std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
-                                           const kinematics::KinematicsQueryOptions& options) const
+                                           const kinematics::KinematicsQueryOptions& /*options*/) const
 {
   ROS_DEBUG_STREAM_NAMED(name_, "getPositionIK");
 
