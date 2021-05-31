@@ -20,6 +20,7 @@ API changes in MoveIt releases
 - Moved the library `moveit_cpp` to `moveit_ros_planning`. The classes are now in namespace `moveit_cpp`, access via `moveit::planning_interface` is deprecated.
 - The joint states of `passive` joints must be published in ROS and the CurrentStateMonitor will now wait for them as well. Their semantics dictate that they cannot be actively controlled, but they must be known to use the full robot state in collision checks. (https://github.com/ros-planning/moveit/pull/2663)
 - Removed deprecated header `moveit/macros/deprecation.h`. Use `[[deprecated]]` instead.
+- All uses of `MOVEIT_CLASS_FORWARD` et. al. must now be followed by a semicolon for consistency (and to get -pedantic builds to pass for the codebase).
 
 ## ROS Melodic
 
