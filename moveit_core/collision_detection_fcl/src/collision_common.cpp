@@ -500,9 +500,10 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
   thread_local double dist_threshold;
   dist_threshold = cdata->req->distance_threshold;
 
-  const std::pair<std::string, std::string>& pc = cd1->getID() < cd2->getID() ?
-                                                      std::make_pair(cd1->getID(), cd2->getID()) :
-                                                      std::make_pair(cd2->getID(), cd1->getID());
+  thread_local std::pair<std::string, std::string> pc = std::make_pair(cd1->getID(), cd2->getID());
+  pc = cd1->getID() < cd2->getID() ?
+        std::make_pair(cd1->getID(), cd2->getID()) :
+        std::make_pair(cd2->getID(), cd1->getID());
 
   thread_local DistanceMap::iterator it;
   it = cdata->res->distances.find(pc);
