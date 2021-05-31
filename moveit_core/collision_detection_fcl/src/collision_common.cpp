@@ -49,6 +49,7 @@
 
 #include <boost/thread/mutex.hpp>
 #include <memory>
+#include <thread>
 
 namespace collision_detection
 {
@@ -409,7 +410,8 @@ struct FCLShapeCache
 
 bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& min_dist)
 {
-  DistanceData* cdata = reinterpret_cast<DistanceData*>(data);
+  thread_local DistanceData* cdata;
+  cdata = reinterpret_cast<DistanceData*>(data);
 
   const CollisionGeometryData* cd1 = static_cast<const CollisionGeometryData*>(o1->collisionGeometry()->getUserData());
   const CollisionGeometryData* cd2 = static_cast<const CollisionGeometryData*>(o2->collisionGeometry()->getUserData());
@@ -439,12 +441,14 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
   }
 
   // use the collision matrix (if any) to avoid certain distance checks
-  bool always_allow_collision = false;
+  thread_local bool always_allow_collision;
+  always_allow_collision = false;
   if (cdata->req->acm)
   {
     AllowedCollision::Type type;
 
-    bool found = cdata->req->acm->getAllowedCollision(cd1->getID(), cd2->getID(), type);
+    thread_local bool found;
+    found = cdata->req->acm->getAllowedCollision(cd1->getID(), cd2->getID(), type);
     if (found)
     {
       // if we have an entry in the collision matrix, we read it
@@ -493,13 +497,15 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
     ROS_DEBUG_NAMED("collision_detection.fcl", "Actually checking collisions between %s and %s", cd1->getID().c_str(),
                     cd2->getID().c_str());
 
-  double dist_threshold = cdata->req->distance_threshold;
+  thread_local double dist_threshold;
+  dist_threshold = cdata->req->distance_threshold;
 
   const std::pair<std::string, std::string>& pc = cd1->getID() < cd2->getID() ?
                                                       std::make_pair(cd1->getID(), cd2->getID()) :
                                                       std::make_pair(cd2->getID(), cd1->getID());
 
-  DistanceMap::iterator it = cdata->res->distances.find(pc);
+  thread_local DistanceMap::iterator it;
+  it = cdata->res->distances.find(pc);
 
   if (it != cdata->res->distances.end())
   {
@@ -521,7 +527,7 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
     }
   }
 
-  fcl::DistanceResultd fcl_result;
+  thread_local fcl::DistanceResultd fcl_result;
   fcl_result.min_distance = dist_threshold;
   // fcl::distance segfaults when given an octree with a null root pointer (using FCL 0.6.1)
   if ((o1->getObjectType() == fcl::OT_OCTREE &&
@@ -531,14 +537,15 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
   {
     return false;
   }
-  double d = fcl::distance(o1, o2, fcl::DistanceRequestd(cdata->req->enable_nearest_points), fcl_result);
+  thread_local double distance;
+  distance = fcl::distance(o1, o2, fcl::DistanceRequestd(cdata->req->enable_nearest_points), fcl_result);
 
   // Check if either object is already in the map. If not add it or if present
   // check to see if the new distance is closer. If closer remove the existing
   // one and add the new distance information.
-  if (d < dist_threshold)
+  if (distance < dist_threshold)
   {
-    DistanceResultsData dist_result;
+    thread_local DistanceResultsData dist_result;
     dist_result.distance = fcl_result.min_distance;
 
     // Careful here: Get the collision geometry data again, since FCL might
@@ -562,21 +569,23 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
       dist_result.normal = (dist_result.nearest_points[1] - dist_result.nearest_points[0]).normalized();
     }
 
-    if (d <= 0 && cdata->req->enable_signed_distance)
+    if (distance <= 0 && cdata->req->enable_signed_distance)
     {
       dist_result.nearest_points[0].setZero();
       dist_result.nearest_points[1].setZero();
       dist_result.normal.setZero();
 
-      fcl::CollisionRequestd coll_req;
-      fcl::CollisionResultd coll_res;
+      thread_local fcl::CollisionRequestd coll_req;
+      thread_local fcl::CollisionResultd coll_res;
       coll_req.enable_contact = true;
       coll_req.num_max_contacts = 200;
       std::size_t contacts = fcl::collide(o1, o2, coll_req, coll_res);
       if (contacts > 0)
       {
-        double max_dist = 0;
-        int max_index = 0;
+        thread_local double max_dist;
+        max_dist = 0;
+        thread_local int max_index;
+        max_index = 0;
         for (std::size_t i = 0; i < contacts; ++i)
         {
           const fcl::Contactd& contact = coll_res.getContact(i);
@@ -589,21 +598,25 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
 
         const fcl::Contactd& contact = coll_res.getContact(max_index);
         dist_result.distance = -contact.penetration_depth;
+
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
         dist_result.nearest_points[0] = contact.pos;
         dist_result.nearest_points[1] = contact.pos;
 #else
         dist_result.nearest_points[0] = Eigen::Vector3d(contact.pos.data.vs);
         dist_result.nearest_points[1] = Eigen::Vector3d(contact.pos.data.vs);
-        Eigen::Vector3d normal(contact.normal.data.vs);
 #endif
 
         if (cdata->req->enable_nearest_points)
         {
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
-          Eigen::Vector3d normal = contact.normal;
+          thread_local Eigen::Vector3d normal;
+          normal = contact.normal;
 #else
-          Eigen::Vector3d normal(contact.normal.data.vs);
+          thread_local Eigen::Vector3d normal;
+          normal[0] = contact.normal.data.vs[0];
+          normal[1] = contact.normal.data.vs[1];
+          normal[2] = contact.normal.data.vs[2];
 #endif
 
           // Check order of o1/o2 again, we might need to flip the normal
