@@ -528,6 +528,7 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
   }
 
   thread_local fcl::DistanceResultd fcl_result;
+  fcl_result.clear();
   fcl_result.min_distance = dist_threshold;
   // fcl::distance segfaults when given an octree with a null root pointer (using FCL 0.6.1)
   if ((o1->getObjectType() == fcl::OT_OCTREE &&
@@ -546,6 +547,7 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
   if (distance < dist_threshold)
   {
     thread_local DistanceResultsData dist_result;
+    dist_result.clear();
     dist_result.distance = fcl_result.min_distance;
 
     // Careful here: Get the collision geometry data again, since FCL might
@@ -577,6 +579,7 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
 
       thread_local fcl::CollisionRequestd coll_req;
       thread_local fcl::CollisionResultd coll_res;
+      coll_res.clear();
       coll_req.enable_contact = true;
       coll_req.num_max_contacts = 200;
       std::size_t contacts = fcl::collide(o1, o2, coll_req, coll_res);
