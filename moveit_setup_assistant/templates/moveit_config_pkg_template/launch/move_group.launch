@@ -89,7 +89,9 @@
 
     <param name="allow_trajectory_execution" value="$(arg allow_trajectory_execution)"/>
     <param name="sense_for_plan/max_safe_path_cost" value="$(arg max_safe_path_cost)"/>
-    <param name="jiggle_fraction" value="$(arg jiggle_fraction)" />
+    <param name="planning_pipelines/ompl/jiggle_fraction" value="$(arg jiggle_fraction)" />
+    <param name="planning_pipelines/chomp/jiggle_fraction" value="$(arg jiggle_fraction)" />
+    <param name="planning_pipelines/pilz_industrial_motion_planner/jiggle_fraction" value="$(arg jiggle_fraction)" />
     <param name="default_planning_pipeline" value="$(arg pipeline)" />
     <param name="capabilities" value="$(arg capabilities)" />
     <param name="disable_capabilities" value="$(arg disable_capabilities)" />
