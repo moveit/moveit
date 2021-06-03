@@ -636,6 +636,24 @@ TEST_F(OneRobot, testInterpolation)
     EXPECT_NEAR(1 - t, interpolated_state.getVariablePosition("joint_f"), 1e-9);
     EXPECT_NEAR(1.5 * (1 - t) + 0.1, interpolated_state.getVariablePosition("mim_f"), 1e-9);
   }
+
+  std::cout << "Checking interpolation input verification. Two warnings (untested) and an exception are expected."
+            << std::endl;
+
+  state_a.interpolate(state_b, 1.1, interpolated_state, robot_model_->getJointModelGroup("base_from_base_to_e"));
+  state_a.interpolate(state_b, -0.1, interpolated_state, robot_model_->getJointModelGroup("base_from_base_to_e"));
+
+  bool nan_exception = false;
+  try
+  {
+    state_a.interpolate(state_b, 1. / 0., interpolated_state, robot_model_->getJointModelGroup("base_from_base_to_e"));
+  }
+  catch (std::exception& e)
+  {
+    std::cout << "Caught: " << e.what() << std::endl;
+    nan_exception = true;
+  }
+  EXPECT_TRUE(nan_exception);
 }
 
 int main(int argc, char** argv)
