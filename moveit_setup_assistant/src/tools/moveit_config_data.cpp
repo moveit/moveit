@@ -1080,20 +1080,17 @@ bool MoveItConfigData::output3DSensorPluginYAML(const std::string& file_path)
   emitter << YAML::Key << "sensors";
   emitter << YAML::Value << YAML::BeginSeq;
 
-  // Can we have more than one plugin config?
-  emitter << YAML::BeginMap;
-
-  // Make sure sensors_plugin_config_parameter_list_ is not empty
-  if (!sensors_plugin_config_parameter_list_.empty())
+  for (auto& sensors_plugin_config : sensors_plugin_config_parameter_list_)
   {
-    for (auto& parameter : sensors_plugin_config_parameter_list_[0])
+    emitter << YAML::BeginMap;
+
+    for (auto& parameter : sensors_plugin_config)
     {
       emitter << YAML::Key << parameter.first;
       emitter << YAML::Value << parameter.second.getValue();
     }
+    emitter << YAML::EndMap;
   }
-
-  emitter << YAML::EndMap;
 
   emitter << YAML::EndSeq;
 
