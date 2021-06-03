@@ -208,7 +208,7 @@ bool PerceptionWidget::focusLost()
   // Save the sensor plugin configuration to sensors_plugin_config data structure
   if (sensor_plugin_field_->currentIndex() == 1)
   {
-    // Point Cloud plugin feilds
+    // Point Cloud plugin fields
     config_data_->addGenericParameterToSensorPluginConfig("sensor_plugin", "occupancy_map_monitor/"
                                                                            "PointCloudOctomapUpdater");
     config_data_->addGenericParameterToSensorPluginConfig("point_cloud_topic",
@@ -229,7 +229,7 @@ bool PerceptionWidget::focusLost()
   }
   else if (sensor_plugin_field_->currentIndex() == 2)
   {
-    // Depth Map plugin feilds
+    // Depth Map plugin fields
     config_data_->addGenericParameterToSensorPluginConfig("sensor_plugin", "occupancy_map_monitor/"
                                                                            "DepthImageOctomapUpdater");
     config_data_->addGenericParameterToSensorPluginConfig("image_topic",
