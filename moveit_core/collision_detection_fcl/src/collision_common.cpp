@@ -49,7 +49,6 @@
 
 #include <boost/thread/mutex.hpp>
 #include <memory>
-#include <thread>
 
 namespace collision_detection
 {
