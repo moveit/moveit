@@ -541,7 +541,6 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
   if (distance < dist_threshold)
   {
     thread_local DistanceResultsData dist_result;
-    dist_result.clear();
     dist_result.distance = fcl_result.min_distance;
 
     // Careful here: Get the collision geometry data again, since FCL might
