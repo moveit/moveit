@@ -1422,17 +1422,37 @@ void PlanningSceneMonitor::configureDefaultPadding()
     return;
   }
 
-  // Ensure no leading slash creates a bad param server address
-  const std::string robot_description =
+  // print deprecation warning if necessary
+  // TODO: remove this warning after 06/2022
+  const std::string old_robot_description =
       (robot_description_[0] == '/') ? robot_description_.substr(1) : robot_description_;
+  if (nh_.resolveName(old_robot_description) != nh_.resolveName(robot_description_))
+  {
+    if (nh_.hasParam(old_robot_description + "_planning/default_robot_padding") ||
+        nh_.hasParam(old_robot_description + "_planning/default_robot_scale") ||
+        nh_.hasParam(old_robot_description + "_planning/default_object_padding") ||
+        nh_.hasParam(old_robot_description + "_planning/default_attached_padding") ||
+        nh_.hasParam(old_robot_description + "_planning/default_robot_link_padding") ||
+        nh_.hasParam(old_robot_description + "_planning/default_robot_link_scale"))
+    {
+      ROS_WARN_STREAM_NAMED(LOGNAME, "The path for the padding parameters has changed!\n"
+                                     "Old parameter path: '"
+                                         << nh_.resolveName(old_robot_description + "_planning/")
+                                         << "'\n"
+                                            "New parameter path: '"
+                                         << nh_.resolveName(robot_description_ + "_planning/")
+                                         << "'\n"
+                                            "Ignoring old parameters. Please update your moveit config!");
+    }
+  }
 
-  nh_.param(robot_description + "_planning/default_robot_padding", default_robot_padd_, 0.0);
-  nh_.param(robot_description + "_planning/default_robot_scale", default_robot_scale_, 1.0);
-  nh_.param(robot_description + "_planning/default_object_padding", default_object_padd_, 0.0);
-  nh_.param(robot_description + "_planning/default_attached_padding", default_attached_padd_, 0.0);
-  nh_.param(robot_description + "_planning/default_robot_link_padding", default_robot_link_padd_,
+  nh_.param(robot_description_ + "_planning/default_robot_padding", default_robot_padd_, 0.0);
+  nh_.param(robot_description_ + "_planning/default_robot_scale", default_robot_scale_, 1.0);
+  nh_.param(robot_description_ + "_planning/default_object_padding", default_object_padd_, 0.0);
+  nh_.param(robot_description_ + "_planning/default_attached_padding", default_attached_padd_, 0.0);
+  nh_.param(robot_description_ + "_planning/default_robot_link_padding", default_robot_link_padd_,
             std::map<std::string, double>());
-  nh_.param(robot_description + "_planning/default_robot_link_scale", default_robot_link_scale_,
+  nh_.param(robot_description_ + "_planning/default_robot_link_scale", default_robot_link_scale_,
             std::map<std::string, double>());
 
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Loaded " << default_robot_link_padd_.size() << " default link paddings");
