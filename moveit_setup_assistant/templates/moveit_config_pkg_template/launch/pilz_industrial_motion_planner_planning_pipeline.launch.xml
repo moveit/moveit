@@ -7,11 +7,8 @@
        ORDER MATTERS -->
   <arg name="planning_adapters" value="" />
 
-  <arg name="start_state_max_bounds_error" value="0.1" />
-
   <param name="planning_plugin" value="$(arg planning_plugin)" />
   <param name="request_adapters" value="$(arg planning_adapters)" />
-  <param name="start_state_max_bounds_error" value="$(arg start_state_max_bounds_error)" />
 
   <!-- MoveGroup capabilities to load, append sequence capability -->
   <param name="capabilities" value="pilz_industrial_motion_planner/MoveGroupSequenceAction
