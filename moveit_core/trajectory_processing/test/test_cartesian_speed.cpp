@@ -48,8 +48,11 @@
 moveit::core::RobotModelConstPtr RMODEL = moveit::core::loadTestingRobotModel("pr2");
 robot_trajectory::RobotTrajectory TRAJECTORY(RMODEL, "right_arm");
 
+// Name of logger
+const char* LOGGER_NAME = "trajectory_processing";
+
 // Initialize one-joint, straight-line trajectory
-int initStraightTrajectory(robot_trajectory::RobotTrajectory& trajectory)
+bool initStraightTrajectory(robot_trajectory::RobotTrajectory& trajectory)
 {
   const int num = 10;
   const double max = 2.0;
@@ -58,8 +61,8 @@ int initStraightTrajectory(robot_trajectory::RobotTrajectory& trajectory)
   const robot_model::JointModelGroup* group = trajectory.getGroup();
   if (!group)
   {
-    ROS_ERROR_NAMED("trajectory_processing", "Need to set the group");
-    return -1;
+    ROS_ERROR_NAMED(LOGGER_NAME, "Need to set the group");
+    return false;
   }
   // leave initial velocity/acceleration unset
   const std::vector<int>& idx = group->getVariableIndexList();
@@ -76,7 +79,7 @@ int initStraightTrajectory(robot_trajectory::RobotTrajectory& trajectory)
   state.setVariablePosition(idx[0], max);
   trajectory.addSuffixWayPoint(state, 0.0);
 
-  return 0;
+  return true;
 }
 
 void printTrajectory(robot_trajectory::RobotTrajectory& trajectory)
@@ -85,12 +88,12 @@ void printTrajectory(robot_trajectory::RobotTrajectory& trajectory)
   const std::vector<int>& idx = group->getVariableIndexList();
   unsigned int count = trajectory.getWayPointCount();
 
-  ROS_INFO_STREAM_NAMED("trajectory_processing",
+  ROS_INFO_STREAM_NAMED(LOGGER_NAME,
                         "trajectory length is " << trajectory.getWayPointDurationFromStart(count - 1) << " seconds.");
   for (unsigned i = 0; i < count; i++)
   {
     robot_state::RobotStatePtr point = trajectory.getWayPointPtr(i);
-    ROS_INFO_STREAM_NAMED("trajectory_processing", "Waypoint " << i << " time "
+    ROS_INFO_STREAM_NAMED(LOGGER_NAME, "Waypoint " << i << " time "
                                                                << trajectory.getWayPointDurationFromStart(i) << " pos "
                                                                << point->getVariablePosition(idx[0]) << " vel "
                                                                << point->getVariableVelocity(idx[0]) << " acc "
@@ -100,7 +103,7 @@ void printTrajectory(robot_trajectory::RobotTrajectory& trajectory)
     {
       robot_state::RobotStatePtr prev = trajectory.getWayPointPtr(i - 1);
       ROS_INFO_STREAM_NAMED(
-          "trajectory_processing",
+          LOGGER_NAME,
           "jrk " << (point->getVariableAcceleration(idx[0]) - prev->getVariableAcceleration(idx[0])) /
                         (trajectory.getWayPointDurationFromStart(i) - trajectory.getWayPointDurationFromStart(i - 1)));
     }
@@ -110,7 +113,7 @@ void printTrajectory(robot_trajectory::RobotTrajectory& trajectory)
 TEST(TestCartesianSpeed, TestCartesianEndEffectorSpeed)
 {
   trajectory_processing::IterativeParabolicTimeParameterization time_parameterization;
-  EXPECT_EQ(initStraightTrajectory(TRAJECTORY), 0);
+  EXPECT_EQ(initStraightTrajectory(TRAJECTORY), true);
 
   EXPECT_TRUE(time_parameterization.computeTimeStamps(TRAJECTORY));
   trajectory_processing::setMaxCartesianEndEffectorSpeed(TRAJECTORY, 0.01);
@@ -125,15 +128,12 @@ TEST(TestCartesianSpeed, TestCartesianEndEffectorSpeed)
   {
     kinematic_state = TRAJECTORY.getWayPointPtr(i + 1);
     next_end_effector_state = kinematic_state->getGlobalLinkTransform("r_wrist_roll_link");
-    euclidean_distance +=
-        pow(pow(next_end_effector_state.translation()[0] - current_end_effector_state.translation()[0], 2) +
-                pow(next_end_effector_state.translation()[1] - current_end_effector_state.translation()[1], 2) +
-                pow(next_end_effector_state.translation()[2] - current_end_effector_state.translation()[2], 2),
-            0.5);
+    euclidean_distance += (next_end_effector_state.translation() -
+            current_end_effector_state.translation()).norm();
     current_end_effector_state = next_end_effector_state;
   }
   double avg_speed = euclidean_distance / TRAJECTORY.getWayPointDurationFromStart(num_waypoints);
-  ASSERT_DOUBLE_EQ(0.01, avg_speed);
+  ASSERT_NEAR(0.01, avg_speed, 1e-10);
 }
 
 int main(int argc, char** argv)
