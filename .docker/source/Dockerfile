@@ -13,6 +13,7 @@ RUN \
     # Download moveit source so that we can get necessary dependencies
     wstool init --shallow . https://raw.githubusercontent.com/ros-planning/moveit/${ROS_DISTRO}-devel/.github/workflows/upstream.rosinstall && \
     git clone --depth 1 --branch ${ROS_DISTRO}-devel https://github.com/ros-planning/moveit && \
+    git clone --depth 1 --branch ${ROS_DISTRO}-devel https://github.com/ros-planning/moveit_resources && \
     #
     # Update apt package list as cache is cleared in previous container
     # Usually upgrading involves a few packages only (if container builds became out-of-sync)
@@ -29,7 +30,9 @@ RUN cd .. && \
     # Status rate is limited so that just enough info is shown to keep Docker from timing out,
     # but not too much such that the Docker log gets too long (another form of timeout)
     catkin build --limit-status-rate 0.001 --no-notify && \
-    source $ROS_UNDERLAY/setup.bash
+    #
+    # Update /ros_entrypoint.sh to source our new workspace
+    sed -i "s#/opt/ros/\$ROS_DISTRO/setup.bash#$ROS_UNDERLAY/setup.sh#g" /ros_entrypoint.sh
 
 # Environment variable used in instructions on moveit.ros.org website for running clang-tidy
 ENV CATKIN_WS $(realpath $ROS_UNDERLAY/..)
