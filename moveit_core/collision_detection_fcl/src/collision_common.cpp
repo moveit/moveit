@@ -502,7 +502,13 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
   thread_local DistanceMap::iterator it;
   it = cdata->res->distances.find(pc);
 
-  if (it != cdata->res->distances.end())
+  // GLOBAL search: for efficiency, distance_threshold starts at the smallest distance between any pairs found so far
+  if (cdata->req->type == DistanceRequestType::GLOBAL)
+  {
+    dist_threshold = cdata->res->minimum_distance.distance;
+  }
+  // Check if a distance between this pair has been found yet. Decrease threshold_distance if so, to narrow the search
+  else if (it != cdata->res->distances.end())
   {
     if (cdata->req->type == DistanceRequestType::LIMITED)
     {
@@ -511,10 +517,6 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
       {
         return cdata->done;
       }
-    }
-    else if (cdata->req->type == DistanceRequestType::GLOBAL)
-    {
-      dist_threshold = cdata->res->minimum_distance.distance;
     }
     else if (cdata->req->type == DistanceRequestType::SINGLE)
     {
