@@ -418,10 +418,10 @@ public:
     }
   }
 
-  void setMaxCartesianEndEffectorSpeed(const double speed, const std::string& end_effector_link)
+  void setMaxCartesianEndEffectorSpeed(const double max_speed, const std::string& end_effector_link)
   {
     cartesian_end_effector_link_ = end_effector_link;
-    max_cartesian_speed_ = speed;
+    max_cartesian_speed_ = max_speed;
   }
 
   void clearMaxCartesianEndEffectorSpeed()
@@ -1498,9 +1498,9 @@ void MoveGroupInterface::setMaxAccelerationScalingFactor(double max_acceleration
   impl_->setMaxAccelerationScalingFactor(max_acceleration_scaling_factor);
 }
 
-void MoveGroupInterface::setMaxCartesianEndEffectorSpeed(const double speed, const std::string& end_effector_link)
+void MoveGroupInterface::setMaxCartesianEndEffectorSpeed(const double max_speed, const std::string& end_effector_link)
 {
-  impl_->setMaxCartesianEndEffectorSpeed(speed, end_effector_link);
+  impl_->setMaxCartesianEndEffectorSpeed(max_speed, end_effector_link);
 }
 
 void MoveGroupInterface::clearMaxCartesianEndEffectorSpeed()

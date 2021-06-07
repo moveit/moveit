@@ -36,14 +36,17 @@
 
 #include <moveit/trajectory_processing/cartesian_speed.h>
 
+// Name of logger
+const char* LOGGER_NAME = "trajectory_processing.cartesian_speed";
+
 namespace trajectory_processing
 {
-bool setMaxCartesianEndEffectorSpeed(robot_trajectory::RobotTrajectory& trajectory, const double speed,
+bool setMaxCartesianEndEffectorSpeed(robot_trajectory::RobotTrajectory& trajectory, const double max_speed,
                                      std::string end_effector)
 {
-  if (speed <= 0.0)
+  if (max_speed <= 0.0)
   {
-    ROS_ERROR_STREAM_NAMED("trajectory_processing.cartesian_speed", "End effector speed must be greater than 0.");
+    ROS_ERROR_STREAM_NAMED(LOGGER_NAME, "End effector speed must be greater than 0.");
     return false;
   }
   if (end_effector.empty())
@@ -52,8 +55,7 @@ bool setMaxCartesianEndEffectorSpeed(robot_trajectory::RobotTrajectory& trajecto
     trajectory.getGroup()->getEndEffectorTips(tips);
     if (tips.empty())
     {
-      ROS_ERROR_STREAM_NAMED("trajectory_processing.cartesian_speed",
-                             "No end effector defined for group attached to trajectory.");
+      ROS_ERROR_STREAM_NAMED(LOGGER_NAME, "No end effector defined for group attached to trajectory.");
       return false;
     }
     end_effector = tips[0];
@@ -66,27 +68,24 @@ bool setMaxCartesianEndEffectorSpeed(robot_trajectory::RobotTrajectory& trajecto
   robot_state::RobotStatePtr kinematic_state = trajectory.getFirstWayPointPtr();
 
   // do forward kinematics to get cartesian positions of end effector for current waypoint
-  Eigen::Isometry3d current_end_effector_state = kinematic_state->getGlobalLinkTransform(end_effector);
-  Eigen::Isometry3d next_end_effector_state;
   double euclidean_distance, new_time_diff, old_time_diff;
   std::vector<double> time_diff(num_waypoints - 1, 0.0);
 
   for (size_t i = 0; i < num_waypoints - 1; i++)
   {
-    // get state for next waypoint
-    kinematic_state = trajectory.getWayPointPtr(i + 1);
+    // get end effector state for current waypoint
+    Eigen::Isometry3d current_end_effector_state =
+        trajectory.getWayPointPtr(i)->getGlobalLinkTransform(end_effector);
 
-    // do forward kinematics to get cartesian positions of end effector for next waypoint
-    next_end_effector_state = kinematic_state->getGlobalLinkTransform(end_effector);
+    // get end effector state for next waypoint
+    Eigen::Isometry3d next_end_effector_state = 
+        trajectory.getWayPointPtr(i+1)->getGlobalLinkTransform(end_effector);
 
     // get euclidean distance between the two waypoints
-    euclidean_distance =
-        pow(pow(next_end_effector_state.translation()[0] - current_end_effector_state.translation()[0], 2) +
-                pow(next_end_effector_state.translation()[1] - current_end_effector_state.translation()[1], 2) +
-                pow(next_end_effector_state.translation()[2] - current_end_effector_state.translation()[2], 2),
-            0.5);
+    euclidean_distance = (next_end_effector_state.translation() -
+            current_end_effector_state.translation()).norm();
 
-    new_time_diff = (euclidean_distance / speed);
+    new_time_diff = (euclidean_distance / max_speed);
     old_time_diff = trajectory.getWayPointDurationFromPrevious(i + 1);
 
     // if constraints allow save the new time difference between waypoints
@@ -96,7 +95,7 @@ bool setMaxCartesianEndEffectorSpeed(robot_trajectory::RobotTrajectory& trajecto
     }
     else
     {
-      ROS_WARN_ONCE_NAMED("trajectory_processing.cartesian_speed",
+      ROS_WARN_ONCE_NAMED(LOGGER_NAME,
                           "Desired cartesian end-effector speed is not reached because of joint velocity constraints.");
       time_diff[i] = old_time_diff;
     }
