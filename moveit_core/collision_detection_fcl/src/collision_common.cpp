@@ -443,7 +443,6 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
   if (cdata->req->acm)
   {
     AllowedCollision::Type type;
-
     bool found = cdata->req->acm->getAllowedCollision(cd1->getID(), cd2->getID(), type);
     if (found)
     {
@@ -495,13 +494,19 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
 
   double dist_threshold = cdata->req->distance_threshold;
 
-  const std::pair<std::string, std::string>& pc = cd1->getID() < cd2->getID() ?
-                                                      std::make_pair(cd1->getID(), cd2->getID()) :
-                                                      std::make_pair(cd2->getID(), cd1->getID());
+  const std::pair<const std::string&, const std::string&> pc = cd1->getID() < cd2->getID() ?
+                                                                   std::make_pair(cd1->getID(), cd2->getID()) :
+                                                                   std::make_pair(cd2->getID(), cd1->getID());
 
   DistanceMap::iterator it = cdata->res->distances.find(pc);
 
-  if (it != cdata->res->distances.end())
+  // GLOBAL search: for efficiency, distance_threshold starts at the smallest distance between any pairs found so far
+  if (cdata->req->type == DistanceRequestType::GLOBAL)
+  {
+    dist_threshold = cdata->res->minimum_distance.distance;
+  }
+  // Check if a distance between this pair has been found yet. Decrease threshold_distance if so, to narrow the search
+  else if (it != cdata->res->distances.end())
   {
     if (cdata->req->type == DistanceRequestType::LIMITED)
     {
@@ -510,10 +515,6 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
       {
         return cdata->done;
       }
-    }
-    else if (cdata->req->type == DistanceRequestType::GLOBAL)
-    {
-      dist_threshold = cdata->res->minimum_distance.distance;
     }
     else if (cdata->req->type == DistanceRequestType::SINGLE)
     {
@@ -531,14 +532,16 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
   {
     return false;
   }
-  double d = fcl::distance(o1, o2, fcl::DistanceRequestd(cdata->req->enable_nearest_points), fcl_result);
+  double distance = fcl::distance(o1, o2, fcl::DistanceRequestd(cdata->req->enable_nearest_points), fcl_result);
 
   // Check if either object is already in the map. If not add it or if present
   // check to see if the new distance is closer. If closer remove the existing
   // one and add the new distance information.
-  if (d < dist_threshold)
+  if (distance < dist_threshold)
   {
-    DistanceResultsData dist_result;
+    // thread_local storage makes this variable persistent. We do not clear it at every iteration because all members
+    // get overwritten.
+    thread_local DistanceResultsData dist_result;
     dist_result.distance = fcl_result.min_distance;
 
     // Careful here: Get the collision geometry data again, since FCL might
@@ -550,8 +553,8 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
     dist_result.nearest_points[0] = fcl_result.nearest_points[0];
     dist_result.nearest_points[1] = fcl_result.nearest_points[1];
 #else
-    dist_result.nearest_points[0] = Eigen::Vector3d(fcl_result.nearest_points[0].data.vs);
-    dist_result.nearest_points[1] = Eigen::Vector3d(fcl_result.nearest_points[1].data.vs);
+    dist_result.nearest_points[0] = Eigen::Map<const Eigen::Vector3d>(fcl_result.nearest_points[0].data.vs);
+    dist_result.nearest_points[1] = Eigen::Map<const Eigen::Vector3d>(fcl_result.nearest_points[1].data.vs);
 #endif
     dist_result.link_names[0] = res_cd1->getID();
     dist_result.link_names[1] = res_cd2->getID();
@@ -562,14 +565,15 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
       dist_result.normal = (dist_result.nearest_points[1] - dist_result.nearest_points[0]).normalized();
     }
 
-    if (d <= 0 && cdata->req->enable_signed_distance)
+    if (distance <= 0 && cdata->req->enable_signed_distance)
     {
       dist_result.nearest_points[0].setZero();
       dist_result.nearest_points[1].setZero();
       dist_result.normal.setZero();
 
       fcl::CollisionRequestd coll_req;
-      fcl::CollisionResultd coll_res;
+      thread_local fcl::CollisionResultd coll_res;
+      coll_res.clear();  // thread_local storage makes the variable persistent. Ensure that it is cleared!
       coll_req.enable_contact = true;
       coll_req.num_max_contacts = 200;
       std::size_t contacts = fcl::collide(o1, o2, coll_req, coll_res);
@@ -589,13 +593,13 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
 
         const fcl::Contactd& contact = coll_res.getContact(max_index);
         dist_result.distance = -contact.penetration_depth;
+
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
         dist_result.nearest_points[0] = contact.pos;
         dist_result.nearest_points[1] = contact.pos;
 #else
-        dist_result.nearest_points[0] = Eigen::Vector3d(contact.pos.data.vs);
-        dist_result.nearest_points[1] = Eigen::Vector3d(contact.pos.data.vs);
-        Eigen::Vector3d normal(contact.normal.data.vs);
+        dist_result.nearest_points[0] = Eigen::Map<const Eigen::Vector3d>(contact.pos.data.vs);
+        dist_result.nearest_points[1] = Eigen::Map<const Eigen::Vector3d>(contact.pos.data.vs);
 #endif
 
         if (cdata->req->enable_nearest_points)
@@ -603,7 +607,7 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
           Eigen::Vector3d normal = contact.normal;
 #else
-          Eigen::Vector3d normal(contact.normal.data.vs);
+          Eigen::Vector3d normal = Eigen::Map<const Eigen::Vector3d>(contact.normal.data.vs);
 #endif
 
           // Check order of o1/o2 again, we might need to flip the normal
