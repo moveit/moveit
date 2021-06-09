@@ -551,8 +551,8 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
     dist_result.nearest_points[0] = fcl_result.nearest_points[0];
     dist_result.nearest_points[1] = fcl_result.nearest_points[1];
 #else
-    dist_result.nearest_points[0] = Eigen::Vector3d(fcl_result.nearest_points[0].data.vs);
-    dist_result.nearest_points[1] = Eigen::Vector3d(fcl_result.nearest_points[1].data.vs);
+    dist_result.nearest_points[0] = Eigen::Map<const Eigen::Vector3d>(fcl_result.nearest_points[0].data.vs);
+    dist_result.nearest_points[1] = Eigen::Map<const Eigen::Vector3d>(fcl_result.nearest_points[1].data.vs);
 #endif
     dist_result.link_names[0] = res_cd1->getID();
     dist_result.link_names[1] = res_cd2->getID();
@@ -596,17 +596,16 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
         dist_result.nearest_points[0] = contact.pos;
         dist_result.nearest_points[1] = contact.pos;
 #else
-        dist_result.nearest_points[0] = Eigen::Vector3d(contact.pos.data.vs);
-        dist_result.nearest_points[1] = Eigen::Vector3d(contact.pos.data.vs);
+        dist_result.nearest_points[0] = Eigen::Map<const Eigen::Vector3d>(contact.pos.data.vs);
+        dist_result.nearest_points[1] = Eigen::Map<const Eigen::Vector3d>(contact.pos.data.vs);
 #endif
 
-        Eigen::Vector3d normal;
         if (cdata->req->enable_nearest_points)
         {
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
-          normal = contact.normal;
+          Eigen::Vector3d normal = contact.normal;
 #else
-          normal = Eigen::Map<const Eigen::Vector3d>(contact.normal.data.vs);
+          Eigen::Vector3d normal = Eigen::Map<const Eigen::Vector3d>(contact.normal.data.vs);
 #endif
 
           // Check order of o1/o2 again, we might need to flip the normal
