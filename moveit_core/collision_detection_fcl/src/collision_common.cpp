@@ -442,8 +442,7 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
   bool always_allow_collision = false;
   if (cdata->req->acm)
   {
-    thread_local AllowedCollision::Type type;
-
+    AllowedCollision::Type type;
     bool found = cdata->req->acm->getAllowedCollision(cd1->getID(), cd2->getID(), type);
     if (found)
     {
@@ -499,8 +498,7 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
   pc = cd1->getID() < cd2->getID() ? std::make_pair(cd1->getID(), cd2->getID()) :
                                      std::make_pair(cd2->getID(), cd1->getID());
 
-  thread_local DistanceMap::iterator it;
-  it = cdata->res->distances.find(pc);
+  DistanceMap::iterator it = cdata->res->distances.find(pc);
 
   // GLOBAL search: for efficiency, distance_threshold starts at the smallest distance between any pairs found so far
   if (cdata->req->type == DistanceRequestType::GLOBAL)
@@ -524,8 +522,7 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
     }
   }
 
-  thread_local fcl::DistanceResultd fcl_result;
-  fcl_result.clear();
+  fcl::DistanceResultd fcl_result;
   fcl_result.min_distance = dist_threshold;
   // fcl::distance segfaults when given an octree with a null root pointer (using FCL 0.6.1)
   if ((o1->getObjectType() == fcl::OT_OCTREE &&
@@ -572,7 +569,7 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
       dist_result.nearest_points[1].setZero();
       dist_result.normal.setZero();
 
-      thread_local fcl::CollisionRequestd coll_req;
+      fcl::CollisionRequestd coll_req;
       thread_local fcl::CollisionResultd coll_res;
       coll_res.clear();
       coll_req.enable_contact = true;
@@ -603,7 +600,7 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
         dist_result.nearest_points[1] = Eigen::Vector3d(contact.pos.data.vs);
 #endif
 
-        thread_local Eigen::Vector3d normal;
+        Eigen::Vector3d normal;
         if (cdata->req->enable_nearest_points)
         {
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
