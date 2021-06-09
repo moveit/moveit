@@ -539,6 +539,8 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
   // one and add the new distance information.
   if (distance < dist_threshold)
   {
+    // thread_local storage makes this variable persistent. We do not clear it at every iteration because all members
+    // get overwritten.
     thread_local DistanceResultsData dist_result;
     dist_result.distance = fcl_result.min_distance;
 
@@ -571,7 +573,7 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
 
       fcl::CollisionRequestd coll_req;
       thread_local fcl::CollisionResultd coll_res;
-      coll_res.clear();
+      coll_res.clear();  // thread_local storage makes the variable persistent. Ensure that it is cleared!
       coll_req.enable_contact = true;
       coll_req.num_max_contacts = 200;
       std::size_t contacts = fcl::collide(o1, o2, coll_req, coll_res);
