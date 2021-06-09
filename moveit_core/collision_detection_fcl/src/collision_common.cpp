@@ -606,9 +606,7 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
           normal = contact.normal;
 #else
-          normal[0] = contact.normal.data.vs[0];
-          normal[1] = contact.normal.data.vs[1];
-          normal[2] = contact.normal.data.vs[2];
+          normal = Eigen::Map<const Eigen::Vector3d>(contact.normal.data.vs);
 #endif
 
           // Check order of o1/o2 again, we might need to flip the normal
