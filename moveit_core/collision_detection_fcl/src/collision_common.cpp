@@ -605,9 +605,9 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
         if (cdata->req->enable_nearest_points)
         {
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
-          Eigen::Vector3d normal = contact.normal;
+          Eigen::Vector3d normal(contact.normal);
 #else
-          Eigen::Vector3d normal = Eigen::Map<const Eigen::Vector3d>(contact.normal.data.vs);
+          Eigen::Vector3d normal(contact.normal.data.vs);
 #endif
 
           // Check order of o1/o2 again, we might need to flip the normal
