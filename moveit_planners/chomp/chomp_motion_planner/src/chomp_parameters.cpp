@@ -60,7 +60,7 @@ ChompParameters::ChompParameters()
   pseudo_inverse_ridge_factor_ = 1e-4;
 
   joint_update_limit_ = 0.1;
-  min_clearence_ = 0.2;
+  min_clearance_ = 0.2;
   collision_threshold_ = 0.07;
   // random_jump_amount_ = 1.0;
   use_stochastic_descent_ = true;
