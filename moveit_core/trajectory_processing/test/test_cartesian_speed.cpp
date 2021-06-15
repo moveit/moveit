@@ -38,15 +38,21 @@
 #include <gtest/gtest.h>
 #include <fstream>
 #include <moveit/robot_state/robot_state.h>
+#include <moveit/robot_state/cartesian_interpolator.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
 #include <moveit/trajectory_processing/cartesian_speed.h>
 #include <moveit/utils/robot_model_test_utils.h>
+//#include <moveit/planning_scene_interface/planning_scene_interface.h>
+//#include <moveit/move_group_interface/move_group_interface.h>
 
 // Static variables used in all tests
-moveit::core::RobotModelConstPtr RMODEL = moveit::core::loadTestingRobotModel("pr2");
-robot_trajectory::RobotTrajectory TRAJECTORY(RMODEL, "right_arm");
+moveit::core::RobotModelConstPtr RMODEL = moveit::core::loadTestingRobotModel("panda");
+robot_trajectory::RobotTrajectory TRAJECTORY(RMODEL, "panda_arm");
+
+// Vector of distances between waypoints
+std::vector<double> WAYPOINT_DISTANCES;
 
 // Name of logger
 const char* LOGGER_NAME = "trajectory_processing";
@@ -54,30 +60,57 @@ const char* LOGGER_NAME = "trajectory_processing";
 // Initialize one-joint, straight-line trajectory
 bool initStraightTrajectory(robot_trajectory::RobotTrajectory& trajectory)
 {
-  const int num = 10;
-  const double max = 2.0;
-  unsigned i;
-
   const robot_model::JointModelGroup* group = trajectory.getGroup();
   if (!group)
   {
     ROS_ERROR_NAMED(LOGGER_NAME, "Need to set the group");
     return false;
   }
-  // leave initial velocity/acceleration unset
-  const std::vector<int>& idx = group->getVariableIndexList();
+  // Get state of the robot
   moveit::core::RobotState state(trajectory.getRobotModel());
 
   trajectory.clear();
-  for (i = 0; i < num; i++)
-  {
-    state.setVariablePosition(idx[0], i * max / num);
-    trajectory.addSuffixWayPoint(state, 0.0);
-  }
-
-  // leave final velocity/acceleration unset
-  state.setVariablePosition(idx[0], max);
+  // Initial waypoint
+  state.setVariablePosition("panda_joint1", 0);
+  state.setVariablePosition("panda_joint2", -0.785);
+  state.setVariablePosition("panda_joint3", 0);
+  state.setVariablePosition("panda_joint4", -2.356);
+  state.setVariablePosition("panda_joint5", 0);
+  state.setVariablePosition("panda_joint6", 1.571);
+  state.setVariablePosition("panda_joint7", 0.785);
   trajectory.addSuffixWayPoint(state, 0.0);
+  // First waypoint (+0.3 m in X direction)
+  state.setVariablePosition("panda_joint1", 0.00011058924053135735);
+  state.setVariablePosition("panda_joint2", 0.15980591412916012);
+  state.setVariablePosition("panda_joint3", -0.000269206763021151);
+  state.setVariablePosition("panda_joint4", -1.4550637907602342);
+  state.setVariablePosition("panda_joint5", 0.0006907805230834268);
+  state.setVariablePosition("panda_joint6", 1.61442119426705);
+  state.setVariablePosition("panda_joint7", 0.7845267455355481);
+  trajectory.addSuffixWayPoint(state, 0.0);
+  WAYPOINT_DISTANCES.push_back(0.3);
+
+  // Second waypoint (+0.3 m in Y direction)
+  state.setVariablePosition("panda_joint1", 0.32516555661705315);
+  state.setVariablePosition("panda_joint2", 0.4668669802969372);
+  state.setVariablePosition("panda_joint3", 0.20650832887601522);
+  state.setVariablePosition("panda_joint4", -1.0166745094262262);
+  state.setVariablePosition("panda_joint5", -0.0931020003693296);
+  state.setVariablePosition("panda_joint6", 1.4764599578787032);
+  state.setVariablePosition("panda_joint7", 1.2855361917975465);
+  trajectory.addSuffixWayPoint(state, 0.0);
+  WAYPOINT_DISTANCES.push_back(0.3);
+
+  // Third waypoint (-0.3 m in Z direction)
+  state.setVariablePosition("panda_joint1", 0.1928958411545848);
+  state.setVariablePosition("panda_joint2", 0.5600654280773957);
+  state.setVariablePosition("panda_joint3", 0.31117191776899084);
+  state.setVariablePosition("panda_joint4", -1.6747509079656924);
+  state.setVariablePosition("panda_joint5", -0.20206061876786893);
+  state.setVariablePosition("panda_joint6", 2.2024820844782385);
+  state.setVariablePosition("panda_joint7", 1.3635216856419043);
+  trajectory.addSuffixWayPoint(state, 0.0);
+  WAYPOINT_DISTANCES.push_back(0.3);
 
   return true;
 }
@@ -114,26 +147,36 @@ TEST(TestCartesianSpeed, TestCartesianEndEffectorSpeed)
 {
   trajectory_processing::IterativeParabolicTimeParameterization time_parameterization;
   EXPECT_EQ(initStraightTrajectory(TRAJECTORY), true);
+  const char* end_effector_link = "panda_link8";
 
   EXPECT_TRUE(time_parameterization.computeTimeStamps(TRAJECTORY));
   trajectory_processing::setMaxCartesianEndEffectorSpeed(TRAJECTORY, 0.01);
   printTrajectory(TRAJECTORY);
   size_t num_waypoints = TRAJECTORY.getWayPointCount();
   robot_state::RobotStatePtr kinematic_state = TRAJECTORY.getFirstWayPointPtr();
-  Eigen::Isometry3d current_end_effector_state = kinematic_state->getGlobalLinkTransform("r_wrist_roll_link");
+  Eigen::Isometry3d current_end_effector_state = kinematic_state->getGlobalLinkTransform(end_effector_link);
   Eigen::Isometry3d next_end_effector_state;
   double euclidean_distance = 0.0;
 
+  // Check average speed of the total trajectory by exact calculations
   for (size_t i = 0; i < num_waypoints - 1; i++)
   {
     kinematic_state = TRAJECTORY.getWayPointPtr(i + 1);
-    next_end_effector_state = kinematic_state->getGlobalLinkTransform("r_wrist_roll_link");
+    next_end_effector_state = kinematic_state->getGlobalLinkTransform(end_effector_link);
     euclidean_distance += (next_end_effector_state.translation() -
             current_end_effector_state.translation()).norm();
     current_end_effector_state = next_end_effector_state;
   }
   double avg_speed = euclidean_distance / TRAJECTORY.getWayPointDurationFromStart(num_waypoints);
   ASSERT_NEAR(0.01, avg_speed, 1e-10);
+
+  // Check average speed between waypoints using the information about the hand
+  // designed waypoints
+  for (size_t i = 1; i < num_waypoints; i++)
+  {
+    double current_avg_speed = WAYPOINT_DISTANCES[i-1]/TRAJECTORY.getWayPointDurationFromPrevious(i);
+    ASSERT_NEAR(0.01, current_avg_speed, 1e-5);
+  }
 }
 
 int main(int argc, char** argv)
