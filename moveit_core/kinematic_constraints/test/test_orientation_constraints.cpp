@@ -37,8 +37,6 @@
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <gtest/gtest.h>
 
-#include <fstream>
-
 #include <urdf_parser/urdf_parser.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
