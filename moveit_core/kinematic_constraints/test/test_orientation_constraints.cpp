@@ -75,7 +75,7 @@ protected:
   moveit::core::RobotModelPtr robot_model_;
 };
 
-class LoadRobotModel : public testing::Test
+class FloatingJointRobot : public testing::Test
 {
 protected:
   /** A robot model with a single floating joint will be created. **/
@@ -139,7 +139,7 @@ inline Eigen::Quaterniond rotation_vector_to_quat(double rx, double ry, double r
   return Eigen::Quaterniond{ m };
 }
 
-/** Helper function to set the orientation of the robot end-effector**/
+/** Helper function to set the orientation of the robot end-effector for the FloatingJointRobot. **/
 void setRobotEndEffectorOrientation(moveit::core::RobotState& robot_state, const Eigen::Quaterniond& quat)
 {
   Eigen::VectorXd joint_values(7);
@@ -348,7 +348,7 @@ TEST_F(SphericalRobot, Test5)
   EXPECT_TRUE(oc.decide(robot_state, true).satisfied);
 }
 
-TEST_F(LoadRobotModel, TestDefaultParameterization)
+TEST_F(FloatingJointRobot, TestDefaultParameterization)
 {
   // Simple test that checks whether the configuration defaults to the expected parameterization
   // if we put an invalid type in the message.
@@ -376,7 +376,7 @@ TEST_F(LoadRobotModel, TestDefaultParameterization)
   EXPECT_EQ(oc.getParameterization(), moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES);
 }
 
-TEST_F(LoadRobotModel, OrientationConstraintsParameterization)
+TEST_F(FloatingJointRobot, OrientationConstraintsParameterization)
 {
   // load and initialize robot model
   moveit::core::RobotState robot_state(robot_model_);
