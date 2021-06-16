@@ -695,7 +695,7 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
     // in those cases CalcEulerAngles will set roll (xyz(0)) to theta and yaw (xyz(2)) to zero, so for us to be able to
     // capture yaw tolerance violation we do the following, if theta violate the absolute yaw tolerance we think of it
     // as pure yaw rotation and set roll to zero
-    auto& xyz = std::get<Eigen::Vector3d>(euler_angles_error);
+    xyz = std::get<Eigen::Vector3d>(euler_angles_error);
     if (!std::get<bool>(euler_angles_error))
     {
       if (normalizeAbsoluteAngle(xyz(0)) > absolute_z_axis_tolerance_ + std::numeric_limits<double>::epsilon())
