@@ -355,7 +355,8 @@ public:
     }
     srv.request.strictness = srv.request.STRICT;
 
-    if (!srv.request.start_controllers.empty() || srv.request.stop_controllers.empty())
+    // If stop_controllers is not empty, start_controllers will also not be empty (so only check start_controllers)
+    if (!srv.request.start_controllers.empty())
     {  // something to switch?
       if (!ros::service::call(getAbsName("controller_manager/switch_controller"), srv))
       {
