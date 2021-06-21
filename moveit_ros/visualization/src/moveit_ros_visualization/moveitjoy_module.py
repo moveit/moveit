@@ -523,15 +523,13 @@ class MoveitJoy:
         planning_groups = {}
         for g in ri.get_group_names():
             self.planning_groups_tips[g] = ri.get_group_joint_tips(g)
-            planning_groups[g] = [
-                "/rviz/moveit/move_marker/goal_" + l
-                for l in self.planning_groups_tips[g]
-            ]
+            if len(self.planning_groups_tips[g]) > 0:
+                planning_groups[g] = [
+                    "/rviz/moveit/move_marker/goal_" + l
+                    for l in self.planning_groups_tips[g]
+                ]
         for name in planning_groups.keys():
-            if len(planning_groups[name]) == 0:
-                del planning_groups[name]
-            else:
-                print(name, planning_groups[name])
+            print(name, planning_groups[name])
         self.planning_groups = planning_groups
         self.planning_groups_keys = (
             planning_groups.keys()
