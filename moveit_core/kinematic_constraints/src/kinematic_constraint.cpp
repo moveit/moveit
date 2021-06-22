@@ -684,17 +684,16 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
   }
 
   // TODO(jeroendm) do this variable need to be outside the scope of the if statement below?
-  // look into what std::get does.
   std::tuple<Eigen::Vector3d, bool> euler_angles_error;
   if (parameterization_ == moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES)
   {
     euler_angles_error = CalcEulerAngles(diff.linear());
-    // Converting from a rotation matrix to an intrinsic XYZ euler angles have 2 singularities:
+    // Converting from a rotation matrix to intrinsic XYZ Euler angles has 2 singularities:
     // pitch ~= pi/2 ==> roll + yaw = theta
     // pitch ~= -pi/2 ==> roll - yaw = theta
     // in those cases CalcEulerAngles will set roll (xyz(0)) to theta and yaw (xyz(2)) to zero, so for us to be able to
-    // capture yaw tolerance violation we do the following, if theta violate the absolute yaw tolerance we think of it
-    // as pure yaw rotation and set roll to zero
+    // capture yaw tolerance violations we do the following: If theta violates the absolute yaw tolerance we think of it
+    // as a pure yaw rotation and set roll to zero.
     xyz = std::get<Eigen::Vector3d>(euler_angles_error);
     if (!std::get<bool>(euler_angles_error))
     {
