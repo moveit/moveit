@@ -607,14 +607,14 @@ bool OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& 
     constraint_weight_ = oc.weight;
   }
 
-  parameterization_ = oc.parameterization;
+  parameterization_type_ = oc.parameterization;
   // validate the parameterization, set to default value if invalid
-  if (parameterization_ != moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES &&
-      parameterization_ != moveit_msgs::OrientationConstraint::ROTATION_VECTOR)
+  if (parameterization_type_ != moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES &&
+      parameterization_type_ != moveit_msgs::OrientationConstraint::ROTATION_VECTOR)
   {
     ROS_WARN_NAMED("kinematic_constraints",
                    "Unknown parameterization for orientation constraint tolerance, using default (XYZ_EULER_ANGLES).");
-    parameterization_ = moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES;
+    parameterization_type_ = moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES;
   }
 
   absolute_x_axis_tolerance_ = fabs(oc.absolute_x_axis_tolerance);
@@ -685,7 +685,7 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
 
   // TODO(jeroendm) do this variable need to be outside the scope of the if statement below?
   std::tuple<Eigen::Vector3d, bool> euler_angles_error;
-  if (parameterization_ == moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES)
+  if (parameterization_type_ == moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES)
   {
     euler_angles_error = CalcEulerAngles(diff.linear());
     // Converting from a rotation matrix to intrinsic XYZ Euler angles has 2 singularities:
@@ -706,7 +706,7 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
     // Account for angle wrapping
     xyz = xyz.unaryExpr(&normalizeAbsoluteAngle);
   }
-  else if (parameterization_ == moveit_msgs::OrientationConstraint::ROTATION_VECTOR)
+  else if (parameterization_type_ == moveit_msgs::OrientationConstraint::ROTATION_VECTOR)
   {
     Eigen::AngleAxisd aa(diff.linear());
     xyz = aa.axis() * aa.angle();

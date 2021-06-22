@@ -476,15 +476,15 @@ bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& q
         2.0 * (random_number_generator_.uniform01() - 0.5) *
         (sampling_pose_.orientation_constraint_->getZAxisTolerance() - std::numeric_limits<double>::epsilon());
 
-    Eigen::Isometry3d diff;  // (jeroendm) is this second constructor a significant performance penalty?
-    if (sampling_pose_.orientation_constraint_->getParameterization() ==
+    Eigen::Isometry3d diff;
+    if (sampling_pose_.orientation_constraint_->getParameterizationType() ==
         moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES)
     {
       diff = Eigen::Isometry3d(Eigen::AngleAxisd(angle_x, Eigen::Vector3d::UnitX()) *
                                Eigen::AngleAxisd(angle_y, Eigen::Vector3d::UnitY()) *
                                Eigen::AngleAxisd(angle_z, Eigen::Vector3d::UnitZ()));
     }
-    else if (sampling_pose_.orientation_constraint_->getParameterization() ==
+    else if (sampling_pose_.orientation_constraint_->getParameterizationType() ==
              moveit_msgs::OrientationConstraint::ROTATION_VECTOR)
     {
       Eigen::Vector3d rotation_vector(angle_x, angle_y, angle_z);

@@ -373,7 +373,7 @@ TEST_F(FloatingJointRobot, TestDefaultParameterization)
   EXPECT_TRUE(oc.configure(ocm, tf));
 
   // check if the expected default parameterization was set
-  EXPECT_EQ(oc.getParameterization(), moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES);
+  EXPECT_EQ(oc.getParameterizationType(), moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES);
 }
 
 TEST_F(FloatingJointRobot, OrientationConstraintsParameterization)
