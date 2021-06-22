@@ -173,7 +173,9 @@ void CollisionEnvFCL::getAttachedBodyObjects(const moveit::core::AttachedBody* a
                                              std::vector<FCLGeometryConstPtr>& geoms) const
 {
   const std::vector<shapes::ShapeConstPtr>& shapes = ab->getShapes();
-  for (std::size_t i = 0; i < shapes.size(); ++i)
+  const size_t num_shapes = shapes.size();
+  geoms.reserve(num_shapes);
+  for (std::size_t i = 0; i < num_shapes; ++i)
   {
     FCLGeometryConstPtr co = createCollisionGeometry(shapes[i], getLinkScale(ab->getAttachedLinkName()),
                                                      getLinkPadding(ab->getAttachedLinkName()), ab, i);
