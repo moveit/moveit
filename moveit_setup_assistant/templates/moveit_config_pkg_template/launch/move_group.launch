@@ -47,8 +47,8 @@
   <!-- Planning Functionality -->
   <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_pipeline.launch.xml">
     <arg name="pipeline" value="$(arg pipeline)" />
-    <param name="capabilities" value="$(arg capabilities)"/>
-    <param name="disable_capabilities" value="$(arg disable_capabilities)"/>
+    <arg name="capabilities" value="$(arg capabilities)"/>
+    <arg name="disable_capabilities" value="$(arg disable_capabilities)"/>
   </include>
 
   <!-- Trajectory Execution Functionality -->
