@@ -668,7 +668,6 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
   if (!link_model_)
     return ConstraintEvaluationResult(true, 0.0);
 
-  Eigen::Vector3d xyz;
   Eigen::Isometry3d diff;
   if (mobile_frame_)
   {
@@ -683,36 +682,37 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
     diff = Eigen::Isometry3d(desired_rotation_matrix_inv_ * state.getGlobalLinkTransform(link_model_).linear());
   }
 
-  // TODO(jeroendm) do this variable need to be outside the scope of the if statement below?
+  // This needs to live outside the if-block scope (as xyz_rotation points to its data).
   std::tuple<Eigen::Vector3d, bool> euler_angles_error;
+  Eigen::Vector3d xyz_rotation;
   if (parameterization_type_ == moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES)
   {
     euler_angles_error = CalcEulerAngles(diff.linear());
     // Converting from a rotation matrix to intrinsic XYZ Euler angles has 2 singularities:
     // pitch ~= pi/2 ==> roll + yaw = theta
     // pitch ~= -pi/2 ==> roll - yaw = theta
-    // in those cases CalcEulerAngles will set roll (xyz(0)) to theta and yaw (xyz(2)) to zero, so for us to be able to
-    // capture yaw tolerance violations we do the following: If theta violates the absolute yaw tolerance we think of it
-    // as a pure yaw rotation and set roll to zero.
-    xyz = std::get<Eigen::Vector3d>(euler_angles_error);
+    // in those cases CalcEulerAngles will set roll (xyz_rotation(0)) to theta and yaw (xyz_rotation(2)) to zero, so for
+    // us to be able to capture yaw tolerance violations we do the following: If theta violates the absolute yaw
+    // tolerance we think of it as a pure yaw rotation and set roll to zero.
+    xyz_rotation = std::get<Eigen::Vector3d>(euler_angles_error);
     if (!std::get<bool>(euler_angles_error))
     {
-      if (normalizeAbsoluteAngle(xyz(0)) > absolute_z_axis_tolerance_ + std::numeric_limits<double>::epsilon())
+      if (normalizeAbsoluteAngle(xyz_rotation(0)) > absolute_z_axis_tolerance_ + std::numeric_limits<double>::epsilon())
       {
-        xyz(2) = xyz(0);
-        xyz(0) = 0;
+        xyz_rotation(2) = xyz_rotation(0);
+        xyz_rotation(0) = 0;
       }
     }
     // Account for angle wrapping
-    xyz = xyz.unaryExpr(&normalizeAbsoluteAngle);
+    xyz_rotation = xyz_rotation.unaryExpr(&normalizeAbsoluteAngle);
   }
   else if (parameterization_type_ == moveit_msgs::OrientationConstraint::ROTATION_VECTOR)
   {
     Eigen::AngleAxisd aa(diff.linear());
-    xyz = aa.axis() * aa.angle();
-    xyz(0) = fabs(xyz(0));
-    xyz(1) = fabs(xyz(1));
-    xyz(2) = fabs(xyz(2));
+    xyz_rotation = aa.axis() * aa.angle();
+    xyz_rotation(0) = fabs(xyz_rotation(0));
+    xyz_rotation(1) = fabs(xyz_rotation(1));
+    xyz_rotation(2) = fabs(xyz_rotation(2));
   }
   else
   {
@@ -721,9 +721,9 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
                            "The parameterization type for the orientation constraints is invalid.");
   }
 
-  bool result = xyz(2) < absolute_z_axis_tolerance_ + std::numeric_limits<double>::epsilon() &&
-                xyz(1) < absolute_y_axis_tolerance_ + std::numeric_limits<double>::epsilon() &&
-                xyz(0) < absolute_x_axis_tolerance_ + std::numeric_limits<double>::epsilon();
+  bool result = xyz_rotation(2) < absolute_z_axis_tolerance_ + std::numeric_limits<double>::epsilon() &&
+                xyz_rotation(1) < absolute_y_axis_tolerance_ + std::numeric_limits<double>::epsilon() &&
+                xyz_rotation(0) < absolute_x_axis_tolerance_ + std::numeric_limits<double>::epsilon();
 
   if (verbose)
   {
@@ -733,11 +733,11 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
                    "Orientation constraint %s for link '%s'. Quaternion desired: %f %f %f %f, quaternion "
                    "actual: %f %f %f %f, error: x=%f, y=%f, z=%f, tolerance: x=%f, y=%f, z=%f",
                    result ? "satisfied" : "violated", link_model_->getName().c_str(), q_des.x(), q_des.y(), q_des.z(),
-                   q_des.w(), q_act.x(), q_act.y(), q_act.z(), q_act.w(), xyz(0), xyz(1), xyz(2),
-                   absolute_x_axis_tolerance_, absolute_y_axis_tolerance_, absolute_z_axis_tolerance_);
+                   q_des.w(), q_act.x(), q_act.y(), q_act.z(), q_act.w(), xyz_rotation(0), xyz_rotation(1),
+                   xyz_rotation(2), absolute_x_axis_tolerance_, absolute_y_axis_tolerance_, absolute_z_axis_tolerance_);
   }
 
-  return ConstraintEvaluationResult(result, constraint_weight_ * (xyz(0) + xyz(1) + xyz(2)));
+  return ConstraintEvaluationResult(result, constraint_weight_ * (xyz_rotation(0) + xyz_rotation(1) + xyz_rotation(2)));
 }
 
 void OrientationConstraint::print(std::ostream& out) const
