@@ -339,9 +339,9 @@ MOVEIT_CLASS_FORWARD(OrientationConstraint);  // Defines OrientationConstraintPt
  * This class expresses an orientation constraint on a particular
  * link.  The constraint is specified in terms of a quaternion, with
  * tolerances on X,Y, and Z axes.  The rotation difference is computed
- * based on the XYZ Euler angle formulation (intrinsic rotations).  The header on the
- * quaternion can be specified in terms of either a fixed frame or a
- * mobile frame.  The type value will return ORIENTATION_CONSTRAINT.
+ * based on the XYZ Euler angle formulation (intrinsic rotations) or as a rotation vector. This depends on the
+ * `Parameterization` type. The header on the quaternion can be specified in terms of either a fixed or a mobile
+ * frame.  The type value will return ORIENTATION_CONSTRAINT.
  *
  */
 class OrientationConstraint : public KinematicConstraint
@@ -478,6 +478,11 @@ public:
     return absolute_z_axis_tolerance_;
   }
 
+  int getParameterizationType() const
+  {
+    return parameterization_type_;
+  }
+
 protected:
   const moveit::core::LinkModel* link_model_;   /**< \brief The target link model */
   Eigen::Matrix3d desired_rotation_matrix_;     /**< \brief The desired rotation matrix in the tf frame. Guaranteed to
@@ -486,6 +491,7 @@ protected:
                                                  * efficiency. Guaranteed to be valid rotation matrix. */
   std::string desired_rotation_frame_id_;       /**< \brief The target frame of the transform tree */
   bool mobile_frame_;                           /**< \brief Whether or not the header frame is mobile or fixed */
+  int parameterization_type_;                   /**< \brief Parameterization type for orientation tolerance. */
   double absolute_x_axis_tolerance_, absolute_y_axis_tolerance_,
       absolute_z_axis_tolerance_; /**< \brief Storage for the tolerances */
 };
