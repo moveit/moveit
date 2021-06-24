@@ -56,45 +56,6 @@ const std::string PlanningScene::DEFAULT_SCENE_NAME = "(noname)";
 
 const std::string LOGNAME = "planning_scene";
 
-class SceneTransforms : public moveit::core::Transforms
-{
-public:
-  SceneTransforms(const PlanningScene* scene) : Transforms(scene->getRobotModel()->getModelFrame()), scene_(scene)
-  {
-  }
-
-  bool canTransform(const std::string& from_frame) const override
-  {
-    return scene_->knowsFrameTransform(from_frame);
-  }
-
-  bool isFixedFrame(const std::string& frame) const override
-  {
-    if (frame.empty())
-      return false;
-    if (Transforms::isFixedFrame(frame))
-      return true;
-    if (frame[0] == '/')
-      return knowsObjectFrame(frame.substr(1));
-    else
-      return knowsObjectFrame(frame);
-  }
-
-  const Eigen::Isometry3d& getTransform(const std::string& from_frame) const override
-  {  // the call below also calls Transforms::getTransform() too
-    return scene_->getFrameTransform(from_frame);
-  }
-
-private:
-  // Returns true if frame_id is the name of an object or the name of a subframe on an object
-  bool knowsObjectFrame(const std::string& frame_id) const
-  {
-    return scene_->getWorld()->knowsTransform(frame_id);
-  }
-
-  const PlanningScene* scene_;
-};
-
 bool PlanningScene::isEmpty(const moveit_msgs::PlanningScene& msg)
 {
   return moveit::core::isEmpty(msg);
@@ -144,7 +105,7 @@ void PlanningScene::initialize()
 {
   name_ = DEFAULT_SCENE_NAME;
 
-  scene_transforms_.reset(new SceneTransforms(this));
+  scene_transforms_ = std::make_shared<moveit::core::Transforms>(getRobotModel()->getModelFrame());
 
   robot_state_.reset(new moveit::core::RobotState(robot_model_));
   robot_state_->setToDefaultValues();
@@ -642,7 +603,7 @@ moveit::core::Transforms& PlanningScene::getTransformsNonConst()
   {
     // The only case when there are no transforms is if this planning scene has a parent. When a non-const version of
     // the planning scene is requested, a copy of the parent's transforms is forced
-    scene_transforms_.reset(new SceneTransforms(this));
+    scene_transforms_ = std::make_shared<moveit::core::Transforms>(getRobotModel()->getModelFrame());
     scene_transforms_->setAllTransforms(parent_->getTransforms().getAllTransforms());
   }
   return *scene_transforms_;
@@ -1118,7 +1079,7 @@ void PlanningScene::decoupleParent()
   // This child planning scene did not have its own copy of frame transforms
   if (!scene_transforms_)
   {
-    scene_transforms_.reset(new SceneTransforms(this));
+    scene_transforms_ = std::make_shared<moveit::core::Transforms>(getRobotModel()->getModelFrame());
     scene_transforms_->setAllTransforms(parent_->getTransforms().getAllTransforms());
   }
 
@@ -1187,7 +1148,7 @@ bool PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene& sc
   if (!scene_msg.fixed_frame_transforms.empty())
   {
     if (!scene_transforms_)
-      scene_transforms_.reset(new SceneTransforms(this));
+      scene_transforms_ = std::make_shared<moveit::core::Transforms>(getRobotModel()->getModelFrame());
     scene_transforms_->setTransforms(scene_msg.fixed_frame_transforms);
   }
 
@@ -1879,7 +1840,7 @@ const Eigen::Isometry3d& PlanningScene::getFrameTransform(const moveit::core::Ro
   const Eigen::Isometry3d& t2 = getWorld()->getTransform(frame_id, frame_found);
   if (frame_found)
     return t2;
-  return getTransforms().Transforms::getTransform(frame_id);
+  return getTransforms().getTransform(frame_id);
 }
 
 bool PlanningScene::knowsFrameTransform(const std::string& frame_id) const
@@ -1896,7 +1857,7 @@ bool PlanningScene::knowsFrameTransform(const moveit::core::RobotState& state, c
     return true;
   if (getWorld()->knowsTransform(frame_id))
     return true;
-  return getTransforms().Transforms::canTransform(frame_id);
+  return getTransforms().canTransform(frame_id);
 }
 
 bool PlanningScene::hasObjectType(const std::string& object_id) const
