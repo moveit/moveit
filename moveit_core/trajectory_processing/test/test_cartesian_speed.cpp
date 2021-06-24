@@ -126,11 +126,10 @@ void printTrajectory(robot_trajectory::RobotTrajectory& trajectory)
   for (unsigned i = 0; i < count; i++)
   {
     robot_state::RobotStatePtr point = trajectory.getWayPointPtr(i);
-    ROS_INFO_STREAM_NAMED(LOGGER_NAME, "Waypoint " << i << " time "
-                                                               << trajectory.getWayPointDurationFromStart(i) << " pos "
-                                                               << point->getVariablePosition(idx[0]) << " vel "
-                                                               << point->getVariableVelocity(idx[0]) << " acc "
-                                                               << point->getVariableAcceleration(idx[0]));
+    ROS_INFO_STREAM_NAMED(LOGGER_NAME, "Waypoint " << i << " time " << trajectory.getWayPointDurationFromStart(i)
+                                                   << " pos " << point->getVariablePosition(idx[0]) << " vel "
+                                                   << point->getVariableVelocity(idx[0]) << " acc "
+                                                   << point->getVariableAcceleration(idx[0]));
 
     if (i > 0)
     {
@@ -163,8 +162,7 @@ TEST(TestCartesianSpeed, TestCartesianEndEffectorSpeed)
   {
     kinematic_state = TRAJECTORY.getWayPointPtr(i + 1);
     next_end_effector_state = kinematic_state->getGlobalLinkTransform(end_effector_link);
-    euclidean_distance += (next_end_effector_state.translation() -
-            current_end_effector_state.translation()).norm();
+    euclidean_distance += (next_end_effector_state.translation() - current_end_effector_state.translation()).norm();
     current_end_effector_state = next_end_effector_state;
   }
   double avg_speed = euclidean_distance / TRAJECTORY.getWayPointDurationFromStart(num_waypoints);
@@ -174,7 +172,7 @@ TEST(TestCartesianSpeed, TestCartesianEndEffectorSpeed)
   // designed waypoints
   for (size_t i = 1; i < num_waypoints; i++)
   {
-    double current_avg_speed = WAYPOINT_DISTANCES[i-1]/TRAJECTORY.getWayPointDurationFromPrevious(i);
+    double current_avg_speed = WAYPOINT_DISTANCES[i - 1] / TRAJECTORY.getWayPointDurationFromPrevious(i);
     ASSERT_NEAR(0.01, current_avg_speed, 1e-5);
   }
 }

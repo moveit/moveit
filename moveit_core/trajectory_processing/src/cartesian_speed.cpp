@@ -74,16 +74,13 @@ bool setMaxCartesianEndEffectorSpeed(robot_trajectory::RobotTrajectory& trajecto
   for (size_t i = 0; i < num_waypoints - 1; i++)
   {
     // get end effector state for current waypoint
-    Eigen::Isometry3d current_end_effector_state =
-        trajectory.getWayPointPtr(i)->getGlobalLinkTransform(end_effector);
+    Eigen::Isometry3d current_end_effector_state = trajectory.getWayPointPtr(i)->getGlobalLinkTransform(end_effector);
 
     // get end effector state for next waypoint
-    Eigen::Isometry3d next_end_effector_state = 
-        trajectory.getWayPointPtr(i+1)->getGlobalLinkTransform(end_effector);
+    Eigen::Isometry3d next_end_effector_state = trajectory.getWayPointPtr(i + 1)->getGlobalLinkTransform(end_effector);
 
     // get euclidean distance between the two waypoints
-    euclidean_distance = (next_end_effector_state.translation() -
-            current_end_effector_state.translation()).norm();
+    euclidean_distance = (next_end_effector_state.translation() - current_end_effector_state.translation()).norm();
 
     new_time_diff = (euclidean_distance / max_speed);
     old_time_diff = trajectory.getWayPointDurationFromPrevious(i + 1);
