@@ -86,7 +86,6 @@ void TrajectoryPanel::onEnable()
 void TrajectoryPanel::onDisable()
 {
   hide();
-  paused_ = false;
   parentWidget()->hide();
 }
 
@@ -98,10 +97,10 @@ void TrajectoryPanel::update(int way_point_count)
   button_->setEnabled(way_point_count != 0);
 
   last_way_point_ = max_way_point;
-  paused_ = false;
   slider_->setSliderPosition(0);
   slider_->setMaximum(max_way_point);
   maximum_label_->setText(QString::number(max_way_point));
+  pauseButton(false);
 }
 
 void TrajectoryPanel::pauseButton(bool pause)
