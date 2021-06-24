@@ -163,8 +163,10 @@ bool MoveGroupCartesianPathService::computeService(moveit_msgs::GetCartesianPath
           time_param.computeTimeStamps(rt, 1.0);
 
           // optionally compute timing to move the eef with constant speed
-          if (req.max_cartesian_speed > 0.0) {
-            trajectory_processing::setMaxCartesianEndEffectorSpeed(rt, req.max_cartesian_speed, req.cartesian_speed_end_effector_link);
+          if (req.max_cartesian_speed > 0.0)
+          {
+            trajectory_processing::setMaxCartesianEndEffectorSpeed(rt, req.max_cartesian_speed,
+                                                                   req.cartesian_speed_end_effector_link);
           }
 
           rt.getRobotTrajectoryMsg(res.solution);
