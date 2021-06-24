@@ -91,15 +91,14 @@ void TrajectoryPanel::onDisable()
 
 void TrajectoryPanel::update(int way_point_count)
 {
-  int max_way_point = std::max(0, way_point_count - 1);
+  last_way_point_ = std::max(0, way_point_count - 1);
 
   slider_->setEnabled(way_point_count != 0);
   button_->setEnabled(way_point_count != 0);
 
-  last_way_point_ = max_way_point;
   slider_->setSliderPosition(0);
-  slider_->setMaximum(max_way_point);
-  maximum_label_->setText(QString::number(max_way_point));
+  slider_->setMaximum(last_way_point_);
+  maximum_label_->setText(QString::number(last_way_point_));
   pauseButton(false);
 }
 
