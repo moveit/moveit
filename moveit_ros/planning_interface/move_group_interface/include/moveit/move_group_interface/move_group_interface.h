@@ -271,7 +271,7 @@ public:
 
   /** \brief Set the maximum cartesian speed for the end effector link.
       The unit of the speed is meters per second and needs to be greater than 0.
-      The desired speed is a maximum bound. Slower parts of the trajectory will 
+      The desired speed is a maximum bound. Slower parts of the trajectory will
       be left unchanged. */
   void setMaxCartesianEndEffectorSpeed(const double max_speed, const std::string& end_effector_link = "");
 
