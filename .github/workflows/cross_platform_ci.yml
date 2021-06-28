@@ -7,7 +7,6 @@ on:
     branches:
       - master
       - "[kmn]*-devel"
-      - tests_with_conda_pkgs
 
 jobs:
   run_moveit_core_compilation:
