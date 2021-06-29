@@ -15,7 +15,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
+ *   * Neither the name of the authors nor the names of other
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -42,8 +42,8 @@ const char* LOGGER_NAME = "trajectory_processing.cartesian_speed";
 
 namespace trajectory_processing
 {
-bool setMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, const double max_speed,
-                              std::string link_name)
+bool limitMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, const double max_speed,
+                                std::string link_name)
 {
   // In case the link name is not set, retrieve an end effector name from the
   // joint model group specified in the robot trajectory
@@ -53,7 +53,8 @@ bool setMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, con
     trajectory.getGroup()->getEndEffectorTips(tips);
     if (tips.empty())
     {
-      ROS_ERROR_STREAM_NAMED(LOGGER_NAME, "No end effector defined for group attached to trajectory.");
+      ROS_ERROR_STREAM_NAMED(LOGGER_NAME, "No end effector defined for group attached to trajectory, cannot set max "
+                                          "cartesian link speed without argument.");
       return false;
     }
     link_name = tips[0];
@@ -68,11 +69,11 @@ bool setMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, con
   const moveit::core::LinkModel* link_model = trajectory.getGroup()->getLinkModel(link_name);
 
   // Call function for speed setting using the created link model
-  return setMaxCartesianLinkSpeed(trajectory, max_speed, link_model);
+  return limitMaxCartesianLinkSpeed(trajectory, max_speed, link_model);
 }
 
-bool setMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, const double max_speed,
-                              const moveit::core::LinkModel* link_model)
+bool limitMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, const double max_speed,
+                                const moveit::core::LinkModel* link_model)
 {
   if (max_speed <= 0.0)
   {
@@ -106,7 +107,7 @@ bool setMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, con
     new_time_diff = (euclidean_distance / max_speed);
     old_time_diff = trajectory.getWayPointDurationFromPrevious(i + 1);
 
-    // if constraints allow save the new time difference between waypoints
+    // if constraints allow, save the new time difference between waypoints
     if (new_time_diff > old_time_diff)
     {
       time_diff[i] = new_time_diff;
