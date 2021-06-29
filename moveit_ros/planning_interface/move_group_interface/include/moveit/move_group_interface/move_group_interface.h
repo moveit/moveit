@@ -269,14 +269,14 @@ public:
       If the value is greater than 1, it is set to 1.0. */
   void setMaxAccelerationScalingFactor(double max_acceleration_scaling_factor);
 
-  /** \brief Set the maximum cartesian speed for the end effector link.
+  /** \brief Set the maximum cartesian speed for a given link.
       The unit of the speed is meters per second and needs to be greater than 0.
       The desired speed is a maximum bound. Slower parts of the trajectory will
       be left unchanged. */
-  void setMaxCartesianEndEffectorSpeed(const double max_speed, const std::string& end_effector_link = "");
+  void setMaxCartesianLinkSpeed(const double max_speed, const std::string& link_name = "");
 
   /** \brief Clear maximum cartesian speed of the end effector. */
-  void clearMaxCartesianEndEffectorSpeed();
+  void clearMaxCartesianLinkSpeed();
 
   /** \brief Get the number of seconds set by setPlanningTime() */
   double getPlanningTime() const;

@@ -2,6 +2,7 @@
  * Software License Agreement (BSD License)
  *
  *  Copyright (c) 2020, Benjamin Scholz
+ *  Copyright (c) 2021, Thies Oelerich
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,7 +33,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Benjamin Scholz */
+/* Authors: Benjamin Scholz, Thies Oelerich */
 
 #include <moveit/trajectory_processing/cartesian_speed.h>
 
@@ -41,15 +42,12 @@ const char* LOGGER_NAME = "trajectory_processing.cartesian_speed";
 
 namespace trajectory_processing
 {
-bool setMaxCartesianEndEffectorSpeed(robot_trajectory::RobotTrajectory& trajectory, const double max_speed,
-                                     std::string end_effector)
+bool setMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, const double max_speed,
+                              std::string link_name)
 {
-  if (max_speed <= 0.0)
-  {
-    ROS_ERROR_STREAM_NAMED(LOGGER_NAME, "End effector speed must be greater than 0.");
-    return false;
-  }
-  if (end_effector.empty())
+  // In case the link name is not set, retrieve an end effector name from the
+  // joint model group specified in the robot trajectory
+  if (link_name.empty())
   {
     std::vector<std::string> tips;
     trajectory.getGroup()->getEndEffectorTips(tips);
@@ -58,8 +56,31 @@ bool setMaxCartesianEndEffectorSpeed(robot_trajectory::RobotTrajectory& trajecto
       ROS_ERROR_STREAM_NAMED(LOGGER_NAME, "No end effector defined for group attached to trajectory.");
       return false;
     }
-    end_effector = tips[0];
+    link_name = tips[0];
+    if (tips.size() > 1)
+      ROS_INFO_STREAM_NAMED(LOGGER_NAME,
+                            "More than one end effector found, using first one which is '" << link_name << "'");
   }
+
+  // Get link model based on given end link
+  if (!trajectory.getGroup()->hasLinkModel(link_name))
+    ROS_ERROR_STREAM_NAMED(LOGGER_NAME, "Link model was not specified in the robot trajectory");
+  const moveit::core::LinkModel* link_model = trajectory.getGroup()->getLinkModel(link_name);
+
+  // Call function for speed setting using the created link model
+  return setMaxCartesianLinkSpeed(trajectory, max_speed, link_model);
+}
+
+bool setMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, const double max_speed,
+                              const moveit::core::LinkModel* link_model)
+{
+  if (max_speed <= 0.0)
+  {
+    ROS_ERROR_STREAM_NAMED(LOGGER_NAME, "Link speed must be greater than 0.");
+    return false;
+  }
+
+  std::string link_name = link_model->getName();
 
   size_t num_waypoints = trajectory.getWayPointCount();
   if (num_waypoints == 0)
@@ -67,20 +88,20 @@ bool setMaxCartesianEndEffectorSpeed(robot_trajectory::RobotTrajectory& trajecto
 
   robot_state::RobotStatePtr kinematic_state = trajectory.getFirstWayPointPtr();
 
-  // do forward kinematics to get cartesian positions of end effector for current waypoint
+  // do forward kinematics to get cartesian positions of link for current waypoint
   double euclidean_distance, new_time_diff, old_time_diff;
   std::vector<double> time_diff(num_waypoints - 1, 0.0);
 
+  double slowest_speed;
+  bool limited_by_joint_limits = false;
   for (size_t i = 0; i < num_waypoints - 1; i++)
   {
-    // get end effector state for current waypoint
-    Eigen::Isometry3d current_end_effector_state = trajectory.getWayPointPtr(i)->getGlobalLinkTransform(end_effector);
-
-    // get end effector state for next waypoint
-    Eigen::Isometry3d next_end_effector_state = trajectory.getWayPointPtr(i + 1)->getGlobalLinkTransform(end_effector);
+    // get link state for current and next waypoint
+    Eigen::Isometry3d current_link_state = trajectory.getWayPointPtr(i)->getGlobalLinkTransform(link_name);
+    Eigen::Isometry3d next_link_state = trajectory.getWayPointPtr(i + 1)->getGlobalLinkTransform(link_name);
 
     // get euclidean distance between the two waypoints
-    euclidean_distance = (next_end_effector_state.translation() - current_end_effector_state.translation()).norm();
+    euclidean_distance = (next_link_state.translation() - current_link_state.translation()).norm();
 
     new_time_diff = (euclidean_distance / max_speed);
     old_time_diff = trajectory.getWayPointDurationFromPrevious(i + 1);
@@ -92,13 +113,21 @@ bool setMaxCartesianEndEffectorSpeed(robot_trajectory::RobotTrajectory& trajecto
     }
     else
     {
-      ROS_WARN_ONCE_NAMED(LOGGER_NAME,
-                          "Desired cartesian end-effector speed is not reached because of joint velocity constraints.");
+      limited_by_joint_limits = true;
       time_diff[i] = old_time_diff;
+      // update the slowest speed value reached due to joint velocity
+      // constraints
+      slowest_speed = euclidean_distance / old_time_diff;
     }
-    // update the current_end_effector_state for next iteration
-    current_end_effector_state = next_end_effector_state;
+    // update the current_link_state for next iteration
+    current_link_state = next_link_state;
   }
+  // send a warning if the desired cartesian speed could not be reached due to
+  // joint velocity constraints
+  if (limited_by_joint_limits)
+    ROS_WARN_STREAM_NAMED(LOGGER_NAME, "Desired cartesian link speed is not reached because of joint velocity "
+                                       "constraints. Slowest speed reached by link is "
+                                           << slowest_speed);
   // update time stamps, velocities and accelerations of the trajectory
   updateTrajectory(trajectory, time_diff);
   return true;

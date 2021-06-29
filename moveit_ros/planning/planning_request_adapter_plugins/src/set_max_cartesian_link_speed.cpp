@@ -3,6 +3,7 @@
  *
  *  Copyright (c) 2012, Willow Garage, Inc.
  *  Copyright (c) 2020, Benjamin Scholz
+ *  Copyright (c) 2021, Thies Oelerich
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -33,7 +34,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Benjamin Scholz, based off add_time_parameterization.cpp by Ioan Sucan */
+/* Authors: Benjamin Scholz, Thies Oelerich, based off add_time_parameterization.cpp by Ioan Sucan */
 
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
 #include <moveit/trajectory_processing/cartesian_speed.h>
@@ -42,10 +43,10 @@
 
 namespace default_planner_request_adapters
 {
-class SetMaxCartesianEndEffectorSpeed : public planning_request_adapter::PlanningRequestAdapter
+class setMaxCartesianLinkSpeed : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
-  SetMaxCartesianEndEffectorSpeed() : planning_request_adapter::PlanningRequestAdapter()
+  setMaxCartesianLinkSpeed() : planning_request_adapter::PlanningRequestAdapter()
   {
   }
 
@@ -55,7 +56,7 @@ public:
 
   std::string getDescription() const override
   {
-    return "Set Max Cartesian End Effector Speed";
+    return "Set Max Cartesian Link Speed";
   }
 
   bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
@@ -68,8 +69,8 @@ public:
       if (req.max_cartesian_speed <= 0.0)
         return result;
       ROS_DEBUG("Running '%s'", getDescription().c_str());
-      if (!trajectory_processing::setMaxCartesianEndEffectorSpeed(*res.trajectory_, req.max_cartesian_speed,
-                                                                  req.cartesian_speed_end_effector_link))
+      if (!trajectory_processing::setMaxCartesianLinkSpeed(*res.trajectory_, req.max_cartesian_speed,
+                                                           req.cartesian_speed_link))
       {
         ROS_ERROR("Setting cartesian speed for the solution path failed.");
         result = false;
@@ -80,5 +81,5 @@ public:
 };
 }  // namespace default_planner_request_adapters
 
-CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::SetMaxCartesianEndEffectorSpeed,
+CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::setMaxCartesianLinkSpeed,
                             planning_request_adapter::PlanningRequestAdapter);
