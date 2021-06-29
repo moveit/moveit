@@ -37,8 +37,6 @@
 
 #pragma once
 
-#include <moveit/trajectory_processing/iterative_time_parameterization.h>
-#include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/macros/class_forward.h>
 #include <string>
 namespace trajectory_processing
