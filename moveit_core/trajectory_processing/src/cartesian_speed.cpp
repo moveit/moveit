@@ -97,8 +97,8 @@ bool setMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, con
   for (size_t i = 0; i < num_waypoints - 1; i++)
   {
     // get link state for current and next waypoint
-    Eigen::Isometry3d current_link_state = trajectory.getWayPointPtr(i)->getGlobalLinkTransform(link_name);
-    Eigen::Isometry3d next_link_state = trajectory.getWayPointPtr(i + 1)->getGlobalLinkTransform(link_name);
+    const Eigen::Isometry3d& current_link_state = trajectory.getWayPointPtr(i)->getGlobalLinkTransform(link_name);
+    const Eigen::Isometry3d& next_link_state = trajectory.getWayPointPtr(i + 1)->getGlobalLinkTransform(link_name);
 
     // get euclidean distance between the two waypoints
     euclidean_distance = (next_link_state.translation() - current_link_state.translation()).norm();
@@ -119,8 +119,6 @@ bool setMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, con
       // constraints
       slowest_speed = euclidean_distance / old_time_diff;
     }
-    // update the current_link_state for next iteration
-    current_link_state = next_link_state;
   }
   // send a warning if the desired cartesian speed could not be reached due to
   // joint velocity constraints
