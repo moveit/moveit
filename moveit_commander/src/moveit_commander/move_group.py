@@ -588,17 +588,17 @@ class MoveGroupCommander(object):
                 "Expected value in the range from 0 to 1 for scaling factor"
             )
 
-    def set_max_cartesian_end_effector_speed(self, speed, end_effector_name=""):
-        """Set the maximum cartesian end effector speed. Allowed are only
+    def set_max_cartesian_link_speed(self, speed, link_name=""):
+        """Set the maximum cartesian link speed. Allowed are only
         positive real values. The unit is meter per second."""
         if speed > 0.0:
-            self._g.set_max_cartesian_end_effector_speed(speed, end_effector_name)
+            self._g.set_max_cartesian_link_speed(speed, link_name)
         else:
             raise MoveItCommanderException("Expected speed value to be greater than 0")
 
-    def clear_max_cartesian_end_effector_speed(self):
-        """Clear the maximum cartesian end effector speed."""
-        self._g.clear_max_cartesian_end_effector_speed()
+    def clear_max_cartesian_link_speed(self):
+        """Clear the maximum cartesian link speed."""
+        self._g.clear_max_cartesian_link_speed()
 
     def go(self, joints=None, wait=True):
         """ Set the target of the group and then move the group to the specified target """
