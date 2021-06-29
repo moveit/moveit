@@ -190,8 +190,7 @@ MotionPlanningDisplay::~MotionPlanningDisplay()
 
   delete text_to_display_;
   delete int_marker_display_;
-  if (frame_dock_)
-    delete frame_dock_;
+  delete frame_dock_;
 }
 
 void MotionPlanningDisplay::onInitialize()
