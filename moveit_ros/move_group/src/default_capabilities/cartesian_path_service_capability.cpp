@@ -165,7 +165,8 @@ bool MoveGroupCartesianPathService::computeService(moveit_msgs::GetCartesianPath
           // optionally compute timing to move the eef with constant speed
           if (req.max_cartesian_speed > 0.0)
           {
-            trajectory_processing::setMaxCartesianLinkSpeed(rt, req.max_cartesian_speed, req.cartesian_speed_link);
+            trajectory_processing::limitMaxCartesianLinkSpeed(rt, req.max_cartesian_speed,
+                                                              req.cartesian_speed_limited_link);
           }
 
           rt.getRobotTrajectoryMsg(res.solution);
