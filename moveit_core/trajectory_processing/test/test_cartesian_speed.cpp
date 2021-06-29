@@ -3,6 +3,7 @@
  *
  *  Copyright (c) 2017, Ken Anderson
  *  Copyright (c) 2020, Benjamin Scholz
+ *  Copyright (c) 2021, Thies Oelerich
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -33,7 +34,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Benjamin Scholz, based off test_time_parameterization.cpp by Ken Anderson */
+/* Authors: Benjamin Scholz, Thies Oelerich, based off test_time_parameterization.cpp by Ken Anderson */
 
 #include <gtest/gtest.h>
 #include <fstream>
@@ -71,6 +72,8 @@ bool initStraightTrajectory(robot_trajectory::RobotTrajectory& trajectory)
 
   trajectory.clear();
   // Initial waypoint
+  // Cartesian Position (in panda_link0 frame):
+  // [X: 0.30701957005161057, Y: 0, Z: 0.5902504197143968]
   state.setVariablePosition("panda_joint1", 0);
   state.setVariablePosition("panda_joint2", -0.785);
   state.setVariablePosition("panda_joint3", 0);
@@ -79,7 +82,10 @@ bool initStraightTrajectory(robot_trajectory::RobotTrajectory& trajectory)
   state.setVariablePosition("panda_joint6", 1.571);
   state.setVariablePosition("panda_joint7", 0.785);
   trajectory.addSuffixWayPoint(state, 0.0);
+
   // First waypoint (+0.3 m in X direction)
+  // Cartesian Position (in panda_link0 frame):
+  // [X: 0.6070218670533757, Y: 0, Z: 0.5902504197143968]
   state.setVariablePosition("panda_joint1", 0.00011058924053135735);
   state.setVariablePosition("panda_joint2", 0.15980591412916012);
   state.setVariablePosition("panda_joint3", -0.000269206763021151);
@@ -91,6 +97,8 @@ bool initStraightTrajectory(robot_trajectory::RobotTrajectory& trajectory)
   WAYPOINT_DISTANCES.push_back(0.3);
 
   // Second waypoint (+0.3 m in Y direction)
+  // Cartesian Position (in panda_link0 frame):
+  // [X: 0.6070218670533757, Y: 0.3, Z: 0.5902504197143968]
   state.setVariablePosition("panda_joint1", 0.32516555661705315);
   state.setVariablePosition("panda_joint2", 0.4668669802969372);
   state.setVariablePosition("panda_joint3", 0.20650832887601522);
@@ -102,6 +110,8 @@ bool initStraightTrajectory(robot_trajectory::RobotTrajectory& trajectory)
   WAYPOINT_DISTANCES.push_back(0.3);
 
   // Third waypoint (-0.3 m in Z direction)
+  // Cartesian Position (in panda_link0 frame):
+  // [X: 0.6070218670533757, Y: 0.3, Z: 0.29026011026061577]
   state.setVariablePosition("panda_joint1", 0.1928958411545848);
   state.setVariablePosition("panda_joint2", 0.5600654280773957);
   state.setVariablePosition("panda_joint3", 0.31117191776899084);
@@ -149,7 +159,7 @@ TEST(TestCartesianSpeed, TestCartesianEndEffectorSpeed)
   const char* end_effector_link = "panda_link8";
 
   EXPECT_TRUE(time_parameterization.computeTimeStamps(TRAJECTORY));
-  trajectory_processing::setMaxCartesianEndEffectorSpeed(TRAJECTORY, 0.01);
+  trajectory_processing::setMaxCartesianLinkSpeed(TRAJECTORY, 0.01);
   printTrajectory(TRAJECTORY);
   size_t num_waypoints = TRAJECTORY.getWayPointCount();
   robot_state::RobotStatePtr kinematic_state = TRAJECTORY.getFirstWayPointPtr();

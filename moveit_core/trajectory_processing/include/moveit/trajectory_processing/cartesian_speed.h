@@ -2,6 +2,7 @@
  * Software License Agreement (BSD License)
  *
  *  Copyright (c) 2020, Benjamin Scholz
+ *  Copyright (c) 2021, Thies Oelerich
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,16 +33,23 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Benjamin Scholz */
+/* Authors: Benjamin Scholz, Thies Oelerich */
 
 #pragma once
 
-#include <moveit/robot_trajectory/robot_trajectory.h>
-#include <moveit/robot_state/robot_state.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
+#include <moveit/robot_trajectory/robot_trajectory.h>
+#include <moveit/macros/class_forward.h>
+#include <string>
+namespace trajectory_processing
+{
+MOVEIT_CLASS_FORWARD(RobotTrajectory);
+}  // namespace trajectory_processing
 
 namespace trajectory_processing
 {
-bool setMaxCartesianEndEffectorSpeed(robot_trajectory::RobotTrajectory& trajectory, const double speed,
-                                     std::string end_effector = "");
-}
+bool setMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, const double speed,
+                              const moveit::core::LinkModel* link_model);
+bool setMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, const double speed,
+                              std::string link_name = "");
+}  // namespace trajectory_processing
