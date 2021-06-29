@@ -16,7 +16,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
+ *   * Neither the name of the authors nor the names of other
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -69,8 +69,8 @@ public:
       if (req.max_cartesian_speed <= 0.0)
         return result;
       ROS_DEBUG("Running '%s'", getDescription().c_str());
-      if (!trajectory_processing::setMaxCartesianLinkSpeed(*res.trajectory_, req.max_cartesian_speed,
-                                                           req.cartesian_speed_link))
+      if (!trajectory_processing::limitMaxCartesianLinkSpeed(*res.trajectory_, req.max_cartesian_speed,
+                                                             req.cartesian_speed_limited_link))
       {
         ROS_ERROR("Setting cartesian speed for the solution path failed.");
         result = false;

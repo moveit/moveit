@@ -420,13 +420,13 @@ public:
 
   void setMaxCartesianLinkSpeed(const double max_speed, const std::string& link_name)
   {
-    cartesian_link_ = link_name;
+    cartesian_speed_limited_link_ = link_name;
     max_cartesian_speed_ = max_speed;
   }
 
   void clearMaxCartesianLinkSpeed()
   {
-    cartesian_link_ = "";
+    cartesian_speed_limited_link_ = "";
     max_cartesian_speed_ = 0.0;
   }
 
@@ -949,7 +949,7 @@ public:
     req.path_constraints = path_constraints;
     req.avoid_collisions = avoid_collisions;
     req.link_name = getEndEffectorLink();
-    req.cartesian_speed_link = cartesian_link_;
+    req.cartesian_speed_limited_link = cartesian_speed_limited_link_;
     req.max_cartesian_speed = max_cartesian_speed_;
 
     if (cartesian_path_service_.call(req, res))
@@ -1077,7 +1077,7 @@ public:
     request.num_planning_attempts = num_planning_attempts_;
     request.max_velocity_scaling_factor = max_velocity_scaling_factor_;
     request.max_acceleration_scaling_factor = max_acceleration_scaling_factor_;
-    request.cartesian_speed_link = cartesian_link_;
+    request.cartesian_speed_limited_link = cartesian_speed_limited_link_;
     request.max_cartesian_speed = max_cartesian_speed_;
     request.allowed_planning_time = allowed_planning_time_;
     request.pipeline_id = planning_pipeline_id_;
@@ -1318,7 +1318,7 @@ private:
   unsigned int num_planning_attempts_;
   double max_velocity_scaling_factor_;
   double max_acceleration_scaling_factor_;
-  std::string cartesian_link_;
+  std::string cartesian_speed_limited_link_;
   double max_cartesian_speed_;
   double goal_joint_tolerance_;
   double goal_position_tolerance_;
