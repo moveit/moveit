@@ -43,7 +43,7 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 
   <!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
-  <include file="$(find [GENERATED_PACKAGE_NAME])/launch/move_group.launch">
+  <include file="$(dirname)/move_group.launch">
     <arg name="allow_trajectory_execution" value="true"/>
     <arg name="fake_execution" value="true"/>
     <arg name="execution_type" value="$(arg execution_type)"/>
@@ -54,13 +54,13 @@
   </include>
 
   <!-- Run Rviz and load the default config to see the state of the move_group node -->
-  <include file="$(find [GENERATED_PACKAGE_NAME])/launch/moveit_rviz.launch" if="$(arg use_rviz)">
+  <include file="$(dirname)/moveit_rviz.launch" if="$(arg use_rviz)">
     <arg name="rviz_config" value="$(find [GENERATED_PACKAGE_NAME])/launch/moveit.rviz"/>
     <arg name="debug" value="$(arg debug)"/>
   </include>
 
   <!-- If database loading was enabled, start mongodb as well -->
-  <include file="$(find [GENERATED_PACKAGE_NAME])/launch/default_warehouse_db.launch" if="$(arg db)">
+  <include file="$(dirname)/default_warehouse_db.launch" if="$(arg db)">
     <arg name="moveit_warehouse_database_path" value="$(arg db_path)"/>
   </include>
 
