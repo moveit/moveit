@@ -4,7 +4,7 @@
   <arg name="debug" default="false" />
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
   <arg     if="$(arg debug)" name="launch_prefix"
-           value="gdb -x $(find [GENERATED_PACKAGE_NAME])/launch/gdb_settings.gdb --ex run --args" />
+           value="gdb -x $(dirname)/gdb_settings.gdb --ex run --args" />
 
   <!-- Verbose Mode Option -->
   <arg name="info" default="$(arg debug)" />
@@ -39,7 +39,7 @@
 
   <arg name="load_robot_description" default="true" />
   <!-- load URDF, SRDF and joint_limits configuration -->
-  <include file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_context.launch">
+  <include file="$(dirname)/planning_context.launch">
     <arg name="load_robot_description" value="$(arg load_robot_description)" />
   </include>
 
@@ -47,29 +47,29 @@
   <group ns="move_group/planning_pipelines">
 
     <!-- OMPL -->
-    <include ns="ompl" file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_pipeline.launch.xml">
+    <include ns="ompl" file="$(dirname)/planning_pipeline.launch.xml">
       <arg name="pipeline" value="ompl" />
     </include>
 
     <!-- CHOMP -->
-    <include ns="chomp" file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_pipeline.launch.xml">
+    <include ns="chomp" file="$(dirname)/planning_pipeline.launch.xml">
       <arg name="pipeline" value="chomp" />
     </include>
 
     <!-- Pilz Industrial Motion-->
-    <include ns="pilz_industrial_motion_planner" file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_pipeline.launch.xml">
+    <include ns="pilz_industrial_motion_planner" file="$(dirname)/planning_pipeline.launch.xml">
       <arg name="pipeline" value="pilz_industrial_motion_planner" />
     </include>
 
     <!-- Support custom planning pipeline -->
     <include if="$(eval arg('pipeline') not in ['ompl', 'chomp', 'pilz_industrial_motion_planner'])"
-	     file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_pipeline.launch.xml">
+	     file="$(dirname)/planning_pipeline.launch.xml">
       <arg name="pipeline" value="$(arg pipeline)" />
     </include>
   </group>
 
   <!-- Trajectory Execution Functionality -->
-  <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/trajectory_execution.launch.xml" if="$(arg allow_trajectory_execution)">
+  <include ns="move_group" file="$(dirname)/trajectory_execution.launch.xml" if="$(arg allow_trajectory_execution)">
     <arg name="moveit_manage_controllers" value="true" />
     <arg name="moveit_controller_manager" value="[ROBOT_NAME]" unless="$(arg fake_execution)"/>
     <arg name="moveit_controller_manager" value="fake" if="$(arg fake_execution)"/>
@@ -77,7 +77,7 @@
   </include>
 
   <!-- Sensors Functionality -->
-  <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/sensor_manager.launch.xml" if="$(arg allow_trajectory_execution)">
+  <include ns="move_group" file="$(dirname)/sensor_manager.launch.xml" if="$(arg allow_trajectory_execution)">
     <arg name="moveit_sensor_manager" value="[ROBOT_NAME]" />
   </include>
 
