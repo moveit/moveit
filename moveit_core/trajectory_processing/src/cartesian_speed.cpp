@@ -94,8 +94,6 @@ bool limitMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, c
   double euclidean_distance, new_time_diff, old_time_diff;
   std::vector<double> time_diff(num_waypoints - 1, 0.0);
 
-  double slowest_speed;
-  bool limited_by_joint_limits = false;
   for (size_t i = 0; i < num_waypoints - 1; i++)
   {
     // get link state for current and next waypoint
@@ -115,19 +113,9 @@ bool limitMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, c
     }
     else
     {
-      limited_by_joint_limits = true;
       time_diff[i] = old_time_diff;
-      // update the slowest speed value reached due to joint velocity
-      // constraints
-      slowest_speed = euclidean_distance / old_time_diff;
     }
   }
-  // send a warning if the desired cartesian speed could not be reached due to
-  // joint velocity constraints
-  if (limited_by_joint_limits)
-    ROS_WARN_STREAM_NAMED(LOGGER_NAME, "Desired cartesian link speed is not reached because of joint velocity "
-                                       "constraints. Slowest speed reached by link is "
-                                           << slowest_speed);
   // update time stamps, velocities and accelerations of the trajectory
   updateTrajectory(trajectory, time_diff);
   return true;
