@@ -75,10 +75,16 @@ struct JumpThreshold
 
 /** \brief Struct for containing max_step for computeCartesianPath
 
-    Setting translation to zero will disable checking for translations and the same goes for rotation */
+    Setting translation to zero will disable checking for translations. The same goes for rotation.
+    Initializing with only one value (translation) sets the rotation such that
+    1 cm of allowed translation = 2 degrees of allowed rotation. */
 struct MaxEEFStep
 {
-  MaxEEFStep(double translation = 0.0, double rotation = 0.0) : translation(translation), rotation(rotation)
+  MaxEEFStep(double translation, double rotation) : translation(translation), rotation(rotation)
+  {
+  }
+
+  MaxEEFStep(double step_size) : translation(step_size), rotation(3.5 * step_size)  // 0.035 rad = 2 deg
   {
   }
 

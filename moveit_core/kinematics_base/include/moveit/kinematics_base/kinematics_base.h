@@ -48,9 +48,9 @@ namespace moveit
 {
 namespace core
 {
-MOVEIT_CLASS_FORWARD(JointModelGroup)
-MOVEIT_CLASS_FORWARD(RobotState)
-MOVEIT_CLASS_FORWARD(RobotModel)
+MOVEIT_CLASS_FORWARD(JointModelGroup);
+MOVEIT_CLASS_FORWARD(RobotState);
+MOVEIT_CLASS_FORWARD(RobotModel);
 }  // namespace core
 }  // namespace moveit
 

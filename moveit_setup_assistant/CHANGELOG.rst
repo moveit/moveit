@@ -2,6 +2,29 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.5 (2021-05-23)
+------------------
+
+1.1.4 (2021-05-12)
+------------------
+
+1.1.3 (2021-04-29)
+------------------
+* Let users override fake execution type from demo.launch (`#2602 <https://github.com/ros-planning/moveit/issues/2602>`_)
+* Contributors: Michael Görner
+
+1.1.2 (2021-04-08)
+------------------
+* Fix formatting errors
+* Fix segfault in MSA (`#2564 <https://github.com/ros-planning/moveit/issues/2564>`_)
+* Support multiple planning pipelines with MoveGroup via MoveItCpp (`#2127 <https://github.com/ros-planning/moveit/issues/2127>`_)
+* Update MSA launch templates for multi-pipeline support
+* Missing RViz and moveit_simple_controller_manager dependencies in MSA template (`#2455 <https://github.com/ros-planning/moveit/issues/2455>`_)
+* Fix empty sequence in moveit_setup_assistant (`#2406 <https://github.com/ros-planning/moveit/issues/2406>`_)
+* Add Pilz industrial motion planner (`#1893 <https://github.com/ros-planning/moveit/issues/1893>`_)
+* MSA launch files: fix indentation (`#2371 <https://github.com/ros-planning/moveit/issues/2371>`_)
+* Contributors: Christian Henkel, David V. Lu!!, Henning Kayser, Michael Görner, Tyler Weaver
+
 1.1.1 (2020-10-13)
 ------------------
 * [feature] Allow showing both, visual and collision geometry (`#2352 <https://github.com/ros-planning/moveit/issues/2352>`_)
@@ -139,7 +162,7 @@ Changelog for package moveit_setup_assistant
 * [enhancement][GUI] Planning Groups screen (`#1017 <https://github.com/ros-planning/moveit/issues/1017>`_)
 * [enhancement] use panda for test, and write test file in tmp dir (`#1042 <https://github.com/ros-planning/moveit/issues/1042>`_)
 * [enhancement] Added capabilties as arg to move_group.launch (`#998 <https://github.com/ros-planning/moveit/issues/998>`_)
-* [enhancement] Add moveit_setup_assistant as depenency of all *_moveit_config pkgs (`#1029 <https://github.com/ros-planning/moveit/issues/1029>`_)
+* [enhancement] Add moveit_setup_assistant as depenency of all ``*_moveit_config`` pkgs (`#1029 <https://github.com/ros-planning/moveit/issues/1029>`_)
 * [maintenance] various compiler warnings (`#1038 <https://github.com/ros-planning/moveit/issues/1038>`_)
 * [enhancement] Improving gazebo integration. (`#956 <https://github.com/ros-planning/moveit/issues/956>`_, `#936 <https://github.com/ros-planning/moveit/issues/936>`_)
 * [maintenance] Renamed wedgits in setup assistant wedgit to follow convention (`#995 <https://github.com/ros-planning/moveit/issues/995>`_)

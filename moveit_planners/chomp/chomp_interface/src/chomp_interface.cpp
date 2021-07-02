@@ -65,7 +65,10 @@ void CHOMPInterface::loadParams()
   nh_.param("pseudo_inverse_ridge_factor", params_.pseudo_inverse_ridge_factor_, 1e-4);
 
   nh_.param("joint_update_limit", params_.joint_update_limit_, 0.1);
-  nh_.param("collision_clearence", params_.min_clearence_, 0.2);
+  // TODO: remove this warning after 06/2022
+  if (!nh_.hasParam("collision_clearance") && nh_.hasParam("collision_clearence"))
+    ROS_WARN("The param 'collision_clearence' has been renamed to 'collision_clearance', please update your config!");
+  nh_.param("collision_clearance", params_.min_clearance_, 0.2);
   nh_.param("collision_threshold", params_.collision_threshold_, 0.07);
   // nh_.param("random_jump_amount", params_.random_jump_amount_, 1.0);
   nh_.param("use_stochastic_descent", params_.use_stochastic_descent_, true);

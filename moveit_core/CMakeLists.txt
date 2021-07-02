@@ -152,7 +152,6 @@ catkin_package(
     moveit_dynamics_solver
     moveit_utils
     moveit_test_utils
-    ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     eigen_stl_containers
     geometric_shapes

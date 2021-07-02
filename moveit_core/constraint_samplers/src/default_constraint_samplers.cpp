@@ -475,9 +475,28 @@ bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& q
     double angle_z =
         2.0 * (random_number_generator_.uniform01() - 0.5) *
         (sampling_pose_.orientation_constraint_->getZAxisTolerance() - std::numeric_limits<double>::epsilon());
-    Eigen::Isometry3d diff(Eigen::AngleAxisd(angle_x, Eigen::Vector3d::UnitX()) *
-                           Eigen::AngleAxisd(angle_y, Eigen::Vector3d::UnitY()) *
-                           Eigen::AngleAxisd(angle_z, Eigen::Vector3d::UnitZ()));
+
+    Eigen::Isometry3d diff;
+    if (sampling_pose_.orientation_constraint_->getParameterizationType() ==
+        moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES)
+    {
+      diff = Eigen::Isometry3d(Eigen::AngleAxisd(angle_x, Eigen::Vector3d::UnitX()) *
+                               Eigen::AngleAxisd(angle_y, Eigen::Vector3d::UnitY()) *
+                               Eigen::AngleAxisd(angle_z, Eigen::Vector3d::UnitZ()));
+    }
+    else if (sampling_pose_.orientation_constraint_->getParameterizationType() ==
+             moveit_msgs::OrientationConstraint::ROTATION_VECTOR)
+    {
+      Eigen::Vector3d rotation_vector(angle_x, angle_y, angle_z);
+      diff = Eigen::Isometry3d(Eigen::AngleAxisd(rotation_vector.norm(), rotation_vector.normalized()));
+    }
+    else
+    {
+      /* The parameterization type should be validated in configure, so this should never happen. */
+      ROS_ERROR_STREAM_NAMED("default_constraint_samplers",
+                             "The parameterization type for the orientation constraints is invalid.");
+    }
+
     // diff is isometry by construction
     // getDesiredRotationMatrix() returns a valid rotation matrix by contract
     // reqr has thus to be a valid isometry

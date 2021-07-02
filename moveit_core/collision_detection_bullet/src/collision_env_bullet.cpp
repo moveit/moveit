@@ -110,6 +110,8 @@ void CollisionEnvBullet::checkSelfCollisionHelper(const CollisionRequest& req, C
                                                   const moveit::core::RobotState& state,
                                                   const AllowedCollisionMatrix* acm) const
 {
+  std::lock_guard<std::mutex> guard(collision_env_mutex_);
+
   std::vector<collision_detection_bullet::CollisionObjectWrapperPtr> cows;
   addAttachedOjects(state, cows);
 
@@ -171,6 +173,8 @@ void CollisionEnvBullet::checkRobotCollisionHelper(const CollisionRequest& req, 
                                                    const moveit::core::RobotState& state,
                                                    const AllowedCollisionMatrix* acm) const
 {
+  std::lock_guard<std::mutex> guard(collision_env_mutex_);
+
   if (req.distance)
   {
     manager_->setContactDistanceThreshold(MAX_DISTANCE_MARGIN);
@@ -200,6 +204,8 @@ void CollisionEnvBullet::checkRobotCollisionHelperCCD(const CollisionRequest& re
                                                       const moveit::core::RobotState& state2,
                                                       const AllowedCollisionMatrix* acm) const
 {
+  std::lock_guard<std::mutex> guard(collision_env_mutex_);
+
   std::vector<collision_detection_bullet::CollisionObjectWrapperPtr> attached_cows;
   addAttachedOjects(state1, attached_cows);
 
@@ -302,6 +308,7 @@ void CollisionEnvBullet::setWorld(const WorldPtr& world)
 
 void CollisionEnvBullet::notifyObjectChange(const ObjectConstPtr& obj, World::Action action)
 {
+  std::lock_guard<std::mutex> guard(collision_env_mutex_);
   if (action == World::DESTROY)
   {
     manager_->removeCollisionObject(obj->id_);

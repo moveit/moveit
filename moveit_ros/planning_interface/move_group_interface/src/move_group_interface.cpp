@@ -126,6 +126,7 @@ public:
     goal_orientation_tolerance_ = 1e-3;  // ~0.1 deg
     allowed_planning_time_ = 5.0;
     num_planning_attempts_ = 1;
+    max_cartesian_speed_ = 0.0;
     node_handle_.param<double>("robot_description_planning/default_velocity_scaling_factor",
                                max_velocity_scaling_factor_, 0.1);
     max_cartesian_speed_ = 0.0;

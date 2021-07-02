@@ -41,10 +41,10 @@
 namespace chomp_interface
 {
 CHOMPPlanningContext::CHOMPPlanningContext(const std::string& name, const std::string& group,
-                                           const moveit::core::RobotModelConstPtr& model)
+                                           const moveit::core::RobotModelConstPtr& model, ros::NodeHandle& nh)
   : planning_interface::PlanningContext(name, group), robot_model_(model)
 {
-  chomp_interface_ = CHOMPInterfacePtr(new CHOMPInterface());
+  chomp_interface_ = CHOMPInterfacePtr(new CHOMPInterface(nh));
 }
 
 bool CHOMPPlanningContext::solve(planning_interface::MotionPlanDetailedResponse& res)

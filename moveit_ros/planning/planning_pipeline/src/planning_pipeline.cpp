@@ -49,17 +49,17 @@ const std::string planning_pipeline::PlanningPipeline::MOTION_PLAN_REQUEST_TOPIC
 const std::string planning_pipeline::PlanningPipeline::MOTION_CONTACTS_TOPIC = "display_contacts";
 
 planning_pipeline::PlanningPipeline::PlanningPipeline(const moveit::core::RobotModelConstPtr& model,
-                                                      const ros::NodeHandle& nh,
+                                                      const ros::NodeHandle& pipeline_nh,
                                                       const std::string& planner_plugin_param_name,
                                                       const std::string& adapter_plugins_param_name)
-  : nh_(nh), robot_model_(model)
+  : pipeline_nh_(pipeline_nh), private_nh_("~"), robot_model_(model)
 {
   std::string planner;
-  if (nh_.getParam(planner_plugin_param_name, planner))
+  if (pipeline_nh_.getParam(planner_plugin_param_name, planner))
     planner_plugin_name_ = planner;
 
   std::string adapters;
-  if (nh_.getParam(adapter_plugins_param_name, adapters))
+  if (pipeline_nh_.getParam(adapter_plugins_param_name, adapters))
   {
     boost::char_separator<char> sep(" ");
     boost::tokenizer<boost::char_separator<char> > tok(adapters, sep);
@@ -71,9 +71,14 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const moveit::core::RobotM
 }
 
 planning_pipeline::PlanningPipeline::PlanningPipeline(const moveit::core::RobotModelConstPtr& model,
-                                                      const ros::NodeHandle& nh, const std::string& planner_plugin_name,
+                                                      const ros::NodeHandle& pipeline_nh,
+                                                      const std::string& planner_plugin_name,
                                                       const std::vector<std::string>& adapter_plugin_names)
-  : nh_(nh), planner_plugin_name_(planner_plugin_name), adapter_plugin_names_(adapter_plugin_names), robot_model_(model)
+  : pipeline_nh_(pipeline_nh)
+  , private_nh_("~")
+  , planner_plugin_name_(planner_plugin_name)
+  , adapter_plugin_names_(adapter_plugin_names)
+  , robot_model_(model)
 {
   configure();
 }
@@ -114,7 +119,7 @@ void planning_pipeline::PlanningPipeline::configure()
   try
   {
     planner_instance_ = planner_plugin_loader_->createUniqueInstance(planner_plugin_name_);
-    if (!planner_instance_->initialize(robot_model_, nh_.getNamespace()))
+    if (!planner_instance_->initialize(robot_model_, pipeline_nh_.getNamespace()))
       throw std::runtime_error("Unable to initialize planning plugin");
     ROS_INFO_STREAM("Using planning interface '" << planner_instance_->getDescription() << "'");
   }
@@ -154,7 +159,7 @@ void planning_pipeline::PlanningPipeline::configure()
         }
         if (ad)
         {
-          ad->initialize(nh_);
+          ad->initialize(pipeline_nh_);
           ads.push_back(std::move(ad));
         }
       }
@@ -177,7 +182,7 @@ void planning_pipeline::PlanningPipeline::displayComputedMotionPlans(bool flag)
   if (display_computed_motion_plans_ && !flag)
     display_path_publisher_.shutdown();
   else if (!display_computed_motion_plans_ && flag)
-    display_path_publisher_ = nh_.advertise<moveit_msgs::DisplayTrajectory>(DISPLAY_PATH_TOPIC, 10, true);
+    display_path_publisher_ = private_nh_.advertise<moveit_msgs::DisplayTrajectory>(DISPLAY_PATH_TOPIC, 10, true);
   display_computed_motion_plans_ = flag;
 }
 
@@ -186,7 +191,8 @@ void planning_pipeline::PlanningPipeline::publishReceivedRequests(bool flag)
   if (publish_received_requests_ && !flag)
     received_request_publisher_.shutdown();
   else if (!publish_received_requests_ && flag)
-    received_request_publisher_ = nh_.advertise<moveit_msgs::MotionPlanRequest>(MOTION_PLAN_REQUEST_TOPIC, 10, true);
+    received_request_publisher_ =
+        private_nh_.advertise<moveit_msgs::MotionPlanRequest>(MOTION_PLAN_REQUEST_TOPIC, 10, true);
   publish_received_requests_ = flag;
 }
 
@@ -195,7 +201,7 @@ void planning_pipeline::PlanningPipeline::checkSolutionPaths(bool flag)
   if (check_solution_paths_ && !flag)
     contacts_publisher_.shutdown();
   else if (!check_solution_paths_ && flag)
-    contacts_publisher_ = nh_.advertise<visualization_msgs::MarkerArray>(MOTION_CONTACTS_TOPIC, 100, true);
+    contacts_publisher_ = private_nh_.advertise<visualization_msgs::MarkerArray>(MOTION_CONTACTS_TOPIC, 100, true);
   check_solution_paths_ = flag;
 }
 
@@ -291,7 +297,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
             ROS_ERROR_STREAM("Computed path is not valid. Invalid states at index locations: [ "
                              << ss.str() << "] out of " << state_count
                              << ". Explanations follow in command line. Contacts are published on "
-                             << nh_.resolveName(MOTION_CONTACTS_TOPIC));
+                             << private_nh_.resolveName(MOTION_CONTACTS_TOPIC));
 
             // call validity checks in verbose mode for the problematic states
             visualization_msgs::MarkerArray arr;

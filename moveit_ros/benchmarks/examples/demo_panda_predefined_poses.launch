@@ -26,7 +26,7 @@
   </group>
 
   <!-- Launch benchmark node -->
-  <node name="moveit_run_benchmark" pkg="moveit_ros_benchmarks" type="moveit_run_benchmark" output="screen" required="true">
+  <node name="moveit_run_benchmark" pkg="moveit_ros_benchmarks" type="moveit_combine_predefined_poses_benchmark" output="screen" required="true">
     <rosparam command="load" file="$(arg bench_opts)"/>
   </node>
 </launch>

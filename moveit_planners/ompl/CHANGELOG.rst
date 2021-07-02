@@ -2,6 +2,23 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.5 (2021-05-23)
+------------------
+
+1.1.4 (2021-05-12)
+------------------
+
+1.1.3 (2021-04-29)
+------------------
+
+1.1.2 (2021-04-08)
+------------------
+* Fix formatting errors
+* Replaced eigen+kdl conversions with tf2_eigen + tf2_kdl (`#2472 <https://github.com/ros-planning/moveit/issues/2472>`_)
+* Add test to ompl interface for StateValidityChecker (`#2247 <https://github.com/ros-planning/moveit/issues/2247>`_)
+* Add test for PlanningContextManager in ompl interface (`#2248 <https://github.com/ros-planning/moveit/issues/2248>`_)
+* Contributors: Jeroen, Tyler Weaver, petkovich
+
 1.1.1 (2020-10-13)
 ------------------
 * [maint] Add comment to MOVEIT_CLASS_FORWARD (`#2315 <https://github.com/ros-planning/moveit/issues/2315>`_)

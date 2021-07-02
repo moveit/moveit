@@ -2,6 +2,35 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.5 (2021-05-23)
+------------------
+* Revert "Lock the octomap/octree while collision checking (`#2683 <https://github.com/ros-planning/moveit/issues/2683>`_)
+* Unify and simplify CSM::haveCompleteState overloads (`#2663 <https://github.com/ros-planning/moveit/issues/2663>`_)
+* Contributors: Michael Görner
+
+1.1.4 (2021-05-12)
+------------------
+* Lock the octomap/octree while collision checking (`#2596 <https://github.com/ros-planning/moveit/issues/2596>`_)
+* Use private NodeHandle instead of child for PlanningPipeline topics (`#2652 <https://github.com/ros-planning/moveit/issues/2652>`_)
+* Print an error if the planning pipelines are empty (`#2639 <https://github.com/ros-planning/moveit/issues/2639>`_)
+* Simplify logic in PSM (`#2632 <https://github.com/ros-planning/moveit/issues/2632>`_)
+* Contributors: Henning Kayser, Luc Bettaieb, Michael Görner, Simon Schmeisser, Rojas Rafael
+
+1.1.3 (2021-04-29)
+------------------
+
+1.1.2 (2021-04-08)
+------------------
+* Fix formatting errors
+* PlanExecution: Correctly handle preempt-requested flag (`#2554 <https://github.com/ros-planning/moveit/issues/2554>`_)
+* Support multiple planning pipelines with MoveGroup via MoveItCpp (`#2127 <https://github.com/ros-planning/moveit/issues/2127>`_)
+* Move moveit_cpp to moveit_ros_planning
+  Deprecate namespace ``moveit::planning_interface::`` in favor of ``moveit_cpp::``
+* thread safety in clear octomap & only update geometry (`#2500 <https://github.com/ros-planning/moveit/issues/2500>`_)
+* Fix some typos in comments (`#2466 <https://github.com/ros-planning/moveit/issues/2466>`_)
+* FixStartStateBounds: Copy attached bodies when adapting the start state (`#2398 <https://github.com/ros-planning/moveit/issues/2398>`_)
+* Contributors: Henning Kayser, Michael Görner, Robert Haschke, Simon Schmeisser, Tyler Weaver, Udbhavbisarya23
+
 1.1.1 (2020-10-13)
 ------------------
 * [fix] some clang-tidy issues on Travis (`#2337 <https://github.com/ros-planning/moveit/issues/2337>`_)

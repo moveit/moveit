@@ -66,7 +66,7 @@ AuthorInformationWidget::AuthorInformationWidget(QWidget* parent, const MoveItCo
   layout->addWidget(header);
 
   QLabel* name_title = new QLabel(this);
-  name_title->setText("Name of the maintainer this MoveIt configuration:");
+  name_title->setText("Name of the maintainer of this MoveIt configuration:");
   layout->addWidget(name_title);
 
   name_edit_ = new QLineEdit(this);

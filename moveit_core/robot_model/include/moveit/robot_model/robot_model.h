@@ -61,6 +61,15 @@ namespace core
 {
 MOVEIT_CLASS_FORWARD(RobotModel);  // Defines RobotModelPtr, ConstPtr, WeakPtr... etc
 
+static inline void checkInterpolationParamBounds(const char LOGNAME[], double t)
+{
+  if (std::isnan(t) || std::isinf(t))
+  {
+    throw Exception("Interpolation parameter is NaN or inf.");
+  }
+  ROS_WARN_STREAM_COND_NAMED(t < 0. || t > 1., LOGNAME, "Interpolation parameter is not in the range [0, 1]: " << t);
+}
+
 /** \brief Definition of a kinematic model. This class is not thread
     safe, however multiple instances can be created */
 class RobotModel

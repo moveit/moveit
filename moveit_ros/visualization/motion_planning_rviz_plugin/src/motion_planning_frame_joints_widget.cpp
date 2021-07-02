@@ -69,12 +69,12 @@ Qt::ItemFlags JMGItemModel::flags(const QModelIndex& index) const
     return Qt::ItemFlags();
 
   Qt::ItemFlags f = QAbstractTableModel::flags(index);
+
+  const moveit::core::JointModel* jm = getJointModel(index);
+  bool isEditable = !jm->isPassive() && !jm->getMimic();
+  f.setFlag(Qt::ItemIsEnabled, isEditable);
   if (index.column() == 1)
-  {
-    const moveit::core::JointModel* jm = getJointModel(index);
-    if (!jm->isPassive() && !jm->getMimic())  // these are not editable
-      f |= Qt::ItemIsEditable;
-  }
+    f.setFlag(Qt::ItemIsEditable, isEditable);
   return f;
 }
 
@@ -467,7 +467,7 @@ bool JointsWidgetEventFilter::eventFilter(QObject* /*target*/, QEvent* event)
   {
     QAbstractItemView* view = qobject_cast<QAbstractItemView*>(parent());
     QModelIndex index = view->indexAt(static_cast<QMouseEvent*>(event)->pos());
-    if (index.isValid() && index.column() == 1)  // mouse event on any of joint indexes?
+    if (index.flags() & Qt::ItemIsEditable)  // mouse event on any editable slider?
     {
       view->setCurrentIndex(index);
       view->edit(index);

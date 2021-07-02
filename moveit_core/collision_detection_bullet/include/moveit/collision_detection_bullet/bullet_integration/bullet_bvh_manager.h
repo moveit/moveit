@@ -38,7 +38,7 @@
 
 namespace collision_detection_bullet
 {
-MOVEIT_CLASS_FORWARD(BulletBVHManager)
+MOVEIT_CLASS_FORWARD(BulletBVHManager);
 
 /** @brief A bounding volume hierarchy (BVH) implementation of a tesseract contact manager */
 class BulletBVHManager

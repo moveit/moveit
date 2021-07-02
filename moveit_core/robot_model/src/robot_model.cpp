@@ -49,7 +49,10 @@ namespace moveit
 {
 namespace core
 {
-const std::string LOGNAME = "robot_model";
+namespace
+{
+constexpr char LOGNAME[] = "robot_model";
+}  // namespace
 
 RobotModel::RobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model, const srdf::ModelConstSharedPtr& srdf_model)
 {
@@ -1290,6 +1293,7 @@ double RobotModel::distance(const double* state1, const double* state2) const
 
 void RobotModel::interpolate(const double* from, const double* to, double t, double* state) const
 {
+  moveit::core::checkInterpolationParamBounds(LOGNAME, t);
   // we interpolate values only for active joint models (non-mimic)
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
     active_joint_model_vector_[i]->interpolate(from + active_joint_model_start_index_[i],

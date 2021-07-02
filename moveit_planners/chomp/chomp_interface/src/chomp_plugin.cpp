@@ -49,12 +49,16 @@ public:
   {
   }
 
-  bool initialize(const moveit::core::RobotModelConstPtr& model, const std::string& /*ns*/) override
+  bool initialize(const moveit::core::RobotModelConstPtr& model, const std::string& ns) override
   {
+    ros::NodeHandle nh("~");
+    if (!ns.empty())
+      nh = ros::NodeHandle(ns);
+
     for (const std::string& group : model->getJointModelGroupNames())
     {
       planning_contexts_[group] =
-          CHOMPPlanningContextPtr(new CHOMPPlanningContext("chomp_planning_context", group, model));
+          CHOMPPlanningContextPtr(new CHOMPPlanningContext("chomp_planning_context", group, model, nh));
     }
     return true;
   }
