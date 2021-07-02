@@ -87,7 +87,7 @@ protected:
   }
 
 protected:
-  //moveit::core::RobotModelPtr robot_model_;
+  // moveit::core::RobotModelPtr robot_model_;
   moveit::core::RobotModelPtr robot_wrist_model_;
 };
 
@@ -345,26 +345,26 @@ TEST_F(SphericalRobot, Test5)
   EXPECT_EQ(oc.getParameterization(), moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES);
 }
 
-  moveit::core::Transforms tf(robot_model_->getModelFrame());
-  moveit_msgs::OrientationConstraint ocm;
+moveit::core::Transforms tf(robot_model_->getModelFrame());
+moveit_msgs::OrientationConstraint ocm;
 
-  moveit::core::RobotState robot_state(robot_model_);
-  robot_state.setVariablePositions(getJointValues(0.0, boost::math::constants::half_pi<double>(), 0.0));
-  robot_state.update();
+moveit::core::RobotState robot_state(robot_model_);
+robot_state.setVariablePositions(getJointValues(0.0, boost::math::constants::half_pi<double>(), 0.0));
+robot_state.update();
 
-  ocm.link_name = "yaw";
-  ocm.header.frame_id = robot_model_->getModelFrame();
-  ocm.orientation = tf2::toMsg(Eigen::Quaterniond(robot_state.getGlobalLinkTransform(ocm.link_name).linear()));
-  ocm.absolute_x_axis_tolerance = 0.0;
-  ocm.absolute_y_axis_tolerance = 0.0;
-  ocm.absolute_z_axis_tolerance = 1.0;
-  ocm.weight = 1.0;
+ocm.link_name = "yaw";
+ocm.header.frame_id = robot_model_->getModelFrame();
+ocm.orientation = tf2::toMsg(Eigen::Quaterniond(robot_state.getGlobalLinkTransform(ocm.link_name).linear()));
+ocm.absolute_x_axis_tolerance = 0.0;
+ocm.absolute_y_axis_tolerance = 0.0;
+ocm.absolute_z_axis_tolerance = 1.0;
+ocm.weight = 1.0;
 
-  robot_state.setVariablePositions(getJointValues(0.2, boost::math::constants::half_pi<double>(), 0.3));
-  robot_state.update();
+robot_state.setVariablePositions(getJointValues(0.2, boost::math::constants::half_pi<double>(), 0.3));
+robot_state.update();
 
-  EXPECT_TRUE(oc.configure(ocm, tf));
-  EXPECT_TRUE(oc.decide(robot_state, true).satisfied);
+EXPECT_TRUE(oc.configure(ocm, tf));
+EXPECT_TRUE(oc.decide(robot_state, true).satisfied);
 }
 
 TEST_F(FloatingJointRobot, TestDefaultParameterization)
@@ -493,14 +493,14 @@ TEST_F(FloatingJointRobot, OrientationConstraintsParameterization)
   EXPECT_FALSE(oc_rotvec.decide(robot_state).satisfied);
 }
 
-  ocm.parameterization = moveit_msgs::OrientationConstraint::ROTATION_VECTOR;
-  ocm.orientation = tf2::toMsg(rotation_vector_to_quat(0.1, 0.2, -0.3));
-  EXPECT_TRUE(oc_rotvec.configure(ocm, tf));
-  EXPECT_TRUE(oc_rotvec.decide(robot_state).satisfied);
+ocm.parameterization = moveit_msgs::OrientationConstraint::ROTATION_VECTOR;
+ocm.orientation = tf2::toMsg(rotation_vector_to_quat(0.1, 0.2, -0.3));
+EXPECT_TRUE(oc_rotvec.configure(ocm, tf));
+EXPECT_TRUE(oc_rotvec.decide(robot_state).satisfied);
 
-  ocm.orientation = tf2::toMsg(rotation_vector_to_quat(0.1, 0.2, -0.6));
-  EXPECT_TRUE(oc_rotvec.configure(ocm, tf));
-  EXPECT_FALSE(oc_rotvec.decide(robot_state).satisfied);
+ocm.orientation = tf2::toMsg(rotation_vector_to_quat(0.1, 0.2, -0.6));
+EXPECT_TRUE(oc_rotvec.configure(ocm, tf));
+EXPECT_FALSE(oc_rotvec.decide(robot_state).satisfied);
 }
 
 int main(int argc, char** argv)

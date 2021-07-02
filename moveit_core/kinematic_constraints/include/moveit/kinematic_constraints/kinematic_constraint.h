@@ -483,7 +483,6 @@ public:
     return parameterization_type_;
   }
 
-
 protected:
   const moveit::core::LinkModel* link_model_;   /**< \brief The target link model */
   Eigen::Matrix3d desired_rotation_matrix_;     /**< \brief The desired rotation matrix in the tf frame. Guaranteed to

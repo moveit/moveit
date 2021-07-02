@@ -269,11 +269,11 @@ void EqualityPositionConstraint::jacobian(const Eigen::Ref<const Eigen::VectorXd
 /******************************************
  * Orientation constraints
  * ****************************************/
-OrientationConstraint::OrientationConstraint(const robot_model::RobotModelConstPtr& robot_model, const std::string& group,
-                        const unsigned int num_dofs)
-    : BaseConstraint(robot_model, group, num_dofs)
-  {
-  }
+OrientationConstraint::OrientationConstraint(const robot_model::RobotModelConstPtr& robot_model,
+                                             const std::string& group, const unsigned int num_dofs)
+  : BaseConstraint(robot_model, group, num_dofs)
+{
+}
 
 void OrientationConstraint::parseConstraintMsg(const moveit_msgs::Constraints& constraints)
 {
@@ -281,7 +281,7 @@ void OrientationConstraint::parseConstraintMsg(const moveit_msgs::Constraints& c
   assert(bounds_.size() == 0);
   bounds_ = orientationConstraintMsgToBoundVector(constraints.orientation_constraints.at(0));
   ROS_INFO_NAMED(LOGNAME, "Parsed Orientation constraints");
-  ROS_INFO_STREAM_NAMED(LOGNAME,  bounds_);
+  ROS_INFO_STREAM_NAMED(LOGNAME, bounds_);
   // ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsed rx / roll constraints" << bounds_[0]);
   // ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsed ry / pitch constraints" << bounds_[1]);
   // ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsed rz / yaw constraints" << bounds_[2]);
@@ -290,18 +290,16 @@ void OrientationConstraint::parseConstraintMsg(const moveit_msgs::Constraints& c
   // geometry_msgs::Point position =
   //     constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).position;
   // target_position_ << position.x, position.y, position.z;
-  tf2::fromMsg(constraints.orientation_constraints.at(0).orientation,
-               target_orientation_);
+  tf2::fromMsg(constraints.orientation_constraints.at(0).orientation, target_orientation_);
   ROS_INFO_NAMED(LOGNAME, "Quaternion desired");
-  ROS_INFO_STREAM_NAMED(LOGNAME,  target_orientation_.x());
-  ROS_INFO_STREAM_NAMED(LOGNAME,  target_orientation_.y());
-  ROS_INFO_STREAM_NAMED(LOGNAME,  target_orientation_.z());
-  ROS_INFO_STREAM_NAMED(LOGNAME,  target_orientation_.w());
+  ROS_INFO_STREAM_NAMED(LOGNAME, target_orientation_.x());
+  ROS_INFO_STREAM_NAMED(LOGNAME, target_orientation_.y());
+  ROS_INFO_STREAM_NAMED(LOGNAME, target_orientation_.z());
+  ROS_INFO_STREAM_NAMED(LOGNAME, target_orientation_.w());
 
   link_name_ = constraints.orientation_constraints.at(0).link_name;
   ROS_INFO_STREAM_NAMED(LOGNAME, "Orientation constraints applied to link: " << link_name_);
 }
-
 
 Eigen::VectorXd OrientationConstraint::calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
 {
@@ -346,7 +344,7 @@ Bounds orientationConstraintMsgToBoundVector(const moveit_msgs::OrientationConst
       dim = std::numeric_limits<double>::infinity();
   }
   // return { { -dims[0], dims[0] }, { -dims[1], dims[1] }, { -dims[2], dims[2] } };
-  return { { -dims[0], -dims[1], -dims[2] }, { dims[0] , dims[1] , dims[2] } };
+  return { { -dims[0], -dims[1], -dims[2] }, { dims[0], dims[1], dims[2] } };
 }
 
 /******************************************
