@@ -157,7 +157,7 @@ TEST(TestCartesianSpeed, TestCartesianEndEffectorSpeed)
   const char* end_effector_link = "panda_link8";
 
   EXPECT_TRUE(time_parameterization.computeTimeStamps(TRAJECTORY));
-  trajectory_processing::setMaxCartesianLinkSpeed(TRAJECTORY, 0.01);
+  trajectory_processing::limitMaxCartesianLinkSpeed(TRAJECTORY, 0.01);
   printTrajectory(TRAJECTORY);
   size_t num_waypoints = TRAJECTORY.getWayPointCount();
   robot_state::RobotStatePtr kinematic_state = TRAJECTORY.getFirstWayPointPtr();
