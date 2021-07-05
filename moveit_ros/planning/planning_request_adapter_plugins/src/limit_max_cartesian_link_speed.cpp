@@ -43,10 +43,10 @@
 
 namespace default_planner_request_adapters
 {
-class SetMaxCartesianLinkSpeed : public planning_request_adapter::PlanningRequestAdapter
+class LimitMaxCartesianLinkSpeed : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
-  SetMaxCartesianLinkSpeed() : planning_request_adapter::PlanningRequestAdapter()
+  LimitMaxCartesianLinkSpeed() : planning_request_adapter::PlanningRequestAdapter()
   {
   }
 
@@ -81,5 +81,5 @@ public:
 };
 }  // namespace default_planner_request_adapters
 
-CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::SetMaxCartesianLinkSpeed,
+CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::LimitMaxCartesianLinkSpeed,
                             planning_request_adapter::PlanningRequestAdapter);
