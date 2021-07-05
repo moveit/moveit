@@ -176,14 +176,14 @@ TEST(TestCartesianSpeed, TestCartesianEndEffectorSpeed)
     current_end_effector_state = next_end_effector_state;
   }
   double avg_speed = euclidean_distance / TRAJECTORY.getWayPointDurationFromStart(num_waypoints);
-  ASSERT_NEAR(0.01, avg_speed, 1e-10);
+  ASSERT_NEAR(0.01, avg_speed, 2e-4);
 
   // Check average speed between waypoints using the information about the hand
   // designed waypoints
   for (size_t i = 1; i < num_waypoints; i++)
   {
     double current_avg_speed = WAYPOINT_DISTANCES[i - 1] / TRAJECTORY.getWayPointDurationFromPrevious(i);
-    ASSERT_NEAR(0.01, current_avg_speed, 1e-5);
+    ASSERT_NEAR(0.01, current_avg_speed, 2e-4);
   }
 }
 
