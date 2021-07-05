@@ -45,8 +45,6 @@
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
 #include <moveit/trajectory_processing/cartesian_speed.h>
 #include <moveit/utils/robot_model_test_utils.h>
-//#include <moveit/planning_scene_interface/planning_scene_interface.h>
-//#include <moveit/move_group_interface/move_group_interface.h>
 
 // Static variables used in all tests
 moveit::core::RobotModelConstPtr RMODEL = moveit::core::loadTestingRobotModel("panda");
