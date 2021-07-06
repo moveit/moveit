@@ -41,6 +41,7 @@
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>
 #include <deque>
+#include <memory>
 
 namespace robot_trajectory
 {
@@ -165,7 +166,7 @@ public:
    */
   RobotTrajectory& addSuffixWayPoint(const moveit::core::RobotState& state, double dt)
   {
-    return addSuffixWayPoint(moveit::core::RobotStatePtr(new moveit::core::RobotState(state)), dt);
+    return addSuffixWayPoint(std::make_shared<moveit::core::RobotState>(state), dt);
   }
 
   /**
@@ -183,7 +184,7 @@ public:
 
   RobotTrajectory& addPrefixWayPoint(const moveit::core::RobotState& state, double dt)
   {
-    return addPrefixWayPoint(moveit::core::RobotStatePtr(new moveit::core::RobotState(state)), dt);
+    return addPrefixWayPoint(std::make_shared<moveit::core::RobotState>(state), dt);
   }
 
   RobotTrajectory& addPrefixWayPoint(const moveit::core::RobotStatePtr& state, double dt)
@@ -196,7 +197,7 @@ public:
 
   RobotTrajectory& insertWayPoint(std::size_t index, const moveit::core::RobotState& state, double dt)
   {
-    return insertWayPoint(index, moveit::core::RobotStatePtr(new moveit::core::RobotState(state)), dt);
+    return insertWayPoint(index, std::make_shared<moveit::core::RobotState>(state), dt);
   }
 
   RobotTrajectory& insertWayPoint(std::size_t index, const moveit::core::RobotStatePtr& state, double dt)
