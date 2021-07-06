@@ -82,8 +82,6 @@ bool limitMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, c
     return false;
   }
 
-  std::string link_name = link_model->getName();
-
   size_t num_waypoints = trajectory.getWayPointCount();
   if (num_waypoints == 0)
     return false;
@@ -97,8 +95,8 @@ bool limitMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, c
   for (size_t i = 0; i < num_waypoints - 1; i++)
   {
     // get link state for current and next waypoint
-    const Eigen::Isometry3d& current_link_state = trajectory.getWayPointPtr(i)->getGlobalLinkTransform(link_name);
-    const Eigen::Isometry3d& next_link_state = trajectory.getWayPointPtr(i + 1)->getGlobalLinkTransform(link_name);
+    const Eigen::Isometry3d& current_link_state = trajectory.getWayPointPtr(i)->getGlobalLinkTransform(link_model);
+    const Eigen::Isometry3d& next_link_state = trajectory.getWayPointPtr(i + 1)->getGlobalLinkTransform(link_model);
 
     // get euclidean distance between the two waypoints
     euclidean_distance = (next_link_state.translation() - current_link_state.translation()).norm();
@@ -117,7 +115,7 @@ bool limitMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, c
     }
   }
   // update time stamps, velocities and accelerations of the trajectory
-  updateTrajectory(trajectory, time_diff);
+  IterativeParabolicTimeParameterization::updateTrajectory(trajectory, time_diff);
   return true;
 }
 }  // namespace trajectory_processing
