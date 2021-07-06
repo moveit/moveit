@@ -136,7 +136,7 @@ bool generateJointTrajectory(const planning_scene::PlanningSceneConstPtr& scene,
                              moveit_msgs::MoveItErrorCodes& error_code, bool check_self_collision = false);
 
 /**
- * @brief Generate joint trajectory from a MultiDOFJointTrajectorycomputePoseIK
+ * @brief Generate joint trajectory from a MultiDOFJointTrajectory
  * @param trajectory: Cartesian trajectory
  * @param info: motion plan information
  * @param sampling_time
