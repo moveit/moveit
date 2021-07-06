@@ -199,7 +199,7 @@ public:
   void addToObject(const std::string& object_id, const Eigen::Isometry3d& pose, const shapes::ShapeConstPtr& shape,
                    const Eigen::Isometry3d& shape_pose)
   {
-    addToObject(object_id, pose, { shape }, { shape_pose });
+    addToObject(object_id, pose, std::vector<shapes::ShapeConstPtr>{ shape }, EigenSTL::vector_Isometry3d{ shape_pose });
   }
 
   /** \brief Add a shape to an object.
@@ -209,7 +209,8 @@ public:
    * shape_pose is defined relative to the object's pose, not to the world frame. */
   void addToObject(const std::string& object_id, const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& shape_pose)
   {
-    addToObject(object_id, Eigen::Isometry3d::Identity(), { shape }, { shape_pose });
+    addToObject(object_id, Eigen::Isometry3d::Identity(), std::vector<shapes::ShapeConstPtr>{ shape },
+                EigenSTL::vector_Isometry3d{ shape_pose });
   }
 
   /** \brief Update the pose of a shape in an object. Shape equality is
