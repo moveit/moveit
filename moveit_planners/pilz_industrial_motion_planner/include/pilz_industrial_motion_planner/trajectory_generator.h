@@ -104,7 +104,7 @@ public:
    * @param req: motion plan request
    * @param res: motion plan response
    * @param sampling_time: sampling time of the generate trajectory
-   * @return motion plan sucgenerate(ceed/fail, detailed information in motion plan
+   * @return motion plan succeed/fail, detailed information in motion plan
    * response
    */
   bool generate(const planning_scene::PlanningSceneConstPtr& scene,
