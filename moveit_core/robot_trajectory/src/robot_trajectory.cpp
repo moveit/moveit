@@ -42,6 +42,11 @@
 
 namespace robot_trajectory
 {
+RobotTrajectory::RobotTrajectory(const moveit::core::RobotModelConstPtr& robot_model)
+  : robot_model_(robot_model), group_(nullptr)
+{
+}
+
 RobotTrajectory::RobotTrajectory(const moveit::core::RobotModelConstPtr& robot_model, const std::string& group)
   : robot_model_(robot_model), group_(group.empty() ? nullptr : robot_model->getJointModelGroup(group))
 {

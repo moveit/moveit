@@ -51,8 +51,15 @@ MOVEIT_CLASS_FORWARD(RobotTrajectory);  // Defines RobotTrajectoryPtr, ConstPtr,
 class RobotTrajectory
 {
 public:
+  /** @brief construct a trajectory */
+  explicit RobotTrajectory(const moveit::core::RobotModelConstPtr& robot_model);
+
+  /** @brief construct a trajectory for the named JointModelGroup */
   RobotTrajectory(const moveit::core::RobotModelConstPtr& robot_model, const std::string& group);
 
+  /** @brief construct a trajectory for the JointModelGroup
+   *  If group is nullptr this is equivalent to the first constructor
+   */
   RobotTrajectory(const moveit::core::RobotModelConstPtr& robot_model, const moveit::core::JointModelGroup* group);
 
   /** Assignment operator, performing a shallow copy, i.e. copying waypoints by pointer */
