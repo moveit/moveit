@@ -44,7 +44,7 @@
 
 #include <moveit_msgs/SaveMap.h>
 #include <moveit_msgs/LoadMap.h>
-#include <moveit/occupancy_map_monitor/occupancy_map.h>
+#include <moveit/collision_detection/occupancy_map.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_updater.h>
 
 #include <boost/thread/mutex.hpp>
@@ -71,14 +71,14 @@ public:
 
   /** @brief Get a pointer to the underlying octree for this monitor. Lock the tree before reading or writing using this
    *  pointer. The value of this pointer stays the same throughout the existance of the monitor instance. */
-  const OccMapTreePtr& getOcTreePtr()
+  const collision_detection::OccMapTreePtr& getOcTreePtr()
   {
     return tree_;
   }
 
   /** @brief Get a const pointer to the underlying octree for this monitor. Lock the
    *  tree before reading this pointer */
-  const OccMapTreeConstPtr& getOcTreePtr() const
+  const collision_detection::OccMapTreeConstPtr& getOcTreePtr() const
   {
     return tree_const_;
   }
@@ -140,8 +140,8 @@ private:
   double map_resolution_;
   boost::mutex parameters_lock_;
 
-  OccMapTreePtr tree_;
-  OccMapTreeConstPtr tree_const_;
+  collision_detection::OccMapTreePtr tree_;
+  collision_detection::OccMapTreeConstPtr tree_const_;
 
   std::unique_ptr<pluginlib::ClassLoader<OccupancyMapUpdater> > updater_plugin_loader_;
   std::vector<OccupancyMapUpdaterPtr> map_updaters_;
