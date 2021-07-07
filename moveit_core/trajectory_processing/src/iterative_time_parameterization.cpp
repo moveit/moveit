@@ -185,7 +185,8 @@ double IterativeParabolicTimeParameterization::findT2(const double dq1, const do
 
 // Takes the time differences, and updates the timestamps, velocities and accelerations
 // in the trajectory.
-void IterativeParabolicTimeParameterization::updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory, const std::vector<double>& time_diff)
+void IterativeParabolicTimeParameterization::updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
+                                                              const std::vector<double>& time_diff)
 {
   // Error check
   if (time_diff.empty())
