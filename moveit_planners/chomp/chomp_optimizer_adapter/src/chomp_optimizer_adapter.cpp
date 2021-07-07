@@ -134,10 +134,13 @@ public:
       params_.joint_update_limit_ = 0.1;
       ROS_INFO_STREAM("Param joint_update_limit was not set. Using default value: " << params_.joint_update_limit_);
     }
-    if (!nh.getParam("min_clearence", params_.min_clearence_))
+    // TODO: remove this warning after 06/2022
+    if (!nh.hasParam("min_clearance") && nh.hasParam("min_clearence"))
+      ROS_WARN("The param 'min_clearence' has been renamed to 'min_clearance', please update your config!");
+    if (!nh.getParam("min_clearance", params_.min_clearance_))
     {
-      params_.min_clearence_ = 0.2;
-      ROS_INFO_STREAM("Param min_clearence was not set. Using default value: " << params_.min_clearence_);
+      params_.min_clearance_ = 0.2;
+      ROS_INFO_STREAM("Param min_clearance was not set. Using default value: " << params_.min_clearance_);
     }
     if (!nh.getParam("collision_threshold", params_.collision_threshold_))
     {

@@ -203,7 +203,6 @@ double ompl_interface::StateValidityChecker::clearance(const ompl::base::State* 
 /*******************************************
  * Constrained Planning StateValidityChecker
  * *****************************************/
-
 bool ompl_interface::ConstrainedPlanningStateValidityChecker::isValid(const ompl::base::State* wrapped_state,
                                                                       bool verbose) const
 {

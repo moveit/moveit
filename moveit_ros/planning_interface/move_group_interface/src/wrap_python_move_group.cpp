@@ -417,6 +417,11 @@ public:
     return getPlannerId().c_str();
   }
 
+  const char* getPlanningPipelineIdCStr() const
+  {
+    return getPlanningPipelineId().c_str();
+  }
+
   bp::dict getNamedTargetValuesPython(const std::string& name)
   {
     bp::dict output;
@@ -474,6 +479,13 @@ public:
     }
     return bp::make_tuple(py_bindings_tools::serializeMsg(res), py_bindings_tools::serializeMsg(plan.trajectory_),
                           plan.planning_time_);
+  }
+
+  py_bindings_tools::ByteString constructMotionPlanRequestPython()
+  {
+    moveit_msgs::MotionPlanRequest request;
+    constructMotionPlanRequest(request);
+    return py_bindings_tools::serializeMsg(request);
   }
 
   bp::tuple computeCartesianPathPython(const bp::list& waypoints, double eef_step, double jump_threshold,
@@ -756,8 +768,12 @@ static void wrap_move_group_interface()
                                  &MoveGroupInterfaceWrapper::setMaxAccelerationScalingFactor);
   move_group_interface_class.def("set_planner_id", &MoveGroupInterfaceWrapper::setPlannerId);
   move_group_interface_class.def("get_planner_id", &MoveGroupInterfaceWrapper::getPlannerIdCStr);
+  move_group_interface_class.def("set_planning_pipeline_id", &MoveGroupInterfaceWrapper::setPlanningPipelineId);
+  move_group_interface_class.def("get_planning_pipeline_id", &MoveGroupInterfaceWrapper::getPlanningPipelineIdCStr);
   move_group_interface_class.def("set_num_planning_attempts", &MoveGroupInterfaceWrapper::setNumPlanningAttempts);
   move_group_interface_class.def("plan", &MoveGroupInterfaceWrapper::planPython);
+  move_group_interface_class.def("construct_motion_plan_request",
+                                 &MoveGroupInterfaceWrapper::constructMotionPlanRequestPython);
   move_group_interface_class.def("compute_cartesian_path", &MoveGroupInterfaceWrapper::computeCartesianPathPython);
   move_group_interface_class.def("compute_cartesian_path",
                                  &MoveGroupInterfaceWrapper::computeCartesianPathConstrainedPython);

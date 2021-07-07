@@ -49,6 +49,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     trajectory_execution_manager/include
     plan_execution/include
     collision_plugin_loader/include
+    moveit_cpp/include
 )
 
 catkin_package(
@@ -62,6 +63,7 @@ catkin_package(
     moveit_plan_execution
     moveit_planning_scene_monitor
     moveit_collision_plugin_loader
+    moveit_cpp
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
   CATKIN_DEPENDS
@@ -95,6 +97,7 @@ add_subdirectory(planning_scene_monitor)
 add_subdirectory(planning_components_tools)
 add_subdirectory(trajectory_execution_manager)
 add_subdirectory(plan_execution)
+add_subdirectory(moveit_cpp)
 
 install(
   FILES

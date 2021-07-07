@@ -2,13 +2,8 @@
   <!-- CHOMP Plugin for MoveIt -->
   <arg name="planning_plugin" value="chomp_interface/CHOMPPlanner" />
 
-  <!-- define capabilites that are loaded on start (space seperated) -->
-  <arg name="capabilities" default=""/>
-
-  <!-- inhibit capabilites (space seperated) -->
-  <arg name="disable_capabilities" default=""/>
-
   <arg name="start_state_max_bounds_error" value="0.1" />
+  <arg name="jiggle_fraction" value="0.05" />
   <!-- The request adapters (plugins) used when planning.
        ORDER MATTERS -->
   <arg name="planning_adapters"
@@ -23,8 +18,10 @@
   <param name="planning_plugin" value="$(arg planning_plugin)" />
   <param name="request_adapters" value="$(arg planning_adapters)" />
   <param name="start_state_max_bounds_error" value="$(arg start_state_max_bounds_error)" />
-  <param name="capabilities" value="$(arg capabilities)" />
-  <param name="disable_capabilities" value="$(arg disable_capabilities)" />
+  <param name="jiggle_fraction" value="$(arg jiggle_fraction)" />
+
+  <!-- Add MoveGroup capabilities specific to this pipeline -->
+  <!-- <param name="capabilities" value="" /> -->
 
   <rosparam command="load" file="$(find [GENERATED_PACKAGE_NAME])/config/chomp_planning.yaml" />
 </launch>

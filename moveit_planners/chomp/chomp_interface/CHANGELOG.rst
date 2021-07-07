@@ -2,6 +2,21 @@
 Changelog for package chomp_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.5 (2021-05-23)
+------------------
+
+1.1.4 (2021-05-12)
+------------------
+
+1.1.3 (2021-04-29)
+------------------
+
+1.1.2 (2021-04-08)
+------------------
+* Fix formatting errors
+* Sanitize CHOMP initialization method parameter (`#2540 <https://github.com/ros-planning/moveit/issues/2540>`_)
+* Contributors: Cong Liu, Tyler Weaver
+
 1.1.1 (2020-10-13)
 ------------------
 * [maint] Add comment to MOVEIT_CLASS_FORWARD (`#2315 <https://github.com/ros-planning/moveit/issues/2315>`_)

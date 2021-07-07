@@ -2,6 +2,27 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.5 (2021-05-23)
+------------------
+* Revert "Lock the octomap/octree while collision checking (`#2683 <https://github.com/ros-planning/moveit/issues/2683>`_)
+* Contributors: Michael Görner
+
+1.1.4 (2021-05-12)
+------------------
+* Lock the octomap/octree while collision checking (`#2596 <https://github.com/ros-planning/moveit/issues/2596>`_)
+* Contributors: Simon Schmeisser
+
+1.1.3 (2021-04-29)
+------------------
+* Document solution in ROS_ERROR on failed self-filtering (`#2627 <https://github.com/ros-planning/moveit/issues/2627>`_)
+* Contributors: Michael Görner
+
+1.1.2 (2021-04-08)
+------------------
+* Fixed flood of errors on startup for `mesh_filter` (`#2550 <https://github.com/ros-planning/moveit/issues/2550>`_)
+* Enable mesh filter (`#2448 <https://github.com/ros-planning/moveit/issues/2448>`_)
+* Contributors: Jafar Abdi, John Stechschulte
+
 1.1.1 (2020-10-13)
 ------------------
 * [fix] various issues with Noetic build (`#2327 <https://github.com/ros-planning/moveit/issues/2327>`_)

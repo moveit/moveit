@@ -50,7 +50,7 @@
 namespace pilz_industrial_motion_planner
 {
 /**
- * @brief Moveit Plugin for Planning with Standart Robot Commands
+ * @brief MoveIt Plugin for Planning with Standard Robot Commands
  * This planner is dedicated to return a instance of PlanningContext that
  * corresponds to the requested motion command
  * set as planner_id in the MotionPlanRequest).
@@ -134,6 +134,6 @@ private:
   pilz_industrial_motion_planner::CartesianLimit cartesian_limit_;
 };
 
-MOVEIT_CLASS_FORWARD(CommandPlanner)
+MOVEIT_CLASS_FORWARD(CommandPlanner);
 
 }  // namespace pilz_industrial_motion_planner

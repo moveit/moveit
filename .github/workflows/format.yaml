@@ -1,0 +1,31 @@
+# This is a format job. Pre-commit has a first-party GitHub action, so we use
+# that: https://github.com/pre-commit/action
+
+name: Format
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+
+jobs:
+  pre-commit:
+    name: pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - name: Install clang-format-10
+        run: sudo apt-get install clang-format-10
+      - name: Install catkin-lint
+        run: |
+          lsb_release -sc
+          sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+          sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+          sudo apt-get -q update
+          sudo apt-get -q install python3-rosdep
+          sudo rosdep init
+          rosdep update
+          sudo apt-get -q install catkin-lint
+          export ROS_DISTRO=noetic
+      - uses: pre-commit/action@v2.0.0

@@ -300,7 +300,7 @@ bool MoveItConfigData::outputCHOMPPlanningYAML(const std::string& file_path)
   emitter << YAML::Key << "use_pseudo_inverse" << YAML::Value << "false";
   emitter << YAML::Key << "pseudo_inverse_ridge_factor" << YAML::Value << "1e-4";
   emitter << YAML::Key << "joint_update_limit" << YAML::Value << "0.1";
-  emitter << YAML::Key << "collision_clearence" << YAML::Value << "0.2";
+  emitter << YAML::Key << "collision_clearance" << YAML::Value << "0.2";
   emitter << YAML::Key << "collision_threshold" << YAML::Value << "0.07";
   emitter << YAML::Key << "use_stochastic_descent" << YAML::Value << "true";
   emitter << YAML::Key << "enable_failure_recovery" << YAML::Value << "true";
@@ -1080,20 +1080,17 @@ bool MoveItConfigData::output3DSensorPluginYAML(const std::string& file_path)
   emitter << YAML::Key << "sensors";
   emitter << YAML::Value << YAML::BeginSeq;
 
-  // Can we have more than one plugin config?
-  emitter << YAML::BeginMap;
-
-  // Make sure sensors_plugin_config_parameter_list_ is not empty
-  if (!sensors_plugin_config_parameter_list_.empty())
+  for (auto& sensors_plugin_config : sensors_plugin_config_parameter_list_)
   {
-    for (auto& parameter : sensors_plugin_config_parameter_list_[0])
+    emitter << YAML::BeginMap;
+
+    for (auto& parameter : sensors_plugin_config)
     {
       emitter << YAML::Key << parameter.first;
       emitter << YAML::Value << parameter.second.getValue();
     }
+    emitter << YAML::EndMap;
   }
-
-  emitter << YAML::EndMap;
 
   emitter << YAML::EndSeq;
 
@@ -1410,7 +1407,8 @@ bool MoveItConfigData::inputPlanningContextLaunch(const std::string& file_path)
   // find the kinematics section
   TiXmlHandle doc(&launch_document);
   TiXmlElement* kinematics_group = doc.FirstChild("launch").FirstChild("group").ToElement();
-  while (kinematics_group && kinematics_group->Attribute("ns") != std::string("$(arg robot_description)_kinematics"))
+  while (kinematics_group && kinematics_group->Attribute("ns") &&
+         kinematics_group->Attribute("ns") != std::string("$(arg robot_description)_kinematics"))
   {
     kinematics_group = kinematics_group->NextSiblingElement("group");
   }

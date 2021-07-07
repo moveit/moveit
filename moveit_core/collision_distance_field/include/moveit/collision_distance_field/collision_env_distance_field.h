@@ -135,7 +135,7 @@ public:
   //                                 collision_detection::AllowedCollisionMatrix
   //                                 &acm) const;
 
-  MOVEIT_STRUCT_FORWARD(DistanceFieldCacheEntryWorld)
+  MOVEIT_STRUCT_FORWARD(DistanceFieldCacheEntryWorld);
   struct DistanceFieldCacheEntryWorld
   {
     std::map<std::string, std::vector<PosedBodyPointDecompositionPtr>> posed_body_point_decompositions_;

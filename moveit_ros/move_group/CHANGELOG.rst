@@ -2,6 +2,23 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.5 (2021-05-23)
+------------------
+
+1.1.4 (2021-05-12)
+------------------
+
+1.1.3 (2021-04-29)
+------------------
+
+1.1.2 (2021-04-08)
+------------------
+* Fix formatting errors
+* Support multiple planning pipelines with MoveGroup via MoveItCpp (`#2127 <https://github.com/ros-planning/moveit/issues/2127>`_)
+* Run multiple planning pipelines with MoveGroup using MoveItCpp
+* Fix missing isEmpty check in compute_ik service (`#2544 <https://github.com/ros-planning/moveit/issues/2544>`_)
+* Contributors: Henning Kayser, Michael Görner, Tyler Weaver
+
 1.1.1 (2020-10-13)
 ------------------
 * [fix] Let the max number of contacts be the amount of world objects + link models with geometry (`#2355 <https://github.com/ros-planning/moveit/issues/2355>`_)

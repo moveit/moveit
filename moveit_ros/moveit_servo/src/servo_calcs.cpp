@@ -188,8 +188,7 @@ void ServoCalcs::start()
     // I do not know of a robot that takes acceleration commands.
     // However, some controllers check that this data is non-empty.
     // Send all zeros, for now.
-    std::vector<double> acceleration(num_joints_);
-    point.accelerations = acceleration;
+    point.accelerations.resize(num_joints_);
   }
   initial_joint_trajectory->points.push_back(point);
   last_sent_command_ = initial_joint_trajectory;
@@ -598,15 +597,15 @@ bool ServoCalcs::convertDeltasToOutgoingCmd(trajectory_msgs::JointTrajectory& jo
 
 // Spam several redundant points into the trajectory. The first few may be skipped if the
 // time stamp is in the past when it reaches the client. Needed for gazebo simulation.
-// Start from 2 because the first point's timestamp is already 1*parameters_.publish_period
 void ServoCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& joint_trajectory, int count) const
 {
   joint_trajectory.points.resize(count);
   auto point = joint_trajectory.points[0];
-  // Start from 2 because we already have the first point. End at count+1 so (total #) == count
-  for (int i = 2; i < count; ++i)
+  // Start from 2nd point (i = 1) because we already have the first point.
+  // The timestamps are shifted up one period since first point is at 1 * publish_period, not 0.
+  for (int i = 1; i < count; ++i)
   {
-    point.time_from_start = ros::Duration(i * parameters_.publish_period);
+    point.time_from_start = ros::Duration((i + 1) * parameters_.publish_period);
     joint_trajectory.points[i] = point;
   }
 }
@@ -835,8 +834,10 @@ void ServoCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory)
   // being 0 seconds in the past, the smallest supported timestep is added as time from start to the trajectory point.
   point.time_from_start.fromNSec(1);
 
-  point.positions.resize(num_joints_);
-  point.velocities.resize(num_joints_);
+  if (parameters_.publish_joint_positions)
+    point.positions.resize(num_joints_);
+  if (parameters_.publish_joint_velocities)
+    point.velocities.resize(num_joints_);
 
   // Assert the following loop is safe to execute
   assert(original_joint_state_.position.size() >= num_joints_);

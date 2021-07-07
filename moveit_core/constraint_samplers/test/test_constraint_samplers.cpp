@@ -338,6 +338,7 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
   ocm.absolute_y_axis_tolerance = 0.01;
   ocm.absolute_z_axis_tolerance = 0.01;
   ocm.weight = 1.0;
+  ocm.parameterization = moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES;
 
   EXPECT_TRUE(oc.configure(ocm, tf));
 
@@ -348,6 +349,18 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
   EXPECT_TRUE(oc.configure(ocm, tf));
 
   constraint_samplers::IKConstraintSampler iks(ps_, "right_arm");
+  EXPECT_TRUE(iks.configure(constraint_samplers::IKSamplingPose(oc)));
+  for (int t = 0; t < 100; ++t)
+  {
+    ks.update();
+    EXPECT_TRUE(iks.sample(ks, ks_const, 100));
+    EXPECT_TRUE(oc.decide(ks).satisfied);
+  }
+
+  // test another parameterization for orientation constraints
+  ocm.parameterization = moveit_msgs::OrientationConstraint::ROTATION_VECTOR;
+  EXPECT_TRUE(oc.configure(ocm, tf));
+
   EXPECT_TRUE(iks.configure(constraint_samplers::IKSamplingPose(oc)));
   for (int t = 0; t < 100; ++t)
   {

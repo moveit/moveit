@@ -79,6 +79,8 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
 PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance,
                                                 const double angular_tolerance, const double target_pose_timeout)
 {
+  // Reset stop requested flag before starting motions
+  stop_requested_ = false;
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves (in a callback function).
   const ros::Time start_time = ros::Time::now();
@@ -307,8 +309,23 @@ geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
   return msg;
 }
 
+void PoseTracking::stopMotion()
+{
+  stop_requested_ = true;
+
+  // Send a 0 command to Servo to halt arm motion
+  auto msg = moveit::util::make_shared_from_pool<geometry_msgs::TwistStamped>();
+  {
+    std::lock_guard<std::mutex> lock(target_pose_mtx_);
+    msg->header.frame_id = target_pose_.header.frame_id;
+  }
+  msg->header.stamp = ros::Time::now();
+  twist_stamped_pub_.publish(msg);
+}
+
 void PoseTracking::doPostMotionReset()
 {
+  stopMotion();
   stop_requested_ = false;
   angular_error_ = boost::none;
 

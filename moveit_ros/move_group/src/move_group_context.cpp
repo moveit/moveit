@@ -36,35 +36,48 @@
 
 #include <moveit/move_group/move_group_context.h>
 
+#include <moveit/moveit_cpp/moveit_cpp.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/plan_execution/plan_execution.h>
 #include <moveit/plan_execution/plan_with_sensing.h>
 
-move_group::MoveGroupContext::MoveGroupContext(
-    const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor, bool allow_trajectory_execution,
-    bool debug)
-  : planning_scene_monitor_(planning_scene_monitor)
+move_group::MoveGroupContext::MoveGroupContext(const moveit_cpp::MoveItCppPtr& moveit_cpp,
+                                               const std::string& default_planning_pipeline,
+                                               bool allow_trajectory_execution, bool debug)
+  : moveit_cpp_(moveit_cpp)
+  , planning_scene_monitor_(moveit_cpp->getPlanningSceneMonitor())
   , allow_trajectory_execution_(allow_trajectory_execution)
   , debug_(debug)
 {
-  planning_pipeline_.reset(new planning_pipeline::PlanningPipeline(planning_scene_monitor_->getRobotModel()));
+  // Check if default planning pipeline has been initialized successfully
+  const auto& pipelines = moveit_cpp->getPlanningPipelines();
+  const auto default_pipeline_it = pipelines.find(default_planning_pipeline);
+  if (default_pipeline_it != pipelines.end())
+  {
+    planning_pipeline_ = default_pipeline_it->second;
+
+    // configure the planning pipeline
+    planning_pipeline_->displayComputedMotionPlans(true);
+    planning_pipeline_->checkSolutionPaths(true);
+
+    if (debug_)
+      planning_pipeline_->publishReceivedRequests(true);
+  }
+  else
+  {
+    ROS_ERROR(
+        "Failed to find default PlanningPipeline '%s' - please check MoveGroup's planning pipeline configuration.",
+        default_planning_pipeline.c_str());
+  }
 
   if (allow_trajectory_execution_)
   {
-    trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(
-        planning_scene_monitor_->getRobotModel(), planning_scene_monitor_->getStateMonitor()));
+    trajectory_execution_manager_ = moveit_cpp_->getTrajectoryExecutionManager();
     plan_execution_.reset(new plan_execution::PlanExecution(planning_scene_monitor_, trajectory_execution_manager_));
     plan_with_sensing_.reset(new plan_execution::PlanWithSensing(trajectory_execution_manager_));
     if (debug)
       plan_with_sensing_->displayCostSources(true);
   }
-
-  // configure the planning pipeline
-  planning_pipeline_->displayComputedMotionPlans(true);
-  planning_pipeline_->checkSolutionPaths(true);
-
-  if (debug_)
-    planning_pipeline_->publishReceivedRequests(true);
 }
 
 move_group::MoveGroupContext::~MoveGroupContext()

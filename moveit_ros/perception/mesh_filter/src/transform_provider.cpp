@@ -39,7 +39,7 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_eigen/tf2_eigen.h>
 
-TransformProvider::TransformProvider(unsigned long interval_us) : stop_(true), interval_us_(interval_us)
+TransformProvider::TransformProvider(double update_rate) : stop_(true), update_rate_(update_rate)
 {
   tf_buffer_ = std::make_shared<tf2_ros::Buffer>();
   tf_listener_.reset(new tf2_ros::TransformListener(*tf_buffer_));
@@ -107,20 +107,27 @@ void TransformProvider::run()
   if (handle2context_.empty())
     throw std::runtime_error("TransformProvider is listening to empty list of frames!");
 
-  while (!stop_)
+  while (ros::ok() && !stop_)
   {
     updateTransforms();
-    usleep(interval_us_);
+    update_rate_.sleep();
   }
 }
 
-void TransformProvider::setUpdateInterval(unsigned long usecs)
+void TransformProvider::setUpdateRate(double update_rate)
 {
-  interval_us_ = usecs;
+  update_rate_ = ros::Rate(update_rate);
 }
 
 void TransformProvider::updateTransforms()
 {
+  // Don't bother if frame_id_ is empty (true initially)
+  if (frame_id_.empty())
+  {
+    ROS_DEBUG_THROTTLE(2., "Not updating transforms because frame_id_ is empty.");
+    return;
+  }
+
   static tf2::Stamped<Eigen::Isometry3d> input_transform, output_transform;
   static moveit::core::RobotStatePtr robot_state;
   robot_state = psm_->getStateMonitor()->getCurrentState();

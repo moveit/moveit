@@ -43,6 +43,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <future>
 
 // ROS
 #include <ros/ros.h>
@@ -53,6 +54,8 @@
 // MoveIt
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/move_group_interface/move_group_interface.h>
+#include <moveit/common_planning_interface_objects/common_objects.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 
 // TF2
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
@@ -84,6 +87,32 @@ public:
 
     // set the tolerance for the goals to be smaller than epsilon
     move_group_->setGoalTolerance(GOAL_TOLERANCE);
+
+    /* the tf buffer is not strictly needed,
+       but it's a simple way to add the codepaths to the tests */
+    psm_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description",
+                                                                          moveit::planning_interface::getSharedTF());
+    psm_->startSceneMonitor("/move_group/monitored_planning_scene");
+    psm_->requestPlanningSceneState();
+
+    // give move_group_, planning_scene_interface_ and psm_ time to connect their topics
+    ros::Duration(0.5).sleep();
+  }
+
+  // run updater() and ensure at least one geometry update was processed by the `move_group` node after doing so
+  void synchronizeGeometryUpdate(const std::function<void()>& updater)
+  {
+    SCOPED_TRACE("synchronizeGeometryUpdate");
+    std::promise<void> promise;
+    std::future<void> future = promise.get_future();
+    psm_->addUpdateCallback([this, &promise](planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType t) {
+      if (t & planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY)
+        promise.set_value();
+      psm_->clearUpdateCallbacks();
+    });
+    updater();
+    // the updater must have triggered a geometry update, otherwise we can't be sure about the state of the scene anymore
+    ASSERT_EQ(future.wait_for(std::chrono::seconds(5)), std::future_status::ready);
   }
 
   void planAndMoveToPose(const geometry_msgs::Pose& pose)
@@ -148,6 +177,7 @@ protected:
   ros::NodeHandle nh_;
   moveit::planning_interface::MoveGroupInterfacePtr move_group_;
   moveit::planning_interface::PlanningSceneInterface planning_scene_interface_;
+  planning_scene_monitor::PlanningSceneMonitorPtr psm_;
 };
 
 TEST_F(MoveGroupTestFixture, PathConstraintCollisionTest)
@@ -200,6 +230,19 @@ TEST_F(MoveGroupTestFixture, PathConstraintCollisionTest)
   move_group_->setPathConstraints(test_constraints);
 
   ////////////////////////////////////////////////////////////////////
+  // plan and move
+  planAndMove();
+
+  // get the pose after the movement
+  testPose(eigen_target_pose);
+
+  // clear path constraints
+  move_group_->clearPathConstraints();
+}
+
+TEST_F(MoveGroupTestFixture, ModifyPlanningSceneAsyncInterfaces)
+{
+  ////////////////////////////////////////////////////////////////////
   // Define a collision object ROS message.
   moveit_msgs::CollisionObject collision_object;
   collision_object.header.frame_id = move_group_->getPlanningFrame();
@@ -230,28 +273,18 @@ TEST_F(MoveGroupTestFixture, PathConstraintCollisionTest)
   collision_objects.push_back(collision_object);
 
   // Now, let's add the collision object into the world
-  planning_scene_interface_.addCollisionObjects(collision_objects);
-
-  ////////////////////////////////////////////////////////////////////
-  // plan and move
-  planAndMove();
-
-  // get the pose after the movement
-  testPose(eigen_target_pose);
-
-  // clear path constraints
-  move_group_->clearPathConstraints();
+  synchronizeGeometryUpdate([&]() { planning_scene_interface_.addCollisionObjects(collision_objects); });
 
   // attach and detach collision object
-  EXPECT_TRUE(move_group_->attachObject(collision_object.id));
+  synchronizeGeometryUpdate([&]() { EXPECT_TRUE(move_group_->attachObject(collision_object.id)); });
   EXPECT_EQ(planning_scene_interface_.getAttachedObjects().size(), std::size_t(1));
-  EXPECT_TRUE(move_group_->detachObject(collision_object.id));
+  synchronizeGeometryUpdate([&]() { EXPECT_TRUE(move_group_->detachObject(collision_object.id)); });
   EXPECT_EQ(planning_scene_interface_.getAttachedObjects().size(), std::size_t(0));
 
   // remove object from world
   const std::vector<std::string> object_ids = { collision_object.id };
   EXPECT_EQ(planning_scene_interface_.getObjects().size(), std::size_t(1));
-  planning_scene_interface_.removeCollisionObjects(object_ids);
+  synchronizeGeometryUpdate([&]() { planning_scene_interface_.removeCollisionObjects(object_ids); });
   EXPECT_EQ(planning_scene_interface_.getObjects().size(), std::size_t(0));
 }
 
@@ -280,7 +313,9 @@ TEST_F(MoveGroupTestFixture, CartPathTest)
   moveit_msgs::RobotTrajectory trajectory;
   const auto jump_threshold = 0.0;
   const auto eef_step = 0.01;
-  move_group_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory);
+
+  // test below is meaningless if Cartesian planning did not succeed
+  ASSERT_GE(EPSILON + move_group_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory), 1.0);
 
   // Execute trajectory
   EXPECT_EQ(move_group_->execute(trajectory), moveit::planning_interface::MoveItErrorCode::SUCCESS);

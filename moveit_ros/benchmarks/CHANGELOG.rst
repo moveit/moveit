@@ -2,6 +2,20 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.5 (2021-05-23)
+------------------
+
+1.1.4 (2021-05-12)
+------------------
+
+1.1.3 (2021-04-29)
+------------------
+
+1.1.2 (2021-04-08)
+------------------
+* Fix formatting errors
+* Contributors: Tyler Weaver
+
 1.1.1 (2020-10-13)
 ------------------
 * [fix] python3 issues (`#2323 <https://github.com/ros-planning/moveit/issues/2323>`_)

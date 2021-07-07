@@ -178,7 +178,6 @@ protected:
   virtual void onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
 
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
-  bool model_is_loading_;
   boost::mutex robot_model_loading_lock_;
 
   moveit::tools::BackgroundProcessing background_process_;

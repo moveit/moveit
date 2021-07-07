@@ -51,6 +51,20 @@ PlacePlan::PlacePlan(const PickPlaceConstPtr& pick_place) : PickPlacePlanBase(pi
 
 namespace
 {
+struct OrderPlaceLocationQuality
+{
+  OrderPlaceLocationQuality(const std::vector<moveit_msgs::PlaceLocation>& places) : places_(places)
+  {
+  }
+
+  bool operator()(const std::size_t a, const std::size_t b) const
+  {
+    return places_[a].quality > places_[b].quality;
+  }
+
+  const std::vector<moveit_msgs::PlaceLocation>& places_;
+};
+
 bool transformToEndEffectorGoal(const geometry_msgs::PoseStamped& goal_pose,
                                 const moveit::core::AttachedBody* attached_body, geometry_msgs::PoseStamped& place_pose)
 {
@@ -304,11 +318,19 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene
 
   pipeline_.start();
 
+  // order the place locations by quality
+  std::vector<std::size_t> place_locations_order(goal.place_locations.size());
+  for (std::size_t i = 0; i < goal.place_locations.size(); ++i)
+    place_locations_order[i] = i;
+  OrderPlaceLocationQuality oq(goal.place_locations);
+  // using stable_sort to preserve order of place locations with equal quality
+  std::stable_sort(place_locations_order.begin(), place_locations_order.end(), oq);
+
   // add possible place locations
   for (std::size_t i = 0; i < goal.place_locations.size(); ++i)
   {
     ManipulationPlanPtr p(new ManipulationPlan(const_plan_data));
-    const moveit_msgs::PlaceLocation& pl = goal.place_locations[i];
+    const moveit_msgs::PlaceLocation& pl = goal.place_locations[place_locations_order[i]];
 
     if (goal.place_eef)
       p->goal_pose_ = pl.place_pose;
@@ -325,7 +347,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene
     p->approach_ = pl.pre_place_approach;
     p->retreat_ = pl.post_place_retreat;
     p->retreat_posture_ = pl.post_place_posture;
-    p->id_ = i;
+    p->id_ = place_locations_order[i];
     if (p->retreat_posture_.joint_names.empty())
       p->retreat_posture_ = attached_body->getDetachPosture();
     pipeline_.push(p);

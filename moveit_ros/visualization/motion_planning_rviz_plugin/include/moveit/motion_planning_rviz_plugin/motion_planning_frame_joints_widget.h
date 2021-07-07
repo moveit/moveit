@@ -53,7 +53,7 @@ class MotionPlanningFrameJointsUI;
 }
 namespace robot_interaction
 {
-MOVEIT_CLASS_FORWARD(InteractionHandler)
+MOVEIT_CLASS_FORWARD(InteractionHandler);
 }
 namespace moveit_rviz_plugin
 {

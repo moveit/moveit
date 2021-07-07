@@ -949,7 +949,7 @@ void ChompOptimizer::performForwardKinematics()
           collision_point_pos_eigen_[i][j][2] = info.sphere_locations[k].z();
 
           collision_point_potential_[i][j] =
-              getPotential(info.distances[k], info.sphere_radii[k], parameters_->min_clearence_);
+              getPotential(info.distances[k], info.sphere_radii[k], parameters_->min_clearance_);
           collision_point_potential_gradient_[i][j][0] = info.gradients[k].x();
           collision_point_potential_gradient_[i][j][1] = info.gradients[k].y();
           collision_point_potential_gradient_[i][j][2] = info.gradients[k].z();

@@ -138,6 +138,8 @@ protected:
   typedef std::map<std::string, moveit_msgs::RobotState> RobotStateMap;
   typedef std::pair<std::string, moveit_msgs::RobotState> RobotStatePair;
   RobotStateMap robot_states_;
+  std::string default_planning_pipeline_;
+  std::vector<moveit_msgs::PlannerInterfaceDescription> planner_descriptions_;
 
 Q_SIGNALS:
   void planningFinished();
@@ -147,6 +149,7 @@ private Q_SLOTS:
 
   // Context tab
   void databaseConnectButtonClicked();
+  void planningPipelineIndexChanged(int index);
   void planningAlgorithmIndexChanged(int index);
   void resetDbButtonClicked();
   void approximateIKChanged(int state);
@@ -223,7 +226,8 @@ private:
   void computeDatabaseConnectButtonClicked();
   void computeDatabaseConnectButtonClickedHelper(int mode);
   void computeResetDbButtonClicked(const std::string& db);
-  void populatePlannersList(const moveit_msgs::PlannerInterfaceDescription& desc);
+  void populatePlannersList(const std::vector<moveit_msgs::PlannerInterfaceDescription>& desc);
+  void populatePlannerDescription(const moveit_msgs::PlannerInterfaceDescription& desc);
 
   // Planning tab
   void computePlanButtonClicked();

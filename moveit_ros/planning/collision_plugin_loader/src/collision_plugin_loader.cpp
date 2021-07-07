@@ -36,6 +36,7 @@
 #include <pluginlib/class_loader.hpp>
 #include <memory>
 
+static const std::string LOGNAME = "collision_detection";
 namespace collision_detection
 {
 class CollisionPluginLoader::CollisionPluginLoaderImpl
@@ -108,7 +109,10 @@ bool CollisionPluginLoader::activate(const std::string& name, const planning_sce
 void CollisionPluginLoader::setupScene(ros::NodeHandle& nh, const planning_scene::PlanningScenePtr& scene)
 {
   if (!scene)
+  {
+    ROS_WARN_NAMED(LOGNAME, "Cannot setup scene, PlanningScenePtr is null.");
     return;
+  }
 
   std::string param_name;
   std::string collision_detector_name;

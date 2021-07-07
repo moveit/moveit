@@ -45,7 +45,7 @@
 
 #define MOVEIT_CLASS_FORWARD(C)                                                                                        \
   class C;                                                                                                             \
-  MOVEIT_DECLARE_PTR(C, C);
+  MOVEIT_DECLARE_PTR(C, C)
 
 /**
  * \def MOVEIT_STRUCT_FORWARD
@@ -54,4 +54,4 @@
  */
 #define MOVEIT_STRUCT_FORWARD(C)                                                                                       \
   struct C;                                                                                                            \
-  MOVEIT_DECLARE_PTR(C, C);
+  MOVEIT_DECLARE_PTR(C, C)
