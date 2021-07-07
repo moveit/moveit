@@ -75,9 +75,4 @@ if(CATKIN_ENABLE_TESTING)
 
   catkin_add_gtest(test_ompl_constraints test/test_ompl_constraints.cpp)
   target_link_libraries(test_ompl_constraints ${MOVEIT_LIB_NAME} ${OMPL_LIBRARIES} ${catkin_LIBRARIES})
-
-  add_rostest_gtest(test_planning_context_manager
-    test/test_planning_context_manager.test
-    test/test_planning_context_manager.cpp)
-  target_link_libraries(test_planning_context_manager ${MOVEIT_LIB_NAME} ${OMPL_LIBRARIES} ${catkin_LIBRARIES})
 endif()
