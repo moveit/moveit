@@ -99,7 +99,7 @@ void OccupancyMapMonitor::initialize()
                                                      << "\" specified but no TF instance (buffer) specified. "
                                                         "No transforms will be applied to received data.");
 
-  tree_.reset(new collision_detection::OccMapTree(map_resolution_));
+  tree_ = std::make_shared<collision_detection::OccMapTree>(map_resolution_);
   tree_const_ = tree_;
 
   XmlRpc::XmlRpcValue sensor_list;
@@ -133,8 +133,8 @@ void OccupancyMapMonitor::initialize()
           {
             try
             {
-              updater_plugin_loader_.reset(new pluginlib::ClassLoader<OccupancyMapUpdater>(
-                  "moveit_ros_perception", "occupancy_map_monitor::OccupancyMapUpdater"));
+              updater_plugin_loader_ = std::make_unique<pluginlib::ClassLoader<OccupancyMapUpdater>>(
+                  "moveit_ros_perception", "occupancy_map_monitor::OccupancyMapUpdater");
             }
             catch (pluginlib::PluginlibException& ex)
             {
