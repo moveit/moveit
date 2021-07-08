@@ -1,0 +1,15 @@
+name: test
+channels:
+  - robostack
+  - conda-forge
+dependencies:
+  - compilers
+  - ninja
+  - cmake
+  - catkin_pkg
+  - pkg-config
+  - rosdep
+  - rosdistro
+  - ros-distro-mutex 0.1 noetic
+  - ros-noetic-catkin
+  - ros-noetic-ros-environment

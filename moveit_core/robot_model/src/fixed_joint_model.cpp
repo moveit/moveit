@@ -60,7 +60,7 @@ void FixedJointModel::getVariableRandomPositions(random_numbers::RandomNumberGen
 }
 
 void FixedJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
-                                                       const Bounds& bounds, const double* near,
+                                                       const Bounds& bounds, const double* seed,
                                                        const double distance) const
 {
 }
