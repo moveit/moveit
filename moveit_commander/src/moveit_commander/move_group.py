@@ -537,9 +537,9 @@ class MoveGroupCommander(object):
         """ Specify which planning pipeline to use when motion planning (e.g. ompl, pilz_industrial_motion_planner) """
         self._g.set_planning_pipeline_id(planning_pipeline)
 
-    def get_planning_pipeline_id(self, planning_pipeline):
+    def get_planning_pipeline_id(self):
         """ Get the current planning_pipeline_id (e.g. ompl, pilz_industrial_motion_planner) """
-        self._g.get_planning_pipeline_id(planning_pipeline)
+        return self._g.get_planning_pipeline_id()
 
     def set_planner_id(self, planner_id):
         """ Specify which planner of the currently selected pipeline to use when motion planning (e.g. RRTConnect, LIN) """
