@@ -239,7 +239,7 @@ double computeEuclideanDistance(const std::vector<double>& array_1, const KDL::J
   {
     distance += (array_1[i] - array_2(i)) * (array_1[i] - array_2(i));
   }
-  return sqrt(distance);
+  return ::sqrt(distance);
 }
 
 void getKDLChainInfo(const KDL::Chain& chain, moveit_msgs::KinematicSolverInfo& chain_info)

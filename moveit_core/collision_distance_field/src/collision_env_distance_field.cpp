@@ -48,9 +48,11 @@
 
 namespace collision_detection
 {
+namespace
+{
+static const std::string NAME = "DISTANCE_FIELD";
 const double EPSILON = 0.001f;
-
-const std::string collision_detection::CollisionDetectorAllocatorDistanceField::NAME("DISTANCE_FIELD");
+}  // namespace
 
 CollisionEnvDistanceField::CollisionEnvDistanceField(
     const moveit::core::RobotModelConstPtr& robot_model,
@@ -1803,4 +1805,10 @@ CollisionEnvDistanceField::generateDistanceFieldCacheEntryWorld()
   dfce->distance_field_->addPointsToField(add_points);
   return dfce;
 }
+
+const std::string& CollisionDetectorAllocatorDistanceField::getName() const
+{
+  return NAME;
+}
+
 }  // namespace collision_detection

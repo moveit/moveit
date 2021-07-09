@@ -47,8 +47,8 @@ namespace pilz_industrial_motion_planner
 {
 /**
  * @brief Base class for all PlanningContextLoaders.
- * Since planning_interface::PlanningContext has a non empty ctor classes
- * derived from it can not be plugins.
+ * Since planning_interface::PlanningContext has a non empty ctor,
+ * classes derived from it can not be plugins.
  * This class serves as base class for wrappers.
  */
 class PlanningContextLoader

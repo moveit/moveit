@@ -256,16 +256,16 @@ public:
 
   /** \brief Provide random values for the joint variables (within default bounds). Enough memory is assumed to be
    * allocated. */
-  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values, const double* near,
+  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values, const double* seed,
                                         const double distance) const
   {
-    getVariableRandomPositionsNearBy(rng, values, variable_bounds_, near, distance);
+    getVariableRandomPositionsNearBy(rng, values, variable_bounds_, seed, distance);
   }
 
   /** \brief Provide random values for the joint variables (within specified bounds). Enough memory is assumed to be
    * allocated. */
   virtual void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
-                                                const Bounds& other_bounds, const double* near,
+                                                const Bounds& other_bounds, const double* seed,
                                                 const double distance) const = 0;
 
   /** @} */
