@@ -57,7 +57,7 @@
 #include <memory>
 
 // Import/export for windows dll's and visibility for gcc shared libraries.
-#include "moveit_planning_scene_export.h"
+#include <moveit/moveit_planning_scene_export.h>
 
 /** \brief This namespace includes the central class for representing planning contexts */
 namespace planning_scene
