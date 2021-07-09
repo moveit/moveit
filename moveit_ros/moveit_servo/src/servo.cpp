@@ -327,7 +327,7 @@ bool Servo::getCommandFrameTransform(Eigen::Isometry3d& transform)
 
 bool Servo::getCommandFrameTransform(geometry_msgs::TransformStamped& transform)
 {
-  return servo_calcs_->getEEFrameTransform(transform);
+  return servo_calcs_->getCommandFrameTransform(transform);
 }
 
 bool Servo::getEEFrameTransform(Eigen::Isometry3d& transform)
