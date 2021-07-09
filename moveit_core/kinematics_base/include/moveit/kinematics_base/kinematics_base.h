@@ -44,7 +44,7 @@
 #include <boost/function.hpp>
 #include <string>
 
-#include "moveit_kinematics_base_export.h"
+#include <moveit/moveit_kinematics_base_export.h>
 
 namespace moveit
 {
