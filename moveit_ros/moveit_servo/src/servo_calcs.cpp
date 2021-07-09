@@ -359,7 +359,7 @@ void ServoCalcs::calculateSingleIteration()
   }
 
   // Print a warning to the user if both are stale
-  if (!twist_command_is_stale_ || !joint_command_is_stale_)
+  if (twist_command_is_stale_ && joint_command_is_stale_)
   {
     ROS_WARN_STREAM_THROTTLE_NAMED(10, LOGNAME,
                                    "Stale command. "
