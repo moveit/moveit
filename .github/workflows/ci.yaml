@@ -17,13 +17,13 @@ jobs:
       fail-fast: false
       matrix:
         env:
-          - IMAGE: master-ci
+          - IMAGE: noetic-ci
             CCOV: true
-          - IMAGE: master-ci-shadow-fixed
+          - IMAGE: noetic-ci-shadow-fixed
             IKFAST_TEST: true
             CATKIN_LINT: true
             CLANG_TIDY: true
-          - IMAGE: melodic-ci
+          - IMAGE: master-ci # ROS Melodic with all dependencies required for master
             CATKIN_LINT: true
     env:
       CXXFLAGS: "-Werror -Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-deprecated-copy"
