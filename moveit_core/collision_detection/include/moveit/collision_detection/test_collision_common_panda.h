@@ -74,11 +74,11 @@ public:
 protected:
   void SetUp() override
   {
-    value_.reset(new CollisionAllocatorType);
+    value_ = std::make_shared<CollisionAllocatorType>();
     robot_model_ = moveit::core::loadTestingRobotModel("panda");
     robot_model_ok_ = static_cast<bool>(robot_model_);
 
-    acm_.reset(new collision_detection::AllowedCollisionMatrix());
+    acm_ = std::make_shared<collision_detection::AllowedCollisionMatrix>();
     // Use default collision operations in the SRDF to setup the acm
     const std::vector<std::string>& collision_links = robot_model_->getLinkModelNamesWithCollisionGeometry();
     acm_->setEntry(collision_links, collision_links, false);
@@ -90,7 +90,7 @@ protected:
 
     cenv_ = value_->allocateEnv(robot_model_);
 
-    robot_state_.reset(new moveit::core::RobotState(robot_model_));
+    robot_state_ = std::make_shared<moveit::core::RobotState>(robot_model_);
     setToHome(*robot_state_);
   }
 

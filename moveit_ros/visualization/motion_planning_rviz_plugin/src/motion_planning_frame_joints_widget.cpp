@@ -210,8 +210,8 @@ void MotionPlanningFrameJointsWidget::changePlanningGroup(
   // create new models
   start_state_handler_ = start_state_handler;
   goal_state_handler_ = goal_state_handler;
-  start_state_model_.reset(new JMGItemModel(*start_state_handler_->getState(), group_name, this));
-  goal_state_model_.reset(new JMGItemModel(*goal_state_handler_->getState(), group_name, this));
+  start_state_model_ = std::make_unique<JMGItemModel>(*start_state_handler_->getState(), group_name, this);
+  goal_state_model_ = std::make_unique<JMGItemModel>(*goal_state_handler_->getState(), group_name, this);
 
   // forward model updates to the PlanningDisplay
   connect(start_state_model_.get(), &JMGItemModel::dataChanged, this, [this]() {
