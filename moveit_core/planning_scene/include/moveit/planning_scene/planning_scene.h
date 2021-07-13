@@ -132,7 +132,7 @@ public:
    * has the diffs specified by \e msg applied. */
   PlanningScenePtr diff(const moveit_msgs::PlanningScene& msg) const;
 
-  /** \brief Get the parent scene (whith respect to which the diffs are maintained). This may be empty */
+  /** \brief Get the parent scene (with respect to which the diffs are maintained). This may be empty */
   const PlanningSceneConstPtr& getParent() const
   {
     return parent_;
