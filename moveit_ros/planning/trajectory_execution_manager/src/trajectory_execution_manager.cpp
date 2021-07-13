@@ -376,6 +376,38 @@ bool TrajectoryExecutionManager::pushAndExecuteSimultaneous(const moveit_msgs::R
 
 void TrajectoryExecutionManager::continuousExecutionThread()
 {
+
+  /*
+  TODO(cambel): Clean this method
+  - Remove the used_handles, used the active context map instead (maybe not if this is more efficient)
+  - Separate chunks of code into private methods
+  - Make logs DEBUG type
+  - format clang?
+  */
+  /*
+  TODO(cambel): Implement simple scheduling for trajectories
+  main loop:
+    0. Check if we have entries in the *backlog*
+      a. if so, 
+        I. check that the handles in the current item are not necessary in previous items of the backlog 
+          (avoid altering the sequential order in which requests arrived per handle), 
+          if there are not, go to step II., else check the next item in the backlog
+        II. check the first item is executable, step 2. to 6., if so remove backlog entry, else go to the next item in the backlog
+      b. go to step 2.
+      c. after checking the entire *backlog*, go to step 1.
+    1. Pop new request
+    --- new method start here ---
+    2. Check its handles (controllers) and see if they are available
+    3. Check that the necessary handles are not busy, otherwise push request into *backlog*
+    4. Check that the new trajectories are not in collision with the active collisions, otherwise push request into *backlog*
+    5. Check that the new trajectories start from the current pose of the robot, otherwise reject request
+    6. If everything is okay, execute trajectory, store request as used_handles, active_contexts_map
+    --- new method stop here ---
+  */
+  /*
+  TODO (cambel):
+  - Adapt the validation of the duration of a trajectory as done in ExecuteThread(), thus aborting trajectories with "Controller is taking longer than expected"
+  */
   std::set<moveit_controller_manager::MoveItControllerHandlePtr> used_handles;
   std::map<TrajectoryExecutionContext*, std::set<moveit_controller_manager::MoveItControllerHandlePtr>> active_contexts_map;  // The list of trajectories currently being executed, and their controller handles
   std::deque<std::pair<TrajectoryExecutionContext*, ros::Time>> backlog;
