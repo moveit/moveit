@@ -418,7 +418,7 @@ public:
     }
   }
 
-  void setMaxCartesianLinkSpeed(const double max_speed, const std::string& link_name)
+  void limitMaxCartesianLinkSpeed(const double max_speed, const std::string& link_name)
   {
     cartesian_speed_limited_link_ = link_name;
     max_cartesian_speed_ = max_speed;
@@ -1498,9 +1498,9 @@ void MoveGroupInterface::setMaxAccelerationScalingFactor(double max_acceleration
   impl_->setMaxAccelerationScalingFactor(max_acceleration_scaling_factor);
 }
 
-void MoveGroupInterface::setMaxCartesianLinkSpeed(const double max_speed, const std::string& link_name)
+void MoveGroupInterface::limitMaxCartesianLinkSpeed(const double max_speed, const std::string& link_name)
 {
-  impl_->setMaxCartesianLinkSpeed(max_speed, link_name);
+  impl_->limitMaxCartesianLinkSpeed(max_speed, link_name);
 }
 
 void MoveGroupInterface::clearMaxCartesianLinkSpeed()
