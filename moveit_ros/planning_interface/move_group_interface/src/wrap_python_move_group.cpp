@@ -785,7 +785,8 @@ static void wrap_move_group_interface()
                                  &MoveGroupInterfaceWrapper::setMaxVelocityScalingFactor);
   move_group_interface_class.def("set_max_acceleration_scaling_factor",
                                  &MoveGroupInterfaceWrapper::setMaxAccelerationScalingFactor);
-  move_group_interface_class.def("limit_max_cartesian_link_speed", &MoveGroupInterfaceWrapper::limitMaxCartesianLinkSpeed);
+  move_group_interface_class.def("limit_max_cartesian_link_speed",
+                                 &MoveGroupInterfaceWrapper::limitMaxCartesianLinkSpeed);
   move_group_interface_class.def("clear_max_cartesian_link_speed",
                                  &MoveGroupInterfaceWrapper::clearMaxCartesianLinkSpeed);
   move_group_interface_class.def("set_planner_id", &MoveGroupInterfaceWrapper::setPlannerId);
