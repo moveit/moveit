@@ -103,38 +103,44 @@ void MoveGroupExecuteTrajectoryAction::executePathCallback(ExecuteTrajectoryActi
 
     ROS_DEBUG_STREAM_NAMED(name_, "List of goal_handles_: " << goal_handles_.size());
     
-    for (auto it = goal_handles_.begin(); it != goal_handles_.end(); ++it)
     {
-      if (it->getGoalID() == goalId)
+      boost::mutex::scoped_lock lock(goal_handles_mutex_);
+      for (auto it = goal_handles_.begin(); it != goal_handles_.end(); ++it)
       {
-        if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+        if (it->getGoalID() == goalId)
         {
-          it->setSucceeded(action_res, response);
+          ROS_DEBUG_STREAM_NAMED(name_, "goal (" << it->getGoal()->trajectory.joint_trajectory.joint_names[0] << ") set to " << response);
+          if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+          {
+            it->setSucceeded(action_res, response);
+          }
+          else
+          {
+            it->setAborted(action_res, response);
+          }
+          goal_handles_.erase(it);
+          break;
         }
-        else
-        {
-          it->setAborted(action_res, response);
-        }
-        goal_handles_.erase(it);
-        break;
+      }
+      // ROS_DEBUG_STREAM_NAMED(name_, "goal set to " << response);
+    }
+    }; // end of lambda expression
+
+    {
+      boost::mutex::scoped_lock lock(goal_handles_mutex_);
+      if (context_->trajectory_execution_manager_->pushAndExecuteSimultaneous(goal.getGoal()->trajectory, "", completedTrajectoryCallback))
+      {
+        ROS_DEBUG_STREAM_NAMED(name_, "Pushed trajectory to queue.");
+        goal_handles_.push_back(goal);
+      }
+      else
+      {
+        ROS_DEBUG_STREAM_NAMED(name_, "Failed to pushed trajectory to queue.");
+        action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
+        const std::string response = getActionResultString(action_res.error_code, false, false);
+        goal.setAborted(action_res, response);
       }
     }
-    ROS_DEBUG_STREAM_NAMED(name_, "goal set to " << response);
-  }; // end of lambda expression
-
-
-  if (context_->trajectory_execution_manager_->pushAndExecuteSimultaneous(goal.getGoal()->trajectory, "", completedTrajectoryCallback))
-  {
-    goal_handles_.push_back(goal);
-    ROS_DEBUG_STREAM_NAMED(name_, "Pushed trajectory to queue.");
-  }
-  else
-  {
-    ROS_DEBUG_STREAM_NAMED(name_, "Failed to pushed trajectory to queue.");
-    action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
-    const std::string response = getActionResultString(action_res.error_code, false, false);
-    goal.setAborted(action_res, response);
-  }
 }
 
 void MoveGroupExecuteTrajectoryAction::setExecuteTrajectoryState(MoveGroupState state)

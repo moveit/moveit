@@ -61,6 +61,7 @@ private:
   void setExecuteTrajectoryState(MoveGroupState state);
 
   const std::string name_ = "trajectory_execution_action_capability";
+  boost::mutex goal_handles_mutex_;
 
   std::unique_ptr<ExecuteTrajectoryActionServer> execute_action_server_;
   std::vector<ExecuteTrajectoryActionServer::GoalHandle> goal_handles_;
