@@ -71,10 +71,10 @@ Qt::ItemFlags JMGItemModel::flags(const QModelIndex& index) const
   Qt::ItemFlags f = QAbstractTableModel::flags(index);
 
   const moveit::core::JointModel* jm = getJointModel(index);
-  bool isEditable = !jm->isPassive() && !jm->getMimic();
-  f.setFlag(Qt::ItemIsEnabled, isEditable);
+  bool is_editable = !jm->isPassive() && !jm->getMimic();
+  f.setFlag(Qt::ItemIsEnabled, is_editable);
   if (index.column() == 1)
-    f.setFlag(Qt::ItemIsEditable, isEditable);
+    f.setFlag(Qt::ItemIsEditable, is_editable);
   return f;
 }
 

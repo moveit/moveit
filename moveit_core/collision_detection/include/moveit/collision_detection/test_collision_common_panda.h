@@ -336,13 +336,13 @@ TYPED_TEST_P(DistanceFullPandaTest, DistancePoints)
   this->cenv_->distanceRobot(req, res, *this->robot_state_);
 
   // Checks a particular point is inside the box
-  auto checkInBox = [&](const Eigen::Vector3d& p) {
-    Eigen::Vector3d inBox = pos.inverse() * p;
+  auto check_in_box = [&](const Eigen::Vector3d& p) {
+    Eigen::Vector3d in_box = pos.inverse() * p;
 
-    constexpr double EPS = 1e-5;
-    EXPECT_LE(std::abs(inBox.x()), shape->size[0] + EPS);
-    EXPECT_LE(std::abs(inBox.y()), shape->size[1] + EPS);
-    EXPECT_LE(std::abs(inBox.z()), shape->size[2] + EPS);
+    constexpr double eps = 1e-5;
+    EXPECT_LE(std::abs(in_box.x()), shape->size[0] + eps);
+    EXPECT_LE(std::abs(in_box.y()), shape->size[1] + eps);
+    EXPECT_LE(std::abs(in_box.z()), shape->size[2] + eps);
   };
 
   // Check that all points reported on "box" are actually on the box and not
@@ -352,9 +352,9 @@ TYPED_TEST_P(DistanceFullPandaTest, DistancePoints)
     for (auto& pair : distance.second)
     {
       if (pair.link_names[0] == "box")
-        checkInBox(pair.nearest_points[0]);
+        check_in_box(pair.nearest_points[0]);
       else if (pair.link_names[1] == "box")
-        checkInBox(pair.nearest_points[1]);
+        check_in_box(pair.nearest_points[1]);
       else
         ADD_FAILURE() << "Unrecognized link names";
     }

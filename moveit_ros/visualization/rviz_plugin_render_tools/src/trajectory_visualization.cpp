@@ -340,8 +340,8 @@ void TrajectoryVisualization::interruptCurrentDisplay()
 
 float TrajectoryVisualization::getStateDisplayTime()
 {
-  constexpr char DEFAULT_TIME_STRING[] = "3x";
-  constexpr float DEFAULT_TIME_VALUE = -3.0f;
+  constexpr char default_time_string[] = "3x";
+  constexpr float default_time_value = -3.0f;
 
   std::string tm = state_display_time_property_->getStdString();
   boost::trim(tm);
@@ -358,8 +358,8 @@ float TrajectoryVisualization::getStateDisplayTime()
   }
   else
   {
-    state_display_time_property_->setStdString(DEFAULT_TIME_STRING);
-    return DEFAULT_TIME_VALUE;
+    state_display_time_property_->setStdString(default_time_string);
+    return default_time_value;
   }
 
   tm.resize(tm.size() - 1);
@@ -372,14 +372,14 @@ float TrajectoryVisualization::getStateDisplayTime()
   }
   catch (const boost::bad_lexical_cast& ex)
   {
-    state_display_time_property_->setStdString(DEFAULT_TIME_STRING);
-    return DEFAULT_TIME_VALUE;
+    state_display_time_property_->setStdString(default_time_string);
+    return default_time_value;
   }
 
   if (value <= 0)
   {
-    state_display_time_property_->setStdString(DEFAULT_TIME_STRING);
-    return DEFAULT_TIME_VALUE;
+    state_display_time_property_->setStdString(default_time_string);
+    return default_time_value;
   }
 
   return type * value;
