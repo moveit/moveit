@@ -2114,7 +2114,9 @@ bool TrajectoryExecutionManager::validateAndExecuteContext(TrajectoryExecutionCo
     // Check whether this trajectory part starts at current robot state
     if (!validate(context))
     {
-      return false;
+      ROS_ERROR_NAMED(name_, "Trajectory became invalid before execution, abort.");
+      context.execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
+      return true;
     }
 
     // Send trajectory (part) to controller
