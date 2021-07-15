@@ -19,6 +19,7 @@ jobs:
         env:
           - IMAGE: noetic-ci
             CCOV: true
+            BUILDER: .github/workflows/catkin_tools_devel.sh
           - IMAGE: noetic-ci-shadow-fixed
             IKFAST_TEST: true
             CATKIN_LINT: true
@@ -42,7 +43,7 @@ jobs:
       BASEDIR: ${{ github.workspace }}/.work
       CLANG_TIDY_BASE_REF: "${{ github.base_ref || github.ref }}"
       BEFORE_CLANG_TIDY_CHECKS: (cd $TARGET_REPO_PATH; clang-tidy --list-checks)
-      BUILDER: catkin_tools
+      BUILDER: ${{ matrix.env.BUILDER || 'catkin_tools' }}
 
     name: "${{ matrix.env.IMAGE }}${{ matrix.env.CATKIN_LINT && ' + catkin_lint' || ''}}${{ matrix.env.CCOV && ' + ccov' || ''}}${{ matrix.env.IKFAST_TEST && ' + ikfast' || ''}}${{ matrix.env.CLANG_TIDY && ' + clang-tidy' || '' }}"
     runs-on: ubuntu-latest
