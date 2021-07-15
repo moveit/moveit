@@ -247,7 +247,10 @@ bool MoveGroupSequenceAction::planUsingSequenceManager(const moveit_msgs::Motion
                                                        plan_execution::ExecutableMotionPlan& plan)
 {
   setMoveState(move_group::PLANNING);
-
+  // before we start planning, ensure that we have the latest robot state
+  // received...
+  context_->planning_scene_monitor_->waitForCurrentRobotState(ros::Time::now());
+  context_->planning_scene_monitor_->updateFrameTransforms();
   planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_);
   RobotTrajCont traj_vec;
   try

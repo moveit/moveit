@@ -73,6 +73,9 @@ bool MoveGroupSequenceService::plan(moveit_msgs::GetMotionSequence::Request& req
 
   // TODO: Do we lock on the correct scene? Does the lock belong to the scene
   // used for planning?
+  // before we start planning, ensure that we have the latest robot state received...
+  context_->planning_scene_monitor_->waitForCurrentRobotState(ros::Time::now());
+  context_->planning_scene_monitor_->updateFrameTransforms();
   planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
 
   ros::Time planning_start = ros::Time::now();
