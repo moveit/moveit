@@ -56,7 +56,7 @@
       <arg name="pipeline" value="chomp" />
     </include>
 
-    <!-- Pilz Industrial Motion-->
+    <!-- Pilz Industrial Motion -->
     <include ns="pilz_industrial_motion_planner" file="$(dirname)/planning_pipeline.launch.xml">
       <arg name="pipeline" value="pilz_industrial_motion_planner" />
     </include>
