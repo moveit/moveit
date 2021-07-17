@@ -54,6 +54,8 @@
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
 
+#include <memory>
+
 namespace moveit_rviz_plugin
 {
 // ******************************************************************************************
@@ -378,7 +380,7 @@ void RobotStateDisplay::loadRobotModel()
     try
     {
       const srdf::ModelSharedPtr& srdf =
-          rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : srdf::ModelSharedPtr(new srdf::Model());
+          rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : std::make_shared<srdf::Model>();
       robot_model_ = std::make_shared<moveit::core::RobotModel>(rdf_loader_->getURDF(), srdf);
       robot_->load(*robot_model_->getURDF());
       robot_state_ = std::make_shared<moveit::core::RobotState>(robot_model_);

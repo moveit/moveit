@@ -41,6 +41,8 @@
 #include <geometric_shapes/shapes.h>
 #include <geometric_shapes/shape_operations.h>
 #include <Eigen/Eigen>
+
+#include <memory>
 #include <stdexcept>
 #include <sstream>
 
@@ -188,7 +190,7 @@ mesh_filter::MeshHandle mesh_filter::MeshFilterBase::addMesh(const shapes::Mesh&
 
 void mesh_filter::MeshFilterBase::addMeshHelper(MeshHandle handle, const shapes::Mesh* cmesh)
 {
-  meshes_[handle] = GLMeshPtr(new GLMesh(*cmesh, handle));
+  meshes_[handle] = std::make_shared<GLMesh>(*cmesh, handle);
 }
 
 void mesh_filter::MeshFilterBase::removeMesh(MeshHandle handle)

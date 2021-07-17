@@ -34,10 +34,10 @@
 
 /* Author: Peter Mitrano */
 
+#include <memory>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <moveit/python/pybind_rosmsg_typecasters.h>
-
 #include <moveit/planning_scene/planning_scene.h>
 
 namespace py = pybind11;
@@ -50,7 +50,7 @@ void def_planning_scene_bindings(py::module& m)
 
   py::class_<PlanningScene, PlanningScenePtr>(m, "PlanningScene")
       .def(py::init<const moveit::core::RobotModelConstPtr&, const collision_detection::WorldPtr&>(),
-           py::arg("robot_model"), py::arg("world") = collision_detection::WorldPtr(new collision_detection::World()))
+           py::arg("robot_model"), py::arg("world") = std::make_shared<collision_detection::World>())
       .def("checkSelfCollision",
            py::overload_cast<const collision_detection::CollisionRequest&, collision_detection::CollisionResult&>(
                &PlanningScene::checkSelfCollision, py::const_))

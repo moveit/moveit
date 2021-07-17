@@ -37,6 +37,8 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/profiler/profiler.h>
 #include <ros/ros.h>
+
+#include <memory>
 #include <typeinfo>
 
 namespace robot_model_loader
@@ -96,7 +98,7 @@ void RobotModelLoader::configure(const Options& opt)
   if (rdf_loader_->getURDF())
   {
     const srdf::ModelSharedPtr& srdf =
-        rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : srdf::ModelSharedPtr(new srdf::Model());
+        rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : std::make_shared<srdf::Model>();
     model_ = std::make_shared<moveit::core::RobotModel>(rdf_loader_->getURDF(), srdf);
   }
 

@@ -1194,8 +1194,8 @@ void CollisionEnvDistanceField::getGroupStateRepresentation(const DistanceFieldC
                          << link_size.z() << "] and origin " << link_origin.x() << ", " << link_origin.y() << ", "
                          << link_origin.z());
 
-        gsr->link_distance_fields_.push_back(PosedDistanceFieldPtr(new PosedDistanceField(
-            link_size, link_origin, resolution_, max_propogation_distance_, use_signed_distance_field_)));
+        gsr->link_distance_fields_.push_back(std::make_shared<PosedDistanceField>(
+            link_size, link_origin, resolution_, max_propogation_distance_, use_signed_distance_field_));
         gsr->link_distance_fields_.back()->addPointsToField(link_bd->getCollisionPoints());
         ROS_DEBUG_STREAM("Created PosedDistanceField for link " << dfce->link_names_[i] << " with "
                                                                 << link_bd->getCollisionPoints().size() << " points");
