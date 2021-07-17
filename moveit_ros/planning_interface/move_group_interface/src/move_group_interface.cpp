@@ -1611,7 +1611,10 @@ void MoveGroupInterface::stop()
 void MoveGroupInterface::setStartState(const moveit_msgs::RobotState& start_state)
 {
   moveit::core::RobotStatePtr rs;
-  impl_->getCurrentState(rs);
+  if (start_state.is_diff)
+    impl_->getCurrentState(rs);
+  else
+    rs = std::make_shared<moveit::core::RobotState>(getRobotModel());
   moveit::core::robotStateMsgToRobotState(start_state, *rs);
   setStartState(*rs);
 }
