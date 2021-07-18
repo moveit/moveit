@@ -32,6 +32,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
+#include <memory>
+
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_model/robot_model.h>
@@ -57,8 +59,7 @@ public:
 
     for (const std::string& group : model->getJointModelGroupNames())
     {
-      planning_contexts_[group] =
-          CHOMPPlanningContextPtr(new CHOMPPlanningContext("chomp_planning_context", group, model, nh));
+      planning_contexts_[group] = std::make_shared<CHOMPPlanningContext>("chomp_planning_context", group, model, nh);
     }
     return true;
   }
