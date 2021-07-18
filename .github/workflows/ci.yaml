@@ -104,7 +104,7 @@ jobs:
         run: |
           moveit_kinematics/test/test_ikfast_plugins.sh
       - name: industrial_ci
-        uses: rhaschke/industrial_ci@fix-clang-tidy
+        uses: ros-industrial/industrial_ci@master
         env: ${{ matrix.env }}
 
       - name: upload test artifacts (on failure)
