@@ -35,6 +35,7 @@ set_target_properties(moveit_generate_state_database PROPERTIES OUTPUT_NAME "gen
 add_library(moveit_ompl_planner_plugin src/ompl_planner_manager.cpp)
 set_target_properties(moveit_ompl_planner_plugin PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(moveit_ompl_planner_plugin ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_dependencies(moveit_ompl_planner_plugin ${${PROJECT_NAME}_EXPORTED_TARGETS}) # don't build until necessary msgs are available
 
 install(TARGETS ${MOVEIT_LIB_NAME} moveit_ompl_planner_plugin
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
