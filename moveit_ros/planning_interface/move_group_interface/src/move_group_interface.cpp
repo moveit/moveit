@@ -124,6 +124,9 @@ public:
     goal_joint_tolerance_ = 1e-4;
     goal_position_tolerance_ = 1e-4;     // 0.1 mm
     goal_orientation_tolerance_ = 1e-3;  // ~0.1 deg
+    goal_position_tolerance_xyz_ = { goal_position_tolerance_, goal_position_tolerance_, goal_position_tolerance_ };
+    goal_orientation_tolerance_xyz_ = { goal_orientation_tolerance_, goal_orientation_tolerance_,
+                                        goal_orientation_tolerance_ };
     allowed_planning_time_ = 5.0;
     num_planning_attempts_ = 1;
     node_handle_.param<double>("robot_description_planning/default_velocity_scaling_factor",
@@ -1021,6 +1024,16 @@ public:
     return goal_orientation_tolerance_;
   }
 
+  std::vector<double> getGoalPositionToleranceXYZ() const
+  {
+    return goal_position_tolerance_xyz_;
+  }
+
+  std::vector<double> getGoalOrientationToleranceXYZ() const
+  {
+    return goal_orientation_tolerance_xyz_;
+  }
+
   double getGoalJointTolerance() const
   {
     return goal_joint_tolerance_;
@@ -1039,6 +1052,18 @@ public:
   void setGoalOrientationTolerance(double tolerance)
   {
     goal_orientation_tolerance_ = tolerance;
+  }
+
+  void setGoalPositionToleranceXYZ(const std::vector<double>& tolerances)
+  {
+    goal_position_tolerance_xyz_ = tolerances;
+    goal_position_tolerance_ = 0.0;
+  }
+
+  void setGoalOrientationToleranceXYZ(const std::vector<double>& tolerances)
+  {
+    goal_orientation_tolerance_xyz_ = tolerances;
+    goal_orientation_tolerance_ = 0.0;
   }
 
   void setPlanningTime(double seconds)
@@ -1114,8 +1139,31 @@ public:
       {
         for (std::size_t i = 0; i < pose_target.second.size(); ++i)
         {
-          moveit_msgs::Constraints c = kinematic_constraints::constructGoalConstraints(
-              pose_target.first, pose_target.second[i], goal_position_tolerance_, goal_orientation_tolerance_);
+          moveit_msgs::Constraints c;
+          if (goal_orientation_tolerance_ > 0.0 && goal_position_tolerance_ > 0.0)
+            c = kinematic_constraints::constructGoalConstraints(pose_target.first, pose_target.second[i],
+                                                                goal_position_tolerance_, goal_orientation_tolerance_);
+          else if (goal_orientation_tolerance_ > 0.0)
+          {
+            // goal_orientation_tolerance_xyz_ = { goal_orientation_tolerance_, goal_orientation_tolerance_,
+            //                                     goal_orientation_tolerance_ };
+            c = kinematic_constraints::constructGoalConstraints(
+                pose_target.first, pose_target.second[i], goal_position_tolerance_xyz_,
+                { goal_orientation_tolerance_, goal_orientation_tolerance_, goal_orientation_tolerance_ });
+          }
+          else if (goal_position_tolerance_ > 0.0)
+          {
+            // goal_position_tolerance_xyz_ = { goal_position_tolerance_, goal_position_tolerance_,
+            //                                  goal_position_tolerance_ };
+            c = kinematic_constraints::constructGoalConstraints(pose_target.first, pose_target.second[i],
+                                                                { goal_position_tolerance_, goal_position_tolerance_,
+                                                                  goal_position_tolerance_ },
+                                                                goal_orientation_tolerance_xyz_);
+          }
+          else
+            c = kinematic_constraints::constructGoalConstraints(pose_target.first, pose_target.second[i],
+                                                                goal_position_tolerance_xyz_,
+                                                                goal_orientation_tolerance_xyz_);
           if (active_target_ == ORIENTATION)
             c.position_constraints.clear();
           if (active_target_ == POSITION)
@@ -1323,6 +1371,8 @@ private:
   double goal_joint_tolerance_;
   double goal_position_tolerance_;
   double goal_orientation_tolerance_;
+  std::vector<double> goal_position_tolerance_xyz_;
+  std::vector<double> goal_orientation_tolerance_xyz_;
   bool can_look_;
   bool can_replan_;
   double replan_delay_;
@@ -2046,6 +2096,13 @@ double MoveGroupInterface::getGoalOrientationTolerance() const
   return impl_->getGoalOrientationTolerance();
 }
 
+void MoveGroupInterface::setDefaultGoalTolerance()
+{
+  setGoalJointTolerance(1e-4);
+  setGoalPositionTolerance(1e-4);
+  setGoalOrientationTolerance(1e-3);
+}
+
 void MoveGroupInterface::setGoalTolerance(double tolerance)
 {
   setGoalJointTolerance(tolerance);
@@ -2066,6 +2123,16 @@ void MoveGroupInterface::setGoalPositionTolerance(double tolerance)
 void MoveGroupInterface::setGoalOrientationTolerance(double tolerance)
 {
   impl_->setGoalOrientationTolerance(tolerance);
+}
+
+void MoveGroupInterface::setGoalPositionToleranceXYZ(const std::vector<double>& tolerances)
+{
+  impl_->setGoalPositionToleranceXYZ(tolerances);
+}
+
+void MoveGroupInterface::setGoalOrientationToleranceXYZ(const std::vector<double>& tolerances)
+{
+  impl_->setGoalOrientationToleranceXYZ(tolerances);
 }
 
 void MoveGroupInterface::rememberJointValues(const std::string& name)
