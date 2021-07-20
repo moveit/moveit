@@ -52,14 +52,20 @@ MOVEIT_CLASS_FORWARD(RobotTrajectory);  // Defines RobotTrajectoryPtr, ConstPtr,
 class RobotTrajectory
 {
 public:
-  /** @brief construct a trajectory */
+  /** @brief construct a trajectory for the whole robot */
   explicit RobotTrajectory(const moveit::core::RobotModelConstPtr& robot_model);
 
-  /** @brief construct a trajectory for the named JointModelGroup */
+  /** @brief construct a trajectory for the named JointModelGroup
+   * If group is an empty string, this is equivalent to the first constructor,
+   * otherwise it is equivalent to `RobotTrajectory(robot_model, robot_model->getJointModelGroup(group))`.
+   */
   RobotTrajectory(const moveit::core::RobotModelConstPtr& robot_model, const std::string& group);
 
   /** @brief construct a trajectory for the JointModelGroup
-   *  If group is nullptr this is equivalent to the first constructor
+   *  Only joints from the specified group will be considered in this trajectory,
+   *  even though all waypoints still consist of full RobotStates (representing all joints).
+   *
+   *  If group is nullptr this is equivalent to the first constructor.
    */
   RobotTrajectory(const moveit::core::RobotModelConstPtr& robot_model, const moveit::core::JointModelGroup* group);
 
