@@ -471,6 +471,7 @@ void TrajectoryExecutionManager::continuousExecutionThread()
         if (created_at + ros::Duration(expiration_time) < ros::Time::now())
         {
           ROS_WARN_STREAM_NAMED(name_, "Backlog item with duration " << current_context->trajectory_parts_[0].joint_trajectory.points.back().time_from_start << " has expired (older than 1 minute). Assuming malfunction, removing from backlog.");
+          current_context->execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
           it = backlog.erase(it);
           continue;
         }
