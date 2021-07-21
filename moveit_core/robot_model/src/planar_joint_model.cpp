@@ -115,27 +115,27 @@ void PlanarJointModel::getVariableRandomPositions(random_numbers::RandomNumberGe
 }
 
 void PlanarJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
-                                                        const Bounds& bounds, const double* near,
+                                                        const Bounds& bounds, const double* seed,
                                                         const double distance) const
 {
   if (bounds[0].max_position_ >= std::numeric_limits<double>::infinity() ||
       bounds[0].min_position_ <= -std::numeric_limits<double>::infinity())
     values[0] = 0.0;
   else
-    values[0] = rng.uniformReal(std::max(bounds[0].min_position_, near[0] - distance),
-                                std::min(bounds[0].max_position_, near[0] + distance));
+    values[0] = rng.uniformReal(std::max(bounds[0].min_position_, seed[0] - distance),
+                                std::min(bounds[0].max_position_, seed[0] + distance));
   if (bounds[1].max_position_ >= std::numeric_limits<double>::infinity() ||
       bounds[1].min_position_ <= -std::numeric_limits<double>::infinity())
     values[1] = 0.0;
   else
-    values[1] = rng.uniformReal(std::max(bounds[1].min_position_, near[1] - distance),
-                                std::min(bounds[1].max_position_, near[1] + distance));
+    values[1] = rng.uniformReal(std::max(bounds[1].min_position_, seed[1] - distance),
+                                std::min(bounds[1].max_position_, seed[1] + distance));
 
   double da = angular_distance_weight_ * distance;
   // limit the sampling range to 2pi to work correctly even if the distance is very large
   if (da > boost::math::constants::pi<double>())
     da = boost::math::constants::pi<double>();
-  values[2] = rng.uniformReal(near[2] - da, near[2] + da);
+  values[2] = rng.uniformReal(seed[2] - da, seed[2] + da);
   normalizeRotation(values);
 }
 

@@ -319,27 +319,31 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
 
     if (optimizer == "PathLengthOptimizationObjective")
     {
-      objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
+      objective =
+          std::make_shared<ompl::base::PathLengthOptimizationObjective>(ompl_simple_setup_->getSpaceInformation());
     }
     else if (optimizer == "MinimaxObjective")
     {
-      objective.reset(new ompl::base::MinimaxObjective(ompl_simple_setup_->getSpaceInformation()));
+      objective = std::make_shared<ompl::base::MinimaxObjective>(ompl_simple_setup_->getSpaceInformation());
     }
     else if (optimizer == "StateCostIntegralObjective")
     {
-      objective.reset(new ompl::base::StateCostIntegralObjective(ompl_simple_setup_->getSpaceInformation()));
+      objective = std::make_shared<ompl::base::StateCostIntegralObjective>(ompl_simple_setup_->getSpaceInformation());
     }
     else if (optimizer == "MechanicalWorkOptimizationObjective")
     {
-      objective.reset(new ompl::base::MechanicalWorkOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
+      objective =
+          std::make_shared<ompl::base::MechanicalWorkOptimizationObjective>(ompl_simple_setup_->getSpaceInformation());
     }
     else if (optimizer == "MaximizeMinClearanceObjective")
     {
-      objective.reset(new ompl::base::MaximizeMinClearanceObjective(ompl_simple_setup_->getSpaceInformation()));
+      objective =
+          std::make_shared<ompl::base::MaximizeMinClearanceObjective>(ompl_simple_setup_->getSpaceInformation());
     }
     else
     {
-      objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
+      objective =
+          std::make_shared<ompl::base::PathLengthOptimizationObjective>(ompl_simple_setup_->getSpaceInformation());
     }
 
     ompl_simple_setup_->setOptimizationObjective(objective);
@@ -591,7 +595,7 @@ bool ompl_interface::ModelBasedPlanningContext::setPathConstraints(const moveit_
                                                                    moveit_msgs::MoveItErrorCodes* /*error*/)
 {
   // ******************* set the path constraints to use
-  path_constraints_.reset(new kinematic_constraints::KinematicConstraintSet(getRobotModel()));
+  path_constraints_ = std::make_shared<kinematic_constraints::KinematicConstraintSet>(getRobotModel());
   path_constraints_->add(path_constraints, getPlanningScene()->getTransforms());
   path_constraints_msg_ = path_constraints;
 
@@ -705,7 +709,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
     ROS_DEBUG_NAMED(LOGNAME, "%s: Returning successful solution with %lu states", getName().c_str(),
                     getOMPLSimpleSetup()->getSolutionPath().getStateCount());
 
-    res.trajectory_.reset(new robot_trajectory::RobotTrajectory(getRobotModel(), getGroupName()));
+    res.trajectory_ = std::make_shared<robot_trajectory::RobotTrajectory>(getRobotModel(), getGroupName());
     getSolutionPath(*res.trajectory_);
     res.planning_time_ = ptime;
     return true;
@@ -729,7 +733,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
     res.processing_time_.push_back(ptime);
     res.description_.emplace_back("plan");
     res.trajectory_.resize(res.trajectory_.size() + 1);
-    res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(getRobotModel(), getGroupName()));
+    res.trajectory_.back() = std::make_shared<robot_trajectory::RobotTrajectory>(getRobotModel(), getGroupName());
     getSolutionPath(*res.trajectory_.back());
 
     // simplify solution if time remains
@@ -739,7 +743,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
       res.processing_time_.push_back(getLastSimplifyTime());
       res.description_.emplace_back("simplify");
       res.trajectory_.resize(res.trajectory_.size() + 1);
-      res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(getRobotModel(), getGroupName()));
+      res.trajectory_.back() = std::make_shared<robot_trajectory::RobotTrajectory>(getRobotModel(), getGroupName());
       getSolutionPath(*res.trajectory_.back());
     }
 
@@ -750,7 +754,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
       res.processing_time_.push_back(ompl::time::seconds(ompl::time::now() - start_interpolate));
       res.description_.emplace_back("interpolate");
       res.trajectory_.resize(res.trajectory_.size() + 1);
-      res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(getRobotModel(), getGroupName()));
+      res.trajectory_.back() = std::make_shared<robot_trajectory::RobotTrajectory>(getRobotModel(), getGroupName());
       getSolutionPath(*res.trajectory_.back());
     }
 

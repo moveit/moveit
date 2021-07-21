@@ -497,14 +497,14 @@ class MoveGroupCommander(object):
         self._g.clear_path_constraints()
 
     def get_trajectory_constraints(self):
-        """ Get the actual trajectory constraints in form of a moveit_msgs.msgs.Constraints """
-        c = Constraints()
+        """ Get the actual trajectory constraints in form of a moveit_msgs.msgs.TrajectoryConstraints """
+        c = TrajectoryConstraints()
         c_str = self._g.get_trajectory_constraints()
         conversions.msg_from_string(c, c_str)
         return c
 
     def set_trajectory_constraints(self, value):
-        """ Specify the trajectory constraints to be used """
+        """ Specify the trajectory constraints to be used (setting from database is not implemented yet)"""
         if value is None:
             self.clear_trajectory_constraints()
         else:
@@ -512,7 +512,7 @@ class MoveGroupCommander(object):
                 self._g.set_trajectory_constraints_from_msg(
                     conversions.msg_to_string(value)
                 )
-            elif not self._g.set_trajectory_constraints(value):
+            else:
                 raise MoveItCommanderException(
                     "Unable to set trajectory constraints " + value
                 )
@@ -537,9 +537,9 @@ class MoveGroupCommander(object):
         """ Specify which planning pipeline to use when motion planning (e.g. ompl, pilz_industrial_motion_planner) """
         self._g.set_planning_pipeline_id(planning_pipeline)
 
-    def get_planning_pipeline_id(self, planning_pipeline):
+    def get_planning_pipeline_id(self):
         """ Get the current planning_pipeline_id (e.g. ompl, pilz_industrial_motion_planner) """
-        self._g.get_planning_pipeline_id(planning_pipeline)
+        return self._g.get_planning_pipeline_id()
 
     def set_planner_id(self, planner_id):
         """ Specify which planner of the currently selected pipeline to use when motion planning (e.g. RRTConnect, LIN) """

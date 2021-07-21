@@ -41,6 +41,7 @@
 #include <gtest/gtest.h>
 #include <sstream>
 #include <algorithm>
+#include <limits>
 #include <ctype.h>
 
 namespace
@@ -362,7 +363,7 @@ protected:
     urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDF(MODEL2);
     srdf::ModelSharedPtr srdf_model(new srdf::Model());
     srdf_model->initString(*urdf_model, SMODEL2);
-    robot_model_.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
+    robot_model_ = std::make_shared<moveit::core::RobotModel>(urdf_model, srdf_model);
   }
 
   void TearDown() override
@@ -661,7 +662,8 @@ TEST_F(OneRobot, testInterpolation)
   bool nan_exception = false;
   try
   {
-    state_a.interpolate(state_b, 1. / 0., interpolated_state, robot_model_->getJointModelGroup("base_from_base_to_e"));
+    const double infty = std::numeric_limits<double>::infinity();
+    state_a.interpolate(state_b, infty, interpolated_state, robot_model_->getJointModelGroup("base_from_base_to_e"));
   }
   catch (std::exception& e)
   {

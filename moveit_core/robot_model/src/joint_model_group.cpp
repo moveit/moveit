@@ -324,20 +324,20 @@ void JointModelGroup::getVariableRandomPositions(random_numbers::RandomNumberGen
 }
 
 void JointModelGroup::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
-                                                       const JointBoundsVector& active_joint_bounds, const double* near,
+                                                       const JointBoundsVector& active_joint_bounds, const double* seed,
                                                        double distance) const
 {
   assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
     active_joint_model_vector_[i]->getVariableRandomPositionsNearBy(rng, values + active_joint_model_start_index_[i],
                                                                     *active_joint_bounds[i],
-                                                                    near + active_joint_model_start_index_[i],
+                                                                    seed + active_joint_model_start_index_[i],
                                                                     distance);
   updateMimicJoints(values);
 }
 
 void JointModelGroup::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
-                                                       const JointBoundsVector& active_joint_bounds, const double* near,
+                                                       const JointBoundsVector& active_joint_bounds, const double* seed,
                                                        const std::map<JointModel::JointType, double>& distance_map) const
 {
   assert(active_joint_bounds.size() == active_joint_model_vector_.size());
@@ -352,14 +352,14 @@ void JointModelGroup::getVariableRandomPositionsNearBy(random_numbers::RandomNum
       ROS_WARN_NAMED(LOGNAME, "Did not pass in distance for '%s'", active_joint_model_vector_[i]->getName().c_str());
     active_joint_model_vector_[i]->getVariableRandomPositionsNearBy(rng, values + active_joint_model_start_index_[i],
                                                                     *active_joint_bounds[i],
-                                                                    near + active_joint_model_start_index_[i],
+                                                                    seed + active_joint_model_start_index_[i],
                                                                     distance);
   }
   updateMimicJoints(values);
 }
 
 void JointModelGroup::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
-                                                       const JointBoundsVector& active_joint_bounds, const double* near,
+                                                       const JointBoundsVector& active_joint_bounds, const double* seed,
                                                        const std::vector<double>& distances) const
 {
   assert(active_joint_bounds.size() == active_joint_model_vector_.size());
@@ -370,7 +370,7 @@ void JointModelGroup::getVariableRandomPositionsNearBy(random_numbers::RandomNum
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
     active_joint_model_vector_[i]->getVariableRandomPositionsNearBy(rng, values + active_joint_model_start_index_[i],
                                                                     *active_joint_bounds[i],
-                                                                    near + active_joint_model_start_index_[i],
+                                                                    seed + active_joint_model_start_index_[i],
                                                                     distances[i]);
   updateMimicJoints(values);
 }

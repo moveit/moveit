@@ -58,6 +58,8 @@
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
 
+#include <memory>
+
 namespace moveit_rviz_plugin
 {
 // ******************************************************************************************
@@ -508,8 +510,8 @@ planning_scene_monitor::PlanningSceneMonitorPtr PlanningSceneDisplay::createPlan
 #else
   std::shared_ptr<tf2_ros::Buffer> tf_buffer = context_->getFrameManager()->getTF2BufferPtr();
 #endif
-  return planning_scene_monitor::PlanningSceneMonitorPtr(new planning_scene_monitor::PlanningSceneMonitor(
-      robot_description_property_->getStdString(), tf_buffer, getNameStd() + "_planning_scene_monitor"));
+  return std::make_shared<planning_scene_monitor::PlanningSceneMonitor>(
+      robot_description_property_->getStdString(), tf_buffer, getNameStd() + "_planning_scene_monitor");
 }
 
 void PlanningSceneDisplay::clearRobotModel()
@@ -549,7 +551,7 @@ void PlanningSceneDisplay::loadRobotModel()
 void PlanningSceneDisplay::onRobotModelLoaded()
 {
   changedPlanningSceneTopic();
-  planning_scene_render_.reset(new PlanningSceneRender(planning_scene_node_, context_, planning_scene_robot_));
+  planning_scene_render_ = std::make_shared<PlanningSceneRender>(planning_scene_node_, context_, planning_scene_robot_);
   planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool());
 
   const planning_scene_monitor::LockedPlanningSceneRO& ps = getPlanningSceneRO();

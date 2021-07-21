@@ -54,10 +54,13 @@ MOVEIT_CLASS_FORWARD(CollisionPlugin);  // Defines CollisionPluginPtr, ConstPtr,
  *     public collision_detection::CollisionDetectorAllocatorTemplate<MyCollisionEnv, MyCollisionDetectorAllocator>
  *   {
  *     public:
+ *       const std::string& getName() const override {
+ *         static const std::string NAME = "my_checker";
+ *         return NAME;
+ *       }
  *       static const std::string NAME_;
  *   };
  *
- *   const std::string MyCollisionDetectorAllocator::NAME_("my_checker");
  *   }
  *
  *   namespace collision_detection

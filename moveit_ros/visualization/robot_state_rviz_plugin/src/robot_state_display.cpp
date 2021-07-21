@@ -54,6 +54,8 @@
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
 
+#include <memory>
+
 namespace moveit_rviz_plugin
 {
 // ******************************************************************************************
@@ -109,7 +111,7 @@ RobotStateDisplay::~RobotStateDisplay() = default;
 void RobotStateDisplay::onInitialize()
 {
   Display::onInitialize();
-  robot_.reset(new RobotStateVisualization(scene_node_, context_, "Robot State", this));
+  robot_ = std::make_shared<RobotStateVisualization>(scene_node_, context_, "Robot State", this);
   changedEnableVisualVisible();
   changedEnableCollisionVisible();
   robot_->setVisible(false);
@@ -304,7 +306,7 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
   if (!robot_model_)
     return;
   if (!robot_state_)
-    robot_state_.reset(new moveit::core::RobotState(robot_model_));
+    robot_state_ = std::make_shared<moveit::core::RobotState>(robot_model_);
   // possibly use TF to construct a moveit::core::Transforms object to pass in to the conversion function?
   try
   {
@@ -371,17 +373,17 @@ void RobotStateDisplay::unsetLinkColor(rviz::Robot* robot, const std::string& li
 // ******************************************************************************************
 void RobotStateDisplay::loadRobotModel()
 {
-  rdf_loader_.reset(new rdf_loader::RDFLoader(robot_description_property_->getStdString()));
+  rdf_loader_ = std::make_shared<rdf_loader::RDFLoader>(robot_description_property_->getStdString());
 
   if (rdf_loader_->getURDF())
   {
     try
     {
       const srdf::ModelSharedPtr& srdf =
-          rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : srdf::ModelSharedPtr(new srdf::Model());
-      robot_model_.reset(new moveit::core::RobotModel(rdf_loader_->getURDF(), srdf));
+          rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : std::make_shared<srdf::Model>();
+      robot_model_ = std::make_shared<moveit::core::RobotModel>(rdf_loader_->getURDF(), srdf);
       robot_->load(*robot_model_->getURDF());
-      robot_state_.reset(new moveit::core::RobotState(robot_model_));
+      robot_state_ = std::make_shared<moveit::core::RobotState>(robot_model_);
       robot_state_->setToDefaultValues();
       bool old_state = root_link_name_property_->blockSignals(true);
       root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
