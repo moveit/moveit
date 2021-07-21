@@ -499,6 +499,13 @@ void TrajectoryExecutionManager::continuousExecutionThread()
             ROS_DEBUG_STREAM_NAMED(name_, "Backlog item with duration " << current_context->trajectory_parts_[0].joint_trajectory.points.back().time_from_start << " has been executed correctly.");
             it = backlog.erase(it);
           }
+          else if (it == backlog.begin() && active_contexts_map.empty())
+          {
+            ROS_ERROR_STREAM_NAMED(name_, "Trajectory is in a deadlock, aborting");
+            // Since there is not active trajectory being executed but this Top priority backlog-trajectory is not executable, abort it.
+            current_context->execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
+            it = backlog.erase(it);
+          }
           else
           {
             ROS_DEBUG_STREAM_NAMED(name_, "Backlog item with duration " << current_context->trajectory_parts_[0].joint_trajectory.points.back().time_from_start << " is still not executable");
