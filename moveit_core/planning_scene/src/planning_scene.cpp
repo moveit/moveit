@@ -1807,8 +1807,12 @@ bool PlanningScene::processCollisionObjectRemove(const moveit_msgs::CollisionObj
   else
   {
     world_->removeObject(object.id);
-    removeObjectColor(object.id);
-    removeObjectType(object.id);
+    if (!getCurrentState().hasAttachedBody(object.id))
+    {
+      // Don't discard object color and type when an attached object is just being detached
+      removeObjectColor(object.id);
+      removeObjectType(object.id);
+    }
   }
   return true;
 }
