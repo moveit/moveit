@@ -58,7 +58,7 @@ planning_scene_monitor::TrajectoryMonitor::~TrajectoryMonitor()
 
 void planning_scene_monitor::TrajectoryMonitor::setSamplingFrequency(double sampling_frequency)
 {
-  if (sampling_frequency != sampling_frequency_)
+  if (sampling_frequency == sampling_frequency_)
     return;  // silently return if nothing changes
 
   if (sampling_frequency <= std::numeric_limits<double>::epsilon())
