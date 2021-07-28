@@ -376,7 +376,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     }
 
     ROS_DEBUG_NAMED(LOGNAME, "Creating new planning context");
-    context_spec.ompl_simple_setup_ = std::make_shared<ompl::geometric::SimpleSetup>(context_spec.state_space_);
+    context = std::make_shared<ModelBasedPlanningContext>(config.name, context_spec);
 
     // Do not cache a constrained planning context, as the constraints could be changed
     // and need to be parsed again.
