@@ -52,7 +52,7 @@
 
 namespace
 {
-constexpr double DEFAULT_PLANNING_SCENE_PUBLISH_FREQUENCY = 2.0; // Hz
+constexpr double DEFAULT_PLANNING_SCENE_PUBLISH_FREQUENCY = 30.0; // Hz
 }  // namespace
 
 namespace planning_scene_monitor
