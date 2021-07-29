@@ -44,6 +44,8 @@ jobs:
       CLANG_TIDY_BASE_REF: "${{ github.base_ref || github.ref }}"
       BEFORE_CLANG_TIDY_CHECKS: (cd $TARGET_REPO_PATH; clang-tidy --list-checks)
       BUILDER: ${{ matrix.env.BUILDER || 'catkin_tools' }}
+      CC: ${{ matrix.env.CLANG_TIDY && 'clang' }}
+      CXX: ${{ matrix.env.CLANG_TIDY && 'clang++' }}
 
     name: "${{ matrix.env.IMAGE }}${{ matrix.env.CATKIN_LINT && ' + catkin_lint' || ''}}${{ matrix.env.CCOV && ' + ccov' || ''}}${{ matrix.env.IKFAST_TEST && ' + ikfast' || ''}}${{ matrix.env.CLANG_TIDY && ' + clang-tidy' || '' }}"
     runs-on: ubuntu-latest
