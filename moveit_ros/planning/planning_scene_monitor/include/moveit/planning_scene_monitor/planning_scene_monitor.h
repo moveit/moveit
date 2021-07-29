@@ -699,6 +699,10 @@ public:
   LockedPlanningScene(const PlanningSceneMonitorPtr& planning_scene_monitor)
     : planning_scene_monitor_(planning_scene_monitor)
   {
+    if (planning_scene_monitor_ == nullptr)
+    {
+      throw std::invalid_argument("LockedPlanningScene cannot be constructed with nullptr PlanningSceneMonitorPtr");
+    }
   }
 
   const PlanningSceneMonitorPtr& getPlanningSceneMonitor()
@@ -756,11 +760,8 @@ public:
                         std::chrono::milliseconds timeout = std::chrono::milliseconds::zero())
     : LockedPlanningScene(planning_scene_monitor)
   {
-    if (planning_scene_monitor_)
-    {
-      slock_ = std::make_shared<SharedTimedLock>(
-          planning_scene_monitor_->acquireSharedLock("LockedPlanningSceneRO", timeout));
-    }
+    slock_ =
+        std::make_shared<SharedTimedLock>(planning_scene_monitor_->acquireSharedLock("LockedPlanningSceneRO", timeout));
   }
 
 private:
@@ -799,11 +800,8 @@ public:
                         std::chrono::milliseconds timeout = std::chrono::milliseconds::zero())
     : LockedPlanningScene(planning_scene_monitor)
   {
-    if (planning_scene_monitor_)
-    {
-      ulock_ = std::make_shared<UniqueTimedLock>(
-          planning_scene_monitor_->acquireUniqueLock("LockedPlanningSceneRW", timeout));
-    }
+    ulock_ =
+        std::make_shared<UniqueTimedLock>(planning_scene_monitor_->acquireUniqueLock("LockedPlanningSceneRW", timeout));
   }
 
   operator const planning_scene::PlanningScenePtr &()
