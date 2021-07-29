@@ -1573,8 +1573,10 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Is
     std::string error_msg;
     if (!solver->supportsGroup(jmg, &error_msg))
     {
+      // skirt around clang-diagnostic-potentially-evaluated-expression
+      const kinematics::KinematicsBase& solver_ref = *solver;
       ROS_ERROR_NAMED(LOGNAME, "Kinematics solver %s does not support joint group %s.  Error: %s",
-                      typeid(*solver).name(), jmg->getName().c_str(), error_msg.c_str());
+                      typeid(solver_ref).name(), jmg->getName().c_str(), error_msg.c_str());
       valid_solver = false;
     }
   }
