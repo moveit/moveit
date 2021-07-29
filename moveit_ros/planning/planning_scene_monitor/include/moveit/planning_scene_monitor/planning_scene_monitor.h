@@ -107,7 +107,7 @@ public:
     else if (timeout_ == std::chrono::milliseconds::zero())
       lock_.lock();
     else if (!lock_.try_lock_for(timeout_))
-      throw TryLockTimeoutException("lockSceneRead() timed out");
+      throw TryLockTimeoutException("Timeout trying to lock PlanningSceneMonitor from '" + source_ + "'");
 
     lock_time_ = ros::Time::now();
   }
