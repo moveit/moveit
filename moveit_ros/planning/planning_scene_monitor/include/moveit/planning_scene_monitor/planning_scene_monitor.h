@@ -97,7 +97,8 @@ public:
 
   void onDestruct(TimedDestructCallback destruct_cb)
   {
-    destruct_cb_ = destruct_cb;
+    // std::move() transfers ownership of the callback to TimedLock
+    destruct_cb_ = std::move(destruct_cb);
   }
 
   void lock()
