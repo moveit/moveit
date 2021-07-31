@@ -38,9 +38,10 @@
 #include <functional>
 #include <sstream>
 
+#include <ros/ros.h>
+
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/robot_state/conversions.h>
-#include <ros/ros.h>
 
 #include "pilz_industrial_motion_planner/cartesian_limits_aggregator.h"
 #include "pilz_industrial_motion_planner/joint_limits_aggregator.h"

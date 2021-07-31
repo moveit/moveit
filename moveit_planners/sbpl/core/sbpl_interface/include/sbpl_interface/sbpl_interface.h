@@ -34,10 +34,11 @@
 
 #pragma once
 
-#include <sbpl/headers.h>
 #include <planning_scene/planning_scene.h>
-#include <moveit_msgs/GetMotionPlan.h>
+#include <sbpl/headers.h>
 #include <sbpl_interface/environment_chain3d.h>
+
+#include <moveit_msgs/GetMotionPlan.h>
 
 namespace sbpl_interface
 {

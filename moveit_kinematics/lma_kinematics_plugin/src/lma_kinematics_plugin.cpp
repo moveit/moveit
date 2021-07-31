@@ -34,14 +34,14 @@
 
 /* Author: Francisco Suarez-Ruiz */
 
-#include <moveit/lma_kinematics_plugin/lma_kinematics_plugin.h>
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/chainiksolverpos_lma.hpp>
-
-#include <tf2_kdl/tf2_kdl.h>
-#include <kdl_parser/kdl_parser.hpp>
 #include <kdl/frames_io.hpp>
 #include <kdl/kinfam_io.hpp>
+#include <kdl_parser/kdl_parser.hpp>
+#include <tf2_kdl/tf2_kdl.h>
+
+#include <moveit/lma_kinematics_plugin/lma_kinematics_plugin.h>
 
 // register as a KinematicsBase implementation
 #include <class_loader/class_loader.hpp>

@@ -34,19 +34,21 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/warehouse/planning_scene_storage.h>
-#include <moveit/warehouse/constraints_storage.h>
-#include <moveit/warehouse/state_storage.h>
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/robot_state/conversions.h>
-#include <moveit/kinematic_constraints/utils.h>
 #include <boost/algorithm/string/join.hpp>
+#include <boost/math/constants/constants.hpp>
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
-#include <boost/math/constants/constants.hpp>
+
 #include <ros/ros.h>
+
+#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit/warehouse/constraints_storage.h>
+#include <moveit/warehouse/planning_scene_storage.h>
+#include <moveit/warehouse/state_storage.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 

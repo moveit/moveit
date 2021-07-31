@@ -33,14 +33,16 @@
  *********************************************************************/
 
 #include "pilz_industrial_motion_planner/trajectory_generator_ptp.h"
-#include "moveit/robot_state/conversions.h"
-#include "ros/ros.h"
 
 #include <iostream>
 #include <sstream>
 
 #include <tf2_eigen/tf2_eigen.h>
+
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
+#include "moveit/robot_state/conversions.h"
+#include "ros/ros.h"
 
 namespace pilz_industrial_motion_planner
 {

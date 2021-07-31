@@ -36,16 +36,19 @@
 
 #pragma once
 
-#include <moveit/kinematics_base/kinematics_base.h>
-#include <moveit/kdl_kinematics_plugin/kdl_kinematics_plugin.h>
-#include <moveit/robot_model/robot_model.h>
-#include <tf2/LinearMath/Vector3.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include <moveit/cached_ik_kinematics_plugin/detail/NearestNeighborsGNAT.h>
-#include <boost/filesystem.hpp>
-#include <unordered_map>
 #include <mutex>
+#include <unordered_map>
 #include <utility>
+
+#include <boost/filesystem.hpp>
+
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Vector3.h>
+
+#include <moveit/cached_ik_kinematics_plugin/detail/NearestNeighborsGNAT.h>
+#include <moveit/kdl_kinematics_plugin/kdl_kinematics_plugin.h>
+#include <moveit/kinematics_base/kinematics_base.h>
+#include <moveit/robot_model/robot_model.h>
 
 namespace cached_ik_kinematics_plugin
 {

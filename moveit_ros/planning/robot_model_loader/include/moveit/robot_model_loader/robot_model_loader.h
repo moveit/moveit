@@ -36,10 +36,10 @@
 
 #pragma once
 
-#include <moveit/macros/class_forward.h>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/rdf_loader/rdf_loader.h>
 #include <moveit/kinematics_plugin_loader/kinematics_plugin_loader.h>
+#include <moveit/macros/class_forward.h>
+#include <moveit/rdf_loader/rdf_loader.h>
+#include <moveit/robot_model/robot_model.h>
 
 namespace robot_model_loader
 {

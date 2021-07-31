@@ -39,13 +39,17 @@
 #pragma once
 
 #include <atomic>
+
 #include <boost/optional.hpp>
+
 #include <control_toolbox/pid.h>
+#include <rosparam_shortcuts/rosparam_shortcuts.h>
+#include <tf2_ros/transform_listener.h>
+
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
 #include <moveit_servo/make_shared_from_pool.h>
 #include <moveit_servo/servo.h>
-#include <rosparam_shortcuts/rosparam_shortcuts.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2_ros/transform_listener.h>
 
 // Conventions:
 // Calculations are done in the planning_frame_ unless otherwise noted.

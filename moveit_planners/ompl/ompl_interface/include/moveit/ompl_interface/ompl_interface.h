@@ -36,15 +36,18 @@
 
 #pragma once
 
-#include <moveit/ompl_interface/planning_context_manager.h>
-#include <moveit/constraint_samplers/constraint_sampler_manager.h>
-#include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
-#include <moveit/planning_interface/planning_interface.h>
+#include <map>
+#include <string>
+
+#include <ros/ros.h>
+
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <moveit_msgs/MotionPlanResponse.h>
-#include <string>
-#include <map>
-#include <ros/ros.h>
+
+#include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
+#include <moveit/constraint_samplers/constraint_sampler_manager.h>
+#include <moveit/ompl_interface/planning_context_manager.h>
+#include <moveit/planning_interface/planning_interface.h>
 
 /** \brief The MoveIt interface to OMPL */
 namespace ompl_interface

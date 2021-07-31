@@ -37,14 +37,15 @@
 #include <string>
 #include <vector>
 
-#include <gtest/gtest.h>
+#include <ros/ros.h>
 
 #include <moveit/robot_model/joint_model_group.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
-#include <ros/ros.h>
 
 #include "pilz_industrial_motion_planner/tip_frame_getter.h"
+
+#include "gtest/gtest.h"
 
 static const std::string ROBOT_DESCRIPTION_PARAM{ "robot_description" };
 

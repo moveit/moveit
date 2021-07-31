@@ -43,9 +43,9 @@
 // MoveIt
 #include <planning_models/kinematic_state.h>
 #include <rdf_loader/rdf_loader.h>
-#include <urdf_interface/model.h>
-#include <urdf/model.h>
 #include <srdf/model.h>
+#include <urdf/model.h>
+#include <urdf_interface/model.h>
 
 namespace kinematics_cache_ros
 {

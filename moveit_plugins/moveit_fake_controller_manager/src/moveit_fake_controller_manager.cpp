@@ -34,14 +34,18 @@
 
 /* Author: Ioan Sucan, Dave Coleman, Robert Haschke */
 
-#include "moveit_fake_controllers.h"
-#include <ros/ros.h>
-#include <moveit/robot_state/robot_state.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <sensor_msgs/JointState.h>
+#include <map>
+
 #include <pluginlib/class_list_macros.hpp>
 #include <ros/console.h>
-#include <map>
+#include <ros/ros.h>
+
+#include <sensor_msgs/JointState.h>
+
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_state/robot_state.h>
+
+#include "moveit_fake_controllers.h"
 
 namespace moveit_fake_controller_manager
 {

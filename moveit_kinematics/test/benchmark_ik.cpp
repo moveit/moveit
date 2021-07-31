@@ -35,10 +35,13 @@
 /* Author: Mark Moll */
 
 #include <chrono>
-#include <ros/ros.h>
+
 #include <boost/program_options.hpp>
-#include <moveit/robot_model_loader/robot_model_loader.h>
+
+#include <ros/ros.h>
+
 #include <moveit/planning_scene/planning_scene.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 
 namespace po = boost::program_options;
 

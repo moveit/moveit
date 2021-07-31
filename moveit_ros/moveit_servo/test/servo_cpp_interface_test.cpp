@@ -43,7 +43,7 @@
 #include <ros/ros.h>
 
 // Testing
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
 // Servo
 #include <moveit_servo/make_shared_from_pool.h>

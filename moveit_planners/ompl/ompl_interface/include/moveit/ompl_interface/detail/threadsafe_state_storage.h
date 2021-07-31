@@ -36,9 +36,10 @@
 
 #pragma once
 
-#include <moveit/robot_state/robot_state.h>
-#include <thread>
 #include <mutex>
+#include <thread>
+
+#include <moveit/robot_state/robot_state.h>
 
 namespace ompl_interface
 {

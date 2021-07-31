@@ -36,12 +36,13 @@
 
 #pragma once
 
-#include <moveit/macros/class_forward.h>
-#include <moveit/collision_distance_field/collision_distance_field_types.h>
-#include <moveit/collision_distance_field/collision_common_distance_field.h>
-#include <moveit/collision_detection/collision_env.h>
-#include <moveit/planning_scene/planning_scene.h>
 #include <boost/thread/mutex.hpp>
+
+#include <moveit/collision_detection/collision_env.h>
+#include <moveit/collision_distance_field/collision_common_distance_field.h>
+#include <moveit/collision_distance_field/collision_distance_field_types.h>
+#include <moveit/macros/class_forward.h>
+#include <moveit/planning_scene/planning_scene.h>
 
 namespace collision_detection
 {

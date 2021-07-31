@@ -34,11 +34,11 @@
 
 /* Author: Ioan Sucan */
 
+#include <utility>
+
 #include <moveit/ompl_interface/detail/constrained_sampler.h>
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/profiler/profiler.h>
-
-#include <utility>
 
 ompl_interface::ConstrainedSampler::ConstrainedSampler(const ModelBasedPlanningContext* pc,
                                                        constraint_samplers::ConstraintSamplerPtr cs)

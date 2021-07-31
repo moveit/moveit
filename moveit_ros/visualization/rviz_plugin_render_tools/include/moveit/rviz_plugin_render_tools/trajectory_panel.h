@@ -40,11 +40,11 @@
 #include <ros/ros.h>
 #endif
 
-#include <rviz/panel.h>
-
-#include <QSlider>
 #include <QLabel>
 #include <QPushButton>
+#include <QSlider>
+
+#include <rviz/panel.h>
 
 namespace moveit_rviz_plugin
 {

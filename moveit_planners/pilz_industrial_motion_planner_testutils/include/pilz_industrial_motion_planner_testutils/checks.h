@@ -35,8 +35,9 @@
 #ifndef CHECKS_H
 #define CHECKS_H
 
-#include <gtest/gtest.h>
 #include <moveit/robot_state/robot_state.h>
+
+#include "gtest/gtest.h"
 
 namespace pilz_industrial_motion_planner_testutils
 {

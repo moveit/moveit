@@ -37,9 +37,10 @@
 #include "moveit/profiler/profiler.h"
 #if MOVEIT_ENABLE_PROFILING
 
-#include <ros/console.h>
-#include <vector>
 #include <algorithm>
+#include <vector>
+
+#include <ros/console.h>
 
 namespace moveit
 {

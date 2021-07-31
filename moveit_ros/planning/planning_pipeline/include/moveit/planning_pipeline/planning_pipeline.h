@@ -36,12 +36,13 @@
 
 #pragma once
 
-#include <moveit/planning_interface/planning_interface.h>
-#include <moveit/planning_request_adapter/planning_request_adapter.h>
+#include <memory>
+
 #include <pluginlib/class_loader.hpp>
 #include <ros/ros.h>
 
-#include <memory>
+#include <moveit/planning_interface/planning_interface.h>
+#include <moveit/planning_request_adapter/planning_request_adapter.h>
 
 /** \brief Planning pipeline */
 namespace planning_pipeline

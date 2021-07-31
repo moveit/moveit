@@ -34,9 +34,11 @@
 
 /* Author: Michael Görner, Robert Haschke */
 
-#include <moveit/utils/xmlrpc_casts.h>
-#include <ros/console.h>
 #include <boost/algorithm/string/join.hpp>
+
+#include <ros/console.h>
+
+#include <moveit/utils/xmlrpc_casts.h>
 
 namespace moveit
 {

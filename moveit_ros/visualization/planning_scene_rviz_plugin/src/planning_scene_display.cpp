@@ -35,30 +35,28 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/common_planning_interface_objects/common_objects.h>
-#include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
-#include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
-#include <moveit/rviz_plugin_render_tools/octomap_render.h>
-
-#include <rviz/visualization_manager.h>
-#include <rviz/robot/robot.h>
-#include <rviz/robot/robot_link.h>
-
-#include <rviz/properties/property.h>
-#include <rviz/properties/string_property.h>
-#include <rviz/properties/bool_property.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/ros_topic_property.h>
-#include <rviz/properties/color_property.h>
-#include <rviz/properties/enum_property.h>
-#include <rviz/display_context.h>
-#include <rviz/frame_manager.h>
-#include <tf2_ros/buffer.h>
-
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
-
 #include <memory>
+
+#include <rviz/display_context.h>
+#include <rviz/frame_manager.h>
+#include <rviz/properties/bool_property.h>
+#include <rviz/properties/color_property.h>
+#include <rviz/properties/enum_property.h>
+#include <rviz/properties/float_property.h>
+#include <rviz/properties/property.h>
+#include <rviz/properties/ros_topic_property.h>
+#include <rviz/properties/string_property.h>
+#include <rviz/robot/robot.h>
+#include <rviz/robot/robot_link.h>
+#include <rviz/visualization_manager.h>
+#include <tf2_ros/buffer.h>
+
+#include <moveit/common_planning_interface_objects/common_objects.h>
+#include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
+#include <moveit/rviz_plugin_render_tools/octomap_render.h>
+#include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
 
 namespace moveit_rviz_plugin
 {

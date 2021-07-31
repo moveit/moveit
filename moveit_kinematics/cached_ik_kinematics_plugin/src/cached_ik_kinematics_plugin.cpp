@@ -38,9 +38,9 @@
 #include <moveit/kdl_kinematics_plugin/kdl_kinematics_plugin.h>
 // compilation error: KDL and LMA kinematics plugins declare same types
 //#include <moveit/lma_kinematics_plugin/lma_kinematics_plugin.h>
-#include <moveit/srv_kinematics_plugin/srv_kinematics_plugin.h>
-
 #include <pluginlib/class_list_macros.hpp>
+
+#include <moveit/srv_kinematics_plugin/srv_kinematics_plugin.h>
 // register CachedIKKinematicsPlugin<KDLKinematicsPlugin> as a KinematicsBase implementation
 PLUGINLIB_EXPORT_CLASS(cached_ik_kinematics_plugin::CachedIKKinematicsPlugin<kdl_kinematics_plugin::KDLKinematicsPlugin>,
                        kinematics::KinematicsBase);

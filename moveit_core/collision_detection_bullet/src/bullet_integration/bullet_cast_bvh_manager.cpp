@@ -31,9 +31,10 @@
 
 /* Author: Levi Armstrong, Jens Petit */
 
-#include <moveit/collision_detection_bullet/bullet_integration/bullet_cast_bvh_manager.h>
 #include <map>
 #include <utility>
+
+#include <moveit/collision_detection_bullet/bullet_integration/bullet_cast_bvh_manager.h>
 
 namespace collision_detection_bullet
 {

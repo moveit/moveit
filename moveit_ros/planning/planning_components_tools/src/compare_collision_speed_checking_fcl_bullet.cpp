@@ -34,13 +34,13 @@
 
 /* Author: Jens Petit */
 
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/collision_plugin_loader/collision_plugin_loader.h>
-#include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
-#include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
 #include <geometric_shapes/shape_operations.h>
 #include <random_numbers/random_numbers.h>
 
+#include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
+#include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
+#include <moveit/collision_plugin_loader/collision_plugin_loader.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/utils/robot_model_test_utils.h>
 

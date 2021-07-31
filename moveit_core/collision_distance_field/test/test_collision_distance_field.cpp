@@ -34,24 +34,26 @@
 
 /** \author E. Gil Jones */
 
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/robot_state.h>
-#include <moveit/transforms/transforms.h>
-#include <moveit/collision_distance_field/collision_distance_field_types.h>
-#include <moveit/collision_distance_field/collision_env_distance_field.h>
-#include <moveit/utils/robot_model_test_utils.h>
-
-#include <geometric_shapes/shape_operations.h>
-#include <urdf_parser/urdf_parser.h>
-
-#include <fstream>
-#include <gtest/gtest.h>
-#include <sstream>
 #include <algorithm>
 #include <ctype.h>
+#include <fstream>
+#include <sstream>
+
 #include <boost/filesystem.hpp>
 
 #include <ros/package.h>
+#include <urdf_parser/urdf_parser.h>
+
+#include <geometric_shapes/shape_operations.h>
+
+#include <moveit/collision_distance_field/collision_distance_field_types.h>
+#include <moveit/collision_distance_field/collision_env_distance_field.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_state/robot_state.h>
+#include <moveit/transforms/transforms.h>
+#include <moveit/utils/robot_model_test_utils.h>
+
+#include "gtest/gtest.h"
 
 typedef collision_detection::CollisionEnvDistanceField DefaultCEnvType;
 

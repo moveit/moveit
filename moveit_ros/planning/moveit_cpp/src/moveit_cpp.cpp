@@ -35,6 +35,7 @@
 /* Author: Henning Kayser */
 
 #include <stdexcept>
+
 #include <moveit/moveit_cpp/moveit_cpp.h>
 
 namespace moveit_cpp

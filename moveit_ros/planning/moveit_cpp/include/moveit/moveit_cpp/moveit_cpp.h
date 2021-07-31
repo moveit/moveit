@@ -40,12 +40,13 @@
 #pragma once
 
 #include <ros/ros.h>
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/planning_pipeline/planning_pipeline.h>
-#include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
-#include <moveit/robot_state/robot_state.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
+
+#include <moveit/planning_pipeline/planning_pipeline.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/robot_state/robot_state.h>
+#include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 
 namespace moveit_cpp
 {

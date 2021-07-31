@@ -34,23 +34,24 @@
 
 /* Author: Ioan Sucan, Dave Coleman */
 
-#include <moveit/ompl_interface/ompl_interface.h>
-#include <moveit/planning_interface/planning_interface.h>
-#include <moveit/planning_scene/planning_scene.h>
-#include <moveit/robot_state/conversions.h>
-#include <moveit/profiler/profiler.h>
-#include <class_loader/class_loader.hpp>
+#include <memory>
+#include <thread>
 
+#include <ompl/util/Console.h>
+
+#include <class_loader/class_loader.hpp>
 #include <dynamic_reconfigure/server.h>
-#include "moveit_planners_ompl/OMPLDynamicReconfigureConfig.h"
 
 #include <moveit_msgs/DisplayRobotState.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 
-#include <ompl/util/Console.h>
+#include <moveit/ompl_interface/ompl_interface.h>
+#include <moveit/planning_interface/planning_interface.h>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/profiler/profiler.h>
+#include <moveit/robot_state/conversions.h>
 
-#include <thread>
-#include <memory>
+#include "moveit_planners_ompl/OMPLDynamicReconfigureConfig.h"
 
 namespace ompl_interface
 {

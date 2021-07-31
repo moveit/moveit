@@ -36,12 +36,13 @@
 
 #pragma once
 
-#include <eigen3/Eigen/Core>
-#include <eigen3/Eigen/Cholesky>
-#include <boost/random/variate_generator.hpp>
-#include <boost/random/normal_distribution.hpp>
-#include <boost/random/mersenne_twister.hpp>
 #include <cstdlib>
+
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/variate_generator.hpp>
+#include <eigen3/Eigen/Cholesky>
+#include <eigen3/Eigen/Core>
 
 namespace chomp
 {

@@ -36,25 +36,23 @@
 
 #pragma once
 
+#include <memory>
+
+#include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/config.h>
 #include <kdl/frames.hpp>
 #include <kdl/jntarray.hpp>
 #include <kdl/tree.hpp>
 #include <kdl_parser/kdl_parser.hpp>
+#include <urdf/model.h>
 
-#include <moveit/macros/class_forward.h>
 #include <moveit_msgs/GetPositionFK.h>
 #include <moveit_msgs/GetPositionIK.h>
 #include <moveit_msgs/KinematicSolverInfo.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 
-#include <kdl/chainfksolverpos_recursive.hpp>
-
-#include <urdf/model.h>
-
 #include <moveit/kinematics_base/kinematics_base.h>
-
-#include <memory>
+#include <moveit/macros/class_forward.h>
 
 #include "pr2_arm_ik.h"
 

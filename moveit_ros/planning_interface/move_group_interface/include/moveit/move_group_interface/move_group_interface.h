@@ -37,23 +37,26 @@
 
 #pragma once
 
-#include <moveit/macros/class_forward.h>
-#include <moveit/robot_state/robot_state.h>
-#include <moveit_msgs/RobotTrajectory.h>
-#include <moveit_msgs/RobotState.h>
-#include <moveit_msgs/PlannerInterfaceDescription.h>
-#include <moveit_msgs/Constraints.h>
-#include <moveit_msgs/Grasp.h>
-#include <moveit_msgs/PlaceLocation.h>
-#include <moveit_msgs/PickupGoal.h>
-#include <moveit_msgs/PlaceGoal.h>
-#include <moveit_msgs/MotionPlanRequest.h>
-#include <moveit_msgs/MoveGroupAction.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <actionlib/client/simple_action_client.h>
 #include <memory>
 #include <utility>
+
+#include <actionlib/client/simple_action_client.h>
 #include <tf2_ros/buffer.h>
+
+#include <geometry_msgs/PoseStamped.h>
+#include <moveit_msgs/Constraints.h>
+#include <moveit_msgs/Grasp.h>
+#include <moveit_msgs/MotionPlanRequest.h>
+#include <moveit_msgs/MoveGroupAction.h>
+#include <moveit_msgs/PickupGoal.h>
+#include <moveit_msgs/PlaceGoal.h>
+#include <moveit_msgs/PlaceLocation.h>
+#include <moveit_msgs/PlannerInterfaceDescription.h>
+#include <moveit_msgs/RobotState.h>
+#include <moveit_msgs/RobotTrajectory.h>
+
+#include <moveit/macros/class_forward.h>
+#include <moveit/robot_state/robot_state.h>
 
 namespace moveit
 {

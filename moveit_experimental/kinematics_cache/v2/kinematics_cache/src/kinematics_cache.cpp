@@ -35,9 +35,10 @@
  * Author: Sachin Chitta
  *********************************************************************/
 
-#include <moveit/kinematics_cache/kinematics_cache.h>
 #include <fstream>
 #include <iostream>
+
+#include <moveit/kinematics_cache/kinematics_cache.h>
 
 namespace kinematics_cache
 {

@@ -35,8 +35,6 @@
 #include <memory>
 #include <string>
 
-#include <gtest/gtest.h>
-
 #include <ros/ros.h>
 
 #include <moveit/robot_model_loader/robot_model_loader.h>
@@ -44,6 +42,8 @@
 
 #include "pilz_industrial_motion_planner/plan_components_builder.h"
 #include "pilz_industrial_motion_planner/trajectory_blender_transition_window.h"
+
+#include "gtest/gtest.h"
 
 const std::string PARAM_PLANNING_GROUP_NAME("planning_group");
 const std::string ROBOT_DESCRIPTION_STR{ "robot_description" };

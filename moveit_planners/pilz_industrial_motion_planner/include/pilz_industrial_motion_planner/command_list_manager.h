@@ -38,9 +38,10 @@
 
 #include <boost/optional.hpp>
 
+#include <moveit_msgs/MotionPlanResponse.h>
+
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
-#include <moveit_msgs/MotionPlanResponse.h>
 
 #include "moveit_msgs/MotionSequenceRequest.h"
 #include "pilz_industrial_motion_planner/plan_components_builder.h"

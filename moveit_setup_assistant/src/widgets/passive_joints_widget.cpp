@@ -36,8 +36,9 @@
 
 // SA
 #include "passive_joints_widget.h"
-#include "header_widget.h"
+
 #include "double_list_widget.h"
+#include "header_widget.h"
 
 // Qt
 #include <QFormLayout>

@@ -36,8 +36,9 @@
 
 #pragma once
 
-#include <moveit/warehouse/moveit_message_storage.h>
 #include <moveit_msgs/PlanningSceneWorld.h>
+
+#include <moveit/warehouse/moveit_message_storage.h>
 
 namespace moveit_warehouse
 {

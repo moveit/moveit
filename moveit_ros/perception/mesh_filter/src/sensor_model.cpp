@@ -34,8 +34,9 @@
 
 /* Author: Suat Gedikli */
 
-#include <moveit/mesh_filter/sensor_model.h>
 #include <stdexcept>
+
+#include <moveit/mesh_filter/sensor_model.h>
 
 mesh_filter::SensorModel::~SensorModel() = default;
 

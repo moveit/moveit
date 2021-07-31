@@ -34,12 +34,15 @@
 
 /* Author: Ioan Sucan, Jon Binney */
 
+#include <XmlRpcException.h>
+
 #include <ros/ros.h>
-#include <moveit_msgs/SaveMap.h>
+
 #include <moveit_msgs/LoadMap.h>
+#include <moveit_msgs/SaveMap.h>
+
 #include <moveit/collision_detection/occupancy_map.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
-#include <XmlRpcException.h>
 
 namespace occupancy_map_monitor
 {

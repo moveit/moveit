@@ -36,14 +36,15 @@
 
 #pragma once
 
-#include <moveit/macros/class_forward.h>
-
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
-#include <boost/function.hpp>
+
 #include <Eigen/Geometry>
+#include <boost/function.hpp>
 #include <eigen_stl_containers/eigen_stl_vector_container.h>
+
+#include <moveit/macros/class_forward.h>
 #include <moveit/transforms/transforms.h>
 
 namespace shapes

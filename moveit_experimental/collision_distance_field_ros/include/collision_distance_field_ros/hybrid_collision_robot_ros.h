@@ -36,9 +36,9 @@
 
 #pragma once
 
-#include <ros/ros.h>
-#include <collision_distance_field_ros/collision_distance_field_ros_helpers.h>
 #include <collision_distance_field/hybrid_collision_robot.h>
+#include <collision_distance_field_ros/collision_distance_field_ros_helpers.h>
+#include <ros/ros.h>
 
 namespace collision_detection
 {

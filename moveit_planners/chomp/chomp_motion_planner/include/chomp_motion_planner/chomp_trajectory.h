@@ -36,15 +36,17 @@
 
 #pragma once
 
-#include <trajectory_msgs/JointTrajectory.h>
-#include <moveit/robot_model/robot_model.h>
+#include <vector>
+
+#include <eigen3/Eigen/Core>
+
 #include <chomp_motion_planner/chomp_utils.h>
 
 #include <moveit_msgs/MotionPlanDetailedResponse.h>
 #include <moveit_msgs/MotionPlanRequest.h>
+#include <trajectory_msgs/JointTrajectory.h>
 
-#include <vector>
-#include <eigen3/Eigen/Core>
+#include <moveit/robot_model/robot_model.h>
 
 namespace chomp
 {

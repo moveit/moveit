@@ -36,9 +36,9 @@
 
 #pragma once
 
+#include <moveit/constraint_samplers/constraint_sampler_manager.h>
 #include <moveit/pick_place/manipulation_stage.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
-#include <moveit/constraint_samplers/constraint_sampler_manager.h>
 
 namespace pick_place
 {

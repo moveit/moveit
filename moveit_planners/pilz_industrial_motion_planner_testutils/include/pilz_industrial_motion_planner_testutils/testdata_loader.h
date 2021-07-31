@@ -40,11 +40,11 @@
 
 #include <moveit/robot_model/robot_model.h>
 
-#include "jointconfiguration.h"
 #include "cartesianconfiguration.h"
 #include "command_types_typedef.h"
-#include "sequence.h"
 #include "gripper.h"
+#include "jointconfiguration.h"
+#include "sequence.h"
 
 namespace pilz_industrial_motion_planner_testutils
 {

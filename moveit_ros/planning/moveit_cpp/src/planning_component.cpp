@@ -36,8 +36,8 @@
 
 #include <stdexcept>
 
-#include <moveit/moveit_cpp/planning_component.h>
 #include <moveit/kinematic_constraints/utils.h>
+#include <moveit/moveit_cpp/planning_component.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_state/conversions.h>

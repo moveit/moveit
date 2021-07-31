@@ -37,6 +37,7 @@
 #pragma once
 
 #include <eigen_stl_containers/eigen_stl_containers.h>
+
 #include <geometric_shapes/bodies.h>
 
 namespace distance_field

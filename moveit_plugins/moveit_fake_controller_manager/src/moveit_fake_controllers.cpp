@@ -36,10 +36,14 @@
 /* Author: Ioan Sucan, Robert Haschke */
 
 #include "moveit_fake_controllers.h"
-#include <ros/param.h>
-#include <sensor_msgs/JointState.h>
-#include <boost/thread.hpp>
+
 #include <limits>
+
+#include <boost/thread.hpp>
+
+#include <ros/param.h>
+
+#include <sensor_msgs/JointState.h>
 
 namespace moveit_fake_controller_manager
 {

@@ -36,9 +36,11 @@
 
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
+
 #include <moveit_msgs/RobotTrajectory.h>
+
 #include <moveit/macros/class_forward.h>
 
 /// Namespace for the base class of a MoveIt controller manager

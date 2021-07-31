@@ -36,11 +36,12 @@
 
 #pragma once
 
+#include <boost/serialization/map.hpp>
+#include <ompl/base/StateStorage.h>
+
+#include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/macros/class_forward.h>
 #include <moveit/ompl_interface/model_based_planning_context.h>
-#include <moveit/kinematic_constraints/kinematic_constraint.h>
-#include <ompl/base/StateStorage.h>
-#include <boost/serialization/map.hpp>
 
 namespace ompl_interface
 {

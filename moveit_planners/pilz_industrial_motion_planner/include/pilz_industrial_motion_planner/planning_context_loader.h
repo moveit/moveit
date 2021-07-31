@@ -34,8 +34,6 @@
 
 #pragma once
 
-#include "pilz_industrial_motion_planner/limits_container.h"
-
 #include <memory>
 #include <vector>
 

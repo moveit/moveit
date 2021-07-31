@@ -32,9 +32,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include "ros/ros.h"
-
 #include "pilz_industrial_motion_planner/cartesian_limits_aggregator.h"
+
+#include "ros/ros.h"
 
 static const std::string PARAM_CARTESIAN_LIMITS_NS = "cartesian_limits";
 

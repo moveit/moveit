@@ -35,20 +35,24 @@
 /* Author: Sachin Chitta */
 
 #include <ros/ros.h>
-#include <visualization_msgs/MarkerArray.h>
+
 #include <geometry_msgs/Quaternion.h>
+#include <visualization_msgs/MarkerArray.h>
 
 // MoveIt
-#include <moveit/semantic_world/semantic_world.h>
-#include <geometric_shapes/shape_operations.h>
 #include <moveit_msgs/PlanningScene.h>
+
+#include <geometric_shapes/shape_operations.h>
+
+#include <moveit/semantic_world/semantic_world.h>
 
 // OpenCV
 #include <opencv2/imgproc/imgproc.hpp>
 
 // Eigen
-#include <tf2_eigen/tf2_eigen.h>
 #include <Eigen/Geometry>
+
+#include <tf2_eigen/tf2_eigen.h>
 
 namespace moveit
 {

@@ -35,11 +35,11 @@
 #ifndef XML_TESTDATA_LOADER_H
 #define XML_TESTDATA_LOADER_H
 
-#include <string>
-#include <vector>
 #include <functional>
 #include <map>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include <boost/property_tree/ptree.hpp>
 

@@ -34,12 +34,13 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/pick_place/pick_place.h>
-#include <moveit/pick_place/reachable_valid_pose_filter.h>
-#include <moveit/pick_place/approach_and_translate_stage.h>
-#include <moveit/pick_place/plan_stage.h>
-#include <moveit/utils/message_checks.h>
 #include <ros/console.h>
+
+#include <moveit/pick_place/approach_and_translate_stage.h>
+#include <moveit/pick_place/pick_place.h>
+#include <moveit/pick_place/plan_stage.h>
+#include <moveit/pick_place/reachable_valid_pose_filter.h>
+#include <moveit/utils/message_checks.h>
 
 namespace pick_place
 {

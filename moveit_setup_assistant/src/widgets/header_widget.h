@@ -36,8 +36,8 @@
 
 #pragma once
 
-#include <QWidget>
 #include <QFrame>
+#include <QWidget>
 class QLabel;
 class QLineEdit;
 

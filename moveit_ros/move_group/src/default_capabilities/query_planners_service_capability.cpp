@@ -35,9 +35,10 @@
 /* Author: Ioan Sucan, Robert Haschke */
 
 #include "query_planners_service_capability.h"
+
+#include <moveit/move_group/capability_names.h>
 #include <moveit/moveit_cpp/moveit_cpp.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
-#include <moveit/move_group/capability_names.h>
 
 namespace move_group
 {

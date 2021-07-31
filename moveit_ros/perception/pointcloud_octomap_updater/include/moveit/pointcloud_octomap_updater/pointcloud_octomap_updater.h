@@ -36,15 +36,17 @@
 
 #pragma once
 
-#include <ros/ros.h>
-#include <tf2_ros/transform_listener.h>
-#include <tf2_ros/message_filter.h>
+#include <memory>
+
 #include <message_filters/subscriber.h>
+#include <ros/ros.h>
+#include <tf2_ros/message_filter.h>
+#include <tf2_ros/transform_listener.h>
+
 #include <sensor_msgs/PointCloud2.h>
+
 #include <moveit/occupancy_map_monitor/occupancy_map_updater.h>
 #include <moveit/point_containment_filter/shape_mask.h>
-
-#include <memory>
 
 namespace occupancy_map_monitor
 {

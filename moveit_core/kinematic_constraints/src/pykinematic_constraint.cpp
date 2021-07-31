@@ -34,14 +34,14 @@
 
 /* Author: Peter Mitrano */
 
-#include <pybind11/pybind11.h>
-#include <pybind11/numpy.h>
 #include <pybind11/eigen.h>
+#include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <moveit/python/pybind_rosmsg_typecasters.h>
 
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/kinematic_constraints/utils.h>
+#include <moveit/python/pybind_rosmsg_typecasters.h>
 
 namespace py = pybind11;
 

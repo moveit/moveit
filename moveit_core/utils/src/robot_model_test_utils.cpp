@@ -34,14 +34,16 @@
 
 /* Author: Bryce Willey */
 
-#include <ros/ros.h>
 #include <boost/algorithm/string_regex.hpp>
 #include <boost/math/constants/constants.hpp>
+
+#include <ros/package.h>
+#include <ros/ros.h>
+#include <urdf_parser/urdf_parser.h>
+
 #include <geometry_msgs/Pose.h>
 
-#include <urdf_parser/urdf_parser.h>
 #include <moveit/utils/robot_model_test_utils.h>
-#include <ros/package.h>
 
 namespace moveit
 {

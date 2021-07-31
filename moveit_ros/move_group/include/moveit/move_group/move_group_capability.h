@@ -37,10 +37,10 @@
 #pragma once
 
 #include <moveit/macros/class_forward.h>
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/planning_interface/planning_interface.h>
-#include <moveit/plan_execution/plan_representation.h>
 #include <moveit/move_group/move_group_context.h>
+#include <moveit/plan_execution/plan_representation.h>
+#include <moveit/planning_interface/planning_interface.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 
 namespace move_group
 {

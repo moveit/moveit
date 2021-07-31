@@ -38,9 +38,9 @@
 
 #pragma once
 
-#include <moveit/robot_state/robot_state.h>
-
 #include <boost/assert.hpp>
+
+#include <moveit/robot_state/robot_state.h>
 
 namespace moveit
 {

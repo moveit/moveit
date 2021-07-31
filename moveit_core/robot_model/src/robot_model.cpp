@@ -35,14 +35,18 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/robot_model/robot_model.h>
-#include <geometric_shapes/shape_operations.h>
-#include <boost/math/constants/constants.hpp>
-#include <moveit/profiler/profiler.h>
 #include <algorithm>
-#include <limits>
 #include <cmath>
+#include <limits>
 #include <memory>
+
+#include <boost/math/constants/constants.hpp>
+
+#include <geometric_shapes/shape_operations.h>
+
+#include <moveit/profiler/profiler.h>
+#include <moveit/robot_model/robot_model.h>
+
 #include "order_robot_model_items.inc"
 
 namespace moveit

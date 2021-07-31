@@ -36,10 +36,11 @@
 
 #pragma once
 
-#include <moveit/robot_trajectory/robot_trajectory.h>
-#include <moveit_msgs/MoveItErrorCodes.h>
-#include <moveit_msgs/MotionPlanResponse.h>
 #include <moveit_msgs/MotionPlanDetailedResponse.h>
+#include <moveit_msgs/MotionPlanResponse.h>
+#include <moveit_msgs/MoveItErrorCodes.h>
+
+#include <moveit/robot_trajectory/robot_trajectory.h>
 
 namespace planning_interface
 {

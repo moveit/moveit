@@ -34,9 +34,11 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/planning_interface/planning_interface.h>
-#include <boost/thread/mutex.hpp>
 #include <set>
+
+#include <boost/thread/mutex.hpp>
+
+#include <moveit/planning_interface/planning_interface.h>
 
 namespace planning_interface
 {

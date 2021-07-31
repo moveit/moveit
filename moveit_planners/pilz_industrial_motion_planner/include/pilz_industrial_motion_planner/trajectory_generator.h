@@ -38,8 +38,10 @@
 #include <string>
 
 #include <Eigen/Geometry>
+
 #include <kdl/frames.hpp>
 #include <kdl/trajectory.hpp>
+
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/robot_model/robot_model.h>
 

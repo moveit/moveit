@@ -36,18 +36,21 @@
 
 #pragma once
 
-#include <moveit/macros/class_forward.h>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/planning_scene_monitor/current_state_monitor.h>
+#include <memory>
+
+#include <boost/thread.hpp>
+
+#include <pluginlib/class_loader.hpp>
+#include <ros/ros.h>
+
 #include <moveit_msgs/RobotTrajectory.h>
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/String.h>
-#include <ros/ros.h>
-#include <moveit/controller_manager/controller_manager.h>
-#include <boost/thread.hpp>
-#include <pluginlib/class_loader.hpp>
 
-#include <memory>
+#include <moveit/controller_manager/controller_manager.h>
+#include <moveit/macros/class_forward.h>
+#include <moveit/planning_scene_monitor/current_state_monitor.h>
+#include <moveit/robot_model/robot_model.h>
 
 namespace trajectory_execution_manager
 {

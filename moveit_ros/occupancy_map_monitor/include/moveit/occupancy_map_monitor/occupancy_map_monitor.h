@@ -36,20 +36,21 @@
 
 #pragma once
 
-#include <vector>
+#include <memory>
 #include <string>
-#include <ros/ros.h>
-#include <tf2_ros/buffer.h>
-#include <pluginlib/class_loader.hpp>
-
-#include <moveit_msgs/SaveMap.h>
-#include <moveit_msgs/LoadMap.h>
-#include <moveit/collision_detection/occupancy_map.h>
-#include <moveit/occupancy_map_monitor/occupancy_map_updater.h>
+#include <vector>
 
 #include <boost/thread/mutex.hpp>
 
-#include <memory>
+#include <pluginlib/class_loader.hpp>
+#include <ros/ros.h>
+#include <tf2_ros/buffer.h>
+
+#include <moveit_msgs/LoadMap.h>
+#include <moveit_msgs/SaveMap.h>
+
+#include <moveit/collision_detection/occupancy_map.h>
+#include <moveit/occupancy_map_monitor/occupancy_map_updater.h>
 
 namespace occupancy_map_monitor
 {

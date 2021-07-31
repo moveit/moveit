@@ -34,13 +34,16 @@
 
 /* Author: Sachin Chitta */
 
-#include <geometry_msgs/PoseStamped.h>
-#include <kdl_parser/kdl_parser.hpp>
-#include <tf2_kdl/tf2_kdl.h>
+#include "pr2_arm_kinematics_plugin.h"
+
 #include <algorithm>
 
+#include <kdl_parser/kdl_parser.hpp>
+#include <tf2_kdl/tf2_kdl.h>
+
+#include <geometry_msgs/PoseStamped.h>
+
 #include <moveit/robot_model/robot_model.h>
-#include "pr2_arm_kinematics_plugin.h"
 
 using namespace KDL;
 using namespace std;

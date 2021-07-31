@@ -32,34 +32,37 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <gtest/gtest.h>
-
 #include <map>
 #include <math.h>
 #include <string>
 #include <vector>
 
 #include <Eigen/Geometry>
+
 #include <kdl/frames.hpp>
 #include <kdl/path_roundedcomposite.hpp>
 #include <kdl/rotational_interpolation_sa.hpp>
 #include <kdl/trajectory.hpp>
 #include <kdl/trajectory_segment.hpp>
 #include <kdl/velocityprofile_trap.hpp>
+#include <tf2_eigen/tf2_eigen.h>
+
+#include <moveit_msgs/RobotState.h>
+#include <moveit_msgs/RobotTrajectory.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_model/joint_model_group.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit_msgs/RobotState.h>
-#include <moveit_msgs/RobotTrajectory.h>
-#include <tf2_eigen/tf2_eigen.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include "pilz_industrial_motion_planner/cartesian_trajectory.h"
 #include "pilz_industrial_motion_planner/cartesian_trajectory_point.h"
 #include "pilz_industrial_motion_planner/limits_container.h"
 #include "pilz_industrial_motion_planner/trajectory_functions.h"
 #include "test_utils.h"
+
+#include "gtest/gtest.h"
 
 #define _USE_MATH_DEFINES
 

@@ -36,11 +36,13 @@
 
 #pragma once
 
+#include <OgreMaterial.h>
+
+#include <rviz/helpers/color.h>
+
 #include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/rviz_plugin_render_tools/render_shapes.h>
-#include <rviz/helpers/color.h>
-#include <OgreMaterial.h>
 
 namespace Ogre
 {

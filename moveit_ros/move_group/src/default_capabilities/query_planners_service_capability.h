@@ -36,10 +36,11 @@
 
 #pragma once
 
-#include <moveit/move_group/move_group_capability.h>
-#include <moveit_msgs/QueryPlannerInterfaces.h>
 #include <moveit_msgs/GetPlannerParams.h>
+#include <moveit_msgs/QueryPlannerInterfaces.h>
 #include <moveit_msgs/SetPlannerParams.h>
+
+#include <moveit/move_group/move_group_capability.h>
 
 namespace move_group
 {

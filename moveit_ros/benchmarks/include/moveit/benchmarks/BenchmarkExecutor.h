@@ -36,23 +36,24 @@
 
 #pragma once
 
+#include <map>
+#include <string>
+#include <vector>
+
+#include <boost/function.hpp>
+
+#include <pluginlib/class_loader.hpp>
+
+#include <warehouse_ros/database_loader.h>
+
 #include <moveit/benchmarks/BenchmarkOptions.h>
-
+#include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-
+#include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/planning_scene_storage.h>
 #include <moveit/warehouse/planning_scene_world_storage.h>
 #include <moveit/warehouse/state_storage.h>
-#include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/trajectory_constraints_storage.h>
-#include <moveit/planning_pipeline/planning_pipeline.h>
-#include <warehouse_ros/database_loader.h>
-#include <pluginlib/class_loader.hpp>
-
-#include <map>
-#include <vector>
-#include <string>
-#include <boost/function.hpp>
 
 namespace moveit_ros_benchmarks
 {

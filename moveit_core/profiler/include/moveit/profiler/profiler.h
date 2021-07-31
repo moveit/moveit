@@ -53,12 +53,13 @@
 
 #if MOVEIT_ENABLE_PROFILING
 
+#include <iostream>
 #include <map>
 #include <string>
-#include <iostream>
-#include <boost/thread.hpp>
-#include <boost/noncopyable.hpp>
+
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/noncopyable.hpp>
+#include <boost/thread.hpp>
 
 namespace moveit
 {
@@ -315,8 +316,8 @@ private:
 
 #else
 
-#include <string>
 #include <iostream>
+#include <string>
 
 /* If profiling is disabled, provide empty implementations for the
    public functions */

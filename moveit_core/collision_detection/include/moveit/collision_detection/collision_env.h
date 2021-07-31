@@ -36,12 +36,13 @@
 
 #pragma once
 
-#include <moveit/collision_detection/collision_matrix.h>
-#include <moveit/macros/class_forward.h>
-#include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/LinkPadding.h>
 #include <moveit_msgs/LinkScale.h>
+
+#include <moveit/collision_detection/collision_matrix.h>
 #include <moveit/collision_detection/world.h>
+#include <moveit/macros/class_forward.h>
+#include <moveit/robot_state/robot_state.h>
 
 namespace collision_detection
 {

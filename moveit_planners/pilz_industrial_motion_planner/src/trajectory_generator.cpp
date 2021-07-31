@@ -37,6 +37,7 @@
 #include <cassert>
 
 #include <kdl/velocityprofile_trap.hpp>
+
 #include <moveit/robot_state/conversions.h>
 
 #include "pilz_industrial_motion_planner/limits_container.h"

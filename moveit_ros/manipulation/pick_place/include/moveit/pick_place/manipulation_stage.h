@@ -36,9 +36,10 @@
 
 #pragma once
 
+#include <string>
+
 #include <moveit/macros/class_forward.h>
 #include <moveit/pick_place/manipulation_plan.h>
-#include <string>
 
 namespace pick_place
 {

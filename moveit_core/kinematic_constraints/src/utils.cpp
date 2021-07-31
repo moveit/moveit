@@ -34,12 +34,15 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/kinematic_constraints/utils.h>
-#include <geometric_shapes/solid_primitive_dims.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <moveit/utils/xmlrpc_casts.h>
-#include <moveit/utils/message_checks.h>
 #include <tf2_eigen/tf2_eigen.h>
+
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
+#include <geometric_shapes/solid_primitive_dims.h>
+
+#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/utils/message_checks.h>
+#include <moveit/utils/xmlrpc_casts.h>
 
 using namespace moveit::core;
 

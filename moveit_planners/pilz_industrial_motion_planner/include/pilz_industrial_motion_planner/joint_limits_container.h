@@ -34,11 +34,11 @@
 
 #pragma once
 
-#include "pilz_industrial_motion_planner/joint_limits_extension.h"
-
 #include <map>
-#include <vector>
 #include <string>
+#include <vector>
+
+#include "pilz_industrial_motion_planner/joint_limits_extension.h"
 
 namespace pilz_industrial_motion_planner
 {

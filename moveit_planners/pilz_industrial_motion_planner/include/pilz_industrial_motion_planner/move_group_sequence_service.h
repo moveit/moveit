@@ -34,9 +34,9 @@
 
 #pragma once
 
-#include <moveit/move_group/move_group_capability.h>
-
 #include <moveit_msgs/GetMotionSequence.h>
+
+#include <moveit/move_group/move_group_capability.h>
 
 namespace pilz_industrial_motion_planner
 {

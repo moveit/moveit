@@ -34,11 +34,14 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
+#include <memory>
+
+#include <boost/tokenizer.hpp>
+
 #include <pluginlib/class_loader.hpp>
 #include <ros/ros.h>
-#include <boost/tokenizer.hpp>
-#include <memory>
+
+#include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
 
 namespace constraint_sampler_manager_loader
 {

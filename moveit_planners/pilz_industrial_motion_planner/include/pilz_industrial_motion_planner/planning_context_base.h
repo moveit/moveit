@@ -34,8 +34,8 @@
 
 #pragma once
 
-#include "pilz_industrial_motion_planner/joint_limits_container.h"
-#include "pilz_industrial_motion_planner/trajectory_generator.h"
+#include <atomic>
+#include <thread>
 
 #include <ros/ros.h>
 
@@ -44,8 +44,8 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_state/conversions.h>
 
-#include <atomic>
-#include <thread>
+#include "pilz_industrial_motion_planner/joint_limits_container.h"
+#include "pilz_industrial_motion_planner/trajectory_generator.h"
 
 namespace pilz_industrial_motion_planner
 {

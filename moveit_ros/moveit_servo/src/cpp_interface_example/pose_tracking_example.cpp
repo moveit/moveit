@@ -36,14 +36,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <std_msgs/Int8.h>
-#include <geometry_msgs/TransformStamped.h>
-
-#include <moveit_servo/servo.h>
-#include <moveit_servo/pose_tracking.h>
-#include <moveit_servo/status_codes.h>
-#include <moveit_servo/make_shared_from_pool.h>
 #include <thread>
+
+#include <geometry_msgs/TransformStamped.h>
+#include <std_msgs/Int8.h>
+
+#include <moveit_servo/make_shared_from_pool.h>
+#include <moveit_servo/pose_tracking.h>
+#include <moveit_servo/servo.h>
+#include <moveit_servo/status_codes.h>
 
 static const std::string LOGNAME = "cpp_interface_example";
 

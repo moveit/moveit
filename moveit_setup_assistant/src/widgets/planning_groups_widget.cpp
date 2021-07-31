@@ -47,11 +47,12 @@
 */
 // ******************************************************************************************
 
-#include "header_widget.h"
 #include "planning_groups_widget.h"
-#include "double_list_widget.h"      // for joints, links and subgroups pages
+
+#include "double_list_widget.h"  // for joints, links and subgroups pages
+#include "group_edit_widget.h"   // for group rename page
+#include "header_widget.h"
 #include "kinematic_chain_widget.h"  // for kinematic chain page
-#include "group_edit_widget.h"       // for group rename page
 // Qt
 #include <QApplication>
 #include <QComboBox>

@@ -34,26 +34,25 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/rviz_plugin_render_tools/render_shapes.h>
-#include <moveit/rviz_plugin_render_tools/octomap_render.h>
-#include <geometric_shapes/check_isometry.h>
-#include <geometric_shapes/mesh_operations.h>
-
-#include <OgreSceneNode.h>
-#include <OgreSceneManager.h>
 #include <OgreManualObject.h>
 #include <OgreMaterialManager.h>
-
-#include <rviz/ogre_helpers/shape.h>
-#include <rviz/ogre_helpers/mesh_shape.h>
-
-#include <rviz/display_context.h>
-#include <rviz/robot/robot.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <memory>
 
 #include <boost/lexical_cast.hpp>
 #include <boost/math/constants/constants.hpp>
 
-#include <memory>
+#include <rviz/display_context.h>
+#include <rviz/ogre_helpers/mesh_shape.h>
+#include <rviz/ogre_helpers/shape.h>
+#include <rviz/robot/robot.h>
+
+#include <geometric_shapes/check_isometry.h>
+#include <geometric_shapes/mesh_operations.h>
+
+#include <moveit/rviz_plugin_render_tools/octomap_render.h>
+#include <moveit/rviz_plugin_render_tools/render_shapes.h>
 
 namespace moveit_rviz_plugin
 {

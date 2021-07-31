@@ -35,15 +35,16 @@
 #ifndef JOINTCONFIGURATION_H
 #define JOINTCONFIGURATION_H
 
+#include <functional>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
-#include <functional>
-#include <stdexcept>
 
 #include <sensor_msgs/JointState.h>
-#include <moveit/robot_state/robot_state.h>
+
 #include <moveit/robot_state/conversions.h>
+#include <moveit/robot_state/robot_state.h>
 
 #include "robotconfiguration.h"
 

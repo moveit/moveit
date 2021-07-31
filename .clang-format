@@ -2,7 +2,26 @@
 BasedOnStyle:  Google
 ColumnLimit:    120
 MaxEmptyLinesToKeep: 1
-SortIncludes: false
+
+SortIncludes: true
+IncludeBlocks: Regroup
+IncludeCategories:
+- Regex: '^\"(gmock|gtest)'
+  Priority: 8
+- Regex: '^\"'
+  Priority: 7
+- Regex: '^\<.*msgs'
+  Priority: 4
+- Regex: '^\<moveit'
+  Priority: 6
+- Regex: '^\<(geometric_shapes|srdfdom|warehouse_ros|random_numbers)'
+  Priority: 5
+- Regex: '^\<(boost|Eigen|fcl|ompl)'
+  Priority: 2
+- Regex: '^<[^/]*>'
+  Priority: 1
+- Regex: '^<.*/.*'
+  Priority: 3
 
 Standard:        Auto
 IndentWidth:     2

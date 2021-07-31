@@ -11,32 +11,30 @@
  */
 
 // C++
+#include <cmath>
 #include <iostream>
 #include <string>
-#include <cmath>
 
 // ROS
 #include <ros/ros.h>
 
 // Testing
-#include <gtest/gtest.h>
-
 #include <trajopt/common.hpp>
-
-#include <moveit/planning_interface/planning_interface.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/planning_scene/planning_scene.h>
-#include <moveit/robot_state/robot_state.h>
-#include <moveit/utils/robot_model_test_utils.h>
-
-#include <trajopt_interface/problem_description.h>
 #include <trajopt_interface/kinematic_terms.h>
+#include <trajopt_interface/problem_description.h>
+
+#include <moveit_msgs/MotionPlanResponse.h>
 
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/move_group_interface/move_group_interface.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/planning_interface/planning_interface.h>
+#include <moveit/planning_scene/planning_scene.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit_msgs/MotionPlanResponse.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_state/robot_state.h>
+#include <moveit/utils/robot_model_test_utils.h>
+
+#include "gtest/gtest.h"
 
 class TrajectoryTest : public ::testing::Test
 {

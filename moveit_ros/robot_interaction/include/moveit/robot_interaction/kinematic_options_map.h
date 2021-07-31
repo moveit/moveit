@@ -36,9 +36,10 @@
 
 #pragma once
 
-#include <moveit/robot_interaction/kinematic_options.h>
-#include <boost/thread.hpp>
 #include <boost/function.hpp>
+#include <boost/thread.hpp>
+
+#include <moveit/robot_interaction/kinematic_options.h>
 
 namespace robot_interaction
 {

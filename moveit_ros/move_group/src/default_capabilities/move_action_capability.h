@@ -36,10 +36,13 @@
 
 #pragma once
 
-#include <moveit/move_group/move_group_capability.h>
-#include <actionlib/server/simple_action_server.h>
-#include <moveit_msgs/MoveGroupAction.h>
 #include <memory>
+
+#include <actionlib/server/simple_action_server.h>
+
+#include <moveit_msgs/MoveGroupAction.h>
+
+#include <moveit/move_group/move_group_capability.h>
 
 namespace move_group
 {

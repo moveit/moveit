@@ -34,10 +34,11 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/pick_place/pick_place.h>
-#include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <visualization_msgs/MarkerArray.h>
+
+#include <moveit/pick_place/pick_place.h>
+#include <moveit/robot_state/conversions.h>
 
 namespace pick_place
 {

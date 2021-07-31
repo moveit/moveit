@@ -34,24 +34,23 @@
 
 /* Author: Raghavender Sahdev */
 
-#include <moveit/planning_request_adapter/planning_request_adapter.h>
-#include <moveit/robot_state/conversions.h>
-#include <moveit/trajectory_processing/trajectory_tools.h>
-#include <moveit_msgs/RobotTrajectory.h>
+#include <vector>
+
+#include <eigen3/Eigen/Core>
+
+#include <chomp_motion_planner/chomp_parameters.h>
+#include <chomp_motion_planner/chomp_planner.h>
 #include <class_loader/class_loader.hpp>
 #include <ros/ros.h>
 
-#include <chomp_motion_planner/chomp_planner.h>
-#include <chomp_motion_planner/chomp_parameters.h>
-#include <moveit/planning_interface/planning_interface.h>
-#include <moveit/trajectory_processing/iterative_time_parameterization.h>
+#include <moveit_msgs/RobotTrajectory.h>
 
 #include <moveit/collision_distance_field/collision_detector_allocator_hybrid.h>
-
+#include <moveit/planning_interface/planning_interface.h>
+#include <moveit/planning_request_adapter/planning_request_adapter.h>
 #include <moveit/robot_state/conversions.h>
-
-#include <vector>
-#include <eigen3/Eigen/Core>
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
+#include <moveit/trajectory_processing/trajectory_tools.h>
 
 namespace chomp
 {

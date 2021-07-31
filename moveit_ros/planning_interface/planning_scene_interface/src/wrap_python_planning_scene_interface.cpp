@@ -34,14 +34,15 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/planning_scene_interface/planning_scene_interface.h>
-#include <moveit/py_bindings_tools/roscpp_initializer.h>
-#include <moveit/py_bindings_tools/py_conversions.h>
-#include <moveit/py_bindings_tools/serialize_msg.h>
+#include <Python.h>
 
 #include <boost/function.hpp>
 #include <boost/python.hpp>
-#include <Python.h>
+
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/py_bindings_tools/py_conversions.h>
+#include <moveit/py_bindings_tools/roscpp_initializer.h>
+#include <moveit/py_bindings_tools/serialize_msg.h>
 
 /** @cond IGNORE */
 

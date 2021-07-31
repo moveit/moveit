@@ -37,11 +37,11 @@
 
 #pragma once
 
+#include <boost/shared_ptr.hpp>
+
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
-
-#include <boost/shared_ptr.hpp>
 
 namespace kinematics_cache
 {

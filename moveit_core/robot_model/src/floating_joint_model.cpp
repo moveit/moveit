@@ -35,12 +35,16 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/robot_model/floating_joint_model.h>
-#include <geometric_shapes/check_isometry.h>
-#include <boost/math/constants/constants.hpp>
-#include <ros/console.h>
-#include <limits>
 #include <cmath>
+#include <limits>
+
+#include <boost/math/constants/constants.hpp>
+
+#include <ros/console.h>
+
+#include <geometric_shapes/check_isometry.h>
+
+#include <moveit/robot_model/floating_joint_model.h>
 
 namespace moveit
 {

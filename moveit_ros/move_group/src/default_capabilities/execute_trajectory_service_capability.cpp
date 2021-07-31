@@ -35,8 +35,9 @@
 /* Author: Ioan Sucan */
 
 #include "execute_trajectory_service_capability.h"
-#include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
+
 #include <moveit/move_group/capability_names.h>
+#include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 
 namespace move_group
 {

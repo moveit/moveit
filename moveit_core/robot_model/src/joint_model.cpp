@@ -35,10 +35,11 @@
 
 /* Author: Ioan Sucan */
 
+#include <algorithm>
+
 #include <moveit/exceptions/exceptions.h>
 #include <moveit/robot_model/joint_model.h>
 #include <moveit/robot_model/link_model.h>
-#include <algorithm>
 
 namespace moveit
 {

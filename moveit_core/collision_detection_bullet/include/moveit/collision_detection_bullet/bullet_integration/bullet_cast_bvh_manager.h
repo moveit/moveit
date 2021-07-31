@@ -33,8 +33,8 @@
 
 #pragma once
 
-#include <moveit/collision_detection_bullet/bullet_integration/bullet_utils.h>
 #include <moveit/collision_detection_bullet/bullet_integration/bullet_bvh_manager.h>
+#include <moveit/collision_detection_bullet/bullet_integration/bullet_utils.h>
 #include <moveit/macros/class_forward.h>
 
 namespace collision_detection_bullet

@@ -36,8 +36,9 @@
 
 #pragma once
 
-#include <moveit/constraint_samplers/constraint_sampler.h>
 #include <visualization_msgs/MarkerArray.h>
+
+#include <moveit/constraint_samplers/constraint_sampler.h>
 
 namespace constraint_samplers
 {

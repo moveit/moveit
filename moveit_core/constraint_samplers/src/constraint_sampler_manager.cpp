@@ -34,10 +34,11 @@
 
 /* Author: Ioan Sucan */
 
+#include <sstream>
+
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
 #include <moveit/constraint_samplers/default_constraint_samplers.h>
 #include <moveit/constraint_samplers/union_constraint_sampler.h>
-#include <sstream>
 
 constraint_samplers::ConstraintSamplerPtr
 constraint_samplers::ConstraintSamplerManager::selectSampler(const planning_scene::PlanningSceneConstPtr& scene,

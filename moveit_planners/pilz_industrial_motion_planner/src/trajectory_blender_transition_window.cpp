@@ -35,8 +35,9 @@
 #include "pilz_industrial_motion_planner/trajectory_blender_transition_window.h"
 
 #include <algorithm>
-#include <memory>
 #include <math.h>
+#include <memory>
+
 #include <tf2_eigen/tf2_eigen.h>
 
 bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::blend(

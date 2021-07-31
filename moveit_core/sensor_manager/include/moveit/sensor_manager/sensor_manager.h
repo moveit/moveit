@@ -36,11 +36,13 @@
 
 #pragma once
 
-#include <vector>
 #include <string>
-#include <moveit/macros/class_forward.h>
-#include <moveit_msgs/RobotTrajectory.h>
+#include <vector>
+
 #include <geometry_msgs/PointStamped.h>
+#include <moveit_msgs/RobotTrajectory.h>
+
+#include <moveit/macros/class_forward.h>
 
 /// Namespace for the base class of a MoveIt sensor manager
 namespace moveit_sensor_manager

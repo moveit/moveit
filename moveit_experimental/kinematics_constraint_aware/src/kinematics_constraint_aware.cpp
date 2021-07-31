@@ -36,12 +36,14 @@
  *********************************************************************/
 
 // // ROS msgs
-#include <moveit/kinematics_constraint_aware/kinematics_constraint_aware.h>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/planning_scene/planning_scene.h>
 #include <Eigen/Geometry.h>
-#include <tf2_eigen/tf2_eigen.h>
 #include <boost/bind.hpp>
+
+#include <tf2_eigen/tf2_eigen.h>
+
+#include <moveit/kinematics_constraint_aware/kinematics_constraint_aware.h>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/robot_model/robot_model.h>
 
 namespace kinematics_constraint_aware
 {

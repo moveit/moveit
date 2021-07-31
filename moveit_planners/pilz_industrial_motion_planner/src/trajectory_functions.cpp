@@ -34,11 +34,13 @@
 
 #include "pilz_industrial_motion_planner/trajectory_functions.h"
 
-#include <moveit/planning_scene/planning_scene.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_kdl/tf2_kdl.h>
+
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
+#include <moveit/planning_scene/planning_scene.h>
 
 bool pilz_industrial_motion_planner::computePoseIK(const moveit::core::RobotModelConstPtr& robot_model,
                                                    const std::string& group_name, const std::string& link_name,

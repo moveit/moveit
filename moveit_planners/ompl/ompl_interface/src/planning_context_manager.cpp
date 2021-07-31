@@ -34,42 +34,42 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/ompl_interface/planning_context_manager.h>
-#include <moveit/robot_state/conversions.h>
-#include <moveit/profiler/profiler.h>
 #include <utility>
 
 #include <ompl/geometric/planners/AnytimePathShortening.h>
-#include <ompl/geometric/planners/rrt/RRT.h>
-#include <ompl/geometric/planners/rrt/pRRT.h>
-#include <ompl/geometric/planners/rrt/RRTConnect.h>
-#include <ompl/geometric/planners/rrt/TRRT.h>
-#include <ompl/geometric/planners/rrt/LazyRRT.h>
-#include <ompl/geometric/planners/est/EST.h>
-#include <ompl/geometric/planners/sbl/SBL.h>
-#include <ompl/geometric/planners/sbl/pSBL.h>
-#include <ompl/geometric/planners/kpiece/KPIECE1.h>
-#include <ompl/geometric/planners/kpiece/BKPIECE1.h>
-#include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
-#include <ompl/geometric/planners/rrt/RRTstar.h>
-#include <ompl/geometric/planners/prm/PRM.h>
-#include <ompl/geometric/planners/prm/PRMstar.h>
-#include <ompl/geometric/planners/fmt/FMT.h>
-#include <ompl/geometric/planners/fmt/BFMT.h>
-#include <ompl/geometric/planners/pdst/PDST.h>
-#include <ompl/geometric/planners/stride/STRIDE.h>
-#include <ompl/geometric/planners/rrt/BiTRRT.h>
-#include <ompl/geometric/planners/rrt/LBTRRT.h>
 #include <ompl/geometric/planners/est/BiEST.h>
+#include <ompl/geometric/planners/est/EST.h>
 #include <ompl/geometric/planners/est/ProjEST.h>
+#include <ompl/geometric/planners/fmt/BFMT.h>
+#include <ompl/geometric/planners/fmt/FMT.h>
+#include <ompl/geometric/planners/kpiece/BKPIECE1.h>
+#include <ompl/geometric/planners/kpiece/KPIECE1.h>
+#include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
+#include <ompl/geometric/planners/pdst/PDST.h>
 #include <ompl/geometric/planners/prm/LazyPRM.h>
 #include <ompl/geometric/planners/prm/LazyPRMstar.h>
+#include <ompl/geometric/planners/prm/PRM.h>
+#include <ompl/geometric/planners/prm/PRMstar.h>
 #include <ompl/geometric/planners/prm/SPARS.h>
 #include <ompl/geometric/planners/prm/SPARStwo.h>
+#include <ompl/geometric/planners/rrt/BiTRRT.h>
+#include <ompl/geometric/planners/rrt/LBTRRT.h>
+#include <ompl/geometric/planners/rrt/LazyRRT.h>
+#include <ompl/geometric/planners/rrt/RRT.h>
+#include <ompl/geometric/planners/rrt/RRTConnect.h>
+#include <ompl/geometric/planners/rrt/RRTstar.h>
+#include <ompl/geometric/planners/rrt/TRRT.h>
+#include <ompl/geometric/planners/rrt/pRRT.h>
+#include <ompl/geometric/planners/sbl/SBL.h>
+#include <ompl/geometric/planners/sbl/pSBL.h>
+#include <ompl/geometric/planners/stride/STRIDE.h>
 
-#include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
+#include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
 #include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space_factory.h>
+#include <moveit/ompl_interface/planning_context_manager.h>
+#include <moveit/profiler/profiler.h>
+#include <moveit/robot_state/conversions.h>
 
 using namespace std::placeholders;
 

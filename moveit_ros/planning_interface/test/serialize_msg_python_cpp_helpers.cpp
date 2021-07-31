@@ -35,10 +35,13 @@
 /* Author: Bjarne von Horn */
 
 #include <Python.h>
-#include <boost/python.hpp>
-#include <moveit/py_bindings_tools/serialize_msg.h>
-#include <geometry_msgs/Vector3.h>
 #include <cstring>
+
+#include <boost/python.hpp>
+
+#include <geometry_msgs/Vector3.h>
+
+#include <moveit/py_bindings_tools/serialize_msg.h>
 
 namespace bp = boost::python;
 using moveit::py_bindings_tools::ByteString;

@@ -38,13 +38,15 @@
 
 #pragma once
 
-#include "NearestNeighbors.h"
-#include "GreedyKCenters.h"
-#include <moveit/exceptions/exceptions.h>
-#include <unordered_set>
-#include <queue>
 #include <algorithm>
+#include <queue>
+#include <unordered_set>
 #include <utility>
+
+#include <moveit/exceptions/exceptions.h>
+
+#include "GreedyKCenters.h"
+#include "NearestNeighbors.h"
 
 namespace cached_ik_kinematics_plugin
 {

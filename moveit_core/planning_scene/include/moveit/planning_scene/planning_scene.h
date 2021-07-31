@@ -36,25 +36,28 @@
 
 #pragma once
 
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/robot_state.h>
-#include <moveit/transforms/transforms.h>
+#include <memory>
+
+#include <boost/concept_check.hpp>
+#include <boost/function.hpp>
+#include <boost/noncopyable.hpp>
+
+#include <moveit_msgs/Constraints.h>
+#include <moveit_msgs/PlanningScene.h>
+#include <moveit_msgs/PlanningSceneComponents.h>
+#include <moveit_msgs/RobotTrajectory.h>
+#include <octomap_msgs/OctomapWithPose.h>
+
 #include <moveit/collision_detection/collision_detector_allocator.h>
-#include <moveit/collision_detection/world_diff.h>
 #include <moveit/collision_detection/collision_env.h>
+#include <moveit/collision_detection/world_diff.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/kinematics_base/kinematics_base.h>
-#include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/macros/class_forward.h>
-#include <moveit_msgs/PlanningScene.h>
-#include <moveit_msgs/RobotTrajectory.h>
-#include <moveit_msgs/Constraints.h>
-#include <moveit_msgs/PlanningSceneComponents.h>
-#include <octomap_msgs/OctomapWithPose.h>
-#include <boost/noncopyable.hpp>
-#include <boost/function.hpp>
-#include <boost/concept_check.hpp>
-#include <memory>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_state/robot_state.h>
+#include <moveit/robot_trajectory/robot_trajectory.h>
+#include <moveit/transforms/transforms.h>
 
 // Import/export for windows dll's and visibility for gcc shared libraries.
 #include <moveit/moveit_planning_scene_export.h>

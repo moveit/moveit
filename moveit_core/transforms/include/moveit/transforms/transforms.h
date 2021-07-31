@@ -36,9 +36,11 @@
 
 #pragma once
 
-#include <geometry_msgs/TransformStamped.h>
 #include <Eigen/Geometry>
 #include <boost/noncopyable.hpp>
+
+#include <geometry_msgs/TransformStamped.h>
+
 #include <moveit/macros/class_forward.h>
 
 namespace moveit

@@ -35,9 +35,10 @@
 /* Author: Ioan Sucan */
 
 #include "pick_place_action_capability.h"
+
+#include <moveit/move_group_pick_place_capability/capability_names.h>
 #include <moveit/plan_execution/plan_execution.h>
 #include <moveit/plan_execution/plan_with_sensing.h>
-#include <moveit/move_group_pick_place_capability/capability_names.h>
 
 move_group::MoveGroupPickPlaceAction::MoveGroupPickPlaceAction()
   : MoveGroupCapability("PickPlaceAction"), pickup_state_(IDLE)

@@ -36,12 +36,14 @@
 
 #pragma once
 
-#include <moveit/macros/class_forward.h>
-#include <moveit/robot_state/robot_state.h>
-#include <moveit_msgs/RobotTrajectory.h>
-#include <moveit_msgs/RobotState.h>
 #include <deque>
 #include <memory>
+
+#include <moveit_msgs/RobotState.h>
+#include <moveit_msgs/RobotTrajectory.h>
+
+#include <moveit/macros/class_forward.h>
+#include <moveit/robot_state/robot_state.h>
 
 namespace robot_trajectory
 {

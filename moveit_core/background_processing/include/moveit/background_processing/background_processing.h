@@ -37,11 +37,12 @@
 #pragma once
 
 #include <deque>
+#include <memory>
 #include <string>
-#include <boost/thread.hpp>
+
 #include <boost/function.hpp>
 #include <boost/noncopyable.hpp>
-#include <memory>
+#include <boost/thread.hpp>
 
 namespace moveit
 {

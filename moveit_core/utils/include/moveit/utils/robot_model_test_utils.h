@@ -37,10 +37,13 @@
 
 #pragma once
 
-#include <srdfdom/srdf_writer.h>
 #include <urdf/model.h>
-#include <moveit/robot_model/robot_model.h>
+
 #include <geometry_msgs/Pose.h>
+
+#include <srdfdom/srdf_writer.h>
+
+#include <moveit/robot_model/robot_model.h>
 
 namespace moveit
 {

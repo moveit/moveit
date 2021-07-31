@@ -32,9 +32,11 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <sbpl_interface/bfs3d/BFS_3D.h>
 #include <iostream>
+
 #include <boost/thread.hpp>
+
+#include <sbpl_interface/bfs3d/BFS_3D.h>
 
 namespace sbpl_interface
 {

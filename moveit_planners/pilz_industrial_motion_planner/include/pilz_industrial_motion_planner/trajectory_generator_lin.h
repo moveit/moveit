@@ -35,6 +35,7 @@
 #pragma once
 
 #include <eigen3/Eigen/Eigen>
+
 #include <kdl/rotational_interpolation_sa.hpp>
 
 #include "pilz_industrial_motion_planner/trajectory_generator.h"

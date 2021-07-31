@@ -37,8 +37,9 @@
 #pragma once
 
 #include <vector>
-#include <planning_models/robot_model.h>
+
 #include <planning_models/angle_utils.h>
+#include <planning_models/robot_model.h>
 
 namespace sbpl_interface
 {

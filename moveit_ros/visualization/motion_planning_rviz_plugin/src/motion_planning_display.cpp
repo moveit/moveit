@@ -34,42 +34,39 @@
 
 /* Author: Ioan Sucan, Dave Coleman, Adam Leeper, Sachin Chitta */
 
-#include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
-#include <moveit/robot_interaction/kinematic_options_map.h>
-#include <moveit/rviz_plugin_render_tools/planning_link_updater.h>
-#include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
-
-#include <rviz/visualization_manager.h>
-#include <rviz/robot/robot.h>
-#include <rviz/robot/robot_link.h>
-
-#include <rviz/properties/property.h>
-#include <rviz/properties/string_property.h>
-#include <rviz/properties/bool_property.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/ros_topic_property.h>
-#include <rviz/properties/editable_enum_property.h>
-#include <rviz/properties/color_property.h>
-#include <rviz/display_context.h>
-#include <rviz/frame_manager.h>
-#include <rviz/panel_dock_widget.h>
-#include <rviz/window_manager_interface.h>
-#include <rviz/display_factory.h>
-#include <rviz/ogre_helpers/movable_text.h>
-
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
-#include <rviz/ogre_helpers/shape.h>
+#include <QShortcut>
 
-#include <moveit/robot_state/conversions.h>
-#include <moveit/trajectory_processing/trajectory_tools.h>
-
-#include <boost/format.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include <QShortcut>
+#include <rviz/display_context.h>
+#include <rviz/display_factory.h>
+#include <rviz/frame_manager.h>
+#include <rviz/ogre_helpers/movable_text.h>
+#include <rviz/ogre_helpers/shape.h>
+#include <rviz/panel_dock_widget.h>
+#include <rviz/properties/bool_property.h>
+#include <rviz/properties/color_property.h>
+#include <rviz/properties/editable_enum_property.h>
+#include <rviz/properties/float_property.h>
+#include <rviz/properties/property.h>
+#include <rviz/properties/ros_topic_property.h>
+#include <rviz/properties/string_property.h>
+#include <rviz/robot/robot.h>
+#include <rviz/robot/robot_link.h>
+#include <rviz/visualization_manager.h>
+#include <rviz/window_manager_interface.h>
+
+#include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
+#include <moveit/robot_interaction/kinematic_options_map.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit/rviz_plugin_render_tools/planning_link_updater.h>
+#include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
+#include <moveit/trajectory_processing/trajectory_tools.h>
 
 #include "ui_motion_planning_rviz_plugin_frame.h"
 

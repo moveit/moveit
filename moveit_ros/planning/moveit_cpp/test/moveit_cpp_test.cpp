@@ -40,7 +40,7 @@
 #include <ros/ros.h>
 
 // Testing
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
 // Main class
 #include <moveit/moveit_cpp/moveit_cpp.h>

@@ -44,11 +44,11 @@
 #include <ros/ros.h>
 
 // Testing
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
 // Servo
-#include <moveit_servo/pose_tracking.h>
 #include <moveit_servo/make_shared_from_pool.h>
+#include <moveit_servo/pose_tracking.h>
 
 static const std::string LOGNAME = "servo_cpp_interface_test";
 static constexpr double TRANSLATION_TOLERANCE = 0.01;  // meters

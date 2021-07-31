@@ -35,10 +35,12 @@
 
 // SA
 #include "ros_controllers_widget.h"
-#include "double_list_widget.h"
-#include "controller_edit_widget.h"
-#include "header_widget.h"
+
 #include <moveit_msgs/JointLimits.h>
+
+#include "controller_edit_widget.h"
+#include "double_list_widget.h"
+#include "header_widget.h"
 // Qt
 #include <QApplication>
 #include <QDoubleValidator>
@@ -56,8 +58,8 @@
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QVBoxLayout>
-
 #include <regex>
+
 #include <moveit/robot_state/conversions.h>
 
 namespace moveit_setup_assistant

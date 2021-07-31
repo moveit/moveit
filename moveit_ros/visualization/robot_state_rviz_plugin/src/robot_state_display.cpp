@@ -34,27 +34,25 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/robot_state_rviz_plugin/robot_state_display.h>
-#include <moveit/robot_state/conversions.h>
-#include <moveit/utils/message_checks.h>
-
-#include <rviz/visualization_manager.h>
-#include <rviz/robot/robot.h>
-#include <rviz/robot/robot_link.h>
-
-#include <rviz/properties/property.h>
-#include <rviz/properties/string_property.h>
-#include <rviz/properties/bool_property.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/ros_topic_property.h>
-#include <rviz/properties/color_property.h>
-#include <rviz/display_context.h>
-#include <rviz/frame_manager.h>
-
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
-
 #include <memory>
+
+#include <rviz/display_context.h>
+#include <rviz/frame_manager.h>
+#include <rviz/properties/bool_property.h>
+#include <rviz/properties/color_property.h>
+#include <rviz/properties/float_property.h>
+#include <rviz/properties/property.h>
+#include <rviz/properties/ros_topic_property.h>
+#include <rviz/properties/string_property.h>
+#include <rviz/robot/robot.h>
+#include <rviz/robot/robot_link.h>
+#include <rviz/visualization_manager.h>
+
+#include <moveit/robot_state/conversions.h>
+#include <moveit/robot_state_rviz_plugin/robot_state_display.h>
+#include <moveit/utils/message_checks.h>
 
 namespace moveit_rviz_plugin
 {

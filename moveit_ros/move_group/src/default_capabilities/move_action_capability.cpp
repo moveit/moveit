@@ -36,13 +36,13 @@
 
 #include "move_action_capability.h"
 
-#include <moveit/planning_pipeline/planning_pipeline.h>
+#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/move_group/capability_names.h>
 #include <moveit/plan_execution/plan_execution.h>
 #include <moveit/plan_execution/plan_with_sensing.h>
+#include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
-#include <moveit/kinematic_constraints/utils.h>
 #include <moveit/utils/message_checks.h>
-#include <moveit/move_group/capability_names.h>
 
 namespace move_group
 {

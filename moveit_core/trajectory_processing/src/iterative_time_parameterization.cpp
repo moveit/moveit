@@ -34,9 +34,10 @@
 
 /* Author: Ken Anderson */
 
-#include <moveit/trajectory_processing/iterative_time_parameterization.h>
 #include <moveit_msgs/JointLimits.h>
+
 #include <moveit/robot_state/conversions.h>
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
 
 namespace trajectory_processing
 {

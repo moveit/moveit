@@ -34,13 +34,16 @@
 
 /* Author: Adam Leeper */
 
+#include <memory>
+
+#include <octomap/math/Utils.h>
+#include <octomap/math/Vector3.h>
+#include <octomap/octomap.h>
+
+#include <geometric_shapes/shapes.h>
+
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection/collision_octomap_filter.h>
-#include <octomap/math/Vector3.h>
-#include <octomap/math/Utils.h>
-#include <octomap/octomap.h>
-#include <geometric_shapes/shapes.h>
-#include <memory>
 
 // static const double ISO_VALUE  = 0.5; // TODO magic number! (though, probably a good one).
 // static const double R_MULTIPLE = 1.5; // TODO magic number! (though, probably a good one).

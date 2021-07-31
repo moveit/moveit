@@ -35,6 +35,7 @@
 
 // SA
 #include "simulation_widget.h"
+
 #include "header_widget.h"
 
 // Qt
@@ -44,11 +45,11 @@
 #include <QPushButton>
 #include <QTextEdit>
 #include <QVBoxLayout>
+#include <regex>
 
-#include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/DisplayRobotState.h>
 
-#include <regex>
+#include <moveit/robot_state/conversions.h>
 
 namespace moveit_setup_assistant
 {

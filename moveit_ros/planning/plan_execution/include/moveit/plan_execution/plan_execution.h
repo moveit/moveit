@@ -36,15 +36,16 @@
 
 #pragma once
 
+#include <atomic>
+
+#include <pluginlib/class_loader.hpp>
+
 #include <moveit/macros/class_forward.h>
 #include <moveit/plan_execution/plan_representation.h>
-#include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/planning_scene_monitor/trajectory_monitor.h>
 #include <moveit/sensor_manager/sensor_manager.h>
-#include <pluginlib/class_loader.hpp>
-
-#include <atomic>
+#include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 
 /** \brief This namespace includes functionality specific to the execution and monitoring of motion plans */
 namespace plan_execution

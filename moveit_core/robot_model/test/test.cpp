@@ -34,13 +34,17 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/robot_model/robot_model.h>
-#include <urdf_parser/urdf_parser.h>
 #include <fstream>
-#include <gtest/gtest.h>
+
 #include <boost/filesystem/path.hpp>
+
+#include <urdf_parser/urdf_parser.h>
+
 #include <moveit/profiler/profiler.h>
+#include <moveit/robot_model/robot_model.h>
 #include <moveit/utils/robot_model_test_utils.h>
+
+#include "gtest/gtest.h"
 
 class LoadPlanningModelsPr2 : public testing::Test
 {

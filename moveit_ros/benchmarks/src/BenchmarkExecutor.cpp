@@ -34,19 +34,20 @@
 
 /* Author: Ryan Luna */
 
+#include <boost/regex.hpp>
+
+#include <tf2_eigen/tf2_eigen.h>
+
 #include <moveit/benchmarks/BenchmarkExecutor.h>
 #include <moveit/utils/lexical_casts.h>
 #include <moveit/version.h>
-#include <tf2_eigen/tf2_eigen.h>
-
-#include <boost/regex.hpp>
 // TODO: Remove if boost >= 1.72 (https://github.com/boostorg/timer/issues/12)
 #define BOOST_ALLOW_DEPRECATED_HEADERS 1
 #include <boost/progress.hpp>
 #undef BOOST_ALLOW_DEPRECATED_HEADERS
-#include <boost/math/constants/constants.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/math/constants/constants.hpp>
 #ifndef _WIN32
 #include <unistd.h>
 #else

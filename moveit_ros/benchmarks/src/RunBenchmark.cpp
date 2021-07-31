@@ -34,11 +34,12 @@
 
 /* Author: Ryan Luna */
 
-#include <ros/ros.h>
 #include <string>
 
-#include <moveit/benchmarks/BenchmarkOptions.h>
+#include <ros/ros.h>
+
 #include <moveit/benchmarks/BenchmarkExecutor.h>
+#include <moveit/benchmarks/BenchmarkOptions.h>
 
 int main(int argc, char** argv)
 {

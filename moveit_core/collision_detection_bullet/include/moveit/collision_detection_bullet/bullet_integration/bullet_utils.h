@@ -35,14 +35,16 @@
 #pragma once
 
 #include <btBulletCollisionCommon.h>
-#include <geometric_shapes/mesh_operations.h>
+
 #include <ros/console.h>
 
+#include <geometric_shapes/mesh_operations.h>
+
+#include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection_bullet/bullet_integration/basic_types.h>
 #include <moveit/collision_detection_bullet/bullet_integration/contact_checker_common.h>
-#include <moveit/collision_detection/collision_common.h>
-#include <moveit/macros/declare_ptr.h>
 #include <moveit/macros/class_forward.h>
+#include <moveit/macros/declare_ptr.h>
 
 namespace collision_detection_bullet
 {

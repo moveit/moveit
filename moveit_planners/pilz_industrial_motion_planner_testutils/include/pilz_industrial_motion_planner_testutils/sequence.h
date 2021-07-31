@@ -36,9 +36,9 @@
 #define SEQUENCE_H
 
 #include <stdexcept>
-#include <vector>
-#include <utility>
 #include <typeinfo>
+#include <utility>
+#include <vector>
 
 #include <moveit_msgs/MotionSequenceRequest.h>
 

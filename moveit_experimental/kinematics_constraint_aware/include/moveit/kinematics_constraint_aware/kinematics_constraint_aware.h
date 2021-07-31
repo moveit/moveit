@@ -41,21 +41,21 @@
 #include <boost/function.hpp>
 
 // ROS msgs
-#include <moveit_msgs/GetConstraintAwarePositionIK.h>
 #include <geometry_msgs/PoseStamped.h>
-#include <moveit_msgs/MoveItErrorCodes.h>
 #include <moveit_msgs/Constraints.h>
+#include <moveit_msgs/GetConstraintAwarePositionIK.h>
+#include <moveit_msgs/MoveItErrorCodes.h>
 #include <moveit_msgs/RobotState.h>
 
 // Plugin
 #include <moveit/kinematics_base/kinematics_base.h>
 
 // MoveIt
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/robot_state.h>
-#include <moveit/planning_scene/planning_scene.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/kinematics_constraint_aware/kinematics_request_response.h>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_state/robot_state.h>
 
 namespace kinematics_constraint_aware
 {

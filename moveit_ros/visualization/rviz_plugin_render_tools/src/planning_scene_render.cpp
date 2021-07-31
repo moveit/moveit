@@ -34,13 +34,14 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/rviz_plugin_render_tools/planning_scene_render.h>
-#include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
-#include <moveit/rviz_plugin_render_tools/render_shapes.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
+
 #include <rviz/display_context.h>
 
-#include <OgreSceneNode.h>
-#include <OgreSceneManager.h>
+#include <moveit/rviz_plugin_render_tools/planning_scene_render.h>
+#include <moveit/rviz_plugin_render_tools/render_shapes.h>
+#include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
 
 namespace moveit_rviz_plugin
 {

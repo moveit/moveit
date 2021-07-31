@@ -35,11 +35,12 @@
 
 /* Author: Ioan Sucan */
 
+#include <class_loader/class_loader.hpp>
+#include <ros/ros.h>
+
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
 #include <moveit/robot_state/conversions.h>
-#include <class_loader/class_loader.hpp>
 #include <moveit/trajectory_processing/trajectory_tools.h>
-#include <ros/ros.h>
 
 namespace default_planner_request_adapters
 {

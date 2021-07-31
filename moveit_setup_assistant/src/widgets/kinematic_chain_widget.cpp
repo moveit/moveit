@@ -34,16 +34,17 @@
 
 /* Author: Dave Coleman */
 
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGroupBox>
-#include <QPushButton>
+#include "kinematic_chain_widget.h"
+
 #include <QGridLayout>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
-#include <QLabel>
+#include <QPushButton>
 #include <QTreeWidget>
-#include "kinematic_chain_widget.h"
+#include <QVBoxLayout>
 
 namespace moveit_setup_assistant
 {

@@ -34,12 +34,13 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/profiler/profiler.h>
-#include <ros/ros.h>
-
 #include <memory>
 #include <typeinfo>
+
+#include <ros/ros.h>
+
+#include <moveit/profiler/profiler.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 
 namespace robot_model_loader
 {

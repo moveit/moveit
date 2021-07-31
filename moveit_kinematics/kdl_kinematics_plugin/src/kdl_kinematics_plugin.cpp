@@ -34,16 +34,15 @@
 
 /* Author: Sachin Chitta, David Lu!!, Ugo Cupcic */
 
-#include <moveit/kdl_kinematics_plugin/kdl_kinematics_plugin.h>
-#include <moveit/kdl_kinematics_plugin/chainiksolver_vel_mimic_svd.hpp>
-
-#include <tf2_kdl/tf2_kdl.h>
-#include <tf2/transform_datatypes.h>
-
-#include <kdl_parser/kdl_parser.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/frames_io.hpp>
 #include <kdl/kinfam_io.hpp>
+#include <kdl_parser/kdl_parser.hpp>
+#include <tf2/transform_datatypes.h>
+#include <tf2_kdl/tf2_kdl.h>
+
+#include <moveit/kdl_kinematics_plugin/chainiksolver_vel_mimic_svd.hpp>
+#include <moveit/kdl_kinematics_plugin/kdl_kinematics_plugin.h>
 
 // register KDLKinematics as a KinematicsBase implementation
 #include <class_loader/class_loader.hpp>

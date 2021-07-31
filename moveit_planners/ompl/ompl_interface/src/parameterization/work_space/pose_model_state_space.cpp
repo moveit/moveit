@@ -34,11 +34,12 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space.h>
-#include <ompl/base/spaces/SE3StateSpace.h>
-#include <moveit/profiler/profiler.h>
-
 #include <utility>
+
+#include <ompl/base/spaces/SE3StateSpace.h>
+
+#include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space.h>
+#include <moveit/profiler/profiler.h>
 
 namespace ompl_interface
 {

@@ -36,9 +36,10 @@
 
 #pragma once
 
+#include <moveit_msgs/RobotState.h>
+
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/transforms/transforms.h>
-#include <moveit_msgs/RobotState.h>
 
 namespace moveit
 {

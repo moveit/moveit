@@ -32,11 +32,10 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <gtest/gtest.h>
-
 #include "pilz_industrial_motion_planner/joint_limits_extension.h"
-
 #include "pilz_industrial_motion_planner/joint_limits_validator.h"
+
+#include "gtest/gtest.h"
 
 using namespace pilz_industrial_motion_planner;
 

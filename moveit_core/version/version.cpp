@@ -34,8 +34,9 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/version.h>
 #include <cstdio>
+
+#include <moveit/version.h>
 
 int main(int argc, char** argv)
 {

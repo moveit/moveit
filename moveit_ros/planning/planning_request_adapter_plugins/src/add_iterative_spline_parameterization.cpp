@@ -35,10 +35,11 @@
 
 /* Author: Ken Anderson, based off add_time_parameterization.cpp by Ioan Sucan */
 
-#include <moveit/planning_request_adapter/planning_request_adapter.h>
-#include <moveit/trajectory_processing/iterative_spline_parameterization.h>
 #include <class_loader/class_loader.hpp>
 #include <ros/console.h>
+
+#include <moveit/planning_request_adapter/planning_request_adapter.h>
+#include <moveit/trajectory_processing/iterative_spline_parameterization.h>
 
 namespace default_planner_request_adapters
 {

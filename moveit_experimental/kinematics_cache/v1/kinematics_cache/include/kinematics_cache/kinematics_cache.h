@@ -37,11 +37,11 @@
 
 #pragma once
 
-#include <kinematics_base/kinematics_base.h>
-#include <planning_models/robot_model.h>
-#include <planning_models/kinematic_state.h>
-
 #include <memory>
+
+#include <kinematics_base/kinematics_base.h>
+#include <planning_models/kinematic_state.h>
+#include <planning_models/robot_model.h>
 
 namespace kinematics_cache
 {

@@ -37,10 +37,12 @@
 
 #pragma once
 
+#include <memory>
+
 #include <actionlib/client/simple_action_client.h>
+
 #include <moveit/controller_manager/controller_manager.h>
 #include <moveit/macros/class_forward.h>
-#include <memory>
 
 namespace moveit_simple_controller_manager
 {

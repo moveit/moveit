@@ -34,12 +34,13 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/plan_execution/plan_with_sensing.h>
-#include <moveit/trajectory_processing/trajectory_tools.h>
-#include <moveit/collision_detection/collision_tools.h>
 #include <boost/algorithm/string/join.hpp>
 
 #include <dynamic_reconfigure/server.h>
+
+#include <moveit/collision_detection/collision_tools.h>
+#include <moveit/plan_execution/plan_with_sensing.h>
+#include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit_ros_planning/SenseForPlanDynamicReconfigureConfig.h>
 
 namespace plan_execution
