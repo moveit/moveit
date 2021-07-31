@@ -319,7 +319,7 @@ private:
    * That's why the value is 1e-3 > 1e-4.
    * Now the user can specify any value between 1e-3 and 1e-4 to specify an equality constraint.
    * **/
-  static constexpr double EQUALITY_CONSTRAINT_THRESHOLD_{ 0.001 };
+  static constexpr double EQUALITY_CONSTRAINT_THRESHOLD{ 0.001 };
 
   /** \brief Bool vector indicating which dimensions are constrained. **/
   std::vector<bool> is_dim_constrained_;
