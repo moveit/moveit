@@ -47,6 +47,7 @@
 #include <ros/package.h>
 
 constexpr double EPSILON = 1e-2;
+constexpr double M_TAU = 2 * M_PI;
 
 class LoadPlanningModelsPr2 : public testing::Test
 {
@@ -306,6 +307,51 @@ TEST_F(LoadPlanningModelsPr2, ObjectPoseAndSubframes)
 
   p = ks.getFrameTransform("boxA/frame1");
   p2 = ks.getFrameTransform("boxB");
+  EXPECT_TRUE(p.isApprox(p2, EPSILON));
+
+  // Ensure that conversion to and from message in conversions.cpp works
+  moveit_msgs::RobotState msg;
+  robotStateToRobotStateMsg(ks, msg, true);
+
+  // Add another object C that is defined in a frame that is not the link.
+  // The object will be transformed into the link's frame, which
+  // uses an otherwise inactive section of _msgToAttachedBody.
+  Eigen::Isometry3d pose_c = Eigen::Isometry3d(Eigen::Translation3d(0.1, 0.2, 0.3)) *
+                             Eigen::AngleAxisd(0.1 * M_TAU, Eigen::Vector3d::UnitX()) *
+                             Eigen::AngleAxisd(0.2 * M_TAU, Eigen::Vector3d::UnitY()) *
+                             Eigen::AngleAxisd(0.4 * M_TAU, Eigen::Vector3d::UnitZ());
+  Eigen::Quaterniond q(pose_c.linear());
+  moveit_msgs::AttachedCollisionObject new_aco = msg.attached_collision_objects[0];
+  new_aco.object.id = "boxC";
+  new_aco.object.header.frame_id = "r_shoulder_pan_link";
+  new_aco.object.pose.position.x = pose_c.translation()[0];
+  new_aco.object.pose.position.y = pose_c.translation()[1];
+  new_aco.object.pose.position.z = pose_c.translation()[2];
+  new_aco.object.pose.orientation.x = q.vec()[0];
+  new_aco.object.pose.orientation.y = q.vec()[1];
+  new_aco.object.pose.orientation.z = q.vec()[2];
+  new_aco.object.pose.orientation.w = q.w();
+  msg.attached_collision_objects.push_back(new_aco);
+
+  // Confirm that object B is unchanged after the conversion
+  moveit::core::RobotState ks3(robot_model);
+  robotStateMsgToRobotState(msg, ks3, true);
+  Eigen::Isometry3d p_original, p_reconverted;
+  p_original = ks.getAttachedBody("boxB")->getPose();
+  p_reconverted = ks3.getAttachedBody("boxB")->getPose();
+  EXPECT_TRUE(p_original.isApprox(p_reconverted, EPSILON));
+
+  // Confirm that the position of object C is what we expect
+  Eigen::Isometry3d p_link, p_header_frame;
+  p_link = ks3.getFrameTransform("r_gripper_palm_link");
+  p_header_frame = ks3.getFrameTransform("r_shoulder_pan_link");
+
+  p = p_header_frame * pose_c;  // Object pose in world
+  p2 = ks3.getAttachedBody("boxC")->getGlobalPose();
+  EXPECT_TRUE(p.isApprox(p2, EPSILON));
+
+  p = p_link.inverse() * p_header_frame * pose_c;  // Object pose in link frame
+  p2 = ks3.getAttachedBody("boxC")->getPose();
   EXPECT_TRUE(p.isApprox(p2, EPSILON));
 }
 

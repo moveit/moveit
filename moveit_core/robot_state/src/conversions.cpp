@@ -316,8 +316,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
                               aco.object.header.frame_id.c_str());
             }
           }
-          Eigen::Isometry3d t = world_to_header_frame.inverse() * state.getGlobalLinkTransform(lm);
-          object_pose = object_pose * t;
+          object_pose = state.getGlobalLinkTransform(lm).inverse() * world_to_header_frame * object_pose;
         }
 
         if (shapes.empty())
