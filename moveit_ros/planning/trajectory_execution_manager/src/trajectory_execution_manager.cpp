@@ -1937,7 +1937,7 @@ bool TrajectoryExecutionManager::checkCollisionBetweenTrajectories(const moveit_
       // TODO(cambel): We would like to activate verbose output, but is this leading to a crash?
       // std::string group_name = "";
       //  if(!planning_scene_->isPathValid(start_state_msg, new_trajectory, group_name, true))
-      if(!ps->isPathValid(start_state_msg, new_trajectory))
+      if(!ps->isPathValid(start_state_msg, new_trajectory, new_trajectory.group_name))
       {
         ROS_DEBUG_STREAM_NAMED(name_, "Done checkCollision between trajectories: Collision found!");
         return false;  // Return as soon as any point is invalid
@@ -2024,7 +2024,7 @@ bool TrajectoryExecutionManager::checkCollisionsWithCurrentState(moveit_msgs::Ro
   {
     moveit_msgs::RobotState robot_state_msg;
     robotStateToRobotStateMsg(*current_state, robot_state_msg);
-    if(!ps->isPathValid(robot_state_msg, trajectory)) // TODO(cambel): Get the group name for improved performance (?)
+    if(!ps->isPathValid(robot_state_msg, trajectory, trajectory.group_name)) // TODO(cambel): Get the group name for improved performance (?)
     {
       ROS_DEBUG_NAMED(name_, "New trajectory collides with the current robot state. Abort!");
       last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
