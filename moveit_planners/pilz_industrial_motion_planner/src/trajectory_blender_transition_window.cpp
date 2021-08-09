@@ -41,6 +41,7 @@
 #include <moveit/planning_interface/planning_interface.h>
 
 bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::blend(
+    const planning_scene::PlanningSceneConstPtr& planning_scene,
     const pilz_industrial_motion_planner::TrajectoryBlendRequest& req,
     pilz_industrial_motion_planner::TrajectoryBlendResponse& res)
 {
@@ -89,10 +90,9 @@ bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::blend(
   moveit_msgs::MoveItErrorCodes error_code;
 
   const moveit::core::RobotModelConstPtr& robot_model = req.first_trajectory->getFirstWayPointPtr()->getRobotModel();
-  const planning_scene::PlanningSceneConstPtr scene(new planning_scene::PlanningScene(robot_model));
-  if (!generateJointTrajectory(scene, robot_model, limits_.getJointLimitContainer(), blend_trajectory_cartesian,
-                               req.group_name, req.link_name, initial_joint_position, initial_joint_velocity,
-                               blend_joint_trajectory, error_code, true))
+  if (!generateJointTrajectory(planning_scene, robot_model, limits_.getJointLimitContainer(),
+                               blend_trajectory_cartesian, req.group_name, req.link_name, initial_joint_position,
+                               initial_joint_velocity, blend_joint_trajectory, error_code, true))
   {
     // LCOV_EXCL_START
     ROS_INFO("Failed to generate joint trajectory for blending trajectory.");

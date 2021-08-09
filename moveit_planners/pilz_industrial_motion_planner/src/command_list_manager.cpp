@@ -97,7 +97,7 @@ RobotTrajCont CommandListManager::solve(const planning_scene::PlanningSceneConst
   plan_comp_builder_.reset();
   for (MotionResponseCont::size_type i = 0; i < resp_cont.size(); ++i)
   {
-    plan_comp_builder_.append(resp_cont.at(i).trajectory_,
+    plan_comp_builder_.append(planning_scene, resp_cont.at(i).trajectory_,
                               // The blend radii has to be "attached" to
                               // the second part of a blend trajectory,
                               // therefore: "i-1".
