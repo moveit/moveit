@@ -1041,7 +1041,7 @@ bool testutils::generateTrajFromBlendTestData(
     planning_interface::MotionPlanResponse& res_2, double& dis_1, double& dis_2)
 {
   // generate default planning scene
-  const planning_scene::PlanningSceneConstPtr scene(new planning_scene::PlanningScene(robot_model));;
+  const planning_scene::PlanningSceneConstPtr scene(new planning_scene::PlanningScene(robot_model));
 
   // generate first trajectory
   planning_interface::MotionPlanRequest req_1;
