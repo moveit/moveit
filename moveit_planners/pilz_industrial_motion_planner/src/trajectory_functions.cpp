@@ -572,6 +572,7 @@ bool pilz_industrial_motion_planner::isStateColliding(const bool test_for_self_c
   rstate->update();
   collision_detection::CollisionRequest collision_req;
   collision_req.group_name = group->getName();
+  collision_req.verbose = true;
   collision_detection::CollisionResult collision_res;
   scene->checkSelfCollision(collision_req, collision_res, *rstate);
   return !collision_res.collision;
