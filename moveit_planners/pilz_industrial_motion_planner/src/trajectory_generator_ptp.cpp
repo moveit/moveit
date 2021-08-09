@@ -249,9 +249,8 @@ void TrajectoryGeneratorPTP::extractMotionPlanInfo(const planning_scene::Plannin
     Eigen::Isometry3d pose_eigen;
     normalizeQuaternion(pose.orientation);
     tf2::fromMsg(pose, pose_eigen);
-    if (!computePoseIK(scene, robot_model_, req.group_name,
-                       req.goal_constraints.at(0).position_constraints.at(0).link_name, pose_eigen,
-                       robot_model_->getModelFrame(), info.start_joint_position, info.goal_joint_position))
+    if (!computePoseIK(scene, req.group_name, req.goal_constraints.at(0).position_constraints.at(0).link_name,
+                       pose_eigen, robot_model_->getModelFrame(), info.start_joint_position, info.goal_joint_position))
     {
       throw PtpNoIkSolutionForGoalPose("No IK solution for goal pose");
     }

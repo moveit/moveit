@@ -227,8 +227,8 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
   {
     tf2::fromMsg(tf2::toMsg(trajectory.Pos(*time_iter)), pose_sample);
 
-    if (!computePoseIK(scene, robot_model, group_name, link_name, pose_sample, robot_model->getModelFrame(),
-                       ik_solution_last, ik_solution, check_self_collision))
+    if (!computePoseIK(scene, group_name, link_name, pose_sample, robot_model->getModelFrame(), ik_solution_last,
+                       ik_solution, check_self_collision))
     {
       ROS_ERROR("Failed to compute inverse kinematics solution for sampled "
                 "Cartesian pose.");
@@ -333,8 +333,8 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
   for (size_t i = 0; i < trajectory.points.size(); ++i)
   {
     // compute inverse kinematics
-    if (!computePoseIK(scene, robot_model, group_name, link_name, trajectory.points.at(i).pose,
-                       robot_model->getModelFrame(), ik_solution_last, ik_solution, check_self_collision))
+    if (!computePoseIK(scene, group_name, link_name, trajectory.points.at(i).pose, robot_model->getModelFrame(),
+                       ik_solution_last, ik_solution, check_self_collision))
     {
       ROS_ERROR("Failed to compute inverse kinematics solution for sampled "
                 "Cartesian pose.");

@@ -168,8 +168,8 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_scene::Planni
 
   // check goal pose ik before Cartesian motion plan starts
   std::map<std::string, double> ik_solution;
-  if (!computePoseIK(scene, robot_model_, info.group_name, info.link_name, info.goal_pose, frame_id,
-                     info.start_joint_position, ik_solution))
+  if (!computePoseIK(scene, info.group_name, info.link_name, info.goal_pose, frame_id, info.start_joint_position,
+                     ik_solution))
   {
     // LCOV_EXCL_START
     std::ostringstream os;
@@ -204,9 +204,9 @@ void TrajectoryGeneratorCIRC::plan(const planning_scene::PlanningSceneConstPtr& 
   moveit_msgs::MoveItErrorCodes error_code;
   // sample the Cartesian trajectory and compute joint trajectory using inverse
   // kinematics
-  if (!generateJointTrajectory(scene, robot_model_, planner_limits_.getJointLimitContainer(), cart_trajectory,
-                               plan_info.group_name, plan_info.link_name, plan_info.start_joint_position, sampling_time,
-                               joint_trajectory, error_code))
+  if (!generateJointTrajectory(scene, planner_limits_.getJointLimitContainer(), cart_trajectory, plan_info.group_name,
+                               plan_info.link_name, plan_info.start_joint_position, sampling_time, joint_trajectory,
+                               error_code))
   {
     throw CircTrajectoryConversionFailure("Failed to generate valid joint trajectory from the Cartesian path",
                                           error_code.val);
