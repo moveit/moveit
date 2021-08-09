@@ -1034,14 +1034,13 @@ bool testutils::getBlendTestData(const ros::NodeHandle& nh, const size_t& datase
 }
 
 bool testutils::generateTrajFromBlendTestData(
-    const robot_model::RobotModelConstPtr& robot_model,
+    const planning_scene::PlanningSceneConstPtr& scene,
     const std::shared_ptr<pilz_industrial_motion_planner::TrajectoryGenerator>& tg, const std::string& group_name,
     const std::string& link_name, const testutils::BlendTestData& data, const double& sampling_time_1,
     const double& sampling_time_2, planning_interface::MotionPlanResponse& res_1,
     planning_interface::MotionPlanResponse& res_2, double& dis_1, double& dis_2)
 {
-  // generate default planning scene
-  const planning_scene::PlanningSceneConstPtr scene(new planning_scene::PlanningScene(robot_model));
+  const robot_model::RobotModelConstPtr robot_model = scene->getRobotModel();
 
   // generate first trajectory
   planning_interface::MotionPlanRequest req_1;
