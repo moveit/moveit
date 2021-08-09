@@ -41,13 +41,13 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::PlanningSceneConstPtr& scene,
-                                                   const moveit::core::RobotModelConstPtr& robot_model,
                                                    const std::string& group_name, const std::string& link_name,
                                                    const Eigen::Isometry3d& pose, const std::string& frame_id,
                                                    const std::map<std::string, double>& seed,
                                                    std::map<std::string, double>& solution, bool check_self_collision,
                                                    const double timeout)
 {
+  const moveit::core::RobotModelConstPtr& robot_model = scene->getRobotModel();
   if (!robot_model->hasJointModelGroup(group_name))
   {
     ROS_ERROR_STREAM("Robot model has no planning group named as " << group_name);
@@ -95,7 +95,6 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
 }
 
 bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::PlanningSceneConstPtr& scene,
-                                                   const moveit::core::RobotModelConstPtr& robot_model,
                                                    const std::string& group_name, const std::string& link_name,
                                                    const geometry_msgs::Pose& pose, const std::string& frame_id,
                                                    const std::map<std::string, double>& seed,
@@ -104,8 +103,8 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
 {
   Eigen::Isometry3d pose_eigen;
   tf2::fromMsg(pose, pose_eigen);
-  return computePoseIK(scene, robot_model, group_name, link_name, pose_eigen, frame_id, seed, solution,
-                       check_self_collision, timeout);
+  return computePoseIK(scene, group_name, link_name, pose_eigen, frame_id, seed, solution, check_self_collision,
+                       timeout);
 }
 
 bool pilz_industrial_motion_planner::computeLinkFK(const moveit::core::RobotModelConstPtr& robot_model,
@@ -193,7 +192,7 @@ bool pilz_industrial_motion_planner::verifySampleJointLimits(
 }
 
 bool pilz_industrial_motion_planner::generateJointTrajectory(
-    const planning_scene::PlanningSceneConstPtr& scene, const moveit::core::RobotModelConstPtr& robot_model,
+    const planning_scene::PlanningSceneConstPtr& scene,
     const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits, const KDL::Trajectory& trajectory,
     const std::string& group_name, const std::string& link_name,
     const std::map<std::string, double>& initial_joint_position, const double& sampling_time,
@@ -202,6 +201,7 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
 {
   ROS_DEBUG("Generate joint trajectory from a Cartesian trajectory.");
 
+  const moveit::core::RobotModelConstPtr& robot_model = scene->getRobotModel();
   ros::Time generation_begin = ros::Time::now();
 
   // generate the time samples
@@ -308,7 +308,7 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
 }
 
 bool pilz_industrial_motion_planner::generateJointTrajectory(
-    const planning_scene::PlanningSceneConstPtr& scene, const moveit::core::RobotModelConstPtr& robot_model,
+    const planning_scene::PlanningSceneConstPtr& scene,
     const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits,
     const pilz_industrial_motion_planner::CartesianTrajectory& trajectory, const std::string& group_name,
     const std::string& link_name, const std::map<std::string, double>& initial_joint_position,
@@ -317,6 +317,7 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
 {
   ROS_DEBUG("Generate joint trajectory from a Cartesian trajectory.");
 
+  const moveit::core::RobotModelConstPtr& robot_model = scene->getRobotModel();
   ros::Time generation_begin = ros::Time::now();
 
   std::map<std::string, double> ik_solution_last = initial_joint_position;

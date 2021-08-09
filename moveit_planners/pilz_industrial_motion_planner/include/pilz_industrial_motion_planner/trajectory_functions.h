@@ -64,14 +64,12 @@ namespace pilz_industrial_motion_planner
  * @param timeout: timeout for IK, if not set the default solver timeout is used
  * @return true if succeed
  */
-bool computePoseIK(const planning_scene::PlanningSceneConstPtr& scene,
-                   const robot_model::RobotModelConstPtr& robot_model, const std::string& group_name,
+bool computePoseIK(const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name,
                    const std::string& link_name, const Eigen::Isometry3d& pose, const std::string& frame_id,
                    const std::map<std::string, double>& seed, std::map<std::string, double>& solution,
                    bool check_self_collision = true, const double timeout = 0.0);
 
-bool computePoseIK(const planning_scene::PlanningSceneConstPtr& scene,
-                   const robot_model::RobotModelConstPtr& robot_model, const std::string& group_name,
+bool computePoseIK(const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name,
                    const std::string& link_name, const geometry_msgs::Pose& pose, const std::string& frame_id,
                    const std::map<std::string, double>& seed, std::map<std::string, double>& solution,
                    bool check_self_collision = true, const double timeout = 0.0);
@@ -128,7 +126,6 @@ bool verifySampleJointLimits(const std::map<std::string, double>& position_last,
  * @return true if succeed
  */
 bool generateJointTrajectory(const planning_scene::PlanningSceneConstPtr& scene,
-                             const robot_model::RobotModelConstPtr& robot_model,
                              const JointLimitsContainer& joint_limits, const KDL::Trajectory& trajectory,
                              const std::string& group_name, const std::string& link_name,
                              const std::map<std::string, double>& initial_joint_position, const double& sampling_time,
@@ -146,7 +143,6 @@ bool generateJointTrajectory(const planning_scene::PlanningSceneConstPtr& scene,
  * @return true if succeed
  */
 bool generateJointTrajectory(const planning_scene::PlanningSceneConstPtr& scene,
-                             const robot_model::RobotModelConstPtr& robot_model,
                              const JointLimitsContainer& joint_limits,
                              const pilz_industrial_motion_planner::CartesianTrajectory& trajectory,
                              const std::string& group_name, const std::string& link_name,
@@ -219,8 +215,8 @@ bool intersectionFound(const Eigen::Vector3d& p_center, const Eigen::Vector3d& p
  * @return
  */
 bool isStateColliding(const bool test_for_self_collision, const planning_scene::PlanningSceneConstPtr& scene,
-                      const moveit::core::RobotModelConstPtr& robot_model, robot_state::RobotState* state,
-                      const robot_state::JointModelGroup* const group, const double* const ik_solution);
+                      robot_state::RobotState* state, const robot_state::JointModelGroup* const group,
+                      const double* const ik_solution);
 }  // namespace pilz_industrial_motion_planner
 
 void normalizeQuaternion(geometry_msgs::Quaternion& quat);
