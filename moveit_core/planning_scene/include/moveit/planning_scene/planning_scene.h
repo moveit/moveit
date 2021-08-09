@@ -57,7 +57,7 @@
 #include <memory>
 
 // Import/export for windows dll's and visibility for gcc shared libraries.
-#include "moveit_planning_scene_export.h"
+#include <moveit/moveit_planning_scene_export.h>
 
 /** \brief This namespace includes the central class for representing planning contexts */
 namespace planning_scene
@@ -91,15 +91,13 @@ class PlanningScene : private boost::noncopyable, public std::enable_shared_from
 {
 public:
   /** \brief construct using an existing RobotModel */
-  PlanningScene(
-      const moveit::core::RobotModelConstPtr& robot_model,
-      const collision_detection::WorldPtr& world = collision_detection::WorldPtr(new collision_detection::World()));
+  PlanningScene(const moveit::core::RobotModelConstPtr& robot_model,
+                const collision_detection::WorldPtr& world = std::make_shared<collision_detection::World>());
 
   /** \brief construct using a urdf and srdf.
    * A RobotModel for the PlanningScene will be created using the urdf and srdf. */
-  PlanningScene(
-      const urdf::ModelInterfaceSharedPtr& urdf_model, const srdf::ModelConstSharedPtr& srdf_model,
-      const collision_detection::WorldPtr& world = collision_detection::WorldPtr(new collision_detection::World()));
+  PlanningScene(const urdf::ModelInterfaceSharedPtr& urdf_model, const srdf::ModelConstSharedPtr& srdf_model,
+                const collision_detection::WorldPtr& world = std::make_shared<collision_detection::World>());
 
   static MOVEIT_PLANNING_SCENE_EXPORT const std::string OCTOMAP_NS;
   static MOVEIT_PLANNING_SCENE_EXPORT const std::string DEFAULT_SCENE_NAME;

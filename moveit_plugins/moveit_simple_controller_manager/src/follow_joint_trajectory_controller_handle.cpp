@@ -199,13 +199,13 @@ void FollowJointTrajectoryControllerHandle::controllerDoneCallback(
 {
   // Output custom error message for FollowJointTrajectoryResult if necessary
   if (!result)
-    ROS_WARN_STREAM_NAMED(LOGNAME, "Controller " << name_ << " done, no result returned");
+    ROS_WARN_STREAM_NAMED(LOGNAME, "Controller '" << name_ << "' done, no result returned");
   else if (result->error_code == control_msgs::FollowJointTrajectoryResult::SUCCESSFUL)
-    ROS_INFO_STREAM_NAMED(LOGNAME, "Controller " << name_ << " successfully finished");
+    ROS_INFO_STREAM_NAMED(LOGNAME, "Controller '" << name_ << "' successfully finished");
   else
-    ROS_WARN_STREAM_NAMED(LOGNAME, "Controller " << name_ << " failed with error "
-                                                 << errorCodeToMessage(result->error_code) << ": "
-                                                 << result->error_string);
+    ROS_WARN_STREAM_NAMED(LOGNAME, "Controller '" << name_ << "' failed with error "
+                                                  << errorCodeToMessage(result->error_code) << ": "
+                                                  << result->error_string);
   finishControllerExecution(state);
 }
 

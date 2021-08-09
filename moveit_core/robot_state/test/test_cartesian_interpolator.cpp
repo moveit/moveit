@@ -41,6 +41,8 @@
 
 #include <urdf_parser/urdf_parser.h>
 #include <gtest/gtest.h>
+
+#include <memory>
 #include <sstream>
 #include <algorithm>
 #include <ctype.h>
@@ -229,7 +231,7 @@ protected:
     urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDF(MODEL2);
     srdf::ModelSharedPtr srdf_model(new srdf::Model());
     srdf_model->initString(*urdf_model, SMODEL2);
-    robot_model_.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
+    robot_model_ = std::make_shared<moveit::core::RobotModel>(urdf_model, srdf_model);
   }
 
   void TearDown() override
@@ -253,8 +255,7 @@ std::size_t generateTestTraj(std::vector<std::shared_ptr<moveit::core::RobotStat
   // 3 waypoints with default joints
   for (std::size_t traj_ix = 0; traj_ix < 3; ++traj_ix)
   {
-    // robot_state.reset(new moveit::core::RobotState(*robot_state));
-    traj.push_back(moveit::core::RobotStatePtr(new moveit::core::RobotState(*robot_state)));
+    traj.push_back(std::make_shared<moveit::core::RobotState>(*robot_state));
   }
 
   ja = robot_state->getVariablePosition("panda_joint0");
@@ -265,20 +266,20 @@ std::size_t generateTestTraj(std::vector<std::shared_ptr<moveit::core::RobotStat
   robot_state->setVariablePosition("panda_joint0", ja);
   jc = jc - 0.01;
   robot_state->setVariablePosition("panda_joint1", jc);
-  traj.push_back(moveit::core::RobotStatePtr(new moveit::core::RobotState(*robot_state)));
+  traj.push_back(std::make_shared<moveit::core::RobotState>(*robot_state));
 
   // 5th waypoint with a large jump of 1.01 in first revolute joint
   ja = ja + 1.01;
   robot_state->setVariablePosition("panda_joint0", ja);
-  traj.push_back(moveit::core::RobotStatePtr(new moveit::core::RobotState(*robot_state)));
+  traj.push_back(std::make_shared<moveit::core::RobotState>(*robot_state));
 
   // 6th waypoint with a large jump of 1.01 in first prismatic joint
   jc = jc + 1.01;
   robot_state->setVariablePosition("panda_joint1", jc);
-  traj.push_back(moveit::core::RobotStatePtr(new moveit::core::RobotState(*robot_state)));
+  traj.push_back(std::make_shared<moveit::core::RobotState>(*robot_state));
 
   // 7th waypoint with no jump
-  traj.push_back(moveit::core::RobotStatePtr(new moveit::core::RobotState(*robot_state)));
+  traj.push_back(std::make_shared<moveit::core::RobotState>(*robot_state));
 
   return traj.size();
 }

@@ -61,14 +61,14 @@ void MoveGroupSequenceAction::initialize()
 {
   // start the move action server
   ROS_INFO_STREAM("initialize move group sequence action");
-  move_action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupSequenceAction>(
+  move_action_server_ = std::make_unique<actionlib::SimpleActionServer<moveit_msgs::MoveGroupSequenceAction>>(
       root_node_handle_, "sequence_move_group",
-      boost::bind(&MoveGroupSequenceAction::executeSequenceCallback, this, _1), false));
+      boost::bind(&MoveGroupSequenceAction::executeSequenceCallback, this, _1), false);
   move_action_server_->registerPreemptCallback(boost::bind(&MoveGroupSequenceAction::preemptMoveCallback, this));
   move_action_server_->start();
 
-  command_list_manager_.reset(new pilz_industrial_motion_planner::CommandListManager(
-      ros::NodeHandle("~"), context_->planning_scene_monitor_->getRobotModel()));
+  command_list_manager_ = std::make_unique<pilz_industrial_motion_planner::CommandListManager>(
+      ros::NodeHandle("~"), context_->planning_scene_monitor_->getRobotModel());
 }
 
 void MoveGroupSequenceAction::executeSequenceCallback(const moveit_msgs::MoveGroupSequenceGoalConstPtr& goal)
@@ -194,7 +194,18 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const moveit_msgs::Mov
   RobotTrajCont traj_vec;
   try
   {
-    traj_vec = command_list_manager_->solve(the_scene, context_->planning_pipeline_, goal->request);
+    // Select planning_pipeline to handle request
+    // All motions in the SequenceRequest need to use the same planning pipeline (but can use different planners)
+    const planning_pipeline::PlanningPipelinePtr planning_pipeline =
+        resolvePlanningPipeline(goal->request.items[0].req.pipeline_id);
+    if (!planning_pipeline)
+    {
+      ROS_ERROR_STREAM("Could not load planning pipeline " << goal->request.items[0].req.pipeline_id);
+      res.response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+      return;
+    }
+
+    traj_vec = command_list_manager_->solve(the_scene, planning_pipeline, goal->request);
   }
   catch (const MoveItErrorCodeException& ex)
   {

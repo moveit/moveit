@@ -54,8 +54,8 @@ MoveGroupSequenceService::~MoveGroupSequenceService()
 
 void MoveGroupSequenceService::initialize()
 {
-  command_list_manager_.reset(new pilz_industrial_motion_planner::CommandListManager(
-      ros::NodeHandle("~"), context_->planning_scene_monitor_->getRobotModel()));
+  command_list_manager_ = std::make_unique<pilz_industrial_motion_planner::CommandListManager>(
+      ros::NodeHandle("~"), context_->planning_scene_monitor_->getRobotModel());
 
   sequence_service_ = root_node_handle_.advertiseService(SEQUENCE_SERVICE_NAME, &MoveGroupSequenceService::plan, this);
 }
@@ -63,6 +63,14 @@ void MoveGroupSequenceService::initialize()
 bool MoveGroupSequenceService::plan(moveit_msgs::GetMotionSequence::Request& req,
                                     moveit_msgs::GetMotionSequence::Response& res)
 {
+  // Handle empty requests
+  if (req.request.items.empty())
+  {
+    ROS_WARN("Received empty request. That's ok but maybe not what you intended.");
+    res.response.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+    return true;
+  }
+
   // TODO: Do we lock on the correct scene? Does the lock belong to the scene
   // used for planning?
   planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
@@ -71,7 +79,18 @@ bool MoveGroupSequenceService::plan(moveit_msgs::GetMotionSequence::Request& req
   RobotTrajCont traj_vec;
   try
   {
-    traj_vec = command_list_manager_->solve(ps, context_->planning_pipeline_, req.request);
+    // Select planning_pipeline to handle request
+    // All motions in the SequenceRequest need to use the same planning pipeline (but can use different planners)
+    const planning_pipeline::PlanningPipelinePtr planning_pipeline =
+        resolvePlanningPipeline(req.request.items[0].req.pipeline_id);
+    if (!planning_pipeline)
+    {
+      ROS_ERROR_STREAM("Could not load planning pipeline " << req.request.items[0].req.pipeline_id);
+      res.response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+      return false;
+    }
+
+    traj_vec = command_list_manager_->solve(ps, planning_pipeline, req.request);
   }
   catch (const MoveItErrorCodeException& ex)
   {

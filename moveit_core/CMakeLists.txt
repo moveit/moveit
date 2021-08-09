@@ -181,6 +181,11 @@ catkin_package(
     ${BULLET_ENABLE}
     )
 
+if (WIN32)
+  # for msvc 2017 compatibility
+  add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE)
+endif()
+
 include_directories(SYSTEM ${catkin_INCLUDE_DIRS}
                            ${Boost_INCLUDE_DIRS}
                            ${EIGEN3_INCLUDE_DIRS}

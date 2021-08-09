@@ -58,7 +58,7 @@ planning_scene_monitor::TrajectoryMonitor::~TrajectoryMonitor()
 
 void planning_scene_monitor::TrajectoryMonitor::setSamplingFrequency(double sampling_frequency)
 {
-  if (sampling_frequency != sampling_frequency_)
+  if (sampling_frequency == sampling_frequency_)
     return;  // silently return if nothing changes
 
   if (sampling_frequency <= std::numeric_limits<double>::epsilon())
@@ -77,7 +77,7 @@ void planning_scene_monitor::TrajectoryMonitor::startTrajectoryMonitor()
 {
   if (sampling_frequency_ > std::numeric_limits<double>::epsilon() && !record_states_thread_)
   {
-    record_states_thread_.reset(new boost::thread(boost::bind(&TrajectoryMonitor::recordStates, this)));
+    record_states_thread_ = std::make_unique<boost::thread>(boost::bind(&TrajectoryMonitor::recordStates, this));
     ROS_DEBUG_NAMED(LOGNAME, "Started trajectory monitor");
   }
 }
