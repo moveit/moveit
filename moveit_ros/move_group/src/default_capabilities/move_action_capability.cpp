@@ -54,14 +54,17 @@ MoveGroupMoveAction::MoveGroupMoveAction()
 void MoveGroupMoveAction::initialize()
 {
   // start the move action server
-  move_action_server_ = std::make_unique<actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction>>(
+  move_action_server_ = std::make_unique<MoveGroupActionServer>(
       root_node_handle_, MOVE_ACTION, [this](const auto& goal) { executeMoveCallback(goal); }, false);
-  move_action_server_->registerPreemptCallback([this] { preemptMoveCallback(); });
+//   move_action_server_->registerPreemptCallback([this] { preemptMoveCallback(); });
   move_action_server_->start();
 }
 
-void MoveGroupMoveAction::executeMoveCallback(const moveit_msgs::MoveGroupGoalConstPtr& goal)
+void MoveGroupMoveAction::executeMoveCallback(MoveGroupActionServer::GoalHandle goal_handle)
 {
+  goal_handle.setAccepted("This goal has been accepted by the action server");
+  const moveit_msgs::MoveGroupGoalConstPtr& goal = goal_handle.getGoal();
+
   setMoveState(PLANNING);
   // before we start planning, ensure that we have the latest robot state received...
   context_->planning_scene_monitor_->waitForCurrentRobotState(ros::Time::now());
@@ -77,24 +80,20 @@ void MoveGroupMoveAction::executeMoveCallback(const moveit_msgs::MoveGroupGoalCo
     executeMoveCallbackPlanOnly(goal, action_res);
   }
   else
+  {
+    // TODO: add some mutex here, keep simpleActonServer logic for Blocking-Trajectories 
     executeMoveCallbackPlanAndExecute(goal, action_res);
+  }
 
   bool planned_trajectory_empty = trajectory_processing::isTrajectoryEmpty(action_res.planned_trajectory);
   std::string response =
       getActionResultString(action_res.error_code, planned_trajectory_empty, goal->planning_options.plan_only);
   if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
-    move_action_server_->setSucceeded(action_res, response);
+    goal_handle.setSucceeded(action_res, response);
   else
-  {
-    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::PREEMPTED)
-      move_action_server_->setPreempted(action_res, response);
-    else
-      move_action_server_->setAborted(action_res, response);
-  }
+    goal_handle.setAborted(action_res, response);
 
   setMoveState(IDLE);
-
-  preempt_requested_ = false;
 }
 
 void MoveGroupMoveAction::executeMoveCallbackPlanAndExecute(const moveit_msgs::MoveGroupGoalConstPtr& goal,
@@ -177,12 +176,13 @@ void MoveGroupMoveAction::executeMoveCallbackPlanOnly(const moveit_msgs::MoveGro
           lscene->diff(goal->planning_options.planning_scene_diff);
   planning_interface::MotionPlanResponse res;
 
-  if (preempt_requested_)
-  {
-    ROS_INFO_NAMED(getName(), "Preempt requested before the goal is planned.");
-    action_res.error_code.val = moveit_msgs::MoveItErrorCodes::PREEMPTED;
-    return;
-  }
+  // TODO(cambel): add a way to cancel a planning request
+  // if (preempt_requested_)
+  // {
+  //   ROS_INFO_NAMED(getName(), "Preempt requested before the goal is planned.");
+  //   action_res.error_code.val = moveit_msgs::MoveItErrorCodes::PREEMPTED;
+  //   return;
+  // }
 
   // Select planning_pipeline to handle request
   const planning_pipeline::PlanningPipelinePtr planning_pipeline = resolvePlanningPipeline(goal->request.pipeline_id);
@@ -253,17 +253,11 @@ void MoveGroupMoveAction::startMoveLookCallback()
   setMoveState(LOOK);
 }
 
-void MoveGroupMoveAction::preemptMoveCallback()
-{
-  preempt_requested_ = true;
-  context_->plan_execution_->stop();
-}
-
 void MoveGroupMoveAction::setMoveState(MoveGroupState state)
 {
-  move_state_ = state;
-  move_feedback_.state = stateToStr(state);
-  move_action_server_->publishFeedback(move_feedback_);
+  // move_state_ = state;
+  // move_feedback_.state = stateToStr(state);
+  // move_action_server_->publishFeedback(move_feedback_);
 }
 }  // namespace move_group
 

@@ -37,10 +37,11 @@
 #pragma once
 
 #include <moveit/move_group/move_group_capability.h>
-#include <actionlib/server/simple_action_server.h>
+#include <actionlib/server/action_server.h>
 #include <moveit_msgs/MoveGroupAction.h>
 #include <memory>
 
+typedef actionlib::ActionServer<moveit_msgs::MoveGroupAction> MoveGroupActionServer;
 namespace move_group
 {
 class MoveGroupMoveAction : public MoveGroupCapability
@@ -51,22 +52,22 @@ public:
   void initialize() override;
 
 private:
-  void executeMoveCallback(const moveit_msgs::MoveGroupGoalConstPtr& goal);
+  void executeMoveCallback(MoveGroupActionServer::GoalHandle goal_handle);
   void executeMoveCallbackPlanAndExecute(const moveit_msgs::MoveGroupGoalConstPtr& goal,
                                          moveit_msgs::MoveGroupResult& action_res);
   void executeMoveCallbackPlanOnly(const moveit_msgs::MoveGroupGoalConstPtr& goal,
                                    moveit_msgs::MoveGroupResult& action_res);
   void startMoveExecutionCallback();
   void startMoveLookCallback();
-  void preemptMoveCallback();
   void setMoveState(MoveGroupState state);
   bool planUsingPlanningPipeline(const planning_interface::MotionPlanRequest& req,
                                  plan_execution::ExecutableMotionPlan& plan);
 
-  std::unique_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction> > move_action_server_;
+  std::unique_ptr<MoveGroupActionServer> move_action_server_;
   moveit_msgs::MoveGroupFeedback move_feedback_;
 
   MoveGroupState move_state_;
   bool preempt_requested_;
+  std::vector<MoveGroupActionServer::GoalHandle> goal_handles_;
 };
 }  // namespace move_group
