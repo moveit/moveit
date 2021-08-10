@@ -2116,17 +2116,17 @@ bool TrajectoryExecutionManager::validateAndExecuteContext(TrajectoryExecutionCo
     return false;
   }
 
+  // Check whether this trajectory starts at current robot state
+  if (!validate(context))
+  {
+    ROS_ERROR_NAMED(name_, "Trajectory became invalid before execution, abort.");
+    context.execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
+    return true;
+  }
+
   // Push trajectory to all controllers simultaneously (each part goes to one controller)
   for (std::size_t i = 0; i < context.trajectory_parts_.size(); ++i)
   {
-    // Check whether this trajectory part starts at current robot state
-    if (!validate(context))
-    {
-      ROS_ERROR_NAMED(name_, "Trajectory became invalid before execution, abort.");
-      context.execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
-      return true;
-    }
-
     // Send trajectory (part) to controller
     bool ok = false;
     try
