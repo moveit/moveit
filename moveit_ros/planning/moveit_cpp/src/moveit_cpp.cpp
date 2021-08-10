@@ -82,7 +82,7 @@ MoveItCpp::MoveItCpp(const Options& options, const ros::NodeHandle& nh,
 
   // TODO(henningkayser): configure trajectory execution manager
   trajectory_execution_manager_ = std::make_shared<trajectory_execution_manager::TrajectoryExecutionManager>(
-      robot_model_, planning_scene_monitor_->getStateMonitor());
+      robot_model_, planning_scene_monitor_);
 
   ROS_DEBUG_NAMED(LOGNAME, "MoveItCpp running");
 }

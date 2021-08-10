@@ -41,6 +41,7 @@
 #include <moveit/robot_model/link_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_state/attached_body.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit_msgs/CollisionObject.h>
@@ -91,11 +92,12 @@ public:
 
   /// Load the controller manager plugin, start listening for events on a topic.
   TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& robot_model,
-                             const planning_scene_monitor::CurrentStateMonitorPtr& csm);
+                             const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
   /// Load the controller manager plugin, start listening for events on a topic.
-  TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& robot_model,
-                             const planning_scene_monitor::CurrentStateMonitorPtr& csm, bool manage_controllers);
+  TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& robot_model, 
+                             const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
+                             bool manage_controllers);
 
   /// Destructor. Cancels all running trajectories (if any)
   ~TrajectoryExecutionManager();
@@ -339,8 +341,8 @@ private:
   const std::string name_ = "trajectory_execution_manager";
 
   moveit::core::RobotModelConstPtr robot_model_;
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   planning_scene_monitor::CurrentStateMonitorPtr csm_;
-  planning_scene::PlanningScene planning_scene_;
   ros::NodeHandle node_handle_;
   ros::NodeHandle root_node_handle_;
   ros::Subscriber event_topic_subscriber_;

@@ -81,8 +81,8 @@ private:
 };
 
 TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& robot_model,
-                                                       const planning_scene_monitor::CurrentStateMonitorPtr& csm)
-  : robot_model_(robot_model), csm_(csm), planning_scene_(robot_model), node_handle_("~")
+                                                       const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
+  : robot_model_(robot_model), csm_(planning_scene_monitor_->getStateMonitor()), planning_scene_monitor_(planning_scene_monitor), node_handle_("~")
 {
   if (!node_handle_.getParam("moveit_manage_controllers", manage_controllers_))
     manage_controllers_ = false;
@@ -91,9 +91,9 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::Robot
 }
 
 TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& robot_model,
-                                                       const planning_scene_monitor::CurrentStateMonitorPtr& csm,
+                                                       const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
                                                        bool manage_controllers)
-  : robot_model_(robot_model), csm_(csm), planning_scene_(robot_model), node_handle_("~"), manage_controllers_(manage_controllers)
+  : robot_model_(robot_model), csm_(planning_scene_monitor_->getStateMonitor()), planning_scene_monitor_(planning_scene_monitor), node_handle_("~"), manage_controllers_(manage_controllers)
 {
   initialize();
 }
@@ -1912,14 +1912,24 @@ bool TrajectoryExecutionManager::checkCollisionBetweenTrajectories(const moveit_
   // Allow all collisions
     // TODO: This has optimization potential (ACM is not used, all collisions are checked (instead of robot-robot only)
     // collision_detection::AllowedCollisionMatrix& acm = scene.getAllowedCollisionMatrixNonConst();
-  moveit::core::RobotState start_state = planning_scene_.getCurrentState();
-  const std::string group = "";
+  ROS_DEBUG_STREAM_NAMED(name_, "getCurrentState");
+  // before we start planning, ensure that we have the latest robot state received...
+  planning_scene_monitor_->waitForCurrentRobotState(ros::Time::now());
+  planning_scene_monitor_->updateFrameTransforms();
+
+  planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
+  moveit::core::RobotState start_state = ps->getCurrentState();
+  
   moveit_msgs::RobotState start_state_msg;
+  ROS_DEBUG_STREAM_NAMED(name_, "compute collision check");
   for(std::size_t i = 0; i < active_trajectory.joint_trajectory.points.size(); ++i)
     if (jointTrajPointToRobotState(active_trajectory.joint_trajectory, i, start_state))
     {
       robotStateToRobotStateMsg(start_state, start_state_msg);
-      if(!planning_scene_.isPathValid(start_state_msg, new_trajectory, group, true))
+      // TODO(cambel): We would like to activate verbose output, but is this leading to a crash?
+      // std::string group_name = "";
+      //  if(!planning_scene_->isPathValid(start_state_msg, new_trajectory, group_name, true))
+      if(!ps->isPathValid(start_state_msg, new_trajectory))
       {
         ROS_DEBUG_STREAM_NAMED(name_, "Done checkCollision between trajectories: Collision found!");
         return false;  // Return as soon as any point is invalid
@@ -1976,7 +1986,7 @@ bool TrajectoryExecutionManager::checkContextForCollisions(TrajectoryExecutionCo
       // auto& active_handle = *context_handles_pair.second.begin();
       // active_handle->waitForExecution();
       // ROS_INFO_NAMED(name_, "Waited (after possible collision between moving trajectories)");
-      // moveit::core::RobotState robot_state = planning_scene_.getCurrentState();
+      // moveit::core::RobotState robot_state = planning_scene_->getCurrentState();
       // // TODO(cambel): Consider what the difference between this and just checking collisions with the current state is. 
       // //               If there is none, move this to a separate "make sure trajectory does not cause collision" check (request from Michael).
       // if (!checkCollisionsWithCurrentState(context.trajectory_))
@@ -1999,14 +2009,14 @@ bool TrajectoryExecutionManager::checkCollisionsWithCurrentState(moveit_msgs::Ro
     return false;
   }
 
-  ROS_DEBUG_NAMED(name_, "Checking if current state is in collision");
+  planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
   // TODO(cambel): Consider what the difference between this and just checking collisions with the current state is. 
   //               If there is none, move this to a separate "make sure trajectory does not cause collision" check (request from Michael).
   if (jointTrajPointToRobotState(trajectory.joint_trajectory, trajectory.joint_trajectory.points.size()-1, *current_state))
   {
     moveit_msgs::RobotState robot_state_msg;
     robotStateToRobotStateMsg(*current_state, robot_state_msg);
-    if(!planning_scene_.isPathValid(robot_state_msg, trajectory)) // TODO(cambel): Get the group name for improved performance (?)
+    if(!ps->isPathValid(robot_state_msg, trajectory)) // TODO(cambel): Get the group name for improved performance (?)
     {
       ROS_DEBUG_NAMED(name_, "New trajectory collides with the current robot state. Abort!");
       last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
@@ -2092,8 +2102,6 @@ bool TrajectoryExecutionManager::validateAndExecuteContext(TrajectoryExecutionCo
       else
         ++uit;
   }
-
-  updateActiveHandlesAndContexts(used_handles, active_contexts_map);
 
   // Skip trajectory if it collides with the current scene state
   if (!checkContextForCollisions(context, active_contexts_map)){

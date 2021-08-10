@@ -79,7 +79,7 @@ plan_execution::PlanExecution::PlanExecution(
 {
   if (!trajectory_execution_manager_)
     trajectory_execution_manager_ = std::make_shared<trajectory_execution_manager::TrajectoryExecutionManager>(
-        planning_scene_monitor_->getRobotModel(), planning_scene_monitor_->getStateMonitor());
+        planning_scene_monitor_->getRobotModel(), planning_scene_monitor_);
 
   default_max_replan_attempts_ = 5;
 
