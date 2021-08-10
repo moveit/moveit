@@ -237,36 +237,36 @@ void TrajectoryExecutionManager::receiveEvent(const std_msgs::StringConstPtr& ev
   processEvent(event->data);
 }
 
-bool TrajectoryExecutionManager::push(const moveit_msgs::RobotTrajectory& trajectory, const std::string& controller)
+bool TrajectoryExecutionManager::pushToBlockingQueue(const moveit_msgs::RobotTrajectory& trajectory, const std::string& controller)
 {
   if (controller.empty())
-    return push(trajectory, std::vector<std::string>());
+    return pushToBlockingQueue(trajectory, std::vector<std::string>());
   else
-    return push(trajectory, std::vector<std::string>(1, controller));
+    return pushToBlockingQueue(trajectory, std::vector<std::string>(1, controller));
 }
 
-bool TrajectoryExecutionManager::push(const trajectory_msgs::JointTrajectory& trajectory, const std::string& controller)
+bool TrajectoryExecutionManager::pushToBlockingQueue(const trajectory_msgs::JointTrajectory& trajectory, const std::string& controller)
 {
   if (controller.empty())
-    return push(trajectory, std::vector<std::string>());
+    return pushToBlockingQueue(trajectory, std::vector<std::string>());
   else
-    return push(trajectory, std::vector<std::string>(1, controller));
+    return pushToBlockingQueue(trajectory, std::vector<std::string>(1, controller));
 }
 
-bool TrajectoryExecutionManager::push(const trajectory_msgs::JointTrajectory& trajectory,
+bool TrajectoryExecutionManager::pushToBlockingQueue(const trajectory_msgs::JointTrajectory& trajectory,
                                       const std::vector<std::string>& controllers)
 {
   moveit_msgs::RobotTrajectory traj;
   traj.joint_trajectory = trajectory;
-  return push(traj, controllers);
+  return pushToBlockingQueue(traj, controllers);
 }
 
-bool TrajectoryExecutionManager::push(const moveit_msgs::RobotTrajectory& trajectory,
+bool TrajectoryExecutionManager::pushToBlockingQueue(const moveit_msgs::RobotTrajectory& trajectory,
                                       const std::vector<std::string>& controllers)
 {
   if (!execution_complete_)
   {
-    ROS_ERROR_NAMED(name_, "Cannot push a new trajectory while another is being executed");
+    ROS_ERROR_NAMED(name_, "Cannot push a new trajectory in blocking mode while another is being executed (use pushAndExecuteSimultaneous instead)");
     return false;
   }
 
@@ -356,7 +356,7 @@ bool TrajectoryExecutionManager::pushAndExecuteSimultaneous(const moveit_msgs::R
   {
     context->execution_complete_callback = callback;
     {
-      boost::mutex::scoped_lock slock(continuous_execution_mutex_);
+      boost::mutex::scoped_lock slock(continuous_execution_thread_mutex_);
       continuous_execution_queue_.push_back(context);
       stop_continuous_execution_ = false;
       if (!continuous_execution_thread_)
@@ -1193,11 +1193,11 @@ void TrajectoryExecutionManager::stopExecution(bool auto_clear)
       ROS_INFO_NAMED(name_, "Stopped trajectory execution.");
 
       // wait for the execution thread to finish
-      boost::mutex::scoped_lock lock(execution_thread_mutex_);
-      if (execution_thread_)
+      boost::mutex::scoped_lock lock(blocking_execution_thread_mutex_);
+      if (blocking_execution_thread_)
       {
-        execution_thread_->join();
-        execution_thread_.reset();
+        blocking_execution_thread_->join();
+        blocking_execution_thread_.reset();
       }
 
       if (auto_clear)
@@ -1206,14 +1206,14 @@ void TrajectoryExecutionManager::stopExecution(bool auto_clear)
     else
       execution_state_mutex_.unlock();
   }
-  else if (execution_thread_)  // just in case we have some thread waiting to be joined from some point in the past, we
+  else if (blocking_execution_thread_)  // just in case we have some thread waiting to be joined from some point in the past, we
                                // join it now
   {
-    boost::mutex::scoped_lock lock(execution_thread_mutex_);
-    if (execution_thread_)
+    boost::mutex::scoped_lock lock(blocking_execution_thread_mutex_);
+    if (blocking_execution_thread_)
     {
-      execution_thread_->join();
-      execution_thread_.reset();
+      blocking_execution_thread_->join();
+      blocking_execution_thread_.reset();
     }
   }
 }
@@ -1241,8 +1241,8 @@ void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback& callba
 
   // start the execution thread
   execution_complete_ = false;
-  execution_thread_ = std::make_unique<boost::thread>(&TrajectoryExecutionManager::executeThread, this, callback,
-                                                      part_callback, auto_clear);
+  blocking_execution_thread_.reset(
+      new boost::thread(&TrajectoryExecutionManager::executeThread, this, callback, part_callback, auto_clear));
 }
 
 moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::waitForExecution()
@@ -1253,13 +1253,14 @@ moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::waitForEx
       execution_complete_condition_.wait(ulock);
   }
   {
-    boost::unique_lock<boost::mutex> ulock(continuous_execution_mutex_);
+    boost::unique_lock<boost::mutex> ulock(continuous_execution_thread_mutex_);
     while (!continuous_execution_queue_.empty())
       continuous_execution_condition_.wait(ulock);
   }
 
   // this will join the thread for executing sequences of trajectories
-  stopExecution(false);
+  // stopExecution(false);
+  // TODO (cambel): Is it ok to remove this line? Probably not.
 
   return last_execution_status_;
 }
@@ -1272,7 +1273,7 @@ void TrajectoryExecutionManager::clear()
       delete trajectory;
     trajectories_.clear();
     {
-      boost::mutex::scoped_lock slock(continuous_execution_mutex_);
+      boost::mutex::scoped_lock slock(continuous_execution_thread_mutex_);
       while (!continuous_execution_queue_.empty())
       {
         delete continuous_execution_queue_.front();

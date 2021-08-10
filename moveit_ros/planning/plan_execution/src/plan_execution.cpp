@@ -382,7 +382,7 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(E
     // convert to message, pass along
     moveit_msgs::RobotTrajectory msg;
     plan.plan_components_[i].trajectory_->getRobotTrajectoryMsg(msg);
-    if (!trajectory_execution_manager_->push(msg, plan.plan_components_[i].controller_names_))
+    if (!trajectory_execution_manager_->pushToBlockingQueue(msg, plan.plan_components_[i].controller_names_))
     {
       trajectory_execution_manager_->clear();
       ROS_ERROR_STREAM_NAMED("plan_execution", "Apparently trajectory initialization failed");

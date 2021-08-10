@@ -269,7 +269,7 @@ bool plan_execution::PlanWithSensing::lookAt(const std::set<collision_detection:
       if (sensor_manager_->pointSensorTo(name, point, sensor_trajectory))
       {
         if (!trajectory_processing::isTrajectoryEmpty(sensor_trajectory))
-          return trajectory_execution_manager_->push(sensor_trajectory) &&
+          return trajectory_execution_manager_->pushToBlockingQueue(sensor_trajectory) &&
                  trajectory_execution_manager_->executeAndWait();
         else
           return true;

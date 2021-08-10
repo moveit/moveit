@@ -81,7 +81,7 @@ int main(int argc, char** argv)
   traj1.joint_trajectory.joint_names.push_back("rj1");
   traj1.joint_trajectory.points.resize(1);
   traj1.joint_trajectory.points[0].positions.push_back(0.0);
-  if (!tem.push(traj1))
+  if (!tem.pushToBlockingQueue(traj1))
     ROS_ERROR("Fail!");
 
   moveit_msgs::RobotTrajectory traj2 = traj1;
@@ -91,11 +91,11 @@ int main(int argc, char** argv)
   traj2.multi_dof_joint_trajectory.points.resize(1);
   traj2.multi_dof_joint_trajectory.points[0].transforms.resize(1);
 
-  if (!tem.push(traj2))
+  if (!tem.pushToBlockingQueue(traj2))
     ROS_ERROR("Fail!");
 
   traj1.multi_dof_joint_trajectory = traj2.multi_dof_joint_trajectory;
-  if (!tem.push(traj1))
+  if (!tem.pushToBlockingQueue(traj1))
     ROS_ERROR("Fail!");
 
   if (!tem.executeAndWait())

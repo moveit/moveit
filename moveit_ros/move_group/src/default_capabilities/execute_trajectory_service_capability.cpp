@@ -82,7 +82,7 @@ bool MoveGroupExecuteService::executeTrajectoryService(moveit_msgs::ExecuteKnown
   //    robot_trajectory::RobotTrajectory to_exec(planning_scene_monitor_->getRobotModel(), ;
 
   context_->trajectory_execution_manager_->clear();
-  if (context_->trajectory_execution_manager_->push(req.trajectory))
+  if (context_->trajectory_execution_manager_->pushToBlockingQueue(req.trajectory))
   {
     context_->trajectory_execution_manager_->execute();
     if (req.wait_for_execution)

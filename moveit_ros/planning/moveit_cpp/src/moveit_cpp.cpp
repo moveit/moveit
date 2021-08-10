@@ -270,11 +270,12 @@ bool MoveItCpp::execute(const std::string& group_name, const robot_trajectory::R
   robot_trajectory->getRobotTrajectoryMsg(robot_trajectory_msg);
   if (blocking)
   {
-    trajectory_execution_manager_->push(robot_trajectory_msg);
+    trajectory_execution_manager_->pushToBlockingQueue(robot_trajectory_msg);
     trajectory_execution_manager_->execute();
     return trajectory_execution_manager_->waitForExecution();
   }
-  trajectory_execution_manager_->pushAndExecute(robot_trajectory_msg);
+  // TODO: Does this point to the same instance? Multiple TEMs may not be safe to execute. @henningkayser?
+  trajectory_execution_manager_->pushAndExecuteSimultaneous(robot_trajectory_msg);
   return true;
 }
 
