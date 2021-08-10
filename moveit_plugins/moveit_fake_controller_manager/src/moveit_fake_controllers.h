@@ -60,6 +60,8 @@ public:
 protected:
   std::vector<std::string> joints_;
   const ros::Publisher& pub_;
+  moveit_controller_manager::ExecutionStatus status_;
+  std::string name_ = "fake_controllers";
 };
 
 class LastPointController : public BaseFakeController
@@ -97,7 +99,6 @@ private:
 private:
   boost::thread thread_;
   bool cancel_;
-  moveit_controller_manager::ExecutionStatus status_;
 };
 
 class ViaPointController : public ThreadedController
