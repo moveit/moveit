@@ -41,12 +41,14 @@
 #pragma once
 
 #include <moveit/move_group/move_group_capability.h>
-#include <actionlib/server/simple_action_server.h>
+#include <actionlib/server/action_server.h>
 #include <moveit_msgs/ExecuteTrajectoryAction.h>
 #include <memory>
 
+typedef actionlib::ActionServer<moveit_msgs::ExecuteTrajectoryAction> ExecuteTrajectoryActionServer;
 namespace move_group
 {
+
 class MoveGroupExecuteTrajectoryAction : public MoveGroupCapability
 {
 public:
@@ -55,13 +57,13 @@ public:
   void initialize() override;
 
 private:
-  void executePathCallback(const moveit_msgs::ExecuteTrajectoryGoalConstPtr& goal);
-  void executePath(const moveit_msgs::ExecuteTrajectoryGoalConstPtr& goal,
-                   moveit_msgs::ExecuteTrajectoryResult& action_res);
-  void preemptExecuteTrajectoryCallback();
+  void executePathCallback(ExecuteTrajectoryActionServer::GoalHandle goal);
   void setExecuteTrajectoryState(MoveGroupState state);
 
-  std::unique_ptr<actionlib::SimpleActionServer<moveit_msgs::ExecuteTrajectoryAction> > execute_action_server_;
+  const std::string name_ = "trajectory_execution_action_capability";
+
+  std::unique_ptr<ExecuteTrajectoryActionServer> execute_action_server_;
+  std::vector<ExecuteTrajectoryActionServer::GoalHandle> goal_handles_;
 };
 
 }  // namespace move_group

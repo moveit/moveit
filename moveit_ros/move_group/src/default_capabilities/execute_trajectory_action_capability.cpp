@@ -50,53 +50,36 @@ MoveGroupExecuteTrajectoryAction::MoveGroupExecuteTrajectoryAction() : MoveGroup
 void MoveGroupExecuteTrajectoryAction::initialize()
 {
   // start the move action server
-  execute_action_server_ = std::make_unique<actionlib::SimpleActionServer<moveit_msgs::ExecuteTrajectoryAction>>(
+  execute_action_server_ = std::make_unique<ExecuteTrajectoryActionServer>(
       root_node_handle_, EXECUTE_ACTION_NAME, [this](const auto& goal) { executePathCallback(goal); }, false);
-  execute_action_server_->registerPreemptCallback([this] { preemptExecuteTrajectoryCallback(); });
+  //execute_action_server_->registerPreemptCallback([this] { preemptExecuteTrajectoryCallback(); });
   execute_action_server_->start();
 }
 
-void MoveGroupExecuteTrajectoryAction::executePathCallback(const moveit_msgs::ExecuteTrajectoryGoalConstPtr& goal)
+void MoveGroupExecuteTrajectoryAction::executePathCallback(ExecuteTrajectoryActionServer::GoalHandle goal)
 {
+  ROS_INFO_NAMED(name_, "Goal received (ExecuteTrajectoryActionServer)");
+  ROS_DEBUG_STREAM_NAMED(name_, "Goal ID" << goal.getGoalID()); 
+  moveit_msgs::ExecuteTrajectoryGoal goal_msg = *goal.getGoal();
   moveit_msgs::ExecuteTrajectoryResult action_res;
+  
+  goal.setAccepted("This goal has been accepted by the action server");
   if (!context_->trajectory_execution_manager_)
   {
     const std::string response = "Cannot execute trajectory since ~allow_trajectory_execution was set to false";
     action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
-    execute_action_server_->setAborted(action_res, response);
+    goal.setAborted(action_res, response);
     return;
   }
-
-  executePath(goal, action_res);
-
-  const std::string response = getActionResultString(action_res.error_code, false, false);
-  if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
-  {
-    execute_action_server_->setSucceeded(action_res, response);
-  }
-  else if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::PREEMPTED)
-  {
-    execute_action_server_->setPreempted(action_res, response);
-  }
-  else
-  {
-    execute_action_server_->setAborted(action_res, response);
-  }
-
-  setExecuteTrajectoryState(IDLE);
-}
-
-void MoveGroupExecuteTrajectoryAction::executePath(const moveit_msgs::ExecuteTrajectoryGoalConstPtr& goal,
-                                                   moveit_msgs::ExecuteTrajectoryResult& action_res)
-{
-  ROS_INFO_NAMED(getName(), "Execution request received");
-
-  context_->trajectory_execution_manager_->clear();
-  if (context_->trajectory_execution_manager_->push(goal->trajectory))
-  {
-    setExecuteTrajectoryState(MONITOR);
-    context_->trajectory_execution_manager_->execute();
-    moveit_controller_manager::ExecutionStatus status = context_->trajectory_execution_manager_->waitForExecution();
+  
+  // Define a lambda that sets the goal state when the trajectory is completed.
+  // This is called when the trajectory finishes.
+  bool execution_complete = false;
+  auto goalId = goal.getGoalID();
+  // Copy goalId here so that it is still available when this lambda is called later (otherwise it is deleted when the parent function ends)
+  auto completedTrajectoryCallback = [&, goalId](const moveit_controller_manager::ExecutionStatus& status) {
+    ROS_DEBUG_NAMED(name_, "Entered lambda");
+    execution_complete = true;
     if (status == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
     {
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
@@ -113,24 +96,52 @@ void MoveGroupExecuteTrajectoryAction::executePath(const moveit_msgs::ExecuteTra
     {
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
     }
-    ROS_INFO_STREAM_NAMED(getName(), "Execution completed: " << status.asString());
+    ROS_DEBUG_STREAM_NAMED(name_, "Execution completed: " << status.asString());
+
+    ROS_DEBUG_NAMED(name_, "getting ActionResultString");
+    const std::string response = this->getActionResultString(action_res.error_code, false, false);
+
+    ROS_DEBUG_STREAM_NAMED(name_, "List of goal_handles_: " << goal_handles_.size());
+    
+    for (auto it = goal_handles_.begin(); it != goal_handles_.end(); ++it)
+    {
+      if (it->getGoalID() == goalId)
+      {
+        if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+        {
+          it->setSucceeded(action_res, response);
+        }
+        else
+        {
+          it->setAborted(action_res, response);
+        }
+        goal_handles_.erase(it);
+        break;
+      }
+    }
+    ROS_DEBUG_STREAM_NAMED(name_, "goal set to " << response);
+  }; // end of lambda expression
+
+
+  if (context_->trajectory_execution_manager_->pushAndExecuteSimultaneous(goal.getGoal()->trajectory, "", completedTrajectoryCallback))
+  {
+    goal_handles_.push_back(goal);
+    ROS_DEBUG_STREAM_NAMED(name_, "Pushed trajectory to queue.");
   }
   else
   {
+    ROS_DEBUG_STREAM_NAMED(name_, "Failed to pushed trajectory to queue.");
     action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
+    const std::string response = getActionResultString(action_res.error_code, false, false);
+    goal.setAborted(action_res, response);
   }
-}
-
-void MoveGroupExecuteTrajectoryAction::preemptExecuteTrajectoryCallback()
-{
-  context_->trajectory_execution_manager_->stopExecution(true);
 }
 
 void MoveGroupExecuteTrajectoryAction::setExecuteTrajectoryState(MoveGroupState state)
 {
-  moveit_msgs::ExecuteTrajectoryFeedback execute_feedback;
-  execute_feedback.state = stateToStr(state);
-  execute_action_server_->publishFeedback(execute_feedback);
+  // moveit_msgs::ExecuteTrajectoryFeedback execute_feedback;
+  // execute_feedback.state = stateToStr(state);
+  // execute_action_server_->publishFeedback(execute_feedback);
 }
 
 }  // namespace move_group
