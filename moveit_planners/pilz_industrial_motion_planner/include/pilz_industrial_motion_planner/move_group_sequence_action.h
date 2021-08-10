@@ -36,11 +36,12 @@
 
 #include <memory>
 
-#include <actionlib/server/simple_action_server.h>
+#include <actionlib/server/action_server.h>
 #include <moveit/move_group/move_group_capability.h>
 
 #include <moveit_msgs/MoveGroupSequenceAction.h>
 
+typedef actionlib::ActionServer<moveit_msgs::MoveGroupSequenceAction> MoveGroupSequenceActionServer;
 namespace pilz_industrial_motion_planner
 {
 class CommandListManager;
@@ -64,7 +65,7 @@ private:
   using PlannedTrajMsgs = moveit_msgs::MotionSequenceResponse::_planned_trajectories_type;
 
 private:
-  void executeSequenceCallback(const moveit_msgs::MoveGroupSequenceGoalConstPtr& goal);
+  void executeSequenceCallback(MoveGroupSequenceActionServer::GoalHandle goal_handle);
   void executeSequenceCallbackPlanAndExecute(const moveit_msgs::MoveGroupSequenceGoalConstPtr& goal,
                                              moveit_msgs::MoveGroupSequenceResult& action_res);
   void executeMoveCallbackPlanOnly(const moveit_msgs::MoveGroupSequenceGoalConstPtr& goal,
@@ -81,7 +82,7 @@ private:
                            PlannedTrajMsgs& plannedTrajsMsgs);
 
 private:
-  std::unique_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupSequenceAction>> move_action_server_;
+  std::unique_ptr<actionlib::ActionServer<moveit_msgs::MoveGroupSequenceAction>> move_action_server_;
   moveit_msgs::MoveGroupSequenceFeedback move_feedback_;
 
   move_group::MoveGroupState move_state_{ move_group::IDLE };

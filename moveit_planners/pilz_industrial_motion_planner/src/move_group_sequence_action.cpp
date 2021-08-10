@@ -61,17 +61,20 @@ void MoveGroupSequenceAction::initialize()
 {
   // start the move action server
   ROS_INFO_STREAM("initialize move group sequence action");
-  move_action_server_ = std::make_unique<actionlib::SimpleActionServer<moveit_msgs::MoveGroupSequenceAction>>(
+  move_action_server_ = std::make_unique<actionlib::ActionServer<moveit_msgs::MoveGroupSequenceAction>>(
       root_node_handle_, "sequence_move_group", [this](const auto& goal) { executeSequenceCallback(goal); }, false);
-  move_action_server_->registerPreemptCallback([this] { preemptMoveCallback(); });
+//   move_action_server_->registerPreemptCallback([this] { preemptMoveCallback(); });
   move_action_server_->start();
 
   command_list_manager_ = std::make_unique<pilz_industrial_motion_planner::CommandListManager>(
       ros::NodeHandle("~"), context_->planning_scene_monitor_->getRobotModel());
 }
 
-void MoveGroupSequenceAction::executeSequenceCallback(const moveit_msgs::MoveGroupSequenceGoalConstPtr& goal)
+void MoveGroupSequenceAction::executeSequenceCallback(MoveGroupSequenceActionServer::GoalHandle goal_handle)
 {
+  goal_handle.setAccepted("This goal has been accepted by the action server");
+  const moveit_msgs::MoveGroupSequenceGoalConstPtr& goal = goal_handle.getGoal();
+
   setMoveState(move_group::PLANNING);
 
   // Handle empty requests
@@ -81,7 +84,7 @@ void MoveGroupSequenceAction::executeSequenceCallback(const moveit_msgs::MoveGro
     setMoveState(move_group::IDLE);
     moveit_msgs::MoveGroupSequenceResult action_res;
     action_res.response.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-    move_action_server_->setSucceeded(action_res, "Received empty request.");
+    goal_handle.setSucceeded(action_res, "Received empty request.");
     return;
   }
 
@@ -107,13 +110,16 @@ void MoveGroupSequenceAction::executeSequenceCallback(const moveit_msgs::MoveGro
   switch (action_res.response.error_code.val)
   {
     case moveit_msgs::MoveItErrorCodes::SUCCESS:
-      move_action_server_->setSucceeded(action_res, "Success");
+      // move_action_server_->setSucceeded(action_res, );
+      goal_handle.setSucceeded(action_res, "Success");
       break;
     case moveit_msgs::MoveItErrorCodes::PREEMPTED:
-      move_action_server_->setPreempted(action_res, "Preempted");
+      // move_action_server_->setPreempted(action_res, "Preempted");
+      goal_handle.setAborted(action_res, "Aborted");
       break;
     default:
-      move_action_server_->setAborted(action_res, "See error code for more information");
+      goal_handle.setAborted(action_res, "Aborted");
+      // move_action_server_->setAborted(action_res, "See error code for more information");
       break;
   }
 
@@ -307,9 +313,9 @@ void MoveGroupSequenceAction::preemptMoveCallback()
 
 void MoveGroupSequenceAction::setMoveState(move_group::MoveGroupState state)
 {
-  move_state_ = state;
-  move_feedback_.state = stateToStr(state);
-  move_action_server_->publishFeedback(move_feedback_);
+  // move_state_ = state;
+  // move_feedback_.state = stateToStr(state);
+  // move_action_server_->publishFeedback(move_feedback_);
 }
 
 }  // namespace pilz_industrial_motion_planner
