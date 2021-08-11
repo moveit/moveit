@@ -5,6 +5,13 @@ add_library(${MOVEIT_LIB_NAME}
   src/collision_env_fcl.cpp
 )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  # FIXME(v4hn): clang 10-12 produce broken code for the only std::map::insert call in the method
+  # however, the method calls in here are hotspots in the whole pipeline and disabling optimizations
+  # is no sufficient solution
+  set_source_files_properties(src/collision_common.cpp PROPERTIES COMPILE_FLAGS -O0)
+endif()
+
 
 target_link_libraries(${MOVEIT_LIB_NAME} moveit_collision_detection ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${LIBFCL_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
