@@ -130,6 +130,61 @@ std::size_t countIndividualConstraints(const moveit_msgs::Constraints& constr)
 moveit_msgs::Constraints constructGoalConstraints(const moveit::core::RobotState& state,
                                                   const moveit::core::JointModelGroup* jmg, double tolerance)
 {
+  moveit_msgs::Constraints goal;
+
+  for (const JointModel* jm : jmg->getJointModels()) {
+
+    std::vector<double> vals;
+    state.copyJointGroupPositions(jmg, vals);
+    goal.joint_constraints.resize(vals.size());
+
+    switch (jm->getType()) {
+
+      case JointModel::UNKNOWN:
+        ROS_ERROR("Unable to construct goal constraints for unknown joint type.");
+        break;
+      case JointModel::REVOLUTE:
+      case JointModel::PRISMATIC:
+        case JointModel::PLANAR:
+      {
+
+        for (std::size_t i = 0; i < vals.size(); ++i) {
+          moveit_msgs::JointConstraint jc;
+          jc.joint_name = jmg->getVariableNames()[i];
+          jc.position = vals[i];
+          jc.tolerance_above = tolerance;
+          jc.tolerance_below = tolerance;
+          jc.weight = 1.0;
+          goal.joint_constraints.push_back(jc);
+        }
+      }
+        break;
+      case JointModel::FLOATING:
+      {
+        auto fjm = static_cast<const FloatingJointModel*>(jm);
+        geometry_msgs::PoseStamped floating_joint_pose;
+        floating_joint_pose.header.frame_id = ""; // TODO What's this?
+        floating_joint_pose.pose.position.x = vals[0];
+        floating_joint_pose.pose.position.y = vals[1];
+        floating_joint_pose.pose.position.z = vals[2];
+        floating_joint_pose.pose.orientation.x = vals[3];
+        floating_joint_pose.pose.orientation.y = vals[4];
+        floating_joint_pose.pose.orientation.z = vals[5];
+        floating_joint_pose.pose.orientation.w = vals[6];
+
+        auto constraints = constructGoalConstraints(fjm->getName(), floating_joint_pose, tolerance, tolerance);
+        goal.position_constraints.push_back(constraints.position_constraints[0]);
+        goal.orientation_constraints.push_back(constraints.orientation_constraints[0]);
+
+      }
+        break;
+
+      case JointModel::FIXED:
+        // No point in constraining a fixed joint.
+        break;
+    }
+  }
+
   return constructGoalConstraints(state, jmg, tolerance, tolerance);
 }
 
