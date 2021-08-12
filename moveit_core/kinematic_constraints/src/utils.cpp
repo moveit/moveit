@@ -134,24 +134,26 @@ moveit_msgs::Constraints constructGoalConstraints(const moveit::core::RobotState
 
   for (const JointModel* jm : jmg->getJointModels())
   {
-    std::vector<double> vals;
-    state.copyJointGroupPositions(jmg, vals);
-    goal.joint_constraints.resize(vals.size());
+    // Read the joint values, to be interpreted for each joint.
+    std::vector<double> joint_values;
+    state.copyJointGroupPositions(jmg, joint_values);
+    goal.joint_constraints.resize(joint_values.size());
 
+    // Use different constraint for each type.
     switch (jm->getType())
     {
       case JointModel::UNKNOWN:
         ROS_ERROR("Unable to construct goal constraints for unknown joint type.");
         break;
+        // Revolute and prismatic are 1 DoF, so a JointConstraint works fine
       case JointModel::REVOLUTE:
       case JointModel::PRISMATIC:
-      case JointModel::PLANAR:
       {
-        for (std::size_t i = 0; i < vals.size(); ++i)
+        for (std::size_t i = 0; i < joint_values.size(); ++i)
         {
           moveit_msgs::JointConstraint jc;
           jc.joint_name = jmg->getVariableNames()[i];
-          jc.position = vals[i];
+          jc.position = joint_values[i];
           jc.tolerance_above = tolerance;
           jc.tolerance_below = tolerance;
           jc.weight = 1.0;
@@ -159,20 +161,42 @@ moveit_msgs::Constraints constructGoalConstraints(const moveit::core::RobotState
         }
       }
       break;
+      case JointModel::PLANAR:
+      {
+        // There is no constraint message, so we just borrow the one for floating joints.
+        // Implementation is based on PlanarJointModel::computeTransform(const double* joint_values, Eigen::Isometry3d& transf)
+
+        geometry_msgs::PoseStamped floating_joint_pose;
+
+        floating_joint_pose.header.frame_id = state.getRobotModel()->getModelFrame();
+        floating_joint_pose.pose.position.x = joint_values[0];
+        floating_joint_pose.pose.position.y = joint_values[1];
+        floating_joint_pose.pose.position.z = 0.0;
+
+        Eigen::Quaterniond quaternion(Eigen::AngleAxisd(joint_values[2], Eigen::Vector3d::UnitZ()));
+
+        floating_joint_pose.pose.orientation.x = quaternion.x();
+        floating_joint_pose.pose.orientation.y = quaternion.y();
+        floating_joint_pose.pose.orientation.z = quaternion.z();
+        floating_joint_pose.pose.orientation.w = quaternion.w();
+
+        auto constraints = constructGoalConstraints(jm->getName(), floating_joint_pose, tolerance, tolerance);
+        goal.position_constraints.push_back(constraints.position_constraints[0]);
+        goal.orientation_constraints.push_back(constraints.orientation_constraints[0]);
+      }
       case JointModel::FLOATING:
       {
-        auto fjm = static_cast<const FloatingJointModel*>(jm);
         geometry_msgs::PoseStamped floating_joint_pose;
         floating_joint_pose.header.frame_id = state.getRobotModel()->getModelFrame();
-        floating_joint_pose.pose.position.x = vals[0];
-        floating_joint_pose.pose.position.y = vals[1];
-        floating_joint_pose.pose.position.z = vals[2];
-        floating_joint_pose.pose.orientation.x = vals[3];
-        floating_joint_pose.pose.orientation.y = vals[4];
-        floating_joint_pose.pose.orientation.z = vals[5];
-        floating_joint_pose.pose.orientation.w = vals[6];
+        floating_joint_pose.pose.position.x = joint_values[0];
+        floating_joint_pose.pose.position.y = joint_values[1];
+        floating_joint_pose.pose.position.z = joint_values[2];
+        floating_joint_pose.pose.orientation.x = joint_values[3];
+        floating_joint_pose.pose.orientation.y = joint_values[4];
+        floating_joint_pose.pose.orientation.z = joint_values[5];
+        floating_joint_pose.pose.orientation.w = joint_values[6];
 
-        auto constraints = constructGoalConstraints(fjm->getName(), floating_joint_pose, tolerance, tolerance);
+        auto constraints = constructGoalConstraints(jm->getName(), floating_joint_pose, tolerance, tolerance);
         goal.position_constraints.push_back(constraints.position_constraints[0]);
         goal.orientation_constraints.push_back(constraints.orientation_constraints[0]);
       }
