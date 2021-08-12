@@ -88,8 +88,10 @@ moveit_msgs::Constraints constructGoalConstraints(const moveit::core::RobotState
 
 /**
  * \brief Generates a constraint message intended to be used as a goal
- * constraint for a joint group.  The full constraint will contain a
- * vector of type \ref JointConstraint, one for each DOF in the group.
+ * constraint for a joint group. The full constraint will contain a
+ * vector of type \ref JointConstraint, one for each DOF in the group,
+ * with one exception: floating joint settings will be represented
+ * by a \ref PositionConstraint and an \ref OrientationConstraint.
  *
  * @param [in] state The state from which to generate goal joint constraints
  * @param [in] jmg The group for which to generate joint constraints

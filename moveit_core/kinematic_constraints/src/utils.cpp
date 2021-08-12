@@ -163,7 +163,7 @@ moveit_msgs::Constraints constructGoalConstraints(const moveit::core::RobotState
       {
         auto fjm = static_cast<const FloatingJointModel*>(jm);
         geometry_msgs::PoseStamped floating_joint_pose;
-        floating_joint_pose.header.frame_id = "";  // TODO What's this?
+        floating_joint_pose.header.frame_id = state.getRobotModel()->getModelFrame();
         floating_joint_pose.pose.position.x = vals[0];
         floating_joint_pose.pose.position.y = vals[1];
         floating_joint_pose.pose.position.z = vals[2];
