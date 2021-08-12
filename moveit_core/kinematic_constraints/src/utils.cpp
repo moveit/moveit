@@ -184,6 +184,7 @@ moveit_msgs::Constraints constructGoalConstraints(const moveit::core::RobotState
         goal.position_constraints.push_back(constraints.position_constraints[0]);
         goal.orientation_constraints.push_back(constraints.orientation_constraints[0]);
       }
+      break;
       case JointModel::FLOATING:
       {
         geometry_msgs::PoseStamped floating_joint_pose;
@@ -215,6 +216,15 @@ moveit_msgs::Constraints constructGoalConstraints(const moveit::core::RobotState
                                                   const moveit::core::JointModelGroup* jmg, double tolerance_below,
                                                   double tolerance_above)
 {
+  for (const JointModel* jm : jmg->getJointModels())
+  {
+    if (jm->getType() == moveit::core::JointModel::FLOATING || jm->getType() == moveit::core::JointModel::PLANAR)
+    {
+      ROS_WARN("JointModelGroup contains floating or planar joints, for which upper and lower tolerances are "
+               "poorly-defined.");
+    }
+  }
+
   moveit_msgs::Constraints goal;
   std::vector<double> vals;
   state.copyJointGroupPositions(jmg, vals);
