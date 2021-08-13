@@ -60,7 +60,7 @@ protected:
 protected:
   ros::NodeHandle ph_{ "~" };
   robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(ROBOT_DESCRIPTION_STR).getModel() };
-  planning_scene::PlanningSceneConstPtr planning_scene_{new planning_scene::PlanningScene(robot_model_)};
+  planning_scene::PlanningSceneConstPtr planning_scene_{ new planning_scene::PlanningScene(robot_model_) };
 
   std::string planning_group_;
 };

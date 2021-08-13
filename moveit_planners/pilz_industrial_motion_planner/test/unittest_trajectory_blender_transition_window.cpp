@@ -90,7 +90,7 @@ protected:
   // ros stuff
   ros::NodeHandle ph_{ "~" };
   robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(GetParam()).getModel() };
-  planning_scene::PlanningSceneConstPtr planning_scene_{new planning_scene::PlanningScene(robot_model_)};
+  planning_scene::PlanningSceneConstPtr planning_scene_{ new planning_scene::PlanningScene(robot_model_) };
 
   std::unique_ptr<TrajectoryGenerator> lin_generator_;
   std::unique_ptr<TrajectoryBlenderTransitionWindow> blender_;

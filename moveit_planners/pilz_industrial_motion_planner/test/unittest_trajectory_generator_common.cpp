@@ -147,7 +147,7 @@ protected:
     robot_model_loader::RobotModelLoader(!T::VALUE ? PARAM_MODEL_NO_GRIPPER_NAME : PARAM_MODEL_WITH_GRIPPER_NAME)
         .getModel()
   };
-  planning_scene::PlanningSceneConstPtr planning_scene_{new planning_scene::PlanningScene(robot_model_)};
+  planning_scene::PlanningSceneConstPtr planning_scene_{ new planning_scene::PlanningScene(robot_model_) };
 
   // trajectory generator
   std::unique_ptr<pilz_industrial_motion_planner::TrajectoryGenerator> trajectory_generator_;
