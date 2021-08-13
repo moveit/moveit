@@ -476,7 +476,7 @@ void MotionPlanningFrame::copySelectedCollisionObject()
       continue;
 
     // find a name for the copy
-    name = "Copy of " + name;
+    name.insert(0, "Copy of ");
     if (ps->getWorld()->hasObject(name))
     {
       name += " ";
