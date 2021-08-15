@@ -1806,7 +1806,9 @@ bool PlanningScene::processCollisionObjectRemove(const moveit_msgs::CollisionObj
   }
   else
   {
-    world_->removeObject(object.id);
+    if (!world_->removeObject(object.id))
+      return false;
+
     removeObjectColor(object.id);
     removeObjectType(object.id);
   }
