@@ -61,10 +61,16 @@ RobotState::RobotState(const RobotModelConstPtr& robot_model)
   , has_velocity_(false)
   , has_acceleration_(false)
   , has_effort_(false)
-  , dirty_link_transforms_(robot_model_->getRootJoint())
+  , dirty_link_transforms_(nullptr)
   , dirty_collision_body_transforms_(nullptr)
   , rng_(nullptr)
 {
+  if (robot_model == nullptr)
+  {
+    throw std::invalid_argument("RobotState cannot be constructed with nullptr RobotModelConstPtr");
+  }
+
+  dirty_link_transforms_ = robot_model_->getRootJoint();
   allocMemory();
   initTransforms();
 }
