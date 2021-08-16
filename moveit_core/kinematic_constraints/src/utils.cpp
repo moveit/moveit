@@ -144,8 +144,8 @@ moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState&
   {
     goal.joint_constraints[i].joint_name = jmg->getVariableNames()[i];
     goal.joint_constraints[i].position = vals[i];
-    goal.joint_constraints[i].tolerance_above = tolerance_below;
-    goal.joint_constraints[i].tolerance_below = tolerance_above;
+    goal.joint_constraints[i].tolerance_above = tolerance_above;
+    goal.joint_constraints[i].tolerance_below = tolerance_below;
     goal.joint_constraints[i].weight = 1.0;
   }
 
