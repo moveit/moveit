@@ -1145,16 +1145,12 @@ public:
                                                                 goal_position_tolerance_, goal_orientation_tolerance_);
           else if (goal_orientation_tolerance_ > 0.0)
           {
-            // goal_orientation_tolerance_xyz_ = { goal_orientation_tolerance_, goal_orientation_tolerance_,
-            //                                     goal_orientation_tolerance_ };
             c = kinematic_constraints::constructGoalConstraints(
                 pose_target.first, pose_target.second[i], goal_position_tolerance_xyz_,
                 { goal_orientation_tolerance_, goal_orientation_tolerance_, goal_orientation_tolerance_ });
           }
           else if (goal_position_tolerance_ > 0.0)
           {
-            // goal_position_tolerance_xyz_ = { goal_position_tolerance_, goal_position_tolerance_,
-            //                                  goal_position_tolerance_ };
             c = kinematic_constraints::constructGoalConstraints(pose_target.first, pose_target.second[i],
                                                                 { goal_position_tolerance_, goal_position_tolerance_,
                                                                   goal_position_tolerance_ },
