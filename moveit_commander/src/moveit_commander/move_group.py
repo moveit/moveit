@@ -446,11 +446,11 @@ class MoveGroupCommander(object):
         return self._g.get_goal_orientation_tolerance()
 
     def get_goal_position_tolerance_xyz(self):
-        """ When moving to a position goal or to a pose goal, the tolerance for the goal position is specified as tolerances on each coordinate x, y, z relative the target origin of the end-effector """
+        """ When moving to a position goal or to a pose goal, the tolerance for the goal position is specified as tolerances on each coordinate x, y, z relative to the end-effector """
         return self._g.get_goal_position_tolerance()
 
     def get_goal_orientation_tolerance_xyz(self):
-        """ When moving to an orientation goal or to a pose goal, the tolerance for the goal orientation is specified as the distance for each angle (roll, pitch, yaw) to the target origin of the end-effector """
+        """ When moving to an orientation goal or to a pose goal, the tolerance for the goal orientation is specified as the distance for each angle (roll, pitch, yaw) to the end-effector """
         return self._g.get_goal_orientation_tolerance()
 
     def set_goal_tolerance(self, value):
