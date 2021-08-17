@@ -27,7 +27,7 @@ jobs:
           - IMAGE: master-ci # ROS Melodic with all dependencies required for master
             CATKIN_LINT: true
     env:
-      CXXFLAGS: "-Werror -Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-deprecated-copy"
+      CXXFLAGS: "-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-deprecated-copy"
       DOCKER_IMAGE: moveit/moveit:${{ matrix.env.IMAGE }}
       UPSTREAM_WORKSPACE: .github/workflows/upstream.rosinstall
       TARGET_WORKSPACE: $TARGET_REPO_PATH github:ros-planning/moveit_resources#master
@@ -38,7 +38,7 @@ jobs:
       AFTER_RUN_TARGET_TEST: ${{ matrix.env.CCOV && './.ci.prepare_codecov' || '' }}
       TARGET_CMAKE_ARGS: >
         -DCMAKE_BUILD_TYPE=${{ matrix.env.CCOV && 'RelWithDebInfo' || 'Release'}}
-        ${{ matrix.env.CCOV && '-DCMAKE_CXX_FLAGS="$CXXFLAGS --coverage" --no-warn-unused-cli' || '' }}
+        -DCMAKE_CXX_FLAGS="-Werror $CXXFLAGS ${{ matrix.env.CCOV && '--coverage'}}"
       CCACHE_DIR: "${{ github.workspace }}/.ccache"
       BASEDIR: ${{ github.workspace }}/.work
       CLANG_TIDY_BASE_REF: "${{ github.base_ref || github.ref }}"
