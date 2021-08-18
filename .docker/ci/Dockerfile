@@ -21,7 +21,7 @@ RUN \
         # Some basic requirements
         wget git sudo \
         # Preferred build tools
-        python3-catkin-tools python3-osrf-pycommon \
+        python3-catkin-tools \
         clang clang-format-10 clang-tidy clang-tools \
         ccache && \
     #
