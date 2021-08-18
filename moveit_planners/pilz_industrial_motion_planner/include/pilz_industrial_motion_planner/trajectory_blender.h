@@ -36,6 +36,7 @@
 
 #include "pilz_industrial_motion_planner/limits_container.h"
 #include <moveit/robot_model/robot_model.h>
+#include <moveit/planning_interface/planning_interface.h>
 
 #include "pilz_industrial_motion_planner/trajectory_blend_request.h"
 #include "pilz_industrial_motion_planner/trajectory_blend_response.h"
@@ -58,11 +59,13 @@ public:
 
   /**
    * @brief Blend two robot trajectories with the given blending radius
+   * @param planning_scene: planning scene
    * @param req: trajectory blend request
    * @param res: trajectroy blend response
    * @return true if blend succeed
    */
-  virtual bool blend(const pilz_industrial_motion_planner::TrajectoryBlendRequest& req,
+  virtual bool blend(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                     const pilz_industrial_motion_planner::TrajectoryBlendRequest& req,
                      pilz_industrial_motion_planner::TrajectoryBlendResponse& res) = 0;
 
 protected:
