@@ -36,8 +36,9 @@
 
 #pragma once
 
-#include <moveit/planning_interface/planning_interface.h>
 #include <chomp_interface/chomp_interface.h>
+
+#include <moveit/planning_interface/planning_interface.h>
 
 namespace chomp_interface
 {

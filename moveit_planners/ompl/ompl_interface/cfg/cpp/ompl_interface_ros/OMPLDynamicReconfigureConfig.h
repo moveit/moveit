@@ -45,15 +45,18 @@
 
 #pragma once
 
-#include <dynamic_reconfigure/config_tools.h>
-#include <moveit/macros/class_forward.h>
 #include <limits>
-#include <ros/node_handle.h>
-#include <dynamic_reconfigure/ConfigDescription.h>
-#include <dynamic_reconfigure/ParamDescription.h>
-#include <dynamic_reconfigure/Group.h>
-#include <dynamic_reconfigure/config_init_mutex.h>
+
 #include <boost/any.hpp>
+
+#include <dynamic_reconfigure/ConfigDescription.h>
+#include <dynamic_reconfigure/Group.h>
+#include <dynamic_reconfigure/ParamDescription.h>
+#include <dynamic_reconfigure/config_init_mutex.h>
+#include <dynamic_reconfigure/config_tools.h>
+#include <ros/node_handle.h>
+
+#include <moveit/macros/class_forward.h>
 
 namespace ompl_interface_ros
 {

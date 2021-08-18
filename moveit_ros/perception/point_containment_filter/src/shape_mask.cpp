@@ -34,10 +34,13 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/point_containment_filter/shape_mask.h>
-#include <geometric_shapes/body_operations.h>
 #include <ros/console.h>
+
 #include <sensor_msgs/point_cloud2_iterator.h>
+
+#include <geometric_shapes/body_operations.h>
+
+#include <moveit/point_containment_filter/shape_mask.h>
 
 static const std::string LOGNAME = "shape_mask";
 

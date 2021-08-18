@@ -36,8 +36,8 @@
 
 #pragma once
 
-#include <utility>
 #include <Python.h>
+#include <utility>
 
 namespace moveit
 {

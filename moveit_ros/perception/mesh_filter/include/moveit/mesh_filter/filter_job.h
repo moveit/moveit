@@ -36,6 +36,10 @@
 
 #pragma once
 
+#include <condition_variable>
+#include <functional>
+#include <mutex>
+
 #include <moveit/macros/class_forward.h>
 
 namespace mesh_filter

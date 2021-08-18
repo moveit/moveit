@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
+#include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
 
 ompl_interface::JointModelStateSpaceFactory::JointModelStateSpaceFactory() : ModelBasedStateSpaceFactory()
 {

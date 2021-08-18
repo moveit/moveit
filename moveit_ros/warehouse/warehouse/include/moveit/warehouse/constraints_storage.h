@@ -36,9 +36,11 @@
 
 #pragma once
 
-#include "moveit/warehouse/moveit_message_storage.h"
-#include <moveit/macros/class_forward.h>
 #include <moveit_msgs/Constraints.h>
+
+#include <moveit/macros/class_forward.h>
+
+#include "moveit/warehouse/moveit_message_storage.h"
 
 namespace moveit_warehouse
 {

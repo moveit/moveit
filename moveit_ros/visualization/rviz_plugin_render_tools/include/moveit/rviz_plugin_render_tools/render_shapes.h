@@ -36,12 +36,16 @@
 
 #pragma once
 
-#include <moveit/rviz_plugin_render_tools/octomap_render.h>
-#include <moveit/macros/class_forward.h>
-#include <geometric_shapes/shapes.h>
-#include <rviz/helpers/color.h>
-#include <Eigen/Geometry>
 #include <memory>
+
+#include <Eigen/Geometry>
+
+#include <rviz/helpers/color.h>
+
+#include <geometric_shapes/shapes.h>
+
+#include <moveit/macros/class_forward.h>
+#include <moveit/rviz_plugin_render_tools/octomap_render.h>
 
 namespace Ogre
 {

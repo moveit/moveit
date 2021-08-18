@@ -37,9 +37,10 @@
 #include <memory>
 
 #include <actionlib/server/simple_action_server.h>
-#include <moveit/move_group/move_group_capability.h>
 
 #include <moveit_msgs/MoveGroupSequenceAction.h>
+
+#include <moveit/move_group/move_group_capability.h>
 
 namespace pilz_industrial_motion_planner
 {

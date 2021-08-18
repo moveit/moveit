@@ -34,11 +34,13 @@
 
 /* Author: Ioan Sucan, Acorn Pooley, Adam Leeper */
 
-#include <moveit/robot_interaction/interactive_marker_helpers.h>
+#include <boost/math/constants/constants.hpp>
+
 #include <tf2/LinearMath/Quaternion.h>
+
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-#include <boost/math/constants/constants.hpp>
+#include <moveit/robot_interaction/interactive_marker_helpers.h>
 
 namespace robot_interaction
 {

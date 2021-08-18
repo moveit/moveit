@@ -34,8 +34,9 @@
 
 /* Author: Sachin Chitta, E. Gil Jones */
 
-#include <angles/angles.h>
 #include "pr2_arm_ik.h"
+
+#include <angles/angles.h>
 
 /**** List of angles (for reference) *******
       th1 = shoulder/turret pan

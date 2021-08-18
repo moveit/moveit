@@ -36,13 +36,15 @@
 
 #pragma once
 
-#include <nodelet/nodelet.h>
+#include <memory>
+
+#include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
-#include <moveit/mesh_filter/transform_provider.h>
+#include <nodelet/nodelet.h>
+
 #include <moveit/mesh_filter/mesh_filter.h>
 #include <moveit/mesh_filter/stereo_camera_model.h>
-#include <cv_bridge/cv_bridge.h>
-#include <memory>
+#include <moveit/mesh_filter/transform_provider.h>
 
 namespace mesh_filter
 {

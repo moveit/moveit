@@ -36,11 +36,12 @@
 
 #pragma once
 
-#include <boost/python.hpp>
-#include <boost/python/stl_iterator.hpp>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
+
+#include <boost/python.hpp>
+#include <boost/python/stl_iterator.hpp>
 
 namespace moveit
 {

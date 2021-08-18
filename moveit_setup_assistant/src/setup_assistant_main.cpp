@@ -34,13 +34,16 @@
 
 /* Author: Dave Coleman */
 
-#include "widgets/setup_assistant_widget.h"
-#include <ros/ros.h>
 #include <QApplication>
 #include <QMessageBox>
-#include <boost/program_options.hpp>
-#include <signal.h>
 #include <locale.h>
+#include <signal.h>
+
+#include <boost/program_options.hpp>
+
+#include <ros/ros.h>
+
+#include "widgets/setup_assistant_widget.h"
 
 static void siginthandler(int /*param*/)
 {

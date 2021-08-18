@@ -36,11 +36,13 @@
 
 #pragma once
 
-#include <moveit/macros/class_forward.h>
-#include <moveit/collision_detection/occupancy_map.h>
-#include <geometric_shapes/shapes.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
+
+#include <geometric_shapes/shapes.h>
+
+#include <moveit/collision_detection/occupancy_map.h>
+#include <moveit/macros/class_forward.h>
 
 namespace occupancy_map_monitor
 {

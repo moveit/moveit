@@ -36,17 +36,19 @@
 
 #pragma once
 
-#include <chomp_motion_planner/chomp_parameters.h>
-#include <chomp_motion_planner/chomp_trajectory.h>
-#include <chomp_motion_planner/chomp_cost.h>
-#include <chomp_motion_planner/multivariate_gaussian.h>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/planning_scene/planning_scene.h>
-#include <moveit/collision_distance_field/collision_env_hybrid.h>
+#include <vector>
 
 #include <Eigen/Core>
 #include <Eigen/StdVector>
-#include <vector>
+
+#include <chomp_motion_planner/chomp_cost.h>
+#include <chomp_motion_planner/chomp_parameters.h>
+#include <chomp_motion_planner/chomp_trajectory.h>
+#include <chomp_motion_planner/multivariate_gaussian.h>
+
+#include <moveit/collision_distance_field/collision_env_hybrid.h>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/robot_model/robot_model.h>
 
 namespace chomp
 {

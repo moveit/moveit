@@ -34,9 +34,10 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
+
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 

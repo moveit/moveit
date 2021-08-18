@@ -35,8 +35,8 @@
 
 /* Author: Michael Ferguson, Ioan Sucan, E. Gil Jones */
 
-#include <moveit_simple_controller_manager/follow_joint_trajectory_controller_handle.h>
 #include <moveit/utils/xmlrpc_casts.h>
+#include <moveit_simple_controller_manager/follow_joint_trajectory_controller_handle.h>
 
 using namespace moveit::core;
 static const std::string LOGNAME("SimpleControllerManager");

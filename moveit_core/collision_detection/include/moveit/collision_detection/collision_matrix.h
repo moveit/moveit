@@ -36,14 +36,17 @@
 
 #pragma once
 
+#include <iostream>
+#include <map>
+#include <string>
+#include <vector>
+
+#include <boost/function.hpp>
+
+#include <moveit_msgs/AllowedCollisionMatrix.h>
+
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/macros/class_forward.h>
-#include <moveit_msgs/AllowedCollisionMatrix.h>
-#include <boost/function.hpp>
-#include <iostream>
-#include <vector>
-#include <string>
-#include <map>
 
 namespace collision_detection
 {

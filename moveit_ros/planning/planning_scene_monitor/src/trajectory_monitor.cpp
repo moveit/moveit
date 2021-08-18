@@ -34,11 +34,13 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/planning_scene_monitor/trajectory_monitor.h>
-#include <moveit/trajectory_processing/trajectory_tools.h>
-#include <ros/rate.h>
 #include <limits>
 #include <memory>
+
+#include <ros/rate.h>
+
+#include <moveit/planning_scene_monitor/trajectory_monitor.h>
+#include <moveit/trajectory_processing/trajectory_tools.h>
 
 static const std::string LOGNAME = "TrajectoryMonitor";
 

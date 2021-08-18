@@ -37,9 +37,10 @@
 #pragma once
 
 #include <boost/function.hpp>
+
+#include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/macros/class_forward.h>
 #include <moveit/robot_model/robot_model.h>
-#include <moveit/kinematics_base/kinematics_base.h>
 
 namespace kinematics_plugin_loader
 {

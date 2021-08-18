@@ -36,17 +36,18 @@
 
 #pragma once
 
+#include <iostream>
+#include <vector>
+
+#include <moveit_msgs/Constraints.h>
+
+#include <geometric_shapes/bodies.h>
+
+#include <moveit/collision_detection/collision_env.h>
+#include <moveit/macros/class_forward.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/transforms/transforms.h>
-#include <moveit/collision_detection/collision_env.h>
-#include <moveit/macros/class_forward.h>
-
-#include <geometric_shapes/bodies.h>
-#include <moveit_msgs/Constraints.h>
-
-#include <iostream>
-#include <vector>
 
 /** \brief Representation and evaluation of kinematic constraints */
 namespace kinematic_constraints

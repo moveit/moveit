@@ -32,12 +32,12 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <gtest/gtest.h>
-
 #include <ros/ros.h>
 
 #include "pilz_industrial_motion_planner/cartesian_limit.h"
 #include "pilz_industrial_motion_planner/cartesian_limits_aggregator.h"
+
+#include "gtest/gtest.h"
 
 /**
  * @brief Unittest of the CartesianLimitsAggregator class

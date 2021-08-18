@@ -34,17 +34,21 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/kinematic_constraints/kinematic_constraint.h>
-#include <geometric_shapes/body_operations.h>
-#include <geometric_shapes/shape_operations.h>
-#include <moveit/robot_state/conversions.h>
-#include <moveit/collision_detection_fcl/collision_env_fcl.h>
-#include <geometric_shapes/check_isometry.h>
-#include <boost/math/constants/constants.hpp>
-#include <tf2_eigen/tf2_eigen.h>
-#include <boost/bind.hpp>
 #include <limits>
 #include <memory>
+
+#include <boost/bind.hpp>
+#include <boost/math/constants/constants.hpp>
+
+#include <tf2_eigen/tf2_eigen.h>
+
+#include <geometric_shapes/body_operations.h>
+#include <geometric_shapes/check_isometry.h>
+#include <geometric_shapes/shape_operations.h>
+
+#include <moveit/collision_detection_fcl/collision_env_fcl.h>
+#include <moveit/kinematic_constraints/kinematic_constraint.h>
+#include <moveit/robot_state/conversions.h>
 
 namespace kinematic_constraints
 {

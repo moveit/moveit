@@ -35,6 +35,7 @@
 /* Author: Dave Coleman */
 
 #include "setup_screen_widget.h"
+
 #include <iostream>
 
 void SetupScreenWidget::focusGiven()

@@ -36,11 +36,13 @@
 
 #pragma once
 
-#include <urdf_model/model.h>
-#include <urdf/model.h>
 #include <Eigen/Geometry>
 #include <Eigen/LU>  // provides LU decomposition
+
 #include <kdl/chainiksolver.hpp>
+#include <urdf/model.h>
+#include <urdf_model/model.h>
+
 #include <moveit_msgs/GetPositionFK.h>
 #include <moveit_msgs/GetPositionIK.h>
 #include <moveit_msgs/KinematicSolverInfo.h>

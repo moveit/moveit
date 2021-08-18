@@ -34,17 +34,22 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/robot_state.h>
-#include <moveit/robot_state/conversions.h>
-#include <urdf_parser/urdf_parser.h>
 #include <fstream>
-#include <gtest/gtest.h>
+
 #include <boost/filesystem/path.hpp>
-#include <geometric_shapes/shapes.h>
-#include <moveit/profiler/profiler.h>
-#include <moveit/utils/robot_model_test_utils.h>
+
 #include <ros/package.h>
+#include <urdf_parser/urdf_parser.h>
+
+#include <geometric_shapes/shapes.h>
+
+#include <moveit/profiler/profiler.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit/robot_state/robot_state.h>
+#include <moveit/utils/robot_model_test_utils.h>
+
+#include "gtest/gtest.h"
 
 constexpr double EPSILON = 1e-2;
 constexpr double M_TAU = 2 * M_PI;

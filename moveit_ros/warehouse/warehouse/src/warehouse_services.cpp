@@ -35,13 +35,15 @@
 /* Author: Dan Greenwald */
 
 #include <ros/ros.h>
-#include <moveit/warehouse/state_storage.h>
-#include <moveit_msgs/SaveRobotStateToWarehouse.h>
-#include <moveit_msgs/ListRobotStatesInWarehouse.h>
-#include <moveit_msgs/GetRobotStateFromWarehouse.h>
+
 #include <moveit_msgs/CheckIfRobotStateExistsInWarehouse.h>
 #include <moveit_msgs/DeleteRobotStateFromWarehouse.h>
+#include <moveit_msgs/GetRobotStateFromWarehouse.h>
+#include <moveit_msgs/ListRobotStatesInWarehouse.h>
 #include <moveit_msgs/RenameRobotStateInWarehouse.h>
+#include <moveit_msgs/SaveRobotStateToWarehouse.h>
+
+#include <moveit/warehouse/state_storage.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 

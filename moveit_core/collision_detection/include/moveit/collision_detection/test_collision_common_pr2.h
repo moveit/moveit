@@ -34,20 +34,23 @@
 
 /* Author: E. Gil Jones */
 
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/robot_state.h>
-#include <moveit/utils/robot_model_test_utils.h>
-#include <moveit/collision_detection/collision_common.h>
-#include <moveit/collision_detection/collision_env.h>
-#include <moveit/collision_detection/collision_detector_allocator.h>
-#include <urdf_parser/urdf_parser.h>
-#include <geometric_shapes/shape_operations.h>
-
-#include <gtest/gtest.h>
-#include <sstream>
 #include <algorithm>
 #include <ctype.h>
 #include <fstream>
+#include <sstream>
+
+#include <urdf_parser/urdf_parser.h>
+
+#include <geometric_shapes/shape_operations.h>
+
+#include <moveit/collision_detection/collision_common.h>
+#include <moveit/collision_detection/collision_detector_allocator.h>
+#include <moveit/collision_detection/collision_env.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_state/robot_state.h>
+#include <moveit/utils/robot_model_test_utils.h>
+
+#include "gtest/gtest.h"
 
 template <class CollisionAllocatorType>
 class CollisionDetectorTest : public ::testing::Test

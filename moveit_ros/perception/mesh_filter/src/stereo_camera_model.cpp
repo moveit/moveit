@@ -34,8 +34,8 @@
 
 /* Author: Suat Gedikli */
 
-#include <moveit/mesh_filter/stereo_camera_model.h>
 #include <moveit/mesh_filter/gl_renderer.h>
+#include <moveit/mesh_filter/stereo_camera_model.h>
 
 mesh_filter::StereoCameraModel::Parameters::Parameters(unsigned width, unsigned height,
                                                        float near_clipping_plane_distance,

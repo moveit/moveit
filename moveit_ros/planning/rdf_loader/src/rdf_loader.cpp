@@ -35,20 +35,20 @@
 /* Author: Ioan Sucan, Mathias Lüdtke, Dave Coleman */
 
 // MoveIt
-#include <moveit/rdf_loader/rdf_loader.h>
 #include <moveit/profiler/profiler.h>
+#include <moveit/rdf_loader/rdf_loader.h>
 
 // ROS
-#include <ros/ros.h>
 #include <ros/package.h>
+#include <ros/ros.h>
 
 // Boost
 #include <boost/filesystem.hpp>
 
 // C++
+#include <algorithm>
 #include <fstream>
 #include <streambuf>
-#include <algorithm>
 
 #ifdef _WIN32
 #define popen _popen

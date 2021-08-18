@@ -36,12 +36,12 @@
 /* Description: A simple benchmark that plans trajectories for all combinations of specified predefined poses */
 
 // MoveIt Benchmark
-#include <moveit/benchmarks/BenchmarkOptions.h>
 #include <moveit/benchmarks/BenchmarkExecutor.h>
+#include <moveit/benchmarks/BenchmarkOptions.h>
 
 // MoveIt
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/kinematic_constraints/utils.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_state/conversions.h>
 
 namespace moveit_ros_benchmarks

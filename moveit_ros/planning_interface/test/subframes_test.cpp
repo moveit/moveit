@@ -40,23 +40,24 @@
  */
 
 // C++
-#include <vector>
 #include <map>
+#include <vector>
 
 // ROS
 #include <ros/ros.h>
 
 // The Testing Framework and Utils
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
 // MoveIt
+#include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/move_group_interface/move_group_interface.h>
 
 // TF2
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_eigen/tf2_eigen.h>
+
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 constexpr double EPSILON = 1e-2;
 constexpr double Z_OFFSET = 0.05;

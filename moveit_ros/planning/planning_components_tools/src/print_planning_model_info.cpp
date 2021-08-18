@@ -34,8 +34,9 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/robot_model_loader/robot_model_loader.h>
 #include <ros/ros.h>
+
+#include <moveit/robot_model_loader/robot_model_loader.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 

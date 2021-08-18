@@ -37,6 +37,7 @@
 #pragma once
 
 #include <chomp_motion_planner/chomp_parameters.h>
+
 #include <moveit/planning_interface/planning_request.h>
 #include <moveit/planning_interface/planning_response.h>
 #include <moveit/planning_scene/planning_scene.h>

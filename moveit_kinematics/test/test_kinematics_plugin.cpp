@@ -35,22 +35,25 @@
 
 /* Author: Jorge Nicho, Robert Haschke */
 
-#include <gtest/gtest.h>
 #include <memory>
+
 #include <boost/bind.hpp>
+
 #include <pluginlib/class_loader.h>
 #include <ros/ros.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <xmlrpcpp/XmlRpcValue.h>
 
+#include "gtest/gtest.h"
+
 // MoveIt
+#include <moveit_msgs/DisplayTrajectory.h>
+
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/rdf_loader/rdf_loader.h>
 #include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/robot_state.h>
-
 #include <moveit/robot_state/conversions.h>
-#include <moveit_msgs/DisplayTrajectory.h>
+#include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
 
 const std::string ROBOT_DESCRIPTION_PARAM = "robot_description";

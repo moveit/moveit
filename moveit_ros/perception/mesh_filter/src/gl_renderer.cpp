@@ -40,14 +40,16 @@
 #else
 #include <GL/glu.h>
 #endif
-#include <GL/glut.h>
-#include <GL/freeglut.h>
-#include <moveit/mesh_filter/gl_renderer.h>
-#include <sstream>
 #include <fstream>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
+
+#include <GL/freeglut.h>
+#include <GL/glut.h>
 #include <ros/console.h>
+
+#include <moveit/mesh_filter/gl_renderer.h>
 
 using namespace std;
 

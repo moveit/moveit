@@ -34,9 +34,10 @@
 
 /* Author: Mrinal Kalakrishnan */
 
+#include <eigen3/Eigen/LU>
+
 #include <chomp_motion_planner/chomp_cost.h>
 #include <chomp_motion_planner/chomp_utils.h>
-#include <eigen3/Eigen/LU>
 
 using namespace Eigen;
 using namespace std;

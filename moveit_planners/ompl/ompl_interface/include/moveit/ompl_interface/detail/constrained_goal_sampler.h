@@ -37,11 +37,11 @@
 #pragma once
 
 #include <ompl/base/goals/GoalLazySamples.h>
-#include <moveit/kinematic_constraints/kinematic_constraint.h>
-#include <moveit/constraint_samplers/constraint_sampler.h>
 
-#include <moveit/robot_state/robot_state.h>
+#include <moveit/constraint_samplers/constraint_sampler.h>
+#include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/robot_model/joint_model_group.h>
+#include <moveit/robot_state/robot_state.h>
 
 namespace ompl_interface
 {

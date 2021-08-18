@@ -36,13 +36,16 @@
 
 #pragma once
 
+#include <boost/function.hpp>
+#include <boost/thread/condition_variable.hpp>
+#include <boost/thread/mutex.hpp>
+
 #include <ros/ros.h>
 #include <tf2_ros/buffer.h>
-#include <moveit/robot_state/robot_state.h>
+
 #include <sensor_msgs/JointState.h>
-#include <boost/function.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
+
+#include <moveit/robot_state/robot_state.h>
 
 namespace planning_scene_monitor
 {

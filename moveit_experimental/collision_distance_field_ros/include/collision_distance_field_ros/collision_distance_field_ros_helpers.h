@@ -36,9 +36,9 @@
 
 #pragma once
 
-#include <ros/ros.h>
-#include <planning_models/robot_model.h>
 #include <collision_distance_field/collision_distance_field_types.h>
+#include <planning_models/robot_model.h>
+#include <ros/ros.h>
 
 namespace collision_detection
 {

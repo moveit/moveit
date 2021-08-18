@@ -36,8 +36,9 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <gtest/gtest.h>
 #include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
+
+#include "gtest/gtest.h"
 
 using trajectory_processing::Path;
 using trajectory_processing::Trajectory;

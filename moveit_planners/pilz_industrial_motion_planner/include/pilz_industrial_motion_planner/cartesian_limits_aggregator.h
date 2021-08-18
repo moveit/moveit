@@ -35,6 +35,7 @@
 #pragma once
 
 #include "pilz_industrial_motion_planner/cartesian_limit.h"
+#include "ros/ros.h"
 
 namespace pilz_industrial_motion_planner
 {

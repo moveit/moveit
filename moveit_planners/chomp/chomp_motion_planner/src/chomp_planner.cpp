@@ -34,12 +34,14 @@
 
 /* Author: E. Gil Jones */
 
-#include <ros/ros.h>
+#include <chomp_motion_planner/chomp_optimizer.h>
 #include <chomp_motion_planner/chomp_planner.h>
 #include <chomp_motion_planner/chomp_trajectory.h>
-#include <chomp_motion_planner/chomp_optimizer.h>
-#include <moveit/robot_state/conversions.h>
+#include <ros/ros.h>
+
 #include <moveit_msgs/MotionPlanRequest.h>
+
+#include <moveit/robot_state/conversions.h>
 
 namespace chomp
 {

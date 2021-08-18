@@ -37,7 +37,9 @@
 
 #include <ros/ros.h>
 #include <trajopt_sco/sco_common.hpp>
+
 #include <moveit/planning_interface/planning_interface.h>
+
 #include "problem_description.h"
 
 namespace trajopt_interface

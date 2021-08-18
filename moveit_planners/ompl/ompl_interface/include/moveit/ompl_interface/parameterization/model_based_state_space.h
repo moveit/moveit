@@ -37,10 +37,11 @@
 #pragma once
 
 #include <ompl/base/StateSpace.h>
+
+#include <moveit/constraint_samplers/constraint_sampler.h>
+#include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
-#include <moveit/kinematic_constraints/kinematic_constraint.h>
-#include <moveit/constraint_samplers/constraint_sampler.h>
 
 namespace ompl_interface
 {

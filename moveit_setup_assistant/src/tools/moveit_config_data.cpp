@@ -36,11 +36,12 @@
 
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 // Reading/Writing Files
-#include <iostream>  // For writing yaml and launch files
 #include <fstream>
-#include <boost/filesystem/path.hpp>        // for creating folders/files
-#include <boost/filesystem/operations.hpp>  // is_regular_file, is_directory, etc.
+#include <iostream>  // For writing yaml and launch files
+
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/filesystem/operations.hpp>  // is_regular_file, is_directory, etc.
+#include <boost/filesystem/path.hpp>        // for creating folders/files
 
 // ROS
 #include <ros/console.h>

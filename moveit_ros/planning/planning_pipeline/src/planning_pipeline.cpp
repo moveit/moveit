@@ -34,15 +34,18 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/planning_pipeline/planning_pipeline.h>
-#include <moveit/robot_state/conversions.h>
-#include <moveit/collision_detection/collision_tools.h>
-#include <moveit/trajectory_processing/trajectory_tools.h>
+#include <sstream>
+
+#include <boost/algorithm/string/join.hpp>
+#include <boost/tokenizer.hpp>
+
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <visualization_msgs/MarkerArray.h>
-#include <boost/tokenizer.hpp>
-#include <boost/algorithm/string/join.hpp>
-#include <sstream>
+
+#include <moveit/collision_detection/collision_tools.h>
+#include <moveit/planning_pipeline/planning_pipeline.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit/trajectory_processing/trajectory_tools.h>
 
 const std::string planning_pipeline::PlanningPipeline::DISPLAY_PATH_TOPIC = "display_planned_path";
 const std::string planning_pipeline::PlanningPipeline::MOTION_PLAN_REQUEST_TOPIC = "motion_plan_request";

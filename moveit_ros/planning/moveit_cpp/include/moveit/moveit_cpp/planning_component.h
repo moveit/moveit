@@ -38,8 +38,10 @@
 #pragma once
 
 #include <ros/ros.h>
-#include <moveit/moveit_cpp/moveit_cpp.h>
+
 #include <moveit_msgs/MoveItErrorCodes.h>
+
+#include <moveit/moveit_cpp/moveit_cpp.h>
 
 namespace moveit_cpp
 {

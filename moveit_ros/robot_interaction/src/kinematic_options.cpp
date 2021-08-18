@@ -34,9 +34,11 @@
 
 /* Author: Acorn Pooley */
 
-#include <moveit/robot_interaction/kinematic_options.h>
 #include <boost/static_assert.hpp>
+
 #include <ros/console.h>
+
+#include <moveit/robot_interaction/kinematic_options.h>
 
 robot_interaction::KinematicOptions::KinematicOptions() : timeout_seconds_(0.0)  // 0.0 = use default timeout
 {

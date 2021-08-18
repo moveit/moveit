@@ -37,12 +37,15 @@
 
 #pragma once
 
+#include <set>
+
+#include <boost/function.hpp>
+
+#include <srdfdom/model.h>
+
+#include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/robot_model/joint_model.h>
 #include <moveit/robot_model/link_model.h>
-#include <moveit/kinematics_base/kinematics_base.h>
-#include <srdfdom/model.h>
-#include <boost/function.hpp>
-#include <set>
 
 namespace moveit
 {

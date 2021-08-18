@@ -35,10 +35,11 @@
 /* Author: Ioan Sucan */
 
 #include "state_validation_service_capability.h"
-#include <moveit/robot_state/conversions.h>
-#include <moveit/utils/message_checks.h>
+
 #include <moveit/collision_detection/collision_tools.h>
 #include <moveit/move_group/capability_names.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit/utils/message_checks.h>
 
 namespace move_group
 {

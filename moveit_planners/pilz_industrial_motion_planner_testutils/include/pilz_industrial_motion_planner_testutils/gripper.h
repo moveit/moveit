@@ -35,8 +35,8 @@
 #ifndef GRIPPER_H
 #define GRIPPER_H
 
-#include "ptp.h"
 #include "jointconfiguration.h"
+#include "ptp.h"
 
 namespace pilz_industrial_motion_planner_testutils
 {

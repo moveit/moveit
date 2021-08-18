@@ -37,10 +37,12 @@
  *      Author    : Andy Zelenak
  */
 
-#include <moveit_servo/low_pass_filter.h>
 #include <cmath>
 #include <string>
+
 #include <ros/ros.h>
+
+#include <moveit_servo/low_pass_filter.h>
 
 namespace moveit_servo
 {

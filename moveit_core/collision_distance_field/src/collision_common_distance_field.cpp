@@ -34,11 +34,14 @@
 
 /* Author: E. Gil Jones */
 
-#include <moveit/collision_distance_field/collision_common_distance_field.h>
-#include <ros/console.h>
-#include <boost/thread/mutex.hpp>
-#include <tf2_eigen/tf2_eigen.h>
 #include <memory>
+
+#include <boost/thread/mutex.hpp>
+
+#include <ros/console.h>
+#include <tf2_eigen/tf2_eigen.h>
+
+#include <moveit/collision_distance_field/collision_common_distance_field.h>
 
 namespace collision_detection
 {

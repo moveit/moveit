@@ -40,19 +40,19 @@
 class QSplitter;
 
 // Setup Assistant
-#include "navigation_widget.h"
-#include "start_screen_widget.h"
+#include "author_information_widget.h"
+#include "configuration_files_widget.h"
 #include "default_collisions_widget.h"
+#include "end_effectors_widget.h"
+#include "navigation_widget.h"
+#include "passive_joints_widget.h"
+#include "perception_widget.h"
 #include "planning_groups_widget.h"
 #include "robot_poses_widget.h"
-#include "end_effectors_widget.h"
-#include "virtual_joints_widget.h"
-#include "passive_joints_widget.h"
-#include "author_information_widget.h"
-#include "simulation_widget.h"
-#include "configuration_files_widget.h"
-#include "perception_widget.h"
 #include "ros_controllers_widget.h"
+#include "simulation_widget.h"
+#include "start_screen_widget.h"
+#include "virtual_joints_widget.h"
 
 #ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/moveit_config_data.h>

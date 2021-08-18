@@ -20,11 +20,13 @@
 
 #pragma once
 
-#include <octomap_msgs/conversions.h>
-#include <geometric_shapes/shape_messages.h>
-#include <geometric_shapes/shapes.h>
-#include <geometric_shapes/shape_operations.h>
 #include <ros/console.h>
+
+#include <octomap_msgs/conversions.h>
+
+#include <geometric_shapes/shape_messages.h>
+#include <geometric_shapes/shape_operations.h>
+#include <geometric_shapes/shapes.h>
 
 #include <moveit/collision_detection_bullet/bullet_integration/basic_types.h>
 

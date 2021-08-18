@@ -38,8 +38,8 @@
 
 #pragma once
 
-#include <vector>
 #include <functional>
+#include <vector>
 
 namespace cached_ik_kinematics_plugin
 {

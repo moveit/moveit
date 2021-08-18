@@ -34,12 +34,13 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/pick_place/pick_place.h>
-#include <moveit/pick_place/approach_and_translate_stage.h>
-#include <moveit/trajectory_processing/trajectory_tools.h>
-#include <moveit/robot_state/cartesian_interpolator.h>
-#include <tf2_eigen/tf2_eigen.h>
 #include <ros/console.h>
+#include <tf2_eigen/tf2_eigen.h>
+
+#include <moveit/pick_place/approach_and_translate_stage.h>
+#include <moveit/pick_place/pick_place.h>
+#include <moveit/robot_state/cartesian_interpolator.h>
+#include <moveit/trajectory_processing/trajectory_tools.h>
 
 namespace pick_place
 {

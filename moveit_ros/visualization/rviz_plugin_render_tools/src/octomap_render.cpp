@@ -34,15 +34,15 @@
 
 /* Author: Julius Kammerl */
 
-#include <moveit/rviz_plugin_render_tools/octomap_render.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
+
+#include <octomap/octomap.h>
+#include <rviz/ogre_helpers/point_cloud.h>
 
 #include <octomap_msgs/Octomap.h>
-#include <octomap/octomap.h>
 
-#include <OgreSceneNode.h>
-#include <OgreSceneManager.h>
-
-#include <rviz/ogre_helpers/point_cloud.h>
+#include <moveit/rviz_plugin_render_tools/octomap_render.h>
 
 namespace moveit_rviz_plugin
 {

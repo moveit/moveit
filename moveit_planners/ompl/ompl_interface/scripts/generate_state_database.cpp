@@ -35,19 +35,18 @@
 
 /* Authors: Ioan Sucan, Michael Goerner */
 
-#include <moveit/ompl_interface/ompl_interface.h>
-#include <moveit/ompl_interface/detail/constraints_library.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/profiler/profiler.h>
-
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/robot_state/conversions.h>
-
-#include <moveit/kinematic_constraints/utils.h>
-#include <moveit/utils/message_checks.h>
+#include <sstream>
 
 #include <boost/math/constants/constants.hpp>
-#include <sstream>
+
+#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/ompl_interface/detail/constraints_library.h>
+#include <moveit/ompl_interface/ompl_interface.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/profiler/profiler.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit/utils/message_checks.h>
 
 constexpr char LOGNAME[] = "generate_state_database";
 

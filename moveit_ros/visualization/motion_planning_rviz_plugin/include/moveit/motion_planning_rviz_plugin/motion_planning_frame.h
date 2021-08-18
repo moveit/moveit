@@ -36,30 +36,31 @@
 
 #pragma once
 
-#include <QWidget>
-#include <QTreeWidgetItem>
 #include <QListWidgetItem>
+#include <QTreeWidgetItem>
+#include <QWidget>
 
 #ifndef Q_MOC_RUN
+#include <actionlib/client/simple_action_client.h>
+#include <interactive_markers/interactive_marker_server.h>
+#include <rviz/default_plugin/interactive_markers/interactive_marker.h>
+
+#include <moveit_msgs/MotionPlanRequest.h>
+#include <object_recognition_msgs/ObjectRecognitionAction.h>
+#include <std_msgs/Bool.h>
+#include <std_msgs/Empty.h>
+
 #include <moveit/macros/class_forward.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/robot_interaction/robot_interaction.h>
 #include <moveit/robot_interaction/interaction_handler.h>
+#include <moveit/robot_interaction/robot_interaction.h>
 #include <moveit/semantic_world/semantic_world.h>
-#include <interactive_markers/interactive_marker_server.h>
-#include <rviz/default_plugin/interactive_markers/interactive_marker.h>
-#include <moveit_msgs/MotionPlanRequest.h>
-#include <actionlib/client/simple_action_client.h>
-#include <object_recognition_msgs/ObjectRecognitionAction.h>
-
-#include <std_msgs/Bool.h>
-#include <std_msgs/Empty.h>
 #endif
 
 #include <map>
-#include <string>
 #include <memory>
+#include <string>
 
 namespace rviz
 {

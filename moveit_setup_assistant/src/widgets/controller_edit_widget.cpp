@@ -33,6 +33,8 @@
 
 /* Author: Mohamad Ayman */
 
+#include "controller_edit_widget.h"
+
 #include <QComboBox>
 #include <QFormLayout>
 #include <QGroupBox>
@@ -43,7 +45,6 @@
 #include <QPushButton>
 #include <QString>
 #include <QVBoxLayout>
-#include "controller_edit_widget.h"
 
 namespace moveit_setup_assistant
 {

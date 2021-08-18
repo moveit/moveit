@@ -41,10 +41,10 @@
  *
  */
 
+#include <moveit_msgs/Constraints.h>
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit_msgs/PlanningSceneWorld.h>
 #include <moveit_msgs/RobotState.h>
-#include <moveit_msgs/Constraints.h>
 
 namespace moveit
 {

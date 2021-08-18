@@ -40,6 +40,7 @@
 
 #include <functional>
 #include <random>
+
 #include <boost/numeric/ublas/matrix.hpp>
 
 namespace cached_ik_kinematics_plugin

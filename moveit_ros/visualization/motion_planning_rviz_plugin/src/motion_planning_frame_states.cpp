@@ -34,13 +34,13 @@
 
 /* Author: Mario Prats, Ioan Sucan */
 
-#include <moveit/warehouse/state_storage.h>
-#include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
-#include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
-#include <moveit/robot_state/conversions.h>
-
-#include <QMessageBox>
 #include <QInputDialog>
+#include <QMessageBox>
+
+#include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
+#include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit/warehouse/state_storage.h>
 
 #include "ui_motion_planning_rviz_plugin_frame.h"
 

@@ -34,9 +34,9 @@
 
 #pragma once
 
-#include <vector>
 #include <iostream>
 #include <math.h>
+#include <vector>
 
 typedef struct
 {

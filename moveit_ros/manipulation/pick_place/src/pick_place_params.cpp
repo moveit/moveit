@@ -34,8 +34,9 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/pick_place/pick_place_params.h>
 #include <dynamic_reconfigure/server.h>
+
+#include <moveit/pick_place/pick_place_params.h>
 #include <moveit_ros_manipulation/PickPlaceDynamicReconfigureConfig.h>
 
 namespace pick_place

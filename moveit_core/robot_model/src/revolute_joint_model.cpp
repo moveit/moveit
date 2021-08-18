@@ -35,11 +35,14 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/robot_model/revolute_joint_model.h>
-#include <geometric_shapes/check_isometry.h>
-#include <boost/math/constants/constants.hpp>
 #include <algorithm>
 #include <cmath>
+
+#include <boost/math/constants/constants.hpp>
+
+#include <geometric_shapes/check_isometry.h>
+
+#include <moveit/robot_model/revolute_joint_model.h>
 
 namespace moveit
 {

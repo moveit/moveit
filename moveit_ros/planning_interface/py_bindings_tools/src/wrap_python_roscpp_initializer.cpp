@@ -34,9 +34,11 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/py_bindings_tools/roscpp_initializer.h>
-#include <boost/python.hpp>
 #include <Python.h>
+
+#include <boost/python.hpp>
+
+#include <moveit/py_bindings_tools/roscpp_initializer.h>
 
 namespace bp = boost::python;
 

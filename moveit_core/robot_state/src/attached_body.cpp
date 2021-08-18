@@ -34,10 +34,12 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/robot_state/attached_body.h>
+#include <boost/algorithm/string/predicate.hpp>
+
 #include <geometric_shapes/check_isometry.h>
 #include <geometric_shapes/shapes.h>
-#include <boost/algorithm/string/predicate.hpp>
+
+#include <moveit/robot_state/attached_body.h>
 
 namespace moveit
 {

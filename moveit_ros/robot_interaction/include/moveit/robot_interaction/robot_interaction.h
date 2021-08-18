@@ -36,15 +36,19 @@
 
 #pragma once
 
-#include <visualization_msgs/InteractiveMarkerFeedback.h>
-#include <visualization_msgs/InteractiveMarker.h>
-#include <interactive_markers/menu_handler.h>
-#include <moveit/macros/class_forward.h>
-#include <moveit/robot_state/robot_state.h>
-#include <moveit/robot_interaction/interaction.h>
+#include <memory>
+
 #include <boost/function.hpp>
 #include <boost/thread.hpp>
-#include <memory>
+
+#include <interactive_markers/menu_handler.h>
+
+#include <visualization_msgs/InteractiveMarker.h>
+#include <visualization_msgs/InteractiveMarkerFeedback.h>
+
+#include <moveit/macros/class_forward.h>
+#include <moveit/robot_interaction/interaction.h>
+#include <moveit/robot_state/robot_state.h>
 
 // This is needed for legacy code that includes robot_interaction.h but not
 // interaction_handler.h

@@ -34,8 +34,9 @@
 
 /* Author: Acorn Pooley, Ioan Sucan */
 
-#include <moveit/collision_detection/world_diff.h>
 #include <boost/bind.hpp>
+
+#include <moveit/collision_detection/world_diff.h>
 
 namespace collision_detection
 {

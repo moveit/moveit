@@ -36,20 +36,24 @@
 
 #pragma once
 
-#include <ros/ros.h>
-#include <ros/callback_queue.h>
-#include <tf2_ros/buffer.h>
-#include <moveit/macros/class_forward.h>
-#include <moveit/planning_scene/planning_scene.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
-#include <moveit/planning_scene_monitor/current_state_monitor.h>
-#include <moveit/collision_plugin_loader/collision_plugin_loader.h>
-#include <moveit_msgs/GetPlanningScene.h>
-#include <boost/noncopyable.hpp>
-#include <boost/thread/shared_mutex.hpp>
-#include <boost/thread/recursive_mutex.hpp>
 #include <memory>
+
+#include <boost/noncopyable.hpp>
+#include <boost/thread/recursive_mutex.hpp>
+#include <boost/thread/shared_mutex.hpp>
+
+#include <ros/callback_queue.h>
+#include <ros/ros.h>
+#include <tf2_ros/buffer.h>
+
+#include <moveit_msgs/GetPlanningScene.h>
+
+#include <moveit/collision_plugin_loader/collision_plugin_loader.h>
+#include <moveit/macros/class_forward.h>
+#include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/planning_scene_monitor/current_state_monitor.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 
 namespace planning_scene_monitor
 {

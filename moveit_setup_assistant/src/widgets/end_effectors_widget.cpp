@@ -36,6 +36,7 @@
 
 // SA
 #include "end_effectors_widget.h"
+
 #include "header_widget.h"
 
 // Qt

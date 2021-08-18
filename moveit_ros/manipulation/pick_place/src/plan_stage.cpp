@@ -34,10 +34,11 @@
 
 /* Author: Ioan Sucan */
 
+#include <ros/console.h>
+
+#include <moveit/kinematic_constraints/utils.h>
 #include <moveit/pick_place/pick_place.h>
 #include <moveit/pick_place/plan_stage.h>
-#include <moveit/kinematic_constraints/utils.h>
-#include <ros/console.h>
 
 namespace pick_place
 {

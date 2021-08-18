@@ -35,11 +35,12 @@
 /* Author: Robert Haschke */
 
 #include "collision_linear_model.h"
-#include "collision_matrix_model.h"
 
 #include <QItemSelection>
 #include <QPainter>
 #include <cmath>
+
+#include "collision_matrix_model.h"
 
 using namespace moveit_setup_assistant;
 

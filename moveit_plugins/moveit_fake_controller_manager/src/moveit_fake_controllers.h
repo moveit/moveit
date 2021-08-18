@@ -35,11 +35,13 @@
 
 /* Author: Ioan Sucan, Robert Haschke */
 
-#include <moveit/macros/class_forward.h>
-#include <moveit/controller_manager/controller_manager.h>
+#include <boost/thread/thread.hpp>
+
 #include <ros/publisher.h>
 #include <ros/rate.h>
-#include <boost/thread/thread.hpp>
+
+#include <moveit/controller_manager/controller_manager.h>
+#include <moveit/macros/class_forward.h>
 
 #ifndef MOVEIT_FAKE_CONTROLLERS
 #define MOVEIT_FAKE_CONTROLLERS

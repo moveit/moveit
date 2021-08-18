@@ -34,11 +34,12 @@
 
 /* Author: Benjamin Cohen, E. Gil Jones */
 
-#include <sbpl_interface/environment_chain3d.h>
-#include <collision_detection/collision_common.h>
-#include <planning_models/conversions.h>
 #include <boost/timer.hpp>
+
+#include <collision_detection/collision_common.h>
 #include <planning_models/angle_utils.h>
+#include <planning_models/conversions.h>
+#include <sbpl_interface/environment_chain3d.h>
 
 static const unsigned int DEBUG_OVER = 1;
 static const unsigned int PRINT_HEURISTIC_UNDER = 1;

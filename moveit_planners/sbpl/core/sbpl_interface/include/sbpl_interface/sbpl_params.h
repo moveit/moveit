@@ -35,12 +35,14 @@
 #pragma once
 
 #include <iostream>
+#include <iterator>
+#include <sstream>
 #include <string>
 #include <vector>
-#include <iterator>
-#include <ros/ros.h>
-#include <sstream>
+
 #include <boost/algorithm/string.hpp>
+
+#include <ros/ros.h>
 
 namespace sbpl_interface
 {

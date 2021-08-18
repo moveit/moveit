@@ -36,15 +36,17 @@
 
 #pragma once
 
+#include <condition_variable>
 #include <map>
+#include <mutex>
+#include <queue>
+#include <thread>
+
+#include <Eigen/Geometry>  // for Isometry3d
+
 #include <moveit/macros/class_forward.h>
 #include <moveit/mesh_filter/gl_renderer.h>
 #include <moveit/mesh_filter/sensor_model.h>
-#include <Eigen/Geometry>  // for Isometry3d
-#include <queue>
-#include <thread>
-#include <condition_variable>
-#include <mutex>
 
 // forward declarations
 namespace shapes

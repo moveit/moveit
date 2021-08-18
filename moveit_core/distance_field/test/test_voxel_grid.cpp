@@ -34,10 +34,11 @@
 
 /* Author: Mrinal Kalakrishnan, Ken Anderson */
 
-#include <gtest/gtest.h>
+#include <ros/ros.h>
 
 #include <moveit/distance_field/voxel_grid.h>
-#include <ros/ros.h>
+
+#include "gtest/gtest.h"
 
 using namespace distance_field;
 

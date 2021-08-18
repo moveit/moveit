@@ -36,15 +36,15 @@
 
 #pragma once
 
-#include <moveit/macros/class_forward.h>
-#include <moveit/plan_execution/plan_representation.h>
-#include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
+#include <memory>
 
-#include <moveit/planning_scene_monitor/trajectory_monitor.h>
-#include <moveit/sensor_manager/sensor_manager.h>
 #include <pluginlib/class_loader.hpp>
 
-#include <memory>
+#include <moveit/macros/class_forward.h>
+#include <moveit/plan_execution/plan_representation.h>
+#include <moveit/planning_scene_monitor/trajectory_monitor.h>
+#include <moveit/sensor_manager/sensor_manager.h>
+#include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 
 namespace plan_execution
 {

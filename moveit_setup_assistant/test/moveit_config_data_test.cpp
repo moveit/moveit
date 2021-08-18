@@ -33,18 +33,22 @@
  *********************************************************************/
 
 /* Author: Mohamad Ayman */
-#include <gtest/gtest.h>
-#include <sstream>
 #include <ctype.h>
-#include <iostream>  // For writing yaml and launch files
-#include <urdf_parser/urdf_parser.h>
 #include <fstream>
+#include <iostream>  // For writing yaml and launch files
+#include <sstream>
 #include <string>
-#include <boost/filesystem/path.hpp>
+
 #include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+
+#include <ros/package.h>
+#include <urdf_parser/urdf_parser.h>
+
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 #include <moveit/utils/robot_model_test_utils.h>
-#include <ros/package.h>
+
+#include "gtest/gtest.h"
 
 // This tests writing/parsing of ros_controller.yaml
 class MoveItConfigData : public testing::Test

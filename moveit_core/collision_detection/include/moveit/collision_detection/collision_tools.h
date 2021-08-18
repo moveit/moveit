@@ -36,10 +36,11 @@
 
 #pragma once
 
-#include <moveit/collision_detection/collision_common.h>
-#include <moveit_msgs/CostSource.h>
 #include <moveit_msgs/ContactInformation.h>
+#include <moveit_msgs/CostSource.h>
 #include <visualization_msgs/MarkerArray.h>
+
+#include <moveit/collision_detection/collision_common.h>
 
 namespace collision_detection
 {

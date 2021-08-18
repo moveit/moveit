@@ -37,13 +37,16 @@
 
 #pragma once
 
+#include <iostream>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
-#include <iostream>
-#include <moveit_msgs/JointLimits.h>
-#include <random_numbers/random_numbers.h>
+
 #include <Eigen/Geometry>
+
+#include <moveit_msgs/JointLimits.h>
+
+#include <random_numbers/random_numbers.h>
 
 namespace moveit
 {

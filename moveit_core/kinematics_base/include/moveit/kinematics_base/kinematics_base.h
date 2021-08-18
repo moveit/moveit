@@ -36,14 +36,16 @@
 
 #pragma once
 
-#include <geometry_msgs/Pose.h>
-#include <moveit_msgs/MoveItErrorCodes.h>
-#include <moveit/macros/class_forward.h>
-#include <ros/node_handle.h>
-
-#include <boost/function.hpp>
 #include <string>
 
+#include <boost/function.hpp>
+
+#include <ros/node_handle.h>
+
+#include <geometry_msgs/Pose.h>
+#include <moveit_msgs/MoveItErrorCodes.h>
+
+#include <moveit/macros/class_forward.h>
 #include <moveit/moveit_kinematics_base_export.h>
 
 namespace moveit

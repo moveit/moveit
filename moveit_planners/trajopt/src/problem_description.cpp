@@ -31,14 +31,11 @@
  *  http://opensource.org/licenses/BSD-2-Clause
  *********************************************************************/
 
+#include "trajopt_interface/problem_description.h"
+
 #include <boost/algorithm/string.hpp>
 
 #include <ros/ros.h>
-
-#include <moveit/planning_interface/planning_interface.h>
-#include <moveit/planning_scene/planning_scene.h>
-#include <moveit_msgs/MotionPlanRequest.h>
-
 #include <trajopt/trajectory_costs.hpp>
 #include <trajopt_sco/expr_op_overloads.hpp>
 #include <trajopt_sco/expr_ops.hpp>
@@ -46,7 +43,11 @@
 #include <trajopt_utils/logging.hpp>
 #include <trajopt_utils/vector_ops.hpp>
 
-#include "trajopt_interface/problem_description.h"
+#include <moveit_msgs/MotionPlanRequest.h>
+
+#include <moveit/planning_interface/planning_interface.h>
+#include <moveit/planning_scene/planning_scene.h>
+
 #include "trajopt_interface/kinematic_terms.h"
 
 /**

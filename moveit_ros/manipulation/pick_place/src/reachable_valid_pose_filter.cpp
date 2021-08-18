@@ -34,11 +34,13 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/pick_place/reachable_valid_pose_filter.h>
-#include <moveit/kinematic_constraints/utils.h>
-#include <tf2_eigen/tf2_eigen.h>
 #include <boost/bind.hpp>
+
 #include <ros/console.h>
+#include <tf2_eigen/tf2_eigen.h>
+
+#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/pick_place/reachable_valid_pose_filter.h>
 
 pick_place::ReachableAndValidPoseFilter::ReachableAndValidPoseFilter(
     const planning_scene::PlanningSceneConstPtr& scene,

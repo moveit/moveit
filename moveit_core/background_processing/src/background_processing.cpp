@@ -34,8 +34,9 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/background_processing/background_processing.h>
 #include <ros/console.h>
+
+#include <moveit/background_processing/background_processing.h>
 
 namespace moveit
 {

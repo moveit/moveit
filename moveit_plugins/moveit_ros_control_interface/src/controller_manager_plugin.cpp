@@ -34,24 +34,21 @@
 
 /* Author: Mathias Lüdtke */
 
+#include <map>
+#include <memory>
+
+#include <boost/bimap.hpp>
+
+#include <pluginlib/class_list_macros.hpp>
+#include <pluginlib/class_loader.hpp>
 #include <ros/ros.h>
-
-#include <moveit/macros/class_forward.h>
-
-#include <moveit_ros_control_interface/ControllerHandle.h>
-
-#include <moveit/controller_manager/controller_manager.h>
 
 #include <controller_manager_msgs/ListControllers.h>
 #include <controller_manager_msgs/SwitchController.h>
 
-#include <pluginlib/class_list_macros.hpp>
-#include <pluginlib/class_loader.hpp>
-
-#include <boost/bimap.hpp>
-
-#include <map>
-#include <memory>
+#include <moveit/controller_manager/controller_manager.h>
+#include <moveit/macros/class_forward.h>
+#include <moveit_ros_control_interface/ControllerHandle.h>
 
 namespace moveit_ros_control_interface
 {

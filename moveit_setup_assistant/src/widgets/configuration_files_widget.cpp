@@ -35,6 +35,8 @@
 /* Author: Dave Coleman */
 
 // Qt
+#include "configuration_files_widget.h"
+
 #include <QApplication>
 #include <QLabel>
 #include <QList>
@@ -42,21 +44,19 @@
 #include <QMessageBox>
 #include <QProgressBar>
 #include <QPushButton>
-#include <QPushButton>
 #include <QRegExp>
 #include <QSplitter>
 #include <QVBoxLayout>
 
-#include "configuration_files_widget.h"
 #include "header_widget.h"
 
 // Boost
 #include <boost/algorithm/string.hpp>       // for string find and replace in templates
-#include <boost/filesystem/path.hpp>        // for creating folders/files
 #include <boost/filesystem/operations.hpp>  // is_regular_file, is_directory, etc.
+#include <boost/filesystem/path.hpp>        // for creating folders/files
 // Read write files
-#include <iostream>  // For writing yaml and launch files
 #include <fstream>
+#include <iostream>  // For writing yaml and launch files
 
 namespace moveit_setup_assistant
 {

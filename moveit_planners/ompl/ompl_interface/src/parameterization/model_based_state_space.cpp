@@ -34,8 +34,9 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/ompl_interface/parameterization/model_based_state_space.h>
 #include <utility>
+
+#include <moveit/ompl_interface/parameterization/model_based_state_space.h>
 
 namespace ompl_interface
 {

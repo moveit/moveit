@@ -37,6 +37,7 @@
 #pragma once
 
 #include <map>
+
 #include <moveit/macros/class_forward.h>
 namespace planning_scene
 {

@@ -36,6 +36,7 @@
 
 // SA
 #include "virtual_joints_widget.h"
+
 #include "header_widget.h"
 
 // Qt

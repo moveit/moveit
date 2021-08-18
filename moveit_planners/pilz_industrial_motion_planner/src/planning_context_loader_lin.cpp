@@ -33,11 +33,12 @@
  *********************************************************************/
 
 #include "pilz_industrial_motion_planner/planning_context_loader_lin.h"
+
+#include <pluginlib/class_list_macros.h>
+
 #include "moveit/planning_scene/planning_scene.h"
 #include "pilz_industrial_motion_planner/planning_context_base.h"
 #include "pilz_industrial_motion_planner/planning_context_lin.h"
-
-#include <pluginlib/class_list_macros.h>
 
 pilz_industrial_motion_planner::PlanningContextLoaderLIN::PlanningContextLoaderLIN()
 {

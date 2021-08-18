@@ -35,10 +35,13 @@
 /* Author: Jon Binney, Ioan Sucan */
 
 #include <memory>
+
 #include <ros/ros.h>
 #include <tf2_ros/transform_listener.h>
-#include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
+
 #include <octomap_msgs/conversions.h>
+
+#include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 
 static const std::string LOGNAME = "occupancy_map_server";
 

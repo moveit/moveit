@@ -34,9 +34,9 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/warehouse/constraints_storage.h>
-
 #include <utility>
+
+#include <moveit/warehouse/constraints_storage.h>
 
 const std::string moveit_warehouse::ConstraintsStorage::DATABASE_NAME = "moveit_constraints";
 

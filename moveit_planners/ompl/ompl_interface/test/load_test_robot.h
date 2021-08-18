@@ -60,7 +60,7 @@ namespace ompl_interface_testing
  *
  *   --- example.cpp ---
  *
- *   #include <gtest/gtest.h>
+ *   #include "gtest/gtest.h"
  *   #include "load_test_robot.h"
  *
  *   class GenericTests : public ompl_interface_testing::LoadTestRobot, public testing::Test

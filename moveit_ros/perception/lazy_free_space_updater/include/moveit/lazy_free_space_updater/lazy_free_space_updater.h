@@ -36,10 +36,12 @@
 
 #pragma once
 
-#include <moveit/collision_detection/occupancy_map.h>
-#include <boost/thread.hpp>
 #include <deque>
 #include <unordered_map>
+
+#include <boost/thread.hpp>
+
+#include <moveit/collision_detection/occupancy_map.h>
 
 namespace occupancy_map_monitor
 {

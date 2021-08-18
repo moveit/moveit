@@ -36,8 +36,9 @@
 
 #pragma once
 
-#include <moveit/macros/class_forward.h>
 #include <Eigen/Core>  // for Vector3f
+
+#include <moveit/macros/class_forward.h>
 
 namespace mesh_filter
 {

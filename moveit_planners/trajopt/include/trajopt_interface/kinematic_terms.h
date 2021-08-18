@@ -1,8 +1,8 @@
 #pragma once
 
-#include <moveit/planning_scene/planning_scene.h>
-
 #include <Eigen/Geometry>
+
+#include <moveit/planning_scene/planning_scene.h>
 
 namespace trajopt_interface
 {

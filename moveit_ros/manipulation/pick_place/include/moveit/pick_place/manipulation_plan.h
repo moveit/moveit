@@ -36,17 +36,19 @@
 
 #pragma once
 
-#include <moveit/macros/class_forward.h>
-#include <moveit/robot_state/robot_state.h>
-#include <moveit/constraint_samplers/constraint_sampler.h>
-#include <moveit/plan_execution/plan_representation.h>
-#include <moveit_msgs/GripperTranslation.h>
-#include <moveit_msgs/RobotState.h>
-#include <moveit_msgs/RobotTrajectory.h>
-#include <moveit_msgs/MoveItErrorCodes.h>
-#include <moveit_msgs/Constraints.h>
 #include <string>
 #include <vector>
+
+#include <moveit_msgs/Constraints.h>
+#include <moveit_msgs/GripperTranslation.h>
+#include <moveit_msgs/MoveItErrorCodes.h>
+#include <moveit_msgs/RobotState.h>
+#include <moveit_msgs/RobotTrajectory.h>
+
+#include <moveit/constraint_samplers/constraint_sampler.h>
+#include <moveit/macros/class_forward.h>
+#include <moveit/plan_execution/plan_representation.h>
+#include <moveit/robot_state/robot_state.h>
 
 namespace pick_place
 {

@@ -38,14 +38,14 @@
 
 #pragma once
 
-#include <moveit/collision_detection/collision_common.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Float64.h>
 
-#include <moveit_servo/servo_parameters.h>
+#include <moveit/collision_detection/collision_common.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit_servo/low_pass_filter.h>
+#include <moveit_servo/servo_parameters.h>
 
 namespace moveit_servo
 {

@@ -37,16 +37,18 @@
 
 #pragma once
 
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/attached_body.h>
-#include <moveit/transforms/transforms.h>
-#include <sensor_msgs/JointState.h>
-#include <visualization_msgs/MarkerArray.h>
-#include <std_msgs/ColorRGBA.h>
-#include <geometry_msgs/Twist.h>
 #include <cassert>
 
 #include <boost/assert.hpp>
+
+#include <geometry_msgs/Twist.h>
+#include <sensor_msgs/JointState.h>
+#include <std_msgs/ColorRGBA.h>
+#include <visualization_msgs/MarkerArray.h>
+
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_state/attached_body.h>
+#include <moveit/transforms/transforms.h>
 
 /* Terminology
    * Model Frame: RobotModel's root frame == PlanningScene's planning frame

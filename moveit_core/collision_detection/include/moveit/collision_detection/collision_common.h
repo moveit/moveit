@@ -36,13 +36,15 @@
 
 #pragma once
 
-#include <boost/array.hpp>
-#include <boost/function.hpp>
-#include <vector>
-#include <string>
 #include <map>
 #include <set>
+#include <string>
+#include <vector>
+
 #include <Eigen/Core>
+#include <boost/array.hpp>
+#include <boost/function.hpp>
+
 #include <moveit/robot_model/robot_model.h>
 
 namespace collision_detection

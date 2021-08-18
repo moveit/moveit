@@ -34,13 +34,13 @@
 
 /* Author: Peter Mitrano */
 
-#include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <moveit/python/pybind_rosmsg_typecasters.h>
 
-#include <moveit/robot_state/robot_state.h>
+#include <moveit/python/pybind_rosmsg_typecasters.h>
 #include <moveit/robot_state/conversions.h>
+#include <moveit/robot_state/robot_state.h>
 
 namespace py = pybind11;
 using namespace robot_state;

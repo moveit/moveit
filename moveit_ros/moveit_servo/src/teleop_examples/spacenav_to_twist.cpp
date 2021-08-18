@@ -36,8 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "geometry_msgs/TwistStamped.h"
 #include "control_msgs/JointJog.h"
+#include "geometry_msgs/TwistStamped.h"
 #include "ros/ros.h"
 #include "sensor_msgs/Joy.h"
 

@@ -20,14 +20,16 @@
 
 #pragma once
 
-#include <LinearMath/btConvexHullComputer.h>
 #include <cstdio>
-#include <Eigen/Geometry>
 #include <fstream>
 
-#include <moveit/collision_detection_bullet/bullet_integration/basic_types.h>
+#include <Eigen/Geometry>
+
+#include <LinearMath/btConvexHullComputer.h>
+
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection/collision_matrix.h>
+#include <moveit/collision_detection_bullet/bullet_integration/basic_types.h>
 
 namespace collision_detection_bullet
 {

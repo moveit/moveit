@@ -36,15 +36,18 @@
 
 #pragma once
 
+#include <memory>
+
+#include <boost/noncopyable.hpp>
+
+#include <moveit_msgs/PickupAction.h>
+#include <moveit_msgs/PlaceAction.h>
+
+#include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
 #include <moveit/macros/class_forward.h>
 #include <moveit/pick_place/manipulation_pipeline.h>
 #include <moveit/pick_place/pick_place_params.h>
-#include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
-#include <moveit_msgs/PickupAction.h>
-#include <moveit_msgs/PlaceAction.h>
-#include <boost/noncopyable.hpp>
-#include <memory>
 
 namespace pick_place
 {

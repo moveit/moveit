@@ -35,10 +35,10 @@
 #ifndef CIRC_AUXILIARY_TYPES_H
 #define CIRC_AUXILIARY_TYPES_H
 
-#include "center.h"
-#include "interim.h"
 #include "cartesianconfiguration.h"
 #include "cartesianpathconstraintsbuilder.h"
+#include "center.h"
+#include "interim.h"
 
 namespace pilz_industrial_motion_planner_testutils
 {

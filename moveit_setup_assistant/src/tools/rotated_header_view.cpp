@@ -35,6 +35,7 @@
 /* Author: Robert Haschke */
 
 #include "rotated_header_view.h"
+
 #include <QPainter>
 
 namespace moveit_setup_assistant

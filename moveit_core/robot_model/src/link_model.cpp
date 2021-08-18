@@ -34,11 +34,12 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/robot_model/link_model.h>
-#include <moveit/robot_model/joint_model.h>
 #include <geometric_shapes/check_isometry.h>
 #include <geometric_shapes/shape_operations.h>
+
 #include <moveit/robot_model/aabb.h>
+#include <moveit/robot_model/joint_model.h>
+#include <moveit/robot_model/link_model.h>
 
 namespace moveit
 {

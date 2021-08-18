@@ -45,10 +45,10 @@
 
 // MoveIt
 #include <moveit_msgs/MoveItErrorCodes.h>
+
+#include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/kinematic_constraints/kinematic_constraint.h>
 
 namespace kinematics_constraint_aware
 {

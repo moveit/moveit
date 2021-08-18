@@ -34,13 +34,14 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/moveit_cpp/moveit_cpp.h>
-#include <moveit/move_group/move_group_capability.h>
-#include <moveit/robot_state/conversions.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-
 #include <sstream>
 #include <string>
+
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
+#include <moveit/move_group/move_group_capability.h>
+#include <moveit/moveit_cpp/moveit_cpp.h>
+#include <moveit/robot_state/conversions.h>
 
 void move_group::MoveGroupCapability::setContext(const MoveGroupContextPtr& context)
 {

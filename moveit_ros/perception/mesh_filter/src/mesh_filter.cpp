@@ -34,14 +34,18 @@
 
 /* Author: Suat Gedikli */
 
-#include <moveit/mesh_filter/mesh_filter.h>
-#include <moveit/mesh_filter/gl_mesh.h>
-#include <geometric_shapes/shapes.h>
-#include <geometric_shapes/shape_operations.h>
-#include <Eigen/Eigen>
 #include <stdexcept>
-#include <sensor_msgs/image_encodings.h>
 #include <stdint.h>
+
+#include <Eigen/Eigen>
+
+#include <sensor_msgs/image_encodings.h>
+
+#include <geometric_shapes/shape_operations.h>
+#include <geometric_shapes/shapes.h>
+
+#include <moveit/mesh_filter/gl_mesh.h>
+#include <moveit/mesh_filter/mesh_filter.h>
 
 // include SSE headers
 #ifdef HAVE_SSE_EXTENSIONS

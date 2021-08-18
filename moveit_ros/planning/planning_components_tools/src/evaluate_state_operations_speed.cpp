@@ -34,10 +34,11 @@
 
 /* Author: Ioan Sucan */
 
+#include <ros/ros.h>
+
+#include <moveit/profiler/profiler.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_state/robot_state.h>
-#include <moveit/profiler/profiler.h>
-#include <ros/ros.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 

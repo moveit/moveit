@@ -32,15 +32,14 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <ros/ros.h>
-
 #include <planning_interface/planning_interface.h>
-#include <planning_scene/planning_scene.h>
 #include <planning_models/robot_model.h>
-#include <moveit_msgs/GetMotionPlan.h>
+#include <planning_scene/planning_scene.h>
+#include <pluginlib/class_list_macros.hpp>
+#include <ros/ros.h>
 #include <sbpl_interface/sbpl_meta_interface.h>
 
-#include <pluginlib/class_list_macros.hpp>
+#include <moveit_msgs/GetMotionPlan.h>
 
 namespace sbpl_interface_ros
 {

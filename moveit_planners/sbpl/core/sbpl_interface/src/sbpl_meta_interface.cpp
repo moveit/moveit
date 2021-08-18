@@ -32,9 +32,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <sbpl_interface/sbpl_meta_interface.h>
-#include <sbpl_interface/sbpl_interface.h>
 #include <planning_models/conversions.h>
+#include <sbpl_interface/sbpl_interface.h>
+#include <sbpl_interface/sbpl_meta_interface.h>
 
 namespace sbpl_interface
 {

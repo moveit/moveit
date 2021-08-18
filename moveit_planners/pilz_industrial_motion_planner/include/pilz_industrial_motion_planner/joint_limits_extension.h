@@ -35,9 +35,10 @@
 #ifndef JOINT_LIMITS_EXTENSION_H
 #define JOINT_LIMITS_EXTENSION_H
 
-#include <joint_limits_interface/joint_limits.h>
 #include <map>
 #include <string>
+
+#include <joint_limits_interface/joint_limits.h>
 
 namespace pilz_industrial_motion_planner
 {

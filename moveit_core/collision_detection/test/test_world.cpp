@@ -34,10 +34,13 @@
 
 /* Author: Acorn Pooley */
 
-#include <gtest/gtest.h>
-#include <moveit/collision_detection/world.h>
-#include <geometric_shapes/shapes.h>
 #include <boost/bind.hpp>
+
+#include <geometric_shapes/shapes.h>
+
+#include <moveit/collision_detection/world.h>
+
+#include "gtest/gtest.h"
 
 TEST(World, AddRemoveShape)
 {

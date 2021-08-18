@@ -34,10 +34,13 @@
 
 /* Author: Acorn Pooley, Ioan Sucan */
 
-#include <moveit/collision_detection/world.h>
-#include <geometric_shapes/check_isometry.h>
 #include <boost/algorithm/string/predicate.hpp>
+
 #include <ros/console.h>
+
+#include <geometric_shapes/check_isometry.h>
+
+#include <moveit/collision_detection/world.h>
 
 namespace collision_detection
 {

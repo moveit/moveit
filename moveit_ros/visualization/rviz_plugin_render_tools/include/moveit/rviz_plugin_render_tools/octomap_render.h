@@ -38,9 +38,11 @@
 
 #include <memory>
 #include <vector>
-#include <rviz/ogre_helpers/point_cloud.h>
-#include <moveit/rviz_plugin_render_tools/octomap_render.h>
+
 #include <OGRE/OgrePrerequisites.h>
+#include <rviz/ogre_helpers/point_cloud.h>
+
+#include <moveit/rviz_plugin_render_tools/octomap_render.h>
 
 namespace octomap
 {

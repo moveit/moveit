@@ -34,10 +34,11 @@
 
 /* Author: Robert Haschke */
 
-#include <moveit/planning_request_adapter/planning_request_adapter.h>
-#include <moveit/kinematic_constraints/utils.h>
 #include <class_loader/class_loader.hpp>
 #include <ros/ros.h>
+
+#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/planning_request_adapter/planning_request_adapter.h>
 
 namespace default_planner_request_adapters
 {

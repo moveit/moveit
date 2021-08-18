@@ -33,12 +33,13 @@
  *********************************************************************/
 
 #include "pilz_industrial_motion_planner/joint_limits_aggregator.h"
-#include "pilz_industrial_motion_planner/joint_limits_interface_extension.h"
+
+#include <vector>
 
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 
-#include <vector>
+#include "pilz_industrial_motion_planner/joint_limits_interface_extension.h"
 
 pilz_industrial_motion_planner::JointLimitsContainer
 pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(

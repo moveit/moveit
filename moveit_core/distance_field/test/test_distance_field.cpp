@@ -34,17 +34,19 @@
 
 /* Author: Mrinal Kalakrishnan, Ken Anderson */
 
-#include <gtest/gtest.h>
+#include <memory>
 
-#include <moveit/distance_field/voxel_grid.h>
-#include <moveit/distance_field/propagation_distance_field.h>
-#include <moveit/distance_field/find_internal_points.h>
-#include <geometric_shapes/body_operations.h>
-#include <tf2_eigen/tf2_eigen.h>
 #include <octomap/octomap.h>
 #include <ros/console.h>
+#include <tf2_eigen/tf2_eigen.h>
 
-#include <memory>
+#include <geometric_shapes/body_operations.h>
+
+#include <moveit/distance_field/find_internal_points.h>
+#include <moveit/distance_field/propagation_distance_field.h>
+#include <moveit/distance_field/voxel_grid.h>
+
+#include "gtest/gtest.h"
 
 using namespace distance_field;
 

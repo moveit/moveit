@@ -34,12 +34,13 @@
 
 /* Author: Peter Mitrano */
 
+#include <pybind11/eigen.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <pybind11/eigen.h>
-#include <moveit/collision_detection/world.h>
-#include <moveit/collision_detection/collision_matrix.h>
+
 #include <moveit/collision_detection/collision_common.h>
+#include <moveit/collision_detection/collision_matrix.h>
+#include <moveit/collision_detection/world.h>
 #include <moveit/python/pybind_rosmsg_typecasters.h>
 
 namespace py = pybind11;

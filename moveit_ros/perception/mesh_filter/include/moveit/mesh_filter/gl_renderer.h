@@ -36,17 +36,18 @@
 
 #pragma once
 
-#include <moveit/macros/class_forward.h>
 #include <GL/glew.h>
+
+#include <moveit/macros/class_forward.h>
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
 #endif
+#include <map>
+#include <mutex>
 #include <string>
 #include <thread>
-#include <mutex>
-#include <map>
 
 namespace mesh_filter
 {

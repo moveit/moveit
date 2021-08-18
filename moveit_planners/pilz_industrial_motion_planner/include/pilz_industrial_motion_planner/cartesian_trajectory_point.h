@@ -38,7 +38,6 @@
 
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
-#include <geometry_msgs/Twist.h>
 
 namespace pilz_industrial_motion_planner
 {

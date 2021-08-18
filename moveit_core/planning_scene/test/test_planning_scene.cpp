@@ -34,16 +34,20 @@
 
 /* Author: Ioan Sucan */
 
-#include <gtest/gtest.h>
-#include <moveit/planning_scene/planning_scene.h>
-#include <moveit/utils/message_checks.h>
-#include <moveit/utils/robot_model_test_utils.h>
-#include <urdf_parser/urdf_parser.h>
 #include <fstream>
 #include <sstream>
 #include <string>
+
 #include <boost/filesystem/path.hpp>
+
 #include <ros/package.h>
+#include <urdf_parser/urdf_parser.h>
+
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/utils/message_checks.h>
+#include <moveit/utils/robot_model_test_utils.h>
+
+#include "gtest/gtest.h"
 
 TEST(PlanningScene, LoadRestore)
 {

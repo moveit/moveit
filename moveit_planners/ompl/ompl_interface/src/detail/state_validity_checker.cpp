@@ -34,10 +34,11 @@
 
 /* Author: Ioan Sucan */
 
+#include <ros/ros.h>
+
 #include <moveit/ompl_interface/detail/state_validity_checker.h>
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/profiler/profiler.h>
-#include <ros/ros.h>
 
 namespace ompl_interface
 {

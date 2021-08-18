@@ -34,8 +34,9 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/lazy_free_space_updater/lazy_free_space_updater.h>
 #include <ros/console.h>
+
+#include <moveit/lazy_free_space_updater/lazy_free_space_updater.h>
 
 namespace occupancy_map_monitor
 {

@@ -36,10 +36,12 @@
 
 #pragma once
 
+#include <boost/function.hpp>
+
+#include <moveit_msgs/MoveItErrorCodes.h>
+
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
-#include <moveit_msgs/MoveItErrorCodes.h>
-#include <boost/function.hpp>
 
 namespace plan_execution
 {

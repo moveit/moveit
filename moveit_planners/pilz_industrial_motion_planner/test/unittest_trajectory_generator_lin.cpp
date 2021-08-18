@@ -34,13 +34,7 @@
 
 #include <memory>
 
-#include <gtest/gtest.h>
-
-#include "pilz_industrial_motion_planner/joint_limits_aggregator.h"
-#include "pilz_industrial_motion_planner/trajectory_generator_lin.h"
-#include "pilz_industrial_motion_planner_testutils/command_types_typedef.h"
-#include "pilz_industrial_motion_planner_testutils/xml_testdata_loader.h"
-#include "test_utils.h"
+#include <ros/console.h>
 
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/robot_model/robot_model.h>
@@ -48,7 +42,13 @@
 #include <moveit/robot_state/conversions.h>
 #include <moveit/robot_state/robot_state.h>
 
-#include <ros/console.h>
+#include "pilz_industrial_motion_planner/joint_limits_aggregator.h"
+#include "pilz_industrial_motion_planner/trajectory_generator_lin.h"
+#include "pilz_industrial_motion_planner_testutils/command_types_typedef.h"
+#include "pilz_industrial_motion_planner_testutils/xml_testdata_loader.h"
+#include "test_utils.h"
+
+#include "gtest/gtest.h"
 
 const std::string PARAM_MODEL_NO_GRIPPER_NAME{ "robot_description" };
 const std::string PARAM_MODEL_WITH_GRIPPER_NAME{ "robot_description_pg70" };

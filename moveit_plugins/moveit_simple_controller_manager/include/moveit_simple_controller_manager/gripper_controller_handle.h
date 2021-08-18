@@ -37,9 +37,11 @@
 
 #pragma once
 
-#include <moveit_simple_controller_manager/action_based_controller_handle.h>
-#include <control_msgs/GripperCommandAction.h>
 #include <set>
+
+#include <control_msgs/GripperCommandAction.h>
+
+#include <moveit_simple_controller_manager/action_based_controller_handle.h>
 
 namespace moveit_simple_controller_manager
 {

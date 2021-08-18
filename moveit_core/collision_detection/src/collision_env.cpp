@@ -34,8 +34,9 @@
 
 /* Author: Ioan Sucan, Jens Petit */
 
-#include <moveit/collision_detection/collision_env.h>
 #include <limits>
+
+#include <moveit/collision_detection/collision_env.h>
 
 static inline bool validateScale(double scale)
 {

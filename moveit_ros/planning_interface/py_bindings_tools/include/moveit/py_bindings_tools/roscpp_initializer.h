@@ -36,8 +36,9 @@
 
 #pragma once
 
-#include <boost/python.hpp>
 #include <string>
+
+#include <boost/python.hpp>
 
 namespace moveit
 {

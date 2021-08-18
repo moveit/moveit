@@ -35,6 +35,7 @@
 /* Author: Dave Coleman */
 
 #include "header_widget.h"
+
 #include <QFileDialog>
 #include <QFont>
 #include <QLabel>

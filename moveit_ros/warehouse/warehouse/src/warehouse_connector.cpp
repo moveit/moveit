@@ -34,10 +34,12 @@
 
 /* Author: E. Gil Jones */
 
-#include <sys/types.h>
 #include <signal.h>
 #include <unistd.h>
+
 #include <ros/ros.h>
+#include <sys/types.h>
+
 #include <moveit/warehouse/warehouse_connector.h>
 
 namespace moveit_warehouse

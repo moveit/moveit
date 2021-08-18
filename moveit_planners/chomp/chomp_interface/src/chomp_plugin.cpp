@@ -34,13 +34,13 @@
 
 #include <memory>
 
+#include <chomp_interface/chomp_planning_context.h>
+#include <pluginlib/class_list_macros.hpp>
+
+#include <moveit/collision_distance_field/collision_detector_allocator_hybrid.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_model/robot_model.h>
-#include <moveit/collision_distance_field/collision_detector_allocator_hybrid.h>
-#include <chomp_interface/chomp_planning_context.h>
-
-#include <pluginlib/class_list_macros.hpp>
 
 namespace chomp_interface
 {

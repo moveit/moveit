@@ -34,19 +34,20 @@
 
 /* Author: Suat Gedikli */
 
-#include <moveit/mesh_filter/mesh_filter_base.h>
-#include <moveit/mesh_filter/gl_mesh.h>
-#include <moveit/mesh_filter/filter_job.h>
+#include <memory>
+#include <sstream>
+#include <stdexcept>
 
-#include <geometric_shapes/shapes.h>
-#include <geometric_shapes/shape_operations.h>
 #include <Eigen/Eigen>
 
-#include <memory>
-#include <stdexcept>
-#include <sstream>
-
 #include <ros/console.h>
+
+#include <geometric_shapes/shape_operations.h>
+#include <geometric_shapes/shapes.h>
+
+#include <moveit/mesh_filter/filter_job.h>
+#include <moveit/mesh_filter/gl_mesh.h>
+#include <moveit/mesh_filter/mesh_filter_base.h>
 
 // include SSE headers
 #ifdef HAVE_SSE_EXTENSIONS

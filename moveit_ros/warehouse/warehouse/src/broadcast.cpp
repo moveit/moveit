@@ -34,16 +34,16 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/warehouse/planning_scene_storage.h>
-#include <moveit/warehouse/constraints_storage.h>
-#include <moveit/warehouse/state_storage.h>
-
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 
 #include <ros/ros.h>
+
+#include <moveit/warehouse/constraints_storage.h>
+#include <moveit/warehouse/planning_scene_storage.h>
+#include <moveit/warehouse/state_storage.h>
 
 static const std::string PLANNING_SCENE_TOPIC = "planning_scene";
 static const std::string PLANNING_REQUEST_TOPIC = "motion_plan_request";

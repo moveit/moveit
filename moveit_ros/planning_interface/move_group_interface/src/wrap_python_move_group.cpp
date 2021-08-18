@@ -34,25 +34,28 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/move_group_interface/move_group_interface.h>
-#include <moveit/py_bindings_tools/roscpp_initializer.h>
-#include <moveit/py_bindings_tools/py_conversions.h>
-#include <moveit/py_bindings_tools/serialize_msg.h>
-#include <moveit/py_bindings_tools/gil_releaser.h>
-#include <moveit/robot_state/conversions.h>
-#include <moveit/robot_trajectory/robot_trajectory.h>
-#include <moveit/trajectory_processing/iterative_time_parameterization.h>
-#include <moveit/trajectory_processing/iterative_spline_parameterization.h>
-#include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
-#include <tf2_eigen/tf2_eigen.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2_ros/buffer.h>
+#include <Python.h>
+#include <memory>
 
 #include <boost/python.hpp>
 #include <eigenpy/eigenpy.hpp>
-#include <memory>
-#include <Python.h>
+
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_ros/buffer.h>
+
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
+#include <moveit/move_group_interface/move_group_interface.h>
+#include <moveit/py_bindings_tools/gil_releaser.h>
+#include <moveit/py_bindings_tools/py_conversions.h>
+#include <moveit/py_bindings_tools/roscpp_initializer.h>
+#include <moveit/py_bindings_tools/serialize_msg.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit/robot_trajectory/robot_trajectory.h>
+#include <moveit/trajectory_processing/iterative_spline_parameterization.h>
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
+#include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
 
 /** @cond IGNORE */
 

@@ -35,6 +35,7 @@
 /* Author: David Hershberger */
 
 #include "clear_octomap_service_capability.h"
+
 #include <moveit/move_group/capability_names.h>
 
 move_group::ClearOctomapService::ClearOctomapService() : MoveGroupCapability("ClearOctomapService")

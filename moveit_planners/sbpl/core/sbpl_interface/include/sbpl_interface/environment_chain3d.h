@@ -36,25 +36,26 @@
 
 #pragma once
 
-#include <time.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <fstream>
-#include <vector>
-#include <string>
-#include <list>
 #include <algorithm>
-
-#include <sbpl/headers.h>
-#include <sbpl_interface/bfs3d/BFS_3D.h>
-#include <planning_scene/planning_scene.h>
-#include <collision_distance_field/collision_env_hybrid.h>
-#include <sbpl_interface/environment_chain3d_types.h>
-#include <moveit_msgs/GetMotionPlan.h>
+#include <fstream>
+#include <list>
+#include <stdio.h>
+#include <string>
+#include <time.h>
+#include <unistd.h>
+#include <vector>
 
 #include <Eigen/Core>
+
+#include <collision_distance_field/collision_env_hybrid.h>
+#include <planning_scene/planning_scene.h>
+#include <sbpl/headers.h>
+#include <sbpl_interface/bfs3d/BFS_3D.h>
+#include <sbpl_interface/environment_chain3d_types.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+#include <moveit_msgs/GetMotionPlan.h>
 
 static const double DEFAULT_INTERPOLATION_DISTANCE = .05;
 static const double DEFAULT_JOINT_MOTION_PRIMITIVE_DISTANCE = .2;

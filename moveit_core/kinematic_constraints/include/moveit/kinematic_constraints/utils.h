@@ -36,12 +36,14 @@
 
 #pragma once
 
-#include <moveit_msgs/Constraints.h>
+#include <limits>
+
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/QuaternionStamped.h>
+#include <moveit_msgs/Constraints.h>
+
 #include <moveit/robot_state/robot_state.h>
-#include <limits>
 
 namespace XmlRpc
 {

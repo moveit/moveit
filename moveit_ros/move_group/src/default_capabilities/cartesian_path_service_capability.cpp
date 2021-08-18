@@ -35,16 +35,19 @@
 /* Author: Ioan Sucan */
 
 #include "cartesian_path_service_capability.h"
-#include <moveit/robot_state/conversions.h>
-#include <moveit/utils/message_checks.h>
-#include <moveit/collision_detection/collision_tools.h>
+
 #include <tf2_eigen/tf2_eigen.h>
+
+#include <moveit_msgs/DisplayTrajectory.h>
+
+#include <moveit/collision_detection/collision_tools.h>
 #include <moveit/move_group/capability_names.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
-#include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_state/cartesian_interpolator.h>
-#include <moveit_msgs/DisplayTrajectory.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit/robot_state/robot_state.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
+#include <moveit/utils/message_checks.h>
 
 namespace
 {

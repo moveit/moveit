@@ -34,6 +34,8 @@
 
 /* Author: Dave Coleman */
 
+#include "double_list_widget.h"
+
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -45,7 +47,6 @@
 #include <QString>
 #include <QTableWidget>
 #include <QVBoxLayout>
-#include "double_list_widget.h"
 
 namespace moveit_setup_assistant
 {
