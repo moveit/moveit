@@ -39,9 +39,9 @@ jobs:
       TARGET_CMAKE_ARGS: >
         -DCMAKE_BUILD_TYPE=${{ matrix.env.CCOV && 'RelWithDebInfo' || 'Release'}}
         -DCMAKE_CXX_FLAGS="-Werror $CXXFLAGS ${{ matrix.env.CCOV && '--coverage'}}"
-      CCACHE_DIR: "${{ github.workspace }}/.ccache"
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
       BASEDIR: ${{ github.workspace }}/.work
-      CLANG_TIDY_BASE_REF: "${{ github.base_ref || github.ref }}"
+      CLANG_TIDY_BASE_REF: ${{ github.base_ref || github.ref }}
       BEFORE_CLANG_TIDY_CHECKS: (cd $TARGET_REPO_PATH; clang-tidy --list-checks)
       BUILDER: ${{ matrix.env.BUILDER || 'catkin_tools' }}
       CC: ${{ matrix.env.CLANG_TIDY && 'clang' }}
