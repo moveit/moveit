@@ -1289,6 +1289,15 @@ public:
   /** \brief Set the joints in \e group to the position \e name defined in the SRDF */
   bool setToDefaultValues(const JointModelGroup* group, const std::string& name);
 
+  bool setToDefaultValues(const std::string& group_name, const std::string& state_name)
+  {
+    const JointModelGroup* jmg = getJointModelGroup(group_name);
+    if (jmg)
+      return setToDefaultValues(jmg, state_name);
+    else
+      return false;
+  }
+
   /** \brief Set all joints to random values.  Values will be within default bounds. */
   void setToRandomPositions();
 
