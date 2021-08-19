@@ -443,7 +443,7 @@ inline btScalar addDiscreteSingleResult(btManifoldPoint& cp, const btCollisionOb
   contact.nearest_points[1] = convertBtToEigen(cp.m_positionWorldOnB);
 
   contact.body_type_1 = cd0->getTypeID();
-  contact.body_type_2 = cd0->getTypeID();
+  contact.body_type_2 = cd1->getTypeID();
 
   if (!processResult(collisions, contact, pc, found))
   {
@@ -476,7 +476,7 @@ inline btScalar addCastSingleResult(btManifoldPoint& cp, const btCollisionObject
   contact.pos = convertBtToEigen(cp.m_positionWorldOnA);
 
   contact.body_type_1 = cd0->getTypeID();
-  contact.body_type_2 = cd0->getTypeID();
+  contact.body_type_2 = cd1->getTypeID();
 
   collision_detection::Contact* col = processResult(collisions, contact, pc, found);
 
