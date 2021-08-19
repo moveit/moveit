@@ -67,6 +67,11 @@
 #include <ompl/geometric/planners/prm/SPARS.h>
 #include <ompl/geometric/planners/prm/SPARStwo.h>
 
+// Add informed tree planners
+#include <ompl/geometric/planners/informedtrees/ABITstar.h>
+#include <ompl/geometric/planners/informedtrees/AITstar.h>
+#include <ompl/geometric/planners/informedtrees/BITstar.h>
+
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
 #include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space_factory.h>
@@ -290,6 +295,11 @@ void ompl_interface::PlanningContextManager::registerDefaultPlanners()
   registerPlannerAllocatorHelper<og::SPARStwo>("geometric::SPARStwo");
   registerPlannerAllocatorHelper<og::STRIDE>("geometric::STRIDE");
   registerPlannerAllocatorHelper<og::TRRT>("geometric::TRRT");
+
+  // Add informed tree planners
+  registerPlannerAllocatorHelper<og::ABITstar>("geometric::ABITstar");
+  registerPlannerAllocatorHelper<og::AITstar>("geometric::AITstar");
+  registerPlannerAllocatorHelper<og::BITstar>("geometric::BITstar");
 }
 
 void ompl_interface::PlanningContextManager::registerDefaultStateSpaces()

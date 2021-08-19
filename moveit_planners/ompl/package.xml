@@ -25,6 +25,7 @@
   <depend>tf2</depend>
   <depend version_gte="1.11.2">pluginlib</depend>
 
+  <test_depend>moveit_kinematics</test_depend>
   <test_depend>moveit_resources_pr2_description</test_depend>
   <test_depend>moveit_resources_fanuc_description</test_depend>
   <test_depend>moveit_resources_panda_description</test_depend>

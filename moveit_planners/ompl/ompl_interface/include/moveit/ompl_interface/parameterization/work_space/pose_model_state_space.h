@@ -115,6 +115,10 @@ public:
     return PARAMETERIZATION_TYPE;
   }
 
+  unsigned int getNumPositions() const;
+  bool copyPositionsToReals(std::vector<double>& reals, const ompl::base::State* source) const;
+  bool copyPositionsFromReals(ompl::base::State* destination, const std::vector<double>& reals) const;
+
 private:
   struct PoseComponent
   {

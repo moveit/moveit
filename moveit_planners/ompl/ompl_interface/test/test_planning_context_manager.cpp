@@ -77,13 +77,17 @@ public:
   //  * START Test implementations
   //  * ************************************************************************/
 
-  void testSimpleRequest(const std::vector<double>& start, const std::vector<double>& goal)
+  void testSimpleRequest(const std::vector<double>& start, const std::vector<double>& goal,
+                         const ros::M_string& config_to_add = ros::M_string())
   {
     // create all the test specific input necessary to make the getPlanningContext call possible
     planning_interface::PlannerConfigurationSettings pconfig_settings;
     pconfig_settings.group = group_name_;
     pconfig_settings.name = group_name_;
     pconfig_settings.config = { { "enforce_joint_model_state_space", "0" } };
+
+    for (const auto& it : config_to_add)
+      pconfig_settings.config[it.first] = it.second;
 
     planning_interface::PlannerConfigurationMap pconfig_map{ { pconfig_settings.name, pconfig_settings } };
     moveit_msgs::MoveItErrorCodes error_code;
@@ -110,13 +114,17 @@ public:
     ASSERT_TRUE(pc->solve(res));
   }
 
-  void testPathConstraints(const std::vector<double>& start, const std::vector<double>& goal)
+  void testPathConstraints(const std::vector<double>& start, const std::vector<double>& goal,
+                           const ros::M_string& config_to_add = ros::M_string())
   {
     // create all the test specific input necessary to make the getPlanningContext call possible
     planning_interface::PlannerConfigurationSettings pconfig_settings;
     pconfig_settings.group = group_name_;
     pconfig_settings.name = group_name_;
     pconfig_settings.config = { { "enforce_joint_model_state_space", "0" } };
+
+    for (const auto& it : config_to_add)
+      pconfig_settings.config[it.first] = it.second;
 
     planning_interface::PlannerConfigurationMap pconfig_map{ { pconfig_settings.name, pconfig_settings } };
     moveit_msgs::MoveItErrorCodes error_code;
@@ -324,6 +332,16 @@ TEST_F(PandaTestPlanningContext, testPathConstraints)
   testPathConstraints({ 0, -0.785, 0, -2.356, 0, 1.571, 0.785 }, { 0, -0.785, 0, -2.356, 0, 1.571, 0.685 });
 }
 
+TEST_F(PandaTestPlanningContext, testABITstar)
+{
+  testSimpleRequest(
+      { 0, -0.785, 0, -2.356, 0, 1.571, 0.785 }, { 0, -0.785, 0, -2.356, 0, 1.571, 0.685 },
+      { { "type", "geometric::ABITstar" }, { "use_graph_pruning", "0" }, { "termination_condition", "Iteration 100" } });
+  testPathConstraints(
+      { 0, -0.785, 0, -2.356, 0, 1.571, 0.785 }, { 0, -0.785, 0, -2.356, 0, 1.571, 0.685 },
+      { { "type", "geometric::ABITstar" }, { "use_graph_pruning", "0" }, { "termination_condition", "Iteration 100" } });
+}
+
 /***************************************************************************
  * Run all tests on the Fanuc robot
  * ************************************************************************/
@@ -337,6 +355,7 @@ protected:
 
 TEST_F(FanucTestPlanningContext, testSimpleRequest)
 {
+  const ros::M_string config{ { "enforce_joint_model_state_space", "0" } };
   testSimpleRequest({ 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0.1 });
 }
 

@@ -181,6 +181,64 @@ void ompl_interface::PoseModelStateSpace::setPlanningVolume(double minX, double 
     pose.state_space_->as<ompl::base::SE3StateSpace>()->setBounds(b);
 }
 
+unsigned int ompl_interface::PoseModelStateSpace::getNumPositions() const
+{
+  return 3 * static_cast<unsigned int>(poses_.size());
+}
+
+bool ompl_interface::PoseModelStateSpace::copyPositionsToReals(std::vector<double>& reals,
+                                                               const ompl::base::State* source) const
+{
+  if (reals.size() != getNumPositions())
+  {
+    ROS_WARN_NAMED(LOGNAME, "reals.size()[%zu] != getNumPositions()[%u].", reals.size(), getNumPositions());
+    return false;
+  }
+
+  const auto ptr = source->as<StateType>();
+
+  if (!ptr->poseComputed() && !computeStateFK(const_cast<ompl::base::State*>(source)))
+  {
+    ROS_WARN_NAMED(LOGNAME, "The pose of source doesn't be computed. But, failed to computeStateFK(source).");
+    return false;
+  }
+
+  for (std::size_t i = 0; i < poses_.size(); ++i)
+  {
+    reals[3 * i + 0] = ptr->poses[i]->getX();
+    reals[3 * i + 1] = ptr->poses[i]->getY();
+    reals[3 * i + 2] = ptr->poses[i]->getZ();
+  }
+
+  return true;
+}
+
+bool ompl_interface::PoseModelStateSpace::copyPositionsFromReals(ompl::base::State* destination,
+                                                                 const std::vector<double>& reals) const
+{
+  if (reals.size() != getNumPositions())
+  {
+    ROS_WARN_NAMED(LOGNAME, "reals.size()[%zu] != getNumPositions()[%u].", reals.size(), getNumPositions());
+    return false;
+  }
+
+  const auto ptr = destination->as<StateType>();
+
+  for (std::size_t i = 0; i < poses_.size(); ++i)
+    ptr->poses[i]->setXYZ(reals[3 * i + 0], reals[3 * i + 1], reals[3 * i + 2]);
+
+  ptr->setJointsComputed(false);
+
+  // Recompute IK after positions are copied
+  if (!computeStateIK(destination))
+  {
+    ROS_WARN_NAMED(LOGNAME, "Failed to computeStateIK(destination).");
+    return false;
+  }
+
+  return true;
+}
+
 ompl_interface::PoseModelStateSpace::PoseComponent::PoseComponent(
     const moveit::core::JointModelGroup* subgroup, const moveit::core::JointModelGroup::KinematicsSolver& k)
   : subgroup_(subgroup), kinematics_solver_(k.allocator_(subgroup)), bijection_(k.bijection_)

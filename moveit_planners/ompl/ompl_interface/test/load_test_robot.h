@@ -39,6 +39,7 @@
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/utils/robot_model_test_utils.h>
+#include <pluginlib/class_loader.h>
 
 namespace ompl_interface_testing
 {
@@ -99,7 +100,7 @@ class LoadTestRobot
 {
 protected:
   LoadTestRobot(const std::string& robot_name, const std::string& group_name)
-    : group_name_(group_name), robot_name_(robot_name)
+    : group_name_(group_name), robot_name_(robot_name), loader_(nullptr)
   {
     // load robot
     robot_model_ = moveit::core::loadTestingRobotModel(robot_name_);
@@ -115,6 +116,29 @@ protected:
     ROS_INFO_STREAM("Created test robot named: " << robot_name_ << " for planning group " << group_name_);
   }
 
+  void loadKDLIkSolver()
+  {
+    // Load IK solver (KDL)
+    if (loader_ == nullptr)
+    {
+      loader_ = std::make_unique<pluginlib::ClassLoader<kinematics::KinematicsBase>>("moveit_core",
+                                                                                     "kinematics::KinematicsBase");
+    }
+
+    std::map<std::string, moveit::core::SolverAllocatorFn> solver_map;
+    solver_map.insert(std::make_pair(group_name_, [&](const moveit::core::JointModelGroup*) {
+      auto ptr = loader_->createUniqueInstance("kdl_kinematics_plugin/KDLKinematicsPlugin");
+
+      constexpr double search_discretization = 0.005;
+
+      ptr->initialize(*robot_model_, group_name_, base_link_name_, { ee_link_name_ }, search_discretization);
+
+      return ptr;
+    }));
+
+    robot_model_->setKinematicsAllocators(solver_map);
+  }
+
 protected:
   const std::string group_name_;
   const std::string robot_name_;
@@ -126,5 +150,7 @@ protected:
   std::size_t num_dofs_;
   std::string base_link_name_;
   std::string ee_link_name_;
+
+  std::unique_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase>> loader_;
 };
 }  // namespace ompl_interface_testing
