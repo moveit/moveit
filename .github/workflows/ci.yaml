@@ -39,6 +39,7 @@ jobs:
       TARGET_CMAKE_ARGS: >
         -DCMAKE_BUILD_TYPE=${{ matrix.env.CCOV && 'RelWithDebInfo' || 'Release'}}
         -DCMAKE_CXX_FLAGS="-Werror $CXXFLAGS ${{ matrix.env.CCOV && '--coverage'}}"
+      DOWNSTREAM_CMAKE_ARGS: -DCMAKE_CXX_FLAGS="-Werror $CXXFLAGS"
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       BASEDIR: ${{ github.workspace }}/.work
       CLANG_TIDY_BASE_REF: ${{ github.base_ref || github.ref }}
