@@ -214,23 +214,23 @@ void TrajectoryGenerator::validateRequest(const planning_interface::MotionPlanRe
   checkGoalConstraints(req.goal_constraints, req.start_state.joint_state.name, req.group_name);
 }
 
-void TrajectoryGenerator::convertToRobotTrajectory(const trajectory_msgs::JointTrajectory& joint_trajectory,
+void TrajectoryGenerator::convertToRobotTrajectory(moveit::core::RobotState start_rs,
+                                                   const trajectory_msgs::JointTrajectory& joint_trajectory,
                                                    const moveit_msgs::RobotState& start_state,
                                                    robot_trajectory::RobotTrajectory& robot_trajectory) const
 {
-  moveit::core::RobotState start_rs(robot_model_);
-  start_rs.setToDefaultValues();
-  moveit::core::robotStateMsgToRobotState(start_state, start_rs, false);
+  moveit::core::robotStateMsgToRobotState(start_state, start_rs, true);
   robot_trajectory.setRobotTrajectoryMsg(start_rs, joint_trajectory);
 }
 
-void TrajectoryGenerator::setSuccessResponse(const std::string& group_name, const moveit_msgs::RobotState& start_state,
+void TrajectoryGenerator::setSuccessResponse(moveit::core::RobotState start_rs, const std::string& group_name,
+                                             const moveit_msgs::RobotState& start_state,
                                              const trajectory_msgs::JointTrajectory& joint_trajectory,
                                              const ros::Time& planning_start,
                                              planning_interface::MotionPlanResponse& res) const
 {
   robot_trajectory::RobotTrajectoryPtr rt(new robot_trajectory::RobotTrajectory(robot_model_, group_name));
-  convertToRobotTrajectory(joint_trajectory, start_state, *rt);
+  convertToRobotTrajectory(start_rs, joint_trajectory, start_state, *rt);
 
   res.trajectory_ = rt;
   res.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
@@ -324,7 +324,7 @@ bool TrajectoryGenerator::generate(const planning_scene::PlanningSceneConstPtr& 
     return false;
   }
 
-  setSuccessResponse(req.group_name, req.start_state, joint_trajectory, planning_begin, res);
+  setSuccessResponse(scene->getCurrentState(), req.group_name, req.start_state, joint_trajectory, planning_begin, res);
   return true;
 }
 
