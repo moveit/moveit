@@ -227,6 +227,8 @@ static void _attachedBodyToMsg(const AttachedBody& attached_body, moveit_msgs::A
     pose = tf2::toMsg(frame_pair.second);
     aco.object.subframe_poses.push_back(pose);
   }
+  aco.object.visual_geometry_mesh_url = attached_body.getVisualGeometryUrl();
+  aco.object.visual_geometry_pose = tf2::toMsg(attached_body.getVisualGeometryPose());
 }
 
 static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::AttachedCollisionObject& aco, RobotState& state)
@@ -324,13 +326,16 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
                           aco.link_name.c_str(), aco.object.id.c_str());
         else
         {
+          Eigen::Isometry3d visual_geometry_pose;
+          tf2::fromMsg(aco.object.visual_geometry_pose, visual_geometry_pose);
           if (state.clearAttachedBody(aco.object.id))
             ROS_DEBUG_NAMED(LOGNAME,
                             "The robot state already had an object named '%s' attached to link '%s'. "
                             "The object was replaced.",
                             aco.object.id.c_str(), aco.link_name.c_str());
           state.attachBody(aco.object.id, object_pose, shapes, shape_poses, aco.touch_links, aco.link_name,
-                           aco.detach_posture, subframe_poses);
+                           aco.detach_posture, subframe_poses, aco.object.visual_geometry_mesh_url,
+                           visual_geometry_pose);
           ROS_DEBUG_NAMED(LOGNAME, "Attached object '%s' to link '%s'", aco.object.id.c_str(), aco.link_name.c_str());
         }
       }

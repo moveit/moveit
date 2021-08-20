@@ -39,6 +39,7 @@
 #include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/rviz_plugin_render_tools/render_shapes.h>
+#include <geometric_shapes/shape_operations.h>
 #include <rviz/helpers/color.h>
 #include <OgreMaterial.h>
 
@@ -65,9 +66,14 @@ public:
                       const RobotStateVisualizationPtr& robot);
   ~PlanningSceneRender();
 
-  Ogre::SceneNode* getGeometryNode()
+  Ogre::SceneNode* getVisualGeometryNode()
   {
-    return planning_scene_geometry_node_;
+    return planning_scene_visual_geometry_node_;
+  }
+
+  Ogre::SceneNode* getCollisionGeometryNode()
+  {
+    return planning_scene_collision_geometry_node_;
   }
 
   const RobotStateVisualizationPtr& getRobotVisualization()
@@ -77,15 +83,33 @@ public:
 
   void updateRobotPosition(const planning_scene::PlanningSceneConstPtr& scene);
 
+  /**
+   * \brief Set whether the visual meshes of the planning scene geometry should be visible
+   * @param visible Whether the visual meshes of the planning scene geometry should be visible
+   */
+  void setVisualVisible(const bool& visible);
+
+  /**
+   * \brief Set whether the collision meshes/primitives of the planning scene geometry should be visible
+   * @param visible Whether the collision meshes/primitives should be visible
+   */
+  void setCollisionVisible(const bool& visible);
+
+  void setMeshScalingFactor(const float& factor);
+
   void renderPlanningScene(const planning_scene::PlanningSceneConstPtr& scene, const rviz::Color& default_scene_color,
                            const rviz::Color& default_attached_color, OctreeVoxelRenderMode voxel_render_mode,
                            OctreeVoxelColorMode voxel_color_mode, float default_scene_alpha);
   void clear();
 
 private:
-  Ogre::SceneNode* planning_scene_geometry_node_;
+  Ogre::SceneNode* planning_scene_visual_geometry_node_;     // Displays the visual geometry of collision objects
+  Ogre::SceneNode* planning_scene_collision_geometry_node_;  // Displays the collision geometry of collision objects
   rviz::DisplayContext* context_;
   RenderShapesPtr render_shapes_;
   RobotStateVisualizationPtr scene_robot_;
+  float mesh_scaling_factor_;
+  bool visual_visible_;
+  bool collision_visible_;
 };
 }  // namespace moveit_rviz_plugin

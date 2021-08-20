@@ -46,14 +46,18 @@ namespace moveit_rviz_plugin
 {
 PlanningSceneRender::PlanningSceneRender(Ogre::SceneNode* node, rviz::DisplayContext* context,
                                          const RobotStateVisualizationPtr& robot)
-  : planning_scene_geometry_node_(node->createChildSceneNode()), context_(context), scene_robot_(robot)
+  : planning_scene_visual_geometry_node_(node->createChildSceneNode())
+  , planning_scene_collision_geometry_node_(node->createChildSceneNode())
+  , context_(context)
+  , scene_robot_(robot)
 {
   render_shapes_ = std::make_shared<RenderShapes>(context);
 }
 
 PlanningSceneRender::~PlanningSceneRender()
 {
-  context_->getSceneManager()->destroySceneNode(planning_scene_geometry_node_);
+  context_->getSceneManager()->destroySceneNode(planning_scene_visual_geometry_node_);
+  context_->getSceneManager()->destroySceneNode(planning_scene_collision_geometry_node_);
 }
 
 void PlanningSceneRender::updateRobotPosition(const planning_scene::PlanningSceneConstPtr& scene)
@@ -69,6 +73,23 @@ void PlanningSceneRender::updateRobotPosition(const planning_scene::PlanningScen
 void PlanningSceneRender::clear()
 {
   render_shapes_->clear();
+}
+
+void PlanningSceneRender::setVisualVisible(const bool& visible)
+{
+  visual_visible_ = visible;
+  planning_scene_visual_geometry_node_->setVisible(visual_visible_);
+}
+
+void PlanningSceneRender::setCollisionVisible(const bool& visible)
+{
+  collision_visible_ = visible;
+  planning_scene_collision_geometry_node_->setVisible(collision_visible_);
+}
+
+void PlanningSceneRender::setMeshScalingFactor(const float& factor)
+{
+  mesh_scaling_factor_ = factor;
 }
 
 void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningSceneConstPtr& scene,
@@ -111,11 +132,33 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
       color.b_ = c.b;
       alpha = c.a;
     }
+
+    if (!object->visual_geometry_mesh_url_.empty())
+    {
+      // TODO(felixvd): Cache this instead of reading from disk at every loop
+      const auto& mesh = shapes::createMeshFromResource(object->visual_geometry_mesh_url_,
+                                                        Eigen::Vector3d(mesh_scaling_factor_, mesh_scaling_factor_,
+                                                                        mesh_scaling_factor_));
+      render_shapes_->renderShape(planning_scene_visual_geometry_node_, mesh,
+                                  object->pose_ * object->visual_geometry_pose_, octree_voxel_rendering,
+                                  octree_color_mode, color, alpha);
+    }
+    else  // Draw collision geometry as visual if no visual geometry was defined
+    {
+      for (std::size_t j = 0; j < object->shapes_.size(); ++j)
+      {
+        render_shapes_->renderShape(planning_scene_visual_geometry_node_, object->shapes_[j].get(),
+                                    scene->getWorld()->getGlobalShapeTransform(id, j), octree_voxel_rendering,
+                                    octree_color_mode, color, alpha);
+      }
+    }
+
+    // Draw collision geometry
     for (std::size_t j = 0; j < object->shapes_.size(); ++j)
     {
-      render_shapes_->renderShape(planning_scene_geometry_node_, object->shapes_[j].get(),
-                                  object->global_shape_poses_[j], octree_voxel_rendering, octree_color_mode, color,
-                                  alpha);
+      render_shapes_->renderShape(planning_scene_collision_geometry_node_, object->shapes_[j].get(),
+                                  scene->getWorld()->getGlobalShapeTransform(id, j), octree_voxel_rendering,
+                                  octree_color_mode, color, alpha);
     }
   }
 }

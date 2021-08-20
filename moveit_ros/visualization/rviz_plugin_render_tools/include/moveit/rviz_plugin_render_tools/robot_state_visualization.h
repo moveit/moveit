@@ -39,6 +39,7 @@
 #include <moveit/macros/class_forward.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/rviz_plugin_render_tools/octomap_render.h>
+#include <geometric_shapes/shape_operations.h>
 #include <rviz/robot/robot.h>
 
 namespace moveit_rviz_plugin
@@ -95,6 +96,8 @@ public:
    */
   void setCollisionVisible(bool visible);
 
+  void setAttachedBodyVisualGeometryScalingFactor(float attached_body_visual_geometry_mesh_scaling_factor);
+
   void setAlpha(float alpha);
 
 private:
@@ -107,6 +110,7 @@ private:
   OctreeVoxelRenderMode octree_voxel_render_mode_;
   OctreeVoxelColorMode octree_voxel_color_mode_;
 
+  float attached_body_visual_geometry_mesh_scaling_factor_;
   bool visible_;
   bool visual_visible_;
   bool collision_visible_;
