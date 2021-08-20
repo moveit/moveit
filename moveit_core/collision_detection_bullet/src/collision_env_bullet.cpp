@@ -89,6 +89,9 @@ CollisionEnvBullet::CollisionEnvBullet(const CollisionEnvBullet& other, const Wo
   {
     addLinkAsCollisionObject(link.second);
   }
+
+  // get notifications any objects already in the new world
+  getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
 
 CollisionEnvBullet::~CollisionEnvBullet()
