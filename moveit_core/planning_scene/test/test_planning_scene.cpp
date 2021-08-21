@@ -45,6 +45,10 @@
 #include <boost/filesystem/path.hpp>
 #include <ros/package.h>
 
+#include <moveit/collision_detection/collision_common.h>
+#include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
+#include <moveit/collision_detection_bullet/collision_env_bullet.h>
+
 TEST(PlanningScene, LoadRestore)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
@@ -216,6 +220,143 @@ TEST(PlanningScene, loadBadSceneGeometry)
                                "0 0 1 0.3\n"
                                ".\n");
   EXPECT_FALSE(ps->loadGeometryFromStream(malformed_scene_geometry));
+}
+
+TEST(PlanningScene, FCLClearDiff)
+{
+  urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
+  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  // create parent scene
+  planning_scene::PlanningScenePtr parent = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
+  // create child scene
+  planning_scene::PlanningScenePtr child = parent->diff();
+
+  // create collision request variables
+  collision_detection::CollisionRequest req;
+  collision_detection::CollisionResult res;
+  moveit::core::RobotState* state = new moveit::core::RobotState(child->getRobotModel());
+  state->setToDefaultValues();
+  state->update();
+
+  // there should be no collision with the environment
+  res.clear();
+  parent->getCollisionEnv()->checkRobotCollision(req, res, *state, parent->getAllowedCollisionMatrix());
+  EXPECT_FALSE(res.collision);
+  res.clear();
+  child->getCollisionEnv()->checkRobotCollision(req, res, *state, child->getAllowedCollisionMatrix());
+  EXPECT_FALSE(res.collision);
+
+  // create message to add a collision object at the world origin
+  moveit_msgs::PlanningScene ps_msg;
+  ps_msg.is_diff = false;
+  moveit_msgs::CollisionObject co;
+  co.header.frame_id = "base_link";
+  co.operation = moveit_msgs::CollisionObject::ADD;
+  co.id = "box";
+  co.pose.orientation.w = 1.0;
+  {
+    shape_msgs::SolidPrimitive sp;
+    sp.type = shape_msgs::SolidPrimitive::BOX;
+    sp.dimensions = { 1., 1., 1. };
+    co.primitives.push_back(sp);
+    geometry_msgs::Pose sp_pose;
+    sp_pose.orientation.w = 1.0;
+    co.primitive_poses.push_back(sp_pose);
+  }
+  ps_msg.world.collision_objects.push_back(co);
+
+  // add object to the parent planning scene
+  parent->usePlanningSceneMsg(ps_msg);
+
+  // the parent scene should be in collision
+  res.clear();
+  parent->getCollisionEnv()->checkRobotCollision(req, res, *state, parent->getAllowedCollisionMatrix());
+  EXPECT_TRUE(res.collision);
+
+  // the child scene was not updated yet, so no collision
+  res.clear();
+  child->getCollisionEnv()->checkRobotCollision(req, res, *state, child->getAllowedCollisionMatrix());
+  EXPECT_FALSE(res.collision);
+
+  // update the child scene
+  child->clearDiffs();
+
+  // child and parent scene should be in collision
+  res.clear();
+  parent->getCollisionEnv()->checkRobotCollision(req, res, *state, parent->getAllowedCollisionMatrix());
+  EXPECT_TRUE(res.collision);
+  res.clear();
+  child->getCollisionEnv()->checkRobotCollision(req, res, *state, child->getAllowedCollisionMatrix());
+  EXPECT_TRUE(res.collision);
+}
+
+TEST(PlanningScene, BulletClearDiff)
+{
+  urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
+  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  // create parent scene
+  planning_scene::PlanningScenePtr parent = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
+  parent->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorBullet::create(), true);
+  // create child scene
+  planning_scene::PlanningScenePtr child = parent->diff();
+
+  // create collision request variables
+  collision_detection::CollisionRequest req;
+  collision_detection::CollisionResult res;
+  moveit::core::RobotState* state = new moveit::core::RobotState(child->getRobotModel());
+  state->setToDefaultValues();
+  state->update();
+
+  // there should be no collision with the environment
+  res.clear();
+  parent->getCollisionEnv()->checkRobotCollision(req, res, *state, parent->getAllowedCollisionMatrix());
+  EXPECT_FALSE(res.collision);
+  res.clear();
+  child->getCollisionEnv()->checkRobotCollision(req, res, *state, child->getAllowedCollisionMatrix());
+  EXPECT_FALSE(res.collision);
+
+  // create message to add a collision object at the world origin
+  moveit_msgs::PlanningScene ps_msg;
+  ps_msg.is_diff = false;
+  moveit_msgs::CollisionObject co;
+  co.header.frame_id = "base_link";
+  co.operation = moveit_msgs::CollisionObject::ADD;
+  co.id = "box";
+  co.pose.orientation.w = 1.0;
+  {
+    shape_msgs::SolidPrimitive sp;
+    sp.type = shape_msgs::SolidPrimitive::BOX;
+    sp.dimensions = { 1., 1., 1. };
+    co.primitives.push_back(sp);
+    geometry_msgs::Pose sp_pose;
+    sp_pose.orientation.w = 1.0;
+    co.primitive_poses.push_back(sp_pose);
+  }
+  ps_msg.world.collision_objects.push_back(co);
+
+  // add object to the parent planning scene
+  parent->usePlanningSceneMsg(ps_msg);
+
+  // the parent scene should be in collision
+  res.clear();
+  parent->getCollisionEnv()->checkRobotCollision(req, res, *state, parent->getAllowedCollisionMatrix());
+  EXPECT_TRUE(res.collision);
+
+  // the child scene was not updated yet, so no collision
+  res.clear();
+  child->getCollisionEnv()->checkRobotCollision(req, res, *state, child->getAllowedCollisionMatrix());
+  EXPECT_FALSE(res.collision);
+
+  // update the child scene
+  child->clearDiffs();
+
+  // child and parent scene should be in collision
+  res.clear();
+  parent->getCollisionEnv()->checkRobotCollision(req, res, *state, parent->getAllowedCollisionMatrix());
+  EXPECT_TRUE(res.collision);
+  res.clear();
+  child->getCollisionEnv()->checkRobotCollision(req, res, *state, child->getAllowedCollisionMatrix());
+  EXPECT_TRUE(res.collision);
 }
 
 int main(int argc, char** argv)
