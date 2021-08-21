@@ -44,6 +44,8 @@
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection/collision_env.h>
 #include <moveit/collision_detection/collision_detector_allocator.h>
+#include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
+#include <moveit/collision_detection_bullet/collision_env_bullet.h>
 
 const int TRIALS = 1000;
 const int THREADS = 2;
@@ -116,6 +118,37 @@ TEST_F(CollisionDetectorThreadedTest, FCLThreaded)
   for (unsigned int i = 0; i < THREADS; ++i)
     threads.push_back(new std::thread(
         std::bind(&runCollisionDetectionAssert, i, TRIALS, planning_scene_.get(), states[i].get(), collisions[i])));
+
+  for (unsigned int i = 0; i < states.size(); ++i)
+  {
+    threads[i]->join();
+    delete threads[i];
+  }
+}
+
+/** \brief Tests the Bullet collision detector in multiple threads. */
+TEST_F(CollisionDetectorThreadedTest, BulletThreaded)
+{
+  std::vector<moveit::core::RobotStatePtr> states;
+  std::vector<std::thread*> threads;
+  std::vector<bool> collisions;
+  // avoid changing the planning scene for the other tests (if they are run in parallel)
+  planning_scene::PlanningScenePtr bullet_scene = planning_scene::PlanningScene::clone(planning_scene_);
+  bullet_scene->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorBullet::create(), true);
+
+  for (unsigned int i = 0; i < THREADS; ++i)
+  {
+    moveit::core::RobotState* state = new moveit::core::RobotState(bullet_scene->getRobotModel());
+    collision_detection::CollisionRequest req;
+    state->setToRandomPositions();
+    state->update();
+    states.push_back(moveit::core::RobotStatePtr(state));
+    collisions.push_back(runCollisionDetection(0, 1, bullet_scene.get(), state));
+  }
+
+  for (unsigned int i = 0; i < THREADS; ++i)
+    threads.push_back(new std::thread(
+        std::bind(&runCollisionDetectionAssert, i, TRIALS, bullet_scene.get(), states[i].get(), collisions[i])));
 
   for (unsigned int i = 0; i < states.size(); ++i)
   {
