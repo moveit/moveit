@@ -80,8 +80,6 @@ CollisionEnvBullet::CollisionEnvBullet(const moveit::core::RobotModelConstPtr& m
 CollisionEnvBullet::CollisionEnvBullet(const CollisionEnvBullet& other, const WorldPtr& world)
   : CollisionEnv(other, world)
 {
-  // TODO(j-petit): Verify this constructor
-
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionEnvBullet::notifyObjectChange, this, _1, _2));
 
