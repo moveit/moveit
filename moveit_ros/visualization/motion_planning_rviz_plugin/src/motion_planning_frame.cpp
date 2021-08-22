@@ -577,14 +577,16 @@ void MotionPlanningFrame::enable()
   ui_->object_status->setText("");
 
   // activate the frame
-  parentWidget()->show();
+  if (parentWidget())
+    parentWidget()->show();
 }
 
 void MotionPlanningFrame::disable()
 {
   move_group_.reset();
   scene_marker_.reset();
-  parentWidget()->hide();
+  if (parentWidget())
+    parentWidget()->hide();
 }
 
 void MotionPlanningFrame::tabChanged(int index)
