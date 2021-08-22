@@ -34,6 +34,7 @@ find_package(Bullet 2.87)
 
 # TODO(j-petit): Version check can be dropped when Xenial reaches end-of-life
 if(BULLET_FOUND)
+  add_definitions(-DBULLET_ENABLE)
   set(BULLET_ENABLE "BULLET")
   set(BULLET_LIB "moveit_collision_detection_bullet")
   set(BULLET_INC "collision_detection_bullet/include")

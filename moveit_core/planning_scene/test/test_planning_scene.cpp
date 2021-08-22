@@ -46,8 +46,11 @@
 #include <ros/package.h>
 
 #include <moveit/collision_detection/collision_common.h>
+
+#ifdef BULLET_ENABLE
 #include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
 #include <moveit/collision_detection_bullet/collision_env_bullet.h>
+#endif  // BULLET_ENABLE
 
 TEST(PlanningScene, LoadRestore)
 {
@@ -290,6 +293,7 @@ TEST(PlanningScene, FCLClearDiff)
   EXPECT_TRUE(res.collision);
 }
 
+#ifdef BULLET_ENABLE
 TEST(PlanningScene, BulletClearDiff)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
@@ -358,6 +362,7 @@ TEST(PlanningScene, BulletClearDiff)
   child->getCollisionEnv()->checkRobotCollision(req, res, *state, child->getAllowedCollisionMatrix());
   EXPECT_TRUE(res.collision);
 }
+#endif  // BULLET_ENABLE
 
 int main(int argc, char** argv)
 {

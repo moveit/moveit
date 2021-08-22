@@ -44,8 +44,11 @@
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection/collision_env.h>
 #include <moveit/collision_detection/collision_detector_allocator.h>
+
+#ifdef BULLET_ENABLE
 #include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
 #include <moveit/collision_detection_bullet/collision_env_bullet.h>
+#endif  // BULLET_ENABLE
 
 const int TRIALS = 1000;
 const int THREADS = 2;
@@ -126,13 +129,14 @@ TEST_F(CollisionDetectorThreadedTest, FCLThreaded)
   }
 }
 
+#ifdef BULLET_ENABLE
 /** \brief Tests the Bullet collision detector in multiple threads. */
 TEST_F(CollisionDetectorThreadedTest, BulletThreaded)
 {
   std::vector<moveit::core::RobotStatePtr> states;
   std::vector<std::thread*> threads;
   std::vector<bool> collisions;
-  // avoid changing the planning scene for the other tests (if they are run in parallel)
+  // avoid changing the planning scene for the other tests
   planning_scene::PlanningScenePtr bullet_scene = planning_scene::PlanningScene::clone(planning_scene_);
   bullet_scene->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorBullet::create(), true);
 
@@ -156,6 +160,7 @@ TEST_F(CollisionDetectorThreadedTest, BulletThreaded)
     delete threads[i];
   }
 }
+#endif  // BULLET_ENABLE
 
 int main(int argc, char** argv)
 {
