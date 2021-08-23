@@ -141,15 +141,15 @@ TEST_F(CollisionDetectorThreadedTest, BulletThreaded)
   // load bullet
   // keep the class loader alive during the test
   std::unique_ptr<pluginlib::ClassLoader<collision_detection::CollisionPlugin>> class_loader;
+  collision_detection::CollisionPluginPtr bullet_loader;
   try
   {
     class_loader = std::make_unique<pluginlib::ClassLoader<collision_detection::CollisionPlugin>>(
         "moveit_core", "collision_detection::CollisionPlugin");
-    collision_detection::CollisionPluginPtr bullet_loader = class_loader->createUniqueInstance("Bullet");
+    bullet_loader = class_loader->createUniqueInstance("Bullet");
     if (bullet_loader != nullptr)
     {
       bullet_loader->initialize(bullet_scene, true);
-      bullet_loader.reset();
     }
     else
     {
@@ -182,6 +182,10 @@ TEST_F(CollisionDetectorThreadedTest, BulletThreaded)
     threads[i]->join();
     delete threads[i];
   }
+  bullet_scene.reset();
+  // class loaders should be destroyed last
+  bullet_loader.reset();
+  class_loader.reset();
 }
 #endif  // BULLET_ENABLE
 

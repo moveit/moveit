@@ -46,11 +46,8 @@
 #include <ros/package.h>
 
 #include <moveit/collision_detection/collision_common.h>
-
-#ifdef BULLET_ENABLE
 #include <pluginlib/class_loader.hpp>
 #include <moveit/collision_detection/collision_plugin.h>
-#endif  // BULLET_ENABLE
 
 TEST(PlanningScene, LoadRestore)
 {
@@ -303,15 +300,15 @@ TEST(PlanningScene, BulletClearDiff)
   // load bullet
   // keep the class loader alive during the test
   std::unique_ptr<pluginlib::ClassLoader<collision_detection::CollisionPlugin>> class_loader;
+  collision_detection::CollisionPluginPtr bullet_loader;
   try
   {
     class_loader = std::make_unique<pluginlib::ClassLoader<collision_detection::CollisionPlugin>>(
         "moveit_core", "collision_detection::CollisionPlugin");
-    collision_detection::CollisionPluginPtr bullet_loader = class_loader->createUniqueInstance("Bullet");
+    bullet_loader = class_loader->createUniqueInstance("Bullet");
     if (bullet_loader != nullptr)
     {
       bullet_loader->initialize(parent, true);
-      bullet_loader.reset();
     }
     else
     {
@@ -384,6 +381,11 @@ TEST(PlanningScene, BulletClearDiff)
   res.clear();
   child->getCollisionEnv()->checkRobotCollision(req, res, *state, child->getAllowedCollisionMatrix());
   EXPECT_TRUE(res.collision);
+  child.reset();
+  parent.reset();
+  // class loaders should be destroyed last
+  bullet_loader.reset();
+  class_loader.reset();
 }
 #endif  // BULLET_ENABLE
 
