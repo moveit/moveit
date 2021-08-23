@@ -68,7 +68,7 @@ void runCollisionDetectionAssert(unsigned int id, unsigned int trials, const pla
   ASSERT_EQ(expected_result, runCollisionDetection(id, trials, scene, state));
 }
 
-class CollisionDetectorThreadedTest : public testing::Test
+class CollisionDetectorTests : public testing::TestWithParam<const char*>
 {
 protected:
   void SetUp() override
@@ -97,44 +97,17 @@ protected:
   planning_scene::PlanningScenePtr planning_scene_;
 };
 
-/** \brief Tests the FCL collision detector in multiple threads. */
-TEST_F(CollisionDetectorThreadedTest, FCLThreaded)
+/** \brief Tests the collision detector in multiple threads. */
+TEST_P(CollisionDetectorTests, Threaded)
 {
   std::vector<moveit::core::RobotStatePtr> states;
   std::vector<std::thread*> threads;
   std::vector<bool> collisions;
 
-  for (unsigned int i = 0; i < THREADS; ++i)
-  {
-    moveit::core::RobotState* state = new moveit::core::RobotState(planning_scene_->getRobotModel());
-    collision_detection::CollisionRequest req;
-    state->setToRandomPositions();
-    state->update();
-    states.push_back(moveit::core::RobotStatePtr(state));
-    collisions.push_back(runCollisionDetection(0, 1, planning_scene_.get(), state));
-  }
-
-  for (unsigned int i = 0; i < THREADS; ++i)
-    threads.push_back(new std::thread(
-        std::bind(&runCollisionDetectionAssert, i, TRIALS, planning_scene_.get(), states[i].get(), collisions[i])));
-
-  for (unsigned int i = 0; i < states.size(); ++i)
-  {
-    threads[i]->join();
-    delete threads[i];
-  }
-}
-
-/** \brief Tests the Bullet collision detector in multiple threads. */
-TEST_F(CollisionDetectorThreadedTest, BulletThreaded)
-{
-  std::vector<moveit::core::RobotStatePtr> states;
-  std::vector<std::thread*> threads;
-  std::vector<bool> collisions;
-
+  const std::string plugin_name = GetParam();
   collision_detection::CollisionPluginLoader loader;
-  if (!loader.activate("Bullet", planning_scene_, true))
-    GTEST_SKIP_("Failed to load Bullet collision");
+  if (!loader.activate(plugin_name, planning_scene_, true))
+    GTEST_SKIP_("Failed to load collision plugin");
 
   for (unsigned int i = 0; i < THREADS; ++i)
   {
@@ -155,8 +128,12 @@ TEST_F(CollisionDetectorThreadedTest, BulletThreaded)
     threads[i]->join();
     delete threads[i];
   }
+
   planning_scene_.reset();
 }
+
+// instantiate parameterized tests for common collision plugins
+INSTANTIATE_TEST_SUITE_P(PluginTests, CollisionDetectorTests, testing::Values("FCL", "Bullet"));
 
 int main(int argc, char** argv)
 {
