@@ -32,19 +32,80 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#pragma once
-
-#include <ros/ros.h>
 #include <moveit/collision_detection/collision_plugin_loader.h>
+#include <pluginlib/class_loader.hpp>
+#include <memory>
+
+static const std::string LOGNAME = "collision_detection";
 
 namespace collision_detection
 {
-/** Augment CollisionPluginLoader with a method to fetch the plugin name from the ROS parameter server */
-class ROSCollisionPluginLoader : public CollisionPluginLoader
+class CollisionPluginLoader::CollisionPluginLoaderImpl
 {
 public:
-  /** @brief Fetch plugin name from parameter server and activate the plugin for the given scene */
-  void setupScene(ros::NodeHandle& nh, const planning_scene::PlanningScenePtr& scene);
+  CollisionPluginLoaderImpl()
+  {
+    try
+    {
+      loader_ = std::make_shared<pluginlib::ClassLoader<CollisionPlugin>>("moveit_core",
+                                                                          "collision_detection::CollisionPlugin");
+    }
+    catch (pluginlib::PluginlibException& e)
+    {
+      ROS_ERROR("Unable to construct colllision plugin loader. Error: %s", e.what());
+    }
+  }
+
+  CollisionPluginPtr load(const std::string& name)
+  {
+    CollisionPluginPtr plugin;
+    try
+    {
+      plugin = loader_->createUniqueInstance(name);
+      plugins_[name] = plugin;
+    }
+    catch (pluginlib::PluginlibException& ex)
+    {
+      ROS_ERROR_STREAM("Exception while loading " << name << ": " << ex.what());
+    }
+    return plugin;
+  }
+
+  bool activate(const std::string& name, const planning_scene::PlanningScenePtr& scene, bool exclusive)
+  {
+    std::map<std::string, CollisionPluginPtr>::iterator it = plugins_.find(name);
+    if (it == plugins_.end())
+    {
+      CollisionPluginPtr plugin = load(name);
+      if (plugin)
+      {
+        return plugin->initialize(scene, exclusive);
+      }
+      return false;
+    }
+    if (it->second)
+    {
+      return it->second->initialize(scene, exclusive);
+    }
+    return false;
+  }
+
+private:
+  std::shared_ptr<pluginlib::ClassLoader<CollisionPlugin>> loader_;
+  std::map<std::string, CollisionPluginPtr> plugins_;
 };
+
+CollisionPluginLoader::CollisionPluginLoader()
+{
+  loader_ = std::make_shared<CollisionPluginLoaderImpl>();
+}
+
+CollisionPluginLoader::~CollisionPluginLoader() = default;
+
+bool CollisionPluginLoader::activate(const std::string& name, const planning_scene::PlanningScenePtr& scene,
+                                     bool exclusive)
+{
+  return loader_->activate(name, scene, exclusive);
+}
 
 }  // namespace collision_detection

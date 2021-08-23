@@ -35,16 +35,30 @@
 #pragma once
 
 #include <ros/ros.h>
-#include <moveit/collision_detection/collision_plugin_loader.h>
+#include <moveit/macros/class_forward.h>
+#include <moveit/collision_detection/collision_plugin.h>
 
 namespace collision_detection
 {
-/** Augment CollisionPluginLoader with a method to fetch the plugin name from the ROS parameter server */
-class ROSCollisionPluginLoader : public CollisionPluginLoader
+/** Helper class to activate a specific collision plugin for a PlanningScene */
+class CollisionPluginLoader
 {
 public:
-  /** @brief Fetch plugin name from parameter server and activate the plugin for the given scene */
-  void setupScene(ros::NodeHandle& nh, const planning_scene::PlanningScenePtr& scene);
+  CollisionPluginLoader();
+  ~CollisionPluginLoader();
+
+  /**
+   * @brief Activate a specific collision plugin for the given planning scene instance.
+   * @param name The plugin name.
+   * @param scene The planning scene instance.
+   * @param exclusive If true, sets the new plugin to be the only one.
+   * @return success / failure
+   */
+  bool activate(const std::string& name, const planning_scene::PlanningScenePtr& scene, bool exclusive);
+
+private:
+  MOVEIT_CLASS_FORWARD(CollisionPluginLoaderImpl);
+  CollisionPluginLoaderImplPtr loader_;
 };
 
 }  // namespace collision_detection

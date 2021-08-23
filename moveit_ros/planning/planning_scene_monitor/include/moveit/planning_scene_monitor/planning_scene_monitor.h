@@ -581,7 +581,7 @@ private:
   robot_model_loader::RobotModelLoaderPtr rm_loader_;
   moveit::core::RobotModelConstPtr robot_model_;
 
-  collision_detection::CollisionPluginLoader collision_loader_;
+  collision_detection::ROSCollisionPluginLoader collision_loader_;
 
   class DynamicReconfigureImpl;
   DynamicReconfigureImpl* reconfigure_impl_;
