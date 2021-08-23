@@ -750,6 +750,7 @@ static void wrap_move_group_interface()
   move_group_interface_class.def("set_goal_orientation_tolerance",
                                  &MoveGroupInterfaceWrapper::setGoalOrientationTolerance);
   move_group_interface_class.def("set_goal_tolerance", &MoveGroupInterfaceWrapper::setGoalTolerance);
+  move_group_interface_class.def("set_default_goal_tolerance", &MoveGroupInterfaceWrapper::setDefaultGoalTolerance);
   move_group_interface_class.def("set_goal_position_tolerance_xyz",
                                  &MoveGroupInterfaceWrapper::setGoalPositionToleranceXYZ);
   move_group_interface_class.def("set_goal_orientation_tolerance_xyz",
