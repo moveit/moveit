@@ -8,17 +8,12 @@ generate_export_header(${MOVEIT_LIB_NAME} EXPORT_FILE_NAME ${CATKIN_DEVEL_PREFIX
 target_include_directories(${MOVEIT_LIB_NAME} PRIVATE $<BUILD_INTERFACE:${CATKIN_DEVEL_PREFIX}/include>)  # for this library
 list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${CATKIN_DEVEL_PREFIX}/include)  # for use by other libraries in moveit_core
 
-if(BULLET_ENABLE)
-    set(BULLET_LIB moveit_collision_detection_bullet)
-endif()
-
 target_link_libraries(${MOVEIT_LIB_NAME}
   moveit_robot_model
   moveit_robot_state
   moveit_exceptions
   moveit_transforms
   moveit_collision_detection_fcl
-  ${BULLET_LIB}
   moveit_kinematic_constraints
   moveit_robot_trajectory
   moveit_trajectory_processing

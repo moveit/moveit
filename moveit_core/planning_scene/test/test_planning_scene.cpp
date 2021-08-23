@@ -48,8 +48,8 @@
 #include <moveit/collision_detection/collision_common.h>
 
 #ifdef BULLET_ENABLE
-#include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
-#include <moveit/collision_detection_bullet/collision_env_bullet.h>
+#include <pluginlib/class_loader.hpp>
+#include <moveit/collision_detection/collision_plugin.h>
 #endif  // BULLET_ENABLE
 
 TEST(PlanningScene, LoadRestore)
@@ -300,7 +300,30 @@ TEST(PlanningScene, BulletClearDiff)
   srdf::ModelSharedPtr srdf_model(new srdf::Model());
   // create parent scene
   planning_scene::PlanningScenePtr parent = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
-  parent->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorBullet::create(), true);
+  // load bullet
+  // keep the class loader alive during the test
+  std::unique_ptr<pluginlib::ClassLoader<collision_detection::CollisionPlugin>> class_loader;
+  try
+  {
+    class_loader = std::make_unique<pluginlib::ClassLoader<collision_detection::CollisionPlugin>>(
+        "moveit_core", "collision_detection::CollisionPlugin");
+    collision_detection::CollisionPluginPtr bullet_loader = class_loader->createUniqueInstance("Bullet");
+    if (bullet_loader != nullptr)
+    {
+      bullet_loader->initialize(parent, true);
+      bullet_loader.reset();
+    }
+    else
+    {
+      FAIL() << "Can't create an instance of the Bullet collision loader";
+      return;
+    }
+  }
+  catch (pluginlib::PluginlibException& e)
+  {
+    FAIL() << "Exception while creating Bullet collision plugin " << e.what();
+    return;
+  }
   // create child scene
   planning_scene::PlanningScenePtr child = parent->diff();
 

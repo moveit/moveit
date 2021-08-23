@@ -46,8 +46,8 @@
 #include <moveit/collision_detection/collision_detector_allocator.h>
 
 #ifdef BULLET_ENABLE
-#include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
-#include <moveit/collision_detection_bullet/collision_env_bullet.h>
+#include <pluginlib/class_loader.hpp>
+#include <moveit/collision_detection/collision_plugin.h>
 #endif  // BULLET_ENABLE
 
 const int TRIALS = 1000;
@@ -138,7 +138,30 @@ TEST_F(CollisionDetectorThreadedTest, BulletThreaded)
   std::vector<bool> collisions;
   // avoid changing the planning scene for the other tests
   planning_scene::PlanningScenePtr bullet_scene = planning_scene::PlanningScene::clone(planning_scene_);
-  bullet_scene->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorBullet::create(), true);
+  // load bullet
+  // keep the class loader alive during the test
+  std::unique_ptr<pluginlib::ClassLoader<collision_detection::CollisionPlugin>> class_loader;
+  try
+  {
+    class_loader = std::make_unique<pluginlib::ClassLoader<collision_detection::CollisionPlugin>>(
+        "moveit_core", "collision_detection::CollisionPlugin");
+    collision_detection::CollisionPluginPtr bullet_loader = class_loader->createUniqueInstance("Bullet");
+    if (bullet_loader != nullptr)
+    {
+      bullet_loader->initialize(bullet_scene, true);
+      bullet_loader.reset();
+    }
+    else
+    {
+      FAIL() << "Can't create an instance of the Bullet collision loader";
+      return;
+    }
+  }
+  catch (pluginlib::PluginlibException& e)
+  {
+    FAIL() << "Exception while creating Bullet collision plugin " << e.what();
+    return;
+  }
 
   for (unsigned int i = 0; i < THREADS; ++i)
   {
