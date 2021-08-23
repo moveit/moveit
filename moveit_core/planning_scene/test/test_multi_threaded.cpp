@@ -44,11 +44,7 @@
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection/collision_env.h>
 #include <moveit/collision_detection/collision_detector_allocator.h>
-
-#ifdef BULLET_ENABLE
-#include <pluginlib/class_loader.hpp>
-#include <moveit/collision_detection/collision_plugin.h>
-#endif  // BULLET_ENABLE
+#include <moveit/collision_plugin_loader/collision_plugin_loader.h>
 
 const int TRIALS = 1000;
 const int THREADS = 2;
@@ -129,65 +125,38 @@ TEST_F(CollisionDetectorThreadedTest, FCLThreaded)
   }
 }
 
-#ifdef BULLET_ENABLE
 /** \brief Tests the Bullet collision detector in multiple threads. */
 TEST_F(CollisionDetectorThreadedTest, BulletThreaded)
 {
   std::vector<moveit::core::RobotStatePtr> states;
   std::vector<std::thread*> threads;
   std::vector<bool> collisions;
-  // avoid changing the planning scene for the other tests
-  planning_scene::PlanningScenePtr bullet_scene = planning_scene::PlanningScene::clone(planning_scene_);
-  // load bullet
-  // keep the class loader alive during the test
-  std::unique_ptr<pluginlib::ClassLoader<collision_detection::CollisionPlugin>> class_loader;
-  collision_detection::CollisionPluginPtr bullet_loader;
-  try
-  {
-    class_loader = std::make_unique<pluginlib::ClassLoader<collision_detection::CollisionPlugin>>(
-        "moveit_core", "collision_detection::CollisionPlugin");
-    bullet_loader = class_loader->createUniqueInstance("Bullet");
-    if (bullet_loader != nullptr)
-    {
-      bullet_loader->initialize(bullet_scene, true);
-    }
-    else
-    {
-      FAIL() << "Can't create an instance of the Bullet collision loader";
-      return;
-    }
-  }
-  catch (pluginlib::PluginlibException& e)
-  {
-    FAIL() << "Exception while creating Bullet collision plugin " << e.what();
-    return;
-  }
+
+  collision_detection::CollisionPluginLoader loader;
+  if (!loader.activate("Bullet", planning_scene_, true))
+    GTEST_SKIP_("Failed to load Bullet collision");
 
   for (unsigned int i = 0; i < THREADS; ++i)
   {
-    moveit::core::RobotState* state = new moveit::core::RobotState(bullet_scene->getRobotModel());
+    moveit::core::RobotState* state = new moveit::core::RobotState(planning_scene_->getRobotModel());
     collision_detection::CollisionRequest req;
     state->setToRandomPositions();
     state->update();
     states.push_back(moveit::core::RobotStatePtr(state));
-    collisions.push_back(runCollisionDetection(0, 1, bullet_scene.get(), state));
+    collisions.push_back(runCollisionDetection(0, 1, planning_scene_.get(), state));
   }
 
   for (unsigned int i = 0; i < THREADS; ++i)
     threads.push_back(new std::thread(
-        std::bind(&runCollisionDetectionAssert, i, TRIALS, bullet_scene.get(), states[i].get(), collisions[i])));
+        std::bind(&runCollisionDetectionAssert, i, TRIALS, planning_scene_.get(), states[i].get(), collisions[i])));
 
   for (unsigned int i = 0; i < states.size(); ++i)
   {
     threads[i]->join();
     delete threads[i];
   }
-  bullet_scene.reset();
-  // class loaders should be destroyed last
-  bullet_loader.reset();
-  class_loader.reset();
+  planning_scene_.reset();
 }
-#endif  // BULLET_ENABLE
 
 int main(int argc, char** argv)
 {

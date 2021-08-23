@@ -46,8 +46,7 @@
 #include <ros/package.h>
 
 #include <moveit/collision_detection/collision_common.h>
-#include <pluginlib/class_loader.hpp>
-#include <moveit/collision_detection/collision_plugin.h>
+#include <moveit/collision_plugin_loader/collision_plugin_loader.h>
 
 TEST(PlanningScene, LoadRestore)
 {
@@ -290,37 +289,17 @@ TEST(PlanningScene, FCLClearDiff)
   EXPECT_TRUE(res.collision);
 }
 
-#ifdef BULLET_ENABLE
 TEST(PlanningScene, BulletClearDiff)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
   srdf::ModelSharedPtr srdf_model(new srdf::Model());
   // create parent scene
   planning_scene::PlanningScenePtr parent = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
-  // load bullet
-  // keep the class loader alive during the test
-  std::unique_ptr<pluginlib::ClassLoader<collision_detection::CollisionPlugin>> class_loader;
-  collision_detection::CollisionPluginPtr bullet_loader;
-  try
-  {
-    class_loader = std::make_unique<pluginlib::ClassLoader<collision_detection::CollisionPlugin>>(
-        "moveit_core", "collision_detection::CollisionPlugin");
-    bullet_loader = class_loader->createUniqueInstance("Bullet");
-    if (bullet_loader != nullptr)
-    {
-      bullet_loader->initialize(parent, true);
-    }
-    else
-    {
-      FAIL() << "Can't create an instance of the Bullet collision loader";
-      return;
-    }
-  }
-  catch (pluginlib::PluginlibException& e)
-  {
-    FAIL() << "Exception while creating Bullet collision plugin " << e.what();
-    return;
-  }
+
+  collision_detection::CollisionPluginLoader loader;
+  if (!loader.activate("Bullet", parent, true))
+    GTEST_SKIP_("Failed to load Bullet collision");
+
   // create child scene
   planning_scene::PlanningScenePtr child = parent->diff();
 
@@ -381,13 +360,10 @@ TEST(PlanningScene, BulletClearDiff)
   res.clear();
   child->getCollisionEnv()->checkRobotCollision(req, res, *state, child->getAllowedCollisionMatrix());
   EXPECT_TRUE(res.collision);
+
   child.reset();
   parent.reset();
-  // class loaders should be destroyed last
-  bullet_loader.reset();
-  class_loader.reset();
 }
-#endif  // BULLET_ENABLE
 
 int main(int argc, char** argv)
 {
