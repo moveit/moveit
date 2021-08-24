@@ -26,6 +26,7 @@ API changes in MoveIt releases
 - The joint states of `passive` joints must be published in ROS and the CurrentStateMonitor will now wait for them as well. Their semantics dictate that they cannot be actively controlled, but they must be known to use the full robot state in collision checks. (https://github.com/ros-planning/moveit/pull/2663)
 - Removed deprecated header `moveit/macros/deprecation.h`. Use `[[deprecated]]` instead.
 - All uses of `MOVEIT_CLASS_FORWARD` et. al. must now be followed by a semicolon for consistency (and to get -pedantic builds to pass for the codebase).
+- The Rviz trajectory visualization tool now looks for the trajectory topic to be on the relative ns instead of the absolute ns when it is first added to Rviz (i.e. `move_group/display_planned_path` vs. `/move_group/display_planned_path`).
 
 ## ROS Melodic
 
