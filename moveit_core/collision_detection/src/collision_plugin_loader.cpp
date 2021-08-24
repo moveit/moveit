@@ -52,7 +52,7 @@ public:
     }
     catch (pluginlib::PluginlibException& e)
     {
-      ROS_ERROR("Unable to construct colllision plugin loader. Error: %s", e.what());
+      ROS_ERROR("Unable to construct collision plugin loader. Error: %s", e.what());
     }
   }
 
