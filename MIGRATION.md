@@ -27,6 +27,8 @@ API changes in MoveIt releases
 - Removed deprecated header `moveit/macros/deprecation.h`. Use `[[deprecated]]` instead.
 - All uses of `MOVEIT_CLASS_FORWARD` et. al. must now be followed by a semicolon for consistency (and to get -pedantic builds to pass for the codebase).
 - In case you start RViz in a namespace, the default topic for the trajectory visualization display now uses the relative instead of the absolute namespace (i.e. `<ns>/move_group/display_planned_path` instead of `/move_group/display_planned_path`).
+- `collision_detection::CollisionPluginLoader` was renamed to `collision_detection::ROSCollisionPluginLoader`
+  A new class `collision_detection::CollisionPluginLoader` provides the core functionality, while the former class just adds the method `setupScene`.
 
 ## ROS Melodic
 
