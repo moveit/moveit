@@ -46,7 +46,7 @@
 #include <ros/package.h>
 
 #include <moveit/collision_detection/collision_common.h>
-#include <moveit/collision_plugin_loader/collision_plugin_loader.h>
+#include <moveit/collision_detection/collision_plugin_loader.h>
 
 TEST(PlanningScene, LoadRestore)
 {
