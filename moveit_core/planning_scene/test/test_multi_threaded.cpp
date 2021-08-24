@@ -100,11 +100,13 @@ protected:
 /** \brief Tests the collision detector in multiple threads. */
 TEST_P(CollisionDetectorTests, Threaded)
 {
+  const std::string plugin_name = GetParam();
+  SCOPED_TRACE(plugin_name);
+
   std::vector<moveit::core::RobotStatePtr> states;
   std::vector<std::thread*> threads;
   std::vector<bool> collisions;
 
-  const std::string plugin_name = GetParam();
   collision_detection::CollisionPluginLoader loader;
   if (!loader.activate(plugin_name, planning_scene_, true))
     GTEST_SKIP_("Failed to load collision plugin");

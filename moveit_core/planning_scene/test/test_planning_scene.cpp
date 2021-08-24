@@ -226,12 +226,14 @@ class CollisionDetectorTests : public testing::TestWithParam<const char*>
 };
 TEST_P(CollisionDetectorTests, ClearDiff)
 {
+  const std::string plugin_name = GetParam();
+  SCOPED_TRACE(plugin_name);
+
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
   srdf::ModelSharedPtr srdf_model(new srdf::Model());
   // create parent scene
   planning_scene::PlanningScenePtr parent = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
 
-  const std::string plugin_name = GetParam();
   collision_detection::CollisionPluginLoader loader;
   if (!loader.activate(plugin_name, parent, true))
     GTEST_SKIP_("Failed to load collision plugin");
