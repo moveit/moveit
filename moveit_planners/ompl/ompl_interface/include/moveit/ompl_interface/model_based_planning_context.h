@@ -46,6 +46,14 @@
 #include <ompl/tools/multiplan/ParallelPlan.h>
 #include <ompl/base/StateStorage.h>
 
+namespace ompl
+{
+namespace base
+{
+class IterationTerminationCondition;
+}
+}  // namespace ompl
+
 namespace ompl_interface
 {
 namespace ob = ompl::base;
@@ -392,7 +400,8 @@ protected:
   std::vector<kinematic_constraints::KinematicConstraintSetPtr> goal_constraints_;
 
   const ob::PlannerTerminationCondition* ptc_;
-  std::vector<ob::PlannerTerminationCondition> ptcs_;
+  std::vector<std::shared_ptr<ob::PlannerTerminationCondition>> ptcs_;
+  std::shared_ptr<ob::IterationTerminationCondition> it_ptc_;
   std::mutex ptc_lock_;
 
   /// the time spent computing the last plan
