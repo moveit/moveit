@@ -347,10 +347,12 @@ void World::updateGlobalPosesInternal(ObjectPtr& obj, bool update_shape_poses, b
   // Update global subframe poses
   if (update_subframe_poses)
   {
-    obj->global_subframe_poses_ = obj->subframe_poses_;  // TODO (felixvd): Inefficient copy, but iterating through two
-                                                         // maps is complicated to write for this prototype
-    for (auto& pose_pair : obj->global_subframe_poses_)
-      pose_pair.second = obj->pose_ * pose_pair.second;
+    for (auto it_global_pose = obj->global_subframe_poses_.begin(), it_local_pose = obj->subframe_poses_.begin(),
+              end_poses = obj->global_subframe_poses_.end();
+         it_global_pose != end_poses; ++it_global_pose, ++it_local_pose)
+    {
+      it_global_pose->second = obj->pose_ * it_local_pose->second;
+    }
   }
 }
 
