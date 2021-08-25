@@ -29,8 +29,8 @@
   <run_depend>rviz</run_depend>
   <run_depend>tf2_ros</run_depend>
   <run_depend>xacro</run_depend>
-  <!-- The packages below are used in the gazebo simulation, but do not build out of the box at the moment.
-    This was done to prevent installing gazebo on systems that don't need/want it. -->
+  <!-- The next 2 packages are required for the gazebo simulation. 
+       We don't include them by default to prevent installing gazebo and all its dependencies. -->
   <!-- <run_depend>joint_trajectory_controller</run_depend> -->
   <!-- <run_depend>gazebo_ros_control</run_depend> -->
   <!-- This package is referenced in the warehouse launch files, but does not build out of the box at the moment. Commented the dependency until this works. -->
