@@ -103,7 +103,9 @@ jobs:
           no-cache: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
           cache-from: type=registry,ref=${{ env.IMAGE }}
           cache-to: type=inline
-          tags: ${{ env.IMAGE }}
+          tags: |
+            ${{ env.IMAGE }}
+            moveit/moveit:${{ matrix.IMAGE }}-ci-shadow-fixed
 
   source:
     needs: ci-testing

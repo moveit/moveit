@@ -2,7 +2,7 @@
 # Downloads the moveit source code and install remaining debian dependencies
 
 ARG IMAGE=noetic
-FROM moveit/moveit:${IMAGE}-ci-shadow-fixed
+FROM moveit/moveit:${IMAGE}-ci-testing
 MAINTAINER Dave Coleman dave@picknik.ai
 
 ENV ROS_UNDERLAY /root/ws_moveit/install
