@@ -204,7 +204,7 @@ private:
   /**
    * @brief set MotionPlanResponse from joint trajectory
    */
-  void setSuccessResponse(const std::string& group_name, const moveit_msgs::RobotState& start_state,
+  void setSuccessResponse(const moveit::core::RobotState& start_rs, const std::string& group_name,
                           const trajectory_msgs::JointTrajectory& joint_trajectory, const ros::Time& planning_start,
                           planning_interface::MotionPlanResponse& res) const;
 
@@ -233,10 +233,6 @@ private:
                                 const std::string& group_name) const;
 
   void checkCartesianGoalConstraint(const moveit_msgs::Constraints& constraint, const std::string& group_name) const;
-
-  void convertToRobotTrajectory(const trajectory_msgs::JointTrajectory& joint_trajectory,
-                                const moveit_msgs::RobotState& start_state,
-                                robot_trajectory::RobotTrajectory& robot_trajectory) const;
 
 private:
   /**
