@@ -9,10 +9,12 @@ ENV TERM xterm
 
 # Setup (temporary) ROS workspace
 WORKDIR /root/ws_moveit
+COPY . src/moveit/
 
 # Commands are combined in single RUN statement with "apt/lists" folder removal to reduce image size
 # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#minimize-the-number-of-layers
 RUN \
+    ls -a src/moveit/ && \
     # Update apt package list as previous containers clear the cache
     apt-get -q update && \
     apt-get -q -y dist-upgrade && \
@@ -26,9 +28,8 @@ RUN \
         clang clang-format-10 clang-tidy clang-tools \
         ccache && \
     #
-    # Download MoveIt source, so that we can fetch all necessary dependencies
-    wstool init --shallow src https://raw.githubusercontent.com/ros-planning/moveit/master/.github/workflows/upstream.rosinstall && \
-    git clone --depth 1 --branch master https://github.com/ros-planning/moveit src/moveit && \
+    # Download MoveIt sources, so that we can fetch all necessary dependencies
+    wstool init --shallow src src/moveit/.github/workflows/upstream.rosinstall && \
     git clone --depth 1 --branch master https://github.com/ros-planning/moveit_resources src/moveit_resources && \
     #
     # Download all dependencies of MoveIt

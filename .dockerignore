@@ -1,0 +1,6 @@
+# ignore everything
+*
+# but include these:
+!.github/workflows/upstream.rosinstall
+!**/package.xml
+!**/CATKIN_IGNORE
