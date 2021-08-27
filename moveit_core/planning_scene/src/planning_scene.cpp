@@ -1556,10 +1556,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         const moveit::core::AttachedBody* ab = robot_state_->getAttachedBody(object.object.id);
 
         // Allow overriding the body's pose if provided, otherwise keep the old one
-        if (object.object.pose.position.x == 0 && object.object.pose.position.y == 0 &&
-            object.object.pose.position.z == 0 && object.object.pose.orientation.x == 0 &&
-            object.object.pose.orientation.y == 0 && object.object.pose.orientation.z == 0 &&
-            object.object.pose.orientation.w == 0)
+        if (moveit::core::isEmpty(object.object.pose))
           object_pose_in_link = ab->getPose();  // Keep old pose
 
         shapes.insert(shapes.end(), ab->getShapes().begin(), ab->getShapes().end());
@@ -1718,9 +1715,7 @@ bool PlanningScene::shapesAndPosesFromCollisionObjectMessage(const moveit_msgs::
 
   bool switch_object_pose_and_shape_pose = false;
   if (num_shapes == 1)
-    if (object.pose.position.x == 0 && object.pose.position.y == 0 && object.pose.position.z == 0 &&
-        object.pose.orientation.x == 0 && object.pose.orientation.y == 0 && object.pose.orientation.z == 0 &&
-        object.pose.orientation.w == 0)
+    if (moveit::core::isEmpty(object.pose))
     {
       switch_object_pose_and_shape_pose = true;  // If the object pose is not set but the shape pose is,
                                                  // use the shape's pose as the object pose.
