@@ -1315,6 +1315,14 @@ public:
    *  Resulting values are clamped within default bounds. */
   void setToRandomPositionsNearBy(const JointModelGroup* group, const RobotState& seed, double distance);
 
+  /** \brief Set all joints in \e group to random values near the value in \near, using a specified random number generator.
+   *  \e distance is the maximum amount each joint value will vary from the
+   *  corresponding value in \e near.  \distance represents meters for
+   *  prismatic/postitional joints and radians for revolute/orientation joints.
+   *  Resulting values are clamped within default bounds. */
+  void setToRandomPositionsNearBy(const JointModelGroup* group, const RobotState& seed, double distance,
+                                  random_numbers::RandomNumberGenerator& rng);
+
   /** \brief Set all joints in \e group to random values near the value in \near.
    *  \e distances \b MUST have the same size as \c
    *  group.getActiveJointModels().  Each value in \e distances is the maximum
@@ -1324,6 +1332,16 @@ public:
    *  Resulting values are clamped within default bounds. */
   void setToRandomPositionsNearBy(const JointModelGroup* group, const RobotState& seed,
                                   const std::vector<double>& distances);
+
+  /** \brief Set all joints in \e group to random values near the value in \near, using a specified random number generator.
+   *  \e distances \b MUST have the same size as \c
+   *  group.getActiveJointModels().  Each value in \e distances is the maximum
+   *  amount the corresponding active joint in \e group will vary from the
+   *  corresponding value in \e near.  \distance represents meters for
+   *  prismatic/postitional joints and radians for revolute/orientation joints.
+   *  Resulting values are clamped within default bounds. */
+  void setToRandomPositionsNearBy(const JointModelGroup* group, const RobotState& seed,
+                                  const std::vector<double>& distances, random_numbers::RandomNumberGenerator& rng);
 
   /** @} */
 

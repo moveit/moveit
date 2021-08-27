@@ -311,6 +311,13 @@ void RobotState::setToRandomPositionsNearBy(const JointModelGroup* group, const 
   // we do not make calls to RobotModel for random number generation because mimic joints
   // could trigger updates outside the state of the group itself
   random_numbers::RandomNumberGenerator& rng = getRandomNumberGenerator();
+  setToRandomPositionsNearBy(group, seed, distances, rng);
+}
+
+void RobotState::setToRandomPositionsNearBy(const JointModelGroup* group, const RobotState& seed,
+                                            const std::vector<double>& distances,
+                                            random_numbers::RandomNumberGenerator& rng)
+{
   const std::vector<const JointModel*>& joints = group->getActiveJointModels();
   assert(distances.size() == joints.size());
   for (std::size_t i = 0; i < joints.size(); ++i)
@@ -327,6 +334,12 @@ void RobotState::setToRandomPositionsNearBy(const JointModelGroup* group, const 
   // we do not make calls to RobotModel for random number generation because mimic joints
   // could trigger updates outside the state of the group itself
   random_numbers::RandomNumberGenerator& rng = getRandomNumberGenerator();
+  setToRandomPositionsNearBy(group, seed, distance, rng);
+}
+
+void RobotState::setToRandomPositionsNearBy(const JointModelGroup* group, const RobotState& seed, double distance,
+                                            random_numbers::RandomNumberGenerator& rng)
+{
   const std::vector<const JointModel*>& joints = group->getActiveJointModels();
   for (const JointModel* joint : joints)
   {
