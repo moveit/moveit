@@ -1718,9 +1718,8 @@ bool PlanningScene::shapesAndPosesFromCollisionObjectMessage(const moveit_msgs::
 
   bool switch_object_pose_and_shape_pose = false;
   if (num_shapes == 1)
-    if (object.pose.position.x == 0 && object.pose.position.y == 0 &&
-        object.pose.position.z == 0 && object.pose.orientation.x == 0 &&
-        object.pose.orientation.y == 0 && object.pose.orientation.z == 0 &&
+    if (object.pose.position.x == 0 && object.pose.position.y == 0 && object.pose.position.z == 0 &&
+        object.pose.orientation.x == 0 && object.pose.orientation.y == 0 && object.pose.orientation.z == 0 &&
         object.pose.orientation.w == 0)
     {
       switch_object_pose_and_shape_pose = true;  // If the object pose is not set but the shape pose is,
