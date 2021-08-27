@@ -34,7 +34,6 @@
 
 #pragma once
 
-#include <ros/ros.h>
 #include <moveit/macros/class_forward.h>
 #include <moveit/collision_detection/collision_plugin.h>
 
