@@ -45,6 +45,8 @@
 #include <moveit_msgs/PlanningSceneWorld.h>
 #include <moveit_msgs/RobotState.h>
 #include <moveit_msgs/Constraints.h>
+#include <geometry_msgs/Quaternion.h>
+#include <geometry_msgs/Pose.h>
 
 namespace moveit
 {
@@ -61,5 +63,11 @@ bool isEmpty(const moveit_msgs::RobotState& msg);
 
 /** \brief Check if a message specifies constraints */
 bool isEmpty(const moveit_msgs::Constraints& msg);
+
+/** \brief Check if the message contains any non-zero entries */
+bool isEmpty(const geometry_msgs::Quaternion& msg);
+
+/** \brief Check if the message contains any non-zero entries */
+bool isEmpty(const geometry_msgs::Pose& msg);
 }  // namespace core
 }  // namespace moveit
