@@ -18,10 +18,12 @@
                                        default_planner_request_adapters/FixStartStatePathConstraints" />
 
   <arg name="start_state_max_bounds_error" default="0.1" />
+  <arg name="jiggle_fraction" value="0.05" />
 
   <param name="planning_plugin" value="$(arg planning_plugin)" />
   <param name="request_adapters" value="$(arg planning_adapters)" />
   <param name="start_state_max_bounds_error" value="$(arg start_state_max_bounds_error)" />
+  <param name="jiggle_fraction" value="$(arg jiggle_fraction)" />
   <param name="capabilities" value="$(arg capabilities)" />
   <param name="disable_capabilities" value="$(arg disable_capabilities)" />
 
