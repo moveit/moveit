@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <moveit/collision_detection/collision_plugin_loader.h>
+#include <moveit/collision_detection/collision_plugin_cache.h>
 #include <pluginlib/class_loader.hpp>
 #include <memory>
 
@@ -40,15 +40,15 @@ static const std::string LOGNAME = "collision_detection";
 
 namespace collision_detection
 {
-class CollisionPluginLoader::CollisionPluginLoaderImpl
+class CollisionPluginCache::CollisionPluginCacheImpl
 {
 public:
-  CollisionPluginLoaderImpl()
+  CollisionPluginCacheImpl()
   {
     try
     {
-      loader_ = std::make_shared<pluginlib::ClassLoader<CollisionPlugin>>("moveit_core",
-                                                                          "collision_detection::CollisionPlugin");
+      cache_ = std::make_shared<pluginlib::ClassLoader<CollisionPlugin>>("moveit_core",
+                                                                         "collision_detection::CollisionPlugin");
     }
     catch (pluginlib::PluginlibException& e)
     {
@@ -61,7 +61,7 @@ public:
     CollisionPluginPtr plugin;
     try
     {
-      plugin = loader_->createUniqueInstance(name);
+      plugin = cache_->createUniqueInstance(name);
       plugins_[name] = plugin;
     }
     catch (pluginlib::PluginlibException& ex)
@@ -91,21 +91,21 @@ public:
   }
 
 private:
-  std::shared_ptr<pluginlib::ClassLoader<CollisionPlugin>> loader_;
+  std::shared_ptr<pluginlib::ClassLoader<CollisionPlugin>> cache_;
   std::map<std::string, CollisionPluginPtr> plugins_;
 };
 
-CollisionPluginLoader::CollisionPluginLoader()
+CollisionPluginCache::CollisionPluginCache()
 {
-  loader_ = std::make_shared<CollisionPluginLoaderImpl>();
+  cache_ = std::make_shared<CollisionPluginCacheImpl>();
 }
 
-CollisionPluginLoader::~CollisionPluginLoader() = default;
+CollisionPluginCache::~CollisionPluginCache() = default;
 
-bool CollisionPluginLoader::activate(const std::string& name, const planning_scene::PlanningScenePtr& scene,
-                                     bool exclusive)
+bool CollisionPluginCache::activate(const std::string& name, const planning_scene::PlanningScenePtr& scene,
+                                    bool exclusive)
 {
-  return loader_->activate(name, scene, exclusive);
+  return cache_->activate(name, scene, exclusive);
 }
 
 }  // namespace collision_detection

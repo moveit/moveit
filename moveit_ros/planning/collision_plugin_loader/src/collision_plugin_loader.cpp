@@ -37,7 +37,7 @@
 static const std::string LOGNAME = "collision_detection";
 namespace collision_detection
 {
-void ROSCollisionPluginLoader::setupScene(ros::NodeHandle& nh, const planning_scene::PlanningScenePtr& scene)
+void CollisionPluginLoader::setupScene(ros::NodeHandle& nh, const planning_scene::PlanningScenePtr& scene)
 {
   if (!scene)
   {

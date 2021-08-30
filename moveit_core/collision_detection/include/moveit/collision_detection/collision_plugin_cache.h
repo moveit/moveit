@@ -40,11 +40,11 @@
 namespace collision_detection
 {
 /** Helper class to activate a specific collision plugin for a PlanningScene */
-class CollisionPluginLoader
+class CollisionPluginCache
 {
 public:
-  CollisionPluginLoader();
-  ~CollisionPluginLoader();
+  CollisionPluginCache();
+  ~CollisionPluginCache();
 
   /**
    * @brief Activate a specific collision plugin for the given planning scene instance.
@@ -56,8 +56,8 @@ public:
   bool activate(const std::string& name, const planning_scene::PlanningScenePtr& scene, bool exclusive);
 
 private:
-  MOVEIT_CLASS_FORWARD(CollisionPluginLoaderImpl);
-  CollisionPluginLoaderImplPtr loader_;
+  MOVEIT_CLASS_FORWARD(CollisionPluginCacheImpl);
+  CollisionPluginCacheImplPtr cache_;
 };
 
 }  // namespace collision_detection

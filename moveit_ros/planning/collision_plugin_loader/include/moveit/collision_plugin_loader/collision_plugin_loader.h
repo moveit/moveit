@@ -35,12 +35,12 @@
 #pragma once
 
 #include <ros/ros.h>
-#include <moveit/collision_detection/collision_plugin_loader.h>
+#include <moveit/collision_detection/collision_plugin_cache.h>
 
 namespace collision_detection
 {
 /** Augment CollisionPluginLoader with a method to fetch the plugin name from the ROS parameter server */
-class ROSCollisionPluginLoader : public CollisionPluginLoader
+class CollisionPluginLoader : public CollisionPluginCache
 {
 public:
   /** @brief Fetch plugin name from parameter server and activate the plugin for the given scene */
