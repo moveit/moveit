@@ -640,7 +640,7 @@ NumSolutionTerminationCondition::NumSolutionTerminationCondition(ProblemDefiniti
 {
   pdef->setIntermediateSolutionCallback([this](const Planner* /*planner*/, const std::vector<const State*>& /*states*/,
                                                const Cost cost) { this->processNewSolution(cost); });
-  ROS_INFO("NumSolutionTerminationCondition : %lu", solutionsWindow_);
+  ROS_INFO("NumSolutionTerminationCondition : %u", solutionsWindow_);
 }
 
 void NumSolutionTerminationCondition::processNewSolution(const Cost& solutionCost)
@@ -649,7 +649,7 @@ void NumSolutionTerminationCondition::processNewSolution(const Cost& solutionCos
 
   numSolutions_++;
 
-  ROS_INFO("processNewSolution [%lu/%lu]", numSolutions_, solutionsWindow_);
+  ROS_INFO("processNewSolution [%u/%u]", numSolutions_, solutionsWindow_);
 
   if (numSolutions_ == solutionsWindow_)
     terminate();

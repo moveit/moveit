@@ -45,6 +45,7 @@
 #include <moveit/ompl_interface/detail/projection_evaluators.h>
 #include <moveit/ompl_interface/detail/constraints_library.h>
 #include <moveit/ompl_interface/detail/ellipsoidal_informed_sampler.h>
+#include <moveit/ompl_interface/detail/pose_length_optimization_objective.h>
 
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/profiler/profiler.h>
@@ -324,6 +325,10 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
     else if (optimizer == "MaximizeMinClearanceObjective")
     {
       objective.reset(new ompl::base::MaximizeMinClearanceObjective(ompl_simple_setup_->getSpaceInformation()));
+    }
+    else if (optimizer == "PoseLengthOptimizationObjective")
+    {
+      objective.reset(new PoseLengthOptimizationObjective(this, ompl_simple_setup_->getSpaceInformation()));
     }
     else
     {
