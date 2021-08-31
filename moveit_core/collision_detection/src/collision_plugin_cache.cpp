@@ -32,45 +32,80 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <moveit/collision_plugin_loader/collision_plugin_loader.h>
+#include <moveit/collision_detection/collision_plugin_cache.h>
+#include <pluginlib/class_loader.hpp>
+#include <memory>
 
 static const std::string LOGNAME = "collision_detection";
+
 namespace collision_detection
 {
-void CollisionPluginLoader::setupScene(ros::NodeHandle& nh, const planning_scene::PlanningScenePtr& scene)
+class CollisionPluginCache::CollisionPluginCacheImpl
 {
-  if (!scene)
+public:
+  CollisionPluginCacheImpl()
   {
-    ROS_WARN_NAMED(LOGNAME, "Cannot setup scene, PlanningScenePtr is null.");
-    return;
+    try
+    {
+      cache_ = std::make_shared<pluginlib::ClassLoader<CollisionPlugin>>("moveit_core",
+                                                                         "collision_detection::CollisionPlugin");
+    }
+    catch (pluginlib::PluginlibException& e)
+    {
+      ROS_ERROR("Unable to construct collision plugin loader. Error: %s", e.what());
+    }
   }
 
-  std::string param_name;
-  std::string collision_detector_name;
-
-  if (nh.searchParam("collision_detector", param_name))
+  CollisionPluginPtr load(const std::string& name)
   {
-    nh.getParam(param_name, collision_detector_name);
-  }
-  else if (nh.hasParam("/move_group/collision_detector"))
-  {
-    // Check for existence in move_group namespace
-    // mainly for rviz plugins to get same collision detector.
-    nh.getParam("/move_group/collision_detector", collision_detector_name);
-  }
-  else
-  {
-    return;
+    CollisionPluginPtr plugin;
+    try
+    {
+      plugin = cache_->createUniqueInstance(name);
+      plugins_[name] = plugin;
+    }
+    catch (pluginlib::PluginlibException& ex)
+    {
+      ROS_ERROR_STREAM("Exception while loading " << name << ": " << ex.what());
+    }
+    return plugin;
   }
 
-  if (collision_detector_name.empty())
+  bool activate(const std::string& name, const planning_scene::PlanningScenePtr& scene, bool exclusive)
   {
-    // This is not a valid name for a collision detector plugin
-    return;
+    std::map<std::string, CollisionPluginPtr>::iterator it = plugins_.find(name);
+    if (it == plugins_.end())
+    {
+      CollisionPluginPtr plugin = load(name);
+      if (plugin)
+      {
+        return plugin->initialize(scene, exclusive);
+      }
+      return false;
+    }
+    if (it->second)
+    {
+      return it->second->initialize(scene, exclusive);
+    }
+    return false;
   }
 
-  activate(collision_detector_name, scene, true);
-  ROS_INFO_STREAM("Using collision detector:" << scene->getActiveCollisionDetectorName().c_str());
+private:
+  std::shared_ptr<pluginlib::ClassLoader<CollisionPlugin>> cache_;
+  std::map<std::string, CollisionPluginPtr> plugins_;
+};
+
+CollisionPluginCache::CollisionPluginCache()
+{
+  cache_ = std::make_shared<CollisionPluginCacheImpl>();
+}
+
+CollisionPluginCache::~CollisionPluginCache() = default;
+
+bool CollisionPluginCache::activate(const std::string& name, const planning_scene::PlanningScenePtr& scene,
+                                    bool exclusive)
+{
+  return cache_->activate(name, scene, exclusive);
 }
 
 }  // namespace collision_detection
