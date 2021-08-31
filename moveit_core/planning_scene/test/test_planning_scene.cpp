@@ -46,7 +46,7 @@
 #include <ros/package.h>
 
 #include <moveit/collision_detection/collision_common.h>
-#include <moveit/collision_detection/collision_plugin_loader.h>
+#include <moveit/collision_detection/collision_plugin_cache.h>
 
 TEST(PlanningScene, LoadRestore)
 {
@@ -234,7 +234,7 @@ TEST_P(CollisionDetectorTests, ClearDiff)
   // create parent scene
   planning_scene::PlanningScenePtr parent = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
 
-  collision_detection::CollisionPluginLoader loader;
+  collision_detection::CollisionPluginCache loader;
   if (!loader.activate(plugin_name, parent, true))
     GTEST_SKIP_("Failed to load collision plugin");
 

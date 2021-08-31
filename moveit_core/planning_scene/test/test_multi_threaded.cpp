@@ -42,9 +42,7 @@
 #include <thread>
 
 #include <moveit/collision_detection/collision_common.h>
-#include <moveit/collision_detection/collision_env.h>
-#include <moveit/collision_detection/collision_detector_allocator.h>
-#include <moveit/collision_plugin_loader/collision_plugin_loader.h>
+#include <moveit/collision_detection/collision_plugin_cache.h>
 
 const int TRIALS = 1000;
 const int THREADS = 2;
@@ -107,7 +105,7 @@ TEST_P(CollisionDetectorTests, Threaded)
   std::vector<std::thread*> threads;
   std::vector<bool> collisions;
 
-  collision_detection::CollisionPluginLoader loader;
+  collision_detection::CollisionPluginCache loader;
   if (!loader.activate(plugin_name, planning_scene_, true))
     GTEST_SKIP_("Failed to load collision plugin");
 
