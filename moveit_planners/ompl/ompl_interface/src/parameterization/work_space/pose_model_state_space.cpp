@@ -232,7 +232,7 @@ bool ompl_interface::PoseModelStateSpace::copyPositionsFromReals(ompl::base::Sta
   // Recompute IK after positions are copied
   if (!computeStateIK(destination))
   {
-    ROS_WARN_NAMED(LOGNAME, "Failed to computeStateIK(destination).");
+    ROS_DEBUG_NAMED(LOGNAME, "Failed to computeStateIK(destination). [%lf,%lf,%lf]", reals[0], reals[1], reals[2]);
     return false;
   }
 
