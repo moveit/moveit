@@ -107,7 +107,13 @@ TEST_P(CollisionDetectorTests, Threaded)
 
   collision_detection::CollisionPluginCache loader;
   if (!loader.activate(plugin_name, planning_scene_, true))
+  {
+#if defined(GTEST_SKIP_)
     GTEST_SKIP_("Failed to load collision plugin");
+#else
+    return;
+#endif
+  }
 
   for (unsigned int i = 0; i < THREADS; ++i)
   {
@@ -131,6 +137,10 @@ TEST_P(CollisionDetectorTests, Threaded)
 
   planning_scene_.reset();
 }
+
+#ifndef INSTANTIATE_TEST_SUITE_P  // prior to gtest 1.10
+#define INSTANTIATE_TEST_SUITE_P(...) INSTANTIATE_TEST_CASE_P(__VA_ARGS__)
+#endif
 
 // instantiate parameterized tests for common collision plugins
 INSTANTIATE_TEST_SUITE_P(PluginTests, CollisionDetectorTests, testing::Values("FCL", "Bullet"));
