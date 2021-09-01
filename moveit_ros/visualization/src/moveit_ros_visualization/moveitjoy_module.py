@@ -531,7 +531,7 @@ class MoveitJoy:
         for name in planning_groups.keys():
             print(name, planning_groups[name])
         self.planning_groups = planning_groups
-        self.planning_groups_keys = (
+        self.planning_groups_keys = list(
             planning_groups.keys()
         )  # we'd like to store the 'order'
         self.frame_id = ri.get_planning_frame()
@@ -582,7 +582,7 @@ class MoveitJoy:
             self.current_planning_group_index = next_index
         next_planning_group = None
         try:
-            next_planning_group = list(self.planning_groups_keys)[
+            next_planning_group = self.planning_groups_keys[
                 self.current_planning_group_index
             ]
         except IndexError:
@@ -593,7 +593,7 @@ class MoveitJoy:
         self.plan_group_pub.publish(next_planning_group)
 
     def updatePoseTopic(self, next_index, wait=True):
-        planning_group = list(self.planning_groups_keys)[self.current_planning_group_index]
+        planning_group = self.planning_groups_keys[self.current_planning_group_index]
         topics = self.planning_groups[planning_group]
         if next_index >= len(topics):
             self.current_eef_index = 0
@@ -764,7 +764,7 @@ class MoveitJoy:
             # when not initialized, we will force to change planning_group
             while True:
                 self.updatePlanningGroup(self.current_planning_group_index)
-                planning_group = list(self.planning_groups_keys)[
+                planning_group = self.planning_groups_keys[
                     self.current_planning_group_index
                 ]
                 topics = self.planning_groups[planning_group]
