@@ -531,7 +531,7 @@ class MoveitJoy:
         for name in planning_groups.keys():
             print(name, planning_groups[name])
         self.planning_groups = planning_groups
-        self.planning_groups_keylist = list(
+        self.planning_groups_keys = list(
             planning_groups.keys()
         )  # we'd like to store the 'order'
         self.frame_id = ri.get_planning_frame()
@@ -574,15 +574,15 @@ class MoveitJoy:
         self.sub = rospy.Subscriber("/joy", Joy, self.joyCB, queue_size=1)
 
     def updatePlanningGroup(self, next_index):
-        if next_index >= len(self.planning_groups_keylist):
+        if next_index >= len(self.planning_groups_keys):
             self.current_planning_group_index = 0
         elif next_index < 0:
-            self.current_planning_group_index = len(self.planning_groups_keylist) - 1
+            self.current_planning_group_index = len(self.planning_groups_keys) - 1
         else:
             self.current_planning_group_index = next_index
         next_planning_group = None
         try:
-            next_planning_group = self.planning_groups_keylist[
+            next_planning_group = self.planning_groups_keys[
                 self.current_planning_group_index
             ]
         except IndexError:
@@ -593,7 +593,7 @@ class MoveitJoy:
         self.plan_group_pub.publish(next_planning_group)
 
     def updatePoseTopic(self, next_index, wait=True):
-        planning_group = self.planning_groups_keylist[self.current_planning_group_index]
+        planning_group = self.planning_groups_keys[self.current_planning_group_index]
         topics = self.planning_groups[planning_group]
         if next_index >= len(topics):
             self.current_eef_index = 0
@@ -764,7 +764,7 @@ class MoveitJoy:
             # when not initialized, we will force to change planning_group
             while True:
                 self.updatePlanningGroup(self.current_planning_group_index)
-                planning_group = self.planning_groups_keylist[
+                planning_group = self.planning_groups_keys[
                     self.current_planning_group_index
                 ]
                 topics = self.planning_groups[planning_group]
@@ -785,7 +785,7 @@ class MoveitJoy:
                     return
                 # Try to initialize with different planning group
                 self.current_planning_group_index += 1
-                if self.current_planning_group_index >= len(self.planning_groups_keylist):
+                if self.current_planning_group_index >= len(self.planning_groups_keys):
                     self.current_planning_group_index = 0  # reset loop
         if self.history.new(status, "select"):  # increment planning group
             self.updatePlanningGroup(self.current_planning_group_index + 1)
