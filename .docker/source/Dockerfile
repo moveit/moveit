@@ -1,3 +1,5 @@
+# syntax = docker/dockerfile:1.3
+
 # moveit/moveit:noetic-source
 # Downloads the moveit source code and install remaining debian dependencies
 
@@ -26,11 +28,13 @@ RUN \
     rm -rf /var/lib/apt/lists/*
 
 ENV PYTHONIOENCODING UTF-8
-RUN cd .. && \
+RUN --mount=type=cache,target=/root/.ccache/ \
+    cd .. && \
     catkin config --extend /opt/ros/$ROS_DISTRO --install --cmake-args -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON && \
     # Status rate is limited so that just enough info is shown to keep Docker from timing out,
     # but not too much such that the Docker log gets too long (another form of timeout)
     catkin build --limit-status-rate 0.001 --no-notify && \
+    ccache -s && \
     #
     # Update /ros_entrypoint.sh to source our new workspace
     sed -i "s#/opt/ros/\$ROS_DISTRO/setup.bash#$ROS_UNDERLAY/setup.sh#g" /ros_entrypoint.sh
