@@ -37,47 +37,75 @@
 #include <ompl/base/samplers/informed/PathLengthDirectInfSampler.h>
 
 #include <moveit/ompl_interface/parameterization/model_based_state_space.h>
-#include <moveit/ompl_interface/detail/pose_length_optimization_objective.h>
+#include <moveit/ompl_interface/mrx_custom/time_length_optimization_objective.h>
 #include <moveit/ompl_interface/model_based_planning_context.h>
 
 namespace ompl_interface
 {
-PoseLengthOptimizationObjective::PoseLengthOptimizationObjective(const ModelBasedPlanningContext* pc,
+TimeLengthOptimizationObjective::TimeLengthOptimizationObjective(const ModelBasedPlanningContext* pc,
                                                                  const SpaceInformationPtr& si)
   : PathLengthOptimizationObjective(si)
-  , tss_s1_(pc->getCompleteInitialRobotState())
-  , tss_s2_(pc->getCompleteInitialRobotState())
-  , ee_name_(pc->getJointModelGroup()->getEndEffectorName())
+
 {
-  description_ = "Pose Length";
-  ROS_INFO("PoseLengthOptimizationObjective!! ee_name: %s", ee_name_.c_str());
+  description_ = "Time Length";
+  ROS_INFO("TimeLengthOptimizationObjective!!");
+
+  const auto rm = pc->getCompleteInitialRobotState().getRobotModel();
+
+  const auto jmg = si->getStateSpace()->as<ModelBasedStateSpace>()->getJointModelGroup();
+  double vscale = pc->getMotionPlanRequest().max_velocity_scaling_factor;
+
+  for (size_t i = 0; i < jmg->getVariableCount(); i++)
+  {
+    const auto vn = jmg->getVariableNames()[i];
+
+    const auto& b = rm->getVariableBounds(vn);
+
+    double v_max = std::min(fabs(b.max_velocity_ * vscale), fabs(b.min_velocity_ * vscale));
+
+    if (rm->getJointOfVariable(vn)->isPassive())
+      v_max = -1.0;
+
+    v_bounds.push_back(v_max);
+
+    ROS_INFO("Variable name %s has v_max = %f", vn.c_str(), v_max);
+  }
 }
 
-Cost PoseLengthOptimizationObjective::stateCost(const State*) const
+Cost TimeLengthOptimizationObjective::stateCost(const State*) const
 {
   return identityCost();
 }
 
-Cost PoseLengthOptimizationObjective::motionCost(const State* s1, const State* s2) const
+Cost TimeLengthOptimizationObjective::motionCost(const State* s1, const State* s2) const
 {
-  auto& ss1 = *tss_s1_.getStateStorage();
-  auto& ss2 = *tss_s2_.getStateStorage();
+  std::vector<double> vs1(v_bounds.size());
+  std::vector<double> vs2(v_bounds.size());
 
-  si_->getStateSpace()->as<ModelBasedStateSpace>()->copyToRobotState(ss1, s1);
-  si_->getStateSpace()->as<ModelBasedStateSpace>()->copyToRobotState(ss2, s2);
+  memcpy(vs1.data(), s1->as<ModelBasedStateSpace::StateType>()->values, sizeof(double) * v_bounds.size());
+  memcpy(vs2.data(), s2->as<ModelBasedStateSpace::StateType>()->values, sizeof(double) * v_bounds.size());
 
-  const auto& ft1 = ss1.getFrameTransform(ee_name_);
-  const auto& ft2 = ss2.getFrameTransform(ee_name_);
+  double max_t = 0.0;
 
-  return Cost((ft1.translation() - ft2.translation()).norm());
+  for (size_t i = 0; i < v_bounds.size(); i++)
+  {
+    double dq = std::abs(vs2[i] - vs1[i]);
+
+    double t = std::max(dq / v_bounds[i], 0.0);
+
+    if (max_t < t)
+      max_t = t;
+  }
+
+  return Cost(max_t);
 }
 
-Cost PoseLengthOptimizationObjective::motionCostHeuristic(const State* s1, const State* s2) const
+Cost TimeLengthOptimizationObjective::motionCostHeuristic(const State* s1, const State* s2) const
 {
   return motionCost(s1, s2);
 }
 
-InformedSamplerPtr PoseLengthOptimizationObjective::allocInformedStateSampler(const ProblemDefinitionPtr& probDefn,
+InformedSamplerPtr TimeLengthOptimizationObjective::allocInformedStateSampler(const ProblemDefinitionPtr& probDefn,
                                                                               unsigned int maxNumberCalls) const
 {
   // Make the direct path-length informed sampler and return. If OMPL was compiled with Eigen, a direct version is

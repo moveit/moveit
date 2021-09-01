@@ -44,8 +44,9 @@
 #include <moveit/ompl_interface/detail/goal_union.h>
 #include <moveit/ompl_interface/detail/projection_evaluators.h>
 #include <moveit/ompl_interface/detail/constraints_library.h>
-#include <moveit/ompl_interface/detail/ellipsoidal_informed_sampler.h>
-#include <moveit/ompl_interface/detail/pose_length_optimization_objective.h>
+#include <moveit/ompl_interface/mrx_custom/ellipsoidal_informed_sampler.h>
+#include <moveit/ompl_interface/mrx_custom/pose_length_optimization_objective.h>
+#include <moveit/ompl_interface/mrx_custom/time_length_optimization_objective.h>
 
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/profiler/profiler.h>
@@ -329,6 +330,10 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
     else if (optimizer == "PoseLengthOptimizationObjective")
     {
       objective.reset(new PoseLengthOptimizationObjective(this, ompl_simple_setup_->getSpaceInformation()));
+    }
+    else if (optimizer == "TimeLengthOptimizationObjective")
+    {
+      objective.reset(new TimeLengthOptimizationObjective(this, ompl_simple_setup_->getSpaceInformation()));
     }
     else
     {
