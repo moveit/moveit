@@ -154,6 +154,7 @@ jobs:
       IMAGE: moveit/moveit:${{ matrix.IMAGE }}-${{ github.job }}
 
     steps:
+      - uses: actions/checkout@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Login to Container Registry
@@ -161,9 +162,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: "Remove .dockerignore"
+        run: rm .dockerignore  # enforce full source context
       - name: Build and Push
         uses: docker/build-push-action@v2
         with:
+          context: .
           file: .docker/${{ github.job }}/Dockerfile
           build-args: IMAGE=${{ matrix.IMAGE }}
           push: true
