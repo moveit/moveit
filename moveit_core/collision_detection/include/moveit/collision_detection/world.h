@@ -96,7 +96,7 @@ public:
     std::string visual_geometry_mesh_url_;
 
     /** \brief The pose of the visual geometry (mesh). */
-    Eigen::Isometry3d visual_geometry_pose_;
+    Eigen::Isometry3d visual_geometry_pose_ = Eigen::Isometry3d::Identity();
 
     /** \brief All the shapes making up this object.
      *

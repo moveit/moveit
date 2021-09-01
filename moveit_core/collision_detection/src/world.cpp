@@ -87,8 +87,6 @@ void World::addToObject(const std::string& object_id, const Eigen::Isometry3d& p
     obj = std::make_shared<Object>(object_id);
     action |= CREATE;
     obj->pose_ = pose;
-    obj->visual_geometry_mesh_url_ = "";
-    obj->visual_geometry_pose_ = Eigen::Isometry3d::Identity();
   }
   else
     ensureUnique(obj);
@@ -262,8 +260,6 @@ bool World::setObjectPose(const std::string& object_id, const Eigen::Isometry3d&
   {
     obj = std::make_shared<Object>(object_id);
     action = CREATE;
-    obj->visual_geometry_mesh_url_ = "";
-    obj->visual_geometry_pose_ = Eigen::Isometry3d::Identity();
   }
   else
   {
