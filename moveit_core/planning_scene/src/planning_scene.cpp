@@ -1827,7 +1827,11 @@ bool PlanningScene::processCollisionObjectRemove(const moveit_msgs::CollisionObj
   else
   {
     if (!world_->removeObject(object.id))
+    {
+      ROS_WARN_STREAM_NAMED(LOGNAME,
+                            "Tried to remove world object '" << object.id << "', but it does not exist in this scene.");
       return false;
+    }
 
     removeObjectColor(object.id);
     removeObjectType(object.id);
