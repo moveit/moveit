@@ -693,11 +693,20 @@ void PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_ms
         do_omap = true;
       else if (it.second == collision_detection::World::DESTROY)
       {
-        moveit_msgs::CollisionObject co;
-        co.header.frame_id = getPlanningFrame();
-        co.id = it.first;
-        co.operation = moveit_msgs::CollisionObject::REMOVE;
-        scene_msg.world.collision_objects.push_back(co);
+        // if object became attached, it should not be recorded as removed here
+        if (!std::count_if(scene_msg.robot_state.attached_collision_objects.cbegin(),
+                           scene_msg.robot_state.attached_collision_objects.cend(),
+                           [&it](const moveit_msgs::AttachedCollisionObject& aco) {
+                             return aco.object.id == it.first &&
+                                    aco.object.operation == moveit_msgs::CollisionObject::ADD;
+                           }))
+        {
+          moveit_msgs::CollisionObject co;
+          co.header.frame_id = getPlanningFrame();
+          co.id = it.first;
+          co.operation = moveit_msgs::CollisionObject::REMOVE;
+          scene_msg.world.collision_objects.push_back(co);
+        }
       }
       else
       {
