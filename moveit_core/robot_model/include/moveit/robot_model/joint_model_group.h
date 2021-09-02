@@ -401,7 +401,11 @@ public:
   }
   double getMaximumExtent(const JointBoundsVector& active_joint_bounds) const;
 
+  double getMaximumExtentL2(const JointBoundsVector& active_joint_bounds) const;
+
   double distance(const double* state1, const double* state2) const;
+  double distanceL2(const double* state1, const double* state2) const;
+
   void interpolate(const double* from, const double* to, double t, double* state) const;
 
   /** \brief Get the number of variables that describe this joint group. This includes variables necessary for mimic

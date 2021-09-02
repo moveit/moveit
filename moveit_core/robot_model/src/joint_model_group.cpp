@@ -408,6 +408,18 @@ double JointModelGroup::getMaximumExtent(const JointBoundsVector& active_joint_b
   return max_distance;
 }
 
+double JointModelGroup::getMaximumExtentL2(const JointBoundsVector& active_joint_bounds) const
+{
+  double max_distance = 0.0;
+  for (std::size_t j = 0; j < active_joint_model_vector_.size(); ++j)
+  {
+    const double x = active_joint_model_vector_[j]->getMaximumExtent(*active_joint_bounds[j]) *
+                     active_joint_model_vector_[j]->getDistanceFactor();
+    max_distance += x * x;
+  }
+  return std::sqrt(max_distance);
+}
+
 double JointModelGroup::distance(const double* state1, const double* state2) const
 {
   double d = 0.0;
@@ -416,6 +428,20 @@ double JointModelGroup::distance(const double* state1, const double* state2) con
          active_joint_model_vector_[i]->distance(state1 + active_joint_model_start_index_[i],
                                                  state2 + active_joint_model_start_index_[i]);
   return d;
+}
+
+double JointModelGroup::distanceL2(const double* state1, const double* state2) const
+{
+  double d = 0.0;
+  for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
+  {
+    const double x = active_joint_model_vector_[i]->getDistanceFactor() *
+                     active_joint_model_vector_[i]->distance(state1 + active_joint_model_start_index_[i],
+                                                             state2 + active_joint_model_start_index_[i]);
+    d += x * x;
+  }
+
+  return std::sqrt(d);
 }
 
 void JointModelGroup::interpolate(const double* from, const double* to, double t, double* state) const
