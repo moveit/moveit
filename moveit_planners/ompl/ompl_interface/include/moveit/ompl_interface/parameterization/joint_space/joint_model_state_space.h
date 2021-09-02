@@ -51,5 +51,11 @@ public:
   {
     return PARAMETERIZATION_TYPE;
   }
+
+  double getMaximumExtent() const override;
+
+  double getMeasure() const;
+
+  double distance(const ompl::base::State* state1, const ompl::base::State* state2) const override;
 };
 }  // namespace ompl_interface

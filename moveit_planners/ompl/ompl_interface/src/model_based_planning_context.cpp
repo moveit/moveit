@@ -398,6 +398,10 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   ompl_simple_setup_->getSpaceInformation()->params().setParams(cfg, true);
   // call setup() again for possibly new param values
   ompl_simple_setup_->getSpaceInformation()->setup();
+
+  ROS_INFO("LongestValidSegmentFraction=%f, LongestValidSegmentLength=%f.",
+           ompl_simple_setup_->getSpaceInformation()->getStateSpace()->getLongestValidSegmentFraction(),
+           ompl_simple_setup_->getSpaceInformation()->getStateSpace()->getLongestValidSegmentLength());
 }
 
 void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_msgs::WorkspaceParameters& wparams)

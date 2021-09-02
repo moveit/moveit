@@ -43,3 +43,22 @@ ompl_interface::JointModelStateSpace::JointModelStateSpace(const ModelBasedState
 {
   setName(getName() + "_" + PARAMETERIZATION_TYPE);
 }
+
+double ompl_interface::JointModelStateSpace::getMaximumExtent() const
+{
+  return spec_.joint_model_group_->getMaximumExtentL2(spec_.joint_bounds_);
+}
+
+double ompl_interface::JointModelStateSpace::getMeasure() const
+{
+  return spec_.joint_model_group_->getMaximumExtentL2(spec_.joint_bounds_);
+}
+
+double ompl_interface::JointModelStateSpace::distance(const ompl::base::State* state1,
+                                                      const ompl::base::State* state2) const
+{
+  if (distance_function_)
+    return distance_function_(state1, state2);
+  else
+    return spec_.joint_model_group_->distanceL2(state1->as<StateType>()->values, state2->as<StateType>()->values);
+}
