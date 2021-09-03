@@ -9,7 +9,9 @@ ENV TERM xterm
 
 # Setup (temporary) ROS workspace
 WORKDIR /root/ws_moveit
-COPY . src/moveit/
+
+# Copy MoveIt sources from docker context
+COPY . src/moveit
 
 # Commands are combined in single RUN statement with "apt/lists" folder removal to reduce image size
 # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#minimize-the-number-of-layers
