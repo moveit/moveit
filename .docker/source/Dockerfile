@@ -30,6 +30,7 @@ RUN \
 ENV PYTHONIOENCODING UTF-8
 RUN --mount=type=cache,target=/root/.ccache/ \
     cd .. && \
+    PATH=/usr/lib/ccache:$PATH && \
     catkin config --extend /opt/ros/$ROS_DISTRO --install --cmake-args -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON && \
     # Status rate is limited so that just enough info is shown to keep Docker from timing out,
     # but not too much such that the Docker log gets too long (another form of timeout)
