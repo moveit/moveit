@@ -37,6 +37,28 @@
 static const std::string LOGNAME = "collision_detection";
 namespace collision_detection
 {
+
+void getUseDetailedMeshParam(ros::NodeHandle& nh, const planning_scene::PlanningScenePtr& scene)
+{
+  std::string param_name;
+  bool use_detailed_mesh;
+
+  if (nh.searchParam("use_detailed_mesh", param_name))
+  {
+    nh.getParam(param_name, use_detailed_mesh);
+  }
+  else if (nh.hasParam("/move_group/use_detailed_mesh"))
+  {
+    nh.getParam("/move_group/use_detailed_mesh", use_detailed_mesh);
+  }
+  else
+  {
+    use_detailed_mesh = false;
+  }
+
+  scene->getWorldNonConst()->setUseDetailedMesh(use_detailed_mesh);
+}
+
 void CollisionPluginLoader::setupScene(ros::NodeHandle& nh, const planning_scene::PlanningScenePtr& scene)
 {
   if (!scene)
@@ -68,6 +90,8 @@ void CollisionPluginLoader::setupScene(ros::NodeHandle& nh, const planning_scene
     // This is not a valid name for a collision detector plugin
     return;
   }
+
+  getUseDetailedMeshParam(nh, scene);
 
   activate(collision_detector_name, scene, true);
   ROS_INFO_STREAM("Using collision detector:" << scene->getActiveCollisionDetectorName().c_str());

@@ -75,6 +75,20 @@ public:
 
   MOVEIT_STRUCT_FORWARD(Object);
 
+  /** \brief Specify whether detailed meshes or convex hulls (the default) will be used
+   * If doing continuous collision detection, only convex hull meshes should be used.
+   * However if the world objects are 'static', you can enable this.
+   */
+  void setUseDetailedMesh(const bool use_detailed_mesh)
+  {
+    use_detailed_mesh_ = use_detailed_mesh;
+  }
+
+  bool getUseDetailedMesh()
+  {
+    return use_detailed_mesh_;
+  }
+
   /** \brief A representation of an object */
   struct Object
   {
@@ -348,5 +362,8 @@ private:
 
   /// All registered observers of this world representation
   std::vector<Observer*> observers_;
+
+  /// If this optional parameter is true, detailed collision meshes are used
+  bool use_detailed_mesh_;
 };
 }  // namespace collision_detection
