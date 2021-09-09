@@ -65,7 +65,7 @@ inline bool acmCheck(const std::string& body_1, const std::string& body_2,
 
   if (acm != nullptr)
   {
-    if (acm->getEntry(body_1, body_2, allowed_type))
+    if (acm->getAllowedCollision(body_1, body_2, allowed_type))
     {
       if (allowed_type == collision_detection::AllowedCollision::Type::NEVER)
       {
