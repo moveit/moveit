@@ -6,15 +6,15 @@
 
 namespace ompl_interface
 {
-OMPL_CLASS_FORWARD(JointPoseStateSpace);
+OMPL_CLASS_FORWARD(JointPoseModelStateSpace);
 OMPL_CLASS_FORWARD(EllipsoidalSampler);
 
-class JointPoseStateSpace : public PoseModelStateSpace
+class JointPoseModelStateSpace : public PoseModelStateSpace
 {
 public:
   static const std::string PARAMETERIZATION_TYPE;
 
-  JointPoseStateSpace(const ModelBasedStateSpaceSpecification& spec);
+  JointPoseModelStateSpace(const ModelBasedStateSpaceSpecification& spec);
 
   const std::string& getParameterizationType() const override
   {
@@ -39,13 +39,13 @@ class EllipsoidalSampler
 {
 public:
   EllipsoidalSampler(const unsigned int n, const std::vector<double>& focus1, const std::vector<double>& focus2,
-                     JointPoseStateSpacePtr space);
+                     JointPoseModelStateSpacePtr space);
 
   void setTraverseDiameter(const double diameter);
   void sampleUniform(ompl::base::State* state);
 
 private:
-  JointPoseStateSpacePtr space_;
+  JointPoseModelStateSpacePtr space_;
   ompl::base::StateSamplerPtr base_sampler_;
   ompl::ProlateHyperspheroidPtr phs_ptr_;
   ompl::RNG rng_;

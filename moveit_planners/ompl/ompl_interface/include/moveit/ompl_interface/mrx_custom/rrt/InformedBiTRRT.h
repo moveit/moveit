@@ -41,7 +41,8 @@
 #include <ompl/geometric/planners/PlannerIncludes.h>
 #include <ompl/datastructures/NearestNeighbors.h>
 #include <ompl/base/OptimizationObjective.h>
-#include "moveit/ompl_interface/mrx_custom/parameterization/joint_pose_space.h"
+
+#include "moveit/ompl_interface/mrx_custom/parameterization/joint_pose_model_space.h"
 
 namespace ompl
 {
@@ -188,7 +189,7 @@ protected:
     Motion() = default;
 
     /// \brief Constructor that allocates memory for the state
-    Motion(const ompl_interface::JointPoseStateSpacePtr& si) : state(si->allocState())
+    Motion(const ompl_interface::JointPoseModelStateSpacePtr& si) : state(si->allocState())
     {
     }
 
@@ -253,7 +254,7 @@ protected:
   bool connectTrees(Motion* nmotion, TreeData& tree, Motion* xmotion);
 
   /// \brief JointPoseSpaceInformation to prevent runtime polymorphism
-  ompl_interface::JointPoseStateSpacePtr joint_pose_space_;
+  ompl_interface::JointPoseModelStateSpacePtr joint_pose_space_;
   ompl_interface::EllipsoidalSamplerPtr sampler_;
 
   /// \brief The maximum length of a motion to be added to a tree

@@ -44,7 +44,7 @@
 
 ompl::geometric::InformedBiTRRT::InformedBiTRRT(const base::SpaceInformationPtr& si)
   : base::Planner(si, "InformedBiTRRT")
-  , joint_pose_space_(std::dynamic_pointer_cast<ompl_interface::JointPoseStateSpace>(si_->getStateSpace()))
+  , joint_pose_space_(std::dynamic_pointer_cast<ompl_interface::JointPoseModelStateSpace>(si_->getStateSpace()))
 {
   specs_.approximateSolutions = false;
   specs_.directed = true;

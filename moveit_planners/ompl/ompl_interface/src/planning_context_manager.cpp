@@ -76,6 +76,9 @@
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
 #include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space_factory.h>
 
+#include <moveit/ompl_interface/mrx_custom/parameterization/joint_pose_model_space_factory.h>
+#include <moveit/ompl_interface/mrx_custom/rrt/InformedBiTRRT.h>
+
 using namespace std::placeholders;
 
 namespace ompl_interface
@@ -300,12 +303,16 @@ void ompl_interface::PlanningContextManager::registerDefaultPlanners()
   registerPlannerAllocatorHelper<og::ABITstar>("geometric::ABITstar");
   registerPlannerAllocatorHelper<og::AITstar>("geometric::AITstar");
   registerPlannerAllocatorHelper<og::BITstar>("geometric::BITstar");
+
+  // Add MRXCustom planners
+  registerPlannerAllocatorHelper<og::InformedBiTRRT>("geometric::InformedBiTRRT");
 }
 
 void ompl_interface::PlanningContextManager::registerDefaultStateSpaces()
 {
   registerStateSpaceFactory(ModelBasedStateSpaceFactoryPtr(new JointModelStateSpaceFactory()));
   registerStateSpaceFactory(ModelBasedStateSpaceFactoryPtr(new PoseModelStateSpaceFactory()));
+  registerStateSpaceFactory(ModelBasedStateSpaceFactoryPtr(new JointPoseModelStateSpaceFactory()));
 }
 
 ompl_interface::ConfiguredPlannerSelector ompl_interface::PlanningContextManager::getPlannerSelector() const

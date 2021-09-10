@@ -25,7 +25,8 @@ add_library(${MOVEIT_LIB_NAME}
   src/mrx_custom/cforest/CForestStateSampler.cpp
   src/mrx_custom/cforest/CForest.cpp
   src/mrx_custom/rrt/InformedBiTRRT.cpp
-  src/mrx_custom/parameterization/joint_pose_space.cpp
+  src/mrx_custom/parameterization/joint_pose_model_space.cpp
+  src/mrx_custom/parameterization/joint_pose_model_space_factory.cpp
 )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
