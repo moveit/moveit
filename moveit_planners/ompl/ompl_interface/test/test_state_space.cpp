@@ -88,6 +88,40 @@ TEST_F(LoadPlanningModelsPr2, StateSpace)
   EXPECT_TRUE(passed);
 }
 
+TEST_F(LoadPlanningModelsPr2, DistanceMetric)
+{
+  ompl_interface::ModelBasedStateSpaceSpecification spec1(robot_model_, "right_arm");
+  ompl_interface::JointModelStateSpace ss1(spec1);
+  ss1.setup();
+
+  const auto sampler = ss1.allocDefaultStateSampler();
+
+  const auto s1 = ss1.allocState();
+  const auto s2 = ss1.allocState();
+  const auto s3 = ss1.allocState();
+
+  sampler->sampleUniform(s1);
+  sampler->sampleUniform(s2);
+
+  const double fraction = 0.7;
+
+  ss1.interpolate(s1, s2, fraction, s3);
+
+  {
+    const double numer = ss1.distance(s1, s3);
+    const double denom = ss1.distance(s1, s2);
+
+    std::cout << "fraction : " << numer / denom << std::endl;
+  }
+
+  {
+    const double numer = ss1.as<ompl_interface::ModelBasedStateSpace>()->distance(s1, s3);
+    const double denom = ss1.as<ompl_interface::ModelBasedStateSpace>()->distance(s1, s2);
+
+    std::cout << "fraction : " << numer / denom << std::endl;
+  }
+}
+
 TEST_F(LoadPlanningModelsPr2, StateSpaces)
 {
   ompl_interface::ModelBasedStateSpaceSpecification spec1(robot_model_, "right_arm");
