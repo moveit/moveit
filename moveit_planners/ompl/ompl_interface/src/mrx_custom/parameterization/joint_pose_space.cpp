@@ -1,3 +1,4 @@
+
 #include "moveit/ompl_interface/mrx_custom/parameterization/joint_pose_space.h"
 
 namespace ompl_interface
@@ -63,4 +64,37 @@ void ompl_interface::JointPoseStateSpace::interpolate(const ompl::base::State* f
 
   if (!computeStateFK(state))
     ROS_ERROR("computeStateFK failed when interpolate!!");
+}
+
+ompl_interface::EllipsoidalSampler::EllipsoidalSampler(const unsigned int n, const std::vector<double>& focus1,
+                                                       const std::vector<double>& focus2, JointPoseStateSpacePtr space)
+  : space_(std::move(space))
+  , base_sampler_(space_->allocStateSampler())
+  , phs_ptr_(new ompl::ProlateHyperspheroid(n, focus1.data(), focus2.data()))
+  , traverse_diameter_(-1.0)
+{
+}
+
+void ompl_interface::EllipsoidalSampler::setTraverseDiameter(const double diameter)
+{
+  assert(diameter > 0);
+  phs_ptr_->setTransverseDiameter(diameter);
+  traverse_diameter_ = diameter;
+}
+
+void ompl_interface::EllipsoidalSampler::sampleUniform(ompl::base::State* state)
+{
+  base_sampler_->sampleUniform(state);
+
+  // If no traverse_diameter updates, just use base_sampler
+  if (traverse_diameter_ < 0)
+    return;
+
+  std::vector<double> informedVector(phs_ptr_->getPhsDimension());
+
+  // Sample positions in the ellipsoid
+  rng_.uniformProlateHyperspheroid(phs_ptr_, &informedVector[0]);
+
+  // Update positions
+  space_->copyPositionsFromReals(state, informedVector);
 }

@@ -44,6 +44,7 @@
 
 ompl::geometric::InformedBiTRRT::InformedBiTRRT(const base::SpaceInformationPtr& si)
   : base::Planner(si, "InformedBiTRRT")
+  , joint_pose_space_(std::dynamic_pointer_cast<ompl_interface::JointPoseStateSpace>(si_->getStateSpace()))
 {
   specs_.approximateSolutions = false;
   specs_.directed = true;
@@ -231,8 +232,8 @@ ompl::geometric::InformedBiTRRT::extendTree(Motion* nearest, TreeData& tree, Mot
 
   // Compute the state to extend toward
   bool treeIsStart = (tree == tStart_);
-  double d = (treeIsStart ? joint_pose_space_->distance(nearest->state, toMotion->state) :
-                            joint_pose_space_->distance(toMotion->state, nearest->state));
+  double d = (treeIsStart ? joint_pose_space_->distanceJoint(nearest->state, toMotion->state) :
+                            joint_pose_space_->distanceJoint(toMotion->state, nearest->state));
   // Truncate the random state to be no more than maxDistance_ from nearest neighbor
   if (d > maxDistance_)
   {
@@ -278,8 +279,8 @@ bool ompl::geometric::InformedBiTRRT::connectTrees(Motion* nmotion, TreeData& tr
   // Get the nearest state to nmotion in tree (nmotion is NOT in tree)
   Motion* nearest = tree->nearest(nmotion);
   bool treeIsStart = tree == tStart_;
-  double dist = (treeIsStart ? joint_pose_space_->distance(nearest->state, nmotion->state) :
-                               joint_pose_space_->distance(nmotion->state, nearest->state));
+  double dist = (treeIsStart ? joint_pose_space_->distanceJoint(nearest->state, nmotion->state) :
+                               joint_pose_space_->distanceJoint(nmotion->state, nearest->state));
 
   // Do not attempt a connection if the trees are far apart
   if (dist > connectionRange_)
@@ -391,7 +392,18 @@ ompl::base::PlannerStatus ompl::geometric::InformedBiTRRT::solve(const base::Pla
   OMPL_INFORM("%s: Planning started with %d states already in datastructure", getName().c_str(),
               (int)(tStart_->size() + tGoal_->size()));
 
-  base::StateSamplerPtr sampler = joint_pose_space_->allocStateSampler();
+  {
+    std::vector<Motion*> starts, goals;
+    tStart_->list(starts);
+    tGoal_->list(goals);
+
+    std::vector<double> focus1, focus2;
+    joint_pose_space_->copyPositionsToReals(focus1, starts[0]->state);
+    joint_pose_space_->copyPositionsToReals(focus2, goals[0]->state);
+
+    sampler_ = std::make_shared<ompl_interface::EllipsoidalSampler>(joint_pose_space_->getNumPositions(), focus1,
+                                                                    focus2, joint_pose_space_);
+  }
 
   auto* rmotion = new Motion(joint_pose_space_);
   base::State* rstate = rmotion->state;
@@ -417,7 +429,7 @@ ompl::base::PlannerStatus ompl::geometric::InformedBiTRRT::solve(const base::Pla
     }
 
     // Sample a state uniformly at random
-    sampler->sampleUniform(rstate);
+    sampler_->sampleUniform(rstate);
 
     Motion* result;                                   // the motion that gets added in extendTree
     if (extendTree(rmotion, tree, result) != FAILED)  // we added something new to the tree

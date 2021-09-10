@@ -254,6 +254,7 @@ protected:
 
   /// \brief JointPoseSpaceInformation to prevent runtime polymorphism
   ompl_interface::JointPoseStateSpacePtr joint_pose_space_;
+  ompl_interface::EllipsoidalSamplerPtr sampler_;
 
   /// \brief The maximum length of a motion to be added to a tree
   double maxDistance_{ 0. };
