@@ -1,7 +1,8 @@
 # moveit/moveit:noetic-ci-shadow-fixed
 # Sets up a base image to use for running Continuous Integration on Travis
 
-FROM moveit/moveit:noetic-ci
+ARG IMAGE=noetic
+FROM moveit/moveit:${IMAGE}-ci
 MAINTAINER Dave Coleman dave@picknik.ai
 
 # Switch to ros-shadow-fixed

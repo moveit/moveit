@@ -91,6 +91,7 @@ protected:
   // ros stuff
   ros::NodeHandle ph_{ "~" };
   robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(GetParam()).getModel() };
+  planning_scene::PlanningSceneConstPtr planning_scene_{ new planning_scene::PlanningScene(robot_model_) };
 
   // lin trajectory generator using model without gripper
   std::unique_ptr<TrajectoryGenerator> lin_;
@@ -213,7 +214,7 @@ TEST_P(TrajectoryGeneratorLINTest, nonZeroStartVelocity)
 
   // try to generate the result
   planning_interface::MotionPlanResponse res;
-  EXPECT_FALSE(lin_->generate(req, res));
+  EXPECT_FALSE(lin_->generate(planning_scene_, req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
 }
 
@@ -226,7 +227,7 @@ TEST_P(TrajectoryGeneratorLINTest, jointSpaceGoal)
 
   // generate the LIN trajectory
   planning_interface::MotionPlanResponse res;
-  ASSERT_TRUE(lin_->generate(lin_joint_req, res));
+  ASSERT_TRUE(lin_->generate(planning_scene_, lin_joint_req, res));
   EXPECT_TRUE(res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS);
 
   // check the resulted trajectory
@@ -247,7 +248,7 @@ TEST_P(TrajectoryGeneratorLINTest, jointSpaceGoalNearZeroStartVelocity)
 
   // generate the LIN trajectory
   planning_interface::MotionPlanResponse res;
-  ASSERT_TRUE(lin_->generate(lin_joint_req, res));
+  ASSERT_TRUE(lin_->generate(planning_scene_, lin_joint_req, res));
   EXPECT_TRUE(res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS);
 
   // check the resulted trajectory
@@ -264,7 +265,7 @@ TEST_P(TrajectoryGeneratorLINTest, cartesianSpaceGoal)
 
   // generate lin trajectory
   planning_interface::MotionPlanResponse res;
-  ASSERT_TRUE(lin_->generate(lin_cart_req, res));
+  ASSERT_TRUE(lin_->generate(planning_scene_, lin_cart_req, res));
   EXPECT_TRUE(res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS);
 
   // check the resulted trajectory
@@ -288,7 +289,7 @@ TEST_P(TrajectoryGeneratorLINTest, cartesianTrapezoidProfile)
   /// + plan LIN trajectory +
   /// +++++++++++++++++++++++
   planning_interface::MotionPlanResponse res;
-  ASSERT_TRUE(lin_->generate(lin_joint_req, res, 0.01));
+  ASSERT_TRUE(lin_->generate(planning_scene_, lin_joint_req, res, 0.01));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
 
   ASSERT_TRUE(testutils::checkCartesianTranslationalPath(res.trajectory_, target_link_hcd_));
@@ -320,7 +321,7 @@ TEST_P(TrajectoryGeneratorLINTest, LinPlannerLimitViolation)
   lin.setAccelerationScale(1.01);
 
   planning_interface::MotionPlanResponse res;
-  ASSERT_FALSE(lin_->generate(lin.toRequest(), res));
+  ASSERT_FALSE(lin_->generate(planning_scene_, lin.toRequest(), res));
 }
 
 /**
@@ -346,7 +347,7 @@ TEST_P(TrajectoryGeneratorLINTest, LinPlannerDiscontinuousJointTraj)
   lin.setAccelerationScale(1.0);
 
   planning_interface::MotionPlanResponse res;
-  ASSERT_FALSE(lin_->generate(lin.toRequest(), res));
+  ASSERT_FALSE(lin_->generate(planning_scene_, lin.toRequest(), res));
 }
 
 /**
@@ -373,7 +374,7 @@ TEST_P(TrajectoryGeneratorLINTest, LinStartEqualsGoal)
 
   // generate the LIN trajectory
   planning_interface::MotionPlanResponse res;
-  ASSERT_TRUE(lin_->generate(lin_joint_req, res));
+  ASSERT_TRUE(lin_->generate(planning_scene_, lin_joint_req, res));
   EXPECT_TRUE(res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS);
 
   // check the resulted trajectory
@@ -417,7 +418,7 @@ TEST_P(TrajectoryGeneratorLINTest, IncorrectJointNumber)
 
   // generate the LIN trajectory
   planning_interface::MotionPlanResponse res;
-  ASSERT_FALSE(lin_->generate(lin_joint_req, res));
+  ASSERT_FALSE(lin_->generate(planning_scene_, lin_joint_req, res));
   EXPECT_TRUE(res.error_code_.val == moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 }
 
@@ -435,7 +436,7 @@ TEST_P(TrajectoryGeneratorLINTest, cartGoalIncompleteStartState)
 
   // generate lin trajectory
   planning_interface::MotionPlanResponse res;
-  EXPECT_FALSE(lin_->generate(lin_cart_req, res));
+  EXPECT_FALSE(lin_->generate(planning_scene_, lin_cart_req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
 }
 
@@ -453,7 +454,7 @@ TEST_P(TrajectoryGeneratorLINTest, cartGoalFrameIdBothConstraints)
 
   // generate lin trajectory
   planning_interface::MotionPlanResponse res;
-  ASSERT_TRUE(lin_->generate(lin_cart_req, res));
+  ASSERT_TRUE(lin_->generate(planning_scene_, lin_cart_req, res));
   EXPECT_TRUE(res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS);
 
   // check the resulted trajectory

@@ -35,35 +35,16 @@
 #pragma once
 
 #include <ros/ros.h>
-#include <moveit/macros/class_forward.h>
-#include <moveit/collision_detection/collision_plugin.h>
+#include <moveit/collision_detection/collision_plugin_cache.h>
 
 namespace collision_detection
 {
-/**
- * @brief This is used to load the collision plugin
- */
-class CollisionPluginLoader
+/** Augment CollisionPluginLoader with a method to fetch the plugin name from the ROS parameter server */
+class CollisionPluginLoader : public CollisionPluginCache
 {
 public:
-  CollisionPluginLoader();
-  ~CollisionPluginLoader();
-
-  /** @brief This can be called on a new planning scene to setup the collision detector. */
+  /** @brief Fetch plugin name from parameter server and activate the plugin for the given scene */
   void setupScene(ros::NodeHandle& nh, const planning_scene::PlanningScenePtr& scene);
-
-  /**
-   * @brief Load a collision detection robot/world into a planning scene instance.
-   * @param name The plugin name.
-   * @param scene The planning scene instance.
-   * @param exclusive If true, sets the new detection robot/world to be the only one.
-   * @return True if collision robot/world were added to scene.
-   */
-  bool activate(const std::string& name, const planning_scene::PlanningScenePtr& scene, bool exclusive);
-
-private:
-  MOVEIT_CLASS_FORWARD(CollisionPluginLoaderImpl);  // Defines CollisionPluginLoaderImplPtr, ConstPtr, WeakPtr... etc
-  CollisionPluginLoaderImplPtr loader_;
 };
 
 }  // namespace collision_detection

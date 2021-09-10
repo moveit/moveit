@@ -5,7 +5,7 @@
 
   <!-- The request adapters (plugins) used when planning.
        ORDER MATTERS -->
-  <arg name="planning_adapters" value="" />
+  <arg name="planning_adapters" default="" />
 
   <param name="planning_plugin" value="$(arg planning_plugin)" />
   <param name="request_adapters" value="$(arg planning_adapters)" />

@@ -61,6 +61,12 @@ public:
     return isValid(state, dist, verbose_);
   }
 
+  bool isValid(const ompl::base::State* state, double& dist, ompl::base::State* /*validState*/,
+               bool& /*validStateAvailable*/) const override
+  {
+    return isValid(state, dist, verbose_);
+  }
+
   bool isValid(const ompl::base::State* state, bool verbose) const;
   bool isValid(const ompl::base::State* state, double& dist, bool verbose) const;
 

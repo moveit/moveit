@@ -82,6 +82,7 @@ protected:
   // ros stuff
   ros::NodeHandle ph_{ "~" };
   robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(GetParam()).getModel() };
+  planning_scene::PlanningSceneConstPtr planning_scene_{ new planning_scene::PlanningScene(robot_model_) };
 
   // trajectory generator
   std::unique_ptr<TrajectoryGenerator> ptp_;
@@ -194,7 +195,7 @@ TEST_P(TrajectoryGeneratorPTPTest, emptyRequest)
 
   EXPECT_FALSE(res.trajectory_->empty());
 
-  EXPECT_FALSE(ptp_->generate(req, res));
+  EXPECT_FALSE(ptp_->generate(planning_scene_, req, res));
 
   EXPECT_TRUE(res.trajectory_->empty());
 }
@@ -359,7 +360,7 @@ TEST_P(TrajectoryGeneratorPTPTest, testCartesianGoal)
   //****************************************
   //*** test robot model without gripper ***
   //****************************************
-  ASSERT_TRUE(ptp_->generate(req, res));
+  ASSERT_TRUE(ptp_->generate(planning_scene_, req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
 
   moveit_msgs::MotionPlanResponse res_msg;
@@ -407,12 +408,12 @@ TEST_P(TrajectoryGeneratorPTPTest, testCartesianGoalMissingLinkNameConstraints)
 
   planning_interface::MotionPlanRequest req_no_position_constaint_link_name = req;
   req_no_position_constaint_link_name.goal_constraints.front().position_constraints.front().link_name = "";
-  ASSERT_FALSE(ptp_->generate(req_no_position_constaint_link_name, res));
+  ASSERT_FALSE(ptp_->generate(planning_scene_, req_no_position_constaint_link_name, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 
   planning_interface::MotionPlanRequest req_no_orientation_constaint_link_name = req;
   req_no_orientation_constaint_link_name.goal_constraints.front().orientation_constraints.front().link_name = "";
-  ASSERT_FALSE(ptp_->generate(req_no_orientation_constaint_link_name, res));
+  ASSERT_FALSE(ptp_->generate(planning_scene_, req_no_orientation_constaint_link_name, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 }
 
@@ -439,7 +440,7 @@ TEST_P(TrajectoryGeneratorPTPTest, testInvalidCartesianGoal)
       kinematic_constraints::constructGoalConstraints(target_link_, pose, tolerance_pose, tolerance_angle);
   req.goal_constraints.push_back(pose_goal);
 
-  ASSERT_FALSE(ptp_->generate(req, res));
+  ASSERT_FALSE(ptp_->generate(planning_scene_, req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION);
   EXPECT_EQ(res.trajectory_, nullptr);
 }
@@ -465,7 +466,7 @@ TEST_P(TrajectoryGeneratorPTPTest, testJointGoalAlreadyReached)
   req.goal_constraints.push_back(gc);
 
   // TODO lin and circ has different settings
-  ASSERT_TRUE(ptp_->generate(req, res));
+  ASSERT_TRUE(ptp_->generate(planning_scene_, req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
 
   moveit_msgs::MotionPlanResponse res_msg;
@@ -537,7 +538,7 @@ TEST_P(TrajectoryGeneratorPTPTest, testScalingFactor)
   req.max_velocity_scaling_factor = 0.5;
   req.max_acceleration_scaling_factor = 1.0 / 3.0;
 
-  ASSERT_TRUE(ptp_->generate(req, res));
+  ASSERT_TRUE(ptp_->generate(planning_scene_, req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
 
   moveit_msgs::MotionPlanResponse res_msg;
@@ -664,7 +665,7 @@ TEST_P(TrajectoryGeneratorPTPTest, testJointGoalAndAlmostZeroStartVelocity)
   gc.joint_constraints.push_back(jc);
   req.goal_constraints.push_back(gc);
 
-  ASSERT_TRUE(ptp_->generate(req, res));
+  ASSERT_TRUE(ptp_->generate(planning_scene_, req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
 
   moveit_msgs::MotionPlanResponse res_msg;
@@ -806,7 +807,7 @@ TEST_P(TrajectoryGeneratorPTPTest, testJointGoalNoStartVel)
   gc.joint_constraints.push_back(jc);
   req.goal_constraints.push_back(gc);
 
-  ASSERT_TRUE(ptp_->generate(req, res));
+  ASSERT_TRUE(ptp_->generate(planning_scene_, req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
 
   moveit_msgs::MotionPlanResponse res_msg;
