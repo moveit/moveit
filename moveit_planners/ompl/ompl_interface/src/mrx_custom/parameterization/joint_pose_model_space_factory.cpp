@@ -11,8 +11,10 @@ int ompl_interface::JointPoseModelStateSpaceFactory::canRepresentProblem(
     const std::string& /*group*/, const moveit_msgs::MotionPlanRequest& req,
     const moveit::core::RobotModelConstPtr& /*robot_model*/) const
 {
+  ROS_INFO("JointPoseModelStateSpaceFactory::canRepresentProblem. req.planner_id=%s", req.planner_id.c_str());
   if (req.planner_id == "geometric::InformedBiTRRT")
   {
+    ROS_INFO("planner_id=%s. Use JointPoseModelStateSpace.", req.planner_id.c_str());
     return 500;
   }
 

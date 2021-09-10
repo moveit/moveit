@@ -39,12 +39,12 @@
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/tools/config/MagicConstants.h>
 #include <ompl/tools/config/SelfConfig.h>
+#include <ompl/base/objectives/MechanicalWorkOptimizationObjective.h>
 
 #include "moveit/ompl_interface/mrx_custom/rrt/InformedBiTRRT.h"
 
 ompl::geometric::InformedBiTRRT::InformedBiTRRT(const base::SpaceInformationPtr& si)
-  : base::Planner(si, "InformedBiTRRT")
-  , joint_pose_space_(std::dynamic_pointer_cast<ompl_interface::JointPoseModelStateSpace>(si_->getStateSpace()))
+  : base::Planner(si, "InformedBiTRRT"), joint_pose_space_(nullptr)
 {
   specs_.approximateSolutions = false;
   specs_.directed = true;
@@ -121,6 +121,19 @@ void ompl::geometric::InformedBiTRRT::setup()
   Planner::setup();
   tools::SelfConfig sc(si_, getName());
 
+  auto space_ptr = std::dynamic_pointer_cast<ompl_interface::JointPoseModelStateSpace>(si_->getStateSpace());
+
+  if (space_ptr != nullptr)
+  {
+    joint_pose_space_ = space_ptr;
+  }
+  else
+  {
+    OMPL_ERROR("InformedBiTRRT only uses JointPoseModelStateSpace. But it's %s.",
+               si_->getStateSpace()->as<ompl_interface::ModelBasedStateSpace>()->getParameterizationType().c_str());
+    throw std::runtime_error("Invalid state space type.");
+  }
+
   // Configuring the range of the planner
   if (maxDistance_ < std::numeric_limits<double>::epsilon())
   {
@@ -138,15 +151,15 @@ void ompl::geometric::InformedBiTRRT::setup()
   tGoal_->setDistanceFunction(
       [this](const Motion* a, const Motion* b) { return this->joint_pose_space_->distanceJoint(a->state, b->state); });
 
-  // If the optimization objective is not ompl_interface::PoseLengthOptimizationObjective,
-  // raise an exception
-  // if (pdef_->hasOptimizationObjective() && std::dynamic_pointer_cast<ompl_interface::PoseLengthOptimizationObjective>(
-  //                                              pdef_->getOptimizationObjective()) == nullptr)
-  // {
-  //   OMPL_ERROR("%s: Optimization objective (%s) already exists. Change it to ", getName().c_str(),
-  //              pdef_->getOptimizationObjective()->getDescription().c_str());
-  //   throw std::runtime_error("Wrong optimization objective type.");
-  // }
+  // Setup the optimization objective, if it isn't specified
+  if (!pdef_ || !pdef_->hasOptimizationObjective())
+  {
+    OMPL_INFORM("%s: No optimization objective specified.  Defaulting to mechanical work minimization.",
+                getName().c_str());
+    opt_ = std::make_shared<ompl::base::MechanicalWorkOptimizationObjective>(si_);
+  }
+  else
+    opt_ = pdef_->getOptimizationObjective();
 
   // Set the threshold that decides if a new node is a frontier node or non-frontier node
   if (frontierThreshold_ < std::numeric_limits<double>::epsilon())
@@ -397,12 +410,12 @@ ompl::base::PlannerStatus ompl::geometric::InformedBiTRRT::solve(const base::Pla
     tStart_->list(starts);
     tGoal_->list(goals);
 
-    std::vector<double> focus1, focus2;
+    const unsigned int dim = joint_pose_space_->getNumPositions();
+    std::vector<double> focus1(dim), focus2(dim);
     joint_pose_space_->copyPositionsToReals(focus1, starts[0]->state);
     joint_pose_space_->copyPositionsToReals(focus2, goals[0]->state);
 
-    sampler_ = std::make_shared<ompl_interface::EllipsoidalSampler>(joint_pose_space_->getNumPositions(), focus1,
-                                                                    focus2, joint_pose_space_);
+    sampler_ = std::make_shared<ompl_interface::EllipsoidalSampler>(dim, focus1, focus2, joint_pose_space_);
   }
 
   auto* rmotion = new Motion(joint_pose_space_);

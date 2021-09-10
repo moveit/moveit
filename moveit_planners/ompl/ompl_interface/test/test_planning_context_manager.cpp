@@ -342,6 +342,14 @@ TEST_F(PandaTestPlanningContext, testABITstar)
       { { "type", "geometric::ABITstar" }, { "use_graph_pruning", "0" }, { "termination_condition", "Iteration 100" } });
 }
 
+TEST_F(PandaTestPlanningContext, testInformedBiTRRT)
+{
+  loadKDLIkSolver();
+  testSimpleRequest(
+      { 0, -0.785, 0, -2.356, 0, 1.571, 0.785 }, { 0, -0.785, 0, -2.356, 0, 1.571, 0.685 },
+      { { "type", "geometric::InformedBiTRRT" }, { "use_graph_pruning", "0" }, { "termination_condition", "Iteration 100" } });
+}
+
 /***************************************************************************
  * Run all tests on the Fanuc robot
  * ************************************************************************/

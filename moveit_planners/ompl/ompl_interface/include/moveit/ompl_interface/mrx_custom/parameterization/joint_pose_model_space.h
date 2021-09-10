@@ -15,6 +15,7 @@ public:
   static const std::string PARAMETERIZATION_TYPE;
 
   JointPoseModelStateSpace(const ModelBasedStateSpaceSpecification& spec);
+  JointPoseModelStateSpace(const ModelBasedStateSpacePtr& space_ptr);
 
   const std::string& getParameterizationType() const override
   {

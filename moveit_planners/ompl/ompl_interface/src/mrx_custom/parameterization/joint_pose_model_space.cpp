@@ -13,6 +13,11 @@ ompl_interface::JointPoseModelStateSpace::JointPoseModelStateSpace(const ModelBa
 {
 }
 
+ompl_interface::JointPoseModelStateSpace::JointPoseModelStateSpace(const ModelBasedStateSpacePtr& space_ptr)
+  : JointPoseModelStateSpace(space_ptr->getSpecification())
+{
+}
+
 double ompl_interface::JointPoseModelStateSpace::getMaximumExtent() const
 {
   return spec_.joint_model_group_->getMaximumExtentL2(spec_.joint_bounds_);

@@ -488,6 +488,23 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   else
     factory_selector = std::bind(&PlanningContextManager::getStateSpaceFactory2, this, std::placeholders::_1, req);
 
+  auto type_it = pc->second.config.find("type");
+
+  if (type_it != pc->second.config.end())
+  {
+    const auto planner_type = type_it->second;
+    ROS_INFO("pc->second.name=%s planner_type=%s", pc->second.name.c_str(), planner_type.c_str());
+
+    if (planner_type == "geometric::InformedBiTRRT")
+    {
+      ROS_INFO("InformedBiTRRT only uses JointPoseModelStateSpace. Force JointPoseModelStateSpaceFactory.");
+      factory_selector = [this](const std::string& group) -> const ModelBasedStateSpaceFactoryPtr& {
+        const auto it = this->state_space_factories_.find(JointPoseModelStateSpace::PARAMETERIZATION_TYPE);
+        return it->second;
+      };
+    }
+  }
+
   ModelBasedPlanningContextPtr context = getPlanningContext(pc->second, factory_selector, req);
 
   if (context)
