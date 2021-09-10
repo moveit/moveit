@@ -34,7 +34,14 @@
 
 /* Author: Ioan Sucan */
 
+#include <ompl/base/spaces/SE3StateSpace.h>
+
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
+
+namespace ompl_interface
+{
+constexpr char LOGNAME[] = "joint_model_state_space";
+}  // namespace ompl_interface
 
 const std::string ompl_interface::JointModelStateSpace::PARAMETERIZATION_TYPE = "JointModel";
 

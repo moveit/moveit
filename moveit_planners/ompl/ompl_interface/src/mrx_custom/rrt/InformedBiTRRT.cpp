@@ -40,7 +40,6 @@
 #include <ompl/tools/config/MagicConstants.h>
 #include <ompl/tools/config/SelfConfig.h>
 
-#include "moveit/ompl_interface/mrx_custom/pose_length_optimization_objective.h"
 #include "moveit/ompl_interface/mrx_custom/rrt/InformedBiTRRT.h"
 
 ompl::geometric::InformedBiTRRT::InformedBiTRRT(const base::SpaceInformationPtr& si)
@@ -81,7 +80,7 @@ void ompl::geometric::InformedBiTRRT::freeMemory()
     for (auto& motion : motions)
     {
       if (motion->state != nullptr)
-        si_->freeState(motion->state);
+        joint_pose_space_->freeState(motion->state);
       delete motion;
     }
   }
@@ -92,7 +91,7 @@ void ompl::geometric::InformedBiTRRT::freeMemory()
     for (auto& motion : motions)
     {
       if (motion->state != nullptr)
-        si_->freeState(motion->state);
+        joint_pose_space_->freeState(motion->state);
       delete motion;
     }
   }
@@ -133,23 +132,25 @@ void ompl::geometric::InformedBiTRRT::setup()
     tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
   if (!tGoal_)
     tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-  tStart_->setDistanceFunction([this](const Motion* a, const Motion* b) { return distanceFunction(a, b); });
-  tGoal_->setDistanceFunction([this](const Motion* a, const Motion* b) { return distanceFunction(a, b); });
+  tStart_->setDistanceFunction(
+      [this](const Motion* a, const Motion* b) { return this->joint_pose_space_->distanceJoint(a->state, b->state); });
+  tGoal_->setDistanceFunction(
+      [this](const Motion* a, const Motion* b) { return this->joint_pose_space_->distanceJoint(a->state, b->state); });
 
   // If the optimization objective is not ompl_interface::PoseLengthOptimizationObjective,
   // raise an exception
-  if (pdef_->hasOptimizationObjective() && std::dynamic_pointer_cast<ompl_interface::PoseLengthOptimizationObjective>(
-                                               pdef_->getOptimizationObjective()) == nullptr)
-  {
-    OMPL_ERROR("%s: Optimization objective (%s) already exists. Change it to ", getName().c_str(),
-               pdef_->getOptimizationObjective()->getDescription().c_str());
-    throw std::runtime_error("Wrong optimization objective type.");
-  }
+  // if (pdef_->hasOptimizationObjective() && std::dynamic_pointer_cast<ompl_interface::PoseLengthOptimizationObjective>(
+  //                                              pdef_->getOptimizationObjective()) == nullptr)
+  // {
+  //   OMPL_ERROR("%s: Optimization objective (%s) already exists. Change it to ", getName().c_str(),
+  //              pdef_->getOptimizationObjective()->getDescription().c_str());
+  //   throw std::runtime_error("Wrong optimization objective type.");
+  // }
 
   // Set the threshold that decides if a new node is a frontier node or non-frontier node
   if (frontierThreshold_ < std::numeric_limits<double>::epsilon())
   {
-    frontierThreshold_ = si_->getMaximumExtent() * 0.01;
+    frontierThreshold_ = joint_pose_space_->getMaximumExtent() * 0.01;
     OMPL_DEBUG("%s: Frontier threshold detected to be %lf", getName().c_str(), frontierThreshold_);
   }
 
@@ -164,8 +165,8 @@ void ompl::geometric::InformedBiTRRT::setup()
 ompl::geometric::InformedBiTRRT::Motion* ompl::geometric::InformedBiTRRT::addMotion(const base::State* state,
                                                                                     TreeData& tree, Motion* parent)
 {
-  auto* motion = new Motion(si_);
-  si_->copyState(motion->state, state);
+  auto* motion = new Motion(joint_pose_space_);
+  joint_pose_space_->copyState(motion->state, state);
   motion->cost = opt_->stateCost(motion->state);
   motion->parent = parent;
   motion->root = parent != nullptr ? parent->root : nullptr;
@@ -230,15 +231,15 @@ ompl::geometric::InformedBiTRRT::extendTree(Motion* nearest, TreeData& tree, Mot
 
   // Compute the state to extend toward
   bool treeIsStart = (tree == tStart_);
-  double d =
-      (treeIsStart ? si_->distance(nearest->state, toMotion->state) : si_->distance(toMotion->state, nearest->state));
+  double d = (treeIsStart ? joint_pose_space_->distance(nearest->state, toMotion->state) :
+                            joint_pose_space_->distance(toMotion->state, nearest->state));
   // Truncate the random state to be no more than maxDistance_ from nearest neighbor
   if (d > maxDistance_)
   {
     if (tree == tStart_)
-      si_->getStateSpace()->interpolate(nearest->state, toMotion->state, maxDistance_ / d, toMotion->state);
+      joint_pose_space_->interpolate(nearest->state, toMotion->state, maxDistance_ / d, toMotion->state);
     else
-      si_->getStateSpace()->interpolate(toMotion->state, nearest->state, 1.0 - maxDistance_ / d, toMotion->state);
+      joint_pose_space_->interpolate(toMotion->state, nearest->state, 1.0 - maxDistance_ / d, toMotion->state);
     d = maxDistance_;
     reach = false;
   }
@@ -277,15 +278,15 @@ bool ompl::geometric::InformedBiTRRT::connectTrees(Motion* nmotion, TreeData& tr
   // Get the nearest state to nmotion in tree (nmotion is NOT in tree)
   Motion* nearest = tree->nearest(nmotion);
   bool treeIsStart = tree == tStart_;
-  double dist =
-      (treeIsStart ? si_->distance(nearest->state, nmotion->state) : si_->distance(nmotion->state, nearest->state));
+  double dist = (treeIsStart ? joint_pose_space_->distance(nearest->state, nmotion->state) :
+                               joint_pose_space_->distance(nmotion->state, nearest->state));
 
   // Do not attempt a connection if the trees are far apart
   if (dist > connectionRange_)
     return false;
 
   // Copy the resulting state into our scratch space
-  si_->copyState(xmotion->state, nmotion->state);
+  joint_pose_space_->copyState(xmotion->state, nmotion->state);
 
   // Do not try to connect states directly.  Must chop up the
   // extension into segments, just in case one piece fails
@@ -304,8 +305,8 @@ bool ompl::geometric::InformedBiTRRT::connectTrees(Motion* nmotion, TreeData& tr
       nearest = next;
 
       // xmotion may get trashed during extension, so we reload it here
-      si_->copyState(xmotion->state,
-                     nmotion->state);  // xmotion may get trashed during extension, so we reload it here
+      joint_pose_space_->copyState(xmotion->state,
+                                   nmotion->state);  // xmotion may get trashed during extension, so we reload it here
     }
   } while (result == ADVANCED);
 
@@ -352,8 +353,8 @@ ompl::base::PlannerStatus ompl::geometric::InformedBiTRRT::solve(const base::Pla
   // Loop through the (valid) input states and add them to the start tree
   while (const base::State* state = pis_.nextStart())
   {
-    auto* motion = new Motion(si_);
-    si_->copyState(motion->state, state);
+    auto* motion = new Motion(joint_pose_space_);
+    joint_pose_space_->copyState(motion->state, state);
     motion->cost = opt_->stateCost(motion->state);
     motion->root = motion->state;  // this state is the root of a tree
 
@@ -390,12 +391,12 @@ ompl::base::PlannerStatus ompl::geometric::InformedBiTRRT::solve(const base::Pla
   OMPL_INFORM("%s: Planning started with %d states already in datastructure", getName().c_str(),
               (int)(tStart_->size() + tGoal_->size()));
 
-  base::StateSamplerPtr sampler = si_->allocStateSampler();
+  base::StateSamplerPtr sampler = joint_pose_space_->allocStateSampler();
 
-  auto* rmotion = new Motion(si_);
+  auto* rmotion = new Motion(joint_pose_space_);
   base::State* rstate = rmotion->state;
 
-  auto* xmotion = new Motion(si_);
+  auto* xmotion = new Motion(joint_pose_space_);
   base::State* xstate = xmotion->state;
 
   TreeData tree = tStart_;
@@ -457,8 +458,8 @@ ompl::base::PlannerStatus ompl::geometric::InformedBiTRRT::solve(const base::Pla
     std::swap(tree, otherTree);
   }
 
-  si_->freeState(rstate);
-  si_->freeState(xstate);
+  joint_pose_space_->freeState(rstate);
+  joint_pose_space_->freeState(xstate);
   delete rmotion;
   delete xmotion;
 
