@@ -45,6 +45,9 @@
 #include <boost/filesystem/path.hpp>
 #include <ros/package.h>
 
+#include <moveit/collision_detection/collision_common.h>
+#include <moveit/collision_detection/collision_plugin_cache.h>
+
 TEST(PlanningScene, LoadRestore)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
@@ -169,19 +172,25 @@ TEST(PlanningScene, loadGoodSceneGeometry)
   std::istringstream good_scene_geometry;
   good_scene_geometry.str("foobar_scene\n"
                           "* foo\n"
+                          "0 0 0\n"
+                          "0 0 0 1\n"
                           "1\n"
                           "box\n"
                           "2.58 1.36 0.31\n"
                           "1.49257 1.00222 0.170051\n"
                           "0 0 4.16377e-05 1\n"
                           "0 0 1 0.3\n"
+                          "0\n"
                           "* bar\n"
+                          "0 0 0\n"
+                          "0 0 0 1\n"
                           "1\n"
                           "cylinder\n"
                           "0.02 0.0001\n"
                           "0.453709 0.499136 0.355051\n"
                           "0 0 4.16377e-05 1\n"
                           "1 0 0 1\n"
+                          "0\n"
                           ".\n");
   EXPECT_TRUE(ps->loadGeometryFromStream(good_scene_geometry));
   EXPECT_EQ(ps->getName(), "foobar_scene");
@@ -211,6 +220,101 @@ TEST(PlanningScene, loadBadSceneGeometry)
                                ".\n");
   EXPECT_FALSE(ps->loadGeometryFromStream(malformed_scene_geometry));
 }
+
+class CollisionDetectorTests : public testing::TestWithParam<const char*>
+{
+};
+TEST_P(CollisionDetectorTests, ClearDiff)
+{
+  const std::string plugin_name = GetParam();
+  SCOPED_TRACE(plugin_name);
+
+  urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
+  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  // create parent scene
+  planning_scene::PlanningScenePtr parent = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
+
+  collision_detection::CollisionPluginCache loader;
+  if (!loader.activate(plugin_name, parent, true))
+  {
+#if defined(GTEST_SKIP_)
+    GTEST_SKIP_("Failed to load collision plugin");
+#else
+    return;
+#endif
+  }
+
+  // create child scene
+  planning_scene::PlanningScenePtr child = parent->diff();
+
+  // create collision request variables
+  collision_detection::CollisionRequest req;
+  collision_detection::CollisionResult res;
+  moveit::core::RobotState* state = new moveit::core::RobotState(child->getRobotModel());
+  state->setToDefaultValues();
+  state->update();
+
+  // there should be no collision with the environment
+  res.clear();
+  parent->getCollisionEnv()->checkRobotCollision(req, res, *state, parent->getAllowedCollisionMatrix());
+  EXPECT_FALSE(res.collision);
+  res.clear();
+  child->getCollisionEnv()->checkRobotCollision(req, res, *state, child->getAllowedCollisionMatrix());
+  EXPECT_FALSE(res.collision);
+
+  // create message to add a collision object at the world origin
+  moveit_msgs::PlanningScene ps_msg;
+  ps_msg.is_diff = false;
+  moveit_msgs::CollisionObject co;
+  co.header.frame_id = "base_link";
+  co.operation = moveit_msgs::CollisionObject::ADD;
+  co.id = "box";
+  co.pose.orientation.w = 1.0;
+  {
+    shape_msgs::SolidPrimitive sp;
+    sp.type = shape_msgs::SolidPrimitive::BOX;
+    sp.dimensions = { 1., 1., 1. };
+    co.primitives.push_back(sp);
+    geometry_msgs::Pose sp_pose;
+    sp_pose.orientation.w = 1.0;
+    co.primitive_poses.push_back(sp_pose);
+  }
+  ps_msg.world.collision_objects.push_back(co);
+
+  // add object to the parent planning scene
+  parent->usePlanningSceneMsg(ps_msg);
+
+  // the parent scene should be in collision
+  res.clear();
+  parent->getCollisionEnv()->checkRobotCollision(req, res, *state, parent->getAllowedCollisionMatrix());
+  EXPECT_TRUE(res.collision);
+
+  // the child scene was not updated yet, so no collision
+  res.clear();
+  child->getCollisionEnv()->checkRobotCollision(req, res, *state, child->getAllowedCollisionMatrix());
+  EXPECT_FALSE(res.collision);
+
+  // update the child scene
+  child->clearDiffs();
+
+  // child and parent scene should be in collision
+  res.clear();
+  parent->getCollisionEnv()->checkRobotCollision(req, res, *state, parent->getAllowedCollisionMatrix());
+  EXPECT_TRUE(res.collision);
+  res.clear();
+  child->getCollisionEnv()->checkRobotCollision(req, res, *state, child->getAllowedCollisionMatrix());
+  EXPECT_TRUE(res.collision);
+
+  child.reset();
+  parent.reset();
+}
+
+#ifndef INSTANTIATE_TEST_SUITE_P  // prior to gtest 1.10
+#define INSTANTIATE_TEST_SUITE_P(...) INSTANTIATE_TEST_CASE_P(__VA_ARGS__)
+#endif
+
+// instantiate parameterized tests for common collision plugins
+INSTANTIATE_TEST_SUITE_P(PluginTests, CollisionDetectorTests, testing::Values("FCL", "Bullet"));
 
 int main(int argc, char** argv)
 {

@@ -32,45 +32,32 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <moveit/collision_plugin_loader/collision_plugin_loader.h>
+#pragma once
 
-static const std::string LOGNAME = "collision_detection";
+#include <moveit/macros/class_forward.h>
+#include <moveit/collision_detection/collision_plugin.h>
+
 namespace collision_detection
 {
-void CollisionPluginLoader::setupScene(ros::NodeHandle& nh, const planning_scene::PlanningScenePtr& scene)
+/** Helper class to activate a specific collision plugin for a PlanningScene */
+class CollisionPluginCache
 {
-  if (!scene)
-  {
-    ROS_WARN_NAMED(LOGNAME, "Cannot setup scene, PlanningScenePtr is null.");
-    return;
-  }
+public:
+  CollisionPluginCache();
+  ~CollisionPluginCache();
 
-  std::string param_name;
-  std::string collision_detector_name;
+  /**
+   * @brief Activate a specific collision plugin for the given planning scene instance.
+   * @param name The plugin name.
+   * @param scene The planning scene instance.
+   * @param exclusive If true, sets the new plugin to be the only one.
+   * @return success / failure
+   */
+  bool activate(const std::string& name, const planning_scene::PlanningScenePtr& scene, bool exclusive);
 
-  if (nh.searchParam("collision_detector", param_name))
-  {
-    nh.getParam(param_name, collision_detector_name);
-  }
-  else if (nh.hasParam("/move_group/collision_detector"))
-  {
-    // Check for existence in move_group namespace
-    // mainly for rviz plugins to get same collision detector.
-    nh.getParam("/move_group/collision_detector", collision_detector_name);
-  }
-  else
-  {
-    return;
-  }
-
-  if (collision_detector_name.empty())
-  {
-    // This is not a valid name for a collision detector plugin
-    return;
-  }
-
-  activate(collision_detector_name, scene, true);
-  ROS_INFO_STREAM("Using collision detector:" << scene->getActiveCollisionDetectorName().c_str());
-}
+private:
+  MOVEIT_CLASS_FORWARD(CollisionPluginCacheImpl);
+  CollisionPluginCacheImplPtr cache_;
+};
 
 }  // namespace collision_detection

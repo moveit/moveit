@@ -311,6 +311,21 @@ TEST_F(BulletCollisionDetectionTester, ContinuousCollisionWorld)
   cenv_->checkRobotCollision(req, res, state1, state2, *acm_);
   ASSERT_TRUE(res.collision);
   ASSERT_EQ(res.contact_count, 4u);
+  // test contact types
+  for (auto& contact_pair : res.contacts)
+  {
+    for (collision_detection::Contact& contact : contact_pair.second)
+    {
+      collision_detection::BodyType contact_type1 = contact.body_name_1 == "box" ?
+                                                        collision_detection::BodyType::WORLD_OBJECT :
+                                                        collision_detection::BodyType::ROBOT_LINK;
+      collision_detection::BodyType contact_type2 = contact.body_name_2 == "box" ?
+                                                        collision_detection::BodyType::WORLD_OBJECT :
+                                                        collision_detection::BodyType::ROBOT_LINK;
+      ASSERT_EQ(contact.body_type_1, contact_type1);
+      ASSERT_EQ(contact.body_type_2, contact_type2);
+    }
+  }
   res.clear();
 }
 
