@@ -90,7 +90,7 @@ ompl_interface::EllipsoidalSampler::EllipsoidalSampler(const unsigned int n, con
 
 void ompl_interface::EllipsoidalSampler::setTraverseDiameter(const double diameter)
 {
-  assert(diameter > 0);
+  assert(diameter > 0 && diameter > phs_ptr_->getMinTransverseDiameter());
   phs_ptr_->setTransverseDiameter(diameter);
   traverse_diameter_ = diameter;
 }
@@ -115,8 +115,8 @@ void ompl_interface::EllipsoidalSampler::sampleUniform(ompl::base::State* state)
 double ompl_interface::EllipsoidalSampler::getPathLength(ompl::base::State* state) const
 {
   std::vector<double> position(phs_ptr_->getPhsDimension());
-  space_->copyPositionsFromReals(state, position);
-  phs_ptr_->getPathLength(position.data());
+  space_->copyPositionsToReals(position, state);
+  return phs_ptr_->getPathLength(position.data());
 }
 
 const std::vector<double>& ompl_interface::EllipsoidalSampler::getStartPoint() const

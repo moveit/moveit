@@ -608,6 +608,7 @@ void ompl::geometric::InformedBiTRRT::checkSolutionUpdate()
 
     sampler_->setTraverseDiameter(min_diameter);
     // addPath(solutions[min_idx].path_);
+    prune(min_diameter);
 
     OMPL_INFORM("Solution updated. solution=[%zu/%zu]. Diameter=%lf. Path length=%lf.", min_idx, num_solutions_,
                 min_diameter, solutions[min_idx].path_->length());
