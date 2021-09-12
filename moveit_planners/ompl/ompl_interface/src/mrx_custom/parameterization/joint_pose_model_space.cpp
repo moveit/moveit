@@ -76,13 +76,15 @@ void ompl_interface::JointPoseModelStateSpace::interpolate(const ompl::base::Sta
     ROS_ERROR("computeStateFK failed when interpolate!!");
 }
 
-ompl_interface::EllipsoidalSampler::EllipsoidalSampler(const unsigned int n, const std::vector<double>& focus1,
-                                                       const std::vector<double>& focus2,
+ompl_interface::EllipsoidalSampler::EllipsoidalSampler(const unsigned int n, const std::vector<double>& start_point,
+                                                       const std::vector<double>& goal_point,
                                                        JointPoseModelStateSpacePtr space)
   : space_(std::move(space))
   , base_sampler_(space_->allocStateSampler())
-  , phs_ptr_(new ompl::ProlateHyperspheroid(n, focus1.data(), focus2.data()))
+  , phs_ptr_(new ompl::ProlateHyperspheroid(n, start_point.data(), goal_point.data()))
   , traverse_diameter_(-1.0)
+  , start_point_(start_point)
+  , goal_point_(goal_point)
 {
 }
 
@@ -108,4 +110,37 @@ void ompl_interface::EllipsoidalSampler::sampleUniform(ompl::base::State* state)
 
   // Update positions
   space_->copyPositionsFromReals(state, informedVector);
+}
+
+double ompl_interface::EllipsoidalSampler::getPathLength(ompl::base::State* state) const
+{
+  std::vector<double> position(phs_ptr_->getPhsDimension());
+  space_->copyPositionsFromReals(state, position);
+  phs_ptr_->getPathLength(position.data());
+}
+
+const std::vector<double>& ompl_interface::EllipsoidalSampler::getStartPoint() const
+{
+  return start_point_;
+}
+
+const std::vector<double>& ompl_interface::EllipsoidalSampler::getGoalPoint() const
+{
+  return goal_point_;
+}
+
+double ompl_interface::EllipsoidalSampler::distanceFromStartPoint(const std::vector<double>& point) const
+{
+  Eigen::Map<const Eigen::VectorXd> curr_point(point.data(), point.size());
+  Eigen::Map<const Eigen::VectorXd> start_point(getStartPoint().data(), getStartPoint().size());
+
+  return (curr_point - start_point).norm();
+}
+
+double ompl_interface::EllipsoidalSampler::distanceFromGoalPoint(const std::vector<double>& point) const
+{
+  Eigen::Map<const Eigen::VectorXd> curr_point(point.data(), point.size());
+  Eigen::Map<const Eigen::VectorXd> goal_point(getGoalPoint().data(), getGoalPoint().size());
+
+  return (curr_point - goal_point).norm();
 }

@@ -143,9 +143,9 @@ void ompl::geometric::InformedBiTRRT::setup()
 
   // Configuring nearest neighbors structures for the planning trees
   if (!tStart_)
-    tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
+    tStart_.reset(new NearestNeighborsGNATNoThreadSafety<Motion*>());
   if (!tGoal_)
-    tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
+    tGoal_.reset(new NearestNeighborsGNATNoThreadSafety<Motion*>());
   tStart_->setDistanceFunction(
       [this](const Motion* a, const Motion* b) { return this->joint_pose_space_->distanceJoint(a->state, b->state); });
   tGoal_->setDistanceFunction(
@@ -405,18 +405,7 @@ ompl::base::PlannerStatus ompl::geometric::InformedBiTRRT::solve(const base::Pla
   OMPL_INFORM("%s: Planning started with %d states already in datastructure", getName().c_str(),
               (int)(tStart_->size() + tGoal_->size()));
 
-  {
-    std::vector<Motion*> starts, goals;
-    tStart_->list(starts);
-    tGoal_->list(goals);
-
-    const unsigned int dim = joint_pose_space_->getNumPositions();
-    std::vector<double> focus1(dim), focus2(dim);
-    joint_pose_space_->copyPositionsToReals(focus1, starts[0]->state);
-    joint_pose_space_->copyPositionsToReals(focus2, goals[0]->state);
-
-    sampler_ = std::make_shared<ompl_interface::EllipsoidalSampler>(dim, focus1, focus2, joint_pose_space_);
-  }
+  sampler_ = initSampler();
 
   auto* rmotion = new Motion(joint_pose_space_);
   base::State* rstate = rmotion->state;
@@ -491,6 +480,107 @@ ompl::base::PlannerStatus ompl::geometric::InformedBiTRRT::solve(const base::Pla
   OMPL_INFORM("%s: Created %u states (%u start + %u goal)", getName().c_str(), tStart_->size() + tGoal_->size(),
               tStart_->size(), tGoal_->size());
   return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
+}
+
+ompl_interface::EllipsoidalSamplerPtr ompl::geometric::InformedBiTRRT::initSampler()
+{
+  std::vector<Motion*> starts, goals;
+  tStart_->list(starts);
+  tGoal_->list(goals);
+
+  const unsigned int dim = joint_pose_space_->getNumPositions();
+  std::vector<double> focus1(dim), focus2(dim);
+  joint_pose_space_->copyPositionsToReals(focus1, starts[0]->state);
+  joint_pose_space_->copyPositionsToReals(focus2, goals[0]->state);
+
+  return std::make_shared<ompl_interface::EllipsoidalSampler>(dim, focus1, focus2, joint_pose_space_);
+}
+
+double ompl::geometric::InformedBiTRRT::getDiameter(const ompl::geometric::PathGeometricPtr& path) const
+{
+  double diameter = std::numeric_limits<double>::min();
+
+  for (const auto state : path->getStates())
+  {
+    const double pl = sampler_->getPathLength(state);
+
+    if (pl > diameter)
+      diameter = pl;
+  }
+
+  return diameter;
+}
+
+void ompl::geometric::InformedBiTRRT::prune(const double diameter)
+{
+  std::vector<Motion*> motions;
+
+  if (tStart_)
+    tStart_->list(motions);
+
+  for (auto motion : motions)
+  {
+    if (sampler_->getPathLength(motion->state) > diameter)
+    {
+      if (!tStart_->remove(motion))
+      {
+        OMPL_WARN("Remove motion in the tree failed.");
+      }
+    }
+  }
+  tStart_->rebuildDataStructure();
+
+  motions.clear();
+  if (tGoal_)
+    tGoal_->list(motions);
+
+  for (auto motion : motions)
+  {
+    if (sampler_->getPathLength(motion->state) > diameter)
+    {
+      if (!tGoal_->remove(motion))
+      {
+        OMPL_WARN("Remove motion in the tree failed.");
+      }
+    }
+  }
+  tGoal_->rebuildDataStructure();
+}
+
+void ompl::geometric::InformedBiTRRT::addPath(const ompl::geometric::PathGeometricPtr& path)
+{
+  const auto& states = path->getStates();
+  std::vector<double> curr_point(joint_pose_space_->getNumPositions());
+  auto* rmotion = new Motion(joint_pose_space_);
+  Motion* result;
+
+  for (auto it = states.begin(); it != states.end(); it++)
+  {
+    joint_pose_space_->copyPositionsToReals(curr_point, *it);
+
+    if (sampler_->distanceFromStartPoint(curr_point) > sampler_->distanceFromGoalPoint(curr_point))
+      break;
+
+    joint_pose_space_->copyState(rmotion->state, *it);
+    Motion* nearest = tStart_->nearest(rmotion);
+
+    if (joint_pose_space_->distanceJoint(nearest->state, rmotion->state) > 1e-4)
+      extendTree(nearest, tStart_, rmotion, result);
+  }
+
+  for (auto it = states.rbegin(); it != states.rend(); it++)
+  {
+    joint_pose_space_->copyPositionsToReals(curr_point, *it);
+
+    if (sampler_->distanceFromStartPoint(curr_point) <= sampler_->distanceFromGoalPoint(curr_point))
+      break;
+
+    joint_pose_space_->copyState(rmotion->state, *it);
+    Motion* nearest = tGoal_->nearest(rmotion);
+
+    if (joint_pose_space_->distanceJoint(nearest->state, rmotion->state) > 1e-4)
+      extendTree(nearest, tGoal_, rmotion, result);
+  }
 }
 
 void ompl::geometric::InformedBiTRRT::getPlannerData(base::PlannerData& data) const

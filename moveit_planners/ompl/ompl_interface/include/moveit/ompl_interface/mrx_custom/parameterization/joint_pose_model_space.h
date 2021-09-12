@@ -39,11 +39,18 @@ public:
 class EllipsoidalSampler
 {
 public:
-  EllipsoidalSampler(const unsigned int n, const std::vector<double>& focus1, const std::vector<double>& focus2,
-                     JointPoseModelStateSpacePtr space);
+  EllipsoidalSampler(const unsigned int n, const std::vector<double>& start_point,
+                     const std::vector<double>& goal_point, JointPoseModelStateSpacePtr space);
 
   void setTraverseDiameter(const double diameter);
   void sampleUniform(ompl::base::State* state);
+  double getPathLength(ompl::base::State* state) const;
+
+  const std::vector<double>& getStartPoint() const;
+  const std::vector<double>& getGoalPoint() const;
+
+  double distanceFromStartPoint(const std::vector<double>& point) const;
+  double distanceFromGoalPoint(const std::vector<double>& point) const;
 
 private:
   JointPoseModelStateSpacePtr space_;
@@ -51,5 +58,7 @@ private:
   ompl::ProlateHyperspheroidPtr phs_ptr_;
   ompl::RNG rng_;
   double traverse_diameter_;
+  std::vector<double> start_point_;
+  std::vector<double> goal_point_;
 };
 }  // namespace ompl_interface

@@ -39,7 +39,7 @@
 
 #include <cmath>
 #include <ompl/geometric/planners/PlannerIncludes.h>
-#include <ompl/datastructures/NearestNeighbors.h>
+#include <ompl/datastructures/NearestNeighborsGNATNoThreadSafety.h>
 #include <ompl/base/OptimizationObjective.h>
 
 #include "moveit/ompl_interface/mrx_custom/parameterization/joint_pose_model_space.h"
@@ -169,16 +169,21 @@ public:
   }
 
   /// \brief Set a different nearest neighbors datastructure
-  template <template <typename T> class NN>
   void setNearestNeighbors()
   {
     if ((tStart_ && tStart_->size() != 0) || (tGoal_ && tGoal_->size() != 0))
       OMPL_WARN("Calling setNearestNeighbors will clear all states.");
     clear();
-    tStart_ = std::make_shared<NN<Motion*>>();
-    tGoal_ = std::make_shared<NN<Motion*>>();
+    tStart_ = std::make_shared<NearestNeighborsGNATNoThreadSafety<Motion*>>();
+    tGoal_ = std::make_shared<NearestNeighborsGNATNoThreadSafety<Motion*>>();
     setup();
   }
+
+  /// C-Forest && Informed sampler supports
+  ompl_interface::EllipsoidalSamplerPtr initSampler();
+  double getDiameter(const ompl::geometric::PathGeometricPtr& path) const;
+  void prune(const double diameter);
+  void addPath(const ompl::geometric::PathGeometricPtr& path);
 
 protected:
   /// \brief Representation of a motion in the search tree
@@ -214,7 +219,7 @@ protected:
 
   /// \brief The nearest-neighbors data structure that contains the
   /// entire the tree of motions generated during planning.
-  using TreeData = std::shared_ptr<NearestNeighbors<Motion*>>;
+  using TreeData = std::shared_ptr<NearestNeighborsGNATNoThreadSafety<Motion*>>;
 
   /// \brief Add a state to the given tree.  The motion created
   /// is returned.
