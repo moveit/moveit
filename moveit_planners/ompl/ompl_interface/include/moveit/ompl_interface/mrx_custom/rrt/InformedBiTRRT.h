@@ -181,9 +181,13 @@ public:
 
   /// C-Forest && Informed sampler supports
   ompl_interface::EllipsoidalSamplerPtr initSampler();
-  double getDiameter(const ompl::geometric::PathGeometricPtr& path) const;
+  double getDiameter(const ompl::base::PathPtr& path) const;
   void prune(const double diameter);
-  void addPath(const ompl::geometric::PathGeometricPtr& path);
+  void addPath(const ompl::base::PathPtr& path);
+  void checkSolutionUpdate();
+
+protected:
+  std::size_t num_solutions_;
 
 protected:
   /// \brief Representation of a motion in the search tree

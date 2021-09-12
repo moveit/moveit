@@ -351,6 +351,8 @@ bool ompl::geometric::InformedBiTRRT::connectTrees(Motion* nmotion, TreeData& tr
 
 ompl::base::PlannerStatus ompl::geometric::InformedBiTRRT::solve(const base::PlannerTerminationCondition& ptc)
 {
+  num_solutions_ = 0;
+
   // Basic error checking
   checkValidity();
 
@@ -470,6 +472,9 @@ ompl::base::PlannerStatus ompl::geometric::InformedBiTRRT::solve(const base::Pla
     }
 
     std::swap(tree, otherTree);
+
+    // C-Forest compatibility
+    checkSolutionUpdate();
   }
 
   joint_pose_space_->freeState(rstate);
@@ -496,11 +501,13 @@ ompl_interface::EllipsoidalSamplerPtr ompl::geometric::InformedBiTRRT::initSampl
   return std::make_shared<ompl_interface::EllipsoidalSampler>(dim, focus1, focus2, joint_pose_space_);
 }
 
-double ompl::geometric::InformedBiTRRT::getDiameter(const ompl::geometric::PathGeometricPtr& path) const
+double ompl::geometric::InformedBiTRRT::getDiameter(const ompl::base::PathPtr& path) const
 {
+  const auto pg = path->as<ompl::geometric::PathGeometric>();
+
   double diameter = std::numeric_limits<double>::min();
 
-  for (const auto state : path->getStates())
+  for (const auto state : pg->getStates())
   {
     const double pl = sampler_->getPathLength(state);
 
@@ -547,9 +554,9 @@ void ompl::geometric::InformedBiTRRT::prune(const double diameter)
   tGoal_->rebuildDataStructure();
 }
 
-void ompl::geometric::InformedBiTRRT::addPath(const ompl::geometric::PathGeometricPtr& path)
+void ompl::geometric::InformedBiTRRT::addPath(const ompl::base::PathPtr& path)
 {
-  const auto& states = path->getStates();
+  const auto& states = path->as<ompl::geometric::PathGeometric>()->getStates();
   std::vector<double> curr_point(joint_pose_space_->getNumPositions());
   auto* rmotion = new Motion(joint_pose_space_);
   Motion* result;
@@ -580,6 +587,30 @@ void ompl::geometric::InformedBiTRRT::addPath(const ompl::geometric::PathGeometr
 
     if (joint_pose_space_->distanceJoint(nearest->state, rmotion->state) > 1e-4)
       extendTree(nearest, tGoal_, rmotion, result);
+  }
+}
+
+void ompl::geometric::InformedBiTRRT::checkSolutionUpdate()
+{
+  const auto solutions = pdef_->getSolutions();
+
+  if (solutions.size() > 0 && solutions.size() != num_solutions_)
+  {
+    num_solutions_ = solutions.size();
+
+    std::vector<double> diameters;
+    std::transform(solutions.begin(), solutions.end(), std::back_inserter(diameters),
+                   [this](const ompl::base::PlannerSolution& sol) { return this->getDiameter(sol.path_); });
+
+    const auto min_it = std::min_element(diameters.begin(), diameters.end());
+    const size_t min_idx = std::distance(diameters.begin(), min_it);
+    const double min_diameter = *min_it;
+
+    sampler_->setTraverseDiameter(min_diameter);
+    addPath(solutions[min_idx].path_);
+
+    OMPL_INFORM("Solution updated. solution=[%zu/%zu]. Diameter=%lf. Path length=%lf.", min_idx, num_solutions_,
+                min_diameter, solutions[min_idx].path_->length());
   }
 }
 
