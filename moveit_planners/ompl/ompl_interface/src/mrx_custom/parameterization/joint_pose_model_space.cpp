@@ -76,6 +76,14 @@ void ompl_interface::JointPoseModelStateSpace::interpolate(const ompl::base::Sta
     ROS_ERROR("computeStateFK failed when interpolate!!");
 }
 
+void ompl_interface::JointPoseModelStateSpace::printPositions(const ompl::base::State* state, std::ostream& out) const
+{
+  std::vector<double> positions(getNumPositions());
+  copyPositionsToReals(positions, state);
+  Eigen::Map<Eigen::VectorXd> map(positions.data(), positions.size());
+  out << map;
+}
+
 ompl_interface::EllipsoidalSampler::EllipsoidalSampler(const unsigned int n, const std::vector<double>& start_point,
                                                        const std::vector<double>& goal_point,
                                                        JointPoseModelStateSpacePtr space)
@@ -143,4 +151,9 @@ double ompl_interface::EllipsoidalSampler::distanceFromGoalPoint(const std::vect
   Eigen::Map<const Eigen::VectorXd> goal_point(getGoalPoint().data(), getGoalPoint().size());
 
   return (curr_point - goal_point).norm();
+}
+
+double ompl_interface::EllipsoidalSampler::getMinTransverseDiameter() const
+{
+  return phs_ptr_->getMinTransverseDiameter();
 }

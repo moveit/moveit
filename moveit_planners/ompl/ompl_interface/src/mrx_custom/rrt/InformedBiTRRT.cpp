@@ -40,6 +40,7 @@
 #include <ompl/tools/config/MagicConstants.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/base/objectives/MechanicalWorkOptimizationObjective.h>
+#include <ompl/geometric/PathSimplifier.h>
 
 #include "moveit/ompl_interface/mrx_custom/rrt/InformedBiTRRT.h"
 
@@ -465,9 +466,17 @@ ompl::base::PlannerStatus ompl::geometric::InformedBiTRRT::solve(const base::Pla
         for (auto& i : mpath2)
           path->append(i->state);
 
-        pdef_->addSolutionPath(path, false, 0.0, getName());
-        solved = true;
-        break;
+        const std::size_t numStates = path->getStateCount();
+
+        PathSimplifier psk(si_, pdef_->getGoal(), pdef_->getOptimizationObjective());
+
+        if (psk.simplify(*path, ptc))
+        {
+          pdef_->addSolutionPath(path, false, 0.0, getName());
+          solved = true;
+          OMPL_INFORM("Path simplification changed from %d to %d states", numStates, path->getStateCount());
+          break;
+        }
       }
     }
 
@@ -498,7 +507,21 @@ ompl_interface::EllipsoidalSamplerPtr ompl::geometric::InformedBiTRRT::initSampl
   joint_pose_space_->copyPositionsToReals(focus1, starts[0]->state);
   joint_pose_space_->copyPositionsToReals(focus2, goals[0]->state);
 
-  return std::make_shared<ompl_interface::EllipsoidalSampler>(dim, focus1, focus2, joint_pose_space_);
+  auto sampler = std::make_shared<ompl_interface::EllipsoidalSampler>(dim, focus1, focus2, joint_pose_space_);
+
+  Eigen::Map<Eigen::VectorXd> start(focus1.data(), focus1.size());
+  Eigen::Map<Eigen::VectorXd> goal(focus2.data(), focus2.size());
+
+  std::stringstream ss;
+  ss << "Sampler" << std::endl
+     << "start :" << std::endl
+     << start << std::endl
+     << "goal :" << std::endl
+     << goal << std::endl
+     << "minTraverse : " << sampler->getMinTransverseDiameter();
+  OMPL_INFORM("%s", ss.str().c_str());
+
+  return sampler;
 }
 
 double ompl::geometric::InformedBiTRRT::getDiameter(const ompl::base::PathPtr& path) const
@@ -506,14 +529,24 @@ double ompl::geometric::InformedBiTRRT::getDiameter(const ompl::base::PathPtr& p
   const auto pg = path->as<ompl::geometric::PathGeometric>();
 
   double diameter = std::numeric_limits<double>::min();
+  ompl::base::State* max_state;
 
   for (const auto state : pg->getStates())
   {
     const double pl = sampler_->getPathLength(state);
 
     if (pl > diameter)
+    {
       diameter = pl;
+      max_state = state;
+    }
   }
+
+  std::stringstream ss;
+  ss << "Max Diameter : " << diameter << std::endl << " State :" << std::endl;
+  joint_pose_space_->printPositions(max_state, ss);
+
+  OMPL_INFORM("%s", ss.str().c_str());
 
   return diameter;
 }
@@ -521,6 +554,7 @@ double ompl::geometric::InformedBiTRRT::getDiameter(const ompl::base::PathPtr& p
 void ompl::geometric::InformedBiTRRT::prune(const double diameter)
 {
   std::vector<Motion*> motions;
+  size_t cnt = 0;
 
   if (tStart_)
     tStart_->list(motions);
@@ -530,9 +564,9 @@ void ompl::geometric::InformedBiTRRT::prune(const double diameter)
     if (sampler_->getPathLength(motion->state) > diameter)
     {
       if (!tStart_->remove(motion))
-      {
         OMPL_WARN("Remove motion in the tree failed.");
-      }
+      else
+        cnt++;
     }
   }
   tStart_->rebuildDataStructure();
@@ -546,12 +580,14 @@ void ompl::geometric::InformedBiTRRT::prune(const double diameter)
     if (sampler_->getPathLength(motion->state) > diameter)
     {
       if (!tGoal_->remove(motion))
-      {
         OMPL_WARN("Remove motion in the tree failed.");
-      }
+      else
+        cnt++;
     }
   }
   tGoal_->rebuildDataStructure();
+
+  OMPL_INFORM("Number of pruned states : %zu", cnt);
 }
 
 void ompl::geometric::InformedBiTRRT::addPath(const ompl::base::PathPtr& path)

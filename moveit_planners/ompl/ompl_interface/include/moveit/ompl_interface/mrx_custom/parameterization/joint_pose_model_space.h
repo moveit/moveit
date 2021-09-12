@@ -34,6 +34,8 @@ public:
 
   void interpolate(const ompl::base::State* from, const ompl::base::State* to, const double t,
                    ompl::base::State* state) const override;
+
+  void printPositions(const ompl::base::State* state, std::ostream& out) const;
 };
 
 class EllipsoidalSampler
@@ -51,6 +53,7 @@ public:
 
   double distanceFromStartPoint(const std::vector<double>& point) const;
   double distanceFromGoalPoint(const std::vector<double>& point) const;
+  double getMinTransverseDiameter() const;
 
 private:
   JointPoseModelStateSpacePtr space_;
