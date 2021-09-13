@@ -621,40 +621,53 @@ void ompl::geometric::InformedBiTRRT::prune(const double diameter)
   pruneImpl(diameter, tGoal_);
 }
 
-void ompl::geometric::InformedBiTRRT::addPath(const ompl::base::PathPtr& path)
+void ompl::geometric::InformedBiTRRT::addPathImpl(const ompl::base::PathPtr& path, TreeData& tree)
 {
+  const bool treeIsStart = tree == tStart_;
+
+  // Add states closer to one of both.
+  const auto comp_func =
+      treeIsStart ?
+          [](const ompl_interface::EllipsoidalSamplerPtr& sampler, const std::vector<double>& curr_point) {
+            return sampler->distanceFromStartPoint(curr_point) < sampler->distanceFromGoalPoint(curr_point);
+          } :
+          [](const ompl_interface::EllipsoidalSamplerPtr& sampler, const std::vector<double>& curr_point) {
+            return sampler->distanceFromStartPoint(curr_point) > sampler->distanceFromGoalPoint(curr_point);
+          };
+
   const auto& states = path->as<ompl::geometric::PathGeometric>()->getStates();
   std::vector<double> curr_point(joint_pose_space_->getNumPositions());
   auto* rmotion = new Motion(joint_pose_space_);
   Motion* result;
 
+  size_t cnt = 0;
+
   for (auto it = states.begin(); it != states.end(); it++)
   {
     joint_pose_space_->copyPositionsToReals(curr_point, *it);
 
-    if (sampler_->distanceFromStartPoint(curr_point) > sampler_->distanceFromGoalPoint(curr_point))
-      break;
+    if (comp_func(sampler_, curr_point))
+    {
+      joint_pose_space_->copyState(rmotion->state, *it);
+      Motion* nearest = tree->nearest(rmotion);
 
-    joint_pose_space_->copyState(rmotion->state, *it);
-    Motion* nearest = tStart_->nearest(rmotion);
-
-    if (joint_pose_space_->distanceJoint(nearest->state, rmotion->state) > 1e-4)
-      extendTree(nearest, tStart_, rmotion, result);
+      if (joint_pose_space_->distanceJoint(nearest->state, rmotion->state) > 1e-4)
+      {
+        extendTree(nearest, tree, rmotion, result);
+        cnt++;
+      }
+    }
   }
 
-  for (auto it = states.rbegin(); it != states.rend(); it++)
-  {
-    joint_pose_space_->copyPositionsToReals(curr_point, *it);
+  OMPL_INFORM("Add path states [%zu/%zu]", cnt, states.size());
+}
 
-    if (sampler_->distanceFromStartPoint(curr_point) <= sampler_->distanceFromGoalPoint(curr_point))
-      break;
-
-    joint_pose_space_->copyState(rmotion->state, *it);
-    Motion* nearest = tGoal_->nearest(rmotion);
-
-    if (joint_pose_space_->distanceJoint(nearest->state, rmotion->state) > 1e-4)
-      extendTree(nearest, tGoal_, rmotion, result);
-  }
+void ompl::geometric::InformedBiTRRT::addPath(const ompl::base::PathPtr& path)
+{
+  OMPL_INFORM("Start addPath tStart_");
+  addPathImpl(path, tStart_);
+  OMPL_INFORM("Start addPath tGoal_");
+  addPathImpl(path, tGoal_);
 }
 
 void ompl::geometric::InformedBiTRRT::checkSolutionUpdate()
@@ -674,7 +687,7 @@ void ompl::geometric::InformedBiTRRT::checkSolutionUpdate()
     const double min_diameter = *min_it;
 
     sampler_->setTraverseDiameter(min_diameter);
-    // addPath(solutions[min_idx].path_);
+    addPath(solutions[min_idx].path_);
     prune(min_diameter);
 
     OMPL_INFORM("Solution updated. solution=[%zu/%zu]. Diameter=%lf. Path length=%lf.", min_idx, num_solutions_,

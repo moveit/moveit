@@ -320,6 +320,7 @@ protected:
 
   void pruneImpl(const double diameter, TreeData& tree);
   void prune(const double diameter);
+  void addPathImpl(const ompl::base::PathPtr& path, TreeData& tree);
   void addPath(const ompl::base::PathPtr& path);
   void checkSolutionUpdate();
 };
