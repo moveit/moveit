@@ -179,16 +179,6 @@ public:
     setup();
   }
 
-  /// C-Forest && Informed sampler supports
-  ompl_interface::EllipsoidalSamplerPtr initSampler();
-  double getDiameter(const ompl::base::PathPtr& path) const;
-  void prune(const double diameter);
-  void addPath(const ompl::base::PathPtr& path);
-  void checkSolutionUpdate();
-
-protected:
-  std::size_t num_solutions_;
-
 protected:
   /// \brief Representation of a motion in the search tree
   class Motion
@@ -209,6 +199,9 @@ protected:
 
     /// \brief The parent motion in the exploration tree
     Motion* parent{ nullptr };
+
+    /// \brief Remove flag for prunning
+    bool remove_flag{ false };
 
     /// \brief Cost of the state
     base::Cost cost;
@@ -317,6 +310,18 @@ protected:
 
   /// \brief The objective (cost function) being optimized
   ompl::base::OptimizationObjectivePtr opt_;
+
+  /// C-Forest && Informed sampler supports
+
+  std::size_t num_solutions_;
+
+  ompl_interface::EllipsoidalSamplerPtr initSampler();
+  double getDiameter(const ompl::base::PathPtr& path) const;
+
+  void pruneImpl(const double diameter, TreeData& tree);
+  void prune(const double diameter);
+  void addPath(const ompl::base::PathPtr& path);
+  void checkSolutionUpdate();
 };
 }  // namespace geometric
 }  // namespace ompl

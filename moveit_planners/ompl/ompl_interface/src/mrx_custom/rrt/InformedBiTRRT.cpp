@@ -551,43 +551,74 @@ double ompl::geometric::InformedBiTRRT::getDiameter(const ompl::base::PathPtr& p
   return diameter;
 }
 
+void ompl::geometric::InformedBiTRRT::pruneImpl(const double diameter, TreeData& tree)
+{
+  constexpr double remove_flag = std::numeric_limits<double>::min();
+
+  std::vector<Motion*> motions, prev_motions, curr_motions;
+
+  if (tree)
+    tree->list(motions);
+
+  for (auto motion : motions)
+  {
+    if (sampler_->getPathLength(motion->state) > diameter)
+    {
+      if (motion->root != motion->state)
+        motion->remove_flag = true;
+    }
+  }
+  const auto func = [](const Motion* motion) { return !motion->remove_flag; };
+  std::copy_if(motions.begin(), motions.end(), std::back_inserter(prev_motions), func);
+
+  size_t prev_cnt, curr_cnt;
+  size_t iter = 1;
+  do
+  {
+    prev_cnt = prev_motions.size();
+
+    for (auto motion : prev_motions)
+    {
+      if (motion->root != motion->state)
+      {
+        if (motion->parent != nullptr && motion->parent->remove_flag)
+          motion->remove_flag = true;
+      }
+    }
+
+    curr_motions.clear();
+    std::copy_if(prev_motions.begin(), prev_motions.end(), std::back_inserter(curr_motions), func);
+
+    curr_cnt = curr_motions.size();
+    prev_motions = curr_motions;
+    OMPL_INFORM("Iter %zu. prev_cnt=%zu. curr_cnt=%zu.", iter++, prev_cnt, curr_cnt);
+  } while (prev_cnt != curr_cnt);
+
+  tree->clear();
+  tree->add(prev_motions);
+
+  size_t num_pruned = 0;
+  for (auto motion : motions)
+  {
+    if (motion->remove_flag)
+    {
+      if (motion->state != nullptr)
+        joint_pose_space_->freeState(motion->state);
+      delete motion;
+      num_pruned++;
+    }
+  }
+
+  OMPL_INFORM("Before prunning, num_states=%zu. After prunning, num_states=%zu. num_pruned=%zu", motions.size(),
+              prev_motions.size(), num_pruned);
+}
+
 void ompl::geometric::InformedBiTRRT::prune(const double diameter)
 {
-  std::vector<Motion*> motions;
-  size_t cnt = 0;
-
-  if (tStart_)
-    tStart_->list(motions);
-
-  for (auto motion : motions)
-  {
-    if (sampler_->getPathLength(motion->state) > diameter)
-    {
-      if (!tStart_->remove(motion))
-        OMPL_WARN("Remove motion in the tree failed.");
-      else
-        cnt++;
-    }
-  }
-  tStart_->rebuildDataStructure();
-
-  motions.clear();
-  if (tGoal_)
-    tGoal_->list(motions);
-
-  for (auto motion : motions)
-  {
-    if (sampler_->getPathLength(motion->state) > diameter)
-    {
-      if (!tGoal_->remove(motion))
-        OMPL_WARN("Remove motion in the tree failed.");
-      else
-        cnt++;
-    }
-  }
-  tGoal_->rebuildDataStructure();
-
-  OMPL_INFORM("Number of pruned states : %zu", cnt);
+  OMPL_INFORM("Start pruning tStart_");
+  pruneImpl(diameter, tStart_);
+  OMPL_INFORM("Start pruning tGoal_");
+  pruneImpl(diameter, tGoal_);
 }
 
 void ompl::geometric::InformedBiTRRT::addPath(const ompl::base::PathPtr& path)
