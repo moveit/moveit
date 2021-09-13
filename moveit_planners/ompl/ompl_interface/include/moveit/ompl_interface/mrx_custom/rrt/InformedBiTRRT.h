@@ -168,6 +168,52 @@ public:
     return frontierNodeRatio_;
   }
 
+  /// C-forest params
+
+  /// \brief Add path to the tree when a new solution is updated
+  void setCForestAddPath(const bool cforest_add_path)
+  {
+    cforest_add_path_ = cforest_add_path;
+  }
+
+  bool getCForestAddPath() const
+  {
+    return cforest_add_path_;
+  }
+
+  /// \brief Add path to the tree when a new solution is updated
+  void setCForestOptimalPathRule(const std::string& rule_name)
+  {
+    if (rule_name == "diameter")
+    {
+      cforest_opt_rule_ = OptimalPathRule::DIAMETER;
+    }
+    else if (rule_name == "cost")
+    {
+      cforest_opt_rule_ = OptimalPathRule::COST;
+    }
+    else
+    {
+      throw std::runtime_error("Unknown rule_name[" + rule_name + "].");
+    }
+  }
+
+  std::string getCForestOptimalPathRule() const
+  {
+    if (cforest_opt_rule_ == OptimalPathRule::DIAMETER)
+    {
+      return "diameter";
+    }
+    else if (cforest_opt_rule_ == OptimalPathRule::COST)
+    {
+      return "cost";
+    }
+    else
+    {
+      throw std::runtime_error("NotImplementError.");
+    }
+  }
+
   /// \brief Set a different nearest neighbors datastructure
   void setNearestNeighbors()
   {
@@ -314,6 +360,15 @@ protected:
   /// C-Forest && Informed sampler supports
 
   std::size_t num_solutions_;
+  bool cforest_add_path_{ true };
+
+  enum OptimalPathRule
+  {
+    DIAMETER,
+    COST
+  };
+
+  OptimalPathRule cforest_opt_rule_{ OptimalPathRule::DIAMETER };
 
   ompl_interface::EllipsoidalSamplerPtr initSampler();
   double getDiameter(const ompl::base::PathPtr& path) const;

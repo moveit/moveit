@@ -65,6 +65,13 @@ ompl::geometric::InformedBiTRRT::InformedBiTRRT(const base::SpaceInformationPtr&
                                 &InformedBiTRRT::getFrontierNodeRatio);
   Planner::declareParam<double>("cost_threshold", this, &InformedBiTRRT::setCostThreshold,
                                 &InformedBiTRRT::getCostThreshold);
+
+  // C-forest specific variables
+  Planner::declareParam<bool>("cforest_add_path", this, &InformedBiTRRT::setCForestAddPath,
+                              &InformedBiTRRT::getCForestAddPath, "0,1");
+
+  Planner::declareParam<std::string>("cforest_optimal_path_rule", this, &InformedBiTRRT::setCForestOptimalPathRule,
+                                     &InformedBiTRRT::getCForestOptimalPathRule);
 }
 
 ompl::geometric::InformedBiTRRT::~InformedBiTRRT()
@@ -682,16 +689,40 @@ void ompl::geometric::InformedBiTRRT::checkSolutionUpdate()
     std::transform(solutions.begin(), solutions.end(), std::back_inserter(diameters),
                    [this](const ompl::base::PlannerSolution& sol) { return this->getDiameter(sol.path_); });
 
-    const auto min_it = std::min_element(diameters.begin(), diameters.end());
-    const size_t min_idx = std::distance(diameters.begin(), min_it);
-    const double min_diameter = *min_it;
+    size_t min_idx;
 
-    sampler_->setTraverseDiameter(min_diameter);
-    addPath(solutions[min_idx].path_);
-    prune(min_diameter);
+    if (cforest_opt_rule_ == OptimalPathRule::DIAMETER)
+    {
+      const auto min_it = std::min_element(diameters.begin(), diameters.end());
+      min_idx = std::distance(diameters.begin(), min_it);
+    }
+    else if (cforest_opt_rule_ == OptimalPathRule::COST)
+    {
+      const auto min_it =
+          std::min_element(solutions.begin(), solutions.end(),
+                           [](const ompl::base::PlannerSolution& a, const ompl::base::PlannerSolution& b) {
+                             return a.cost_.value() < b.cost_.value();
+                           });
+      min_idx = std::distance(solutions.begin(), min_it);
+    }
+    else
+    {
+      throw std::runtime_error("NotImplementError");
+    }
 
-    OMPL_INFORM("Solution updated. solution=[%zu/%zu]. Diameter=%lf. Path length=%lf.", min_idx, num_solutions_,
-                min_diameter, solutions[min_idx].path_->length());
+    const double diameter = diameters[min_idx];
+
+    sampler_->setTraverseDiameter(diameter);
+
+    // Add path from the solution
+    if (cforest_add_path_)
+      addPath(solutions[min_idx].path_);
+
+    // Prune vertices in both trees by ellipsoid diameter.
+    prune(diameter);
+
+    OMPL_INFORM("Solution updated. solution=[%zu/%zu]. Diameter=%lf. Cost=%lf.", min_idx, num_solutions_, diameter,
+                solutions[min_idx].cost_.value());
   }
 }
 
