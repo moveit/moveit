@@ -479,7 +479,11 @@ ompl::base::PlannerStatus ompl::geometric::InformedBiTRRT::solve(const base::Pla
 
         if (psk.simplify(*path, ptc))
         {
-          pdef_->addSolutionPath(path, false, 0.0, getName());
+          ompl::base::PlannerSolution sol(path);
+          sol.setPlannerName(getName());
+          sol.setOptimized(opt_, path->cost(opt_), true);
+
+          pdef_->addSolutionPath(sol);
           solved = true;
           OMPL_INFORM("Path simplification changed from %d to %d states", numStates, path->getStateCount());
           break;
