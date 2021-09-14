@@ -41,7 +41,7 @@
 namespace trajectory_processing
 {
 static const double DEFAULT_VEL_MAX = 1.0;
-static const double DEFAULT_ACCEL_MAX = 1.0;
+static const double DEFAULT_ACCEL_MAX = 3.0;
 static const double ROUNDING_THRESHOLD = 0.01;
 
 IterativeParabolicTimeParameterization::IterativeParabolicTimeParameterization(unsigned int max_iterations,
