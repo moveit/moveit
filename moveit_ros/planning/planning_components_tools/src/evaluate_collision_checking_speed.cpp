@@ -34,40 +34,45 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
+#include <chrono>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 
-void runCollisionDetection(unsigned int id, unsigned int trials, const planning_scene::PlanningScene* scene,
-                           const moveit::core::RobotState* state)
+void runCollisionDetection(unsigned int trials, const planning_scene_monitor::LockedPlanningSceneRO& scene,
+                           moveit::core::RobotStatePtr& state)
 {
-  ROS_INFO("Starting thread %u", id);
+  ROS_INFO("Starting benchmark");
   collision_detection::CollisionRequest req;
-  ros::WallTime start = ros::WallTime::now();
+
+  auto duration = std::chrono::duration<double>::zero();
+
   for (unsigned int i = 0; i < trials; ++i)
   {
     collision_detection::CollisionResult res;
+    state->setToRandomPositions();
+
+    const auto start = std::chrono::system_clock::now();
     scene->checkCollision(req, res, *state);
+    duration += std::chrono::system_clock::now() - start;
   }
-  double duration = (ros::WallTime::now() - start).toSec();
-  ROS_INFO("Thread %u performed %lf collision checks per second", id, (double)trials / duration);
+
+  ROS_INFO("Performed %lf collision checks per second", (double)trials / duration.count());
 }
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "evaluate_collision_checking_speed");
 
-  unsigned int nthreads = 2;
+  unsigned int iters = 5;
   unsigned int trials = 10000;
   boost::program_options::options_description desc;
-  desc.add_options()("nthreads", boost::program_options::value<unsigned int>(&nthreads)->default_value(nthreads),
-                     "Number of threads to use")(
-      "trials", boost::program_options::value<unsigned int>(&trials)->default_value(trials),
-      "Number of collision checks to perform with each thread")("wait",
-                                                                "Wait for a user command (so the planning scene can be "
-                                                                "updated in thre background)")("help", "this screen");
+  desc.add_options()("trials", boost::program_options::value<unsigned int>(&trials)->default_value(trials),
+                     "Number of collision checks for each iteration")(
+      "iters", boost::program_options::value<unsigned int>(&iters)->default_value(iters),
+      "Number of iterations")("help", "this screen");
   boost::program_options::variables_map vm;
   boost::program_options::parsed_options po = boost::program_options::parse_command_line(argc, argv, desc);
   boost::program_options::store(po, vm);
@@ -82,49 +87,31 @@ int main(int argc, char** argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
-  if (psm.getPlanningScene())
+  auto psm = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>(ROBOT_DESCRIPTION);
+  psm->stopPublishingPlanningScene();
+  psm->stopSceneMonitor();
+  psm->stopStateMonitor();
+  psm->stopWorldGeometryMonitor();
+
+  if (psm->getPlanningScene())
   {
-    if (vm.count("wait"))
-    {
-      psm.startWorldGeometryMonitor();
-      psm.startSceneMonitor();
-      std::cout << "Listening to planning scene updates. Press Enter to continue ..." << std::endl;
-      std::cin.get();
-    }
-    else
-      ros::Duration(0.5).sleep();
+    if (!psm->requestPlanningSceneState())
+      throw std::runtime_error("Failed to request scene.");
 
-    std::vector<moveit::core::RobotStatePtr> states;
-    ROS_INFO("Sampling %u valid states...", nthreads);
-    for (unsigned int i = 0; i < nthreads; ++i)
+    planning_scene_monitor::LockedPlanningSceneRO ps(psm);
+
+    for (const auto& id : ps->getWorld()->getObjectIds())
     {
-      // sample a valid state
-      moveit::core::RobotState* state = new moveit::core::RobotState(psm.getPlanningScene()->getRobotModel());
-      collision_detection::CollisionRequest req;
-      do
-      {
-        state->setToRandomPositions();
-        state->update();
-        collision_detection::CollisionResult res;
-        psm.getPlanningScene()->checkCollision(req, res);
-        if (!res.collision)
-          break;
-      } while (true);
-      states.push_back(moveit::core::RobotStatePtr(state));
+      const size_t shape_size = ps->getWorld()->getObject(id)->shapes_.size();
+      ROS_INFO("id : %s, shape_size = %zu", id.c_str(), shape_size);
     }
 
-    std::vector<boost::thread*> threads;
+    moveit::core::RobotStatePtr state;
+    state.reset(new moveit::core::RobotState(ps->getRobotModel()));
+    state->setRandomNumberGenerator(3003);
 
-    for (unsigned int i = 0; i < states.size(); ++i)
-      threads.push_back(new boost::thread(
-          boost::bind(&runCollisionDetection, i, trials, psm.getPlanningScene().get(), states[i].get())));
-
-    for (unsigned int i = 0; i < states.size(); ++i)
-    {
-      threads[i]->join();
-      delete threads[i];
-    }
+    for (size_t i = 0; i < iters; i++)
+      runCollisionDetection(trials, ps, state);
   }
   else
     ROS_ERROR("Planning scene not configured");
