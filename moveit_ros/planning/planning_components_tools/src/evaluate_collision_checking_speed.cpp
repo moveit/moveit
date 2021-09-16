@@ -42,17 +42,23 @@
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 
 void runCollisionDetection(unsigned int trials, const planning_scene_monitor::LockedPlanningSceneRO& scene,
-                           moveit::core::RobotStatePtr& state)
+                           moveit::core::RobotStatePtr& state, const moveit::core::JointModelGroup* jmg)
 {
   ROS_INFO("Starting benchmark");
   collision_detection::CollisionRequest req;
+  if (jmg != nullptr)
+    req.group_name = jmg->getName();
 
   auto duration = std::chrono::duration<double>::zero();
 
   for (unsigned int i = 0; i < trials; ++i)
   {
     collision_detection::CollisionResult res;
-    state->setToRandomPositions();
+
+    if (jmg == nullptr)
+      state->setToRandomPositions();
+    else
+      state->setToRandomPositions(jmg);
 
     const auto start = std::chrono::system_clock::now();
     scene->checkCollision(req, res, *state);
@@ -68,11 +74,13 @@ int main(int argc, char** argv)
 
   unsigned int iters = 5;
   unsigned int trials = 10000;
+  std::string group_name("");
   boost::program_options::options_description desc;
   desc.add_options()("trials", boost::program_options::value<unsigned int>(&trials)->default_value(trials),
                      "Number of collision checks for each iteration")(
-      "iters", boost::program_options::value<unsigned int>(&iters)->default_value(iters),
-      "Number of iterations")("help", "this screen");
+      "iters", boost::program_options::value<unsigned int>(&iters)->default_value(iters), "Number of iterations")(
+      "groupname", boost::program_options::value<std::string>(&group_name)->default_value(group_name),
+      "Joint group name")("help", "this screen");
   boost::program_options::variables_map vm;
   boost::program_options::parsed_options po = boost::program_options::parse_command_line(argc, argv, desc);
   boost::program_options::store(po, vm);
@@ -110,8 +118,15 @@ int main(int argc, char** argv)
     state.reset(new moveit::core::RobotState(ps->getRobotModel()));
     state->setRandomNumberGenerator(3003);
 
+    const moveit::core::JointModelGroup* jmg = nullptr;
+
+    if (group_name != "")
+      jmg = state->getJointModelGroup(group_name);
+
+    ROS_INFO_COND(jmg != nullptr, "Group name : %s, JMG name : %s", group_name.c_str(), jmg->getName().c_str());
+
     for (size_t i = 0; i < iters; i++)
-      runCollisionDetection(trials, ps, state);
+      runCollisionDetection(trials, ps, state, jmg);
   }
   else
     ROS_ERROR("Planning scene not configured");
