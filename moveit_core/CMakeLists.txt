@@ -51,6 +51,7 @@ else()
 endif()
 
 find_package(octomap REQUIRED)
+find_package(ruckig REQUIRED)
 find_package(urdfdom REQUIRED)
 find_package(urdfdom_headers REQUIRED)
 
@@ -168,6 +169,7 @@ catkin_package(
     EIGEN3
     LIBFCL
     OCTOMAP
+    ruckig
     urdfdom
     urdfdom_headers
     ${BULLET_ENABLE}

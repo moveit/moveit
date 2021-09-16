@@ -38,6 +38,7 @@
 
   <class name="default_planner_request_adapters/AddIterativeSplineParameterization" type="default_planner_request_adapters::AddIterativeSplineParameterization" base_class_type="planning_request_adapter::PlanningRequestAdapter">
     <description>
+      A deprecated time parameterization algorithm.
     </description>
   </class>
 
@@ -50,6 +51,12 @@
   <class name="default_planner_request_adapters/LimitMaxCartesianLinkSpeed" type="default_planner_request_adapters::LimitMaxCartesianLinkSpeed" base_class_type="planning_request_adapter::PlanningRequestAdapter">
     <description>
       Reparameterize the trajectory to keep it below a desired Cartesian speed for a given link, e.g., the end effector.
+    </description>
+  </class>
+
+  <class name="default_planner_request_adapters/AddRuckigTrajectorySmoothing" type="default_planner_request_adapters::AddRuckigTrajectorySmoothing" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+    <description>
+      Adds jerk-limited trajectory smoothing via ruckig. Best used after a time parameterization algorithm such as TimeOptimalParameterization.
     </description>
   </class>
 

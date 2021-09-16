@@ -3,13 +3,14 @@ set(MOVEIT_LIB_NAME moveit_trajectory_processing)
 add_library(${MOVEIT_LIB_NAME}
   src/iterative_time_parameterization.cpp
   src/iterative_spline_parameterization.cpp
+  src/ruckig_traj_smoothing.cpp
   src/trajectory_tools.cpp
   src/time_optimal_trajectory_generation.cpp
   src/limit_cartesian_speed.cpp
 )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
-target_link_libraries(${MOVEIT_LIB_NAME} moveit_robot_state moveit_robot_trajectory ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${MOVEIT_LIB_NAME} moveit_robot_state moveit_robot_trajectory ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES} ruckig::ruckig)
 add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 
 install(TARGETS ${MOVEIT_LIB_NAME}
