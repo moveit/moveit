@@ -1714,6 +1714,16 @@ public:
     return *rng_;
   }
 
+  void setRandomNumberGenerator(const int seed)
+  {
+    if (rng_)
+    {
+      delete rng_;
+    }
+
+    rng_ = new random_numbers::RandomNumberGenerator(seed);
+  }
+
   /** \brief Get the transformation matrix from the model frame (root of model) to the frame identified by \e frame_id
    *
    * If frame_id was not found, \e frame_found is set to false and an identity transform is returned.
