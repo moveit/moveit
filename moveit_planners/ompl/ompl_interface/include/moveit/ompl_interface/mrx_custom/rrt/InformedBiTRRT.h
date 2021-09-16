@@ -214,6 +214,16 @@ public:
     }
   }
 
+  void setInitialDiameterMultiplier(double multiplier)
+  {
+    initial_diameter_multiplier_ = multiplier;
+  }
+
+  double getInitialDiameterMultiplier() const
+  {
+    return initial_diameter_multiplier_;
+  }
+
   /// \brief Set a different nearest neighbors datastructure
   void setNearestNeighbors()
   {
@@ -361,6 +371,7 @@ protected:
 
   std::size_t num_solutions_;
   bool cforest_add_path_{ true };
+  double initial_diameter_multiplier_{ 0.0 };
 
   enum OptimalPathRule
   {

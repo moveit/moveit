@@ -72,6 +72,8 @@ ompl::geometric::InformedBiTRRT::InformedBiTRRT(const base::SpaceInformationPtr&
 
   Planner::declareParam<std::string>("cforest_optimal_path_rule", this, &InformedBiTRRT::setCForestOptimalPathRule,
                                      &InformedBiTRRT::getCForestOptimalPathRule);
+  Planner::declareParam<double>("initial_diameter_multiplier", this, &InformedBiTRRT::setInitialDiameterMultiplier,
+                                &InformedBiTRRT::getInitialDiameterMultiplier);
 }
 
 ompl::geometric::InformedBiTRRT::~InformedBiTRRT()
@@ -148,6 +150,7 @@ void ompl::geometric::InformedBiTRRT::setup()
     sc.configurePlannerRange(maxDistance_);
     maxDistance_ *= magic::COST_MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
   }
+  OMPL_INFORM("maxDistance_ : %lf", maxDistance_);
 
   // Configuring nearest neighbors structures for the planning trees
   if (!tStart_)
@@ -173,7 +176,7 @@ void ompl::geometric::InformedBiTRRT::setup()
   if (frontierThreshold_ < std::numeric_limits<double>::epsilon())
   {
     frontierThreshold_ = joint_pose_space_->getMaximumExtent() * 0.01;
-    OMPL_DEBUG("%s: Frontier threshold detected to be %lf", getName().c_str(), frontierThreshold_);
+    OMPL_INFORM("%s: Frontier threshold detected to be %lf", getName().c_str(), frontierThreshold_);
   }
 
   // initialize TRRT specific variables
@@ -531,6 +534,13 @@ ompl_interface::EllipsoidalSamplerPtr ompl::geometric::InformedBiTRRT::initSampl
      << goal << std::endl
      << "minTraverse : " << sampler->getMinTransverseDiameter();
   OMPL_INFORM("%s", ss.str().c_str());
+
+  if (initial_diameter_multiplier_ > 0)
+  {
+    const double diameter = sampler->getMinTransverseDiameter() * initial_diameter_multiplier_;
+    sampler->setTraverseDiameter(diameter);
+    OMPL_INFORM("Set traverse diameter=%lf. Initial diameter multiplier=%lf.", diameter, initial_diameter_multiplier_);
+  }
 
   return sampler;
 }
