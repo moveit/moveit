@@ -117,7 +117,11 @@ void ompl_interface::EllipsoidalSampler::sampleUniform(ompl::base::State* state)
   rng_.uniformProlateHyperspheroid(phs_ptr_, &informedVector[0]);
 
   // Update positions
-  space_->copyPositionsFromReals(state, informedVector);
+  const bool updated = space_->copyPositionsFromReals(state, informedVector);
+
+  // If fail, sample from base sampler
+  if (!updated)
+    base_sampler_->sampleUniform(state);
 }
 
 double ompl_interface::EllipsoidalSampler::getPathLength(ompl::base::State* state) const
