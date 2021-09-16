@@ -274,16 +274,12 @@ ompl::geometric::InformedBiTRRT::extendTree(Motion* nearest, TreeData& tree, Mot
   // si_->checkMotion assumes that the first argument is valid, so we must check this explicitly
   // If the motion is valid, check the probabilistic transition test and the
   // expansion control to ensure high quality nodes are added.
-  const bool validMotionOnly =
+  bool validMotion =
       (tree == tStart_ ? si_->checkMotion(nearest->state, toMotion->state) :
-                         si_->isValid(toMotion->state) && si_->checkMotion(toMotion->state, nearest->state));
-  const bool transition = transitionTest(tree == tStart_ ? opt_->motionCost(nearest->state, toMotion->state) :
-                                                           opt_->motionCost(toMotion->state, nearest->state));
-  const bool expansion = minExpansionControl(d);
-  bool validMotion = validMotionOnly && transition && expansion;
-
-  if (validMotionOnly && !validMotion)
-    OMPL_WARN("motion check is valid but not valid [%d, %d].", transition, expansion);
+                         si_->isValid(toMotion->state) && si_->checkMotion(toMotion->state, nearest->state)) &&
+      transitionTest(tree == tStart_ ? opt_->motionCost(nearest->state, toMotion->state) :
+                                       opt_->motionCost(toMotion->state, nearest->state)) &&
+      minExpansionControl(d);
 
   if (validMotion)
   {
