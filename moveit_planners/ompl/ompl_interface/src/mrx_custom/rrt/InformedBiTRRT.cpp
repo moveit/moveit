@@ -72,6 +72,8 @@ ompl::geometric::InformedBiTRRT::InformedBiTRRT(const base::SpaceInformationPtr&
 
   Planner::declareParam<std::string>("cforest_optimal_path_rule", this, &InformedBiTRRT::setCForestOptimalPathRule,
                                      &InformedBiTRRT::getCForestOptimalPathRule);
+  Planner::declareParam<double>("initial_diameter_multiplier", this, &InformedBiTRRT::setInitialDiameterMultiplier,
+                                &InformedBiTRRT::getInitialDiameterMultiplier);
 }
 
 ompl::geometric::InformedBiTRRT::~InformedBiTRRT()
@@ -148,6 +150,7 @@ void ompl::geometric::InformedBiTRRT::setup()
     sc.configurePlannerRange(maxDistance_);
     maxDistance_ *= magic::COST_MAX_MOTION_LENGTH_AS_SPACE_EXTENT_FRACTION;
   }
+  OMPL_INFORM("maxDistance_ : %lf", maxDistance_);
 
   // Configuring nearest neighbors structures for the planning trees
   if (!tStart_)
@@ -173,7 +176,7 @@ void ompl::geometric::InformedBiTRRT::setup()
   if (frontierThreshold_ < std::numeric_limits<double>::epsilon())
   {
     frontierThreshold_ = joint_pose_space_->getMaximumExtent() * 0.01;
-    OMPL_DEBUG("%s: Frontier threshold detected to be %lf", getName().c_str(), frontierThreshold_);
+    OMPL_INFORM("%s: Frontier threshold detected to be %lf", getName().c_str(), frontierThreshold_);
   }
 
   // initialize TRRT specific variables
@@ -271,12 +274,16 @@ ompl::geometric::InformedBiTRRT::extendTree(Motion* nearest, TreeData& tree, Mot
   // si_->checkMotion assumes that the first argument is valid, so we must check this explicitly
   // If the motion is valid, check the probabilistic transition test and the
   // expansion control to ensure high quality nodes are added.
-  bool validMotion =
+  const bool validMotionOnly =
       (tree == tStart_ ? si_->checkMotion(nearest->state, toMotion->state) :
-                         si_->isValid(toMotion->state) && si_->checkMotion(toMotion->state, nearest->state)) &&
-      transitionTest(tree == tStart_ ? opt_->motionCost(nearest->state, toMotion->state) :
-                                       opt_->motionCost(toMotion->state, nearest->state)) &&
-      minExpansionControl(d);
+                         si_->isValid(toMotion->state) && si_->checkMotion(toMotion->state, nearest->state));
+  const bool transition = transitionTest(tree == tStart_ ? opt_->motionCost(nearest->state, toMotion->state) :
+                                                           opt_->motionCost(toMotion->state, nearest->state));
+  const bool expansion = minExpansionControl(d);
+  bool validMotion = validMotionOnly && transition && expansion;
+
+  if (validMotionOnly && !validMotion)
+    OMPL_WARN("motion check is valid but not valid [%d, %d].", transition, expansion);
 
   if (validMotion)
   {
@@ -531,6 +538,13 @@ ompl_interface::EllipsoidalSamplerPtr ompl::geometric::InformedBiTRRT::initSampl
      << goal << std::endl
      << "minTraverse : " << sampler->getMinTransverseDiameter();
   OMPL_INFORM("%s", ss.str().c_str());
+
+  if (initial_diameter_multiplier_ > 0)
+  {
+    const double diameter = sampler->getMinTransverseDiameter() * initial_diameter_multiplier_;
+    sampler->setTraverseDiameter(diameter);
+    OMPL_INFORM("Set traverse diameter=%lf. Initial diameter multiplier=%lf.", diameter, initial_diameter_multiplier_);
+  }
 
   return sampler;
 }
