@@ -228,6 +228,16 @@ void MotionPlanningDisplay::onInitialize()
 
   rviz::WindowManagerInterface* window_context = context_->getWindowManager();
   frame_ = new MotionPlanningFrame(this, context_, window_context ? window_context->getParentWindow() : nullptr);
+
+  ros::NodeHandle move_group_nh(ros::names::append(getMoveGroupNS(), "move_group"));
+  std::string param_name;
+  std::string host_param;
+  int port;
+  if (move_group_nh.searchParam("warehouse_host", param_name) && move_group_nh.getParam(param_name, host_param))
+    frame_->ui_->database_host->setText(QString::fromStdString(host_param));
+  if (move_group_nh.searchParam("warehouse_port", param_name) && move_group_nh.getParam(param_name, port))
+    frame_->ui_->database_port->setValue(port);
+
   connect(frame_, SIGNAL(configChanged()), this->getModel(), SIGNAL(configChanged()));
   resetStatusTextColor();
   addStatusText("Initialized.");
@@ -1313,19 +1323,6 @@ void MotionPlanningDisplay::load(const rviz::Config& config)
   PlanningSceneDisplay::load(config);
   if (frame_)
   {
-    QString host;
-    ros::NodeHandle nh;
-    std::string host_param;
-    if (config.mapGetString("MoveIt_Warehouse_Host", &host))
-      frame_->ui_->database_host->setText(host);
-    else if (nh.getParam("warehouse_host", host_param))
-    {
-      host = QString::fromStdString(host_param);
-      frame_->ui_->database_host->setText(host);
-    }
-    int port;
-    if (config.mapGetInt("MoveIt_Warehouse_Port", &port) || nh.getParam("warehouse_port", port))
-      frame_->ui_->database_port->setValue(port);
     float d;
     if (config.mapGetFloat("MoveIt_Planning_Time", &d))
       frame_->ui_->planning_time->setValue(d);
@@ -1373,8 +1370,7 @@ void MotionPlanningDisplay::load(const rviz::Config& config)
     }
     else
     {
-      std::string node_name = ros::names::append(getMoveGroupNS(), "move_group");
-      ros::NodeHandle nh(node_name);
+      ros::NodeHandle nh(ros::names::append(getMoveGroupNS(), "move_group"));
       double val;
       if (nh.getParam("default_workspace_bounds", val))
       {
@@ -1391,9 +1387,6 @@ void MotionPlanningDisplay::save(rviz::Config config) const
   PlanningSceneDisplay::save(config);
   if (frame_)
   {
-    config.mapSetValue("MoveIt_Warehouse_Host", frame_->ui_->database_host->text());
-    config.mapSetValue("MoveIt_Warehouse_Port", frame_->ui_->database_port->value());
-
     // "Options" Section
     config.mapSetValue("MoveIt_Planning_Time", frame_->ui_->planning_time->value());
     config.mapSetValue("MoveIt_Planning_Attempts", frame_->ui_->planning_attempts->value());

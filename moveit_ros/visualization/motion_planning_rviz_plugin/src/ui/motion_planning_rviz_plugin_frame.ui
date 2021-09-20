@@ -147,7 +147,7 @@
           <item>
            <widget class="QLineEdit" name="database_host">
             <property name="text">
-             <string>127.0.0.1</string>
+             <string></string>
             </property>
            </widget>
           </item>
@@ -164,7 +164,7 @@
              <number>65535</number>
             </property>
             <property name="value">
-             <number>33829</number>
+             <number>0</number>
             </property>
            </widget>
           </item>
