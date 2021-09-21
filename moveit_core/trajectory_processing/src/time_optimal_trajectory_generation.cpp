@@ -937,15 +937,16 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
     max_velocity[j] = 1.0;
     if (bounds.velocity_bounded_)
     {
-      max_velocity[j] = std::min(fabs(bounds.max_velocity_), fabs(bounds.min_velocity_)) * velocity_scaling_factor;
+      max_velocity[j] =
+          std::min(std::fabs(bounds.max_velocity_), std::fabs(bounds.min_velocity_)) * velocity_scaling_factor;
       max_velocity[j] = std::max(0.01, max_velocity[j]);
     }
 
     max_acceleration[j] = 1.0;
     if (bounds.acceleration_bounded_)
     {
-      max_acceleration[j] =
-          std::min(fabs(bounds.max_acceleration_), fabs(bounds.min_acceleration_)) * acceleration_scaling_factor;
+      max_acceleration[j] = std::min(std::fabs(bounds.max_acceleration_), std::fabs(bounds.min_acceleration_)) *
+                            acceleration_scaling_factor;
       max_acceleration[j] = std::max(0.01, max_acceleration[j]);
     }
   }
@@ -963,7 +964,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
     {
       new_point[j] = waypoint->getVariablePosition(idx[j]);
       // If any joint angle is different, it's a unique waypoint
-      if (p > 0 && fabs(new_point[j] - points.back()[j]) > min_angle_change_)
+      if (p > 0 && std::fabs(new_point[j] - points.back()[j]) > min_angle_change_)
       {
         diverse_point = true;
         break;
