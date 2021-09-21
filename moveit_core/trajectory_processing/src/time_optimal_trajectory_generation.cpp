@@ -959,11 +959,15 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
     Eigen::VectorXd new_point(num_joints);
     bool diverse_point = (p == 0);
 
-    for (size_t j = 0; j < num_joints; j++)
+    for (size_t j = 0; j < num_joints; ++j)
     {
       new_point[j] = waypoint->getVariablePosition(idx[j]);
-      if (p > 0 && std::abs(new_point[j] - points.back()[j]) > min_angle_change_)
+      // If any joint angle is different, it's a unique waypoint
+      if (p > 0 && fabs(new_point[j] - points.back()[j]) > min_angle_change_)
+      {
         diverse_point = true;
+        break;
+      }
     }
 
     if (diverse_point)
