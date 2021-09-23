@@ -143,9 +143,9 @@ void RobotStateVisualization::updateHelper(const moveit::core::RobotStateConstPt
     {
       // TODO(felixvd/simonschmeisser): Make this cached instead of reading from disk at every loop
       const auto& mesh = shapes::createMeshFromResource(
-          attached_body->getVisualGeometryUrl(), Eigen::Vector3d(attached_body_visual_geometry_mesh_scaling_factor_,
-                                                                 attached_body_visual_geometry_mesh_scaling_factor_,
-                                                                 attached_body_visual_geometry_mesh_scaling_factor_));
+          attached_body->getVisualGeometryUrl(), Eigen::Vector3d(attached_body->getVisualGeometryScalingFactor(),
+                                                                 attached_body->getVisualGeometryScalingFactor(),
+                                                                 attached_body->getVisualGeometryScalingFactor()));
       render_shapes_->renderShape(link->getVisualNode(), mesh,
                                   attached_body->getPose() * attached_body->getVisualGeometryPose(),
                                   octree_voxel_render_mode_, octree_voxel_color_mode_, rcolor, alpha);
@@ -190,12 +190,6 @@ void RobotStateVisualization::setCollisionVisible(bool visible)
 {
   collision_visible_ = visible;
   robot_.setCollisionVisible(visible);
-}
-
-void RobotStateVisualization::setAttachedBodyVisualGeometryScalingFactor(
-    float attached_body_visual_geometry_mesh_scaling_factor)
-{
-  attached_body_visual_geometry_mesh_scaling_factor_ = attached_body_visual_geometry_mesh_scaling_factor;
 }
 
 void RobotStateVisualization::setAlpha(float alpha)

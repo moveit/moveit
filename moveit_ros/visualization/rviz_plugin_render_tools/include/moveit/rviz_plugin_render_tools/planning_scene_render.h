@@ -106,7 +106,6 @@ private:
   rviz::DisplayContext* context_;
   RenderShapesPtr render_shapes_;
   RobotStateVisualizationPtr scene_robot_;
-  float mesh_scaling_factor_;
   bool visual_visible_;
   bool collision_visible_;
 };

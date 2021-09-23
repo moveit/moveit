@@ -68,7 +68,8 @@ public:
                const std::set<std::string>& touch_links, const trajectory_msgs::JointTrajectory& detach_posture,
                const moveit::core::FixedTransformsMap& subframe_poses = moveit::core::FixedTransformsMap(),
                const std::string& visual_geometry_mesh_url = "",
-               const Eigen::Isometry3d& visual_geometry_pose = Eigen::Isometry3d::Identity());
+               const Eigen::Isometry3d& visual_geometry_pose = Eigen::Isometry3d::Identity(),
+               double visual_geometry_mesh_scaling_factor = 1.0);
 
   ~AttachedBody();
 
@@ -221,6 +222,12 @@ public:
     return visual_geometry_pose_;
   }
 
+  /** \brief Get the scaling factor applied to the visual geometry */
+  double getVisualGeometryScalingFactor() const
+  {
+    return visual_geometry_mesh_scaling_factor_;
+  }
+
   /** \brief Recompute global_collision_body_transform given the transform of the parent link */
   void computeTransform(const Eigen::Isometry3d& parent_link_global_transform);
 
@@ -243,6 +250,9 @@ private:
 
   /** \brief The pose of the visual geometry (mesh). */
   Eigen::Isometry3d visual_geometry_pose_;
+
+  /** \brief The scaling factor applied to the visual geometry (mesh). */
+  double visual_geometry_mesh_scaling_factor_;
 
   /** \brief The geometries of the attached body */
   std::vector<shapes::ShapeConstPtr> shapes_;

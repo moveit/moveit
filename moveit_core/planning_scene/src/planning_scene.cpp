@@ -462,7 +462,8 @@ void PlanningScene::pushDiffs(const PlanningScenePtr& scene)
           scene->setObjectType(it.first, getObjectType(it.first));
 
         scene->world_->setSubframesOfObject(obj.id_, obj.subframe_poses_);
-        scene->world_->setObjectVisualGeometry(obj.id_, obj.visual_geometry_mesh_url_, obj.visual_geometry_pose_);
+        scene->world_->setObjectVisualGeometry(obj.id_, obj.visual_geometry_mesh_url_, obj.visual_geometry_pose_,
+                                               obj.visual_geometry_mesh_scaling_factor_);
       }
     }
   }
@@ -793,6 +794,7 @@ bool PlanningScene::getCollisionObjectMsg(moveit_msgs::CollisionObject& collisio
   }
   collision_obj.visual_geometry_mesh_url = obj->visual_geometry_mesh_url_;
   collision_obj.visual_geometry_pose = tf2::toMsg(obj->visual_geometry_pose_);
+  collision_obj.visual_geometry_mesh_scaling_factor = obj->visual_geometry_mesh_scaling_factor_;
 
   return true;
 }
@@ -1483,6 +1485,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
       Eigen::Isometry3d object_pose_in_link;
       std::string visual_geometry_mesh_url;
       Eigen::Isometry3d visual_geometry_pose;
+      double visual_geometry_mesh_scaling_factor;
       std::vector<shapes::ShapeConstPtr> shapes;
       EigenSTL::vector_Isometry3d shape_poses;
       moveit::core::FixedTransformsMap subframe_poses;
@@ -1504,6 +1507,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
           subframe_poses = obj_in_world->subframe_poses_;
           visual_geometry_mesh_url = obj_in_world->visual_geometry_mesh_url_;
           visual_geometry_pose = obj_in_world->visual_geometry_pose_;
+          visual_geometry_mesh_scaling_factor = obj_in_world->visual_geometry_mesh_scaling_factor_;
         }
         else
         {
@@ -1534,6 +1538,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
 
         visual_geometry_mesh_url = object.object.visual_geometry_mesh_url;
         PlanningScene::poseMsgToEigen(object.object.visual_geometry_pose, visual_geometry_pose);
+        visual_geometry_mesh_scaling_factor = object.object.visual_geometry_mesh_scaling_factor;
       }
 
       if (shapes.empty())
@@ -1571,7 +1576,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
 
         robot_state_->attachBody(object.object.id, object_pose_in_link, shapes, shape_poses, object.touch_links,
                                  object.link_name, object.detach_posture, subframe_poses, visual_geometry_mesh_url,
-                                 visual_geometry_pose);
+                                 visual_geometry_pose, visual_geometry_mesh_scaling_factor);
         ROS_DEBUG_NAMED(LOGNAME, "Attached object '%s' to link '%s'", object.object.id.c_str(),
                         object.link_name.c_str());
       }
@@ -1597,17 +1602,19 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         {
           visual_geometry_mesh_url = object.object.visual_geometry_mesh_url;
           PlanningScene::poseMsgToEigen(object.object.visual_geometry_pose, visual_geometry_pose);
+          visual_geometry_mesh_scaling_factor = object.object.visual_geometry_mesh_scaling_factor;
         }
         else
         {
           visual_geometry_mesh_url = "";
           visual_geometry_pose = Eigen::Isometry3d::Identity();
+          visual_geometry_mesh_scaling_factor = 1.0;
         }
 
         robot_state_->clearAttachedBody(object.object.id);
         robot_state_->attachBody(object.object.id, object_pose_in_link, shapes, shape_poses, touch_links,
                                  object.link_name, detach_posture, subframe_poses, visual_geometry_mesh_url,
-                                 visual_geometry_pose);
+                                 visual_geometry_pose, visual_geometry_mesh_scaling_factor);
         ROS_DEBUG_NAMED(LOGNAME, "Appended things to object '%s' attached to link '%s'", object.object.id.c_str(),
                         object.link_name.c_str());
       }
@@ -1661,7 +1668,8 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         world_->addToObject(name, pose, attached_body->getShapes(), attached_body->getShapePoses());
         world_->setSubframesOfObject(name, attached_body->getSubframes());
         world_->setObjectVisualGeometry(name, attached_body->getVisualGeometryUrl(),
-                                        attached_body->getVisualGeometryPose());
+                                        attached_body->getVisualGeometryPose(),
+                                        attached_body->getVisualGeometryScalingFactor());
         ROS_DEBUG_NAMED(LOGNAME, "Detached object '%s' from link '%s' and added it back in the collision world",
                         name.c_str(), object.link_name.c_str());
       }
@@ -1855,7 +1863,8 @@ bool PlanningScene::processCollisionObjectAdd(const moveit_msgs::CollisionObject
     ROS_WARN_NAMED(LOGNAME, "DEBUG 1");
     Eigen::Isometry3d visual_geometry_pose;
     PlanningScene::poseMsgToEigen(object.visual_geometry_pose, visual_geometry_pose);
-    world_->setObjectVisualGeometry(object.id, object.visual_geometry_mesh_url, visual_geometry_pose);
+    world_->setObjectVisualGeometry(object.id, object.visual_geometry_mesh_url, visual_geometry_pose,
+                                    object.visual_geometry_mesh_scaling_factor);
   }
   return true;
 }

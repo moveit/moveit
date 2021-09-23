@@ -338,7 +338,7 @@ bool World::setSubframesOfObject(const std::string& object_id, const moveit::cor
 }
 
 bool World::setObjectVisualGeometry(const std::string& object_id, const std::string& mesh_url,
-                                    const Eigen::Isometry3d& visual_geometry_pose)
+                                    const Eigen::Isometry3d& visual_geometry_pose, double mesh_scaling_factor)
 {
   ASSERT_ISOMETRY(visual_geometry_pose);  // unsanitized input, could contain a non-isometry
   ObjectPtr& obj = objects_[object_id];
@@ -351,6 +351,7 @@ bool World::setObjectVisualGeometry(const std::string& object_id, const std::str
   ensureUnique(obj);
   obj->visual_geometry_mesh_url_ = mesh_url;
   obj->visual_geometry_pose_ = visual_geometry_pose;
+  obj->visual_geometry_mesh_scaling_factor_ = mesh_scaling_factor;
   notify(obj, Action(action));
   return true;
 }

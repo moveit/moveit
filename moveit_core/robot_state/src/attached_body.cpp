@@ -48,7 +48,7 @@ AttachedBody::AttachedBody(const LinkModel* parent, const std::string& id, const
                            const EigenSTL::vector_Isometry3d& shape_poses, const std::set<std::string>& touch_links,
                            const trajectory_msgs::JointTrajectory& detach_posture,
                            const FixedTransformsMap& subframe_poses, const std::string& visual_geometry_mesh_url,
-                           const Eigen::Isometry3d& visual_geometry_pose)
+                           const Eigen::Isometry3d& visual_geometry_pose, double visual_geometry_mesh_scaling_factor)
   : parent_link_model_(parent)
   , id_(id)
   , pose_(pose)
@@ -60,6 +60,7 @@ AttachedBody::AttachedBody(const LinkModel* parent, const std::string& id, const
   , global_subframe_poses_(subframe_poses)
   , visual_geometry_mesh_url_(visual_geometry_mesh_url)
   , visual_geometry_pose_(visual_geometry_pose)
+  , visual_geometry_mesh_scaling_factor_(visual_geometry_mesh_scaling_factor)
 {
   ASSERT_ISOMETRY(pose)  // unsanitized input, could contain a non-isometry
   for (const auto& t : shape_poses_)

@@ -1004,11 +1004,12 @@ void RobotState::attachBody(const std::string& id, const Eigen::Isometry3d& pose
                             const EigenSTL::vector_Isometry3d& shape_poses, const std::set<std::string>& touch_links,
                             const std::string& link, const trajectory_msgs::JointTrajectory& detach_posture,
                             const moveit::core::FixedTransformsMap& subframe_poses,
-                            const std::string& visual_geometry_mesh_url, const Eigen::Isometry3d& visual_geometry_pose)
+                            const std::string& visual_geometry_mesh_url, const Eigen::Isometry3d& visual_geometry_pose,
+                            double visual_geometry_mesh_scaling_factor)
 {
   const LinkModel* l = robot_model_->getLinkModel(link);
   attachBody(new AttachedBody(l, id, pose, shapes, shape_poses, touch_links, detach_posture, subframe_poses,
-                              visual_geometry_mesh_url, visual_geometry_pose));
+                              visual_geometry_mesh_url, visual_geometry_pose, visual_geometry_mesh_scaling_factor));
 }
 
 void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies) const

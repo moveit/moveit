@@ -229,6 +229,7 @@ static void _attachedBodyToMsg(const AttachedBody& attached_body, moveit_msgs::A
   }
   aco.object.visual_geometry_mesh_url = attached_body.getVisualGeometryUrl();
   aco.object.visual_geometry_pose = tf2::toMsg(attached_body.getVisualGeometryPose());
+  aco.object.visual_geometry_mesh_scaling_factor = attached_body.getVisualGeometryScalingFactor();
 }
 
 static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::AttachedCollisionObject& aco, RobotState& state)
@@ -335,7 +336,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
                             aco.object.id.c_str(), aco.link_name.c_str());
           state.attachBody(aco.object.id, object_pose, shapes, shape_poses, aco.touch_links, aco.link_name,
                            aco.detach_posture, subframe_poses, aco.object.visual_geometry_mesh_url,
-                           visual_geometry_pose);
+                           visual_geometry_pose, aco.object.visual_geometry_mesh_scaling_factor);
           ROS_DEBUG_NAMED(LOGNAME, "Attached object '%s' to link '%s'", aco.object.id.c_str(), aco.link_name.c_str());
         }
       }

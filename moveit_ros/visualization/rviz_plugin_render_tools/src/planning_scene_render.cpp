@@ -132,8 +132,9 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
     {
       // TODO(felixvd): Cache this instead of reading from disk at every loop
       const auto& mesh = shapes::createMeshFromResource(object->visual_geometry_mesh_url_,
-                                                        Eigen::Vector3d(mesh_scaling_factor_, mesh_scaling_factor_,
-                                                                        mesh_scaling_factor_));
+                                                        Eigen::Vector3d(object->visual_geometry_mesh_scaling_factor_,
+                                                                        object->visual_geometry_mesh_scaling_factor_,
+                                                                        object->visual_geometry_mesh_scaling_factor_));
       render_shapes_->renderShape(planning_scene_visual_geometry_node_, mesh,
                                   object->pose_ * object->visual_geometry_pose_, octree_voxel_rendering,
                                   octree_color_mode, color, alpha);
