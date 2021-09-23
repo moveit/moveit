@@ -108,13 +108,6 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
                               "The color for the planning scene obstacles (if a color is not defined)", scene_category_,
                               SLOT(changedSceneColor()), this);
 
-  scene_geometry_visual_mesh_scaling_factor_ =
-      new rviz::FloatProperty("Scene Visual Mesh Scale", 0.001f,
-                              "Specifies the mesh scaling factor for the visual geometry", scene_category_,
-                              SLOT(changedSceneMeshScale()), this);
-  scene_geometry_visual_mesh_scaling_factor_->setMin(0.001);
-  scene_geometry_visual_mesh_scaling_factor_->setMax(1000.0);
-
   octree_render_property_ = new rviz::EnumProperty("Voxel Rendering", "Occupied Voxels", "Select voxel type.",
                                                    scene_category_, SLOT(changedOctreeRenderMode()), this);
 
@@ -426,9 +419,6 @@ void PlanningSceneDisplay::changedSceneMeshScale()
 {
   if (isEnabled() && planning_scene_render_)
   {
-    planning_scene_render_->setMeshScalingFactor(scene_geometry_visual_mesh_scaling_factor_->getFloat());
-    planning_scene_robot_->setAttachedBodyVisualGeometryScalingFactor(
-        scene_geometry_visual_mesh_scaling_factor_->getFloat());
     planning_scene_needs_render_ = true;
   }
 }
@@ -606,7 +596,6 @@ void PlanningSceneDisplay::onRobotModelLoaded()
   planning_scene_render_->getCollisionGeometryNode()->setVisible(scene_geometry_collision_enabled_property_->getBool());
   planning_scene_render_->setVisualVisible(scene_geometry_visual_enabled_property_->getBool());
   planning_scene_render_->setCollisionVisible(scene_geometry_collision_enabled_property_->getBool());
-  planning_scene_render_->setMeshScalingFactor(scene_geometry_visual_mesh_scaling_factor_->getFloat());
 
   const planning_scene_monitor::LockedPlanningSceneRO& ps = getPlanningSceneRO();
   if (planning_scene_robot_)
@@ -615,8 +604,6 @@ void PlanningSceneDisplay::onRobotModelLoaded()
     moveit::core::RobotState* rs = new moveit::core::RobotState(ps->getCurrentState());
     rs->update();
     planning_scene_robot_->update(moveit::core::RobotStateConstPtr(rs));
-    planning_scene_robot_->setAttachedBodyVisualGeometryScalingFactor(
-        scene_geometry_visual_mesh_scaling_factor_->getFloat());
   }
 
   bool old_state = scene_name_property_->blockSignals(true);

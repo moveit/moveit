@@ -87,11 +87,6 @@ void PlanningSceneRender::setCollisionVisible(const bool& visible)
   planning_scene_collision_geometry_node_->setVisible(collision_visible_);
 }
 
-void PlanningSceneRender::setMeshScalingFactor(const float& factor)
-{
-  mesh_scaling_factor_ = factor;
-}
-
 void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningSceneConstPtr& scene,
                                               const rviz::Color& default_env_color,
                                               const rviz::Color& default_attached_color,

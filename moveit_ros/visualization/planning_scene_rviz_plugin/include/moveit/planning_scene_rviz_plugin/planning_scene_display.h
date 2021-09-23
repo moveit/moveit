@@ -213,7 +213,6 @@ protected:
   rviz::FloatProperty* robot_alpha_property_;
   rviz::FloatProperty* scene_alpha_property_;
   rviz::ColorProperty* scene_color_property_;
-  rviz::FloatProperty* scene_geometry_visual_mesh_scaling_factor_;
   rviz::ColorProperty* attached_body_color_property_;
   rviz::FloatProperty* scene_display_time_property_;
   rviz::EnumProperty* octree_render_property_;
