@@ -5,7 +5,7 @@
 
 ARG IMAGE=noetic
 FROM moveit/moveit:${IMAGE}-ci-testing
-MAINTAINER Dave Coleman dave@picknik.ai
+MAINTAINER Robert Haschke rhaschke@techfak.uni-bielefeld.de
 
 ENV PYTHONIOENCODING UTF-8
 # Export ROS_UNDERLAY for downstream docker containers
