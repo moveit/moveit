@@ -16,7 +16,6 @@ COPY . src/moveit
 # Commands are combined in single RUN statement with "apt/lists" folder removal to reduce image size
 # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#minimize-the-number-of-layers
 RUN \
-    ls -a src/moveit/ && \
     # Update apt package list as previous containers clear the cache
     apt-get -q update && \
     apt-get -q -y dist-upgrade && \

@@ -3,7 +3,7 @@
 
 ARG IMAGE=noetic
 FROM moveit/moveit:${IMAGE}-ci
-MAINTAINER Dave Coleman dave@picknik.ai
+MAINTAINER Robert Haschke rhaschke@techfak.uni-bielefeld.de
 
 # Switch to ros-shadow-fixed
 RUN echo "deb http://packages.ros.org/ros-shadow-fixed/ubuntu `lsb_release -cs` main" | tee /etc/apt/sources.list.d/ros-latest.list
