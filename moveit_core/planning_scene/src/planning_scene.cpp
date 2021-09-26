@@ -996,7 +996,17 @@ void PlanningScene::saveGeometryToStream(std::ostream& out) const
           writePoseToText(out, pose_pair.second);  // Subframe pose
         }
 
-        // TODO (felixvd): Write visual geometry?
+        // Write visual geometry
+        if (!obj->visual_geometry_mesh_url_.empty())
+        {
+          out << obj->visual_geometry_mesh_url_ << std::endl;
+          writePoseToText(out, obj->visual_geometry_pose_);
+          out << obj->visual_geometry_mesh_scaling_factor_ << std::endl;
+        }
+        else
+        {
+          out << "no_visual_geometry" << std::endl;
+        }
       }
     }
   out << "." << std::endl;
@@ -1099,7 +1109,23 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Isomet
       }
       world_->setSubframesOfObject(object_id, subframes);
 
-      // TODO (felixvd): Read visual geometry?
+      // Read visual geometry
+      std::streampos before_visual = in.tellg();
+      std::string visual_geometry_mesh_url;
+      in >> visual_geometry_mesh_url;
+      if (!visual_geometry_mesh_url.empty() && visual_geometry_mesh_url != "no_visual_geometry" &&
+          visual_geometry_mesh_url != "*")
+      {
+        readPoseFromText(in, pose);
+        double scaling_factor;
+        in >> scaling_factor;
+        world_->setObjectVisualGeometry(object_id, visual_geometry_mesh_url, pose, scaling_factor);
+      }
+      else if (visual_geometry_mesh_url == "*")
+      {
+        // we already started reading the next object, need to rewind
+        in.seekg(before_visual);
+      }
     }
     else if (marker == ".")
     {
