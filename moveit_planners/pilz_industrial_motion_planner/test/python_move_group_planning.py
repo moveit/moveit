@@ -107,6 +107,7 @@ class PythonMoveGroupPlanningTest(unittest.TestCase):
         success, plan, time, error_code = self.group.plan()
 
         # Planning should fail
+        self.assertFalse(success)
         self.assertEqual(error_code.val, MoveItErrorCodes.INVALID_MOTION_PLAN)
 
 
