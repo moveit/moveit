@@ -27,11 +27,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "mesh_resource_marker.h"
+#include <geometric_shapes/check_isometry.h>
 
-#include "marker_selection_handler.h"
-#include <rviz/default_plugin/marker_display.h>
-#include <rviz/selection/selection_manager.h>
+#include <moveit/rviz_plugin_render_tools/mesh_resource_entity.h>
 
 #include <rviz/display_context.h>
 #include <rviz/mesh_loader.h>
@@ -45,21 +43,20 @@
 #include <OGRE/OgreSharedPtr.h>
 #include <OGRE/OgreTechnique.h>
 
-namespace rviz
+namespace moveit_rviz_plugin
 {
-MeshResourceMarker::MeshResourceMarker(MarkerDisplay* owner,
-                                       DisplayContext* context,
-                                       Ogre::SceneNode* parent_node)
-  : MarkerBase(owner, context, parent_node), entity_(nullptr)
+MeshResourceEntity::MeshResourceEntity(rviz::DisplayContext* context, Ogre::SceneNode* parent_node)
+  : entity_(nullptr), context_(context)
 {
+  scene_node_ = parent_node->createChildSceneNode();
 }
 
-MeshResourceMarker::~MeshResourceMarker()
+MeshResourceEntity::~MeshResourceEntity()
 {
   reset();
 }
 
-void MeshResourceMarker::reset()
+void MeshResourceEntity::reset()
 {
   // destroy entity
   if (entity_)
@@ -68,9 +65,8 @@ void MeshResourceMarker::reset()
     entity_ = nullptr;
   }
 
-
   // destroy all the materials we've created
-  S_MaterialPtr::iterator it;
+  std::set<Ogre::MaterialPtr>::iterator it;
   for (it = materials_.begin(); it != materials_.end(); it++)
   {
     Ogre::MaterialPtr material = *it;
@@ -82,62 +78,59 @@ void MeshResourceMarker::reset()
   materials_.clear();
 }
 
-void MeshResourceMarker::onNewMessage(const MarkerConstPtr& old_message,
-                                      const MarkerConstPtr& new_message)
+void MeshResourceEntity::onNewMessage(const rviz::Color& color, float alpha, const std::string& mesh_resource,
+                                      const Eigen::Isometry3d& pose, double scale)
 {
-  ROS_ASSERT(new_message->type == visualization_msgs::Marker::MESH_RESOURCE);
-
   // flag indicating if the mesh material color needs to be updated
-  bool update_color = false;
+  bool update_color = !entity_;
 
   scene_node_->setVisible(false);
 
   // Get the color information from the message
-  float r = new_message->color.r;
-  float g = new_message->color.g;
-  float b = new_message->color.b;
-  float a = new_message->color.a;
+  float r = color.r_;
+  float g = color.g_;
+  float b = color.b_;
+  float a = alpha;
 
-  if (!entity_ || old_message->mesh_resource != new_message->mesh_resource ||
-      old_message->mesh_use_embedded_materials != new_message->mesh_use_embedded_materials)
+  // todo: when should this be enabled?
+  bool mesh_use_embedded_materials = false;
+
+  if (!entity_ || mesh_resource_ != mesh_resource)
   {
     reset();
 
-    if (new_message->mesh_resource.empty())
+    mesh_resource_ = mesh_resource;
+
+    if (mesh_resource.empty())
     {
       return;
     }
 
-    if (loadMeshFromResource(new_message->mesh_resource).isNull())
+    if (rviz::loadMeshFromResource(mesh_resource).isNull())
     {
       std::stringstream ss;
-      ss << "Mesh resource marker [" << getStringID() << "] could not load ["
-         << new_message->mesh_resource << "]";
-      if (owner_)
-      {
-        owner_->setMarkerStatus(getID(), StatusProperty::Error, ss.str());
-      }
+      ss << "Mesh resource marker [" << /*getStringID() <<*/ "] could not load [" << mesh_resource << "]";
       ROS_DEBUG("%s", ss.str().c_str());
       return;
     }
 
     static uint32_t count = 0;
     std::stringstream ss;
-    ss << "mesh_resource_marker_" << count++;
+    ss << "mesh_resource_entity_" << count++;
     std::string id = ss.str();
-    entity_ = context_->getSceneManager()->createEntity(id, new_message->mesh_resource);
+    entity_ = context_->getSceneManager()->createEntity(id, mesh_resource);
     scene_node_->attachObject(entity_);
 
     // create a default material for any sub-entities which don't have their own.
     ss << "Material";
-    Ogre::MaterialPtr default_material = Ogre::MaterialManager::getSingleton().create(
-        ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+    Ogre::MaterialPtr default_material =
+        Ogre::MaterialManager::getSingleton().create(ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
     default_material->setReceiveShadows(false);
     default_material->getTechnique(0)->setLightingEnabled(true);
     default_material->getTechnique(0)->setAmbient(0.5, 0.5, 0.5);
     materials_.insert(default_material);
 
-    if (new_message->mesh_use_embedded_materials)
+    if (mesh_use_embedded_materials)
     {
       // make clones of all embedded materials so selection works correctly
       for (const Ogre::MaterialPtr& material : getMaterials())
@@ -178,21 +171,16 @@ void MeshResourceMarker::onNewMessage(const MarkerConstPtr& old_message,
     {
       entity_->setMaterial(default_material);
     }
-
-    update_color = !(new_message->mesh_use_embedded_materials && r == 0 && g == 0 && b == 0 && a == 0);
-
-    handler_.reset(
-        new MarkerSelectionHandler(this, MarkerID(new_message->ns, new_message->id), context_));
-    handler_->addTrackedObject(entity_);
   }
   else
   {
     // underlying mesh resource has not changed but if the color has
     // then we need to update the materials color
-    if (!old_message || old_message->color.r != r || old_message->color.g != g ||
-        old_message->color.b != b || old_message->color.a != a)
+    if (update_color || color_.r_ != r || color_.g_ != g || color_.b_ != b || alpha_ != a)
     {
       update_color = true;
+      color_ = color;
+      alpha_ = alpha;
     }
   }
 
@@ -201,7 +189,7 @@ void MeshResourceMarker::onNewMessage(const MarkerConstPtr& old_message,
   {
     bool depth_write = a >= 0.9998;
     Ogre::SceneBlendType blending = depth_write ? Ogre::SBT_REPLACE : Ogre::SBT_TRANSPARENT_ALPHA;
-    bool tinting = new_message->mesh_use_embedded_materials;
+    bool tinting = mesh_use_embedded_materials;
 
     for (const Ogre::MaterialPtr& material : materials_)
     {
@@ -230,29 +218,33 @@ void MeshResourceMarker::onNewMessage(const MarkerConstPtr& old_message,
     }
   }
 
-  Ogre::Vector3 pos, scale;
-  Ogre::Quaternion orient;
-  if (!transform(new_message, pos, orient, scale))
-  {
-    scene_node_->setVisible(false);
-    return;
-  }
+  Eigen::Vector3d translation = pose.translation();
+  Ogre::Vector3 position(translation.x(), translation.y(), translation.z());
+  ASSERT_ISOMETRY(pose)  // unsanitized input, could contain a non-isometry
+  Eigen::Quaterniond q(pose.linear());
+  Ogre::Quaternion orientation(q.w(), q.x(), q.y(), q.z());
 
   scene_node_->setVisible(true);
-  setPosition(pos);
-  setOrientation(orient);
+  scene_node_->setPosition(position);
+  scene_node_->setOrientation(orientation);
 
-  scene_node_->setScale(scale);
+  scene_node_->setScale(scale, scale, scale);
 }
 
-S_MaterialPtr MeshResourceMarker::getMaterials()
+std::set<Ogre::MaterialPtr> MeshResourceEntity::getMaterials()
 {
-  S_MaterialPtr materials;
+  std::set<Ogre::MaterialPtr> materials;
   if (entity_)
   {
-    extractMaterials(entity_, materials);
+    uint32_t num_sub_entities = entity_->getNumSubEntities();
+    for (uint32_t i = 0; i < num_sub_entities; ++i)
+    {
+      Ogre::SubEntity* sub = entity_->getSubEntity(i);
+      const Ogre::MaterialPtr& material = sub->getMaterial();
+      materials.insert(material);
+    }
   }
   return materials;
 }
 
-} // namespace rviz
+}  // namespace moveit_rviz_plugin

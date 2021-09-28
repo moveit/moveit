@@ -27,10 +27,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef RVIZ_MESH_RESOURCE_MARKER_H
-#define RVIZ_MESH_RESOURCE_MARKER_H
+#pragma once
 
-#include "marker_base.h"
+#include <Eigen/Geometry>
+
+#include <rviz/helpers/color.h>
 
 #include <OGRE/OgreMaterial.h>
 
@@ -40,30 +41,42 @@ namespace Ogre
 {
 class SceneNode;
 class Entity;
-} // namespace Ogre
+}  // namespace Ogre
 
 namespace rviz
 {
-class MeshResourceMarker : public MarkerBase
+class Color;
+class DisplayContext;
+}  // namespace rviz
+
+namespace moveit_rviz_plugin
+{
+class MeshResourceEntity
 {
 public:
-  MeshResourceMarker(MarkerDisplay* owner, DisplayContext* context, Ogre::SceneNode* parent_node);
-  ~MeshResourceMarker() override;
+  MeshResourceEntity(rviz::DisplayContext* context, Ogre::SceneNode* parent_node);
+  ~MeshResourceEntity();
 
-  S_MaterialPtr getMaterials() override;
+  std::set<Ogre::MaterialPtr> getMaterials();
+
+  void onNewMessage(const rviz::Color& color, float alpha, const std::string& mesh_resource,
+                    const Eigen::Isometry3d& pose, double scale);
 
 protected:
-  void onNewMessage(const MarkerConstPtr& old_message, const MarkerConstPtr& new_message) override;
-
   void reset();
 
   Ogre::Entity* entity_;
-  S_MaterialPtr materials_;
+  std::set<Ogre::MaterialPtr> materials_;
 
   //! Scaling factor to convert units. Currently relevant for Collada only.
   float unit_rescale_;
+
+  rviz::DisplayContext* context_;
+  Ogre::SceneNode* scene_node_;
+
+  rviz::Color color_;
+  float alpha_;
+  std::string mesh_resource_;
 };
 
-} // namespace rviz
-
-#endif // RVIZ_MESH_RESOURCE_MARKER_H
+}  // namespace moveit_rviz_plugin
