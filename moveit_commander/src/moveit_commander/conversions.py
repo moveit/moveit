@@ -39,7 +39,7 @@ except ImportError:
     # Use Python 3.x behaviour as fallback and choose the non-unicode version
     from io import BytesIO as StringIO
 
-from moveit_commander import MoveItCommanderException
+from .exception import MoveItCommanderException
 from geometry_msgs.msg import Pose, PoseStamped, Transform
 import rospy
 import tf
