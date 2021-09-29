@@ -113,6 +113,15 @@ void RobotStateVisualization::updateHelper(const moveit::core::RobotStateConstPt
 
   std::vector<const moveit::core::AttachedBody*> attached_bodies;
   kinematic_state->getAttachedBodies(attached_bodies);
+
+  // remove all objects that no longer exist (and thus cannot be updated)
+  std::vector<std::string> ids;
+  for (const moveit::core::AttachedBody* attached_body : attached_bodies)
+  {
+    ids.push_back(attached_body->getName());
+  }
+  render_shapes_->trimVisualMeshes(ids);
+
   for (const moveit::core::AttachedBody* attached_body : attached_bodies)
   {
     std_msgs::ColorRGBA color = default_attached_object_color;
@@ -141,14 +150,10 @@ void RobotStateVisualization::updateHelper(const moveit::core::RobotStateConstPt
     bool force_draw_collision_shapes_as_visual = false;
     if (!attached_body->getVisualGeometryUrl().empty())
     {
-      // TODO(felixvd/simonschmeisser): Make this cached instead of reading from disk at every loop
-      const auto& mesh = shapes::createMeshFromResource(
-          attached_body->getVisualGeometryUrl(), Eigen::Vector3d(attached_body->getVisualGeometryScalingFactor(),
-                                                                 attached_body->getVisualGeometryScalingFactor(),
-                                                                 attached_body->getVisualGeometryScalingFactor()));
-      render_shapes_->renderShape(link->getVisualNode(), mesh,
-                                  attached_body->getPose() * attached_body->getVisualGeometryPose(),
-                                  octree_voxel_render_mode_, octree_voxel_color_mode_, rcolor, alpha);
+      render_shapes_->updateVisualMesh(link->getVisualNode(), attached_body->getName(),
+                                       attached_body->getVisualGeometryUrl(),
+                                       attached_body->getPose() * attached_body->getVisualGeometryPose(),
+                                       attached_body->getVisualGeometryScalingFactor(), rcolor, alpha);
     }
     else  // If no visual geometry defined
       force_draw_collision_shapes_as_visual = true;
