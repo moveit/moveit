@@ -114,6 +114,10 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
   }
 
   const std::vector<std::string>& ids = scene->getWorld()->getObjectIds();
+
+  // remove no longer existing visual objects
+  render_shapes_->trimVisualMeshes(ids);
+
   for (const std::string& id : ids)
   {
     collision_detection::CollisionEnv::ObjectConstPtr object = scene->getWorld()->getObject(id);
@@ -130,14 +134,9 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
 
     if (!object->visual_geometry_mesh_url_.empty())
     {
-      // TODO(felixvd): Cache this instead of reading from disk at every loop
-      const auto& mesh = shapes::createMeshFromResource(object->visual_geometry_mesh_url_,
-                                                        Eigen::Vector3d(object->visual_geometry_mesh_scaling_factor_,
-                                                                        object->visual_geometry_mesh_scaling_factor_,
-                                                                        object->visual_geometry_mesh_scaling_factor_));
-      render_shapes_->renderShape(planning_scene_visual_geometry_node_, mesh,
-                                  object->pose_ * object->visual_geometry_pose_, octree_voxel_rendering,
-                                  octree_color_mode, color, alpha);
+      render_shapes_->updateVisualMesh(planning_scene_visual_geometry_node_, id, object->visual_geometry_mesh_url_,
+                                       object->pose_ * object->visual_geometry_pose_,
+                                       object->visual_geometry_mesh_scaling_factor_, color, alpha);
     }
     else  // Draw collision geometry as visual if no visual geometry was defined
     {

@@ -189,6 +189,41 @@ void RenderShapes::renderShape(Ogre::SceneNode* node, const shapes::Shape* s, co
   }
 }
 
+void RenderShapes::updateVisualMesh(Ogre::SceneNode* node, std::string id, std::string mesh_resource,
+                                    const Eigen::Isometry3d& p, double scale, const rviz::Color& color, float alpha)
+{
+  auto it = visual_meshes_.find(id);
+  if (it != visual_meshes_.end())
+  {
+    it->second->onNewMessage(color, alpha, mesh_resource, p, scale);
+  }
+  else
+  {
+    MeshResourceEntityUniquePtr mesh = std::make_unique<MeshResourceEntity>(context_, node);
+    mesh->onNewMessage(color, alpha, mesh_resource, p, scale);
+    visual_meshes_.emplace(id, std::move(mesh));
+  }
+}
+
+void RenderShapes::trimVisualMeshes(const std::vector<std::string>& ids)
+{
+  for (auto it = visual_meshes_.begin(); it != visual_meshes_.end();)
+  {
+    bool found = false;
+    for (const std::string& id : ids)
+    {
+      if (id == it->first)
+      {
+        found = true;
+        ++it;
+        break;
+      }
+    }
+    if (!found)
+      it = visual_meshes_.erase(it);
+  }
+}
+
 void RenderShapes::updateShapeColors(float r, float g, float b, float a)
 {
   for (const std::unique_ptr<rviz::Shape>& shape : scene_shapes_)

@@ -36,6 +36,7 @@
 
 #pragma once
 
+#include <moveit/rviz_plugin_render_tools/mesh_resource_entity.h>
 #include <moveit/rviz_plugin_render_tools/octomap_render.h>
 #include <moveit/macros/class_forward.h>
 #include <geometric_shapes/shapes.h>
@@ -56,8 +57,9 @@ class Shape;
 
 namespace moveit_rviz_plugin
 {
-MOVEIT_CLASS_FORWARD(OcTreeRender);  // Defines OcTreeRenderPtr, ConstPtr, WeakPtr... etc
-MOVEIT_CLASS_FORWARD(RenderShapes);  // Defines RenderShapesPtr, ConstPtr, WeakPtr... etc
+MOVEIT_CLASS_FORWARD(OcTreeRender);        // Defines OcTreeRenderPtr, ConstPtr, WeakPtr... etc
+MOVEIT_CLASS_FORWARD(RenderShapes);        // Defines RenderShapesPtr, ConstPtr, WeakPtr... etc
+MOVEIT_CLASS_FORWARD(MeshResourceEntity);  // Defines MeshResourceEntityPtr, ConstPtr, WeakPtr... etc
 
 class RenderShapes
 {
@@ -68,6 +70,9 @@ public:
   void renderShape(Ogre::SceneNode* node, const shapes::Shape* s, const Eigen::Isometry3d& p,
                    OctreeVoxelRenderMode octree_voxel_rendering, OctreeVoxelColorMode octree_color_mode,
                    const rviz::Color& color, float alpha);
+  void updateVisualMesh(Ogre::SceneNode* node, std::string id, std::string mesh_resource, const Eigen::Isometry3d& p,
+                        double scale, const rviz::Color& color, float alpha);
+  void trimVisualMeshes(const std::vector<std::string>& ids);
   void updateShapeColors(float r, float g, float b, float a);
   void clear();
 
@@ -75,6 +80,7 @@ private:
   rviz::DisplayContext* context_;
 
   std::vector<std::unique_ptr<rviz::Shape> > scene_shapes_;
+  std::map<std::string, MeshResourceEntityUniquePtr> visual_meshes_;
   std::vector<OcTreeRenderPtr> octree_voxel_grids_;
 };
 }  // namespace moveit_rviz_plugin
