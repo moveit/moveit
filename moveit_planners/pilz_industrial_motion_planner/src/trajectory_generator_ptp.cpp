@@ -239,10 +239,14 @@ void TrajectoryGeneratorPTP::extractMotionPlanInfo(const planning_scene::Plannin
   {
     geometry_msgs::Point p =
         req.goal_constraints.at(0).position_constraints.at(0).constraint_region.primitive_poses.at(0).position;
-    p.x -= req.goal_constraints.at(0).position_constraints.at(0).target_point_offset.x;
-    p.y -= req.goal_constraints.at(0).position_constraints.at(0).target_point_offset.y;
-    p.z -= req.goal_constraints.at(0).position_constraints.at(0).target_point_offset.z;
-
+    Eigen::Vector3d offset_in_world;
+    tf2::fromMsg(req.goal_constraints.at(0).position_constraints.at(0).target_point_offset, offset_in_world);
+    Eigen::Quaterniond goal_orientation;
+    tf2::fromMsg(req.goal_constraints.at(0).orientation_constraints.at(0).orientation, goal_orientation);
+    Eigen::Vector3d offset_in_goal = goal_orientation * offset_in_world;
+    p.x -= offset_in_goal[0];
+    p.y -= offset_in_goal[1];
+    p.z -= offset_in_goal[2];
     geometry_msgs::Pose pose;
     pose.position = p;
     pose.orientation = req.goal_constraints.at(0).orientation_constraints.at(0).orientation;
