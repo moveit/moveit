@@ -220,3 +220,10 @@ bool isStateColliding(const bool test_for_self_collision, const planning_scene::
 }  // namespace pilz_industrial_motion_planner
 
 void normalizeQuaternion(geometry_msgs::Quaternion& quat);
+
+/**
+ * @brief Fetches the pose defining a constraint with any offset applied.
+ * @param constraint
+ * @return
+ */
+Eigen::Isometry3d getConstraintPose(moveit_msgs::Constraints constraint);

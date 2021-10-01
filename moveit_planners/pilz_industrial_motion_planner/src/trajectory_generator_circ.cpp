@@ -141,21 +141,7 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_scene::Planni
     {
       frame_id = req.goal_constraints.front().position_constraints.front().header.frame_id;
     }
-    geometry_msgs::Point p =
-        req.goal_constraints.at(0).position_constraints.at(0).constraint_region.primitive_poses.at(0).position;
-    Eigen::Vector3d offset_in_world;
-    tf2::fromMsg(req.goal_constraints.at(0).position_constraints.at(0).target_point_offset, offset_in_world);
-    Eigen::Quaterniond goal_orientation;
-    tf2::fromMsg(req.goal_constraints.at(0).orientation_constraints.at(0).orientation, goal_orientation);
-    Eigen::Vector3d offset_in_goal = goal_orientation * offset_in_world;
-    p.x -= offset_in_goal[0];
-    p.y -= offset_in_goal[1];
-    p.z -= offset_in_goal[2];
-    geometry_msgs::Pose goal_pose_msg;
-    goal_pose_msg.position = p;
-    goal_pose_msg.orientation = req.goal_constraints.front().orientation_constraints.front().orientation;
-    normalizeQuaternion(goal_pose_msg.orientation);
-    tf2::fromMsg(goal_pose_msg, info.goal_pose);
+    info.goal_pose = getConstraintPose(req.goal_constraints.at(0));
   }
 
   assert(req.start_state.joint_state.name.size() == req.start_state.joint_state.position.size());
@@ -193,7 +179,7 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_scene::Planni
                circ_path_point);
 
   info.circ_path_point.first = req.path_constraints.name;
-  info.circ_path_point.second = circ_path_point;
+  info.circ_path_point.second = getConstraintPose(req.path_constraints).translation();
 }
 
 void TrajectoryGeneratorCIRC::plan(const planning_scene::PlanningSceneConstPtr& scene,

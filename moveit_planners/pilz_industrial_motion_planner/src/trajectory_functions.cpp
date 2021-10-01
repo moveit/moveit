@@ -585,3 +585,16 @@ void normalizeQuaternion(geometry_msgs::Quaternion& quat)
   tf2::fromMsg(quat, q);
   quat = tf2::toMsg(q.normalize());
 }
+
+Eigen::Isometry3d getConstraintPose(moveit_msgs::Constraints constraint) {
+    geometry_msgs::Pose pose;
+    pose.position = constraint.position_constraints.at(0).constraint_region.primitive_poses.at(0).position;
+    pose.orientation = constraint.orientation_constraints.at(0).orientation;
+    normalizeQuaternion(pose.orientation);
+    Eigen::Isometry3d pose_eigen;
+    tf2::fromMsg(pose, pose_eigen);
+    Eigen::Vector3d offset_in_world;
+    tf2::fromMsg(constraint.position_constraints.at(0).target_point_offset, offset_in_world);
+    pose_eigen.translation() -= pose_eigen.rotation() * offset_in_world;
+    return pose_eigen;
+}
