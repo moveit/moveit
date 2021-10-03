@@ -52,15 +52,15 @@ AttachedBody::AttachedBody(const LinkModel* parent, const std::string& id, const
   : parent_link_model_(parent)
   , id_(id)
   , pose_(pose)
+  , visual_geometry_mesh_url_(visual_geometry_mesh_url)
+  , visual_geometry_pose_(visual_geometry_pose)
+  , visual_geometry_mesh_scaling_factor_(visual_geometry_mesh_scaling_factor)
   , shapes_(shapes)
   , shape_poses_(shape_poses)
   , touch_links_(touch_links)
   , detach_posture_(detach_posture)
   , subframe_poses_(subframe_poses)
   , global_subframe_poses_(subframe_poses)
-  , visual_geometry_mesh_url_(visual_geometry_mesh_url)
-  , visual_geometry_pose_(visual_geometry_pose)
-  , visual_geometry_mesh_scaling_factor_(visual_geometry_mesh_scaling_factor)
 {
   ASSERT_ISOMETRY(pose)  // unsanitized input, could contain a non-isometry
   for (const auto& t : shape_poses_)
