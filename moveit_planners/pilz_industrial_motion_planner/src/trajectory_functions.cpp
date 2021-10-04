@@ -586,7 +586,7 @@ void normalizeQuaternion(geometry_msgs::Quaternion& quat)
   quat = tf2::toMsg(q.normalize());
 }
 
-Eigen::Isometry3d getConstraintPose(moveit_msgs::Constraints constraint)
+Eigen::Isometry3d getConstraintPose(const moveit_msgs::Constraints& constraint)
 {
   geometry_msgs::Pose pose;
   pose.position = constraint.position_constraints.at(0).constraint_region.primitive_poses.at(0).position;

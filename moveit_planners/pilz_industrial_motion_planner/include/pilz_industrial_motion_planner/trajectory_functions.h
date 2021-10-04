@@ -226,4 +226,4 @@ void normalizeQuaternion(geometry_msgs::Quaternion& quat);
  * @param constraint
  * @return
  */
-Eigen::Isometry3d getConstraintPose(moveit_msgs::Constraints constraint);
+Eigen::Isometry3d getConstraintPose(const moveit_msgs::Constraints& constraint);
