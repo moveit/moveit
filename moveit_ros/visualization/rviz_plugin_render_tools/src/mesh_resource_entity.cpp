@@ -34,6 +34,8 @@
 #include <rviz/display_context.h>
 #include <rviz/mesh_loader.h>
 
+#include <ros/console.h>
+
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
 #include <OGRE/OgreEntity.h>
