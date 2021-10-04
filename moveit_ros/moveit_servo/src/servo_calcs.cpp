@@ -297,21 +297,17 @@ void ServoCalcs::calculateSingleIteration()
   have_nonzero_joint_command_ = latest_nonzero_joint_cmd_;
 
   planning_scene_monitor_->requestPlanningSceneState();
-  {
-    // Wrap call to planning scene to avoid blocking
-    planning_scene_monitor::LockedPlanningSceneRO planning_scene(planning_scene_monitor_);
-    // Get the transform from MoveIt planning frame to servoing command frame
-    // Calculate this transform to ensure it is available via C++ API
-    // We solve (planning_frame -> base -> robot_link_command_frame)
-    // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
-    tf_moveit_to_robot_cmd_frame_ = current_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
-                                    planning_scene->getFrameTransform(parameters_.robot_link_command_frame);
+  // Get the transform from MoveIt planning frame to servoing command frame
+  // Calculate this transform to ensure it is available via C++ API
+  // We solve (planning_frame -> base -> robot_link_command_frame)
+  // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
+  tf_moveit_to_robot_cmd_frame_ = current_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
+                                  getLockedPlanningSceneRO()->getFrameTransform(parameters_.robot_link_command_frame);
 
-    // Calculate the transform from MoveIt planning frame to End Effector frame
-    // Calculate this transform to ensure it is available via C++ API
-    tf_moveit_to_ee_frame_ = current_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
-                             planning_scene->getFrameTransform(parameters_.ee_frame_name);
-  }
+  // Calculate the transform from MoveIt planning frame to End Effector frame
+  // Calculate this transform to ensure it is available via C++ API
+  tf_moveit_to_ee_frame_ = current_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
+                           getLockedPlanningSceneRO()->getFrameTransform(parameters_.robot_link_command_frame);
   have_nonzero_command_ = have_nonzero_twist_stamped_ || have_nonzero_joint_command_;
 
   // Don't end this function without updating the filters
@@ -493,13 +489,11 @@ bool ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
     }
     else
     {
-      // Update scene to know all existing transforms
-      planning_scene_monitor::LockedPlanningSceneRO planning_scene(planning_scene_monitor_);
       // We solve (planning_frame -> base -> cmd.header.frame_id)
       // by computing (base->planning_frame)^-1 * (base->cmd.header.frame_id)
       const auto tf_moveit_to_incoming_cmd_frame =
           current_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
-          planning_scene->getFrameTransform(cmd.header.frame_id);
+          getLockedPlanningSceneRO()->getFrameTransform(cmd.header.frame_id);
 
       translation_vector = tf_moveit_to_incoming_cmd_frame.linear() * translation_vector;
       angular_vector = tf_moveit_to_incoming_cmd_frame.linear() * angular_vector;
@@ -1140,6 +1134,11 @@ void ServoCalcs::setPaused(bool paused)
 void ServoCalcs::changeRobotLinkCommandFrame(const std::string& new_command_frame)
 {
   parameters_.robot_link_command_frame = new_command_frame;
+}
+
+planning_scene_monitor::LockedPlanningSceneRO ServoCalcs::getLockedPlanningSceneRO() const
+{
+  return planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_);
 }
 
 }  // namespace moveit_servo

@@ -222,6 +222,9 @@ private:
   /** \brief Service callback to reset Servo status, e.g. so the arm can move again after a collision */
   bool resetServoStatus(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
 
+  /** \brief Function to get locked planning scene to avoid blocking*/
+  planning_scene_monitor::LockedPlanningSceneRO getLockedPlanningSceneRO() const;
+
   ros::NodeHandle nh_;
 
   // Parameters from yaml
