@@ -306,7 +306,7 @@ void ServoCalcs::calculateSingleIteration()
   // Calculate the transform from MoveIt planning frame to End Effector frame
   // Calculate this transform to ensure it is available via C++ API
   tf_moveit_to_ee_frame_ = current_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
-                           getLockedPlanningSceneRO()->getFrameTransform(parameters_.robot_link_command_frame);
+                           getLockedPlanningSceneRO()->getFrameTransform(parameters_.ee_frame_name);
   have_nonzero_command_ = have_nonzero_twist_stamped_ || have_nonzero_joint_command_;
 
   // Don't end this function without updating the filters
