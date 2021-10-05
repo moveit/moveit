@@ -223,7 +223,10 @@ void normalizeQuaternion(geometry_msgs::Quaternion& quat);
 
 /**
  * @brief Fetches the pose defining a constraint with any offset applied.
- * @param constraint
+ * @param constraint to apply offset to
+ * @param offset to apply to the constraint
+ * @param orientation to apply to the offset
  * @return
  */
-Eigen::Isometry3d getConstraintPose(const moveit_msgs::Constraints& constraint);
+Eigen::Isometry3d getConstraintPose(const moveit_msgs::Constraints& constraint, const geometry_msgs::Vector3& offset,
+                                    const geometry_msgs::Quaternion& orientation);

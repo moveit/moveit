@@ -141,7 +141,10 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_scene::Planni
     {
       frame_id = req.goal_constraints.front().position_constraints.front().header.frame_id;
     }
-    info.goal_pose = getConstraintPose(req.goal_constraints.at(0));
+    moveit_msgs::Constraint goal = req.goal_constraints.at(0);
+    std_msgs::Vector3 goal_offset = goal.position_constraints.at(0).target_point_offset;
+    std_msgs::Quaternion goal_orientation = goal.orientation_constraints.at(0).orientation;
+    info.goal_pose = getConstraintPose(goal, goal_offset, goal_orientation);
   }
 
   assert(req.start_state.joint_state.name.size() == req.start_state.joint_state.position.size());
@@ -179,7 +182,7 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_scene::Planni
                circ_path_point);
 
   info.circ_path_point.first = req.path_constraints.name;
-  info.circ_path_point.second = circ_path_point;  // getConstraintPose(req.path_constraints).translation();
+  info.circ_path_point.second = getConstraintPose(req.path_constraints, goal_offset, goal_orientation).translation();
 }
 
 void TrajectoryGeneratorCIRC::plan(const planning_scene::PlanningSceneConstPtr& scene,
