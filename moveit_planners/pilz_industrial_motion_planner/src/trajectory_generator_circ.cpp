@@ -179,7 +179,7 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_scene::Planni
                circ_path_point);
 
   info.circ_path_point.first = req.path_constraints.name;
-  info.circ_path_point.second = circ_path_point; // getConstraintPose(req.path_constraints).translation();
+  info.circ_path_point.second = circ_path_point;  // getConstraintPose(req.path_constraints).translation();
 }
 
 void TrajectoryGeneratorCIRC::plan(const planning_scene::PlanningSceneConstPtr& scene,
