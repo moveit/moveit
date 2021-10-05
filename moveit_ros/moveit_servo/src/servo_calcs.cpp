@@ -195,11 +195,10 @@ void ServoCalcs::start()
 
   current_state_ = planning_scene_monitor_->getStateMonitor()->getCurrentState();
   planning_scene_monitor_->requestPlanningSceneState();
-  planning_scene_monitor::LockedPlanningSceneRO planning_scene(planning_scene_monitor_);
   tf_moveit_to_ee_frame_ = current_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
-                           planning_scene->getFrameTransform(parameters_.ee_frame_name);
+                           getLockedPlanningSceneRO()->getFrameTransform(parameters_.ee_frame_name);
   tf_moveit_to_robot_cmd_frame_ = current_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
-                                  planning_scene->getFrameTransform(parameters_.robot_link_command_frame);
+                                  getLockedPlanningSceneRO()->getFrameTransform(parameters_.robot_link_command_frame);
 
   stop_requested_ = false;
   thread_ = std::thread([this] { mainCalcLoop(); });
