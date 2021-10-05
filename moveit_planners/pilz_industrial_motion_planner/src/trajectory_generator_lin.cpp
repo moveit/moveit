@@ -118,7 +118,7 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_scene::Plannin
     }
     moveit_msgs::Constraints goal = req.goal_constraints.at(0);
     geometry_msgs::Vector3 goal_offset = goal.position_constraints.at(0).target_point_offset;
-      geometry_msgs::Quaternion goal_orientation = goal.orientation_constraints.at(0).orientation;
+    geometry_msgs::Quaternion goal_orientation = goal.orientation_constraints.at(0).orientation;
     info.goal_pose = getConstraintPose(goal, goal_offset, goal_orientation);
   }
 
