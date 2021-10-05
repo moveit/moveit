@@ -597,6 +597,6 @@ Eigen::Isometry3d getConstraintPose(const moveit_msgs::Constraints& constraint, 
   tf2::fromMsg(pose, pose_eigen);
   Eigen::Vector3d eigen_offset;
   tf2::fromMsg(offset, eigen_offset);
-  pose_eigen.translation() -= pose_eigen.rotation() * offset_in_world;
+  pose_eigen.translation() -= pose_eigen.rotation() * eigen_offset;
   return pose_eigen;
 }
