@@ -666,7 +666,7 @@ bool StartScreenWidget::extractPackageNameFromPath()
     {
       QMessageBox::warning(this, "Package Not Found In ROS Workspace",
                            QString("ROS was unable to find the package name '")
-                               .append(config_data_->urdf_pkg_name_.c_str())
+                               .append(package_name.c_str())
                                .append("' within the ROS workspace. This may cause issues later."));
     }
 
