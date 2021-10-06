@@ -49,10 +49,10 @@ class CollisionEnvBullet : public CollisionEnv
 public:
   CollisionEnvBullet() = delete;
 
-  CollisionEnvBullet(const moveit::core::RobotModelConstPtr& model, double padding = 0.0, double scale = 1.0);
+  CollisionEnvBullet(const moveit::core::RobotModelConstPtr& model, double padding = 0.0, double scale = 1.0, max_rotation_per_step = M_PI/8.0);
 
   CollisionEnvBullet(const moveit::core::RobotModelConstPtr& model, const WorldPtr& world, double padding = 0.0,
-                     double scale = 1.0);
+                     double scale = 1.0, max_rotation_per_step = M_PI/8.0);
 
   CollisionEnvBullet(const CollisionEnvBullet& other, const WorldPtr& world);
 
@@ -144,5 +144,9 @@ private:
   void notifyObjectChange(const ObjectConstPtr& obj, World::Action action);
 
   World::ObserverHandle observer_handle_;
+
+  /** \brief For CCD queries, how much each link may rotate at most per step. **/
+  double max_rotation_per_step_;
+
 };
 }  // namespace collision_detection

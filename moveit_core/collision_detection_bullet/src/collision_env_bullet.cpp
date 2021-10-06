@@ -50,8 +50,8 @@ const double MAX_DISTANCE_MARGIN = 99;
 constexpr char LOGNAME[] = "collision_detection.bullet";
 }  // namespace
 
-CollisionEnvBullet::CollisionEnvBullet(const moveit::core::RobotModelConstPtr& model, double padding, double scale)
-  : CollisionEnv(model, padding, scale)
+CollisionEnvBullet::CollisionEnvBullet(const moveit::core::RobotModelConstPtr& model, double padding, double scale, double max_rotation_per_step)
+: CollisionEnv(model, padding, scale), max_rotation_per_step_(max_rotation_per_step)
 {
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionEnvBullet::notifyObjectChange, this, _1, _2));
@@ -63,8 +63,8 @@ CollisionEnvBullet::CollisionEnvBullet(const moveit::core::RobotModelConstPtr& m
 }
 
 CollisionEnvBullet::CollisionEnvBullet(const moveit::core::RobotModelConstPtr& model, const WorldPtr& world,
-                                       double padding, double scale)
-  : CollisionEnv(model, world, padding, scale)
+                                       double padding, double scale, double max_rotation_per_step)
+                                       : CollisionEnv(model, world, padding, scale), max_rotation_per_step_(max_rotation_per_step)
 {
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionEnvBullet::notifyObjectChange, this, _1, _2));
@@ -117,7 +117,7 @@ void CollisionEnvBullet::checkSelfCollisionHelper(const CollisionRequest& req, C
   std::lock_guard<std::mutex> guard(collision_env_mutex_);
 
   std::vector<collision_detection_bullet::CollisionObjectWrapperPtr> cows;
-  addAttachedOjects(state, cows);
+  createAttachedCollisionObjects(state, cows);
 
   if (req.distance)
   {
@@ -211,26 +211,61 @@ void CollisionEnvBullet::checkRobotCollisionHelperCCD(const CollisionRequest& re
     // Ensure thread safety
   std::lock_guard<std::mutex> guard(collision_env_mutex_);
 
-  //
+  // Create collision objects for all attached objects
   std::vector<collision_detection_bullet::CollisionObjectWrapperPtr> attached_cows;
-  addAttachedOjects(state1, attached_cows);
+  createAttachedCollisionObjects(state1, attached_cows);
 
+  // Add those collision objects to the CCD collision manager.
   for (const collision_detection_bullet::CollisionObjectWrapperPtr& cow : attached_cows)
   {
-    manager_CCD_->addCollisionObject(cow);
-    manager_CCD_->setCastCollisionObjectsTransform(
-        cow->getName(), state1.getAttachedBody(cow->getName())->getGlobalCollisionBodyTransforms()[0],
-        state2.getAttachedBody(cow->getName())->getGlobalCollisionBodyTransforms()[0]);
+      manager_CCD_->addCollisionObject(cow);
   }
 
-  for (const std::string& link : active_)
-  {
-    manager_CCD_->setCastCollisionObjectsTransform(link, state1.getCollisionBodyTransform(link, 0),
-                                                   state2.getCollisionBodyTransform(link, 0));
+  // Compute the number of sub-steps (segments in the motion).
+  size_t num_segments = std::min(std::ceil(state1.distanceRotation(state2)/max_rotation_per_step_),1);
+
+  // Compute the intermediate states through interpolation (number of segments - 1)
+  std::vector<moveit::core::RobotState> intermediate_states;
+  intermediate_states.reserve(num_segments-1);
+  for (size_t segment_idx = 1; segment_idx < num_segments; ++segment_idx) {
+      double t = (double) segment_idx / (double) num_segments;
+      moveit::core::RobotState st(state1);
+      state1.interpolate(state2, t, st);
+      intermediate_states.push_back(st);
   }
 
-  manager_CCD_->contactTest(res, req, acm, false);
+  // Go through the segments one-by-one.
+  for (size_t segment_idx = 0; segment_idx < num_segments; ++segment_idx) {
 
+      // Look up the start-and-end states of that segment.
+      const moveit::core::RobotState& st1 = segment_idx == 0 ? state1 : intermediate_states[segment_idx-1];
+      const moveit::core::RobotState& st2 = segment_idx == (num_segments-1) ? state2 : intermediate_states[segment_idx];
+
+      // Update the transforms, first for the attached objects...
+      for (const collision_detection_bullet::CollisionObjectWrapperPtr& cow : attached_cows)
+      {
+          manager_CCD_->setCastCollisionObjectsTransform(
+                  cow->getName(),
+                  st1.getAttachedBody(cow->getName())->getGlobalCollisionBodyTransforms()[0],
+                  st2.getAttachedBody(cow->getName())->getGlobalCollisionBodyTransforms()[0]);
+      }
+
+      // ...and then the links themselves.
+      for (const std::string& link : active_)
+      {
+          manager_CCD_->setCastCollisionObjectsTransform(link,
+                                                         st1.getCollisionBodyTransform(link, 0),
+                                                         st2.getCollisionBodyTransform(link, 0));
+      }
+
+      // Perform the contact test
+      manager_CCD_->contactTest(res, req, acm, false);
+
+      // Stop the operation after the first collision.
+      if (res.collision) break;
+  }
+
+  // Remove the collision objects for the attached objects.
   for (const collision_detection_bullet::CollisionObjectWrapperPtr& cow : attached_cows)
   {
     manager_CCD_->removeCollisionObject(cow->getName());
