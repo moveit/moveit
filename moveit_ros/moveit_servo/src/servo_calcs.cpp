@@ -788,12 +788,11 @@ bool ServoCalcs::enforcePositionLimits()
     // Halt if we're past a joint margin and joint velocity is moving even farther past
     double joint_angle = 0;
     std::size_t idx = 0;
-    for (std::size_t c = 0; c < original_joint_state_.name.size(); ++c)
+    for (idx = 0; idx < original_joint_state_.name.size(); ++idx)
     {
-      if (original_joint_state_.name[c] == joint->getName())
+      if (original_joint_state_.name[idx] == joint->getName())
       {
-        joint_angle = original_joint_state_.position.at(c);
-        idx = c;
+        joint_angle = original_joint_state_.position.at(idx);
         break;
       }
     }
