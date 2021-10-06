@@ -172,13 +172,14 @@ double PlanarJointModel::distance(const double* values1, const double* values2) 
   return sqrt(dx * dx + dy * dy) + angular_distance_weight_ * distanceRotation(values1, values2);
 }
 
-double PlanarJointModel::distanceRotation(const double* values1, const double* values2) const {
-    // Difference between the angular component of both sets of joint values.
-    double d = fabs(values1[2] - values2[2]);
-    // Wrap around to normalize within [-pi,pi] range
-    d = (d > boost::math::constants::pi<double>()) ? 2.0 * boost::math::constants::pi<double>() - d : d;
+double PlanarJointModel::distanceRotation(const double* values1, const double* values2) const
+{
+  // Difference between the angular component of both sets of joint values.
+  double d = fabs(values1[2] - values2[2]);
+  // Wrap around to normalize within [-pi,pi] range
+  d = (d > boost::math::constants::pi<double>()) ? 2.0 * boost::math::constants::pi<double>() - d : d;
 
-    return d;
+  return d;
 }
 
 bool PlanarJointModel::satisfiesPositionBounds(const double* values, const Bounds& bounds, double margin) const

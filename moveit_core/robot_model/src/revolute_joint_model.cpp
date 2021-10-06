@@ -160,7 +160,7 @@ double RevoluteJointModel::distance(const double* values1, const double* values2
 
 double RevoluteJointModel::distanceRotation(const double* values1, const double* values2) const
 {
-    return distance(values1,values2); // Revolute joints are simply a rotation.
+  return distance(values1, values2);  // Revolute joints are simply a rotation.
 }
 
 bool RevoluteJointModel::satisfiesPositionBounds(const double* values, const Bounds& bounds, double margin) const

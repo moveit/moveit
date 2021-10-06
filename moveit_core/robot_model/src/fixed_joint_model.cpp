@@ -82,8 +82,8 @@ double FixedJointModel::distance(const double* values1, const double* values2) c
 
 double FixedJointModel::distanceRotation(const double* values1, const double* values2) const
 {
-    // A fixed joint never causes any rotation.
-    return 0.0;
+  // A fixed joint never causes any rotation.
+  return 0.0;
 }
 
 double FixedJointModel::getMaximumExtent(const Bounds& other_bounds) const
