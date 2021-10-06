@@ -787,11 +787,13 @@ bool ServoCalcs::enforcePositionLimits()
   {
     // Halt if we're past a joint margin and joint velocity is moving even farther past
     double joint_angle = 0;
+    std::size_t idx = 0;
     for (std::size_t c = 0; c < original_joint_state_.name.size(); ++c)
     {
       if (original_joint_state_.name[c] == joint->getName())
       {
         joint_angle = original_joint_state_.position.at(c);
+        idx = c;
         break;
       }
     }
@@ -802,9 +804,9 @@ bool ServoCalcs::enforcePositionLimits()
       // Joint limits are not defined for some joints. Skip them.
       if (!limits.empty())
       {
-        if ((current_state_->getJointVelocities(joint)[0] < 0 &&
+        if ((internal_joint_state_.velocity[idx] < 0 &&
              (joint_angle < (limits[0].min_position + parameters_.joint_limit_margin))) ||
-            (current_state_->getJointVelocities(joint)[0] > 0 &&
+            (internal_joint_state_.velocity[idx] > 0 &&
              (joint_angle > (limits[0].max_position - parameters_.joint_limit_margin))))
         {
           ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
