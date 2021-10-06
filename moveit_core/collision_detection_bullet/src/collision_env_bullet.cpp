@@ -223,7 +223,7 @@ void CollisionEnvBullet::checkRobotCollisionHelperCCD(const CollisionRequest& re
   }
 
   // Compute the number of sub-steps (segments in the motion).
-  size_t num_segments = std::min(std::ceil(state1.distanceRotation(state2) / max_rotation_per_step_), 1);
+  size_t num_segments = std::min(std::ceil(state1.maximumRotation(state2) / max_rotation_per_step_), 1);
 
   // Compute the intermediate states through interpolation (number of segments - 1)
   std::vector<moveit::core::RobotState> intermediate_states;
