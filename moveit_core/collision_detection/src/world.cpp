@@ -41,7 +41,7 @@
 
 namespace collision_detection
 {
-World::World() : use_detailed_mesh_(false)
+World::World() : use_detailed_mesh_(true)
 {
 }
 
