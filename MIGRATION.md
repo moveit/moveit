@@ -3,6 +3,9 @@
 API changes in MoveIt releases
 
 ## ROS Noetic
+- Added method `maximumRotation` to `RobotState`.
+- The method `distanceRotation` is now a virtual method of `JointModel` and implemented for all joint models.
+- Modified `CollisionEnvBullet`. It now takes a parameter `max_rotation_per_step_`, and subdivides CCD requests into sub-steps to better approximate rotations
 - Renamed `addAttachedOjects` to `createAttachedCollisionObjects` in `CollisionEnvBullet` to reflect the non-mutating nature of the method.
 - `CollisionObject` messages are now defined with a `Pose`, and shapes and subframes are defined relative to the object's pose. This makes it easier to place objects with subframes and multiple shapes in the scene. This causes several changes:
     - `getFrameTransform()` now returns this pose instead of the first shape's pose.
