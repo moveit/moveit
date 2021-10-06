@@ -185,7 +185,7 @@ void CollisionEnvBullet::checkRobotCollisionHelper(const CollisionRequest& req, 
   }
 
   std::vector<collision_detection_bullet::CollisionObjectWrapperPtr> attached_cows;
-  addAttachedOjects(state, attached_cows);
+  createAttachedCollisionObjects(state, attached_cows);
   updateTransformsFromState(state, manager_);
 
   for (const collision_detection_bullet::CollisionObjectWrapperPtr& cow : attached_cows)

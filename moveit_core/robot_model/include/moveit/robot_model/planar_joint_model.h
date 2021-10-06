@@ -61,6 +61,8 @@ public:
   unsigned int getStateSpaceDimension() const override;
   double getMaximumExtent(const Bounds& other_bounds) const override;
   double distance(const double* values1, const double* values2) const override;
+  double distanceRotation(const double* values1, const double* values2) const override;
+
 
   void computeTransform(const double* joint_values, Eigen::Isometry3d& transf) const override;
   void computeVariablePositions(const Eigen::Isometry3d& transf, double* joint_values) const override;

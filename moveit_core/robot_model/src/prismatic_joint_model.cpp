@@ -111,6 +111,11 @@ double PrismaticJointModel::distance(const double* values1, const double* values
   return fabs(values1[0] - values2[0]);
 }
 
+double PrismaticJointModel::distanceRotation(const double* values1, const double* values2) const
+{
+    return 0.0; // Prismatic joints do not rotate
+}
+
 void PrismaticJointModel::interpolate(const double* from, const double* to, const double t, double* state) const
 {
   state[0] = from[0] + (to[0] - from[0]) * t;
