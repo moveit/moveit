@@ -379,7 +379,7 @@ TEST_F(BulletCollisionDetectionTester, CastHullAdversarialSwing) {
                                       { "panda_joint5", 0.0 },
                                       { "panda_joint6", M_PI/2.0 },
                                       { "panda_joint7", 0.0 } });
-  before_swing.update();
+  before_swing.update(true);
 
   // Same, but swings 180 degrees
   moveit::core::RobotState after_swing(robot_model_);
@@ -390,7 +390,7 @@ TEST_F(BulletCollisionDetectionTester, CastHullAdversarialSwing) {
                                      { "panda_joint5", 0.0 },
                                      { "panda_joint6", M_PI/2.0 },
                                      { "panda_joint7", 0.0 } });
-  after_swing.update();
+  after_swing.update(true);
 
   // The robot mid-swing in upright position.
   moveit::core::RobotState upright(robot_model_);
@@ -401,7 +401,7 @@ TEST_F(BulletCollisionDetectionTester, CastHullAdversarialSwing) {
                                  { "panda_joint5", 0.0 },
                                  { "panda_joint6", M_PI/2.0 },
                                  { "panda_joint7", 0.0 } });
-  upright.update();
+  upright.update(true);
 
 
   // Adding a box above the robot that would be hit when swinging the arm.
