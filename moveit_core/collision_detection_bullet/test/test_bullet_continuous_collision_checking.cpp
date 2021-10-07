@@ -368,27 +368,27 @@ TEST(ContinuousCollisionUnit, BulletCastMeshVsBox)
   ASSERT_TRUE(result.collision);
 }
 
-TEST_F(BulletCollisionDetectionTester, CastHullAdversarialSwing) {
-
+TEST_F(BulletCollisionDetectionTester, CastHullAdversarialSwing)
+{
   // Set the Panda such that it is almost flat against the ground and straight
   moveit::core::RobotState before_swing(robot_model_);
   before_swing.setVariablePositions({ { "panda_joint1", 0.0 },
-                                      { "panda_joint2", -M_PI/2.0 },
+                                      { "panda_joint2", -M_PI / 2.0 },
                                       { "panda_joint3", 0.0 },
                                       { "panda_joint4", 0.0 },
                                       { "panda_joint5", 0.0 },
-                                      { "panda_joint6", M_PI/2.0 },
+                                      { "panda_joint6", M_PI / 2.0 },
                                       { "panda_joint7", 0.0 } });
   before_swing.update(true);
 
   // Same, but swings 180 degrees
   moveit::core::RobotState after_swing(robot_model_);
   after_swing.setVariablePositions({ { "panda_joint1", 0.0 },
-                                     { "panda_joint2", M_PI/2.0 },
+                                     { "panda_joint2", M_PI / 2.0 },
                                      { "panda_joint3", 0.0 },
                                      { "panda_joint4", 0.0 },
                                      { "panda_joint5", 0.0 },
-                                     { "panda_joint6", M_PI/2.0 },
+                                     { "panda_joint6", M_PI / 2.0 },
                                      { "panda_joint7", 0.0 } });
   after_swing.update(true);
 
@@ -399,10 +399,9 @@ TEST_F(BulletCollisionDetectionTester, CastHullAdversarialSwing) {
                                  { "panda_joint3", 0.0 },
                                  { "panda_joint4", 0.0 },
                                  { "panda_joint5", 0.0 },
-                                 { "panda_joint6", M_PI/2.0 },
+                                 { "panda_joint6", M_PI / 2.0 },
                                  { "panda_joint7", 0.0 } });
   upright.update(true);
-
 
   // Adding a box above the robot that would be hit when swinging the arm.
   shapes::Shape* shape = new shapes::Box(1.0, 1.0, 0.1);
@@ -436,7 +435,6 @@ TEST_F(BulletCollisionDetectionTester, CastHullAdversarialSwing) {
   // Now the CCD collision check should show the same as the previous check, as the robot hits the box when moving.
   cenv_->checkRobotCollision(req, res, before_swing, after_swing, *acm_);
   ASSERT_TRUE(res.collision);
-
 }
 
 int main(int argc, char** argv)
