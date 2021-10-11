@@ -38,14 +38,14 @@
 #include <Eigen/Geometry>
 #include <limits>
 #include <moveit/trajectory_processing/ruckig_traj_smoothing.h>
-#include <rclcpp/rclcpp.hpp>
+#include <ros/ros.h>
 #include <vector>
 
 namespace trajectory_processing
 {
 namespace
 {
-static const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_trajectory_processing.ruckig_traj_smoothing");
+const std::string LOGGER = "moveit_trajectory_processing.ruckig_traj_smoothing";
 constexpr double DEFAULT_MAX_VELOCITY = 5;       // rad/s
 constexpr double DEFAULT_MAX_ACCELERATION = 10;  // rad/s^2
 constexpr double DEFAULT_MAX_JERK = 20;          // rad/s^3
@@ -58,14 +58,14 @@ bool RuckigSmoothing::applySmoothing(robot_trajectory::RobotTrajectory& trajecto
   const moveit::core::JointModelGroup* group = trajectory.getGroup();
   if (!group)
   {
-    RCLCPP_ERROR(LOGGER, "It looks like the planner did not set the group the plan was computed for");
+    ROS_ERROR_NAMED(LOGGER, "It looks like the planner did not set the group the plan was computed for");
     return false;
   }
 
   const size_t num_waypoints = trajectory.getWayPointCount();
   if (num_waypoints < 2)
   {
-    RCLCPP_ERROR(LOGGER, "Trajectory does not have enough points to smooth with Ruckig");
+    ROS_ERROR_NAMED(LOGGER, "Trajectory does not have enough points to smooth with Ruckig");
     return false;
   }
 
@@ -147,7 +147,7 @@ bool RuckigSmoothing::applySmoothing(robot_trajectory::RobotTrajectory& trajecto
 
     double minimum_velocity_magnitude = 0.01;  // rad/s
     double velocity_magnitude = getTargetVelocityMagnitude(ruckig_input, num_dof);
-    while (backward_motion_detected && rclcpp::ok() && (velocity_magnitude > minimum_velocity_magnitude))
+    while (backward_motion_detected && ros::ok() && (velocity_magnitude > minimum_velocity_magnitude))
     {
       // decrease target velocity
       for (size_t joint = 0; joint < num_dof; ++joint)
@@ -169,8 +169,8 @@ bool RuckigSmoothing::applySmoothing(robot_trajectory::RobotTrajectory& trajecto
 
     if (ruckig_result != ruckig::Result::Working)
     {
-      RCLCPP_ERROR_STREAM(LOGGER, "Ruckig trajectory smoothing failed at waypoint " << waypoint_idx);
-      RCLCPP_ERROR_STREAM(LOGGER, "Ruckig error: " << ruckig_result);
+      ROS_ERROR_STREAM_NAMED(LOGGER, "Ruckig trajectory smoothing failed at waypoint " << waypoint_idx);
+      ROS_ERROR_STREAM_NAMED(LOGGER, "Ruckig error: " << ruckig_result);
       return false;
     }
 
