@@ -41,7 +41,7 @@ namespace default_planner_request_adapters
 {
 using namespace trajectory_processing;
 
-static const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_ros.add_traj_smoothing");
+const std::string LOGGER = "moveit_ros.add_traj_smoothing";
 
 /** @brief This adapter uses the time-optimal trajectory generation method */
 class AddRuckigTrajectorySmoothing : public planning_request_adapter::PlanningRequestAdapter
@@ -51,7 +51,7 @@ public:
   {
   }
 
-  void initialize(const rclcpp::Node::SharedPtr& node, const std::string& parameter_namespace) override
+  void initialize(const ros::NodeHandle& node_handle) override
   {
   }
 
@@ -70,7 +70,7 @@ public:
       if (!smoother_.applySmoothing(*res.trajectory_, req.max_velocity_scaling_factor,
                                     req.max_acceleration_scaling_factor))
       {
-        RCLCPP_WARN(LOGGER, " Trajectory smoothing for the solution path failed.");
+        ROS_WARN_NAMED(LOGGER, " Trajectory smoothing for the solution path failed.");
         result = false;
       }
     }
