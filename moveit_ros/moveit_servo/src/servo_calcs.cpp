@@ -602,10 +602,11 @@ void ServoCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTraje
 {
   joint_trajectory.points.resize(count);
   auto point = joint_trajectory.points[0];
-  // Start from 2 because we already have the first point. End at count+1 so (total #) == count
-  for (int i = 2; i < count; ++i)
+  // Start from 2nd point because we already have the first point. 
+  // Timestamps should also be shifted up one period
+  for (int i = 1; i < count; ++i)
   {
-    point.time_from_start = ros::Duration(i * parameters_.publish_period);
+    point.time_from_start = ros::Duration( (i+1) * parameters_.publish_period);
     joint_trajectory.points[i] = point;
   }
 }
