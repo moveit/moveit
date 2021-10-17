@@ -124,10 +124,8 @@ public:
     goal_orientation_tolerance_ = 1e-3;  // ~0.1 deg
     allowed_planning_time_ = 5.0;
     num_planning_attempts_ = 1;
-    node_handle_.param<double>("robot_description_planning/default_velocity_scaling_factor",
-                               max_velocity_scaling_factor_, 0.1);
-    node_handle_.param<double>("robot_description_planning/default_acceleration_scaling_factor",
-                               max_acceleration_scaling_factor_, 0.1);
+    max_velocity_scaling_factor_ = 1.0;
+    max_acceleration_scaling_factor_ = 1.0;
     initializing_constraints_ = false;
 
     if (joint_model_group_->isChain())
