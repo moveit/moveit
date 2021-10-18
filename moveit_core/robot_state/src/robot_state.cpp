@@ -470,7 +470,7 @@ void RobotState::setVariableEffort(const std::map<std::string, double>& variable
 {
   markEffort();
   for (const std::pair<const std::string, double>& it : variable_map)
-    acceleration_[robot_model_->getVariableIndex(it.first)] = it.second;
+    effort_[robot_model_->getVariableIndex(it.first)] = it.second;
 }
 
 void RobotState::setVariableEffort(const std::map<std::string, double>& variable_map,
