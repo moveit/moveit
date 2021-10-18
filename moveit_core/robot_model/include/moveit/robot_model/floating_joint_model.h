@@ -80,7 +80,7 @@ public:
   bool normalizeRotation(double* values) const;
 
   /// Get the distance between the rotation components of two states
-  double distanceRotation(const double* values1, const double* values2) const;
+  double distanceRotation(const double* values1, const double* values2) const override;
 
   /// Get the distance between the translation components of two states
   double distanceTranslation(const double* values1, const double* values2) const;

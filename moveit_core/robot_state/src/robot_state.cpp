@@ -920,6 +920,18 @@ double RobotState::distance(const RobotState& other, const JointModelGroup* join
   return d;
 }
 
+double RobotState::maximumRotation(const RobotState& other) const
+{
+  double d = 0.0;
+  const std::vector<const JointModel*>& jm = this->getRobotModel()->getActiveJointModels();
+  for (const JointModel* joint : jm)
+  {
+    const int idx = joint->getFirstVariableIndex();
+    d += joint->distanceRotation(position_ + idx, other.position_ + idx);
+  }
+  return d;
+}
+
 void RobotState::interpolate(const RobotState& to, double t, RobotState& state) const
 {
   moveit::core::checkInterpolationParamBounds(LOGNAME, t);

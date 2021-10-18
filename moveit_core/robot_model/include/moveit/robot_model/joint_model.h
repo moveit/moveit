@@ -348,6 +348,9 @@ public:
   /** \brief Compute the distance between two joint states of the same model (represented by the variable values) */
   virtual double distance(const double* value1, const double* value2) const = 0;
 
+  /** \brief Compute the total rotation angle in radians between two joint states (represented by the variable values) */
+  virtual double distanceRotation(const double* values1, const double* values2) const = 0;
+
   /** \brief Get the factor that should be applied to the value returned by distance() when that value is used in
    * compound distances */
   double getDistanceFactor() const

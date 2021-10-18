@@ -1502,6 +1502,9 @@ public:
   /** \brief Return the sum of joint distances to "other" state. Only considers active joints. */
   double distance(const RobotState& other, const JointModelGroup* joint_group) const;
 
+  /** \brief Return an upper bound on the rotation angle (radians) of any one link of the robot between two states. */
+  double maximumRotation(const RobotState& other) const;
+
   /** \brief Return the sum of joint distances to "other" state. Only considers active joints. */
   double distance(const RobotState& other, const JointModel* joint) const
   {

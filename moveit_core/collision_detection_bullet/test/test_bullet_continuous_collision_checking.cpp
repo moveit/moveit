@@ -368,6 +368,75 @@ TEST(ContinuousCollisionUnit, BulletCastMeshVsBox)
   ASSERT_TRUE(result.collision);
 }
 
+TEST_F(BulletCollisionDetectionTester, CastHullAdversarialSwing)
+{
+  // Set the Panda such that it is almost flat against the ground and straight
+  moveit::core::RobotState before_swing(robot_model_);
+  before_swing.setVariablePositions({ { "panda_joint1", 0.0 },
+                                      { "panda_joint2", -M_PI / 2.0 },
+                                      { "panda_joint3", 0.0 },
+                                      { "panda_joint4", 0.0 },
+                                      { "panda_joint5", 0.0 },
+                                      { "panda_joint6", M_PI / 2.0 },
+                                      { "panda_joint7", 0.0 } });
+  before_swing.update(true);
+
+  // Same, but swings 180 degrees
+  moveit::core::RobotState after_swing(robot_model_);
+  after_swing.setVariablePositions({ { "panda_joint1", 0.0 },
+                                     { "panda_joint2", M_PI / 2.0 },
+                                     { "panda_joint3", 0.0 },
+                                     { "panda_joint4", 0.0 },
+                                     { "panda_joint5", 0.0 },
+                                     { "panda_joint6", M_PI / 2.0 },
+                                     { "panda_joint7", 0.0 } });
+  after_swing.update(true);
+
+  // The robot mid-swing in upright position.
+  moveit::core::RobotState upright(robot_model_);
+  upright.setVariablePositions({ { "panda_joint1", 0.0 },
+                                 { "panda_joint2", 0.0 },
+                                 { "panda_joint3", 0.0 },
+                                 { "panda_joint4", 0.0 },
+                                 { "panda_joint5", 0.0 },
+                                 { "panda_joint6", M_PI / 2.0 },
+                                 { "panda_joint7", 0.0 } });
+  upright.update(true);
+
+  // Adding a box above the robot that would be hit when swinging the arm.
+  shapes::Shape* shape = new shapes::Box(1.0, 1.0, 0.1);
+  shapes::ShapeConstPtr shape_ptr(shape);
+
+  Eigen::Isometry3d pos{ Eigen::Isometry3d::Identity() };
+  pos.translation().x() = 0.0;
+  pos.translation().y() = 0.0;
+  pos.translation().z() = 0.8;
+  cenv_->getWorld()->addToObject("box", shape_ptr, pos);
+
+  // Initialize relevant structures.
+  collision_detection::CollisionRequest req;
+  collision_detection::CollisionResult res;
+
+  // Should be collision_free pre-swing.
+  cenv_->checkRobotCollision(req, res, before_swing, *acm_);
+  ASSERT_FALSE(res.collision);
+  res.clear();
+
+  // Should be collision_free post-swing
+  cenv_->checkRobotCollision(req, res, after_swing, *acm_);
+  ASSERT_FALSE(res.collision);
+  res.clear();
+
+  // Should be in collision when upright
+  cenv_->checkRobotCollision(req, res, upright, *acm_);
+  ASSERT_TRUE(res.collision);
+  res.clear();
+
+  // Now the CCD collision check should show the same as the previous check, as the robot hits the box when moving.
+  cenv_->checkRobotCollision(req, res, before_swing, after_swing, *acm_);
+  ASSERT_TRUE(res.collision);
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
