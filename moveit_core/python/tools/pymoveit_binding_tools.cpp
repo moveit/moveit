@@ -40,7 +40,7 @@
 namespace py = pybind11;
 using namespace moveit::py_bindings_tools;
 
-PYBIND11_MODULE(pymoveit_tools, m)
+PYBIND11_MODULE(pymoveit_binding_tools, m)
 {
   m.doc() = "MoveIt python tools";
 

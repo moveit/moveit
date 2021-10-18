@@ -24,7 +24,6 @@
   <depend>moveit_ros_warehouse</depend>
   <depend>moveit_ros_move_group</depend>
   <depend>moveit_ros_manipulation</depend>
-  <depend>pybind11_catkin</depend>
   <depend>roscpp</depend>
   <depend>rospy</depend>
   <depend>rosconsole</depend>

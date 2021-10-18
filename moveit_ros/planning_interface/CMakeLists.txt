@@ -24,10 +24,12 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_ros
   roscpp
   actionlib
-  pybind11_catkin
   rospy
   rosconsole
 )
+
+find_package(PythonInterp REQUIRED)
+find_package(PythonLibs "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" REQUIRED)
 
 find_package(Boost REQUIRED)
 if(Boost_VERSION LESS 106700)
@@ -48,7 +50,6 @@ find_package(Eigen3 REQUIRED)
 find_package(eigenpy REQUIRED)
 
 set(THIS_PACKAGE_INCLUDE_DIRS
-  py_bindings_tools/include
   common_planning_interface_objects/include
   planning_scene_interface/include
   move_group_interface/include
@@ -85,7 +86,6 @@ include_directories(SYSTEM
                     ${EIGEN3_INCLUDE_DIRS}
                     ${PYTHON_INCLUDE_DIRS})
 
-add_subdirectory(py_bindings_tools)
 add_subdirectory(common_planning_interface_objects)
 add_subdirectory(planning_scene_interface)
 add_subdirectory(move_group_interface)
