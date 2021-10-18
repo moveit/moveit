@@ -34,7 +34,7 @@
 
 /* Author: Robert Haschke */
 
-#include <moveit/py_bindings_tools/pybind_rosmsg_typecasters.h>
+#include <moveit/py_bindings_tools/ros_msg_typecasters.h>
 
 namespace py = pybind11;
 namespace moveit

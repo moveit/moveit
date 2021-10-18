@@ -1,7 +1,7 @@
 set(MOVEIT_LIB_NAME moveit_py_bindings_tools)
 
 add_library(${MOVEIT_LIB_NAME}
-  src/pybind_rosmsg_typecasters.cpp
+  src/ros_msg_typecasters.cpp
   src/roscpp_initializer.cpp
 )
 add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})

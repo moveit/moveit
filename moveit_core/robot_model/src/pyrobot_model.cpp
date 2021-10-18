@@ -38,7 +38,7 @@
 #include <pybind11/stl.h>
 #include <moveit/robot_model/robot_model.h>
 #include <urdf_model/model.h>
-#include <moveit/py_bindings_tools/pybind_rosmsg_typecasters.h>
+#include <moveit/py_bindings_tools/ros_msg_typecasters.h>
 
 namespace py = pybind11;
 using namespace robot_model;
