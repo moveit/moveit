@@ -786,8 +786,10 @@ bool ServoCalcs::enforcePositionLimits()
   for (auto joint : joint_model_group_->getActiveJointModels())
   {
     // Halt if we're past a joint margin and joint velocity is moving even farther past
+
     double joint_angle = 0;
     std::size_t idx = 0;
+    // Get the joint index
     for (idx = 0; idx < original_joint_state_.name.size(); ++idx)
     {
       if (original_joint_state_.name[idx] == joint->getName())
@@ -803,6 +805,7 @@ bool ServoCalcs::enforcePositionLimits()
       // Joint limits are not defined for some joints. Skip them.
       if (!limits.empty())
       {
+        // Use internal_joint_state_ because it contains the velocity command we would send
         if ((internal_joint_state_.velocity[idx] < 0 &&
              (joint_angle < (limits[0].min_position + parameters_.joint_limit_margin))) ||
             (internal_joint_state_.velocity[idx] > 0 &&
