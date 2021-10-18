@@ -95,9 +95,9 @@ struct type_caster<ros::WallDuration> : DurationCaster<ros::WallDuration>
 {
 };
 
-/// Convert ROS message types (C++ <-> python)
+/// Base class for type conversion (C++ <-> python) of ROS message types
 template <typename T>
-struct type_caster<T, enable_if_t<ros::message_traits::IsMessage<T>::value>>
+struct RosMsgTypeCaster
 {
   // C++ -> Python
   static handle cast(const T& src, return_value_policy /* policy */, handle /* parent */)
@@ -133,5 +133,11 @@ struct type_caster<T, enable_if_t<ros::message_traits::IsMessage<T>::value>>
 
   PYBIND11_TYPE_CASTER(T, _<T>());
 };
+
+template <typename T>
+struct type_caster<T, enable_if_t<ros::message_traits::IsMessage<T>::value>> : RosMsgTypeCaster<T>
+{
+};
+
 }  // namespace detail
 }  // namespace pybind11
