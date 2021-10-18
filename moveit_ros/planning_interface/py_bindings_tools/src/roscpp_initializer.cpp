@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2020, Bielefeld University
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
+ *   * Neither the name of Bielefeld University nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -32,126 +32,94 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
-
-#include "moveit/py_bindings_tools/roscpp_initializer.h"
-#include "moveit/py_bindings_tools/py_conversions.h"
-#include <boost/thread.hpp>
-#include <ros/ros.h>
 #include <memory>
+#include <mutex>
 
-static std::vector<std::string>& ROScppArgs()
+#include <moveit/py_bindings_tools/roscpp_initializer.h>
+#include <ros/init.h>
+#include <ros/spinner.h>
+
+static const char* LOGNAME = "py_bindings_tools";
+
+namespace moveit
 {
-  static std::vector<std::string> args;
-  return args;
-}
-
-static std::string& ROScppNodeName()
+namespace py_bindings_tools
 {
-  static std::string node_name("moveit_python_wrappers");
-  return node_name;
-}
-
-void moveit::py_bindings_tools::roscpp_set_arguments(const std::string& node_name, boost::python::list& argv)
-{
-  ROScppNodeName() = node_name;
-  ROScppArgs() = stringFromList(argv);
-}
-
 namespace
 {
+/// singleton class to initialize ROS C++ (once) from Python
 struct InitProxy
 {
-  InitProxy()
+  static void init(const std::string& node_name = "moveit_python_wrappers",
+                   const std::map<std::string, std::string>& remappings = std::map<std::string, std::string>(),
+                   uint32_t options = 0);
+  static void reset(bool shutdown);
+
+  InitProxy(const std::string& node_name, const std::map<std::string, std::string>& remappings, uint32_t options)
   {
-    const std::vector<std::string>& args = ROScppArgs();
-    int fake_argc = args.size();
-    char** fake_argv = new char*[args.size()];
-    for (std::size_t i = 0; i < args.size(); ++i)
-      fake_argv[i] = strdup(args[i].c_str());
-
-    ros::init(fake_argc, fake_argv, ROScppNodeName(),
-              ros::init_options::AnonymousName | ros::init_options::NoSigintHandler);
-    for (int i = 0; i < fake_argc; ++i)
-      delete[] fake_argv[i];
-    delete[] fake_argv;
+    usage = 0;
+    if (!ros::isInitialized())
+      ros::init(remappings, node_name, options | ros::init_options::NoSigintHandler);
+    spinner = std::make_unique<ros::AsyncSpinner>(1);
+    spinner->start();
   }
-
   ~InitProxy()
   {
+    spinner->stop();
+    spinner.reset();
     if (ros::isInitialized() && !ros::isShuttingDown())
       ros::shutdown();
   }
+
+  static std::mutex mutex_;
+  static std::unique_ptr<InitProxy> singleton_instance_;
+  unsigned int usage;
+  std::unique_ptr<ros::AsyncSpinner> spinner;
 };
+std::mutex InitProxy::mutex_;
+std::unique_ptr<InitProxy> InitProxy::singleton_instance_;
 }  // namespace
 
-static void roscpp_init_or_stop(bool init)
+void InitProxy::init(const std::string& node_name, const std::map<std::string, std::string>& remappings,
+                     uint32_t options)
 {
-  // ensure we do not accidentally initialize ROS multiple times per process
-  static boost::mutex lock;
-  boost::mutex::scoped_lock slock(lock);
+  std::unique_lock<std::mutex> lock(mutex_);
+  if (!singleton_instance_)
+    singleton_instance_ = std::make_unique<InitProxy>(node_name, remappings, options);
+  ++singleton_instance_->usage;
+}
 
-  // once per process, we start a spinner
-  static bool once = true;
-  static std::unique_ptr<InitProxy> proxy;
-  static std::unique_ptr<ros::AsyncSpinner> spinner;
-
-  // initialize only once
-  if (once && init)
+void InitProxy::reset(bool shutdown)
+{
+  std::unique_lock<std::mutex> lock(mutex_);
+  if (!singleton_instance_ || singleton_instance_->usage == 0)
+    ROS_ERROR_NAMED(LOGNAME, "Calling roscpp_shutdown() without a matching call to roscpp_init()!");
+  else if (--singleton_instance_->usage == 0 && shutdown)
   {
-    once = false;
-
-    // if ROS (cpp) is not initialized, we initialize it
-    if (!ros::isInitialized())
-    {
-      proxy = std::make_unique<InitProxy>();
-      spinner = std::make_unique<ros::AsyncSpinner>(1);
-      spinner->start();
-    }
-  }
-
-  // shutdown if needed
-  if (!init)
-  {
-    once = false;
-    proxy.reset();
-    spinner.reset();
+    ROS_WARN_NAMED(LOGNAME, "It's not recommended to call roscpp_shutdown().");
+    singleton_instance_.reset();
   }
 }
 
-void moveit::py_bindings_tools::roscpp_init()
+ROScppInitializer::ROScppInitializer()
 {
-  roscpp_init_or_stop(true);
+  InitProxy::init();
+}
+ROScppInitializer::~ROScppInitializer()
+{
+  InitProxy::reset(false);
 }
 
-void moveit::py_bindings_tools::roscpp_init(const std::string& node_name, boost::python::list& argv)
+void roscpp_init(const std::string& node_name, const std::map<std::string, std::string>& remappings, uint32_t options)
 {
-  roscpp_set_arguments(node_name, argv);
-  roscpp_init();
+  InitProxy::init(node_name, remappings, options);
 }
 
-void moveit::py_bindings_tools::roscpp_init(boost::python::list& argv)
+void roscpp_shutdown()
 {
-  ROScppArgs() = stringFromList(argv);
-  roscpp_init();
+  // This might shutdown ROS C++, which will stop ROS logging!
+  InitProxy::reset(true);
 }
 
-void moveit::py_bindings_tools::roscpp_shutdown()
-{
-  roscpp_init_or_stop(false);
-}
-
-moveit::py_bindings_tools::ROScppInitializer::ROScppInitializer()
-{
-  roscpp_init();
-}
-
-moveit::py_bindings_tools::ROScppInitializer::ROScppInitializer(boost::python::list& argv)
-{
-  roscpp_init(argv);
-}
-
-moveit::py_bindings_tools::ROScppInitializer::ROScppInitializer(const std::string& node_name, boost::python::list& argv)
-{
-  roscpp_init(node_name, argv);
-}
+}  // namespace py_bindings_tools
+}  // namespace moveit

@@ -32,14 +32,13 @@
 #
 # Author: Ioan Sucan
 
-from moveit_ros_planning_interface import _moveit_roscpp_initializer
+from pymoveit_tools import roscpp_init, roscpp_shutdown, InitOption
+import rospy
 
 
 def roscpp_initialize(args):
-    # remove __name:= argument
-    args2 = [a for a in args if not a.startswith("__name:=")]
-    _moveit_roscpp_initializer.roscpp_init("move_group_commander_wrappers", args2)
-
-
-def roscpp_shutdown():
-    _moveit_roscpp_initializer.roscpp_shutdown()
+    roscpp_init(
+        "move_group_commander_wrappers",
+        rospy.names.load_mappings(args),
+        InitOption.AnonymousName,
+    )

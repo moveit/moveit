@@ -24,12 +24,10 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_ros
   roscpp
   actionlib
+  pybind11_catkin
   rospy
   rosconsole
 )
-
-find_package(PythonInterp REQUIRED)
-find_package(PythonLibs "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" REQUIRED)
 
 find_package(Boost REQUIRED)
 if(Boost_VERSION LESS 106700)
@@ -63,7 +61,6 @@ catkin_package(
     moveit_common_planning_interface_objects
     moveit_planning_scene_interface
     moveit_move_group_interface
-    moveit_py_bindings_tools
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
   CATKIN_DEPENDS
