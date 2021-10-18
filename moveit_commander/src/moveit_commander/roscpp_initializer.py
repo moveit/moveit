@@ -36,9 +36,9 @@ from moveit.binding_tools import roscpp_init, roscpp_shutdown, InitOption
 import rospy
 
 
-def roscpp_initialize(args):
+def roscpp_initialize(args=None):
     roscpp_init(
         "move_group_commander_wrappers",
-        rospy.names.load_mappings(args),
+        rospy.names.get_mappings() if args is None else rospy.names.load_mappings(args),
         InitOption.AnonymousName,
     )
