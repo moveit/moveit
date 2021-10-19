@@ -1,17 +1,7 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(moveit_servo)
 
-if(NOT "${CMAKE_CXX_STANDARD}")
-  set(CMAKE_CXX_STANDARD 14)
-endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 set(SERVO_LIB_NAME moveit_servo_cpp_api)
-
-if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
 
 find_package(Boost REQUIRED)
 find_package(Eigen3 REQUIRED)
@@ -28,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_eigen
   trajectory_msgs
 )
+moveit_build_options()
 
 catkin_package(
   INCLUDE_DIRS

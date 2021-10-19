@@ -1,12 +1,6 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(_PACKAGE_NAME_)
 
-if(NOT "${CMAKE_CXX_STANDARD}")
-  set(CMAKE_CXX_STANDARD 14)
-endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
   pluginlib
@@ -14,6 +8,8 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_kdl
   tf2_eigen
 )
+moveit_build_options()
+
 find_package(LAPACK REQUIRED)
 
 include_directories(include)
