@@ -19,6 +19,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/detail/constrained_valid_state_sampler.cpp
   src/detail/constrained_goal_sampler.cpp
   src/mrx_custom/ellipsoidal_informed_sampler.cpp
+  src/mrx_custom/detail/initial_heuristic_path_helper.cpp
   src/mrx_custom/pose_length_optimization_objective.cpp
   src/mrx_custom/time_length_optimization_objective.cpp
   src/mrx_custom/rrt/InformedBiTRRT.cpp

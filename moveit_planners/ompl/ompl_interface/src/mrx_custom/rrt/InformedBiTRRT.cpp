@@ -42,7 +42,9 @@
 #include <ompl/base/objectives/MechanicalWorkOptimizationObjective.h>
 #include <ompl/geometric/PathSimplifier.h>
 
+#include "moveit/ompl_interface/detail/state_validity_checker.h"
 #include "moveit/ompl_interface/mrx_custom/rrt/InformedBiTRRT.h"
+#include "moveit/ompl_interface/mrx_custom/detail/initial_heuristic_path_helper.h"
 
 ompl::geometric::InformedBiTRRT::InformedBiTRRT(const base::SpaceInformationPtr& si)
   : base::Planner(si, "InformedBiTRRT"), joint_pose_space_(nullptr)
@@ -74,6 +76,24 @@ ompl::geometric::InformedBiTRRT::InformedBiTRRT(const base::SpaceInformationPtr&
                                      &InformedBiTRRT::getCForestOptimalPathRule);
   Planner::declareParam<double>("initial_diameter_multiplier", this, &InformedBiTRRT::setInitialDiameterMultiplier,
                                 &InformedBiTRRT::getInitialDiameterMultiplier);
+
+  Planner::declareParam<bool>("add_initial_heuristic_path", this, &InformedBiTRRT::setAddInitialHeuristicPath,
+                              &InformedBiTRRT::getAddInitialHeuristicPath, "0,1");
+  Planner::declareParam<std::string>("heuristic_path_axis", this, &InformedBiTRRT::setHeuristicPathAxis,
+                                     &InformedBiTRRT::getHeuristicPathAxis);
+  Planner::declareParam<double>("heuristic_path_eef_step", this, &InformedBiTRRT::setHeuristicPathEEFStep,
+                                &InformedBiTRRT::getHeuristicPathEEFStep);
+  Planner::declareParam<double>("heuristic_path_max_length", this, &InformedBiTRRT::setHeuristicPathMaxLength,
+                                &InformedBiTRRT::getHeuristicPathMaxLength);
+
+  if (add_initial_heuristic_path_)
+  {
+    OMPL_INFORM("AddInitialHeuristicPath params: \n"
+                "1) heuristic_path_axis = %s \n"
+                "2) heuristic_path_eef_step = %.3lf \n"
+                "3) heuristic_path_max_length = %.3lf.",
+                heuristic_path_axis_.c_str(), heuristic_path_eef_step_, heuristic_path_max_length_);
+  }
 }
 
 ompl::geometric::InformedBiTRRT::~InformedBiTRRT()
@@ -390,6 +410,9 @@ ompl::base::PlannerStatus ompl::geometric::InformedBiTRRT::solve(const base::Pla
 
     // Add start motion to the tree
     tStart_->add(motion);
+
+    if (add_initial_heuristic_path_)
+      addInitialHeuristicPath(motion, tStart_);
   }
 
   if (tStart_->size() == 0)
@@ -406,6 +429,9 @@ ompl::base::PlannerStatus ompl::geometric::InformedBiTRRT::solve(const base::Pla
     {
       Motion* motion = addMotion(state, tGoal_);
       motion->root = motion->state;  // this state is the root of a tree
+
+      if (add_initial_heuristic_path_)
+        addInitialHeuristicPath(motion, tGoal_);
     }
   }
 
@@ -440,6 +466,9 @@ ompl::base::PlannerStatus ompl::geometric::InformedBiTRRT::solve(const base::Pla
       {
         Motion* motion = addMotion(state, tGoal_);
         motion->root = motion->state;  // this state is the root of a tree
+
+        if (add_initial_heuristic_path_)
+          addInitialHeuristicPath(motion, tGoal_);
       }
     }
 
@@ -738,6 +767,39 @@ void ompl::geometric::InformedBiTRRT::checkSolutionUpdate()
     OMPL_INFORM("Solution updated. solution=[%zu/%zu]. Diameter=%lf. Cost=%lf.", min_idx, num_solutions_, diameter,
                 solutions[min_idx].cost_.value());
   }
+}
+
+void ompl::geometric::InformedBiTRRT::addInitialHeuristicPath(Motion* start_motion, TreeData& tree)
+{
+  auto checker = std::dynamic_pointer_cast<ompl_interface::StateValidityChecker>(si_->getStateValidityChecker());
+
+  if (checker == nullptr)
+    throw std::runtime_error("StateValidityChecker should be ompl_interface::StateValidityChecker.");
+
+  ompl_interface::InitialHeuristicPathHelper helper(checker, heuristic_path_axis_, heuristic_path_eef_step_,
+                                                    heuristic_path_max_length_);
+
+  if (!helper.isLeafGroup())
+  {
+    OMPL_ERROR("%s is not a leaf group. Do not add initial heuristic path to the tree.", helper.getGroupName().c_str());
+    return;
+  }
+
+  const auto path = helper.getCartesianPath(start_motion->state);
+
+  auto* tmp_state = joint_pose_space_->allocState();
+  Motion* parent = start_motion;
+
+  // path[0] is same with start_motion->state.
+  for (size_t i = 1; i < path.size(); i++)
+  {
+    joint_pose_space_->copyToOMPLState(tmp_state, *path[i]);
+    parent = addMotion(tmp_state, tree, parent);
+  }
+
+  joint_pose_space_->freeState(tmp_state);
+
+  OMPL_DEBUG("addInitialHeuristicPath adds %zu states to %s.", path.size() - 1, tree == tStart_ ? "tStart" : "tGoal");
 }
 
 void ompl::geometric::InformedBiTRRT::getPlannerData(base::PlannerData& data) const

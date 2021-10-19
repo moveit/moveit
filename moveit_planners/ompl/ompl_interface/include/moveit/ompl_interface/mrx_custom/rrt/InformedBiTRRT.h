@@ -224,6 +224,46 @@ public:
     return initial_diameter_multiplier_;
   }
 
+  void setAddInitialHeuristicPath(const bool add_initial_heuristic_path)
+  {
+    add_initial_heuristic_path_ = add_initial_heuristic_path;
+  }
+
+  bool getAddInitialHeuristicPath() const
+  {
+    return add_initial_heuristic_path_;
+  }
+
+  void setHeuristicPathAxis(const std::string& heuristic_path_axis)
+  {
+    heuristic_path_axis_ = heuristic_path_axis;
+  }
+
+  std::string getHeuristicPathAxis() const
+  {
+    return heuristic_path_axis_;
+  }
+
+  void setHeuristicPathEEFStep(const double heuristic_path_eef_step)
+  {
+    heuristic_path_eef_step_ = heuristic_path_eef_step;
+  }
+
+  double getHeuristicPathEEFStep() const
+  {
+    return heuristic_path_eef_step_;
+  }
+
+  void setHeuristicPathMaxLength(const double heuristic_path_max_length)
+  {
+    heuristic_path_max_length_ = heuristic_path_max_length;
+  }
+
+  double getHeuristicPathMaxLength() const
+  {
+    return heuristic_path_max_length_;
+  }
+
   /// \brief Set a different nearest neighbors datastructure
   void setNearestNeighbors()
   {
@@ -367,17 +407,21 @@ protected:
   /// \brief The objective (cost function) being optimized
   ompl::base::OptimizationObjectivePtr opt_;
 
-  /// C-Forest && Informed sampler supports
-
-  std::size_t num_solutions_;
-  bool cforest_add_path_{ true };
-  double initial_diameter_multiplier_{ 0.0 };
-
   enum OptimalPathRule
   {
     DIAMETER,
     COST
   };
+
+  /// C-Forest && Informed sampler supports
+
+  std::size_t num_solutions_;
+  bool cforest_add_path_{ true };
+  double initial_diameter_multiplier_{ 0.0 };
+  bool add_initial_heuristic_path_{ true };
+  std::string heuristic_path_axis_{ "Z" };
+  double heuristic_path_eef_step_{ 0.001 };
+  double heuristic_path_max_length_{ 0.4 };
 
   OptimalPathRule cforest_opt_rule_{ OptimalPathRule::DIAMETER };
 
@@ -389,6 +433,7 @@ protected:
   void addPathImpl(const ompl::base::PathPtr& path, TreeData& tree);
   void addPath(const ompl::base::PathPtr& path);
   void checkSolutionUpdate();
+  void addInitialHeuristicPath(Motion* start_motion, TreeData& tree);
 };
 }  // namespace geometric
 }  // namespace ompl
