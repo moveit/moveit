@@ -21,9 +21,6 @@ add_library(${MOVEIT_LIB_NAME}
   src/mrx_custom/ellipsoidal_informed_sampler.cpp
   src/mrx_custom/pose_length_optimization_objective.cpp
   src/mrx_custom/time_length_optimization_objective.cpp
-  src/mrx_custom/cforest/CForest.cpp
-  src/mrx_custom/cforest/CForestStateSampler.cpp
-  src/mrx_custom/cforest/CForest.cpp
   src/mrx_custom/rrt/InformedBiTRRT.cpp
   src/mrx_custom/parameterization/joint_pose_model_space.cpp
   src/mrx_custom/parameterization/joint_pose_model_space_factory.cpp
