@@ -308,6 +308,8 @@ if(CATKIN_ENABLE_TESTING)
     ${${PROJECT_NAME}_INTEGRATIONTEST_LIBRARIES}
   )
 
+  add_rostest(test/python_move_group_planning.test)
+
   ##################
   ####Unit Tests####
   ##################
