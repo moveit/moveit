@@ -6,3 +6,11 @@
     </description>
   </class>
 </library>
+<library path="lib/libcollision_detector_mrx_plugin">
+  <class name="FCLMRX" type="collision_detection::CollisionDetectorMRXPluginLoader"
+  base_class_type="collision_detection::CollisionPlugin">
+    <description>
+      FCL Collision Detector, customized by MRX.
+    </description>
+  </class>
+</library>

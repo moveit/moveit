@@ -23,6 +23,35 @@ install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 
 install(FILES ../collision_detector_fcl_description.xml DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
+set(MRX_LIB_NAME moveit_collision_detection_mrx)
+
+add_library(${MRX_LIB_NAME}
+  src/collision_common.cpp
+  src/mrx_custom/collision_env_mrx.cpp
+)
+set_target_properties(${MRX_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
+
+target_link_libraries(${MRX_LIB_NAME} 
+  moveit_collision_detection 
+  ${catkin_LIBRARIES} 
+  ${urdfdom_LIBRARIES} 
+  ${urdfdom_headers_LIBRARIES} 
+  ${LIBFCL_LIBRARIES} 
+  ${Boost_LIBRARIES}
+  ${MOVEIT_LIB_NAME}
+)
+add_dependencies(${MRX_LIB_NAME} ${catkin_EXPORTED_TARGETS})
+
+add_library(collision_detector_mrx_plugin src/mrx_custom/collision_detector_mrx_plugin_loader.cpp)
+set_target_properties(collision_detector_mrx_plugin PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
+target_link_libraries(collision_detector_mrx_plugin ${catkin_LIBRARIES} ${MRX_LIB_NAME})
+
+
+install(TARGETS ${MRX_LIB_NAME} collision_detector_mrx_plugin
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
+
 if(CATKIN_ENABLE_TESTING)
   catkin_add_gtest(test_fcl_collision_detection test/test_fcl_collision_detection_pr2.cpp)
   target_link_libraries(test_fcl_collision_detection moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
@@ -33,4 +62,14 @@ if(CATKIN_ENABLE_TESTING)
   target_link_libraries(test_fcl_collision_detection_panda moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
   # TODO: remove if transition to gtest's new API TYPED_TEST_SUITE_P is finished
   target_compile_options(test_fcl_collision_detection_panda PRIVATE -Wno-deprecated-declarations)
+
+  catkin_add_gtest(test_mrx_collision_detection test/mrx_custom/test_mrx_collision_detection_pr2.cpp)
+  target_link_libraries(test_mrx_collision_detection moveit_test_utils ${MRX_LIB_NAME} ${Boost_LIBRARIES})
+  # TODO: remove if transition to gtest's new API TYPED_TEST_SUITE_P is finished
+  target_compile_options(test_mrx_collision_detection PRIVATE -Wno-deprecated-declarations)
+
+  catkin_add_gtest(test_mrx_collision_detection_panda test/mrx_custom/test_mrx_collision_detection_panda.cpp)
+  target_link_libraries(test_mrx_collision_detection_panda moveit_test_utils ${MRX_LIB_NAME} ${Boost_LIBRARIES})
+  # TODO: remove if transition to gtest's new API TYPED_TEST_SUITE_P is finished
+  target_compile_options(test_mrx_collision_detection_panda PRIVATE -Wno-deprecated-declarations)
 endif()
