@@ -59,12 +59,7 @@
 namespace moveit_rviz_plugin
 {
 MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::DisplayContext* context, QWidget* parent)
-  : QWidget(parent)
-  , planning_display_(pdisplay)
-  , context_(context)
-  , ui_(new Ui::MotionPlanningUI())
-  , first_time_(true)
-  , clear_octomap_service_client_(nh_.serviceClient<std_srvs::Empty>(move_group::CLEAR_OCTOMAP_SERVICE_NAME))
+  : QWidget(parent), planning_display_(pdisplay), context_(context), ui_(new Ui::MotionPlanningUI()), first_time_(true)
 {
   // set up the GUI
   ui_->setupUi(this);
@@ -81,17 +76,6 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   ui_->tabWidget->insertTab(2, joints_tab_, "Joints");
   connect(planning_display_, SIGNAL(queryStartStateChanged()), joints_tab_, SLOT(queryStartStateChanged()));
   connect(planning_display_, SIGNAL(queryGoalStateChanged()), joints_tab_, SLOT(queryGoalStateChanged()));
-
-  // Set initial velocity and acceleration scaling factors from ROS parameters
-  double factor;
-  nh_.param<double>("robot_description_planning/default_velocity_scaling_factor", factor, 0.1);
-  ui_->velocity_scaling_factor->setValue(factor);
-  nh_.param<double>("robot_description_planning/default_acceleration_scaling_factor", factor, 0.1);
-  ui_->acceleration_scaling_factor->setValue(factor);
-
-  // Query default planning pipeline id
-  nh_.getParam(planning_display_->getMoveGroupNS() + "/move_group/default_planning_pipeline",
-               default_planning_pipeline_);
 
   // connect bottons to actions; each action usually registers the function pointer for the actual computation,
   // to keep the GUI more responsive (using the background job processing)
@@ -197,15 +181,11 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
 
   known_collision_objects_version_ = 0;
 
-  planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
-  planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
+  initFromMoveGroupNS();
 
-  // object_recognition_trigger_publisher_ = nh_.advertise<std_msgs::Bool>("recognize_objects_switch", 1);
   object_recognition_client_ =
       std::make_unique<actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction>>(
           OBJECT_RECOGNITION_ACTION, false);
-  object_recognition_subscriber_ =
-      nh_.subscribe("recognized_object_array", 1, &MotionPlanningFrame::listenDetectedObjects, this);
 
   if (object_recognition_client_)
   {
@@ -576,9 +556,50 @@ void MotionPlanningFrame::enable()
   ui_->library_label->setStyleSheet("QLabel { color : red; font: bold }");
   ui_->object_status->setText("");
 
+  const std::string new_ns = ros::names::resolve(ros::names::append(planning_display_->getMoveGroupNS(), "move_group"));
+  if (mg_nh_.getNamespace() != new_ns)
+  {
+    ROS_INFO("MoveGroup namespace changed: %s -> %s. Reloading params.", mg_nh_.getNamespace().c_str(), new_ns.c_str());
+    initFromMoveGroupNS();
+  }
+
   // activate the frame
   if (parentWidget())
     parentWidget()->show();
+}
+
+// (re)initialize after MotionPlanningDisplay::changedMoveGroupNS()
+// Should be called from constructor and enable() only
+void MotionPlanningFrame::initFromMoveGroupNS()
+{
+  mg_nh_ = ros::NodeHandle(ros::names::append(planning_display_->getMoveGroupNS(), "move_group"));
+
+  // Set initial velocity and acceleration scaling factors from ROS parameters
+  double factor;
+  mg_nh_.param<double>("robot_description_planning/default_velocity_scaling_factor", factor, 0.1);
+  ui_->velocity_scaling_factor->setValue(factor);
+  mg_nh_.param<double>("robot_description_planning/default_acceleration_scaling_factor", factor, 0.1);
+  ui_->acceleration_scaling_factor->setValue(factor);
+
+  std::string param_name;
+  std::string host_param;
+  int port;
+  if (mg_nh_.searchParam("warehouse_host", param_name) && mg_nh_.getParam(param_name, host_param))
+    ui_->database_host->setText(QString::fromStdString(host_param));
+  if (mg_nh_.searchParam("warehouse_port", param_name) && mg_nh_.getParam(param_name, port))
+    ui_->database_port->setValue(port);
+
+  // Get default planning pipeline id
+  mg_nh_.param<std::string>("default_planning_pipeline", default_planning_pipeline_, "");
+
+  // Create namespace-dependent services, topics, and subscribers
+  clear_octomap_service_client_ = mg_nh_.serviceClient<std_srvs::Empty>(move_group::CLEAR_OCTOMAP_SERVICE_NAME);
+
+  object_recognition_subscriber_ =
+      mg_nh_.subscribe("recognized_object_array", 1, &MotionPlanningFrame::listenDetectedObjects, this);
+
+  planning_scene_publisher_ = mg_nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
+  planning_scene_world_publisher_ = mg_nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
 }
 
 void MotionPlanningFrame::disable()

@@ -229,15 +229,6 @@ void MotionPlanningDisplay::onInitialize()
   rviz::WindowManagerInterface* window_context = context_->getWindowManager();
   frame_ = new MotionPlanningFrame(this, context_, window_context ? window_context->getParentWindow() : nullptr);
 
-  ros::NodeHandle move_group_nh(ros::names::append(getMoveGroupNS(), "move_group"));
-  std::string param_name;
-  std::string host_param;
-  int port;
-  if (move_group_nh.searchParam("warehouse_host", param_name) && move_group_nh.getParam(param_name, host_param))
-    frame_->ui_->database_host->setText(QString::fromStdString(host_param));
-  if (move_group_nh.searchParam("warehouse_port", param_name) && move_group_nh.getParam(param_name, port))
-    frame_->ui_->database_port->setValue(port);
-
   connect(frame_, SIGNAL(configChanged()), this->getModel(), SIGNAL(configChanged()));
   resetStatusTextColor();
   addStatusText("Initialized.");
