@@ -53,6 +53,10 @@ joint_topic: joint_states
 status_topic: status # Publish status to this topic
 command_out_topic: /joint_group_position_controller/command # Publish outgoing commands here
 
+# Handle multiple planning scene monitors. Eg if the PSM in Servo is the primary, provide /get_planning_scene for RViz
+is_primary_planning_scene_monitor: true
+# monitored_planning_scene_topic: # Comment this parameter to use the default
+
 ## Collision checking for the entire robot body
 check_collisions: true # Check collisions?
 collision_check_rate: 50 # [Hz] Collision-checking can easily bog down a CPU if done too often.
