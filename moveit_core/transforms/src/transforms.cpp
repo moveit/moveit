@@ -130,8 +130,14 @@ void Transforms::setTransform(const geometry_msgs::TransformStamped& transform)
 {
   if (sameFrame(transform.child_frame_id, target_frame_))
   {
-    Eigen::Isometry3d t = tf2::transformToEigen(transform.transform);
-    setTransform(t, transform.header.frame_id);
+    // manually convert to ensure correct normalization (transforms from Gazebo have float accuracy only?)
+    const auto& trans = transform.transform.translation;
+    const auto& rot = transform.transform.rotation;
+    Eigen::Translation3d translation(trans.x, trans.y, trans.z);
+    Eigen::Quaterniond rotation(rot.w, rot.x, rot.y, rot.z);
+    rotation.normalize();
+
+    setTransform(translation * rotation, transform.header.frame_id);
   }
   else
   {
