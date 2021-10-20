@@ -108,23 +108,23 @@ jobs:
         if: ${{ matrix.env.IKFAST_TEST }}
         run: |
           moveit_kinematics/test/test_ikfast_plugins.sh
-      - id: industrial_ci
+      - id: ici
         uses: ros-industrial/industrial_ci@master
         env: ${{ matrix.env }}
 
       - name: Upload test artifacts (on failure)
         uses: actions/upload-artifact@v2
-        if: steps.industrial_ci.outcome != 'success'
+        if: failure() && (steps.ici.outputs.run_target_test || steps.ici.outputs.target_test_results)
         with:
           name: test-results-${{ matrix.env.IMAGE }}
           path: ${{ env.BASEDIR }}/target_ws/**/test_results/**/*.xml
       - name: Upload codecov report
         uses: codecov/codecov-action@v1
-        if: ${{ matrix.env.CCOV }}
+        if: always() && matrix.env.CCOV && steps.ici.outputs.target_test_results == '0'
         with:
           files: ${{ env.BASEDIR }}/coverage.info
       - name: Prepare target_ws for cache
-        if: ${{ always() && ! matrix.env.CCOV }}
+        if: always() && ! matrix.env.CCOV
         run: |
           du -sh ${{ env.BASEDIR }}/target_ws
           sudo find ${{ env.BASEDIR }}/target_ws -wholename '*/test_results/*' -delete
