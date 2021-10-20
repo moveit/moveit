@@ -143,7 +143,7 @@ void MotionPlanningFrame::triggerObjectDetection()
             OBJECT_RECOGNITION_ACTION, false);
     try
     {
-      waitForAction(object_recognition_client_, nh_, ros::Duration(3.0), OBJECT_RECOGNITION_ACTION);
+      waitForAction(object_recognition_client_, ros::Duration(3.0), OBJECT_RECOGNITION_ACTION);
     }
     catch (std::exception& ex)
     {
