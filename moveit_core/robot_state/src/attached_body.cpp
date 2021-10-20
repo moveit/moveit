@@ -43,12 +43,12 @@ namespace moveit
 {
 namespace core
 {
-AttachedBody::AttachedBody(const LinkModel* parent_link_model, const std::string& id, const Eigen::Isometry3d& pose,
+AttachedBody::AttachedBody(const LinkModel* parent, const std::string& id, const Eigen::Isometry3d& pose,
                            const std::vector<shapes::ShapeConstPtr>& shapes,
                            const EigenSTL::vector_Isometry3d& shape_poses, const std::set<std::string>& touch_links,
                            const trajectory_msgs::JointTrajectory& detach_posture,
                            const FixedTransformsMap& subframe_poses)
-  : parent_link_model_(parent_link_model)
+  : parent_link_model_(parent)
   , id_(id)
   , pose_(pose)
   , shapes_(shapes)
