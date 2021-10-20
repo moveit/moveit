@@ -42,7 +42,11 @@ jobs:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       BASEDIR: ${{ github.workspace }}/.work
       CLANG_TIDY_BASE_REF: ${{ github.base_ref || github.ref }}
-      BEFORE_CLANG_TIDY_CHECKS: (cd $TARGET_REPO_PATH; clang-tidy --list-checks)
+      BEFORE_CLANG_TIDY_CHECKS: |
+        # Show list of applied checks
+        (cd $TARGET_REPO_PATH; clang-tidy --list-checks)
+        # Disable clang-tidy for ikfast plugins as we cannot fix the generated code
+        find $BASEDIR/target_ws/build -iwholename "*_ikfast_plugin/compile_commands.json" -exec rm {} \;
       BUILDER: ${{ matrix.env.BUILDER || 'catkin_tools' }}
       CC: ${{ matrix.env.CLANG_TIDY && 'clang' }}
       CXX: ${{ matrix.env.CLANG_TIDY && 'clang++' }}
