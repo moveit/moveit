@@ -293,8 +293,7 @@ private:
   std::unique_ptr<actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction> >
       object_recognition_client_;
   template <typename T>
-  void waitForAction(const T& action, const ros::NodeHandle& node_handle, const ros::Duration& wait_for_server,
-                     const std::string& name);
+  void waitForAction(const T& action, const ros::Duration& wait_for_server, const std::string& name);
   void listenDetectedObjects(const object_recognition_msgs::RecognizedObjectArrayPtr& msg);
   ros::Subscriber object_recognition_subscriber_;
 
@@ -337,8 +336,7 @@ private:
 
 // \todo THIS IS REALLY BAD. NEED TO MOVE THIS AND RELATED FUNCTIONALITY OUT OF HERE
 template <typename T>
-void MotionPlanningFrame::waitForAction(const T& action, const ros::NodeHandle& node_handle,
-                                        const ros::Duration& wait_for_server, const std::string& name)
+void MotionPlanningFrame::waitForAction(const T& action, const ros::Duration& wait_for_server, const std::string& name)
 {
   ROS_DEBUG("Waiting for MoveGroup action server (%s)...", name.c_str());
 
@@ -354,7 +352,7 @@ void MotionPlanningFrame::waitForAction(const T& action, const ros::NodeHandle& 
   if (wait_for_server == ros::Duration(0, 0))
   {
     // wait forever until action server connects
-    while (node_handle.ok() && !action->isServerConnected())
+    while (ros::ok() && !action->isServerConnected())
     {
       ros::WallDuration(0.02).sleep();
       ros::spinOnce();
@@ -364,7 +362,7 @@ void MotionPlanningFrame::waitForAction(const T& action, const ros::NodeHandle& 
   {
     // wait for a limited amount of non-simulated time
     ros::WallTime final_time = ros::WallTime::now() + ros::WallDuration(wait_for_server.toSec());
-    while (node_handle.ok() && !action->isServerConnected() && final_time > ros::WallTime::now())
+    while (ros::ok() && !action->isServerConnected() && final_time > ros::WallTime::now())
     {
       ros::WallDuration(0.02).sleep();
       ros::spinOnce();
