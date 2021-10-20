@@ -244,7 +244,7 @@ protected:
 
 std::size_t generateTestTraj(std::vector<std::shared_ptr<moveit::core::RobotState>>& traj,
                              const moveit::core::RobotModelConstPtr& robot_model_,
-                             const moveit::core::JointModelGroup* joint_model_group)
+                             const moveit::core::JointModelGroup* /*joint_model_group*/)
 {
   traj.clear();
 

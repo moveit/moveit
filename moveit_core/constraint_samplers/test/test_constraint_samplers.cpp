@@ -56,14 +56,14 @@
 class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
-  kinematics::KinematicsBasePtr getKinematicsSolverRightArm(const moveit::core::JointModelGroup* jmg)
+  kinematics::KinematicsBasePtr getKinematicsSolverRightArm(const moveit::core::JointModelGroup* /*jmg*/)
   {
     {
       return pr2_kinematics_plugin_right_arm_;
     }
   }
 
-  kinematics::KinematicsBasePtr getKinematicsSolverLeftArm(const moveit::core::JointModelGroup* jmg)
+  kinematics::KinematicsBasePtr getKinematicsSolverLeftArm(const moveit::core::JointModelGroup* /*jmg*/)
   {
     {
       return pr2_kinematics_plugin_left_arm_;

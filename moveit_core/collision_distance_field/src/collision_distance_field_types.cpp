@@ -435,7 +435,7 @@ void collision_detection::getCollisionSphereMarkers(
 }
 
 void collision_detection::getProximityGradientMarkers(
-    const std::string& frame_id, const std::string& ns, const ros::Duration& dur,
+    const std::string& frame_id, const std::string& ns, const ros::Duration& /*dur*/,
     const std::vector<PosedBodySphereDecompositionPtr>& posed_decompositions,
     const std::vector<PosedBodySphereDecompositionVectorPtr>& posed_vector_decompositions,
     const std::vector<GradientInfo>& gradients, visualization_msgs::MarkerArray& arr)
@@ -538,7 +538,7 @@ void collision_detection::getProximityGradientMarkers(
 }
 
 void collision_detection::getCollisionMarkers(
-    const std::string& frame_id, const std::string& ns, const ros::Duration& dur,
+    const std::string& frame_id, const std::string& ns, const ros::Duration& /*dur*/,
     const std::vector<PosedBodySphereDecompositionPtr>& posed_decompositions,
     const std::vector<PosedBodySphereDecompositionVectorPtr>& posed_vector_decompositions,
     const std::vector<GradientInfo>& gradients, visualization_msgs::MarkerArray& arr)

@@ -114,7 +114,7 @@ struct type_caster<T, enable_if_t<ros::message_traits::IsMessage<T>::value>>
   }
 
   // Python -> C++
-  bool load(handle src, bool convert)
+  bool load(handle src, bool /*convert*/)
   {
     if (!moveit::python::convertible(src, ros::message_traits::DataType<T>::value()))
       return false;

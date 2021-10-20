@@ -67,6 +67,8 @@ void checkFCLCapabilities(const DistanceRequest& req)
                              "to at least 0.6.0.",
                              FCL_MAJOR_VERSION, FCL_MINOR_VERSION, FCL_PATCH_VERSION);
   }
+#else
+  (void)(req);  // silent -Wunused-parameter
 #endif
 }
 }  // namespace
@@ -285,17 +287,17 @@ void CollisionEnvFCL::checkRobotCollision(const CollisionRequest& req, Collision
   checkRobotCollisionHelper(req, res, state, &acm);
 }
 
-void CollisionEnvFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                          const moveit::core::RobotState& state1,
-                                          const moveit::core::RobotState& state2) const
+void CollisionEnvFCL::checkRobotCollision(const CollisionRequest& /*req*/, CollisionResult& /*res*/,
+                                          const moveit::core::RobotState& /*state1*/,
+                                          const moveit::core::RobotState& /*state2*/) const
 {
   ROS_ERROR_NAMED(LOGNAME, "Continuous collision not implemented");
 }
 
-void CollisionEnvFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                          const moveit::core::RobotState& state1,
-                                          const moveit::core::RobotState& state2,
-                                          const AllowedCollisionMatrix& acm) const
+void CollisionEnvFCL::checkRobotCollision(const CollisionRequest& /*req*/, CollisionResult& /*res*/,
+                                          const moveit::core::RobotState& /*state1*/,
+                                          const moveit::core::RobotState& /*state2*/,
+                                          const AllowedCollisionMatrix& /*acm*/) const
 {
   ROS_ERROR_NAMED(LOGNAME, "Not implemented");
 }

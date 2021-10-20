@@ -95,9 +95,9 @@ void KinematicsBase::setValues(const std::string& robot_description, const std::
   setValues(robot_description, group_name, base_frame, std::vector<std::string>({ tip_frame }), search_discretization);
 }
 
-bool KinematicsBase::initialize(const std::string& robot_description, const std::string& group_name,
-                                const std::string& base_frame, const std::string& tip_frame,
-                                double search_discretization)
+bool KinematicsBase::initialize(const std::string& /*robot_description*/, const std::string& /*group_name*/,
+                                const std::string& /*base_frame*/, const std::string& /*tip_frame*/,
+                                double /*search_discretization*/)
 {
   return false;  // default implementation returns false
 }
@@ -116,9 +116,9 @@ bool KinematicsBase::initialize(const std::string& robot_description, const std:
   return false;
 }
 
-bool KinematicsBase::initialize(const moveit::core::RobotModel& robot_model, const std::string& group_name,
-                                const std::string& base_frame, const std::vector<std::string>& tip_frames,
-                                double search_discretization)
+bool KinematicsBase::initialize(const moveit::core::RobotModel& /*robot_model*/, const std::string& group_name,
+                                const std::string& /*base_frame*/, const std::vector<std::string>& /*tip_frames*/,
+                                double /*search_discretization*/)
 {
   ROS_WARN_NAMED(LOGNAME,
                  "IK plugin for group '%s' relies on deprecated API. "

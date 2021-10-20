@@ -1509,17 +1509,17 @@ void CollisionEnvDistanceField::checkRobotCollision(const CollisionRequest& req,
   // checkRobotCollisionHelper(req, res, robot, state, &acm);
 }
 
-void CollisionEnvDistanceField::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                                    const moveit::core::RobotState& state1,
-                                                    const moveit::core::RobotState& state2,
-                                                    const AllowedCollisionMatrix& acm) const
+void CollisionEnvDistanceField::checkRobotCollision(const CollisionRequest& /*req*/, CollisionResult& /*res*/,
+                                                    const moveit::core::RobotState& /*state1*/,
+                                                    const moveit::core::RobotState& /*state2*/,
+                                                    const AllowedCollisionMatrix& /*acm*/) const
 {
   ROS_ERROR_NAMED("collision_detection.distance", "Continuous collision checking not implemented");
 }
 
-void CollisionEnvDistanceField::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                                    const moveit::core::RobotState& state1,
-                                                    const moveit::core::RobotState& state2) const
+void CollisionEnvDistanceField::checkRobotCollision(const CollisionRequest& /*req*/, CollisionResult& /*res*/,
+                                                    const moveit::core::RobotState& /*state1*/,
+                                                    const moveit::core::RobotState& /*state2*/) const
 {
   ROS_ERROR_NAMED("collision_detection.distance", "Continuous collision checking not implemented");
 }
