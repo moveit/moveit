@@ -63,6 +63,8 @@ Servo::Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMon
   spinner.start();
 
   // Confirm the planning scene monitor is ready to be used
+  planning_scene_monitor_->startSceneMonitor();
+  planning_scene_monitor_->startWorldGeometryMonitor();
   if (!planning_scene_monitor_->getStateMonitor())
   {
     planning_scene_monitor_->startStateMonitor(parameters_.joint_topic);
@@ -135,9 +137,8 @@ bool Servo::readParameters()
   error += !rosparam_shortcuts::get(LOGNAME, nh, "publish_joint_velocities", parameters_.publish_joint_velocities);
   error +=
       !rosparam_shortcuts::get(LOGNAME, nh, "publish_joint_accelerations", parameters_.publish_joint_accelerations);
-  error += !rosparam_shortcuts::get(LOGNAME, nh, "is_primary_planning_scene_monitor",
-    parameters_.is_primary_planning_scene_monitor);
-  // This parameter is optional. It takes the default value if none is defined.
+  // These parameters are optional. They take a default value if none is defined.
+  nh.param<bool>("is_primary_planning_scene_monitor", parameters_.is_primary_planning_scene_monitor, false);
   nh.param<std::string>("monitored_planning_scene_topic", parameters_.monitored_planning_scene_topic,
     planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_TOPIC);
 

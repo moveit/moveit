@@ -276,6 +276,8 @@ void ServoCalcs::calculateSingleIteration()
   // 1) in case the getCommandFrameTransform() method is being used
   // 2) so the low-pass filters are up to date and don't cause a jump
   updateJoints();
+  // Update frames that are not a part of the kinematic model (e.g. external tf frames)
+  planning_scene_monitor_->updateFrameTransforms();
 
   // Update from latest state
   current_state_ = planning_scene_monitor_->getStateMonitor()->getCurrentState();
