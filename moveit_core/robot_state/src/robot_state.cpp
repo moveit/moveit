@@ -2203,7 +2203,7 @@ void RobotState::printTransforms(std::ostream& out) const
   }
 }
 
-std::string RobotState::getStateTreeString(const std::string& /*prefix*/) const
+std::string RobotState::getStateTreeString() const
 {
   std::stringstream ss;
   ss << "ROBOT: " << robot_model_->getName() << std::endl;

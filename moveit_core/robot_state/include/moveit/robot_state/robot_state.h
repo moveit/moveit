@@ -1826,7 +1826,7 @@ public:
 
   void printDirtyInfo(std::ostream& out = std::cout) const;
 
-  std::string getStateTreeString(const std::string& prefix = "") const;
+  std::string getStateTreeString() const;
 
   /**
    * \brief Transform pose from the robot model's base frame to the reference frame of the IK solver

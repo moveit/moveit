@@ -548,11 +548,11 @@ void RobotModel::buildGroups(const srdf::Model& srdf_model)
     joint_model_group_names_.push_back(joint_model_group->getName());
   }
 
-  buildGroupsInfoSubgroups(srdf_model);
+  buildGroupsInfoSubgroups();
   buildGroupsInfoEndEffectors(srdf_model);
 }
 
-void RobotModel::buildGroupsInfoSubgroups(const srdf::Model& /*srdf_model*/)
+void RobotModel::buildGroupsInfoSubgroups()
 {
   // compute subgroups
   for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
