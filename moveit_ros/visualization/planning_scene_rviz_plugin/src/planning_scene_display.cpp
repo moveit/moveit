@@ -170,8 +170,7 @@ PlanningSceneDisplay::~PlanningSceneDisplay()
   planning_scene_render_.reset();
   if (context_ && context_->getSceneManager() && planning_scene_node_)
     context_->getSceneManager()->destroySceneNode(planning_scene_node_);
-  if (planning_scene_robot_)
-    planning_scene_robot_.reset();
+  planning_scene_robot_.reset();
   planning_scene_monitor_.reset();
 }
 
@@ -193,8 +192,8 @@ void PlanningSceneDisplay::onInitialize()
 
   if (robot_category_)
   {
-    planning_scene_robot_.reset(
-        new RobotStateVisualization(planning_scene_node_, context_, "Planning Scene", robot_category_));
+    planning_scene_robot_ =
+        std::make_shared<RobotStateVisualization>(planning_scene_node_, context_, "Planning Scene", robot_category_);
     planning_scene_robot_->setVisible(true);
     planning_scene_robot_->setVisualVisible(scene_robot_visual_enabled_property_->getBool());
     planning_scene_robot_->setCollisionVisible(scene_robot_collision_enabled_property_->getBool());
