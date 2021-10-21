@@ -27,6 +27,7 @@ jobs:
           - IMAGE: master-ci # ROS Melodic with all dependencies required for master
             CATKIN_LINT: true
     env:
+      CLANG_TIDY_ARGS: --fix --fix-errors --format-style=file
       DOCKER_IMAGE: moveit/moveit:${{ matrix.env.IMAGE }}
       UPSTREAM_WORKSPACE: .github/workflows/upstream.rosinstall
       TARGET_WORKSPACE: $TARGET_REPO_PATH github:ros-planning/moveit_resources#master
@@ -37,11 +38,11 @@ jobs:
       AFTER_RUN_TARGET_TEST: ${{ matrix.env.CCOV && './.ci.prepare_codecov' || '' }}
       TARGET_CMAKE_ARGS: >
         -DCMAKE_BUILD_TYPE=${{ matrix.env.CCOV && 'RelWithDebInfo' || 'Release'}}
-        -DCMAKE_CXX_FLAGS="-Werror ${{ matrix.env.CCOV && '--coverage'}}"
+        -DCMAKE_CXX_FLAGS="${{ matrix.env.CLANG_TIDY != 'pedantic' && '-Werror ' || '' }}${{ matrix.env.CCOV && ' --coverage'}}"
       DOWNSTREAM_CMAKE_ARGS: -DCMAKE_CXX_FLAGS="-Wall -Wextra"
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       BASEDIR: ${{ github.workspace }}/.work
-      CLANG_TIDY_BASE_REF: ${{ github.base_ref || github.ref }}
+      CLANG_TIDY_BASE_REF: ${{ github.event_name != 'workflow_dispatch' && (github.base_ref || github.ref) || '' }}
       BEFORE_CLANG_TIDY_CHECKS: |
         # Show list of applied checks
         (cd $TARGET_REPO_PATH; clang-tidy --list-checks)
@@ -51,7 +52,7 @@ jobs:
       CC: ${{ matrix.env.CLANG_TIDY && 'clang' }}
       CXX: ${{ matrix.env.CLANG_TIDY && 'clang++' }}
 
-    name: "${{ matrix.env.IMAGE }}${{ matrix.env.CATKIN_LINT && ' + catkin_lint' || ''}}${{ matrix.env.CCOV && ' + ccov' || ''}}${{ matrix.env.IKFAST_TEST && ' + ikfast' || ''}}${{ matrix.env.CLANG_TIDY && ' + clang-tidy' || '' }}"
+    name: "${{ matrix.env.IMAGE }}${{ matrix.env.CATKIN_LINT && ' + catkin_lint' || ''}}${{ matrix.env.CCOV && ' + ccov' || ''}}${{ matrix.env.IKFAST_TEST && ' + ikfast' || ''}}${{ matrix.env.CLANG_TIDY && (github.event_name != 'workflow_dispatch' && ' + clang-tidy (delta)' || ' + clang-tidy (all)') || '' }}"
     runs-on: ubuntu-latest
     steps:
       - name: "Free up disk space"
@@ -69,7 +70,7 @@ jobs:
           sudo rm -rf /usr/local
           df -h
       - uses: actions/checkout@v2
-      - name: cache upstream workspace
+      - name: Cache upstream workspace
         uses: pat-s/always-upload-cache@v2.1.5
         with:
           path: ${{ env.BASEDIR }}/upstream_ws
@@ -77,7 +78,7 @@ jobs:
           restore-keys: ${{ env.CACHE_PREFIX }}
         env:
           CACHE_PREFIX: upstream_ws-${{ matrix.env.IMAGE }}-${{ hashFiles('.github/workflows/upstream.rosinstall', '.github/workflows/ci.yaml') }}
-      - name: cache downstream workspace
+      - name: Cache downstream workspace
         uses: pat-s/always-upload-cache@v2.1.5
         with:
           path: ${{ env.BASEDIR }}/downstream_ws
@@ -87,7 +88,7 @@ jobs:
           CACHE_PREFIX: downstream_ws-${{ matrix.env.IMAGE }}-${{ hashFiles('.github/workflows/downstream.rosinstall', '.github/workflows/ci.yaml') }}
       # The target directory cache doesn't include the source directory because
       # that comes from the checkout.  See "prepare target_ws for cache" task below
-      - name: cache target workspace
+      - name: Cache target workspace
         if: ${{ ! matrix.env.CCOV }}
         uses: pat-s/always-upload-cache@v2.1.5
         with:
@@ -96,7 +97,7 @@ jobs:
           restore-keys: ${{ env.CACHE_PREFIX }}
         env:
           CACHE_PREFIX: target_ws${{ matrix.env.CCOV && '-ccov' || '' }}-${{ matrix.env.IMAGE }}-${{ hashFiles('**/CMakeLists.txt', '**/package.xml', '.github/workflows/ci.yaml') }}
-      - name: cache ccache
+      - name: Cache ccache
         uses: pat-s/always-upload-cache@v2.1.5
         with:
           path: ${{ env.CCACHE_DIR }}
@@ -107,27 +108,34 @@ jobs:
         env:
           CACHE_PREFIX: ccache-${{ matrix.env.IMAGE }}${{ matrix.env.CCOV && '-ccov' || '' }}
 
-      - name: generate ikfast packages
+      - name: Generate ikfast packages
         if: ${{ matrix.env.IKFAST_TEST }}
         run: |
           moveit_kinematics/test/test_ikfast_plugins.sh
-      - id: industrial_ci
+      - id: ici
+        name: Run industrial_ci
         uses: ros-industrial/industrial_ci@master
         env: ${{ matrix.env }}
 
-      - name: upload test artifacts (on failure)
+      - name: Upload test artifacts (on failure)
         uses: actions/upload-artifact@v2
-        if: steps.industrial_ci.outcome != 'success'
+        if: failure() && (steps.ici.outputs.run_target_test || steps.ici.outputs.target_test_results)
         with:
           name: test-results-${{ matrix.env.IMAGE }}
           path: ${{ env.BASEDIR }}/target_ws/**/test_results/**/*.xml
-      - name: upload codecov report
+      - name: Upload codecov report
         uses: codecov/codecov-action@v1
-        if: ${{ matrix.env.CCOV }}
+        if: always() && matrix.env.CCOV && steps.ici.outputs.target_test_results == '0'
         with:
           files: ${{ env.BASEDIR }}/coverage.info
-      - name: prepare target_ws for cache
-        if: ${{ always() && ! matrix.env.CCOV }}
+      - name: Upload clang-tidy changes
+        uses: rhaschke/upload-git-patch-action@main
+        if: always() && matrix.env.CLANG_TIDY
+        with:
+          name: clang-tidy
+          path: ${{ env.BASEDIR }}/target_ws/src/$(basename $(pwd))
+      - name: Prepare target_ws for cache
+        if: always() && ! matrix.env.CCOV
         run: |
           du -sh ${{ env.BASEDIR }}/target_ws
           sudo find ${{ env.BASEDIR }}/target_ws -wholename '*/test_results/*' -delete
