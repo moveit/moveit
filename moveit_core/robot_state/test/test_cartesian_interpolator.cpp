@@ -285,7 +285,6 @@ std::size_t generateTestTraj(std::vector<std::shared_ptr<moveit::core::RobotStat
 
 TEST_F(OneRobot, testGenerateTrajectory)
 {
-  const moveit::core::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup("arm");
   std::vector<std::shared_ptr<moveit::core::RobotState>> traj;
 
   // The full trajectory should be of length 7
