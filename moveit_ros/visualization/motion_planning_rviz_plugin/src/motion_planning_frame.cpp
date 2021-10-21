@@ -572,7 +572,7 @@ void MotionPlanningFrame::enable()
 // Should be called from constructor and enable() only
 void MotionPlanningFrame::initFromMoveGroupNS()
 {
-  nh_ = ros::NodeHandle(ros::names::append(planning_display_->getMoveGroupNS()); // <namespace>/<MoveGroupNS
+  nh_ = ros::NodeHandle(planning_display_->getMoveGroupNS());  // <namespace>/<MoveGroupNS
 
   // Create namespace-dependent services, topics, and subscribers
   clear_octomap_service_client_ = nh_.serviceClient<std_srvs::Empty>(move_group::CLEAR_OCTOMAP_SERVICE_NAME);
@@ -591,7 +591,7 @@ void MotionPlanningFrame::initFromMoveGroupNS()
   ui_->acceleration_scaling_factor->setValue(factor);
 
   // Fetch parameters from private move_group sub space
-  ros::NodeHandle nh_mg("move_group"); // <namespace>/<MoveGroupNS/move_group
+  ros::NodeHandle nh_mg("move_group");  // <namespace>/<MoveGroupNS/move_group
   std::string param_name;
   std::string host_param;
   int port;
