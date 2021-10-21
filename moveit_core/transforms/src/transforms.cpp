@@ -130,7 +130,8 @@ void Transforms::setTransform(const geometry_msgs::TransformStamped& transform)
 {
   if (sameFrame(transform.child_frame_id, target_frame_))
   {
-    // manually convert to ensure correct normalization (transforms from Gazebo have float accuracy only?)
+    // convert message manually to ensure correct normalization for double (error < 1e-12)
+    // tf2 only enforces float normalization (error < 1e-5)
     const auto& trans = transform.transform.translation;
     const auto& rot = transform.transform.rotation;
     Eigen::Translation3d translation(trans.x, trans.y, trans.z);
