@@ -590,7 +590,7 @@ Eigen::Isometry3d getConstraintPose(const moveit_msgs::Constraints& constraint, 
                                     const geometry_msgs::Quaternion& orientation)
 {
   geometry_msgs::Pose pose;
-  pose.position = constraint.position_constraints.at(0).constraint_region.primitive_poses.at(0).position;
+  pose.position = constraint.position_constraints.front().constraint_region.primitive_poses.front().position;
   pose.orientation = orientation;
   normalizeQuaternion(pose.orientation);
   Eigen::Isometry3d pose_eigen;

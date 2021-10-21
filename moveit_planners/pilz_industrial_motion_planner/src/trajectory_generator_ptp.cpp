@@ -237,9 +237,9 @@ void TrajectoryGeneratorPTP::extractMotionPlanInfo(const planning_scene::Plannin
   // solve the ik
   else
   {
-    moveit_msgs::Constraints goal = req.goal_constraints.at(0);
-    geometry_msgs::Vector3 goal_offset = goal.position_constraints.at(0).target_point_offset;
-    geometry_msgs::Quaternion goal_orientation = goal.orientation_constraints.at(0).orientation;
+    moveit_msgs::Constraints goal = req.goal_constraints.front();
+    geometry_msgs::Vector3 goal_offset = goal.position_constraints.front().target_point_offset;
+    geometry_msgs::Quaternion goal_orientation = goal.orientation_constraints.front().orientation;
     Eigen::Isometry3d goal_pose = getConstraintPose(goal, goal_offset, goal_orientation);
     if (!computePoseIK(scene, req.group_name, req.goal_constraints.at(0).position_constraints.at(0).link_name,
                        goal_pose, robot_model_->getModelFrame(), info.start_joint_position, info.goal_joint_position))

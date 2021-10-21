@@ -141,9 +141,9 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_scene::Planni
     {
       frame_id = req.goal_constraints.front().position_constraints.front().header.frame_id;
     }
-    moveit_msgs::Constraints goal = req.goal_constraints.at(0);
-    geometry_msgs::Vector3 goal_offset = goal.position_constraints.at(0).target_point_offset;
-    geometry_msgs::Quaternion goal_orientation = goal.orientation_constraints.at(0).orientation;
+    moveit_msgs::Constraints goal = req.goal_constraints.front();
+    geometry_msgs::Vector3 goal_offset = goal.position_constraints.front().target_point_offset;
+    geometry_msgs::Quaternion goal_orientation = goal.orientation_constraints.front().orientation;
     info.goal_pose = getConstraintPose(goal, goal_offset, goal_orientation);
   }
 
@@ -176,15 +176,22 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_scene::Planni
     // LCOV_EXCL_STOP // not able to trigger here since lots of checks before
     // are in place
   }
-
-  Eigen::Vector3d circ_path_point;
-  tf2::fromMsg(req.path_constraints.position_constraints.front().constraint_region.primitive_poses.front().position,
-               circ_path_point);
-  moveit_msgs::Constraints goal = req.goal_constraints.at(0);
-  geometry_msgs::Vector3 goal_offset = goal.position_constraints.at(0).target_point_offset;
-  geometry_msgs::Quaternion goal_orientation = goal.orientation_constraints.at(0).orientation;
   info.circ_path_point.first = req.path_constraints.name;
-  info.circ_path_point.second = getConstraintPose(req.path_constraints, goal_offset, goal_orientation).translation();
+  if (!req.goal_constraints.front().position_constraints.empty())
+  {
+    moveit_msgs::Constraints goal = req.goal_constraints.front();
+
+    geometry_msgs::Vector3 goal_offset = goal.position_constraints.front().target_point_offset;
+    geometry_msgs::Quaternion goal_orientation = goal.orientation_constraints.front().orientation;
+    info.circ_path_point.second = getConstraintPose(req.path_constraints, goal_offset, goal_orientation).translation();
+  }
+  else
+  {
+    Eigen::Vector3d circ_path_point;
+    tf2::fromMsg(req.path_constraints.position_constraints.front().constraint_region.primitive_poses.front().position,
+                 circ_path_point);
+    info.circ_path_point.second = circ_path_point;
+  }
 }
 
 void TrajectoryGeneratorCIRC::plan(const planning_scene::PlanningSceneConstPtr& scene,
