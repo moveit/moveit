@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.1.3)
 project(moveit_core)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  # Don't fail on this warning, but don't silent it. TODO: Needs more detailed analysis.
-  add_compile_options(-Wno-error=maybe-uninitialized)
+  # Silent these warnings. They are too often false-positives.
+  message("TODO: Analyse and fix gcc's maybe-uninitialized warnings")
+  add_compile_options(-Wno-maybe-uninitialized)
 endif()
 include(cmake/moveit.cmake)
 moveit_build_options()
