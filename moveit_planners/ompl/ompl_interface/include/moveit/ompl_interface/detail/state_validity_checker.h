@@ -69,6 +69,11 @@ public:
 
   void setVerbose(bool flag);
 
+  const ModelBasedPlanningContext* getPlanningContext() const
+  {
+    return planning_context_;
+  }
+
 protected:
   const ModelBasedPlanningContext* planning_context_;
   std::string group_name_;
