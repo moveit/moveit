@@ -782,12 +782,21 @@ public:
   /** \brief Stop any trajectory execution, if one is active */
   void stop();
 
-  /** \brief Specify whether the robot is allowed to look around before moving if it determines it should (default is
-   * true) */
-  void allowLooking(bool flag);
-
   /** \brief Specify whether the robot is allowed to replan if it detects changes in the environment */
   void allowReplanning(bool flag);
+
+  /** \brief Maximum number of replanning attempts */
+  void setReplanAttempts(int32_t attempts);
+
+  /** \brief Sleep this duration between replanning attempts (in walltime seconds) */
+  void setReplanDelay(double delay);
+
+  /** \brief Specify whether the robot is allowed to look around
+      before moving if it determines it should (default is false) */
+  void allowLooking(bool flag);
+
+  /** \brief How often is the system allowed to move the camera to update environment model when looking */
+  void setLookAroundAttempts(int32_t attempts);
 
   /** \brief Build the MotionPlanRequest that would be sent to the move_group action with plan() or move() and store it
       in \e request */
