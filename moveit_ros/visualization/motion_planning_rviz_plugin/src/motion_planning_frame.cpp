@@ -557,9 +557,9 @@ void MotionPlanningFrame::enable()
   ui_->object_status->setText("");
 
   const std::string new_ns = ros::names::resolve(planning_display_->getMoveGroupNS());
-  if (mg_nh_.getNamespace() != new_ns)
+  if (nh_.getNamespace() != new_ns)
   {
-    ROS_INFO("MoveGroup namespace changed: %s -> %s. Reloading params.", mg_nh_.getNamespace().c_str(), new_ns.c_str());
+    ROS_INFO("MoveGroup namespace changed: %s -> %s. Reloading params.", nh_.getNamespace().c_str(), new_ns.c_str());
     initFromMoveGroupNS();
   }
 
@@ -572,36 +572,36 @@ void MotionPlanningFrame::enable()
 // Should be called from constructor and enable() only
 void MotionPlanningFrame::initFromMoveGroupNS()
 {
-  mg_nh_ = ros::NodeHandle(ros::names::append(planning_display_->getMoveGroupNS()); // <namespace>/<MoveGroupNS
+  nh_ = ros::NodeHandle(ros::names::append(planning_display_->getMoveGroupNS()); // <namespace>/<MoveGroupNS
 
   // Create namespace-dependent services, topics, and subscribers
-  clear_octomap_service_client_ = mg_nh_.serviceClient<std_srvs::Empty>(move_group::CLEAR_OCTOMAP_SERVICE_NAME);
+  clear_octomap_service_client_ = nh_.serviceClient<std_srvs::Empty>(move_group::CLEAR_OCTOMAP_SERVICE_NAME);
 
   object_recognition_subscriber_ =
-      mg_nh_.subscribe("recognized_object_array", 1, &MotionPlanningFrame::listenDetectedObjects, this);
+      nh_.subscribe("recognized_object_array", 1, &MotionPlanningFrame::listenDetectedObjects, this);
 
-  planning_scene_publisher_ = mg_nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
-  planning_scene_world_publisher_ = mg_nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
+  planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
+  planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
 
   // Set initial velocity and acceleration scaling factors from ROS parameters
   double factor;
-  mg_nh_.param<double>("robot_description_planning/default_velocity_scaling_factor", factor, 0.1);
+  nh_.param<double>("robot_description_planning/default_velocity_scaling_factor", factor, 0.1);
   ui_->velocity_scaling_factor->setValue(factor);
-  mg_nh_.param<double>("robot_description_planning/default_acceleration_scaling_factor", factor, 0.1);
+  nh_.param<double>("robot_description_planning/default_acceleration_scaling_factor", factor, 0.1);
   ui_->acceleration_scaling_factor->setValue(factor);
 
   // Fetch parameters from private move_group sub space
-  ros::NodeHandle mg_nh_mg("move_group"); // <namespace>/<MoveGroupNS/move_group
+  ros::NodeHandle nh_mg("move_group"); // <namespace>/<MoveGroupNS/move_group
   std::string param_name;
   std::string host_param;
   int port;
-  if (mg_nh_mg.searchParam("warehouse_host", param_name) && mg_nh_mg.getParam(param_name, host_param))
+  if (nh_mg.searchParam("warehouse_host", param_name) && nh_mg.getParam(param_name, host_param))
     ui_->database_host->setText(QString::fromStdString(host_param));
-  if (mg_nh_mg.searchParam("warehouse_port", param_name) && mg_nh_mg.getParam(param_name, port))
+  if (nh_mg.searchParam("warehouse_port", param_name) && nh_mg.getParam(param_name, port))
     ui_->database_port->setValue(port);
 
   // Get default planning pipeline id
-  mg_nh_mg.param<std::string>("default_planning_pipeline", default_planning_pipeline_, "");
+  nh_mg.param<std::string>("default_planning_pipeline", default_planning_pipeline_, "");
 }
 
 void MotionPlanningFrame::disable()
