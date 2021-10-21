@@ -49,6 +49,7 @@ namespace
 constexpr double EPSILON{ 1.e-9 };
 }
 
+#if 0  // unused function
 static bool sameStringIgnoringWS(const std::string& s1, const std::string& s2)
 {
   unsigned int i1 = 0;
@@ -73,6 +74,8 @@ static bool sameStringIgnoringWS(const std::string& s1, const std::string& s2)
   }
   return i1 == s1.size() && i2 == s2.size();
 }
+#endif
+
 static void expect_near(const Eigen::MatrixXd& x, const Eigen::MatrixXd& y,
                         double eps = std::numeric_limits<double>::epsilon())
 {

@@ -47,10 +47,6 @@ static void fit_cubic_spline(const int n, const double dt[], const double x[], d
 static void adjust_two_positions(const int n, const double dt[], double x[], double x1[], double x2[],
                                  const double x2_i, const double x2_f);
 static void init_times(const int n, double dt[], const double x[], const double max_velocity, const double min_velocity);
-static int fit_spline_and_adjust_times(const int n, double dt[], const double x[], double x1[], double x2[],
-                                       const double max_velocity, const double min_velocity,
-                                       const double max_acceleration, const double min_acceleration,
-                                       const double tfactor);
 static double global_adjustment_factor(const int n, double x1[], double x2[], const double max_velocity,
                                        const double min_velocity, const double max_acceleration,
                                        const double min_acceleration);
@@ -475,6 +471,7 @@ static void init_times(const int n, double dt[], const double x[], const double 
   }
 }
 
+#if 0  // unused function
 /*
   Fit a spline, then check each interval to see if bounds are met.
   If all bounds met (no time adjustments made), return 0.
@@ -532,6 +529,7 @@ static int fit_spline_and_adjust_times(const int n, double dt[], const double x[
 
   return ret;
 }
+#endif
 
 // return global expansion multiplicative factor required
 // to force within bounds.

@@ -306,11 +306,6 @@ std::list<std::pair<double, bool>> Path::getSwitchingPoints() const
   return switching_points_;
 }
 
-static double squared(double d)
-{
-  return d * d;
-}
-
 Trajectory::Trajectory(const Path& path, const Eigen::VectorXd& max_velocity, const Eigen::VectorXd& max_acceleration,
                        double time_step)
   : path_(path)
