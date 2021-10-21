@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan, Dave Coleman, Adam Leeper, Sachin Chitta */
 
 #include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
+#include <moveit/motion_planning_rviz_plugin/motion_planning_frame_joints_widget.h>
 #include <moveit/robot_interaction/kinematic_options_map.h>
 #include <moveit/rviz_plugin_render_tools/planning_link_updater.h>
 #include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
@@ -1137,6 +1138,20 @@ void MotionPlanningDisplay::populateMenuHandler(std::shared_ptr<interactive_mark
   //  for (int i = 0; i < group_names.size(); ++i)
   //    mh->insert(menu_groups, group_names[i],
   //               boost::bind(&MotionPlanningDisplay::changePlanningGroup, this, group_names[i]));
+}
+
+void MotionPlanningDisplay::clearRobotModel()
+{
+  // Invalidate all references to the RobotModel ...
+  if (frame_)
+    frame_->clearRobotModel();
+  previous_state_.reset();
+  query_start_state_.reset();
+  query_goal_state_.reset();
+  kinematics_metrics_.reset();
+  robot_interaction_.reset();
+  // ... before calling the parent's method, which finally destroys the creating RobotModelLoader.
+  PlanningSceneDisplay::clearRobotModel();
 }
 
 void MotionPlanningDisplay::onRobotModelLoaded()

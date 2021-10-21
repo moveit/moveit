@@ -516,8 +516,8 @@ planning_scene_monitor::PlanningSceneMonitorPtr PlanningSceneDisplay::createPlan
 void PlanningSceneDisplay::clearRobotModel()
 {
   planning_scene_render_.reset();
-  planning_scene_monitor_.reset();  // this so that the destructor of the PlanningSceneMonitor gets called before a new
-                                    // instance of a scene monitor is constructed
+  // Ensure old PSM is destroyed before we attempt to create a new one
+  planning_scene_monitor_.reset();
 }
 
 void PlanningSceneDisplay::loadRobotModel()
