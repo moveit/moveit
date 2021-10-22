@@ -24,7 +24,7 @@ jobs:
       uses: mamba-org/provision-with-micromamba@v10
       with:
         environment-file: .github/ci_cross_platform_env.yml
-        micromamba-version: latest
+        micromamba-version: 0.17.0
 
     - name: Set up MoveIt Core Dependencies on Unix
       if: runner.os == 'Linux' || runner.os == 'macOS'
