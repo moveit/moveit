@@ -803,7 +803,7 @@ const LinkModel* RobotState::getRigidlyConnectedParentLinkModel(const std::strin
 
   size_t idx = 0;
   if ((idx = frame.find('/')) != std::string::npos)
-  {
+  {  // resolve sub frame
     std::string object{ frame.substr(0, idx) };
     if (!hasAttachedBody(object))
       return nullptr;
