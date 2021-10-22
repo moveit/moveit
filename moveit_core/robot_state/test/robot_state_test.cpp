@@ -697,6 +697,13 @@ TEST_F(OneRobot, rigidlyConnectedParent)
   // RobotState's version should resolve these too
   EXPECT_EQ(link_a, state.getRigidlyConnectedParentLinkModel("object"));
   EXPECT_EQ(link_a, state.getRigidlyConnectedParentLinkModel("object/subframe"));
+
+  // test failure cases
+  EXPECT_EQ(nullptr, state.getRigidlyConnectedParentLinkModel("no_object"));
+  EXPECT_EQ(nullptr, state.getRigidlyConnectedParentLinkModel("object/no_subframe"));
+  EXPECT_EQ(nullptr, state.getRigidlyConnectedParentLinkModel(""));
+  EXPECT_EQ(nullptr, state.getRigidlyConnectedParentLinkModel("object/"));
+  EXPECT_EQ(nullptr, state.getRigidlyConnectedParentLinkModel("/"));
 }
 
 int main(int argc, char** argv)
