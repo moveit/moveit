@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Free up disk space"
-        if: ${{ matrix.env.CCOV }}
+        if: matrix.env.CCOV
         run: |
           sudo apt-get -qq purge build-essential "ghc*"
           sudo apt-get clean
@@ -88,7 +88,7 @@ jobs:
       # The target directory cache doesn't include the source directory because
       # that comes from the checkout.  See "prepare target_ws for cache" task below
       - name: Cache target workspace
-        if: ${{ ! matrix.env.CCOV }}
+        if: "!matrix.env.CCOV"
         uses: pat-s/always-upload-cache@v2.1.5
         with:
           path: ${{ env.BASEDIR }}/target_ws
@@ -108,7 +108,7 @@ jobs:
           CACHE_PREFIX: ccache-${{ matrix.env.IMAGE }}${{ matrix.env.CCOV && '-ccov' || '' }}
 
       - name: Generate ikfast packages
-        if: ${{ matrix.env.IKFAST_TEST }}
+        if: matrix.env.IKFAST_TEST
         run: |
           moveit_kinematics/test/test_ikfast_plugins.sh
       - id: ici
