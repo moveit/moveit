@@ -927,7 +927,7 @@ double RobotState::maximumRotation(const RobotState& other) const
   for (const JointModel* joint : jm)
   {
     const int idx = joint->getFirstVariableIndex();
-    d += joint->distanceRotation(position_ + idx, other.position_ + idx);
+    d += joint->distanceRotation(&position_[idx], &other.position_[idx]);
   }
   return d;
 }
