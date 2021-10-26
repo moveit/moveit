@@ -109,8 +109,7 @@ jobs:
 
       - name: Generate ikfast packages
         if: matrix.env.IKFAST_TEST
-        run: |
-          moveit_kinematics/test/test_ikfast_plugins.sh
+        run: moveit_kinematics/test/test_ikfast_plugins.sh
       - id: ici
         name: Run industrial_ci
         uses: ros-industrial/industrial_ci@master
