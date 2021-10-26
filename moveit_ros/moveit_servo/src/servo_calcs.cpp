@@ -779,7 +779,7 @@ void ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
   delta_theta = velocity_scaling_factor * velocity * parameters_.publish_period;
 }
 
-bool ServoCalcs::enforcePositionLimits(sensor_msgs::msg::JointState& joint_state)
+bool ServoCalcs::enforcePositionLimits(sensor_msgs::JointState& joint_state)
 {
   bool halting = false;
 
@@ -807,9 +807,9 @@ bool ServoCalcs::enforcePositionLimits(sensor_msgs::msg::JointState& joint_state
         auto joint_idx = std::distance(joint_state.name.begin(), joint_itr);
 
         if ((joint_state.velocity.at(joint_idx) < 0 &&
-             (joint_angle < (limits[0].min_position + parameters_->joint_limit_margin))) ||
+             (joint_angle < (limits[0].min_position + parameters_.joint_limit_margin))) ||
             (joint_state.velocity.at(joint_idx) > 0 &&
-             (joint_angle > (limits[0].max_position - parameters_->joint_limit_margin))))
+             (joint_angle > (limits[0].max_position - parameters_.joint_limit_margin))))
         {
           ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
                                          ros::this_node::getName() << " " << joint->getName()
