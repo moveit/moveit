@@ -49,5 +49,5 @@ namespace trajectory_processing
 bool limitMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, const double speed,
                                 const moveit::core::LinkModel* link_model);
 bool limitMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, const double speed,
-                                std::string link_name = "");
+                                const std::string& link_name = "");
 }  // namespace trajectory_processing

@@ -589,8 +589,8 @@ class MoveGroupCommander(object):
             )
 
     def limit_max_cartesian_link_speed(self, speed, link_name=""):
-        """Set the maximum cartesian link speed. Allowed are only
-        positive real values. The unit is meter per second."""
+        """Set the maximum Cartesian link speed. Only positive real values are allowed.
+        The unit is meter per second."""
         if speed > 0.0:
             self._g.limit_max_cartesian_link_speed(speed, link_name)
         else:

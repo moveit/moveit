@@ -56,7 +56,7 @@ public:
 
   std::string getDescription() const override
   {
-    return "Set Max Cartesian Link Speed";
+    return "Limiting Max Cartesian Speed";
   }
 
   bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
@@ -68,11 +68,12 @@ public:
     {
       if (req.max_cartesian_speed <= 0.0)
         return result;
-      ROS_DEBUG("Running '%s'", getDescription().c_str());
+      ROS_DEBUG("'%s' below '%f' [m/s] for link '%s'", getDescription().c_str(), req.max_cartesian_speed,
+                req.cartesian_speed_limited_link.c_str());
       if (!trajectory_processing::limitMaxCartesianLinkSpeed(*res.trajectory_, req.max_cartesian_speed,
                                                              req.cartesian_speed_limited_link))
       {
-        ROS_ERROR("Setting cartesian speed for the solution path failed.");
+        ROS_ERROR("Limiting Cartesian speed for the solution path failed.");
         result = false;
       }
     }

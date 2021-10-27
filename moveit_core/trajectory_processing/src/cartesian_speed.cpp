@@ -44,7 +44,7 @@ const char* LOGGER_NAME = "trajectory_processing.cartesian_speed";
 namespace trajectory_processing
 {
 bool limitMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, const double max_speed,
-                                std::string link_name)
+                                const std::string& link_name)
 {
   // In case the link name is not set, retrieve an end effector name from the
   // joint model group specified in the robot trajectory
@@ -54,8 +54,8 @@ bool limitMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, c
     trajectory.getGroup()->getEndEffectorTips(tips);
     if (tips.empty())
     {
-      ROS_ERROR_STREAM_NAMED(LOGGER_NAME, "No end effector defined for group attached to trajectory, cannot set max "
-                                          "cartesian link speed without argument.");
+      ROS_ERROR_STREAM_NAMED(LOGGER_NAME, "No end effector tip defined for specified group, cannot limit Cartesian "
+                                          "speed without explicit link specification.");
       return false;
     }
     link_name = tips[0];
@@ -86,9 +86,7 @@ bool limitMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, c
   if (num_waypoints == 0)
     return false;
 
-  robot_state::RobotStatePtr kinematic_state = trajectory.getFirstWayPointPtr();
-
-  // do forward kinematics to get cartesian positions of link for current waypoint
+  // do forward kinematics to get Cartesian positions of link for current waypoint
   double euclidean_distance, new_time_diff, old_time_diff;
   std::vector<double> time_diff(num_waypoints - 1, 0.0);
 
@@ -98,7 +96,7 @@ bool limitMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, c
     const Eigen::Isometry3d& current_link_state = trajectory.getWayPointPtr(i)->getGlobalLinkTransform(link_model);
     const Eigen::Isometry3d& next_link_state = trajectory.getWayPointPtr(i + 1)->getGlobalLinkTransform(link_model);
 
-    // get euclidean distance between the two waypoints
+    // get Euclidean distance between the two waypoints
     euclidean_distance = (next_link_state.translation() - current_link_state.translation()).norm();
 
     new_time_diff = (euclidean_distance / max_speed);
