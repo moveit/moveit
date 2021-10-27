@@ -46,31 +46,39 @@ namespace trajectory_processing
 bool limitMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, const double max_speed,
                                 const std::string& link_name)
 {
-  // In case the link name is not set, retrieve an end effector name from the
-  // joint model group specified in the robot trajectory
-  if (link_name.empty())
+  std::vector<const moveit::core::LinkModel*> links;
+
+  if (!link_name.empty())
   {
-    std::vector<std::string> tips;
+    const moveit::core::RobotModel& model{ *trajectory.getRobotModel() };
+
+    if (!model.hasLinkModel(link_name))
+      ROS_ERROR_STREAM_NAMED(LOGGER_NAME, "Link model was not specified in the robot trajectory");
+    else
+      links.push_back(model.getLinkModel(link_name));
+  }
+  // In case the link name is not given but the trajectory belongs to a group,
+  // retrieve the end effectors from that joint model group
+  else if (trajectory.getGroup() != nullptr)
+  {
+    std::vector<const moveit::core::LinkModel*> tips;
     trajectory.getGroup()->getEndEffectorTips(tips);
     if (tips.empty())
     {
       ROS_ERROR_STREAM_NAMED(LOGGER_NAME, "No end effector tip defined for specified group, cannot limit Cartesian "
                                           "speed without explicit link specification.");
-      return false;
     }
-    link_name = tips[0];
-    if (tips.size() > 1)
-      ROS_INFO_STREAM_NAMED(LOGGER_NAME,
-                            "More than one end effector found, using first one which is '" << link_name << "'");
+    links = tips;
   }
 
-  // Get link model based on given end link
-  if (!trajectory.getGroup()->hasLinkModel(link_name))
-    ROS_ERROR_STREAM_NAMED(LOGGER_NAME, "Link model was not specified in the robot trajectory");
-  const moveit::core::LinkModel* link_model = trajectory.getGroup()->getLinkModel(link_name);
-
   // Call function for speed setting using the created link model
-  return limitMaxCartesianLinkSpeed(trajectory, max_speed, link_model);
+  for (const auto& link : links)
+  {
+    if (!limitMaxCartesianLinkSpeed(trajectory, max_speed, link))
+      return false;
+  }
+
+  return !links.empty();
 }
 
 bool limitMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, const double max_speed,
@@ -102,15 +110,8 @@ bool limitMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, c
     new_time_diff = (euclidean_distance / max_speed);
     old_time_diff = trajectory.getWayPointDurationFromPrevious(i + 1);
 
-    // if constraints allow, save the new time difference between waypoints
-    if (new_time_diff > old_time_diff)
-    {
-      time_diff[i] = new_time_diff;
-    }
-    else
-    {
-      time_diff[i] = old_time_diff;
-    }
+    // slow-down segment if it was too fast before
+    time_diff[i] = std::max(new_time_diff, old_time_diff);
   }
   // update time stamps, velocities and accelerations of the trajectory
   IterativeParabolicTimeParameterization::updateTrajectory(trajectory, time_diff);
