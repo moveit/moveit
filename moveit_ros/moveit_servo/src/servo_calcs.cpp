@@ -193,6 +193,7 @@ void ServoCalcs::start()
   initial_joint_trajectory->points.push_back(point);
   last_sent_command_ = initial_joint_trajectory;
 
+  planning_scene_monitor_->requestPlanningSceneState();
   current_state_ = planning_scene_monitor_->getStateMonitor()->getCurrentState();
   tf_moveit_to_ee_frame_ = current_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
                            getLockedPlanningSceneRO()->getFrameTransform(parameters_.ee_frame_name);
@@ -296,6 +297,7 @@ void ServoCalcs::calculateSingleIteration()
   have_nonzero_twist_stamped_ = latest_nonzero_twist_stamped_;
   have_nonzero_joint_command_ = latest_nonzero_joint_cmd_;
 
+  planning_scene_monitor_->requestPlanningSceneState();
   // Get the transform from MoveIt planning frame to servoing command frame
   // Calculate this transform to ensure it is available via C++ API
   // We solve (planning_frame -> base -> robot_link_command_frame)
