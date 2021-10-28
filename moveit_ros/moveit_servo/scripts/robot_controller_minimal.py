@@ -4,7 +4,7 @@ import rospy
 import tf2_ros
 from controller_manager_msgs.srv import (SwitchController,
                                          SwitchControllerRequest)
-from geometry_msgs.msg import (Point, Quaternion, TransformStamped,
+from geometry_msgs.msg import (Point, Quaternion, TransformStamped, Pose,
                                TwistStamped, Vector3)
 from moveit_msgs.msg import AttachedCollisionObject, CollisionObject
 from scipy.spatial.transform import Rotation
@@ -78,38 +78,37 @@ class RobotController():
 
         # Add collision object
         # self.scene.clear()
-        # colObj = CollisionObject()
-        # colObj.id = "welding_frames"
-        # colObj.header.frame_id = "wrist_3_link"
-        # colObj.header.stamp = rospy.Time.now()
-        # colObj.pose = Pose(orientation=Quaternion(0, 0, 0, 1))
+        colObj = CollisionObject()
+        colObj.id = "welding_frames"
+        colObj.header.frame_id = "wrist_3_link"
+        colObj.header.stamp = rospy.Time.now()
+        colObj.pose = Pose(orientation=Quaternion(0, 0, 0, 1))
 
-        # pose = Pose()
-        # pose.position = Point(x, y, z)
-        # pose.orientation = Quaternion(*rot_quat)
+        pose = Pose()
+        pose.position = Point(x, y, z)
+        pose.orientation = Quaternion(*rot_quat)
 
-        # box = SolidPrimitive()
-        # box.type = SolidPrimitive.BOX
-        # xyz_dim = 0.003
-        # box.dimensions = [xyz_dim, xyz_dim, xyz_dim]
-        # colObj.primitives = [box]
-        # colObj.primitive_poses = [pose]
+        box = SolidPrimitive()
+        box.type = SolidPrimitive.BOX
+        xyz_dim = 0.003
+        box.dimensions = [xyz_dim, xyz_dim, xyz_dim]
 
-        # colObj.subframe_names = ['tcf']
+        colObj.primitives = [box]
+        colObj.primitive_poses = [pose]
+        colObj.subframe_names = ['tcf']
+        colObj.subframe_poses = [pose]
+        colObj.operation = CollisionObject.ADD
 
-        # colObj.subframe_poses = [pose]
-
-        # colObj.operation = CollisionObject.ADD
-        # rospy.loginfo("ColObj: {}".format(colObj))
-        # rospy.loginfo(self.scene.get_known_object_names())
-        # self.scene.add_object(colObj)
-        # rospy.loginfo(self.scene.get_known_object_names())
-        # aco = AttachedCollisionObject()
-        # aco.link_name = 'wrist_3_link'
-        # aco.object = colObj
-        # aco.touch_links = self.robot.get_link_names(
-        #     group="welding_endeffector")
-        # self.scene.attach_object(aco)
+        rospy.loginfo("ColObj: {}".format(colObj))
+        rospy.loginfo(self.scene.get_known_object_names())
+        # Object needs to be added, otherwise scene somehow doesn't update
+        self.scene.add_object(colObj)
+        # Attach object (only for visualization)
+        aco = AttachedCollisionObject()
+        aco.link_name = 'wrist_3_link'
+        aco.object = colObj
+        aco.touch_links = self.robot.get_link_names(group="welding_endeffector")
+        self.scene.attach_object(aco)
 
     def changeController(self, mode: int):
         """Change Controller: mode==0 -> MoveIt, mode==1 -> ServoArm
@@ -160,8 +159,8 @@ class RobotController():
             while not rospy.is_shutdown() and i < 25:
                 i += 1
 
-                frame = "TCP_M"
-                # frame = "welding_frames/tcf"
+                # frame = "TCP_M"
+                frame = "welding_frames/tcf"
                 servo_msg = TwistStamped()
                 servo_msg.header.stamp = rospy.Time.now()
                 servo_msg.header.frame_id = frame
