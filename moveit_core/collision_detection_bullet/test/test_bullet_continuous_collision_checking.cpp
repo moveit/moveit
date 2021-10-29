@@ -81,10 +81,12 @@ protected:
     const std::vector<std::string>& collision_links = robot_model_->getLinkModelNamesWithCollisionGeometry();
     acm_->setEntry(collision_links, collision_links, false);
 
+    // load collision defaults
+    for (const std::string& name : robot_model_->getSRDF()->getNoDefaultCollisionLinks())
+      acm_->setDefaultEntry(name, collision_detection::AllowedCollision::NEVER);
     // allow collisions for pairs that have been disabled
-    const std::vector<srdf::Model::DisabledCollision>& dc = robot_model_->getSRDF()->getDisabledCollisionPairs();
-    for (const srdf::Model::DisabledCollision& it : dc)
-      acm_->setEntry(it.link1_, it.link2_, true);
+    for (auto const& collision : robot_model_->getSRDF()->getCollisionPairs())
+      acm_->setEntry(collision.link1_, collision.link2_, collision.disabled_);
 
     cenv_ = std::make_shared<collision_detection::CollisionEnvBullet>(robot_model_);
 
