@@ -79,9 +79,6 @@ protected:
     robot_model_ok_ = static_cast<bool>(robot_model_);
 
     acm_ = std::make_shared<collision_detection::AllowedCollisionMatrix>();
-    // Use default collision operations in the SRDF to setup the acm
-    const std::vector<std::string>& collision_links = robot_model_->getLinkModelNamesWithCollisionGeometry();
-    acm_->setEntry(collision_links, collision_links, false);
 
     // load collision defaults
     for (const std::string& name : robot_model_->getSRDF()->getNoDefaultCollisionLinks())
