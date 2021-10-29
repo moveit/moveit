@@ -448,11 +448,9 @@ void SetupAssistantWidget::highlightGroup(const std::string& group_name)
       config_data_->getRobotModel()->getJointModelGroup(group_name);
   if (joint_model_group)
   {
-    const std::vector<const moveit::core::LinkModel*>& link_models = joint_model_group->getLinkModels();
     // Iterate through the links
-    for (std::vector<const moveit::core::LinkModel*>::const_iterator link_it = link_models.begin();
-         link_it < link_models.end(); ++link_it)
-      highlightLink((*link_it)->getName(), QColor(255, 0, 0));
+    for (const moveit::core::LinkModel* lm : joint_model_group->getLinkModels())
+      highlightLink(lm->getName(), QColor(255, 0, 0));
   }
 }
 
@@ -477,12 +475,12 @@ void SetupAssistantWidget::unhighlightAll()
   }
 
   // Iterate through the links
-  for (std::vector<std::string>::const_iterator link_it = links.begin(); link_it < links.end(); ++link_it)
+  for (const std::string& link : links)
   {
-    if ((*link_it).empty())
+    if (link.empty())
       continue;
 
-    robot_state_display_->unsetLinkColor(*link_it);
+    robot_state_display_->unsetLinkColor(link);
   }
 }
 
