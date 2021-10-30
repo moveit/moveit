@@ -149,12 +149,14 @@ public:
   void setEntry(const std::string& name1, const std::string& name2, const DecideContactFn& fn);
 
   /** @brief Set the entries corresponding to a name.
-   *  With each of the the known names in the collision matrix, form a pair using the name
+   *  With each of the *known names* in the collision matrix, form a pair using the name
    *  specified as argument to this function and set the entry as indicated by \e allowed.
+   *  As the set of known names might change in future, consider using setDefaultEntry() instead!
    *  @param name the object name
    *  @param allowed If false, indicates that collisions between two elements must be checked for and no collisions
    *  will be ignored (AllowedCollision::NEVER). If true, indicates that collisions between two elements are ok and an
    *  explicit collision computation is not necessary (AllowedCollision::ALWAYS).*/
+  void setEntry(const std::string& name, bool allowed);
 
   /** @brief Set multiple entries. Pairs of names are formed using \e name and \e other_names
    *  @param name name of first element
