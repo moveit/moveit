@@ -255,14 +255,12 @@ static bool andDecideContact(const DecideContactFn& f1, const DecideContactFn& f
 bool AllowedCollisionMatrix::getAllowedCollision(const std::string& name1, const std::string& name2,
                                                  DecideContactFn& fn) const
 {
-  DecideContactFn fn1, fn2;
-  bool found1 = getDefaultEntry(name1, fn1);
-  bool found2 = getDefaultEntry(name2, fn2);
-
-  if (!found1 && !found2)
-    return getEntry(name1, name2, fn);
-  else
+  bool found = getEntry(name1, name2, fn);
+  if (!found)
   {
+    DecideContactFn fn1, fn2;
+    bool found1 = getDefaultEntry(name1, fn1);
+    bool found2 = getDefaultEntry(name2, fn2);
     if (found1 && !found2)
       fn = fn1;
     else if (!found1 && found2)
@@ -271,21 +269,19 @@ bool AllowedCollisionMatrix::getAllowedCollision(const std::string& name1, const
       fn = std::bind(&andDecideContact, fn1, fn2, std::placeholders::_1);
     else
       return false;
-    return true;
   }
+  return true;
 }
 
 bool AllowedCollisionMatrix::getAllowedCollision(const std::string& name1, const std::string& name2,
                                                  AllowedCollision::Type& allowed_collision) const
 {
-  AllowedCollision::Type t1, t2;
-  bool found1 = getDefaultEntry(name1, t1);
-  bool found2 = getDefaultEntry(name2, t2);
-
-  if (!found1 && !found2)
-    return getEntry(name1, name2, allowed_collision);
-  else
+  bool found = getEntry(name1, name2, allowed_collision);
+  if (!found)
   {
+    AllowedCollision::Type t1, t2;
+    bool found1 = getDefaultEntry(name1, t1);
+    bool found2 = getDefaultEntry(name2, t2);
     if (found1 && !found2)
       allowed_collision = t1;
     else if (!found1 && found2)
@@ -301,8 +297,8 @@ bool AllowedCollisionMatrix::getAllowedCollision(const std::string& name1, const
     }
     else
       return false;
-    return true;
   }
+  return true;
 }
 
 void AllowedCollisionMatrix::clear()
