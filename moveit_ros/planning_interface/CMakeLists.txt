@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_manipulation
   moveit_ros_move_group
   geometry_msgs
+  pybind11_catkin
   tf2
   tf2_eigen
   tf2_geometry_msgs
