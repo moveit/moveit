@@ -35,7 +35,6 @@
 from moveit_commander import MoveGroupCommander, MoveItCommanderException
 from moveit_ros_planning_interface import _moveit_robot_interface
 from moveit_msgs.msg import RobotState
-from visualization_msgs.msg import MarkerArray
 import moveit_commander.conversions as conversions
 
 
@@ -175,20 +174,17 @@ class RobotCommander(object):
             group (string):  get all markers for a group
             group, values (string, dict): get all markers for a group with desired values
         """
-        mrkr = MarkerArray()
         if not args:
-            conversions.msg_from_string(mrkr, self._r.get_robot_markers())
+            return self._r.get_robot_markers()
         else:
             if isinstance(args[0], RobotState):
-                msg_str = conversions.msg_to_string(args[0])
-                conversions.msg_from_string(mrkr, self._r.get_robot_markers(msg_str))
+                return self._r.get_robot_markers(args[0])
             elif isinstance(args[0], dict):
-                conversions.msg_from_string(mrkr, self._r.get_robot_markers(*args))
+                return self._r.get_robot_markers(*args)
             elif isinstance(args[0], str):
-                conversions.msg_from_string(mrkr, self._r.get_group_markers(*args))
+                return self._r.get_group_markers(*args)
             else:
                 raise MoveItCommanderException("Unexpected type")
-        return mrkr
 
     def get_root_link(self):
         """Get the name of the root link of the robot model """
@@ -241,9 +237,7 @@ class RobotCommander(object):
 
     def get_current_state(self):
         """ Get a RobotState message describing the current state of the robot"""
-        s = RobotState()
-        s.deserialize(self._r.get_current_state())
-        return s
+        return self._r.get_current_state()
 
     def get_current_variable_values(self):
         """
@@ -279,7 +273,7 @@ class RobotCommander(object):
         @param name str: Name of movegroup
         @rtype: moveit_commander.MoveGroupCommander
         """
-        if not name in self._groups:
+        if name not in self._groups:
             if not self.has_group(name):
                 raise MoveItCommanderException("There is no group named %s" % name)
             self._groups[name] = MoveGroupCommander(
@@ -299,7 +293,7 @@ class RobotCommander(object):
         Get the name of the smallest group (fewest joints) that includes
         the joint name specified as argument.
         """
-        if not joint_name in self._joint_owner_groups:
+        if joint_name not in self._joint_owner_groups:
             group = None
             for g in self.get_group_names():
                 if joint_name in self.get_joint_names(g):
