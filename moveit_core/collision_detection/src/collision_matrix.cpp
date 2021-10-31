@@ -282,7 +282,9 @@ bool AllowedCollisionMatrix::getAllowedCollision(const std::string& name1, const
     AllowedCollision::Type t1, t2;
     bool found1 = getDefaultEntry(name1, t1);
     bool found2 = getDefaultEntry(name2, t2);
-    if (found1 && !found2)
+    if (!found1 && !found2)
+      return false;
+    else if (found1 && !found2)
       allowed_collision = t1;
     else if (!found1 && found2)
       allowed_collision = t2;
@@ -295,8 +297,6 @@ bool AllowedCollisionMatrix::getAllowedCollision(const std::string& name1, const
       else  // ALWAYS is the only remaining case
         allowed_collision = AllowedCollision::ALWAYS;
     }
-    else
-      return false;
   }
   return true;
 }
