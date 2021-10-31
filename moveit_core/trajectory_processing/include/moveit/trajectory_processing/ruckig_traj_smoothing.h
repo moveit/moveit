@@ -52,23 +52,53 @@ public:
 private:
   /**
    * \brief Feed previous output back as input for next iteration. Get next target state from the next waypoint.
+   * \param ruckig_output   The previous output from Ruckig
+   * \param next_waypoint   The nominal, desired state at the next waypoint
+   * \param num_dof         Number  of actuated joints
+   * \param idx             MoveIt list of joint group indices
+   * \param ruckig_input    Output. The Rucking parameters for the next iteration
    */
-  static void getNextCurrentTargetStates(ruckig::InputParameter<0>& ruckig_input,
-                                         ruckig::OutputParameter<0>& ruckig_output,
-                                         const moveit::core::RobotStatePtr& next_waypoint, size_t num_dof,
-                                         const std::vector<int>& idx);
+  static void getNextRuckigInput(const ruckig::OutputParameter<0>& ruckig_output,
+                                 const moveit::core::RobotStatePtr& next_waypoint, size_t num_dof,
+                                 const std::vector<int>& idx, ruckig::InputParameter<0>& ruckig_input);
 
   /**
    * \brief Check for lagging motion of any joint at a waypoint.
-   *
-   * \return true if lagging motion is detected on any joint
+   * \param num_dof       Number  of actuated joints
+   * \param ruckig_input  Input parameters to Ruckig
+   * \param ruckig_output Output parameters from Ruckig
+   * \return              true if lagging motion is detected on any joint
    */
   static bool checkForLaggingMotion(const size_t num_dof, const ruckig::InputParameter<0>& ruckig_input,
                                     const ruckig::OutputParameter<0>& ruckig_output);
 
   /**
    * \brief Return L2-norm of velocity, taking all joints into account.
+   * \param ruckig_input  Input parameters to Ruckig
+   * \param num_dof       Number  of actuated joints
    */
   static double getTargetVelocityMagnitude(const ruckig::InputParameter<0>& ruckig_input, size_t num_dof);
+
+  /**
+   * \brief Check if the joint positions of two waypoints are very similar.
+   * \param prev_waypoint State at waypoint i-1
+   * \param prev_waypoint State at waypoint i
+   * \joint_group         The MoveIt JointModelGroup of interest
+   */
+  static bool checkForIdenticalWaypoints(const moveit::core::RobotState& prev_waypoint,
+                                         const moveit::core::RobotState& next_waypoint,
+                                         const moveit::core::JointModelGroup* joint_group);
+
+  /**
+   * \brief Initialize Ruckig position/vel/accel. This initializes ruckig_input and ruckig_output to the same values
+   * \param rucking_input   Input parameters to Ruckig. Initialized here.
+   * \param ruckig_output   Output from the Ruckig algorithm. Initialized here.
+   * \param first_waypoint  The Ruckig input/output parameters are initialized to the values at this waypoint
+   * \param num_dof         Number  of actuated joints
+   * \param joint_idx       MoveIt list of joint group indices
+   */
+  static void initializeRuckigState(ruckig::InputParameter<0>& ruckig_input, ruckig::OutputParameter<0>& ruckig_output,
+                                    const moveit::core::RobotState& first_waypoint, size_t num_dof,
+                                    const std::vector<int>& joint_idx);
 };
 }  // namespace trajectory_processing
