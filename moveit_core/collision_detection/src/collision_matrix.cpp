@@ -55,21 +55,33 @@ AllowedCollisionMatrix::AllowedCollisionMatrix(const moveit_msgs::AllowedCollisi
 {
   if (msg.entry_names.size() != msg.entry_values.size() ||
       msg.default_entry_names.size() != msg.default_entry_values.size())
+  {
     ROS_ERROR_NAMED("collision_detection", "The number of links does not match the number of entries "
                                            "in AllowedCollisionMatrix message");
-  else
-  {
-    for (std::size_t i = 0; i < msg.entry_names.size(); ++i)
-      if (msg.entry_values[i].enabled.size() != msg.entry_names.size())
-        ROS_ERROR_NAMED("collision_detection",
-                        "Number of entries is incorrect for link '%s' in AllowedCollisionMatrix message",
-                        msg.entry_names[i].c_str());
-      else
-        for (std::size_t j = i + 1; j < msg.entry_values[i].enabled.size(); ++j)
-          setEntry(msg.entry_names[i], msg.entry_names[j], msg.entry_values[i].enabled[j]);
+    return;
+  }
+  for (std::size_t i = 0; i < msg.default_entry_names.size(); ++i)
+    setDefaultEntry(msg.default_entry_names[i], msg.default_entry_values[i]);
 
-    for (std::size_t i = 0; i < msg.default_entry_names.size(); ++i)
-      setDefaultEntry(msg.default_entry_names[i], msg.default_entry_values[i]);
+  for (std::size_t i = 0; i < msg.entry_names.size(); ++i)
+  {
+    if (msg.entry_values[i].enabled.size() != msg.entry_names.size())
+    {
+      ROS_ERROR_NAMED("collision_detection",
+                      "Number of entries is incorrect for link '%s' in AllowedCollisionMatrix message",
+                      msg.entry_names[i].c_str());
+      return;
+    }
+    for (std::size_t j = i + 1; j < msg.entry_values[i].enabled.size(); ++j)
+    {
+      AllowedCollision::Type allowed_default, allowed_entry;
+      if (!getDefaultEntry(msg.entry_names[i], msg.entry_names[j], allowed_default))
+        allowed_default = AllowedCollision::NEVER;
+      allowed_entry = msg.entry_values[i].enabled[j] ? AllowedCollision::ALWAYS : AllowedCollision::NEVER;
+
+      if (allowed_entry != allowed_default)
+        setEntry(msg.entry_names[i], msg.entry_names[j], allowed_entry);
+    }
   }
 }
 
@@ -273,32 +285,34 @@ bool AllowedCollisionMatrix::getAllowedCollision(const std::string& name1, const
   return true;
 }
 
+bool AllowedCollisionMatrix::getDefaultEntry(const std::string& name1, const std::string& name2,
+                                             AllowedCollision::Type& allowed_collision) const
+{
+  AllowedCollision::Type t1, t2;
+  bool found1 = getDefaultEntry(name1, t1);
+  bool found2 = getDefaultEntry(name2, t2);
+  if (!found1 && !found2)
+    return false;
+  else if (found1 && !found2)
+    allowed_collision = t1;
+  else if (!found1 && found2)
+    allowed_collision = t2;
+  else if (found1 && found2)
+  {
+    if (t1 == AllowedCollision::NEVER || t2 == AllowedCollision::NEVER)
+      allowed_collision = AllowedCollision::NEVER;
+    else if (t1 == AllowedCollision::CONDITIONAL || t2 == AllowedCollision::CONDITIONAL)
+      allowed_collision = AllowedCollision::CONDITIONAL;
+    else  // ALWAYS is the only remaining case
+      allowed_collision = AllowedCollision::ALWAYS;
+  }
+  return true;
+}
+
 bool AllowedCollisionMatrix::getAllowedCollision(const std::string& name1, const std::string& name2,
                                                  AllowedCollision::Type& allowed_collision) const
 {
-  bool found = getEntry(name1, name2, allowed_collision);
-  if (!found)
-  {
-    AllowedCollision::Type t1, t2;
-    bool found1 = getDefaultEntry(name1, t1);
-    bool found2 = getDefaultEntry(name2, t2);
-    if (!found1 && !found2)
-      return false;
-    else if (found1 && !found2)
-      allowed_collision = t1;
-    else if (!found1 && found2)
-      allowed_collision = t2;
-    else if (found1 && found2)
-    {
-      if (t1 == AllowedCollision::NEVER || t2 == AllowedCollision::NEVER)
-        allowed_collision = AllowedCollision::NEVER;
-      else if (t1 == AllowedCollision::CONDITIONAL || t2 == AllowedCollision::CONDITIONAL)
-        allowed_collision = AllowedCollision::CONDITIONAL;
-      else  // ALWAYS is the only remaining case
-        allowed_collision = AllowedCollision::ALWAYS;
-    }
-  }
-  return true;
+  return getEntry(name1, name2, allowed_collision) || getDefaultEntry(name1, name2, allowed_collision);
 }
 
 void AllowedCollisionMatrix::clear()
@@ -347,10 +361,9 @@ void AllowedCollisionMatrix::getMessage(moveit_msgs::AllowedCollisionMatrix& msg
 
     for (std::size_t j = i; j < msg.entry_names.size(); ++j)
     {
-      AllowedCollision::Type type;
-      bool found = getEntry(msg.entry_names[i], msg.entry_names[j], type);
-      if (found)
-        msg.entry_values[i].enabled[j] = msg.entry_values[j].enabled[i] = type == AllowedCollision::ALWAYS;
+      AllowedCollision::Type type = AllowedCollision::NEVER;
+      getAllowedCollision(msg.entry_names[i], msg.entry_names[j], type);
+      msg.entry_values[i].enabled[j] = msg.entry_values[j].enabled[i] = (type == AllowedCollision::ALWAYS);
     }
   }
 }

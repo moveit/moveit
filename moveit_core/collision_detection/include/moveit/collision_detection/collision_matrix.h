@@ -242,6 +242,9 @@ public:
   void print(std::ostream& out) const;
 
 private:
+  bool getDefaultEntry(const std::string& name1, const std::string& name2,
+                       AllowedCollision::Type& allowed_collision) const;
+
   std::map<std::string, std::map<std::string, AllowedCollision::Type> > entries_;
   std::map<std::string, std::map<std::string, DecideContactFn> > allowed_contacts_;
 
