@@ -934,7 +934,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
     {
       max_velocity[j] =
           std::min(std::fabs(bounds.max_velocity_), std::fabs(bounds.min_velocity_)) * velocity_scaling_factor;
-      max_velocity[j] = std::max(0.01, max_velocity[j]);
+      max_velocity[j] = std::max(0.001, max_velocity[j]);
     }
 
     max_acceleration[j] = 1.0;
@@ -942,7 +942,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
     {
       max_acceleration[j] = std::min(std::fabs(bounds.max_acceleration_), std::fabs(bounds.min_acceleration_)) *
                             acceleration_scaling_factor;
-      max_acceleration[j] = std::max(0.01, max_acceleration[j]);
+      max_acceleration[j] = std::max(0.001, max_acceleration[j]);
     }
   }
 
