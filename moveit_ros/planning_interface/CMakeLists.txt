@@ -29,21 +29,10 @@ find_package(catkin REQUIRED COMPONENTS
   rosconsole
 )
 
-find_package(PythonInterp REQUIRED)
-find_package(PythonLibs "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" REQUIRED)
-
-find_package(Boost REQUIRED)
-if(Boost_VERSION LESS 106700)
-  set(BOOST_PYTHON_COMPONENT python)
-else()
-  set(BOOST_PYTHON_COMPONENT python${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR})
-endif()
-
 find_package(Boost REQUIRED COMPONENTS
   date_time
   filesystem
   program_options
-  ${BOOST_PYTHON_COMPONENT}
   system
   thread
 )
@@ -84,7 +73,7 @@ include_directories(SYSTEM
                     ${catkin_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIRS}
-                    ${PYTHON_INCLUDE_DIRS})
+)
 
 add_subdirectory(common_planning_interface_objects)
 add_subdirectory(planning_scene_interface)
