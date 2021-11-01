@@ -96,12 +96,8 @@ class PythonMoveGroupNsTest(unittest.TestCase):
         error_code2, plan2, time = self.plan(current + 0.2)
 
         # both plans should have succeeded:
-        error_code = MoveItErrorCodes()
-        error_code.deserialize(error_code1)
-        self.assertEqual(error_code.val, MoveItErrorCodes.SUCCESS)
-        error_code = MoveItErrorCodes()
-        error_code.deserialize(error_code2)
-        self.assertEqual(error_code.val, MoveItErrorCodes.SUCCESS)
+        self.assertEqual(error_code1.val, MoveItErrorCodes.SUCCESS)
+        self.assertEqual(error_code2.val, MoveItErrorCodes.SUCCESS)
 
         # first plan should execute
         self.assertTrue(self.group.execute(plan1))
@@ -112,9 +108,7 @@ class PythonMoveGroupNsTest(unittest.TestCase):
         # newly planned trajectory should execute again
         error_code3, plan3, time = self.plan(current)
         self.assertTrue(self.group.execute(plan3))
-        error_code = MoveItErrorCodes()
-        error_code.deserialize(error_code3)
-        self.assertEqual(error_code.val, MoveItErrorCodes.SUCCESS)
+        self.assertEqual(error_code3.val, MoveItErrorCodes.SUCCESS)
 
 
 if __name__ == "__main__":

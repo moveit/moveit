@@ -48,7 +48,6 @@ find_package(Boost REQUIRED COMPONENTS
   thread
 )
 find_package(Eigen3 REQUIRED)
-find_package(eigenpy REQUIRED)
 
 set(THIS_PACKAGE_INCLUDE_DIRS
   common_planning_interface_objects/include

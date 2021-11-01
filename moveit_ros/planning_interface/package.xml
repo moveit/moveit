@@ -36,7 +36,6 @@
   <depend>tf2_ros</depend>
   <depend condition="$ROS_PYTHON_VERSION == 2">python</depend>
   <depend condition="$ROS_PYTHON_VERSION == 3">python3</depend>
-  <depend>eigenpy</depend>
 
   <build_depend>eigen</build_depend>
   <build_depend>pybind11_catkin</build_depend>

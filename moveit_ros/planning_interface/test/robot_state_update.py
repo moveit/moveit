@@ -35,9 +35,7 @@ class RobotStateUpdateTest(unittest.TestCase):
             target = current + np.random.uniform(-0.5, 0.5, size=current.shape)
             # if plan was successfully executed, current state should be reported at target
             error_code1, plan, time = self.plan(target)
-            error_code = MoveItErrorCodes()
-            error_code.deserialize(error_code1)
-            if (error_code.val == MoveItErrorCodes.SUCCESS) and self.group.execute(
+            if (error_code1.val == MoveItErrorCodes.SUCCESS) and self.group.execute(
                 plan
             ):
                 actual = np.asarray(self.group.get_current_joint_values())
