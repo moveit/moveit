@@ -63,7 +63,7 @@ public:
     , terminated_(false)
     , model_(model)
     , limits_(limits)
-    , generator_(model, limits_)
+    , generator_(model, limits_, group)
   {
   }
 
