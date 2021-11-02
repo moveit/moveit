@@ -69,20 +69,11 @@ TrajectoryGeneratorPTP::TrajectoryGeneratorPTP(const robot_model::RobotModelCons
     JointLimit most_strict_limit = joint_limits_.getCommonLimit(active_joints);
 
     if (!most_strict_limit.has_velocity_limits)
-    {
-      ROS_ERROR_STREAM("velocity limit not set for group " << jmg->getName());
-      throw TrajectoryGeneratorInvalidLimitsException("velocity limit not set for group " + jmg->getName());
-    }
+      throw TrajectoryGeneratorInvalidLimitsException("velocity limit not set for group " + group_name);
     if (!most_strict_limit.has_acceleration_limits)
-    {
-      ROS_ERROR_STREAM("acceleration limit not set for group " << jmg->getName());
-      throw TrajectoryGeneratorInvalidLimitsException("acceleration limit not set for group " + jmg->getName());
-    }
+      throw TrajectoryGeneratorInvalidLimitsException("acceleration limit not set for group " + group_name);
     if (!most_strict_limit.has_deceleration_limits)
-    {
-      ROS_ERROR_STREAM("deceleration limit not set for group " << jmg->getName());
-      throw TrajectoryGeneratorInvalidLimitsException("deceleration limit not set for group " + jmg->getName());
-    }
+      throw TrajectoryGeneratorInvalidLimitsException("deceleration limit not set for group " + group_name);
 
     most_strict_limits_.insert(std::pair<std::string, JointLimit>(jmg->getName(), most_strict_limit));
   }
