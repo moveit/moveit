@@ -390,7 +390,7 @@ void AllowedCollisionMatrix::print(std::ostream& out) const
   // print indices along the top of the matrix
   for (std::size_t j = 0; j < number_digits; ++j)
   {
-    out << std::setw(spacing + number_digits + 4) << "";
+    out << std::setw(spacing + number_digits + 8) << "";
     for (std::size_t i = 0; i < names.size(); ++i)
     {
       std::stringstream ss;
@@ -400,17 +400,25 @@ void AllowedCollisionMatrix::print(std::ostream& out) const
     out << std::endl;
   }
 
+  const char* indicator = "01?";  // ALWAYS / NEVER / CONDITIONAL
   for (std::size_t i = 0; i < names.size(); ++i)
   {
     out << std::setw(spacing) << names[i];
     out << std::setw(number_digits + 1) << i;
     out << " | ";
+    // print default value
+    AllowedCollision::Type type;
+    if (getDefaultEntry(names[i], type))
+      out << indicator[type];
+    else
+      out << '-';
+    out << " | ";
+    // print pairs
     for (std::size_t j = 0; j < names.size(); ++j)
     {
-      AllowedCollision::Type type;
       bool found = getAllowedCollision(names[i], names[j], type);
       if (found)
-        out << std::setw(3) << (type == AllowedCollision::ALWAYS ? '1' : (type == AllowedCollision::NEVER ? '0' : '?'));
+        out << std::setw(3) << indicator[type];
       else
         out << std::setw(3) << '-';
     }
