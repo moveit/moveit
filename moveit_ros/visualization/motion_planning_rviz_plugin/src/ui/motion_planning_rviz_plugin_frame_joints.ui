@@ -43,14 +43,44 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="nullspace_label">
+       <property name="toolTip">
+        <string>The sliders below allow for jogging the nullspace of the current configuration,
+i.e. trigger joint motions that don't affect the end-effector pose.
+
+Typically, redundant arms (with 7+ joints) offer such a nullspace.
+However, also singular configurations provide a nullspace.
+
+Each basis vector of the (linear) nullspace is represented by a separate slider.</string>
+       </property>
        <property name="text">
         <string>Nullspace exploration:</string>
        </property>
       </widget>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="nullspace_layout_"/>
+      <layout class="QVBoxLayout" name="nullspace_layout_">
+       <item>
+        <widget class="QSlider" name="dummy_ns_slider_">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>The slider will become active if the current robot configuration has a nullspace.
+That's typically the case for redundant robots, i.e. 7+ joints, or singular configurations.</string>
+         </property>
+         <property name="minimum">
+          <number>-1</number>
+         </property>
+         <property name="maximum">
+          <number>1</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>

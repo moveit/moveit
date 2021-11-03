@@ -335,6 +335,9 @@ cleanup:
   if (i == 0)
     nullspace_.resize(0, 0);
 
+  // show/hide dummy slider
+  ui_->dummy_ns_slider_->setVisible(i == 0);
+
   // hide remaining sliders
   for (; i < ns_sliders_.size(); ++i)
     ns_sliders_[i]->hide();
