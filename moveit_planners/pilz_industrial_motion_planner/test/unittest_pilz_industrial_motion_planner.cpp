@@ -174,24 +174,14 @@ TEST_P(CommandPlannerTest, CheckInvalidAlgorithmsForServiceRequest)
 }
 
 /**
- * @brief Check that canServiceRequest(req) returns false if planner_id is empty
+ * @brief Empty planner_id is resolves to default planner (PTP)
  */
 TEST_P(CommandPlannerTest, CheckEmptyPlannerIdForServiceRequest)
 {
   planning_interface::MotionPlanRequest req;
   req.planner_id = "";
 
-  EXPECT_FALSE(planner_instance_->canServiceRequest(req));
-}
-
-/**
- * @brief Check integrety against empty input
- */
-TEST_P(CommandPlannerTest, CheckPlanningContextRequestNull)
-{
-  moveit_msgs::MotionPlanRequest req;
-  moveit_msgs::MoveItErrorCodes error_code;
-  EXPECT_EQ(nullptr, planner_instance_->getPlanningContext(nullptr, req, error_code));
+  EXPECT_TRUE(planner_instance_->canServiceRequest(req));
 }
 
 /**
