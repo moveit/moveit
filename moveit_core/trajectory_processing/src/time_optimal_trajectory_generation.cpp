@@ -934,7 +934,8 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
     {
       if (bounds.max_velocity_ < std::numeric_limits<double>::epsilon())
       {
-        ROS_ERROR_NAMED(LOGNAME, "Invalid max_velocity %f specified for '%s', must be greater than 0.0", bounds.max_velocity_ , vars[j].c_str());
+        ROS_ERROR_NAMED(LOGNAME, "Invalid max_velocity %f specified for '%s', must be greater than 0.0",
+                        bounds.max_velocity_, vars[j].c_str());
         return false;
       }
       max_velocity[j] =
@@ -946,7 +947,8 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
     {
       if (bounds.max_acceleration_ < std::numeric_limits<double>::epsilon())
       {
-        ROS_ERROR_NAMED(LOGNAME, "Invalid max_acceleration %f specified for '%s', must be greater than 0.0", bounds.max_acceleration_, vars[j].c_str());
+        ROS_ERROR_NAMED(LOGNAME, "Invalid max_acceleration %f specified for '%s', must be greater than 0.0",
+                        bounds.max_acceleration_, vars[j].c_str());
         return false;
       }
       max_acceleration[j] = std::min(std::fabs(bounds.max_acceleration_), std::fabs(bounds.min_acceleration_)) *
