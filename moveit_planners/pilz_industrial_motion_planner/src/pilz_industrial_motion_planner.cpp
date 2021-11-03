@@ -123,19 +123,24 @@ CommandPlanner::getPlanningContext(const planning_scene::PlanningSceneConstPtr& 
                                    moveit_msgs::MoveItErrorCodes& error_code) const
 {
   ROS_DEBUG_STREAM("Loading PlanningContext for request\n<request>\n" << req << "\n</request>");
-
-  // Check that a loaded for this request exists
-  if (!canServiceRequest(req))
+  std::string planner_id = req.planner_id;
+  if (planner_id.empty() && context_loader_map_.find("PTP") != context_loader_map_.end())
   {
-    ROS_ERROR_STREAM("No ContextLoader for planner_id '" << req.planner_id.c_str() << "' found. Planning not possible.");
+    planner_id = "PTP";
+    ROS_INFO_STREAM("Using default planner: " + planner_id);
+  }
+  // Check that a loader for this request exists
+  if (context_loader_map_.find(planner_id) == context_loader_map_.end())
+  {
+    ROS_ERROR_STREAM("Unknown planner_id '" << planner_id << "'. Aborting.");
     return nullptr;
   }
 
   planning_interface::PlanningContextPtr planning_context;
 
-  if (context_loader_map_.at(req.planner_id)->loadContext(planning_context, req.planner_id, req.group_name))
+  if (context_loader_map_.at(planner_id)->loadContext(planning_context, planner_id, req.group_name))
   {
-    ROS_DEBUG_STREAM("Found planning context loader for " << req.planner_id << " group:" << req.group_name);
+    ROS_DEBUG_STREAM("Found planning context loader for " << planner_id << " group:" << req.group_name);
     planning_context->setMotionPlanRequest(req);
     planning_context->setPlanningScene(planning_scene);
     return planning_context;
@@ -149,7 +154,7 @@ CommandPlanner::getPlanningContext(const planning_scene::PlanningSceneConstPtr& 
 
 bool CommandPlanner::canServiceRequest(const moveit_msgs::MotionPlanRequest& req) const
 {
-  return context_loader_map_.find(req.planner_id) != context_loader_map_.end();
+  return req.planner_id.empty() || context_loader_map_.find(req.planner_id) != context_loader_map_.end();
 }
 
 void CommandPlanner::registerContextLoader(
