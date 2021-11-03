@@ -113,7 +113,7 @@ protected:
     limits.setCartesianLimits(cartesian_limit);
 
     planning_context_ = std::unique_ptr<typename T::Type_>(
-        new typename T::Type_("TestPlanningContext", "TestGroup", robot_model_, limits));
+        new typename T::Type_("TestPlanningContext", planning_group_, robot_model_, limits));
 
     // Define and set the current scene
     planning_scene::PlanningScenePtr scene(new planning_scene::PlanningScene(robot_model_));
@@ -199,9 +199,9 @@ TYPED_TEST(PlanningContextTest, NoRequest)
   planning_interface::MotionPlanResponse res;
   bool result = this->planning_context_->solve(res);
 
-  EXPECT_FALSE(result) << testutils::demangel(typeid(TypeParam).name());
+  EXPECT_FALSE(result) << testutils::demangle(typeid(TypeParam).name());
   EXPECT_EQ(moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN, res.error_code_.val)
-      << testutils::demangel(typeid(TypeParam).name());
+      << testutils::demangle(typeid(TypeParam).name());
 }
 
 /**
@@ -210,23 +210,23 @@ TYPED_TEST(PlanningContextTest, NoRequest)
 TYPED_TEST(PlanningContextTest, SolveValidRequest)
 {
   planning_interface::MotionPlanResponse res;
-  planning_interface::MotionPlanRequest req = this->getValidRequest(testutils::demangel(typeid(TypeParam).name()));
+  planning_interface::MotionPlanRequest req = this->getValidRequest(testutils::demangle(typeid(TypeParam).name()));
 
   this->planning_context_->setMotionPlanRequest(req);
 
   // TODO Formulate valid request
   bool result = this->planning_context_->solve(res);
 
-  EXPECT_TRUE(result) << testutils::demangel(typeid(TypeParam).name());
+  EXPECT_TRUE(result) << testutils::demangle(typeid(TypeParam).name());
   EXPECT_EQ(moveit_msgs::MoveItErrorCodes::SUCCESS, res.error_code_.val)
-      << testutils::demangel(typeid(TypeParam).name());
+      << testutils::demangle(typeid(TypeParam).name());
 
   planning_interface::MotionPlanDetailedResponse res_detailed;
   bool result_detailed = this->planning_context_->solve(res_detailed);
 
-  EXPECT_TRUE(result_detailed) << testutils::demangel(typeid(TypeParam).name());
+  EXPECT_TRUE(result_detailed) << testutils::demangle(typeid(TypeParam).name());
   EXPECT_EQ(moveit_msgs::MoveItErrorCodes::SUCCESS, res.error_code_.val)
-      << testutils::demangel(typeid(TypeParam).name());
+      << testutils::demangle(typeid(TypeParam).name());
 }
 
 /**
@@ -235,14 +235,14 @@ TYPED_TEST(PlanningContextTest, SolveValidRequest)
 TYPED_TEST(PlanningContextTest, SolveValidRequestDetailedResponse)
 {
   planning_interface::MotionPlanDetailedResponse res;  //<-- Detailed!
-  planning_interface::MotionPlanRequest req = this->getValidRequest(testutils::demangel(typeid(TypeParam).name()));
+  planning_interface::MotionPlanRequest req = this->getValidRequest(testutils::demangle(typeid(TypeParam).name()));
 
   this->planning_context_->setMotionPlanRequest(req);
   bool result = this->planning_context_->solve(res);
 
-  EXPECT_TRUE(result) << testutils::demangel(typeid(TypeParam).name());
+  EXPECT_TRUE(result) << testutils::demangle(typeid(TypeParam).name());
   EXPECT_EQ(moveit_msgs::MoveItErrorCodes::SUCCESS, res.error_code_.val)
-      << testutils::demangel(typeid(TypeParam).name());
+      << testutils::demangle(typeid(TypeParam).name());
 }
 
 /**
@@ -251,18 +251,18 @@ TYPED_TEST(PlanningContextTest, SolveValidRequestDetailedResponse)
 TYPED_TEST(PlanningContextTest, SolveOnTerminated)
 {
   planning_interface::MotionPlanResponse res;
-  planning_interface::MotionPlanRequest req = this->getValidRequest(testutils::demangel(typeid(TypeParam).name()));
+  planning_interface::MotionPlanRequest req = this->getValidRequest(testutils::demangle(typeid(TypeParam).name()));
 
   this->planning_context_->setMotionPlanRequest(req);
 
   bool result_termination = this->planning_context_->terminate();
-  EXPECT_TRUE(result_termination) << testutils::demangel(typeid(TypeParam).name());
+  EXPECT_TRUE(result_termination) << testutils::demangle(typeid(TypeParam).name());
 
   bool result = this->planning_context_->solve(res);
-  EXPECT_FALSE(result) << testutils::demangel(typeid(TypeParam).name());
+  EXPECT_FALSE(result) << testutils::demangle(typeid(TypeParam).name());
 
   EXPECT_EQ(moveit_msgs::MoveItErrorCodes::PLANNING_FAILED, res.error_code_.val)
-      << testutils::demangel(typeid(TypeParam).name());
+      << testutils::demangle(typeid(TypeParam).name());
 }
 
 /**
@@ -270,7 +270,7 @@ TYPED_TEST(PlanningContextTest, SolveOnTerminated)
  */
 TYPED_TEST(PlanningContextTest, Clear)
 {
-  EXPECT_NO_THROW(this->planning_context_->clear()) << testutils::demangel(typeid(TypeParam).name());
+  EXPECT_NO_THROW(this->planning_context_->clear()) << testutils::demangle(typeid(TypeParam).name());
 }
 
 int main(int argc, char** argv)
