@@ -6,7 +6,7 @@ import rospy
 import rostest
 import os
 
-from moveit_ros_planning_interface._moveit_move_group_interface import (
+from moveit_ros_planning_interface.pymoveit_move_group_interface import (
     MoveGroupInterface,
 )
 from moveit_msgs.msg import MoveItErrorCodes

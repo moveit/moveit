@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from moveit_ros_planning_interface._moveit_move_group_interface import (
+from moveit_ros_planning_interface.pymoveit_move_group_interface import (
     MoveGroupInterface,
 )
 

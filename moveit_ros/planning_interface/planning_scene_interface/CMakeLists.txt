@@ -5,13 +5,12 @@ set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_V
 target_link_libraries(${MOVEIT_LIB_NAME} moveit_common_planning_interface_objects ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 #catkin_lint: ignore undefined_target
-pybind_add_module(${MOVEIT_LIB_NAME}_python SHARED src/wrap_python_planning_scene_interface.cpp)
-set_target_properties(${MOVEIT_LIB_NAME}_python PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-target_link_libraries(${MOVEIT_LIB_NAME}_python PRIVATE ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-set_target_properties(${MOVEIT_LIB_NAME}_python PROPERTIES OUTPUT_NAME _moveit_planning_scene_interface PREFIX "")
-set_target_properties(${MOVEIT_LIB_NAME}_python PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_PYTHON_DESTINATION}")
+pybind_add_module(py${MOVEIT_LIB_NAME} src/wrap_python_planning_scene_interface.cpp)
+set_target_properties(py${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
+target_link_libraries(py${MOVEIT_LIB_NAME} PRIVATE ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+set_target_properties(py${MOVEIT_LIB_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_PYTHON_DESTINATION}")
 if(WIN32)
-  set_target_properties(${MOVEIT_LIB_NAME}_python PROPERTIES SUFFIX .pyd)
+  set_target_properties(py${MOVEIT_LIB_NAME} PROPERTIES SUFFIX .pyd)
 endif(WIN32)
 
 install(TARGETS ${MOVEIT_LIB_NAME}
@@ -19,7 +18,7 @@ install(TARGETS ${MOVEIT_LIB_NAME}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
 
-install(TARGETS ${MOVEIT_LIB_NAME}_python
+install(TARGETS py${MOVEIT_LIB_NAME}
   DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION})
 
 install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})

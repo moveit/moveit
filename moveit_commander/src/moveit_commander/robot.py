@@ -33,7 +33,7 @@
 # Author: Ioan Sucan
 
 from moveit_commander import MoveGroupCommander, MoveItCommanderException
-from moveit_ros_planning_interface import _moveit_robot_interface
+from moveit_ros_planning_interface import pymoveit_robot_interface
 from moveit_msgs.msg import RobotState
 import moveit_commander.conversions as conversions
 
@@ -152,7 +152,7 @@ class RobotCommander(object):
     def __init__(self, robot_description="robot_description", ns=""):
         self._robot_description = robot_description
         self._ns = ns
-        self._r = _moveit_robot_interface.RobotInterface(robot_description, ns)
+        self._r = pymoveit_robot_interface.RobotInterface(robot_description, ns)
         self._groups = {}
         self._joint_owner_groups = {}
 

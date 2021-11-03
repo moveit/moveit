@@ -318,7 +318,7 @@ public:
 }  // namespace planning_interface
 }  // namespace moveit
 
-PYBIND11_MODULE(_moveit_move_group_interface, m)
+PYBIND11_MODULE(pymoveit_move_group_interface, m)
 {
   using moveit::planning_interface::MoveGroupInterface;
   using moveit::planning_interface::MoveGroupInterfaceWrapper;

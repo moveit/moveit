@@ -46,7 +46,7 @@ from moveit_msgs.msg import (
 from sensor_msgs.msg import JointState
 import rospy
 import tf
-from moveit_ros_planning_interface import _moveit_move_group_interface
+from moveit_ros_planning_interface import pymoveit_move_group_interface
 
 from .exception import MoveItCommanderException
 import moveit_commander.conversions as conversions
@@ -61,7 +61,7 @@ class MoveGroupCommander(object):
         self, name, robot_description="robot_description", ns="", wait_for_servers=5.0
     ):
         """ Specify the group name for which to construct this commander instance. Throws an exception if there is an initialization error. """
-        self._g = _moveit_move_group_interface.MoveGroupInterface(
+        self._g = pymoveit_move_group_interface.MoveGroupInterface(
             name, robot_description, ns, wait_for_servers
         )
 

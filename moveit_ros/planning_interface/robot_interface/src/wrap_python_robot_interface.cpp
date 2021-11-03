@@ -375,7 +375,7 @@ private:
   ros::NodeHandle nh_;
 };
 
-PYBIND11_MODULE(_moveit_robot_interface, m)
+PYBIND11_MODULE(pymoveit_robot_interface, m)
 {
   py::class_<RobotInterfacePython>(m, "RobotInterface")
       .def(py::init<std::string, std::string>(), py::arg("robot_description"), py::arg("namespace") = std::string{})
