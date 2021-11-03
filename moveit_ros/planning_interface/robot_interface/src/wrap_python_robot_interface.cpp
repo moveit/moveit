@@ -46,7 +46,6 @@
 #include <moveit_msgs/RobotState.h>
 #include <visualization_msgs/MarkerArray.h>
 
-#include <stdexcept>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -54,6 +53,8 @@
 
 namespace py = pybind11;
 namespace pi = moveit::planning_interface;
+
+using moveit::python::throwDeserializationError;
 
 class RobotInterfacePython : protected moveit::py_bindings_tools::ROScppInitializer
 {
@@ -240,7 +241,7 @@ public:
   moveit_msgs::RobotState getCurrentState()
   {
     if (!ensureCurrentState())
-      throw std::runtime_error("Unable to get current robot state");
+      throwDeserializationError();
     moveit::core::RobotStatePtr s = current_state_monitor_->getCurrentState();
     moveit_msgs::RobotState msg;
     moveit::core::robotStateToRobotStateMsg(*s, msg);
@@ -305,7 +306,7 @@ public:
   visualization_msgs::MarkerArray getRobotMarkers()
   {
     if (!ensureCurrentState())
-      throw std::runtime_error("Unable to get current robot state");
+      throwDeserializationError();
     moveit::core::RobotStatePtr s = current_state_monitor_->getCurrentState();
     visualization_msgs::MarkerArray msg;
     s->getRobotMarkers(msg, s->getRobotModel()->getLinkModelNames());
@@ -316,7 +317,7 @@ public:
   visualization_msgs::MarkerArray getRobotMarkersPythonList(const std::vector<std::string>& links)
   {
     if (!ensureCurrentState())
-      throw std::runtime_error("Unable to get current robot state");
+      throwDeserializationError();
 
     moveit::core::RobotStatePtr s = current_state_monitor_->getCurrentState();
     visualization_msgs::MarkerArray msg;
@@ -328,7 +329,7 @@ public:
   visualization_msgs::MarkerArray getRobotMarkersGroup(const std::string& group)
   {
     if (!ensureCurrentState())
-      throw std::runtime_error("Unable to get current robot state");
+      throwDeserializationError();
 
     moveit::core::RobotStatePtr s = current_state_monitor_->getCurrentState();
     const moveit::core::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
@@ -346,7 +347,7 @@ public:
   {
     const moveit::core::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
     if (!jmg)
-      throw std::invalid_argument("Group not found");
+      throwDeserializationError();
     return getRobotMarkersPythonDictList(values, jmg->getLinkModelNames());
   }
 

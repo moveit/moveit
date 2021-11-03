@@ -60,15 +60,12 @@
 
 namespace py = pybind11;
 
+using moveit::python::throwDeserializationError;
+
 namespace moveit
 {
 namespace planning_interface
 {
-struct deserializionError : std::runtime_error
-{
-  using std::runtime_error::runtime_error;
-};
-
 class MoveGroupInterfaceWrapper : protected py_bindings_tools::ROScppInitializer, public MoveGroupInterface
 {
 public:
@@ -256,7 +253,7 @@ public:
     if (!moveit::core::robotStateMsgToRobotState(ref_state_msg, ref_state_obj, true))
     {
       ROS_ERROR("Unable to convert RobotState message to RobotState instance.");
-      throw deserializionError("Unable to convert RobotState message to RobotState instance.");
+      throwDeserializationError();
     }
 
     // Convert trajectory message to object
@@ -314,7 +311,7 @@ public:
     else
     {
       ROS_ERROR("Unable to convert RobotState message to RobotState instance.");
-      throw deserializionError("Unable to convert RobotState message to RobotState instance.");
+      throwDeserializationError();
     }
   }
 };
@@ -323,8 +320,6 @@ public:
 
 PYBIND11_MODULE(_moveit_move_group_interface, m)
 {
-  py::register_exception<moveit::planning_interface::deserializionError>(m, "DeserializationError");
-
   using moveit::planning_interface::MoveGroupInterface;
   using moveit::planning_interface::MoveGroupInterfaceWrapper;
 

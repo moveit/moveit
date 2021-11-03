@@ -49,6 +49,13 @@ namespace python
 PYBIND11_EXPORT pybind11::object createMessage(const std::string& ros_msg_name);
 PYBIND11_EXPORT bool convertible(const pybind11::handle& h, const char* ros_msg_name);
 
+/** Throws genpy.DeserializationError exception.
+ *
+ * This is a convenience method to support the old behaviour of returning
+ * an empty ByteString.
+ */
+PYBIND11_EXPORT void throwDeserializationError [[noreturn]] ();
+
 }  // namespace python
 }  // namespace moveit
 

@@ -32,7 +32,6 @@
 #
 # Author: Ioan Sucan, William Baker
 
-from genpy import DeserializationError
 from geometry_msgs.msg import Pose, PoseStamped
 from moveit_msgs.msg import (
     Grasp,
@@ -48,9 +47,7 @@ from sensor_msgs.msg import JointState
 import rospy
 import tf
 from moveit_ros_planning_interface import _moveit_move_group_interface
-from moveit_ros_planning_interface._moveit_move_group_interface import (
-    DeserializationError as CppDeserializationError,
-)
+
 from .exception import MoveItCommanderException
 import moveit_commander.conversions as conversions
 
@@ -719,16 +716,13 @@ class MoveGroupCommander(object):
         acceleration_scaling_factor=1.0,
         algorithm="iterative_time_parameterization",
     ):
-        try:
-            return self._g.retime_trajectory(
-                ref_state_in,
-                traj_in,
-                velocity_scaling_factor,
-                acceleration_scaling_factor,
-                algorithm,
-            )
-        except CppDeserializationError as e:
-            raise DeserializationError(e)
+        return self._g.retime_trajectory(
+            ref_state_in,
+            traj_in,
+            velocity_scaling_factor,
+            acceleration_scaling_factor,
+            algorithm,
+        )
 
     def get_jacobian_matrix(self, joint_values, reference_point=None):
         """ Get the jacobian matrix of the group as a list"""
@@ -739,7 +733,4 @@ class MoveGroupCommander(object):
 
     def enforce_bounds(self, robot_state_msg):
         """ Takes a moveit_msgs RobotState and enforces the state bounds, based on the C++ RobotState enforceBounds() """
-        try:
-            return self._g.enforce_bounds(robot_state_msg)
-        except CppDeserializationError as e:
-            raise DeserializationError(e)
+        return self._g.enforce_bounds(robot_state_msg)

@@ -65,5 +65,12 @@ bool convertible(const pybind11::handle& h, const char* ros_msg_name)
     return false;
   }
 }
+
+void throwDeserializationError()
+{
+  py::object e = py::module::import("genpy").attr("DeserializationError")();
+  PyErr_SetObject(e.get_type().ptr(), e.ptr());
+  throw py::error_already_set();
+}
 }  // namespace python
 }  // namespace moveit
