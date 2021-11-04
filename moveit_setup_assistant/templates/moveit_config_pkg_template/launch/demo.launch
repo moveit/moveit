@@ -17,7 +17,7 @@
   <!-- Choose controller manager: fake, simple, or ros_control -->
   <arg name="moveit_controller_manager" default="fake" />
   <!-- Set execution mode for fake execution controllers -->
-  <arg name="execution_type" default="interpolate" />
+  <arg name="fake_execution_type" default="interpolate" />
 
   <!-- By default, hide joint_state_publisher's GUI in 'fake' controller_manager mode -->
   <arg name="use_gui" default="false" />
@@ -47,7 +47,7 @@
   <include file="$(dirname)/move_group.launch">
     <arg name="allow_trajectory_execution" value="true"/>
     <arg name="moveit_controller_manager" value="$(arg moveit_controller_manager)" />
-    <arg name="execution_type" value="$(arg execution_type)"/>
+    <arg name="fake_execution_type" value="$(arg fake_execution_type)"/>
     <arg name="info" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
     <arg name="pipeline" value="$(arg pipeline)"/>
