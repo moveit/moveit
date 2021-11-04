@@ -1074,9 +1074,8 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
 bool MoveItConfigData::output3DSensorPluginYAML(const std::string& file_path)
 {
   YAML::Emitter emitter;
-  emitter << YAML::BeginMap;
 
-  emitter << YAML::Comment("The name of this file shouldn't be changed, or else the Setup Assistant won't detect it");
+  emitter << YAML::BeginMap;
   emitter << YAML::Key << "sensors";
   emitter << YAML::Value << YAML::BeginSeq;
 
@@ -1776,66 +1775,28 @@ bool MoveItConfigData::inputSetupAssistantYAML(const std::string& file_path)
 // ******************************************************************************************
 // Input sensors_3d yaml file
 // ******************************************************************************************
-bool MoveItConfigData::input3DSensorsYAML(const std::string& default_file_path, const std::string& file_path)
+void MoveItConfigData::input3DSensorsYAML(const std::string& file_path)
 {
-  // Load default parameters file
-  std::ifstream default_input_stream(default_file_path.c_str());
-  if (!default_input_stream.good())
-  {
-    ROS_ERROR_STREAM_NAMED("sensors_3d.yaml", "Unable to open file for reading " << default_file_path);
-    return false;
-  }
+  sensors_plugin_config_parameter_list_ = load3DSensorsYAML(file_path);
+}
 
-  // Parse default parameters values
-  try
-  {
-    const YAML::Node& doc = YAML::Load(default_input_stream);
-
-    // Get sensors node
-    if (const YAML::Node& sensors_node = doc["sensors"])
-    {
-      // Make sue that the sensors are written as a sequence
-      if (sensors_node.IsSequence())
-      {
-        GenericParameter sensor_param;
-        std::map<std::string, GenericParameter> sensor_map;
-
-        // Loop over the sensors available in the file
-        for (const YAML::Node& sensor : sensors_node)
-        {
-          if (const YAML::Node& sensor_node = sensor)
-          {
-            for (YAML::const_iterator sensor_it = sensor_node.begin(); sensor_it != sensor_node.end(); ++sensor_it)
-            {
-              sensor_param.setName(sensor_it->first.as<std::string>());
-              sensor_param.setValue(sensor_it->second.as<std::string>());
-
-              // Set the key as the parameter name to make accessing it easier
-              sensor_map[sensor_it->first.as<std::string>()] = sensor_param;
-            }
-            sensors_plugin_config_parameter_list_.push_back(sensor_map);
-          }
-        }
-      }
-    }
-  }
-  catch (YAML::ParserException& e)  // Catch errors
-  {
-    ROS_ERROR_STREAM("Error parsing default sensors yaml: " << e.what());
-  }
+// ******************************************************************************************
+// Load sensors_3d.yaml file
+// ******************************************************************************************
+std::vector<std::map<std::string, GenericParameter>> MoveItConfigData::load3DSensorsYAML(const std::string& file_path)
+{
+  std::vector<std::map<std::string, GenericParameter>> config;
 
   // Is there a sensors config in the package?
   if (file_path.empty())
-  {
-    return true;
-  }
+    return config;
 
   // Load file
   std::ifstream input_stream(file_path.c_str());
   if (!input_stream.good())
   {
     ROS_ERROR_STREAM_NAMED("sensors_3d.yaml", "Unable to open file for reading " << file_path);
-    return false;
+    return config;
   }
 
   // Begin parsing
@@ -1848,38 +1809,33 @@ bool MoveItConfigData::input3DSensorsYAML(const std::string& default_file_path, 
     // Make sure that the sensors are written as a sequence
     if (sensors_node && sensors_node.IsSequence())
     {
-      GenericParameter sensor_param;
-      std::map<std::string, GenericParameter> sensor_map;
-      bool empty_node = true;
-
       // Loop over the sensors available in the file
       for (const YAML::Node& sensor : sensors_node)
       {
-        if (const YAML::Node& sensor_node = sensor)
+        std::map<std::string, GenericParameter> sensor_map;
+        bool empty_node = true;
+        for (YAML::const_iterator sensor_it = sensor.begin(); sensor_it != sensor.end(); ++sensor_it)
         {
-          for (YAML::const_iterator sensor_it = sensor_node.begin(); sensor_it != sensor_node.end(); ++sensor_it)
-          {
-            empty_node = false;
-            sensor_param.setName(sensor_it->first.as<std::string>());
-            sensor_param.setValue(sensor_it->second.as<std::string>());
+          empty_node = false;
+          GenericParameter sensor_param;
+          sensor_param.setName(sensor_it->first.as<std::string>());
+          sensor_param.setValue(sensor_it->second.as<std::string>());
 
-            // Set the key as the parameter name to make accessing it easier
-            sensor_map[sensor_it->first.as<std::string>()] = sensor_param;
-          }
-          // Don't push empty nodes
-          if (!empty_node)
-            sensors_plugin_config_parameter_list_.push_back(sensor_map);
+          // Set the key as the parameter name to make accessing it easier
+          sensor_map[sensor_it->first.as<std::string>()] = sensor_param;
         }
+        // Don't push empty nodes
+        if (!empty_node)
+          config.push_back(sensor_map);
       }
     }
-    return true;
   }
   catch (YAML::ParserException& e)  // Catch errors
   {
     ROS_ERROR_STREAM("Error parsing sensors yaml: " << e.what());
   }
 
-  return false;  // if it gets to this point an error has occured
+  return config;
 }
 
 // ******************************************************************************************
@@ -1993,22 +1949,11 @@ void MoveItConfigData::addGenericParameterToSensorPluginConfig(const std::string
 }
 
 // ******************************************************************************************
-// Used to get sensor plugin configuration parameter list
-// ******************************************************************************************
-std::vector<std::map<std::string, GenericParameter>> MoveItConfigData::getSensorPluginConfig()
-{
-  return sensors_plugin_config_parameter_list_;
-}
-
-// ******************************************************************************************
 // Used to clear sensor plugin configuration parameter list
 // ******************************************************************************************
 void MoveItConfigData::clearSensorPluginConfig()
 {
-  for (std::map<std::string, GenericParameter>& param_id : sensors_plugin_config_parameter_list_)
-  {
-    param_id.clear();
-  }
+  sensors_plugin_config_parameter_list_.clear();
 }
 
 }  // namespace moveit_setup_assistant

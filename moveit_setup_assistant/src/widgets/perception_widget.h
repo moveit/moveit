@@ -71,6 +71,7 @@ public:
 
   /// Populate the combo dropdown box with sensor plugins
   void loadSensorPluginsComboBox();
+  uint loadConfigIntoWidgets(std::map<std::string, GenericParameter> sensor_plugin_config);
 
   // ******************************************************************************************
   // Qt Components

@@ -122,16 +122,15 @@ TEST_F(MoveItConfigData, ReadingSensorsConfig)
   // Read the file containing the default config parameters
   config_data->input3DSensorsYAML(
       (setup_assistant_path / "templates/moveit_config_pkg_template/config/sensors_3d.yaml").string());
+  auto configs = config_data->getSensorPluginConfig();
 
   // Default config for the two available sensor plugins
   // Make sure both are parsed correctly
-  ASSERT_EQ(config_data->getSensorPluginConfig().size(), 2u);
+  ASSERT_EQ(configs.size(), 2u);
 
-  EXPECT_EQ(config_data->getSensorPluginConfig()[0]["sensor_plugin"].getValue(),
-            std::string("occupancy_map_monitor/PointCloudOctomapUpdater"));
+  EXPECT_EQ(configs[0]["sensor_plugin"].getValue(), std::string("occupancy_map_monitor/PointCloudOctomapUpdater"));
 
-  EXPECT_EQ(config_data->getSensorPluginConfig()[1]["sensor_plugin"].getValue(),
-            std::string("occupancy_map_monitor/DepthImageOctomapUpdater"));
+  EXPECT_EQ(configs[1]["sensor_plugin"].getValue(), std::string("occupancy_map_monitor/DepthImageOctomapUpdater"));
 }
 
 // This tests writing of sensors_3d.yaml
@@ -147,33 +146,27 @@ TEST_F(MoveItConfigData, WritingSensorsConfig)
   // Temporary file used during the test and is deleted when the test is finished
   char test_file[] = "/tmp/msa_unittest_sensors.yaml";
 
-  // sensors yaml written correctly
+  // empty sensors.yaml written correctly
   EXPECT_EQ(config_data->output3DSensorPluginYAML(test_file), true);
 
   // Set default file
-  boost::filesystem::path setup_assistant_path(config_data->setup_assistant_path_);
   std::string default_file_path =
-      (setup_assistant_path / "templates/moveit_config_pkg_template/config/sensors_3d.yaml").string();
+      config_data->setup_assistant_path_ + "/templates/moveit_config_pkg_template/config/sensors_3d.yaml";
 
-  // Read from the written file
-  config_data = std::make_shared<moveit_setup_assistant::MoveItConfigData>();
-  EXPECT_EQ(config_data->input3DSensorsYAML(test_file), true);
-
-  // Should still have No Sensors
-  EXPECT_EQ(config_data->getSensorPluginConfig().size(), 0u);
+  // Read from the written (empty) file
+  auto config = moveit_setup_assistant::MoveItConfigData::load3DSensorsYAML(test_file);
+  // Should have No Sensors
+  EXPECT_EQ(config.size(), 0u);
 
   // Now load the default file and write it to a file
   config_data = std::make_shared<moveit_setup_assistant::MoveItConfigData>();
-  EXPECT_EQ(config_data->input3DSensorsYAML(default_file_path), true);
+  config_data->input3DSensorsYAML(default_file_path);
   EXPECT_EQ(config_data->getSensorPluginConfig().size(), 2u);
   EXPECT_EQ(config_data->output3DSensorPluginYAML(test_file), true);
 
   // Read from the written file
-  config_data = std::make_shared<moveit_setup_assistant::MoveItConfigData>();
-  EXPECT_EQ(config_data->input3DSensorsYAML(test_file), true);
-
-  // Should now have two sensors
-  EXPECT_EQ(config_data->getSensorPluginConfig().size(), 2u);
+  config = moveit_setup_assistant::MoveItConfigData::load3DSensorsYAML(test_file);
+  EXPECT_EQ(config.size(), 2u);
 }
 
 int main(int argc, char** argv)

@@ -155,15 +155,15 @@ public:
   {
     comment_ = std::move(comment);
   };
-  std::string getName()
+  const std::string& getName() const
   {
     return name_;
   };
-  std::string getValue()
+  const std::string& getValue() const
   {
     return value_;
   };
-  std::string getComment()
+  const std::string& getComment() const
   {
     return comment_;
   };
@@ -437,14 +437,10 @@ public:
    */
   bool inputSetupAssistantYAML(const std::string& file_path);
 
-  /**
-   * Input sensors_3d file - contains 3d sensors config data
-   *
-   * @param default_file_path path to sensors_3d yaml file which contains default parameter values
-   * @param file_path path to sensors_3d yaml file in the config package
-   * @return true if the file was read correctly
-   */
-  bool input3DSensorsYAML(const std::string& default_file_path, const std::string& file_path = "");
+  /// Load perception sensor config (sensors_3d.yaml) into internal data structure
+  void input3DSensorsYAML(const std::string& file_path);
+  /// Load perception sensor config
+  static std::vector<std::map<std::string, GenericParameter>> load3DSensorsYAML(const std::string& file_path);
 
   /**
    * Helper Function for joining a file path and a file name, or two file paths, etc,
@@ -499,7 +495,10 @@ public:
   /**
    * \brief Used for adding a sensor plugin configuation parameter to the sensor plugin configuration parameter list
    */
-  std::vector<std::map<std::string, GenericParameter> > getSensorPluginConfig();
+  const std::vector<std::map<std::string, GenericParameter>>& getSensorPluginConfig() const
+  {
+    return sensors_plugin_config_parameter_list_;
+  }
 
   /**
    * \brief Helper function to get the default start pose for moveit_sim_hw_interface
@@ -526,7 +525,7 @@ private:
   // ******************************************************************************************
 
   /// Sensor plugin configuration parameter list, each sensor plugin type is a map
-  std::vector<std::map<std::string, GenericParameter> > sensors_plugin_config_parameter_list_;
+  std::vector<std::map<std::string, GenericParameter>> sensors_plugin_config_parameter_list_;
 
   /// Shared kinematic model
   moveit::core::RobotModelPtr robot_model_;
