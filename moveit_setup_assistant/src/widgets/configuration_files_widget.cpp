@@ -1157,7 +1157,7 @@ void ConfigurationFilesWidget::loadTemplateStrings()
   else
   {
     std::stringstream controllers;
-    for (ROSControlConfig& controller : config_data_->getROSControllers())
+    for (ControllerConfig& controller : config_data_->getROSControllers())
     {
       // Check if the controller belongs to controller_list namespace
       if (controller.type_ != "FollowJointTrajectory")

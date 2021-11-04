@@ -76,9 +76,9 @@ struct GroupMetaData
 };
 
 /**
- * ROS Controllers settings which may be set in the config files
+ * Controllers settings which may be set in the config files
  */
-struct ROSControlConfig
+struct ControllerConfig
 {
   std::string name_;                 // controller name
   std::string type_;                 // controller type
@@ -453,13 +453,13 @@ public:
    * \param new_controller a new ROS Controller to add
    * \return true if inserted correctly
    */
-  bool addROSController(const ROSControlConfig& new_controller);
+  bool addROSController(const ControllerConfig& new_controller);
 
   /**
    * \brief Gets ros_controllers_config_ vector
    * \return pointer to ros_controllers_config_
    */
-  std::vector<ROSControlConfig>& getROSControllers();
+  std::vector<ControllerConfig>& getROSControllers();
 
   /**
    * Find the associated ROS controller by name
@@ -467,7 +467,7 @@ public:
    * @param controller_name - name of ROS controller to find in datastructure
    * @return pointer to data in datastructure
    */
-  ROSControlConfig* findROSControllerByName(const std::string& controller_name);
+  ControllerConfig* findROSControllerByName(const std::string& controller_name);
 
   /**
    * Delete ROS controller by name
@@ -523,8 +523,8 @@ private:
   /// Shared kinematic model
   moveit::core::RobotModelPtr robot_model_;
 
-  /// ROS Controllers config data
-  std::vector<ROSControlConfig> ros_controllers_config_;
+  /// Controllers config data
+  std::vector<ControllerConfig> ros_controllers_config_;
 
   /// Shared planning scene
   planning_scene::PlanningScenePtr planning_scene_;
