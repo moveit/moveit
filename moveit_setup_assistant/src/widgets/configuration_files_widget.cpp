@@ -469,15 +469,6 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = 0;
   gen_files_.push_back(file);
 
-  // robot_moveit_controller_manager.launch ------------------------------------------------------------------
-  file.file_name_ = robot_name + "_moveit_controller_manager.launch.xml";
-  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
-  template_path = config_data_->appendPaths(template_launch_path, "moveit_controller_manager.launch.xml");
-  file.description_ = "Placeholder for settings specific to the MoveIt controller manager implemented for you robot.";
-  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
-  file.write_on_changes = 0;
-  gen_files_.push_back(file);
-
   // robot_moveit_sensor_manager.launch ------------------------------------------------------------------
   file.file_name_ = robot_name + "_moveit_sensor_manager.launch.xml";
   file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
@@ -495,13 +486,28 @@ bool ConfigurationFilesWidget::loadGenFiles()
                       "trajectory_execution_manager::TrajectoryExecutionManager.";
   file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   file.write_on_changes = 0;
-  gen_files_.push_back(
-      file);  // trajectory_execution.launch ------------------------------------------------------------------
+  gen_files_.push_back(file);
 
   file.file_name_ = "fake_moveit_controller_manager.launch.xml";
   file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
   template_path = config_data_->appendPaths(template_launch_path, file.file_name_);
-  file.description_ = "Loads a fake controller plugin.";
+  file.description_ = "Loads the fake controller plugin.";
+  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  file.write_on_changes = 0;
+  gen_files_.push_back(file);
+
+  file.file_name_ = "simple_moveit_controller_manager.launch.xml";
+  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
+  template_path = config_data_->appendPaths(template_launch_path, file.file_name_);
+  file.description_ = "Loads the default controller plugin.";
+  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  file.write_on_changes = 0;
+  gen_files_.push_back(file);
+
+  file.file_name_ = "ros_control_moveit_controller_manager.launch.xml";
+  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
+  template_path = config_data_->appendPaths(template_launch_path, file.file_name_);
+  file.description_ = "Loads the ros_control controller plugin.";
   file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   file.write_on_changes = 0;
   gen_files_.push_back(file);
