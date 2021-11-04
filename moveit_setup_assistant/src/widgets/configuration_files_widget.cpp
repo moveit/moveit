@@ -1149,7 +1149,7 @@ void ConfigurationFilesWidget::loadTemplateStrings()
     addTemplateString("[OTHER_DEPENDENCIES]", deps.str());  // not relative to a ROS package
   }
 
-  // Pair 9 - Add ROS Controllers to ros_controllers.launch file
+  // Pair 9 - List of ROS Controllers to load in ros_controllers.launch file
   if (config_data_->getControllers().empty())
   {
     addTemplateString("[ROS_CONTROLLERS]", "");

@@ -41,6 +41,7 @@
 #include <boost/filesystem/path.hpp>        // for creating folders/files
 #include <boost/filesystem/operations.hpp>  // is_regular_file, is_directory, etc.
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 // ROS
 #include <ros/console.h>
@@ -832,16 +833,18 @@ bool MoveItConfigData::outputSimpleControllersYAML(const std::string& file_path)
   for (const auto& controller : controller_configs_)
   {
     // Only process FollowJointTrajectory types
-    if (controller.type_ == "FollowJointTrajectory" || controller.type_ == "GripperCommand")
+    std::string type = controller.type_;
+    if (boost::ends_with(type, "/JointTrajectoryController"))
+      type = "FollowJointTrajectory";
+    if (type == "FollowJointTrajectory" || type == "GripperCommand")
     {
       emitter << YAML::BeginMap;
       emitter << YAML::Key << "name";
       emitter << YAML::Value << controller.name_;
       emitter << YAML::Key << "action_ns";
-      emitter << YAML::Value
-              << (controller.type_ == "FollowJointTrajectory" ? "follow_joint_trajectory" : "gripper_action");
+      emitter << YAML::Value << (type == "FollowJointTrajectory" ? "follow_joint_trajectory" : "gripper_action");
       emitter << YAML::Key << "type";
-      emitter << YAML::Value << controller.type_;
+      emitter << YAML::Value << type;
       emitter << YAML::Key << "default";
       emitter << YAML::Value << "True";
 
@@ -1530,7 +1533,7 @@ bool MoveItConfigData::inputROSControllersYAML(const std::string& file_path)
 // ******************************************************************************************
 // Add a Follow Joint Trajectory action Controller for each Planning Group
 // ******************************************************************************************
-bool MoveItConfigData::addDefaultControllers()
+bool MoveItConfigData::addDefaultControllers(const std::string& controller_type)
 {
   if (srdf_->srdf_model_->getGroups().empty())
     return false;
@@ -1552,7 +1555,7 @@ bool MoveItConfigData::addDefaultControllers()
     if (!group_controller.joints_.empty())
     {
       group_controller.name_ = group_it.name_ + "_controller";
-      group_controller.type_ = "FollowJointTrajectory";
+      group_controller.type_ = controller_type;
       addController(group_controller);
     }
   }

@@ -389,7 +389,7 @@ public:
    * \brief Add a Follow Joint Trajectory action Controller for each Planning Group
    * \return true if controllers were added to the controller_configs_ data structure
    */
-  bool addDefaultControllers();
+  bool addDefaultControllers(const std::string& controller_type = "effort_controllers/JointTrajectoryController");
 
   /**
    * Set package path; try to resolve path from package name if directory does not exist
