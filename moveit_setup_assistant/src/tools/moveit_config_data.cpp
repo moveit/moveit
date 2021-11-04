@@ -519,7 +519,7 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
     emitter << YAML::Key << "name";
     emitter << YAML::Value << "fake_" + group_it->name_ + "_controller";
     emitter << YAML::Key << "type";
-    emitter << YAML::Value << "$(arg execution_type)";
+    emitter << YAML::Value << "$(arg fake_execution_type)";
     emitter << YAML::Key << "joints";
     emitter << YAML::Value << YAML::BeginSeq;
 

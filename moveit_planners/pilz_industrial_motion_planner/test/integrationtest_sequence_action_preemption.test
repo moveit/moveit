@@ -36,7 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
   <include file="$(find moveit_resources_prbt_moveit_config)/launch/test_environment.launch">
     <arg name="gripper" value="pg70" />
     <arg name="pipeline" value="pilz_industrial_motion_planner" />
-    <arg name="execution_type" value="interpolate" /> <!-- we need to actually execute the trajectory to test preemption -->
+    <arg name="fake_execution_type" value="interpolate" /> <!-- we need to actually execute the trajectory to test preemption -->
   </include>
 
   <!-- run test -->
