@@ -65,7 +65,7 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
 // ******************************************************************************************
-ROSControllersWidget::ROSControllersWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
+ControllersWidget::ControllersWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container
@@ -122,7 +122,7 @@ ROSControllersWidget::ROSControllersWidget(QWidget* parent, const MoveItConfigDa
 // ******************************************************************************************
 // Create the main tree view widget
 // ******************************************************************************************
-QWidget* ROSControllersWidget::createContentsWidget()
+QWidget* ControllersWidget::createContentsWidget()
 {
   // Main widget
   QWidget* content_widget = new QWidget(this);
@@ -205,7 +205,7 @@ QWidget* ROSControllersWidget::createContentsWidget()
 // ******************************************************************************************
 // Displays data in the controller_configs_ data structure into a QtTableWidget
 // ******************************************************************************************
-void ROSControllersWidget::loadControllersTree()
+void ControllersWidget::loadControllersTree()
 {
   // Disable Tree
   controllers_tree_->setUpdatesEnabled(false);  // prevent table from updating until we are completely done
@@ -228,7 +228,7 @@ void ROSControllersWidget::loadControllersTree()
 // ******************************************************************************************
 //  Displays data in the controller_config_ data structure into a QtTableWidget
 // ******************************************************************************************
-void ROSControllersWidget::loadToControllersTree(const moveit_setup_assistant::ControllerConfig& controller_it)
+void ControllersWidget::loadToControllersTree(const moveit_setup_assistant::ControllerConfig& controller_it)
 {
   // Fonts for tree
   const QFont top_level_font(QFont().defaultFamily(), 11, QFont::Bold);
@@ -274,7 +274,7 @@ void ROSControllersWidget::loadToControllersTree(const moveit_setup_assistant::C
 // ******************************************************************************************
 // Called when setup assistant navigation switches to this screen
 // ******************************************************************************************
-void ROSControllersWidget::focusGiven()
+void ControllersWidget::focusGiven()
 {
   // load controllers tree
   btn_edit_->setEnabled(false);
@@ -285,7 +285,7 @@ void ROSControllersWidget::focusGiven()
 // ******************************************************************************************
 // Load the popup screen with correct data for joints
 // ******************************************************************************************
-void ROSControllersWidget::loadJointsScreen(moveit_setup_assistant::ControllerConfig* this_controller)
+void ControllersWidget::loadJointsScreen(moveit_setup_assistant::ControllerConfig* this_controller)
 {
   // Retrieve pointer to the shared kinematic model
   const moveit::core::RobotModelConstPtr& model = config_data_->getRobotModel();
@@ -316,7 +316,7 @@ void ROSControllersWidget::loadJointsScreen(moveit_setup_assistant::ControllerCo
 // ******************************************************************************************
 // Load the popup screen with correct data for gcroups
 // ******************************************************************************************
-void ROSControllersWidget::loadGroupsScreen(moveit_setup_assistant::ControllerConfig* this_controller)
+void ControllersWidget::loadGroupsScreen(moveit_setup_assistant::ControllerConfig* this_controller)
 {
   // Load all groups into the subgroup screen
   std::vector<std::string> groups;
@@ -345,7 +345,7 @@ void ROSControllersWidget::loadGroupsScreen(moveit_setup_assistant::ControllerCo
 // ******************************************************************************************
 // Delete a controller
 // ******************************************************************************************
-void ROSControllersWidget::deleteController()
+void ControllersWidget::deleteController()
 {
   std::string controller_name = current_edit_controller_;
 
@@ -392,7 +392,7 @@ void ROSControllersWidget::deleteController()
 // ******************************************************************************************
 // Create a new controller
 // ******************************************************************************************
-void ROSControllersWidget::addController()
+void ControllersWidget::addController()
 {
   // New Controller
   adding_new_controller_ = true;
@@ -405,7 +405,7 @@ void ROSControllersWidget::addController()
 // ******************************************************************************************
 // Add a Follow Joint Trajectory action Controller for each Planning Group
 // ******************************************************************************************
-void ROSControllersWidget::addDefaultControllers()
+void ControllersWidget::addDefaultControllers()
 {
   if (!config_data_->addDefaultControllers())
     QMessageBox::warning(this, "Error adding contollers", "No Planning Groups configured!");
@@ -415,7 +415,7 @@ void ROSControllersWidget::addDefaultControllers()
 // ******************************************************************************************
 // Load the popup screen with correct data for controllers
 // ******************************************************************************************
-void ROSControllersWidget::loadControllerScreen(moveit_setup_assistant::ControllerConfig* this_controller)
+void ControllersWidget::loadControllerScreen(moveit_setup_assistant::ControllerConfig* this_controller)
 {
   // Load the avail controllers. This function only runs once
   controller_edit_widget_->loadControllersTypesComboBox();
@@ -444,7 +444,7 @@ void ROSControllersWidget::loadControllerScreen(moveit_setup_assistant::Controll
 // ******************************************************************************************
 // Call when edit screen is canceled
 // ******************************************************************************************
-void ROSControllersWidget::cancelEditing()
+void ControllersWidget::cancelEditing()
 {
   if (!current_edit_controller_.empty() && adding_new_controller_)
   {
@@ -470,7 +470,7 @@ void ROSControllersWidget::cancelEditing()
 // ******************************************************************************************
 // Called from Double List widget to highlight joints
 // ******************************************************************************************
-void ROSControllersWidget::previewSelectedJoints(const std::vector<std::string>& joints)
+void ControllersWidget::previewSelectedJoints(const std::vector<std::string>& joints)
 {
   // Unhighlight all links
   Q_EMIT unhighlightAll();
@@ -501,7 +501,7 @@ void ROSControllersWidget::previewSelectedJoints(const std::vector<std::string>&
 // ******************************************************************************************
 // Called from Double List widget to highlight a group
 // ******************************************************************************************
-void ROSControllersWidget::previewSelectedGroup(const std::vector<std::string>& groups)
+void ControllersWidget::previewSelectedGroup(const std::vector<std::string>& groups)
 {
   // Unhighlight all links
   Q_EMIT unhighlightAll();
@@ -516,7 +516,7 @@ void ROSControllersWidget::previewSelectedGroup(const std::vector<std::string>& 
 // ******************************************************************************************
 // Called when an item is seleceted from the controllers tree
 // ******************************************************************************************
-void ROSControllersWidget::previewSelected(QTreeWidgetItem* selected_item, int /*column*/)
+void ControllersWidget::previewSelected(QTreeWidgetItem* selected_item, int /*column*/)
 {
   // Get the user custom properties of the currently selected row
   int type = selected_item->data(0, Qt::UserRole).value<int>();
@@ -536,7 +536,7 @@ void ROSControllersWidget::previewSelected(QTreeWidgetItem* selected_item, int /
 // ******************************************************************************************
 // Call when a new controller is created and ready to progress to next screen
 // ******************************************************************************************
-void ROSControllersWidget::saveControllerScreenJoints()
+void ControllersWidget::saveControllerScreenJoints()
 {
   // Save the controller
   if (!saveControllerScreen())
@@ -555,7 +555,7 @@ void ROSControllersWidget::saveControllerScreenJoints()
 // ******************************************************************************************
 // Call when a new controller is created and ready to progress to next screen
 // ******************************************************************************************
-void ROSControllersWidget::saveControllerScreenGroups()
+void ControllersWidget::saveControllerScreenGroups()
 {
   // Save the controller
   if (!saveControllerScreen())
@@ -574,7 +574,7 @@ void ROSControllersWidget::saveControllerScreenGroups()
 // ******************************************************************************************
 // Call when joints edit sceen is done and needs to be saved
 // ******************************************************************************************
-void ROSControllersWidget::saveJointsScreen()
+void ControllersWidget::saveJointsScreen()
 {
   // Find the controller we are editing based on the controller name string
   moveit_setup_assistant::ControllerConfig* searched_controller =
@@ -599,7 +599,7 @@ void ROSControllersWidget::saveJointsScreen()
 // ******************************************************************************************
 // Call when joints edit sceen is done and needs to be saved
 // ******************************************************************************************
-void ROSControllersWidget::saveJointsGroupsScreen()
+void ControllersWidget::saveJointsGroupsScreen()
 {
   // Find the controller we are editing based on the controller name string
   moveit_setup_assistant::ControllerConfig* searched_controller =
@@ -635,7 +635,7 @@ void ROSControllersWidget::saveJointsGroupsScreen()
 // ******************************************************************************************
 // Call when joints edit sceen is done and needs to be saved
 // ******************************************************************************************
-void ROSControllersWidget::saveControllerScreenEdit()
+void ControllersWidget::saveControllerScreenEdit()
 {
   // Save the controller
   if (!saveControllerScreen())
@@ -648,7 +648,7 @@ void ROSControllersWidget::saveControllerScreenEdit()
 // ******************************************************************************************
 // Call when controller edit sceen is done and needs to be saved
 // ******************************************************************************************
-bool ROSControllersWidget::saveControllerScreen()
+bool ControllersWidget::saveControllerScreen()
 {
   // Get a reference to the supplied strings
   const std::string& controller_name = controller_edit_widget_->getControllerName();
@@ -722,7 +722,7 @@ bool ROSControllersWidget::saveControllerScreen()
 // ******************************************************************************************
 // Edit whenever element is selected in the controllers tree view
 // ******************************************************************************************
-void ROSControllersWidget::editSelected()
+void ControllersWidget::editSelected()
 {
   QTreeWidgetItem* item = controllers_tree_->currentItem();
   QTreeWidgetItem* controller_item;
@@ -783,7 +783,7 @@ void ROSControllersWidget::editSelected()
 // ******************************************************************************************
 // Edit a controller
 // ******************************************************************************************
-void ROSControllersWidget::editController()
+void ControllersWidget::editController()
 {
   QTreeWidgetItem* item = controllers_tree_->currentItem();
 
@@ -802,7 +802,7 @@ void ROSControllersWidget::editController()
 // ******************************************************************************************
 // Switch to current controllers view
 // ******************************************************************************************
-void ROSControllersWidget::showMainScreen()
+void ControllersWidget::showMainScreen()
 {
   stacked_widget_->setCurrentIndex(0);
 
@@ -813,7 +813,7 @@ void ROSControllersWidget::showMainScreen()
 // ******************************************************************************************
 // Switch which screen is being shown
 // ******************************************************************************************
-void ROSControllersWidget::changeScreen(int index)
+void ControllersWidget::changeScreen(int index)
 {
   stacked_widget_->setCurrentIndex(index);
 
@@ -824,7 +824,7 @@ void ROSControllersWidget::changeScreen(int index)
 // ******************************************************************************************
 // Expand/Collapse Tree
 // ******************************************************************************************
-void ROSControllersWidget::alterTree(const QString& link)
+void ControllersWidget::alterTree(const QString& link)
 {
   if (link.contains("expand"))
     controllers_tree_->expandAll();
@@ -832,7 +832,7 @@ void ROSControllersWidget::alterTree(const QString& link)
     controllers_tree_->collapseAll();
 }
 
-void ROSControllersWidget::itemSelectionChanged()
+void ControllersWidget::itemSelectionChanged()
 {
   QList<QTreeWidgetItem*> selected_items = controllers_tree_->selectedItems();
   if (selected_items.empty())

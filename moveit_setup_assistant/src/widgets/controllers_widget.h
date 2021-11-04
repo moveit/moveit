@@ -54,7 +54,7 @@ namespace moveit_setup_assistant
 class DoubleListWidget;
 class ControllerEditWidget;
 
-class ROSControllersWidget : public SetupScreenWidget
+class ControllersWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
@@ -63,7 +63,7 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  ROSControllersWidget(QWidget* parent, const MoveItConfigDataPtr& config_data);
+  ControllersWidget(QWidget* parent, const MoveItConfigDataPtr& config_data);
 
   void changeScreen(int index);
 
