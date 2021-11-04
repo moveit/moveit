@@ -992,25 +992,12 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
 
       // Write joints
       emitter << YAML::Key << "joints";
-      {
-        if (controller.joints_.size() != 1)
-        {
-          emitter << YAML::Value << YAML::BeginSeq;
+      emitter << YAML::Value << YAML::BeginSeq;
+      // Iterate through the joints
+      for (const std::string& joint : controller.joints_)
+        emitter << joint;
+      emitter << YAML::EndSeq;
 
-          // Iterate through the joints
-          for (const std::string& joint : controller.joints_)
-          {
-            emitter << joint;
-          }
-          emitter << YAML::EndSeq;
-        }
-        else
-        {
-          emitter << YAML::Value << YAML::BeginMap;
-          emitter << controller.joints_[0];
-          emitter << YAML::EndMap;
-        }
-      }
       // Write gains as they are required for vel and effort controllers
       emitter << YAML::Key << "gains";
       emitter << YAML::Value << YAML::BeginMap;
