@@ -107,7 +107,7 @@ PlanningGroupsWidget::PlanningGroupsWidget(QWidget* parent, const MoveItConfigDa
       "Create and edit 'joint model' groups for your robot based on joint collections, "
       "link collections, kinematic chains or subgroups. "
       "A planning group defines the set of (joint, link) pairs considered for planning "
-      "and collision checking. Define individual groups for each subset of the robot you want to plan for."
+      "and collision checking. Define individual groups for each subset of the robot you want to plan for.\n"
       "Note: when adding a link to the group, its parent joint is added too and vice versa.",
       this);
   layout->addWidget(header);

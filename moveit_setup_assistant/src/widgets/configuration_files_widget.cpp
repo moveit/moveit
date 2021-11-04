@@ -98,7 +98,7 @@ ConfigurationFilesWidget::ConfigurationFilesWidget(QWidget* parent, const MoveIt
   stack_path_->setPath(config_data_->config_pkg_path_);
 
   // Generated Files List -------------------------------------------
-  QLabel* generated_list = new QLabel("Files to be generated: (checked)", this);
+  QLabel* generated_list = new QLabel("Check files you want to be generated:", this);
   layout->addWidget(generated_list);
 
   QSplitter* splitter = new QSplitter(Qt::Horizontal, this);
