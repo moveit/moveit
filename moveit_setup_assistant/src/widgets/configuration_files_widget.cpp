@@ -1150,14 +1150,14 @@ void ConfigurationFilesWidget::loadTemplateStrings()
   }
 
   // Pair 9 - Add ROS Controllers to ros_controllers.launch file
-  if (config_data_->getROSControllers().empty())
+  if (config_data_->getControllers().empty())
   {
     addTemplateString("[ROS_CONTROLLERS]", "");
   }
   else
   {
     std::stringstream controllers;
-    for (ControllerConfig& controller : config_data_->getROSControllers())
+    for (ControllerConfig& controller : config_data_->getControllers())
     {
       // Check if the controller belongs to controller_list namespace
       if (controller.type_ != "FollowJointTrajectory")

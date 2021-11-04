@@ -74,7 +74,7 @@ TEST_F(MoveItConfigData, ReadingControllers)
   config_data->setRobotModel(robot_model_);
 
   // Initially no controllers
-  EXPECT_EQ(config_data->getROSControllers().size(), 0u);
+  EXPECT_EQ(config_data->getControllers().size(), 0u);
 
   // Adding default controllers, a controller for each planning group
   config_data->addDefaultControllers();
@@ -83,7 +83,7 @@ TEST_F(MoveItConfigData, ReadingControllers)
   size_t group_count = config_data->srdf_->srdf_model_->getGroups().size();
 
   // Test that addDefaultControllers() did accually add a controller for the new_group
-  EXPECT_EQ(config_data->getROSControllers().size(), group_count);
+  EXPECT_EQ(config_data->getControllers().size(), group_count);
 
   // Temporary file used during the test and is deleted when the test is finished
   char test_file[] = "/tmp/msa_unittest_ros_controller.yaml";
@@ -95,13 +95,13 @@ TEST_F(MoveItConfigData, ReadingControllers)
   config_data = std::make_shared<moveit_setup_assistant::MoveItConfigData>();
 
   // Initially no controllers
-  EXPECT_EQ(config_data->getROSControllers().size(), 0u);
+  EXPECT_EQ(config_data->getControllers().size(), 0u);
 
   // ros_controllers.yaml read correctly
   EXPECT_EQ(config_data->inputROSControllersYAML(test_file), true);
 
   // ros_controllers.yaml parsed correctly
-  EXPECT_EQ(config_data->getROSControllers().size(), group_count);
+  EXPECT_EQ(config_data->getControllers().size(), group_count);
 
   // Remove ros_controllers.yaml temp file which was used in testing
   boost::filesystem::remove(test_file);

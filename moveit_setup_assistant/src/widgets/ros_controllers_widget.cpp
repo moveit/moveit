@@ -213,7 +213,7 @@ void ROSControllersWidget::loadControllersTree()
   controllers_tree_->clear();                   // reset the tree
 
   // Display all controllers by looping through them
-  for (ControllerConfig& controller : config_data_->getROSControllers())
+  for (ControllerConfig& controller : config_data_->getControllers())
   {
     loadToControllersTree(controller);
   }
@@ -371,7 +371,7 @@ void ROSControllersWidget::deleteController()
     return;
   }
   // Delete actual controller
-  if (config_data_->deleteROSController(controller_name))
+  if (config_data_->deleteController(controller_name))
   {
     ROS_INFO_STREAM_NAMED("Setup Assistant", "Controller " << controller_name << " deleted succefully");
   }
@@ -448,10 +448,10 @@ void ROSControllersWidget::cancelEditing()
 {
   if (!current_edit_controller_.empty() && adding_new_controller_)
   {
-    moveit_setup_assistant::ControllerConfig* editing = config_data_->findROSControllerByName(current_edit_controller_);
+    moveit_setup_assistant::ControllerConfig* editing = config_data_->findControllerByName(current_edit_controller_);
     if (editing && editing->joints_.empty())
     {
-      config_data_->deleteROSController(current_edit_controller_);
+      config_data_->deleteController(current_edit_controller_);
       current_edit_controller_.clear();
 
       // Load the data to the tree
@@ -544,7 +544,7 @@ void ROSControllersWidget::saveControllerScreenJoints()
 
   // Find the controller we are editing based on the controller name string
   moveit_setup_assistant::ControllerConfig* editing_controller =
-      config_data_->findROSControllerByName(current_edit_controller_);
+      config_data_->findControllerByName(current_edit_controller_);
 
   loadJointsScreen(editing_controller);
 
@@ -563,7 +563,7 @@ void ROSControllersWidget::saveControllerScreenGroups()
 
   // Find the controller we are editing based on the controller name string
   moveit_setup_assistant::ControllerConfig* editing_controller =
-      config_data_->findROSControllerByName(current_edit_controller_);
+      config_data_->findControllerByName(current_edit_controller_);
 
   loadGroupsScreen(editing_controller);
 
@@ -578,7 +578,7 @@ void ROSControllersWidget::saveJointsScreen()
 {
   // Find the controller we are editing based on the controller name string
   moveit_setup_assistant::ControllerConfig* searched_controller =
-      config_data_->findROSControllerByName(current_edit_controller_);
+      config_data_->findControllerByName(current_edit_controller_);
 
   // Clear the old data
   searched_controller->joints_.clear();
@@ -603,7 +603,7 @@ void ROSControllersWidget::saveJointsGroupsScreen()
 {
   // Find the controller we are editing based on the controller name string
   moveit_setup_assistant::ControllerConfig* searched_controller =
-      config_data_->findROSControllerByName(current_edit_controller_);
+      config_data_->findControllerByName(current_edit_controller_);
 
   // Clear the old data
   searched_controller->joints_.clear();
@@ -671,11 +671,11 @@ bool ROSControllersWidget::saveControllerScreen()
   if (!current_edit_controller_.empty())
   {
     // Find the controller we are editing based on the goup name string
-    searched_controller = config_data_->findROSControllerByName(current_edit_controller_);
+    searched_controller = config_data_->findControllerByName(current_edit_controller_);
   }
 
   // Check that the controller name is unique
-  for (const auto& controller : config_data_->getROSControllers())
+  for (const auto& controller : config_data_->getControllers())
   {
     if (controller.name_.compare(controller_name) == 0)  // the names are the same
     {
@@ -696,7 +696,7 @@ bool ROSControllersWidget::saveControllerScreen()
     moveit_setup_assistant::ControllerConfig new_controller;
     new_controller.name_ = controller_name;
     new_controller.type_ = controller_type;
-    config_data_->addROSController(new_controller);
+    config_data_->addController(new_controller);
 
     adding_new_controller_ = true;  // remember this controller is new
   }
@@ -742,7 +742,7 @@ void ROSControllersWidget::editSelected()
     controller_item = item->parent()->parent();
     current_edit_controller_ = controller_item->text(0).toUtf8().constData();
     moveit_setup_assistant::ControllerConfig* this_controller =
-        config_data_->findROSControllerByName(current_edit_controller_);
+        config_data_->findControllerByName(current_edit_controller_);
 
     // Load the data
     loadJointsScreen(this_controller);
@@ -755,7 +755,7 @@ void ROSControllersWidget::editSelected()
     controller_item = item->parent();
     current_edit_controller_ = controller_item->text(0).toUtf8().constData();
     moveit_setup_assistant::ControllerConfig* this_controller =
-        config_data_->findROSControllerByName(current_edit_controller_);
+        config_data_->findControllerByName(current_edit_controller_);
 
     // Load the data
     loadJointsScreen(this_controller);
@@ -768,7 +768,7 @@ void ROSControllersWidget::editSelected()
     // Load the data
     current_edit_controller_ = item->text(0).toUtf8().constData();
     moveit_setup_assistant::ControllerConfig* this_controller =
-        config_data_->findROSControllerByName(current_edit_controller_);
+        config_data_->findControllerByName(current_edit_controller_);
     loadControllerScreen(this_controller);
 
     // Switch to screen
@@ -793,7 +793,7 @@ void ROSControllersWidget::editController()
 
   adding_new_controller_ = false;
 
-  loadControllerScreen(config_data_->findROSControllerByName(current_edit_controller_));
+  loadControllerScreen(config_data_->findControllerByName(current_edit_controller_));
 
   // Switch to screen
   changeScreen(2);  // 1 is index of controller edit

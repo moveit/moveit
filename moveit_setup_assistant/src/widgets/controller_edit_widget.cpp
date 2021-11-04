@@ -161,8 +161,7 @@ ControllerEditWidget::ControllerEditWidget(QWidget* parent, const MoveItConfigDa
 void ControllerEditWidget::setSelected(const std::string& controller_name)
 {
   controller_name_field_->setText(QString(controller_name.c_str()));
-  moveit_setup_assistant::ControllerConfig* searched_controller =
-      config_data_->findROSControllerByName(controller_name);
+  moveit_setup_assistant::ControllerConfig* searched_controller = config_data_->findControllerByName(controller_name);
   if (searched_controller != nullptr)
   {
     const std::string controller_type = searched_controller->type_;

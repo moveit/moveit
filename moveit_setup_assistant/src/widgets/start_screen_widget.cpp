@@ -428,7 +428,7 @@ bool StartScreenWidget::loadExistingFiles()
   // Load 3d_sensors config file
   load3DSensorsFile();
 
-  // Load ros controllers yaml file if available-----------------------------------------------
+  // Load ros_controllers.yaml file if available-----------------------------------------------
   fs::path ros_controllers_yaml_path = config_data_->config_pkg_path_;
   ros_controllers_yaml_path /= "config/ros_controllers.yaml";
   config_data_->inputROSControllersYAML(ros_controllers_yaml_path.make_preferred().string());

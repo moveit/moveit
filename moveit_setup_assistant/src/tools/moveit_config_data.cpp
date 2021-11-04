@@ -1553,7 +1553,7 @@ bool MoveItConfigData::addDefaultControllers()
     {
       group_controller.name_ = group_it.name_ + "_controller";
       group_controller.type_ = "FollowJointTrajectory";
-      addROSController(group_controller);
+      addController(group_controller);
     }
   }
   return true;
@@ -1881,9 +1881,9 @@ srdf::Model::Group* MoveItConfigData::findGroupByName(const std::string& name)
 }
 
 // ******************************************************************************************
-// Find ROS controller by name
+// Find a controller by name
 // ******************************************************************************************
-ControllerConfig* MoveItConfigData::findROSControllerByName(const std::string& controller_name)
+ControllerConfig* MoveItConfigData::findControllerByName(const std::string& controller_name)
 {
   // Find the ROSController we are editing based on the ROSController name string
   ControllerConfig* searched_ros_controller = nullptr;  // used for holding our search results
@@ -1901,9 +1901,9 @@ ControllerConfig* MoveItConfigData::findROSControllerByName(const std::string& c
 }
 
 // ******************************************************************************************
-// Deletes a ROS controller by name
+// Deletes a controller by name
 // ******************************************************************************************
-bool MoveItConfigData::deleteROSController(const std::string& controller_name)
+bool MoveItConfigData::deleteController(const std::string& controller_name)
 {
   for (std::vector<ControllerConfig>::iterator controller_it = ros_controllers_config_.begin();
        controller_it != ros_controllers_config_.end(); ++controller_it)
@@ -1919,15 +1919,15 @@ bool MoveItConfigData::deleteROSController(const std::string& controller_name)
 }
 
 // ******************************************************************************************
-// Adds a ROS controller to ros_controllers_config_ vector
+// Adds a controller to ros_controllers_config_ vector
 // ******************************************************************************************
-bool MoveItConfigData::addROSController(const ControllerConfig& new_controller)
+bool MoveItConfigData::addController(const ControllerConfig& new_controller)
 {
   // Used for holding our search results
   ControllerConfig* searched_ros_controller = nullptr;
 
   // Find if there is an existing controller with the same name
-  searched_ros_controller = findROSControllerByName(new_controller.name_);
+  searched_ros_controller = findControllerByName(new_controller.name_);
 
   if (searched_ros_controller && searched_ros_controller->type_ == new_controller.type_)
     return false;
@@ -1939,7 +1939,7 @@ bool MoveItConfigData::addROSController(const ControllerConfig& new_controller)
 // ******************************************************************************************
 // Gets ros_controllers_config_ vector
 // ******************************************************************************************
-std::vector<ControllerConfig>& MoveItConfigData::getROSControllers()
+std::vector<ControllerConfig>& MoveItConfigData::getControllers()
 {
   return ros_controllers_config_;
 }

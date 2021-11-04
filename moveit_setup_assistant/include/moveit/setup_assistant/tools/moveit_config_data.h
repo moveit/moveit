@@ -449,33 +449,33 @@ public:
   std::string appendPaths(const std::string& path1, const std::string& path2);
 
   /**
-   * \brief Adds a ROS controller to ros_controllers_config_ vector
-   * \param new_controller a new ROS Controller to add
+   * \brief Adds a controller to ros_controllers_config_ vector
+   * \param new_controller a new Controller to add
    * \return true if inserted correctly
    */
-  bool addROSController(const ControllerConfig& new_controller);
+  bool addController(const ControllerConfig& new_controller);
 
   /**
    * \brief Gets ros_controllers_config_ vector
    * \return pointer to ros_controllers_config_
    */
-  std::vector<ControllerConfig>& getROSControllers();
+  std::vector<ControllerConfig>& getControllers();
 
   /**
-   * Find the associated ROS controller by name
+   * Find the associated controller by name
    *
-   * @param controller_name - name of ROS controller to find in datastructure
+   * @param controller_name - name of controller to find in datastructure
    * @return pointer to data in datastructure
    */
-  ControllerConfig* findROSControllerByName(const std::string& controller_name);
+  ControllerConfig* findControllerByName(const std::string& controller_name);
 
   /**
-   * Delete ROS controller by name
+   * Delete controller by name
    *
-   * @param controller_name - name of ROS controller to delete
+   * @param controller_name - name of controller to delete
    * @return true if deleted, false if not found
    */
-  bool deleteROSController(const std::string& controller_name);
+  bool deleteController(const std::string& controller_name);
 
   /**
    * \brief Used for adding a sensor plugin configuation prameter to the sensor plugin configuration parameter list
