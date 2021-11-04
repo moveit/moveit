@@ -317,6 +317,14 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = MoveItConfigData::GROUPS;
   gen_files_.push_back(file);
 
+  // simple_moveit_controllers.yaml -------------------------------------------------------------------------------
+  file.file_name_ = "simple_moveit_controllers.yaml";
+  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  file.description_ = "Creates controller configuration for SimpleMoveItControllerManager";
+  file.gen_func_ = boost::bind(&MoveItConfigData::outputSimpleControllersYAML, config_data_, _1);
+  file.write_on_changes = MoveItConfigData::GROUPS;
+  gen_files_.push_back(file);
+
   // gazebo_controllers.yaml ------------------------------------------------------------------
   file.file_name_ = "gazebo_controllers.yaml";
   file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
@@ -328,7 +336,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   // ros_controllers.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "ros_controllers.yaml";
   file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
-  file.description_ = "Creates configurations for ros_controllers.";
+  file.description_ = "Creates controller configurations for ros_control.";
   file.gen_func_ = boost::bind(&MoveItConfigData::outputROSControllersYAML, config_data_, _1);
   file.write_on_changes = MoveItConfigData::GROUPS;
   gen_files_.push_back(file);

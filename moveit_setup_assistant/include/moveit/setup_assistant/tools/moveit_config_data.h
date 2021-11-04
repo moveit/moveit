@@ -312,15 +312,7 @@ public:
   bool outputKinematicsYAML(const std::string& file_path);
   bool outputJointLimitsYAML(const std::string& file_path);
   bool outputFakeControllersYAML(const std::string& file_path);
-
-  /**
-   * Helper function for writing follow joint trajectory ROS controllers to ros_controllers.yaml
-   * @param YAML Emitter - yaml emitter used to write the config to the ROS controllers yaml file
-   * @param vector<ROSControlConfig> - a copy of ROS controllers config which will be modified in the function
-   */
-  void outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
-                                       std::vector<ROSControlConfig>& ros_controllers_config_output);
-
+  bool outputSimpleControllersYAML(const std::string& file_path);
   bool outputROSControllersYAML(const std::string& file_path);
   bool output3DSensorPluginYAML(const std::string& file_path);
 

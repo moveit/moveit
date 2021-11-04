@@ -821,51 +821,54 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
 }
 
 // ******************************************************************************************
-// Helper function to write the FollowJointTrajectory for each planning group to ros_controller.yaml,
-// and erases the controller that have been written, to avoid mixing between FollowJointTrajectory
-// which are published under the namespace of 'controller_list' and other types of controllers.
+// Generate simple_moveit_controllers.yaml config file
 // ******************************************************************************************
-void MoveItConfigData::outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
-                                                       std::vector<ROSControlConfig>& ros_controllers_configs)
+bool MoveItConfigData::outputSimpleControllersYAML(const std::string& file_path)
 {
-  // Write default controllers
+  YAML::Emitter emitter;
+  emitter << YAML::BeginMap;
   emitter << YAML::Key << "controller_list";
   emitter << YAML::Value << YAML::BeginSeq;
+  for (const auto& controller : ros_controllers_config_)
   {
-    for (std::vector<ROSControlConfig>::iterator controller_it = ros_controllers_configs.begin();
-         controller_it != ros_controllers_configs.end();)
+    // Only process FollowJointTrajectory types
+    if (controller.type_ == "FollowJointTrajectory" || controller.type_ == "GripperCommand")
     {
-      // Only process FollowJointTrajectory types
-      if (controller_it->type_ == "FollowJointTrajectory")
-      {
-        emitter << YAML::BeginMap;
-        emitter << YAML::Key << "name";
-        emitter << YAML::Value << controller_it->name_;
-        emitter << YAML::Key << "action_ns";
-        emitter << YAML::Value << "follow_joint_trajectory";
-        emitter << YAML::Key << "default";
-        emitter << YAML::Value << "True";
-        emitter << YAML::Key << "type";
-        emitter << YAML::Value << controller_it->type_;
-        // Write joints
-        emitter << YAML::Key << "joints";
+      emitter << YAML::BeginMap;
+      emitter << YAML::Key << "name";
+      emitter << YAML::Value << controller.name_;
+      emitter << YAML::Key << "action_ns";
+      emitter << YAML::Value
+              << (controller.type_ == "FollowJointTrajectory" ? "follow_joint_trajectory" : "gripper_action");
+      emitter << YAML::Key << "type";
+      emitter << YAML::Value << controller.type_;
+      emitter << YAML::Key << "default";
+      emitter << YAML::Value << "True";
 
-        emitter << YAML::Value << YAML::BeginSeq;
-        // Iterate through the joints
-        for (std::string& joint : controller_it->joints_)
-          emitter << joint;
-        emitter << YAML::EndSeq;
+      // Write joints
+      emitter << YAML::Key << "joints";
+      emitter << YAML::Value << YAML::BeginSeq;
+      // Iterate through the joints
+      for (const std::string& joint : controller.joints_)
+        emitter << joint;
+      emitter << YAML::EndSeq;
 
-        emitter << YAML::EndMap;
-        controller_it = ros_controllers_configs.erase(controller_it);
-      }
-      else
-      {
-        controller_it++;
-      }
+      emitter << YAML::EndMap;
     }
-    emitter << YAML::EndSeq;
   }
+  emitter << YAML::EndSeq;
+  emitter << YAML::EndMap;
+
+  std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
+  if (!output_stream.good())
+  {
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
+    return false;
+  }
+  output_stream << emitter.c_str();
+  output_stream.close();
+
+  return true;  // file created successfully
 }
 
 // ******************************************************************************************
@@ -880,13 +883,10 @@ srdf::Model::GroupState MoveItConfigData::getDefaultStartPose()
 }
 
 // ******************************************************************************************
-// Output controllers config files
+// Generate ros_controllers.yaml config file
 // ******************************************************************************************
 bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
 {
-  // Copy ros_control_config_ to a new vector to avoid modifying it
-  std::vector<ROSControlConfig> ros_controllers_config_output(ros_controllers_config_);
-
   // Cache the joints' names.
   std::vector<std::vector<std::string>> planning_groups;
 
@@ -914,6 +914,8 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
   emitter << YAML::BeginMap;
 
   {
+#if 0  // TODO: This is only for fake ROS controllers, which should go into a separate file
+    // Also replace moveit_sim_controllers with http://wiki.ros.org/fake_joint
     emitter << YAML::Comment("Simulation settings for using moveit_sim_controllers");
     emitter << YAML::Key << "moveit_sim_hw_interface" << YAML::Value << YAML::BeginMap;
     // MoveIt Simulation Controller settings for setting initial pose
@@ -977,23 +979,12 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
       emitter << YAML::Newline;
       emitter << YAML::EndMap;
     }
-    // Joint State Controller
-    emitter << YAML::Comment("Publish all joint states");
-    emitter << YAML::Newline << YAML::Comment("Creates the /joint_states topic necessary in ROS");
-    emitter << YAML::Key << "joint_state_controller" << YAML::Value << YAML::BeginMap;
+#endif
+    for (const auto& controller : ros_controllers_config_)
     {
-      emitter << YAML::Key << "type";
-      emitter << YAML::Value << "joint_state_controller/JointStateController";
-      emitter << YAML::Key << "publish_rate";
-      emitter << YAML::Value << "50";
-      emitter << YAML::EndMap;
-    }
+      if (controller.type_ == "FollowJointTrajectory" || controller.type_ == "GripperCommand")
+        continue;  // these are handled by outputSimpleControllersYAML()
 
-    // Writes Follow Joint Trajectory ROS controllers to ros_controller.yaml
-    outputFollowJointTrajectoryYAML(emitter, ros_controllers_config_output);
-
-    for (const auto& controller : ros_controllers_config_output)
-    {
       emitter << YAML::Key << controller.name_;
       emitter << YAML::Value << YAML::BeginMap;
       emitter << YAML::Key << "type";
