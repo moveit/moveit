@@ -74,11 +74,12 @@ ControllersWidget::ControllersWidget(QWidget* parent, const MoveItConfigDataPtr&
   layout->setAlignment(Qt::AlignTop);
 
   // Title
-  this->setWindowTitle("ROS Control Controllers");  // title of window
+  this->setWindowTitle("Controller Configuration");  // title of window
 
   // Top Header Area ------------------------------------------------
   moveit_setup_assistant::HeaderWidget* header = new moveit_setup_assistant::HeaderWidget(
-      "Setup ROS Controllers", "Configure MoveIt to work with ROS Control to control the robot's physical hardware",
+      "Setup Controllers",
+      "Configure controllers to be used by MoveIt's controller manager(s) to operate the robot's physical hardware",
       this);
   layout->addWidget(header);
 
@@ -663,7 +664,7 @@ bool ControllersWidget::saveControllerScreen()
   // Check that a valid controller name has been given
   if (controller_name.empty() || std::regex_search(controller_name, invalid_name_match, invalid_reg_ex))
   {
-    QMessageBox::warning(this, "Error Saving", "Invalid ROS controller name");
+    QMessageBox::warning(this, "Error Saving", "Invalid controller name");
     return false;
   }
 
