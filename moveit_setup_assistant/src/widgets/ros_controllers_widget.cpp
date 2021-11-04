@@ -203,7 +203,7 @@ QWidget* ROSControllersWidget::createContentsWidget()
 }
 
 // ******************************************************************************************
-// Displays data in the ros_controllers_config_ data structure into a QtTableWidget
+// Displays data in the controller_configs_ data structure into a QtTableWidget
 // ******************************************************************************************
 void ROSControllersWidget::loadControllersTree()
 {

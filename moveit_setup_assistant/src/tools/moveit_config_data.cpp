@@ -374,7 +374,7 @@ bool MoveItConfigData::outputKinematicsYAML(const std::string& file_path)
 // ******************************************************************************************
 std::string MoveItConfigData::getJointHardwareInterface(const std::string& joint_name)
 {
-  for (ControllerConfig& ros_control_config : ros_controllers_config_)
+  for (ControllerConfig& ros_control_config : controller_configs_)
   {
     std::vector<std::string>::iterator joint_it =
         std::find(ros_control_config.joints_.begin(), ros_control_config.joints_.end(), joint_name);
@@ -829,7 +829,7 @@ bool MoveItConfigData::outputSimpleControllersYAML(const std::string& file_path)
   emitter << YAML::BeginMap;
   emitter << YAML::Key << "controller_list";
   emitter << YAML::Value << YAML::BeginSeq;
-  for (const auto& controller : ros_controllers_config_)
+  for (const auto& controller : controller_configs_)
   {
     // Only process FollowJointTrajectory types
     if (controller.type_ == "FollowJointTrajectory" || controller.type_ == "GripperCommand")
@@ -980,7 +980,7 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
       emitter << YAML::EndMap;
     }
 #endif
-    for (const auto& controller : ros_controllers_config_)
+    for (const auto& controller : controller_configs_)
     {
       if (controller.type_ == "FollowJointTrajectory" || controller.type_ == "GripperCommand")
         continue;  // these are handled by outputSimpleControllersYAML()
@@ -1431,7 +1431,7 @@ bool MoveItConfigData::parseROSController(const YAML::Node& controller)
             return false;
           }
           // All required fields were parsed correctly
-          ros_controllers_config_.push_back(control_setting);
+          controller_configs_.push_back(control_setting);
         }
         else
         {
@@ -1491,7 +1491,7 @@ bool MoveItConfigData::processROSControllers(std::ifstream& input_stream)
         {
           control_setting.type_ = controller_it->second["type"].as<std::string>();
           control_setting.name_ = controller_name;
-          ros_controllers_config_.push_back(control_setting);
+          controller_configs_.push_back(control_setting);
           control_setting.joints_.clear();
         }
       }
@@ -1888,7 +1888,7 @@ ControllerConfig* MoveItConfigData::findControllerByName(const std::string& cont
   // Find the ROSController we are editing based on the ROSController name string
   ControllerConfig* searched_ros_controller = nullptr;  // used for holding our search results
 
-  for (ControllerConfig& ros_control_config : ros_controllers_config_)
+  for (ControllerConfig& ros_control_config : controller_configs_)
   {
     if (ros_control_config.name_ == controller_name)  // string match
     {
@@ -1905,12 +1905,12 @@ ControllerConfig* MoveItConfigData::findControllerByName(const std::string& cont
 // ******************************************************************************************
 bool MoveItConfigData::deleteController(const std::string& controller_name)
 {
-  for (std::vector<ControllerConfig>::iterator controller_it = ros_controllers_config_.begin();
-       controller_it != ros_controllers_config_.end(); ++controller_it)
+  for (std::vector<ControllerConfig>::iterator controller_it = controller_configs_.begin();
+       controller_it != controller_configs_.end(); ++controller_it)
   {
     if (controller_it->name_ == controller_name)  // string match
     {
-      ros_controllers_config_.erase(controller_it);
+      controller_configs_.erase(controller_it);
       // we are done searching
       return true;
     }
@@ -1919,7 +1919,7 @@ bool MoveItConfigData::deleteController(const std::string& controller_name)
 }
 
 // ******************************************************************************************
-// Adds a controller to ros_controllers_config_ vector
+// Adds a controller to controller_configs_ vector
 // ******************************************************************************************
 bool MoveItConfigData::addController(const ControllerConfig& new_controller)
 {
@@ -1932,16 +1932,8 @@ bool MoveItConfigData::addController(const ControllerConfig& new_controller)
   if (searched_ros_controller && searched_ros_controller->type_ == new_controller.type_)
     return false;
 
-  ros_controllers_config_.push_back(new_controller);
+  controller_configs_.push_back(new_controller);
   return true;
-}
-
-// ******************************************************************************************
-// Gets ros_controllers_config_ vector
-// ******************************************************************************************
-std::vector<ControllerConfig>& MoveItConfigData::getControllers()
-{
-  return ros_controllers_config_;
 }
 
 // ******************************************************************************************

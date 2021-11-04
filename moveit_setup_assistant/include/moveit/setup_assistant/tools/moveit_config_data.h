@@ -387,7 +387,7 @@ public:
 
   /**
    * \brief Add a Follow Joint Trajectory action Controller for each Planning Group
-   * \return true if controllers were added to the ros_controllers_config_ data structure
+   * \return true if controllers were added to the controller_configs_ data structure
    */
   bool addDefaultControllers();
 
@@ -449,17 +449,20 @@ public:
   std::string appendPaths(const std::string& path1, const std::string& path2);
 
   /**
-   * \brief Adds a controller to ros_controllers_config_ vector
+   * \brief Adds a controller to controller_configs_ vector
    * \param new_controller a new Controller to add
    * \return true if inserted correctly
    */
   bool addController(const ControllerConfig& new_controller);
 
   /**
-   * \brief Gets ros_controllers_config_ vector
-   * \return pointer to ros_controllers_config_
+   * \brief Gets controller_configs_ vector
+   * \return pointer to controller_configs_
    */
-  std::vector<ControllerConfig>& getControllers();
+  std::vector<ControllerConfig>& getControllers()
+  {
+    return controller_configs_;
+  }
 
   /**
    * Find the associated controller by name
@@ -524,7 +527,7 @@ private:
   moveit::core::RobotModelPtr robot_model_;
 
   /// Controllers config data
-  std::vector<ControllerConfig> ros_controllers_config_;
+  std::vector<ControllerConfig> controller_configs_;
 
   /// Shared planning scene
   planning_scene::PlanningScenePtr planning_scene_;
