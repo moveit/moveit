@@ -826,16 +826,16 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
 // which are published under the namespace of 'controller_list' and other types of controllers.
 // ******************************************************************************************
 void MoveItConfigData::outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
-                                                       std::vector<ROSControlConfig>& ros_controllers_config_output)
+                                                       std::vector<ROSControlConfig>& ros_controllers_configs)
 {
   // Write default controllers
   emitter << YAML::Key << "controller_list";
   emitter << YAML::Value << YAML::BeginSeq;
   {
-    for (std::vector<ROSControlConfig>::iterator controller_it = ros_controllers_config_output.begin();
-         controller_it != ros_controllers_config_output.end();)
+    for (std::vector<ROSControlConfig>::iterator controller_it = ros_controllers_configs.begin();
+         controller_it != ros_controllers_configs.end();)
     {
-      // Depending on the controller type, fill the required data
+      // Only process FollowJointTrajectory types
       if (controller_it->type_ == "FollowJointTrajectory")
       {
         emitter << YAML::BeginMap;
@@ -849,27 +849,15 @@ void MoveItConfigData::outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
         emitter << YAML::Value << controller_it->type_;
         // Write joints
         emitter << YAML::Key << "joints";
-        {
-          if (controller_it->joints_.size() != 1)
-          {
-            emitter << YAML::Value << YAML::BeginSeq;
 
-            // Iterate through the joints
-            for (std::string& joint : controller_it->joints_)
-            {
-              emitter << joint;
-            }
-            emitter << YAML::EndSeq;
-          }
-          else
-          {
-            emitter << YAML::Value << YAML::BeginMap;
-            emitter << controller_it->joints_[0];
-            emitter << YAML::EndMap;
-          }
-        }
-        controller_it = ros_controllers_config_output.erase(controller_it);
+        emitter << YAML::Value << YAML::BeginSeq;
+        // Iterate through the joints
+        for (std::string& joint : controller_it->joints_)
+          emitter << joint;
+        emitter << YAML::EndSeq;
+
         emitter << YAML::EndMap;
+        controller_it = ros_controllers_configs.erase(controller_it);
       }
       else
       {
@@ -901,12 +889,12 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
 
   // Cache the joints' names.
   std::vector<std::vector<std::string>> planning_groups;
-  std::vector<std::string> group_joints;
 
   // We are going to write the joints names many times.
   // Loop through groups to store the joints names in group_joints vector and reuse is.
   for (srdf::Model::Group& group : srdf_->groups_)
   {
+    std::vector<std::string> group_joints;
     // Get list of associated joints
     const moveit::core::JointModelGroup* joint_model_group = getRobotModel()->getJointModelGroup(group.name_);
     const std::vector<const moveit::core::JointModel*>& joint_models = joint_model_group->getActiveJointModels();
@@ -920,7 +908,6 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
     }
     // Push all the group joints into planning_groups vector.
     planning_groups.push_back(group_joints);
-    group_joints.clear();
   }
 
   YAML::Emitter emitter;
