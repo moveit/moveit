@@ -6,6 +6,9 @@
   <param name="planning_plugin" value="pilz_industrial_motion_planner::CommandPlanner" />
   <param name="request_adapters" value="$(arg planning_adapters)" />
 
+  <!-- Define default planner (for all groups) -->
+  <param name="default_planner_config" value="PTP" />
+
   <!-- MoveGroup capabilities to load for this pipeline, append sequence capability -->
   <param name="capabilities" value="pilz_industrial_motion_planner/MoveGroupSequenceAction
                                     pilz_industrial_motion_planner/MoveGroupSequenceService" />
