@@ -535,7 +535,7 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
   emitter << YAML::EndSeq;
 
   // Add an initial pose for each group
-  emitter << YAML::Key << "initial" << YAML::Comment("Define initial robot poses.");
+  emitter << YAML::Key << "initial" << YAML::Comment("Define initial robot poses per group");
 
   bool poses_found = false;
   std::string default_group_name;
