@@ -18,6 +18,11 @@
   <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot -x 0 -y 0 -z 0"
     respawn="false" output="screen" />
 
+  <!-- Load joint controller parameters for Gazebo -->
+  <rosparam file="$(find [GENERATED_PACKAGE_NAME])/config/gazebo_controllers.yaml" />
+  <!-- Spawn Gazebo ROS controllers -->
+  <node name="gazebo_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller" />
+  <!-- Load ROS controllers -->
   <include file="$(dirname)/ros_controllers.launch"/>
 
 </launch>
