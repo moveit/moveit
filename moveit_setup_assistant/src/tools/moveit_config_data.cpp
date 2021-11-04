@@ -1885,19 +1885,14 @@ srdf::Model::Group* MoveItConfigData::findGroupByName(const std::string& name)
 // ******************************************************************************************
 ControllerConfig* MoveItConfigData::findControllerByName(const std::string& controller_name)
 {
-  // Find the ROSController we are editing based on the ROSController name string
-  ControllerConfig* searched_ros_controller = nullptr;  // used for holding our search results
-
-  for (ControllerConfig& ros_control_config : controller_configs_)
+  // Find the controller we are editing based on its name
+  for (ControllerConfig& controller : controller_configs_)
   {
-    if (ros_control_config.name_ == controller_name)  // string match
-    {
-      searched_ros_controller = &ros_control_config;  // convert to pointer from iterator
-      break;                                          // we are done searching
-    }
+    if (controller.name_ == controller_name)  // string match
+      return &controller;                     // convert to pointer from iterator
   }
 
-  return searched_ros_controller;
+  return nullptr;  // not found
 }
 
 // ******************************************************************************************
@@ -1923,13 +1918,10 @@ bool MoveItConfigData::deleteController(const std::string& controller_name)
 // ******************************************************************************************
 bool MoveItConfigData::addController(const ControllerConfig& new_controller)
 {
-  // Used for holding our search results
-  ControllerConfig* searched_ros_controller = nullptr;
-
   // Find if there is an existing controller with the same name
-  searched_ros_controller = findControllerByName(new_controller.name_);
+  ControllerConfig* controller = findControllerByName(new_controller.name_);
 
-  if (searched_ros_controller && searched_ros_controller->type_ == new_controller.type_)
+  if (controller && controller->type_ == new_controller.type_)
     return false;
 
   controller_configs_.push_back(new_controller);
