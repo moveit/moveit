@@ -19,30 +19,29 @@
   <!-- Set execution mode for fake execution controllers -->
   <arg name="execution_type" default="interpolate" />
 
-  <!--
-  By default, hide joint_state_publisher's GUI
-
-  MoveIt's "demo" mode replaces the real robot driver with the joint_state_publisher.
-  The latter one maintains and publishes the current joint configuration of the simulated robot.
-  It also provides a GUI to move the simulated robot around "manually".
-  This corresponds to moving around the real robot without the use of MoveIt.
-  -->
+  <!-- By default, hide joint_state_publisher's GUI in 'fake' controller_manager mode -->
   <arg name="use_gui" default="false" />
   <arg name="use_rviz" default="true" />
 
   <!-- If needed, broadcast static tf for robot root -->
 [VIRTUAL_JOINT_BROADCASTER]
 
-  <!-- We do not have a robot connected, so publish fake joint states -->
-  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" unless="$(arg use_gui)">
-    <rosparam param="source_list">[move_group/fake_controller_joint_states]</rosparam>
-  </node>
-  <node name="joint_state_publisher" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" if="$(arg use_gui)">
-    <rosparam param="source_list">[move_group/fake_controller_joint_states]</rosparam>
-  </node>
 
-  <!-- Given the published joint states, publish tf for the robot links -->
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+  <group if="$(eval arg('moveit_controller_manager') == 'fake')">
+    <!-- We do not have a real robot connected, so publish fake joint states via a joint_state_publisher
+         MoveIt's fake controller's joint states are considered via the 'source_list' parameter -->
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" unless="$(arg use_gui)">
+      <rosparam param="source_list">[move_group/fake_controller_joint_states]</rosparam>
+    </node>
+    <!-- If desired, a GUI version is available allowing to move the simulated robot around manually
+         This corresponds to moving around the real robot without the use of MoveIt. -->
+    <node name="joint_state_publisher" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" if="$(arg use_gui)">
+      <rosparam param="source_list">[move_group/fake_controller_joint_states]</rosparam>
+    </node>
+
+    <!-- Given the published joint states, publish tf for the robot links -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+  </group>
 
   <!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
   <include file="$(dirname)/move_group.launch">
