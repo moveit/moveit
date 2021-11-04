@@ -1,8 +1,5 @@
 <launch>
 
-  <!-- OMPL Plugin for MoveIt -->
-  <arg name="planning_plugin" value="ompl_interface/OMPLPlanner" />
-
   <!-- The request adapters (plugins) used when planning with OMPL. ORDER MATTERS! -->
   <arg name="planning_adapters"
        default="default_planner_request_adapters/AddTimeParameterization
@@ -16,7 +13,7 @@
   <arg name="start_state_max_bounds_error" default="0.1" />
   <arg name="jiggle_fraction" default="0.05" />
 
-  <param name="planning_plugin" value="$(arg planning_plugin)" />
+  <param name="planning_plugin" value="ompl_interface/OMPLPlanner" />
   <param name="request_adapters" value="$(arg planning_adapters)" />
   <param name="start_state_max_bounds_error" value="$(arg start_state_max_bounds_error)" />
   <param name="jiggle_fraction" value="$(arg jiggle_fraction)" />

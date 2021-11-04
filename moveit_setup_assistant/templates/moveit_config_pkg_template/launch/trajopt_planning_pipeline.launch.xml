@@ -1,8 +1,5 @@
 <launch>
 
-  <!-- TrajOpt Plugin for MoveIt -->
-  <arg name="planning_plugin" value="trajopt_interface/TrajOptPlanner" />
-
   <!-- define capabilites that are loaded on start (space seperated) -->
   <arg name="capabilities" default=""/>
 
@@ -20,7 +17,7 @@
   <arg name="start_state_max_bounds_error" default="0.1" />
   <arg name="jiggle_fraction" value="0.05" />
 
-  <param name="planning_plugin" value="$(arg planning_plugin)" />
+  <param name="planning_plugin" value="trajopt_interface/TrajOptPlanner" />
   <param name="request_adapters" value="$(arg planning_adapters)" />
   <param name="start_state_max_bounds_error" value="$(arg start_state_max_bounds_error)" />
   <param name="jiggle_fraction" value="$(arg jiggle_fraction)" />
