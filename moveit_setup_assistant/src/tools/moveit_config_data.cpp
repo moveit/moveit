@@ -593,7 +593,29 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
   return true;  // file created successfully
 }
 
-std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
+std::map<std::string, double> MoveItConfigData::getInitialJoints() const
+{
+  std::map<std::string, double> joints;
+  for (const srdf::Model::Group& group : srdf_->groups_)
+  {
+    // use first pose of each group as initial pose
+    for (const srdf::Model::GroupState& group_state : srdf_->group_states_)
+    {
+      if (group.name_ != group_state.group_)
+        continue;
+      for (const auto& pair : group_state.joint_values_)
+      {
+        if (pair.second.size() != 1)
+          continue;  // only handle simple joints here
+        joints[pair.first] = pair.second.front();
+      }
+      break;
+    }
+  }
+  return joints;
+}
+
+std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
 {
   std::vector<OMPLPlannerDescription> planner_des;
 

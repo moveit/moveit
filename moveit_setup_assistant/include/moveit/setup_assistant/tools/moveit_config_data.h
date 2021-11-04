@@ -305,7 +305,8 @@ public:
   // ******************************************************************************************
   // Public Functions for outputting configuration and setting files
   // ******************************************************************************************
-  std::vector<OMPLPlannerDescription> getOMPLPlanners();
+  std::vector<OMPLPlannerDescription> getOMPLPlanners() const;
+  std::map<std::string, double> getInitialJoints() const;
   bool outputSetupAssistantFile(const std::string& file_path);
   bool outputOMPLPlanningYAML(const std::string& file_path);
   bool outputCHOMPPlanningYAML(const std::string& file_path);

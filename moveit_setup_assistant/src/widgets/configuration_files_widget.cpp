@@ -1176,6 +1176,13 @@ void ConfigurationFilesWidget::loadTemplateStrings()
 
   addTemplateString("[AUTHOR_NAME]", config_data_->author_name_);
   addTemplateString("[AUTHOR_EMAIL]", config_data_->author_email_);
+
+  {
+    std::stringstream joints;
+    for (const auto& pair : config_data_->getInitialJoints())
+      joints << " -J " << pair.first << " " << pair.second;
+    addTemplateString("[GAZEBO_INITIAL_JOINTS]", joints.str());
+  }
 }
 
 // ******************************************************************************************
