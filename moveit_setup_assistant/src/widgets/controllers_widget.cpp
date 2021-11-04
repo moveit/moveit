@@ -34,7 +34,7 @@
 /* Author: Mohamad Ayman */
 
 // SA
-#include "ros_controllers_widget.h"
+#include "controllers_widget.h"
 #include "double_list_widget.h"
 #include "controller_edit_widget.h"
 #include "header_widget.h"

@@ -52,7 +52,7 @@ class QSplitter;
 #include "simulation_widget.h"
 #include "configuration_files_widget.h"
 #include "perception_widget.h"
-#include "ros_controllers_widget.h"
+#include "controllers_widget.h"
 
 #ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
