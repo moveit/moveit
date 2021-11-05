@@ -25,7 +25,8 @@ jobs:
     env:
       CXXFLAGS: >-
         -Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls
-        -Wno-deprecated-copy -Wno-unused-parameter -Wno-unused-but-set-parameter
+        -Wno-unused-parameter
+        ${{ matrix.env.CLANG_TIDY && '-Wno-error=c++17-compat -Wno-error=overloaded-virtual -Wno-error=unused-function' || '' }}
       CLANG_TIDY_ARGS: --fix --fix-errors --format-style=file
       DOCKER_IMAGE: moveit/moveit:${{ matrix.env.IMAGE }}
       UPSTREAM_WORKSPACE: .github/workflows/upstream.rosinstall
