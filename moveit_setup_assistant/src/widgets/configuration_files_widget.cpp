@@ -333,10 +333,26 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = MoveItConfigData::GROUPS;
   gen_files_.push_back(file);
 
+  // simple_moveit_controllers.yaml -------------------------------------------------------------------------------
+  file.file_name_ = "simple_moveit_controllers.yaml";
+  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  file.description_ = "Creates controller configuration for SimpleMoveItControllerManager";
+  file.gen_func_ = boost::bind(&MoveItConfigData::outputSimpleControllersYAML, config_data_, _1);
+  file.write_on_changes = MoveItConfigData::GROUPS;
+  gen_files_.push_back(file);
+
+  // gazebo_controllers.yaml ------------------------------------------------------------------
+  file.file_name_ = "gazebo_controllers.yaml";
+  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  template_path = config_data_->appendPaths(config_data_->template_package_path_, file.rel_path_);
+  file.description_ = "Configuration of Gazebo controllers";
+  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  gen_files_.push_back(file);
+
   // ros_controllers.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "ros_controllers.yaml";
   file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
-  file.description_ = "Creates configurations for ros_controllers.";
+  file.description_ = "Creates controller configurations for ros_control.";
   file.gen_func_ = boost::bind(&MoveItConfigData::outputROSControllersYAML, config_data_, _1);
   file.write_on_changes = MoveItConfigData::GROUPS;
   gen_files_.push_back(file);
@@ -537,15 +553,6 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = 0;
   gen_files_.push_back(file);
 
-  // gazebo.launch ------------------------------------------------------------------
-  file.file_name_ = "gazebo.launch";
-  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
-  template_path = config_data_->appendPaths(template_launch_path, "gazebo.launch");
-  file.description_ = "Gazebo launch file which also launches ros_controllers and sends robot urdf to param server, "
-                      "then using gazebo_ros pkg the robot is spawned to Gazebo";
-  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
-  gen_files_.push_back(file);
-
   // demo_gazebo.launch ------------------------------------------------------------------
   file.file_name_ = "demo_gazebo.launch";
   file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
@@ -553,6 +560,15 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.description_ = "Run a demo of MoveIt with Gazebo and Rviz";
   file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   file.write_on_changes = 0;
+  gen_files_.push_back(file);
+
+  // gazebo.launch ------------------------------------------------------------------
+  file.file_name_ = "gazebo.launch";
+  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
+  template_path = config_data_->appendPaths(template_launch_path, "gazebo.launch");
+  file.description_ = "Gazebo launch file which also launches ros_controllers and sends robot urdf to param server, "
+                      "then using gazebo_ros pkg the robot is spawned to Gazebo";
+  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   gen_files_.push_back(file);
 
   // joystick_control.launch ------------------------------------------------------------------
@@ -1155,15 +1171,15 @@ void ConfigurationFilesWidget::loadTemplateStrings()
     addTemplateString("[OTHER_DEPENDENCIES]", deps.str());  // not relative to a ROS package
   }
 
-  // Pair 9 - Add ROS Controllers to ros_controllers.launch file
-  if (config_data_->getROSControllers().empty())
+  // Pair 9 - List of ROS Controllers to load in ros_controllers.launch file
+  if (config_data_->getControllers().empty())
   {
     addTemplateString("[ROS_CONTROLLERS]", "");
   }
   else
   {
     std::stringstream controllers;
-    for (ROSControlConfig& controller : config_data_->getROSControllers())
+    for (ControllerConfig& controller : config_data_->getControllers())
     {
       // Check if the controller belongs to controller_list namespace
       if (controller.type_ != "FollowJointTrajectory")

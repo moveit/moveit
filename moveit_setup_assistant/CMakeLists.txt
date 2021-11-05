@@ -69,7 +69,7 @@ set(HEADERS
   src/widgets/virtual_joints_widget.h
   src/widgets/passive_joints_widget.h
   src/widgets/perception_widget.h
-  src/widgets/ros_controllers_widget.h
+  src/widgets/controllers_widget.h
   src/widgets/controller_edit_widget.h
   src/widgets/configuration_files_widget.h
   src/widgets/setup_screen_widget.h
@@ -107,7 +107,7 @@ add_library(${PROJECT_NAME}_widgets
   src/widgets/passive_joints_widget.cpp
   src/widgets/perception_widget.cpp
   src/widgets/configuration_files_widget.cpp
-  src/widgets/ros_controllers_widget.cpp
+  src/widgets/controllers_widget.cpp
   src/widgets/controller_edit_widget.cpp
   src/widgets/navigation_widget.cpp
   src/widgets/header_widget.cpp
