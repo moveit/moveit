@@ -221,23 +221,12 @@ void TrajectoryGeneratorPTP::extractMotionPlanInfo(const planning_scene::Plannin
       info.goal_joint_position[joint_constraint.joint_name] = joint_constraint.position;
     }
   }
-  // slove the ik
+  // solve the ik
   else
   {
-    geometry_msgs::Point p =
-        req.goal_constraints.at(0).position_constraints.at(0).constraint_region.primitive_poses.at(0).position;
-    p.x -= req.goal_constraints.at(0).position_constraints.at(0).target_point_offset.x;
-    p.y -= req.goal_constraints.at(0).position_constraints.at(0).target_point_offset.y;
-    p.z -= req.goal_constraints.at(0).position_constraints.at(0).target_point_offset.z;
-
-    geometry_msgs::Pose pose;
-    pose.position = p;
-    pose.orientation = req.goal_constraints.at(0).orientation_constraints.at(0).orientation;
-    Eigen::Isometry3d pose_eigen;
-    normalizeQuaternion(pose.orientation);
-    tf2::fromMsg(pose, pose_eigen);
+    Eigen::Isometry3d goal_pose = getConstraintPose(req.goal_constraints.front());
     if (!computePoseIK(scene, req.group_name, req.goal_constraints.at(0).position_constraints.at(0).link_name,
-                       pose_eigen, robot_model_->getModelFrame(), info.start_joint_position, info.goal_joint_position))
+                       goal_pose, robot_model_->getModelFrame(), info.start_joint_position, info.goal_joint_position))
     {
       throw PtpNoIkSolutionForGoalPose("No IK solution for goal pose");
     }
