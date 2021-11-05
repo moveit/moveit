@@ -49,7 +49,8 @@ public:
   static const std::string JIGGLE_PARAM_NAME;
   static const std::string ATTEMPTS_PARAM_NAME;
 
-  FixStartStateCollision() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
+  FixStartStateCollision()
+    : planning_request_adapter::PlanningRequestAdapter(), nh_(planning_interface::getConfigNodeHandle())
   {
     if (!nh_.getParam(DT_PARAM_NAME, max_dt_offset_))
     {

@@ -49,7 +49,8 @@ public:
   static const std::string BOUNDS_PARAM_NAME;
   static const std::string DT_PARAM_NAME;
 
-  FixStartStateBounds() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
+  FixStartStateBounds()
+    : planning_request_adapter::PlanningRequestAdapter(), nh_(planning_interface::getConfigNodeHandle())
   {
     if (!nh_.getParam(BOUNDS_PARAM_NAME, bounds_dist_))
     {

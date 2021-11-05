@@ -56,6 +56,16 @@ static ActiveContexts& getActiveContexts()
 }
 }  // namespace
 
+ros::NodeHandle getConfigNodeHandle(const ros::NodeHandle& nh)
+{
+  // Handle new configuration scheme with multiple pipelines configured in namespaces planning_pipelines/*
+  std::string default_pipeline;
+  if (nh.getParam("default_planning_pipeline", default_pipeline) &&
+      nh.hasParam("planning_pipelines/" + default_pipeline))
+    return ros::NodeHandle(nh, "planning_pipelines/" + default_pipeline);
+  return nh;
+}
+
 PlanningContext::PlanningContext(const std::string& name, const std::string& group) : name_(name), group_(group)
 {
   ActiveContexts& ac = getActiveContexts();

@@ -135,6 +135,14 @@ private:
       capabilities.insert(tok.begin(), tok.end());
     }
 
+    // add capabilities configured for default planning pipeline (Noetic pipeline definitions)
+    if (planning_interface::getConfigNodeHandle().getParam("capabilities", capability_plugins))
+    {
+      boost::char_separator<char> sep(" ");
+      boost::tokenizer<boost::char_separator<char>> tok(capability_plugins, sep);
+      capabilities.insert(tok.begin(), tok.end());
+    }
+
     // drop capabilities that have been explicitly disabled
     if (node_handle_.getParam("disable_capabilities", capability_plugins))
     {

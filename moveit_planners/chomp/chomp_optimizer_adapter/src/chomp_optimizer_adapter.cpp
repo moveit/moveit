@@ -58,7 +58,8 @@ namespace chomp
 class OptimizerAdapter : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
-  OptimizerAdapter() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
+  OptimizerAdapter()
+    : planning_request_adapter::PlanningRequestAdapter(), nh_(planning_interface::getConfigNodeHandle())
   {
     if (!nh_.getParam("planning_time_limit", params_.planning_time_limit_))
     {

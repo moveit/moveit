@@ -45,7 +45,8 @@ class FixWorkspaceBounds : public planning_request_adapter::PlanningRequestAdapt
 public:
   static const std::string WBOUNDS_PARAM_NAME;
 
-  FixWorkspaceBounds() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
+  FixWorkspaceBounds()
+    : planning_request_adapter::PlanningRequestAdapter(), nh_(planning_interface::getConfigNodeHandle())
   {
     if (!nh_.getParam(WBOUNDS_PARAM_NAME, workspace_extent_))
     {
