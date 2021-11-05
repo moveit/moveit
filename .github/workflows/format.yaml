@@ -20,4 +20,10 @@ jobs:
     - uses: rhaschke/install-catkin_lint-action@v1.0
       with:
         distro: melodic
-    - uses: pre-commit/action@v2.0.0
+    - uses: pre-commit/action@v2.0.3
+      id: precommit
+    - name: Upload pre-commit changes
+      if: failure() && steps.precommit.outcome == 'failure'
+      uses: rhaschke/upload-git-patch-action@main
+      with:
+        name: pre-commit
