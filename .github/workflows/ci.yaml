@@ -19,7 +19,7 @@ jobs:
         env:
           - IMAGE: noetic-ci
             CCOV: true
-            BUILDER: .github/workflows/catkin_tools_devel.sh
+            BUILDER: catkin_tools_devel
           - IMAGE: noetic-ci-shadow-fixed
             IKFAST_TEST: true
             CATKIN_LINT: true
