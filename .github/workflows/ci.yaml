@@ -9,7 +9,6 @@ on:
   push:
     branches:
       - master
-      - "[kmn]*-devel"
 
 jobs:
   default:
@@ -150,3 +149,13 @@ jobs:
           sudo find ${{ env.BASEDIR }}/target_ws -wholename '*/test_results/*' -delete
           sudo rm -rf ${{ env.BASEDIR }}/target_ws/src
           du -sh ${{ env.BASEDIR }}/target_ws
+
+  # Sync noetic-devel branch with master on successful build
+  sync-noetic-devel:
+    runs-on: ubuntu-latest
+    needs: default # only trigger on success of default build job
+    if: github.event_name == 'push' && github.repository_owner == 'ros-planning' && github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Fast-forward noetic-devel to sync with master
+        run: git push --ff-only HEAD:noetic-devel
