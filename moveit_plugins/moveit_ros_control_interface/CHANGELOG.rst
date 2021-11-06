@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_control_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.6 (2021-11-06)
+------------------
+* Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``
+* Fix reversed check in switchControllers (`#2726 <https://github.com/ros-planning/moveit/issues/2726>`_)
+* Contributors: Nathan Brooks, Robert Haschke
+
 1.1.5 (2021-05-23)
 ------------------
 

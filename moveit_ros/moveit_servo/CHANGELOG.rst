@@ -2,6 +2,16 @@
 Changelog for package moveit_servo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.6 (2021-11-06)
+------------------
+* Backport position limit enforcement from MoveIt2 (`#2898 <https://github.com/ros-planning/moveit/issues/2898>`_)
+* Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``
+* Minor fixups (`#2759 <https://github.com/ros-planning/moveit/issues/2759>`_)
+* Remove gtest include from non-testing source (`#2747 <https://github.com/ros-planning/moveit/issues/2747>`_)
+* Fix an off-by-one error in servo_calcs.cpp (`#2740 <https://github.com/ros-planning/moveit/issues/2740>`_)
+* Refactor ``moveit_servo::LowPassFilter`` to be assignable (`#2722 <https://github.com/ros-planning/moveit/issues/2722>`_)
+* Contributors: Griswald Brooks, Michael Görner, Michael Wiznitzer, Robert Haschke, luisrayas3, toru-kuga
+
 1.1.5 (2021-05-23)
 ------------------
 

@@ -2,6 +2,65 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.6 (2021-11-06)
+------------------
+* Silent warning about invalid ``virtual_joint`` in Gazebo setups
+* Add ``RobotState::getRigidlyConnectedParentLinkModel`` `#2918 <https://github.com/ros-planning/moveit/issues/2918>`_ (add RobotState::getRigidlyAttachedParentLink)
+* Normalize incoming transforms (`#2920 <https://github.com/ros-planning/moveit/issues/2920>`_)
+* Reworked compiler flags and fixed various warnings (`#2915 <https://github.com/ros-planning/moveit/issues/2915>`_)
+
+  * Remove unused arguments from global_adjustment_factor()
+  * Simplify API: Remove obviously unused arguments
+  * Introduced cmake macro ``moveit_build_options()`` in ``moveit_core`` to centrally define
+    common build options like ``CMAKE_CXX_STANDARD``, ``CMAKE_BUILD_TYPE``, and compiler warning flags
+* Fix uninitialized orientation in default shape pose (`#2896 <https://github.com/ros-planning/moveit/issues/2896>`_)
+* Drop the minimum velocity/acceleration limits for TOTG (`#2937 <https://github.com/ros-planning/moveit/issues/2937>`_)
+* Readability and consistency improvements in TOTG (`#2882 <https://github.com/ros-planning/moveit/issues/2882>`_)
+* Bullet collision: Consider ACM defaults using ``getAllowedCollision()`` (`#2871 <https://github.com/ros-planning/moveit/issues/2871>`_)
+* ``PlanningScene::getPlanningSceneDiffMsg()``: Do not list an object as destroyed when it got attached (`#2864 <https://github.com/ros-planning/moveit/issues/2864>`_)
+
+  The information in the diff is redundant because attaching implies the removal from the PlanningScene.
+  In the unlikely case, you relied on the ``REMOVE`` entry in the diff message,
+  use the newly attached collision object to indicate the same instead.
+* Fix Bullet collision: Register ``notify`` function to receive world updates (`#2830 <https://github.com/ros-planning/moveit/issues/2830>`_)
+* Split CollisionPluginLoader (`#2834 <https://github.com/ros-planning/moveit/issues/2834>`_)
+
+  To avoid circular dependencies, but enable reuse of the ``CollisionPluginLoader``, the non-ROS part was moved into ``moveit_core/moveit_collision_detection.so``
+  and the ROS part (reading the plugin name from the parameter server) into ``moveit_ros_planning/moveit_collision_plugin_loader.so`` (as before).
+* Use default copy constructor to clone attached objects (`#2855 <https://github.com/ros-planning/moveit/issues/2855>`_)
+* Fix pose-not-set-bug (`#2852 <https://github.com/ros-planning/moveit/issues/2852>`_)
+* Add API for passing a ``RNG`` to ``setToRandomPositionsNearBy()`` (`#2799 <https://github.com/ros-planning/moveit/issues/2799>`_)
+* Fix backwards compatibility for specifying poses for a single collision shape (`#2816 <https://github.com/ros-planning/moveit/issues/2816>`_)
+* Fix Bullet collision returning wrong contact type (`#2829 <https://github.com/ros-planning/moveit/issues/2829>`_)
+* Add ``RobotState::setToDefaultValues(string group)`` (`#2828 <https://github.com/ros-planning/moveit/issues/2828>`_)
+* Fix confusion of tolerance limits in JointConstraint (`#2815 <https://github.com/ros-planning/moveit/issues/2815>`_)
+* Fix RobotState constructor segfault (`#2790 <https://github.com/ros-planning/moveit/issues/2790>`_)
+* Preserve metadata (color, type) when detaching objects (`#2814 <https://github.com/ros-planning/moveit/issues/2814>`_)
+* Introduce a reference frame for collision objects (`#2037 <https://github.com/ros-planning/moveit/issues/2037>`_)
+
+  ``CollisionObject`` messages are now defined with a ``Pose``. Shapes and subframes are defined relative to that pose.
+  This makes it easier to place objects with subframes and multiple shapes in the scene.
+  This causes several changes:
+
+  - ``getFrameTransform()`` now returns this pose instead of the first shape's pose.
+  - The Rviz plugin's manipulation tab now uses the object's pose instead of the shape pose to evaluate if object's are in the region of interest.
+  - PlanningScene geometry text files (``.scene``) have changed format.
+
+    Add a line ``0 0 0 0 0 0 1`` under each line with an asterisk to upgrade old files if required.
+* Fix bullet plugin library path name (`#2783 <https://github.com/ros-planning/moveit/issues/2783>`_)
+* clang-tidy: modernize-make-shared, modernize-make-unique (`#2762 <https://github.com/ros-planning/moveit/issues/2762>`_)
+* ``RobotTrajectory``: convenience constructor + chain setter support (`#2751 <https://github.com/ros-planning/moveit/issues/2751>`_)
+* Fix Windows build (`#2604 <https://github.com/ros-planning/moveit/issues/2604>`_, `#2776 <https://github.com/ros-planning/moveit/issues/2776>`_)
+* Allow axis-angle representation for orientation constraints (`#2402 <https://github.com/ros-planning/moveit/issues/2402>`_)
+* Optimization: ``reserve()`` vector in advance (`#2732 <https://github.com/ros-planning/moveit/issues/2732>`_)
+* Use same padding/scale for attached collision objects as for parent link (`#2721 <https://github.com/ros-planning/moveit/issues/2721>`_)
+* Optimize ``FCL distanceCallback()``: use thread_local vars, avoid copying (`#2698 <https://github.com/ros-planning/moveit/issues/2698>`_)
+* Remove octomap from catkin_packages ``LIBRARIES`` entry (`#2700 <https://github.com/ros-planning/moveit/issues/2700>`_)
+* Remove deprecated header ``deprecation.h`` (`#2693 <https://github.com/ros-planning/moveit/issues/2693>`_)
+* ``collision_detection_fcl``: Report link_names in correct order (`#2682 <https://github.com/ros-planning/moveit/issues/2682>`_)
+* Move ``OccMapTree`` to ``moveit_core/collision_detection`` (`#2684 <https://github.com/ros-planning/moveit/issues/2684>`_)
+* Contributors: 0Nel, AndyZe, Captain Yoshi, Felix von Drigalski, Jafar Abdi, Jeroen, Jochen Sprickerhof, John Stechschulte, Jonathan Grebe, Max Schwarz, Michael Görner, Michael Wiznitzer, Peter Mitrano, Robert Haschke, Silvio Traversaro, Simon Schmeisser, Tobias Fischer, Tyler Weaver, Wolf Vollprecht, Yuri Rocha, pvanlaar, toru-kuga, v4hn, werner291
+
 1.1.5 (2021-05-23)
 ------------------
 * Revert "Lock the octomap/octree while collision checking (`#2683 <https://github.com/ros-planning/moveit/issues/2683>`_)

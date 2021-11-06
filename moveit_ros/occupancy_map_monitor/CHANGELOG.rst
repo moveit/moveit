@@ -2,6 +2,14 @@
 Changelog for package moveit_ros_occupancy_map_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.6 (2021-11-06)
+------------------
+* Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``
+* Prefer ``std::make_shared`` over ``new`` operator (`#2756 <https://github.com/ros-planning/moveit/issues/2756>`_)
+* Add missing ``OCTOMAP_INCLUDE_DIRS`` (`#2671 <https://github.com/ros-planning/moveit/issues/2671>`_)
+* Move ``OccMapTree`` to ``moveit_core/collision_detection`` (`#2684 <https://github.com/ros-planning/moveit/issues/2684>`_)
+* Contributors: 0Nel, Michael Görner, Robert Haschke, Simon Schmeisser, Tyler Weaver
+
 1.1.5 (2021-05-23)
 ------------------
 * Revert "Lock the octomap/octree while collision checking (`#2683 <https://github.com/ros-planning/moveit/issues/2683>`_)
