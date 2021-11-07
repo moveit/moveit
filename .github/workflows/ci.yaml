@@ -158,4 +158,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Fast-forward noetic-devel to sync with master
-        run: git push origin HEAD:noetic-devel
+        run: |
+          # Extend shallow copy from actions/checkout to connect noetic-devel..master
+          git fetch --depth=1 origin noetic-devel
+          git fetch --depth=200 origin master
+          git push origin master:noetic-devel
