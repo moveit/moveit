@@ -158,4 +158,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Fast-forward noetic-devel to sync with master
-        run: git push --ff-only HEAD:noetic-devel
+        run: git push origin HEAD:noetic-devel
