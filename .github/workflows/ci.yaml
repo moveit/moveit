@@ -159,6 +159,10 @@ jobs:
       - uses: actions/checkout@v2
       - name: Fast-forward noetic-devel to sync with master
         run: |
+          # Configure push user+url
+          git config --global user.name 'GHA sync bot'
+          git config --global user.email 'rhaschke@users.noreply.github.com'
+          git remote set-url origin https://x-access-token:${{ secrets.GH_PAGES_TOKEN }}@github.com/${{ github.repository }}
           # Extend shallow copy from actions/checkout to connect noetic-devel..master
           git fetch --depth=1 origin noetic-devel
           git fetch --depth=200 origin master
