@@ -275,7 +275,7 @@ void CollisionEnv::getScale(std::vector<moveit_msgs::LinkScale>& scale) const
   }
 }
 
-void CollisionEnv::updatedPaddingOrScaling(const std::vector<std::string>& links)
+void CollisionEnv::updatedPaddingOrScaling(const std::vector<std::string>& /*links*/)
 {
 }
 

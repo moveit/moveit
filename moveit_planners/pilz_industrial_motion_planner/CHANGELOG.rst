@@ -2,6 +2,24 @@
 Changelog for package pilz_industrial_motion_planner
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.6 (2021-11-06)
+------------------
+* Fix calculation of subframe offset (`#2890 <https://github.com/ros-planning/moveit/issues/2890>`_)
+* Remove unused moveit_planning_execution.launch
+* Use test_environment.launch in unittests (`#2949 <https://github.com/ros-planning/moveit/issues/2949>`_)
+* Rename launch argument execution_type -> fake_execution_type
+* Improve error messages (`#2940 <https://github.com/ros-planning/moveit/issues/2940>`_)
+  * Remove deprecated xacro --inorder
+  * Don't complain about missing limits for irrelevant JMGs
+  * Avoid duplicate error messages
+  * Downgrade ERROR to WARN when checking joint limits, report affected joint name
+  * Quote (possibly empty) planner id
+* Consider attached bodies for planning (`#2773 <https://github.com/ros-planning/moveit/issues/2773>`_, `#2824 <https://github.com/ros-planning/moveit/issues/2824>`_, `#2878 <https://github.com/ros-planning/moveit/issues/2878>`_)
+* Fix collision detection: consider current PlanningScene (`#2803 <https://github.com/ros-planning/moveit/issues/2803>`_)
+* Add planning_pipeline_id to MotionSequence action + service (`#2755 <https://github.com/ros-planning/moveit/issues/2755>`_)
+* clang-tidy: modernize-make-shared, modernize-make-unique (`#2762 <https://github.com/ros-planning/moveit/issues/2762>`_)
+* Contributors: Felix von Drigalski, Leroy Rügemer, Michael Görner, Robert Haschke, Tom Noble, aa-tom, cambel, pvanlaar
+
 1.1.5 (2021-05-23)
 ------------------
 * Allow selecting planning pipeline in MotionSequenceAction (`#2657 <https://github.com/ros-planning/moveit/issues/2657>`_)

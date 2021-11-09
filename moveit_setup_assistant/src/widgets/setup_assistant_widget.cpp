@@ -123,7 +123,7 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, const boost::program
   nav_name_list_ << "Robot Poses";
   nav_name_list_ << "End Effectors";
   nav_name_list_ << "Passive Joints";
-  nav_name_list_ << "ROS Control";
+  nav_name_list_ << "Controllers";
   nav_name_list_ << "Simulation";
   nav_name_list_ << "3D Perception";
   nav_name_list_ << "Author Information";
@@ -296,8 +296,8 @@ void SetupAssistantWidget::progressPastStartScreen()
           SLOT(highlightGroup(const std::string&)));
   connect(passive_joints_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
 
-  // ROS Controllers
-  controllers_widget_ = new ROSControllersWidget(this, config_data_);
+  // Controllers
+  controllers_widget_ = new ControllersWidget(this, config_data_);
   main_content_->addWidget(controllers_widget_);
   connect(controllers_widget_, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
   connect(controllers_widget_, SIGNAL(highlightLink(const std::string&, const QColor&)), this,

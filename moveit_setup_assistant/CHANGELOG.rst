@@ -2,6 +2,94 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.6 (2021-11-06)
+------------------
+* Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``
+* Correctly state not-found package name
+* Finish setup_assistant.launch when MSA finished (`#2749 <https://github.com/ros-planning/moveit/issues/2749>`_)
+
+* **Enabling the following new features requires recreation of your robot's MoveIt config with the new MSA!**
+* Various improvements (`#2932 <https://github.com/ros-planning/moveit/issues/2932>`_)
+
+  * Define default planner for Pilz pipeline
+  * Allow checking/unchecking multiple files for generation
+  * ``moveit.rviz``: Use Orbit view controller
+  * Rename launch argument ``execution_type`` -> ``fake_execution_type`` to clarify that this parameter is only used for fake controllers
+  * ``demo.launch``: Start joint + robot-state publishers in fake mode only
+  * Modularize ``demo_gazebo.launch`` reusing ``demo.launch``
+  * ``gazebo.launch``
+
+    * Delay unpause to ensure that the robot's initial pose is actually held
+    * Allow initial_joint_positions
+    * Load URDF via xacro if neccessary
+
+  * Rework ``moveit_controller_manager`` handling
+
+    So far, ``move_group.launch`` distinguished between fake and real-robot operation only.
+    The boolean launch-file argument ``fake_execution`` was translated to ``moveit_controller_manager = [fake|robot]``
+    in ``move_group.launch`` and then further translated to the actual plugin name.
+
+    However, MoveIt provides 3 basic controller manager plugins:
+
+    - ``fake`` = ``moveit_fake_controller_manager::MoveItFakeControllerManager`` (default in ``demo.launch``)
+
+      Doesn't really control the robot. Provides these interpolation types (``fake_execution_type``):
+
+      - ``via points``: jumps to the via points
+      - ``interpolate``: linearly interpolates between via points (default)
+      - ``last point``: jumps to the final trajectory point (used for fast execution testing)
+    - ``ros_control`` = ``moveit_ros_control_interface::MoveItControllerManager``
+
+      Interfaces to ``ros_control`` controllers.
+    - ``simple`` = ``moveit_simple_controller_manager/MoveItSimpleControllerManager``
+      Interfaces to action servers for ``FollowJointTrajectory`` and/or ``GripperCommand``
+      that in turn interface to the low-level robot controllers (typically based on ros_control).
+
+    Now, the argument ``moveit_controller_manager`` allows for switching between these 3 variants using the given names.
+    Adding more ``*_moveit_controller_manager.launch`` files allows for further extension of this scheme.
+
+* Rework Controller Handling (`#2945 <https://github.com/ros-planning/moveit/issues/2945>`_)
+
+  * Write separate controller config files for different MoveIt controller managers:
+
+    - ``fake_controllers.yaml`` for use with ``MoveItFakeControllerManager``
+    - ``simple_moveit_controllers.yaml`` handles everything relevant for ``MoveItSimpleControllerManager``
+    - ``ros_controllers.yaml`` defines ``ros_control`` controllers
+    - ``gazebo_controllers.yaml`` lists controllers required for Gazebo
+
+  * Rework controller config generation
+
+    - Provide all types of ``JointTrajectoryController`` (position, velocity, and effort based)
+      as well as ``FollowJointTrajectory`` and ``GripperCommand`` (use by simple controller manager)
+    - Use ``effort_controllers/JointTrajectoryController`` as default
+    - Create ``FollowJointTrajectory`` entries for any ``JointTrajectoryController``
+    - Fix controller list generation: always write joint names as a list
+
+  * Code refactoring to clarify that controller widget handles all controllers, not only ``ros_control`` controllers
+
+    * Update widget texts to speak about generic controllers
+    * Rename ``ROSControllersWidget`` -> ``ControllersWidget``
+    * Rename files ``ros_controllers_widget.*`` -> ``controllers_widget.*``
+    * Rename ``ros_controllers_config_`` -> ``controller_configs_``
+    * Rename functions ``*ROSController*`` -> ``*Controller*``
+    * Rename ``ROSControlConfig`` -> ``ControllerConfig``
+
+* Fix sensor config handling (`#2708 <https://github.com/ros-planning/moveit/issues/2708>`_, `#2946 <https://github.com/ros-planning/moveit/issues/2946>`_)
+
+* Load planning pipelines into their own namespace (`#2888 <https://github.com/ros-planning/moveit/issues/2888>`_)
+* Add ``jiggle_fraction`` arg to trajopt template (`#2858 <https://github.com/ros-planning/moveit/issues/2858>`_)
+* Only define ``default`` values for input argumens in ``*_planning_pipeline.launch`` templates (`#2849 <https://github.com/ros-planning/moveit/issues/2849>`_)
+* Mention (optional) Gazebo deps in package.xml templates (`#2839 <https://github.com/ros-planning/moveit/issues/2839>`_)
+* Create ``static_transform_publisher`` for each virtual joint type (`#2769 <https://github.com/ros-planning/moveit/issues/2769>`_)
+* Use $(dirname) in launch files (`#2748 <https://github.com/ros-planning/moveit/issues/2748>`_)
+* CHOMP: Read parameters from proper namespace (`#2707 <https://github.com/ros-planning/moveit/issues/2707>`_)
+
+  * Pilz pipeline: remove unused arg ``start_state_max_bounds_error``
+  * Set ``jiggle_fraction`` per pipeline
+  * Rename param ``clearence`` to ``clearance``
+* Load ``max_safe_path_cost`` into namespace ``sense_for_plan`` (`#2703 <https://github.com/ros-planning/moveit/issues/2703>`_)
+* Contributors: David V. Lu!!, Martin Günther, Max Puig, Michael Görner, Rick Staa, Robert Haschke, pvanlaar, v4hn
+
 1.1.5 (2021-05-23)
 ------------------
 

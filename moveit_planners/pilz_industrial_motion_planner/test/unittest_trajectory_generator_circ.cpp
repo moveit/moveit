@@ -141,7 +141,7 @@ void TrajectoryGeneratorCIRCTest::SetUp()
   planner_limits_.setCartesianLimits(cart_limits);
 
   // initialize the LIN trajectory generator
-  circ_ = std::make_unique<TrajectoryGeneratorCIRC>(robot_model_, planner_limits_);
+  circ_ = std::make_unique<TrajectoryGeneratorCIRC>(robot_model_, planner_limits_, planning_group_);
   ASSERT_NE(nullptr, circ_) << "failed to create CIRC trajectory generator";
 }
 
@@ -284,7 +284,8 @@ INSTANTIATE_TEST_SUITE_P(InstantiationName, TrajectoryGeneratorCIRCTest,
 TEST_P(TrajectoryGeneratorCIRCTest, noLimits)
 {
   LimitsContainer planner_limits;
-  EXPECT_THROW(TrajectoryGeneratorCIRC(this->robot_model_, planner_limits), TrajectoryGeneratorInvalidLimitsException);
+  EXPECT_THROW(TrajectoryGeneratorCIRC(this->robot_model_, planner_limits, planning_group_),
+               TrajectoryGeneratorInvalidLimitsException);
 }
 
 /**

@@ -1,10 +1,5 @@
 set(MOVEIT_LIB_NAME moveit_robot_state)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  # clang is picky about typeid(*solver)
-  add_compile_options(-Wno-potentially-evaluated-expression)
-endif()
-
 add_library(${MOVEIT_LIB_NAME}
   src/attached_body.cpp
   src/conversions.cpp

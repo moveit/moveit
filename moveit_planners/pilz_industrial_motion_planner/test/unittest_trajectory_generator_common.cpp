@@ -119,7 +119,8 @@ protected:
     planner_limits.setCartesianLimits(cart_limits);
 
     // create planner instance
-    trajectory_generator_ = std::unique_ptr<typename T::Type_>(new typename T::Type_(robot_model_, planner_limits));
+    trajectory_generator_ =
+        std::unique_ptr<typename T::Type_>(new typename T::Type_(robot_model_, planner_limits, planning_group_));
     ASSERT_NE(nullptr, trajectory_generator_) << "failed to create trajectory generator";
 
     // create a valid motion plan request with goal in joint space as basis for

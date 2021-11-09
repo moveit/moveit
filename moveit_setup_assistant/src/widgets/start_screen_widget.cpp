@@ -428,7 +428,7 @@ bool StartScreenWidget::loadExistingFiles()
   // Load 3d_sensors config file
   load3DSensorsFile();
 
-  // Load ros controllers yaml file if available-----------------------------------------------
+  // Load ros_controllers.yaml file if available-----------------------------------------------
   fs::path ros_controllers_yaml_path = config_data_->config_pkg_path_;
   ros_controllers_yaml_path /= "config/ros_controllers.yaml";
   config_data_->inputROSControllersYAML(ros_controllers_yaml_path.make_preferred().string());
@@ -738,18 +738,9 @@ bool StartScreenWidget::load3DSensorsFile()
   fs::path sensors_3d_yaml_path = config_data_->config_pkg_path_;
   sensors_3d_yaml_path /= "config/sensors_3d.yaml";
 
-  // Default parameters values are always loaded but overridden by values existing in sensors_3d
-  fs::path default_sensors_3d_yaml_path = "templates/moveit_config_pkg_template/config/sensors_3d.yaml";
-
-  if (!fs::is_regular_file(sensors_3d_yaml_path))
-  {
-    return config_data_->input3DSensorsYAML(default_sensors_3d_yaml_path.make_preferred().string());
-  }
-  else
-  {
-    return config_data_->input3DSensorsYAML(default_sensors_3d_yaml_path.make_preferred().string(),
-                                            sensors_3d_yaml_path.make_preferred().string());
-  }
+  if (fs::is_regular_file(sensors_3d_yaml_path))
+    config_data_->input3DSensorsYAML(sensors_3d_yaml_path.make_preferred().string());
+  return true;
 }
 
 // ******************************************************************************************

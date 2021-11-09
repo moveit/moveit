@@ -3,10 +3,6 @@ project(pilz_industrial_motion_planner_testutils)
 
 ## Add support for C++11, supported in ROS Kinetic and newer
 add_definitions(-std=c++11)
-add_definitions(-Wall)
-add_definitions(-Wextra)
-add_definitions(-Wno-unused-parameter)
-add_definitions(-Werror)
 
 find_package(catkin REQUIRED COMPONENTS
   tf2_eigen

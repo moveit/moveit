@@ -139,9 +139,10 @@ TEST_P(PlanningContextLoadersTest, GetAlgorithm)
 TEST_P(PlanningContextLoadersTest, LoadContext)
 {
   planning_interface::PlanningContextPtr planning_context;
+  const std::string& group_name = "manipulator";
 
   // Without limits should return false
-  bool res = planning_context_loader_->loadContext(planning_context, "test", "test");
+  bool res = planning_context_loader_->loadContext(planning_context, "test", group_name);
   EXPECT_EQ(false, res) << "Context returned even when no limits where set";
 
   // After setting the limits this should work
@@ -161,7 +162,7 @@ TEST_P(PlanningContextLoadersTest, LoadContext)
 
   try
   {
-    res = planning_context_loader_->loadContext(planning_context, "test", "test");
+    res = planning_context_loader_->loadContext(planning_context, "test", group_name);
   }
   catch (std::exception& ex)
   {

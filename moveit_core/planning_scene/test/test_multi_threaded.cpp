@@ -47,7 +47,7 @@
 const int TRIALS = 1000;
 const int THREADS = 2;
 
-bool runCollisionDetection(unsigned int id, unsigned int trials, const planning_scene::PlanningScene* scene,
+bool runCollisionDetection(unsigned int /*id*/, unsigned int trials, const planning_scene::PlanningScene* scene,
                            const moveit::core::RobotState* state)
 {
   collision_detection::CollisionRequest req;

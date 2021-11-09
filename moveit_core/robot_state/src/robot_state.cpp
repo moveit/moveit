@@ -470,7 +470,7 @@ void RobotState::setVariableEffort(const std::map<std::string, double>& variable
 {
   markEffort();
   for (const std::pair<const std::string, double>& it : variable_map)
-    acceleration_[robot_model_->getVariableIndex(it.first)] = it.second;
+    effort_[robot_model_->getVariableIndex(it.first)] = it.second;
 }
 
 void RobotState::setVariableEffort(const std::map<std::string, double>& variable_map,
@@ -795,6 +795,31 @@ void RobotState::updateStateWithLinkAt(const LinkModel* link, const Eigen::Isome
   for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin();
        it != attached_body_map_.end(); ++it)
     it->second->computeTransform(global_link_transforms_[it->second->getAttachedLink()->getLinkIndex()]);
+}
+
+const LinkModel* RobotState::getRigidlyConnectedParentLinkModel(const std::string& frame) const
+{
+  const moveit::core::LinkModel* link{ nullptr };
+
+  size_t idx = 0;
+  if ((idx = frame.find('/')) != std::string::npos)
+  {  // resolve sub frame
+    std::string object{ frame.substr(0, idx) };
+    if (!hasAttachedBody(object))
+      return nullptr;
+    auto body{ getAttachedBody(object) };
+    if (!body->hasSubframeTransform(frame))
+      return nullptr;
+    link = body->getAttachedLink();
+  }
+  else if (hasAttachedBody(frame))
+  {
+    link = getAttachedBody(frame)->getAttachedLink();
+  }
+  else if (getRobotModel()->hasLinkModel(frame))
+    link = getLinkModel(frame);
+
+  return getRobotModel()->getRigidlyConnectedParentLinkModel(link);
 }
 
 bool RobotState::satisfiesBounds(double margin) const
@@ -1786,7 +1811,7 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
                                     const std::vector<std::string>& tips_in,
                                     const std::vector<std::vector<double> >& consistency_limits, double timeout,
                                     const GroupStateValidityCallbackFn& constraint,
-                                    const kinematics::KinematicsQueryOptions& options)
+                                    const kinematics::KinematicsQueryOptions& /*options*/)
 {
   // Assume we have already ran setFromIK() and those checks
 
@@ -2203,7 +2228,7 @@ void RobotState::printTransforms(std::ostream& out) const
   }
 }
 
-std::string RobotState::getStateTreeString(const std::string& prefix) const
+std::string RobotState::getStateTreeString() const
 {
   std::stringstream ss;
   ss << "ROBOT: " << robot_model_->getName() << std::endl;

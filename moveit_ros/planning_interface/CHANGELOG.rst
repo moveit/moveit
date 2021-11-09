@@ -2,6 +2,18 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.6 (2021-11-06)
+------------------
+* Use test_environment.launch in unittests (`#2949 <https://github.com/ros-planning/moveit/issues/2949>`_)
+* Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``
+* Add missing replan/look options to interface (`#2892 <https://github.com/ros-planning/moveit/issues/2892>`_)
+* PSI: get object.pose from new msg field (`#2877 <https://github.com/ros-planning/moveit/issues/2877>`_)
+* Introduce a reference frame for collision objects (`#2037 <https://github.com/ros-planning/moveit/issues/2037>`_)
+* Fix trajectory constraints for ``moveit_commander`` (`#2429 <https://github.com/ros-planning/moveit/issues/2429>`_)
+* ``MGI::setStartState``: Only fetch current state when new state is diff (`#2775 <https://github.com/ros-planning/moveit/issues/2775>`_)
+* clang-tidy: modernize-make-shared, modernize-make-unique (`#2762 <https://github.com/ros-planning/moveit/issues/2762>`_)
+* Contributors: Felix von Drigalski, Gauthier Hentz, Kevin Chang, Michael Görner, Robert Haschke, pvanlaar
+
 1.1.5 (2021-05-23)
 ------------------
 * Allow selecting planning pipeline in MotionSequenceAction (`#2657 <https://github.com/ros-planning/moveit/issues/2657>`_)

@@ -1376,6 +1376,13 @@ public:
   /** \brief Update the state after setting a particular link to the input global transform pose.*/
   void updateStateWithLinkAt(const LinkModel* link, const Eigen::Isometry3d& transform, bool backward = false);
 
+  /** \brief Get the latest link upwards the kinematic tree which is only connected via fixed joints.
+   *
+   * This behaves the same as RobotModel::getRigidlyConnectedParentLinkModel,
+   * but can additionally resolve parents for attached objects / subframes.
+   */
+  const moveit::core::LinkModel* getRigidlyConnectedParentLinkModel(const std::string& frame) const;
+
   /** \brief Get the link transform w.r.t. the root link (model frame) of the RobotModel.
    *   This is typically the root link of the URDF unless a virtual joint is present.
    *   Checks the cache and if there are any dirty (non-updated) transforms, first updates them as needed.
@@ -1826,7 +1833,7 @@ public:
 
   void printDirtyInfo(std::ostream& out = std::cout) const;
 
-  std::string getStateTreeString(const std::string& prefix = "") const;
+  std::string getStateTreeString() const;
 
   /**
    * \brief Transform pose from the robot model's base frame to the reference frame of the IK solver

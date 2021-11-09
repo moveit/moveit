@@ -1,17 +1,6 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(moveit_setup_assistant)
 
-if(NOT "${CMAKE_CXX_STANDARD}")
-  set(CMAKE_CXX_STANDARD 14)
-endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  # suppress warning in Ogre
-  add_compile_options(-Wno-deprecated-register)
-endif()
-
 # definition needed for boost/math/constants/constants.hpp included by Ogre to compile
 add_definitions(-DBOOST_MATH_DISABLE_FLOAT128)
 
@@ -30,6 +19,8 @@ find_package(catkin REQUIRED COMPONENTS
   urdf
   srdfdom
 )
+moveit_build_options()
+
 find_package(ompl REQUIRED)
 include_directories(SYSTEM ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${OMPL_INCLUDE_DIRS})
 include_directories(include)
@@ -78,7 +69,7 @@ set(HEADERS
   src/widgets/virtual_joints_widget.h
   src/widgets/passive_joints_widget.h
   src/widgets/perception_widget.h
-  src/widgets/ros_controllers_widget.h
+  src/widgets/controllers_widget.h
   src/widgets/controller_edit_widget.h
   src/widgets/configuration_files_widget.h
   src/widgets/setup_screen_widget.h
@@ -116,7 +107,7 @@ add_library(${PROJECT_NAME}_widgets
   src/widgets/passive_joints_widget.cpp
   src/widgets/perception_widget.cpp
   src/widgets/configuration_files_widget.cpp
-  src/widgets/ros_controllers_widget.cpp
+  src/widgets/controllers_widget.cpp
   src/widgets/controller_edit_widget.cpp
   src/widgets/navigation_widget.cpp
   src/widgets/header_widget.cpp

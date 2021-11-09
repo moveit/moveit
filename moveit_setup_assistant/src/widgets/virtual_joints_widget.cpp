@@ -65,10 +65,11 @@ VirtualJointsWidget::VirtualJointsWidget(QWidget* parent, const MoveItConfigData
 
   // Top Header Area ------------------------------------------------
 
-  HeaderWidget* header = new HeaderWidget("Define Virtual Joints",
-                                          "Create a virtual joint between a robot link and an external frame of "
-                                          "reference (considered fixed with respect to the robot).",
-                                          this);
+  HeaderWidget* header =
+      new HeaderWidget("Define Virtual Joints",
+                       "Create a virtual joint between the base robot link and an external frame of reference. "
+                       "This allows to place the robot in the world or on a mobile platform.",
+                       this);
   layout->addWidget(header);
 
   // Create contents screens ---------------------------------------

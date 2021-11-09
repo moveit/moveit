@@ -235,14 +235,14 @@ void CollisionEnvBullet::checkRobotCollisionHelperCCD(const CollisionRequest& re
   }
 }
 
-void CollisionEnvBullet::distanceSelf(const DistanceRequest& req, DistanceResult& res,
-                                      const moveit::core::RobotState& state) const
+void CollisionEnvBullet::distanceSelf(const DistanceRequest& /*req*/, DistanceResult& /*res*/,
+                                      const moveit::core::RobotState& /*state*/) const
 {
   ROS_INFO_NAMED(LOGNAME, "distanceSelf is not implemented for Bullet.");
 }
 
-void CollisionEnvBullet::distanceRobot(const DistanceRequest& req, DistanceResult& res,
-                                       const moveit::core::RobotState& state) const
+void CollisionEnvBullet::distanceRobot(const DistanceRequest& /*req*/, DistanceResult& /*res*/,
+                                       const moveit::core::RobotState& /*state*/) const
 {
   ROS_INFO_NAMED(LOGNAME, "distanceRobot is not implemented for Bullet.");
 }
