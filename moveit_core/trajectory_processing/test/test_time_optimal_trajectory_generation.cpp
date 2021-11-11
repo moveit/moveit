@@ -255,15 +255,60 @@ TEST(time_optimal_trajectory_generation, testPluginAPI)
   waypoint_state.setJointGroupPositions(group, { -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
   trajectory.addSuffixWayPoint(waypoint_state, 0.1);
 
+  // Test computing the dynamics twice with the same totg instance
+  moveit_msgs::RobotTrajectory first_trajectory_msg_start, first_trajectory_msg_end;
   {
     robot_trajectory::RobotTrajectory test_trajectory(trajectory, true /* deep copy */);
 
     TimeOptimalTrajectoryGeneration totg;
     ASSERT_TRUE(totg.computeTimeStamps(test_trajectory)) << "Failed to compute time stamps";
-    EXPECT_TRUE(totg.computeTimeStamps(test_trajectory))
-        << "Failed to compute time stamps on the already parameterized trajectory with the same TOTG instance";
+
+    test_trajectory.getRobotTrajectoryMsg(first_trajectory_msg_start);
+
+    // Iteratively recompute timestamps with same totg instance
+    for (size_t i = 0; i < 100; ++i)
+    {
+      bool totg_success = totg.computeTimeStamps(test_trajectory);
+      EXPECT_TRUE(totg_success) << "Failed to compute time stamps with a same TOTG instance in iteration " << i;
+
+      if (totg_success)
+        break;
+    }
+
+    test_trajectory.getRobotTrajectoryMsg(first_trajectory_msg_end);
   }
 
+  // Test computing the dynamics twice with one TOTG instance per call
+  moveit_msgs::RobotTrajectory second_trajectory_msg_start, second_trajectory_msg_end;
+  {
+    robot_trajectory::RobotTrajectory test_trajectory(trajectory, true /* deep copy */);
+
+    {
+      TimeOptimalTrajectoryGeneration totg;
+      ASSERT_TRUE(totg.computeTimeStamps(test_trajectory)) << "Failed to compute time stamps";
+    }
+
+    test_trajectory.getRobotTrajectoryMsg(second_trajectory_msg_start);
+
+    // Iteratively recompute timestamps with new totg instances
+    for (size_t i = 0; i < 100; ++i)
+    {
+      TimeOptimalTrajectoryGeneration totg;
+      bool totg_success = totg.computeTimeStamps(test_trajectory);
+      EXPECT_TRUE(totg_success) << "Failed to compute time stamps with a new TOTG instance in iteration " << i;
+
+      if (totg_success)
+        break;
+    }
+
+    test_trajectory.getRobotTrajectoryMsg(second_trajectory_msg_end);
+  }
+
+  // Make sure trajectories produce equal waypoints independent of TOTG instances
+  ASSERT_EQ(first_trajectory_msg_start, second_trajectory_msg_start);
+  ASSERT_EQ(first_trajectory_msg_end, second_trajectory_msg_end);
+
+  // Iterate on the original trajectory again
   for (size_t i = 0; i < 100; ++i)
   {
     TimeOptimalTrajectoryGeneration totg;
