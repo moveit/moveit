@@ -1,0 +1,27 @@
+name: Dispatch an event when a new tag is created
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  dispatch:
+    strategy:
+      matrix:
+        repo: ['makinarocks/project-kia-olp-ros']
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set Ref as Output
+        id: vars
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+      - name: Check output
+        run: echo ${{ steps.vars.outputs.tag }}
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.ORG_PAT }}
+          repository: ${{ matrix.repo }}
+          event-type: new-tag
+          client-payload: '{"tag": ${{ toJson(steps.vars.outputs.tag) }}}'
