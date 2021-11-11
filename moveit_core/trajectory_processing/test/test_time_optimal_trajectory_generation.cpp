@@ -255,7 +255,7 @@ TEST(time_optimal_trajectory_generation, testPluginAPI)
   waypoint_state.setJointGroupPositions(group, { -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
   trajectory.addSuffixWayPoint(waypoint_state, 0.1);
 
-  // Test computing the dynamics twice with the same totg instance
+  // Test computing the dynamics repeatedly with the same totg instance
   moveit_msgs::RobotTrajectory first_trajectory_msg_start, first_trajectory_msg_end;
   {
     robot_trajectory::RobotTrajectory test_trajectory(trajectory, true /* deep copy */);
@@ -278,7 +278,7 @@ TEST(time_optimal_trajectory_generation, testPluginAPI)
     test_trajectory.getRobotTrajectoryMsg(first_trajectory_msg_end);
   }
 
-  // Test computing the dynamics twice with one TOTG instance per call
+  // Test computing the dynamics repeatedly with one TOTG instance per call
   moveit_msgs::RobotTrajectory second_trajectory_msg_start, second_trajectory_msg_end;
   {
     robot_trajectory::RobotTrajectory test_trajectory(trajectory, true /* deep copy */);
