@@ -38,8 +38,10 @@
 
 #include <gtest/gtest.h>
 #include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
+#include <moveit/utils/robot_model_test_utils.h>
 
 using trajectory_processing::Path;
+using trajectory_processing::TimeOptimalTrajectoryGeneration;
 using trajectory_processing::Trajectory;
 
 TEST(time_optimal_trajectory_generation, test1)
@@ -224,6 +226,49 @@ TEST(time_optimal_trajectory_generation, testLargeAccel)
     ASSERT_EQ(acceleration.size(), 6);
     for (std::size_t i = 0; i < 6; ++i)
       EXPECT_NEAR(acceleration(i), 0.0, 100.0) << "Invalid acceleration at position " << sample_count << "\n";
+  }
+}
+
+TEST(time_optimal_trajectory_generation, testPluginAPI)
+{
+  constexpr auto ROBOT_NAME{ "panda" };
+  constexpr auto GROUP_NAME{ "panda_arm" };
+
+  auto robot_model = moveit::core::loadTestingRobotModel(ROBOT_NAME);
+  ASSERT_TRUE((bool)robot_model) << "Failed to load robot model" << ROBOT_NAME;
+  auto group = robot_model->getJointModelGroup(GROUP_NAME);
+  ASSERT_TRUE((bool)group) << "Failed to load joint model group " << GROUP_NAME;
+  moveit::core::RobotState waypoint_state(robot_model);
+  waypoint_state.setToDefaultValues();
+
+  robot_trajectory::RobotTrajectory trajectory(robot_model, group);
+  waypoint_state.setJointGroupPositions(group, { -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+  waypoint_state.setJointGroupPositions(group, { -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+  waypoint_state.setJointGroupPositions(group, { 0.0, -3.5, 1.4, -1.2, -1.0, -0.2, 0.0 });
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+  waypoint_state.setJointGroupPositions(group, { -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+  waypoint_state.setJointGroupPositions(group, { 0.0, -3.5, 1.4, -1.2, -1.0, -0.2, 0.0 });
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+  waypoint_state.setJointGroupPositions(group, { -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+
+  {
+    robot_trajectory::RobotTrajectory test_trajectory(trajectory, true /* deep copy */);
+
+    TimeOptimalTrajectoryGeneration totg;
+    ASSERT_TRUE(totg.computeTimeStamps(test_trajectory)) << "Failed to compute time stamps";
+    EXPECT_TRUE(totg.computeTimeStamps(test_trajectory))
+        << "Failed to compute time stamps on the already parameterized trajectory with the same TOTG instance";
+  }
+
+  for (size_t i = 0; i < 100; ++i)
+  {
+    TimeOptimalTrajectoryGeneration totg;
+    ASSERT_TRUE(totg.computeTimeStamps(trajectory))
+        << "Failed to compute timestamps on a new TOTG instance in iteration " << i;
   }
 }
 
