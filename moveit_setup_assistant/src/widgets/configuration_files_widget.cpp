@@ -467,6 +467,19 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = 0;
   gen_files_.push_back(file);
 
+  // ompl-chomp_planning_pipeline.launch.xml
+  // --------------------------------------------------------------------------------------
+  file.file_name_ = "ompl-chomp_planning_pipeline.launch.xml";
+  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
+  template_path = config_data_->appendPaths(template_launch_path, file.file_name_);
+  file.description_ =
+      "Intended to be included in other launch files that require the OMPL-CHOMP planning plugins. Defines "
+      "the proper plugin name on the parameter server and a default selection of planning request "
+      "adapters.";
+  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  file.write_on_changes = 0;
+  gen_files_.push_back(file);
+
   // planning_pipeline.launch --------------------------------------------------------------------------------------
   file.file_name_ = "planning_pipeline.launch.xml";
   file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
