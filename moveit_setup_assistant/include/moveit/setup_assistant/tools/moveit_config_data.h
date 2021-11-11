@@ -310,6 +310,7 @@ public:
   bool outputSetupAssistantFile(const std::string& file_path);
   bool outputOMPLPlanningYAML(const std::string& file_path);
   bool outputCHOMPPlanningYAML(const std::string& file_path);
+  bool outputSTOMPPlanningYAML(const std::string& file_path);
   bool outputKinematicsYAML(const std::string& file_path);
   bool outputJointLimitsYAML(const std::string& file_path);
   bool outputFakeControllersYAML(const std::string& file_path);

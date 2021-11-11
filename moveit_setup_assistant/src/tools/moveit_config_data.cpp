@@ -327,6 +327,154 @@ bool MoveItConfigData::outputCHOMPPlanningYAML(const std::string& file_path)
 }
 
 // ******************************************************************************************
+// Output STOMP Planning config files
+// ******************************************************************************************
+bool MoveItConfigData::outputSTOMPPlanningYAML(const std::string& file_path)
+{
+  YAML::Emitter emitter;
+
+  emitter << YAML::BeginMap;
+  emitter << YAML::Key << "stomp/panda_arm";
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "group_name";
+  emitter << YAML::Value << "panda_arm";
+
+  emitter << YAML::Key << "optimization";
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "num_timesteps";
+  emitter << YAML::Value << "60";
+  emitter << YAML::Key << "num_iterations";
+  emitter << YAML::Value << "40";
+  emitter << YAML::Key << "num_iterations_after_valid";
+  emitter << YAML::Value << "0";
+  emitter << YAML::Key << "num_rollouts";
+  emitter << YAML::Value << "30";
+  emitter << YAML::Key << "max_rollouts";
+  emitter << YAML::Value << "30";
+  emitter << YAML::Key << "initialization_method";
+  emitter << YAML::Value << "1";
+  emitter << YAML::Comment("[1 : LINEAR_INTERPOLATION, 2 : CUBIC_POLYNOMIAL, 3 : MININUM_CONTROL_COST]");
+  emitter << YAML::Key << "control_cost_weight";
+  emitter << YAML::Value << "0.0";
+  emitter << YAML::Value << YAML::EndMap;
+
+  emitter << YAML::Key << "task";
+  emitter << YAML::Value << YAML::BeginMap;
+
+  emitter << YAML::Key << "noise_generator";
+  emitter << YAML::BeginSeq;
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "class";
+  emitter << YAML::Value << "stomp_moveit/NormalDistributionSampling";
+  emitter << YAML::Key << "stddev";
+  emitter << YAML::Flow;
+  std::vector<float> stddev;
+  stddev.push_back(0.05);
+  stddev.push_back(0.8);
+  stddev.push_back(1.0);
+  stddev.push_back(0.8);
+  stddev.push_back(0.4);
+  stddev.push_back(0.4);
+  stddev.push_back(0.4);
+  emitter << YAML::Value << stddev;
+  emitter << YAML::Value << YAML::EndMap;
+  emitter << YAML::EndSeq;
+
+  emitter << YAML::Key << "cost_functions";
+  emitter << YAML::BeginSeq;
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "class";
+  emitter << YAML::Value << "stomp_moveit/CollisionCheck";
+  emitter << YAML::Key << "collision_penalty";
+  emitter << YAML::Value << "1.0";
+  emitter << YAML::Key << "cost_weight";
+  emitter << YAML::Value << "1.0";
+  emitter << YAML::Key << "kernel_window_percentage";
+  emitter << YAML::Value << "0.2";
+  emitter << YAML::Key << "longest_valid_joint_move";
+  emitter << YAML::Value << "0.05";
+  emitter << YAML::Value << YAML::EndMap;
+  emitter << YAML::EndSeq;
+
+  emitter << YAML::Key << "noisy_filters";
+  emitter << YAML::BeginSeq;
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "class";
+  emitter << YAML::Value << "stomp_moveit/JointLimits";
+  emitter << YAML::Key << "lock_start";
+  emitter << YAML::Value << "True";
+  emitter << YAML::Key << "lock_goal";
+  emitter << YAML::Value << "True";
+  emitter << YAML::Value << YAML::EndMap;
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "class";
+  emitter << YAML::Value << "stomp_moveit/MultiTrajectoryVisualization";
+  emitter << YAML::Key << "line_width";
+  emitter << YAML::Value << "0.02";
+  emitter << YAML::Key << "rgb";
+  emitter << YAML::Flow;
+  std::vector<float> noisy_filters_rgb;
+  noisy_filters_rgb.push_back(255);
+  noisy_filters_rgb.push_back(255);
+  noisy_filters_rgb.push_back(0);
+  emitter << YAML::Value << noisy_filters_rgb;
+  emitter << YAML::Key << "marker_array_topic";
+  emitter << YAML::Value << "stomp_trajectories";
+  emitter << YAML::Key << "marker_namespace";
+  emitter << YAML::Value << "noisy";
+  emitter << YAML::Value << YAML::EndMap;
+  emitter << YAML::EndSeq;
+
+  emitter << YAML::Key << "update_filters";
+  emitter << YAML::BeginSeq;
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "class";
+  emitter << YAML::Value << "stomp_moveit/PolynomialSmoother";
+  emitter << YAML::Key << "poly_order";
+  emitter << YAML::Value << "6";
+  emitter << YAML::Value << YAML::EndMap;
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "class";
+  emitter << YAML::Value << "stomp_moveit/TrajectoryVisualization";
+  emitter << YAML::Key << "line_width";
+  emitter << YAML::Value << "0.05";
+  emitter << YAML::Key << "rgb";
+  emitter << YAML::Flow;
+  std::vector<float> update_filters_rgb;
+  update_filters_rgb.push_back(0);
+  update_filters_rgb.push_back(191);
+  update_filters_rgb.push_back(255);
+  emitter << YAML::Value << update_filters_rgb;
+  emitter << YAML::Key << "error_rgb";
+  emitter << YAML::Flow;
+  std::vector<float> update_filters_error_rgb;
+  update_filters_error_rgb.push_back(255);
+  update_filters_error_rgb.push_back(0);
+  update_filters_error_rgb.push_back(0);
+  emitter << YAML::Value << update_filters_error_rgb;
+  emitter << YAML::Key << "publish_intermediate";
+  emitter << YAML::Value << "True";
+  emitter << YAML::Key << "marker_topic";
+  emitter << YAML::Value << "stomp_trajectory";
+  emitter << YAML::Key << "marker_namespace";
+  emitter << YAML::Value << "optimized";
+  emitter << YAML::Value << YAML::EndMap;
+  emitter << YAML::EndSeq;
+
+  std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
+  if (!output_stream.good())
+  {
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
+    return false;
+  }
+
+  output_stream << emitter.c_str();
+  output_stream.close();
+
+  return true;  // file created successfully
+}
+
+// ******************************************************************************************
 // Output kinematic config files
 // ******************************************************************************************
 bool MoveItConfigData::outputKinematicsYAML(const std::string& file_path)
