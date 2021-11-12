@@ -182,7 +182,8 @@ bool MoveItConfigData::outputSetupAssistantFile(const std::string& file_path)
   emitter << YAML::Value << YAML::BeginMap;
   emitter << YAML::Key << "author_name" << YAML::Value << author_name_;
   emitter << YAML::Key << "author_email" << YAML::Value << author_email_;
-  emitter << YAML::Key << "generated_timestamp" << YAML::Value << std::time(nullptr);  // TODO: is this cross-platform?
+  auto cur_time = std::time(nullptr);
+  emitter << YAML::Key << "generated_timestamp" << YAML::Value << cur_time;  // TODO: is this cross-platform?
   emitter << YAML::EndMap;
 
   emitter << YAML::EndMap;
@@ -196,6 +197,10 @@ bool MoveItConfigData::outputSetupAssistantFile(const std::string& file_path)
 
   output_stream << emitter.c_str();
   output_stream.close();
+
+  /// Update the parsed setup_assistant timestamp
+  // NOTE: Needed for when people run the MSA generator multiple times in a row.
+  config_pkg_generated_timestamp_ = cur_time;
 
   return true;  // file created successfully
 }
