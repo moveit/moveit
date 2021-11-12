@@ -13,7 +13,7 @@
   </include>
 
   <!-- send robot urdf to param server -->
-  <param name="robot_description" [URDF_LOAD_ATTRIBUTE] />
+  <param name="robot_description" [GAZEBO_URDF_LOAD_ATTRIBUTE] />
 
   <!-- unpause only after loading robot model -->
   <arg name="unpause" value="$(eval '' if arg('paused') else '-unpause')" />

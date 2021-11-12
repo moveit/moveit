@@ -89,15 +89,34 @@ SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& c
   blank_space = new QSpacerItem(1, 6);
   layout->addSpacerItem(blank_space);
 
+  // Top Buttons --------------------------------------------------
+  QHBoxLayout* controls_layout = new QHBoxLayout();
+
   // Used to make the new URDF visible
   QPushButton* btn_generate = new QPushButton("&Generate URDF", this);
   btn_generate->setMinimumWidth(180);
   btn_generate->setMinimumHeight(40);
-  layout->addWidget(btn_generate);
-  layout->setAlignment(btn_generate, Qt::AlignLeft);
   connect(btn_generate, SIGNAL(clicked()), this, SLOT(generateURDFClick()));
+  controls_layout->addWidget(btn_generate);
+  controls_layout->setAlignment(btn_generate, Qt::AlignLeft);
 
-  // When there wa no change to be made
+  // Used to overwrite the original URDF
+  btn_overwrite_ = new QPushButton("&Overwrite Original URDF", this);
+  btn_overwrite_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  btn_overwrite_->setMinimumWidth(180);
+  btn_overwrite_->setMinimumHeight(40);
+  btn_overwrite_->setEnabled(false);
+  connect(btn_overwrite_, SIGNAL(clicked()), this, SLOT(overwriteURDFClick()));
+  controls_layout->addWidget(btn_overwrite_);
+  controls_layout->setAlignment(btn_overwrite_, Qt::AlignLeft);
+
+  // Spacer
+  controls_layout->addItem(new QSpacerItem(20, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
+
+  // Add layout
+  layout->addLayout(controls_layout);
+
+  // When there are no changes to be made
   no_changes_label_ = new QLabel(this);
   no_changes_label_->setText("No Changes To Be Made");
   layout->addWidget(no_changes_label_);
@@ -126,9 +145,63 @@ void SimulationWidget::generateURDFClick()
 {
   simulation_text_->setVisible(true);
   std::string gazebo_compatible_urdf_string = config_data_->getGazeboCompatibleURDF();
-  std::size_t urdf_length = gazebo_compatible_urdf_string.length();
+  config_data_->gazebo_urdf_string_ = gazebo_compatible_urdf_string;
 
   // Check if the urdf do need new elements to be added
+  displayURDF();
+
+  // Add generated Gazebo URDF to config file if not empty
+  config_data_->new_gazebo_urdf_ = !gazebo_compatible_urdf_string.empty();
+
+  config_data_->changes |= MoveItConfigData::SIMULATION;
+}
+
+// ******************************************************************************************
+// Called when save URDF button is clicked
+// ******************************************************************************************
+void SimulationWidget::overwriteURDFClick()
+{
+  // Overwrite original URDF if not xacro
+  if (config_data_->urdf_from_xacro_)
+  {
+    QString msg = QString("Robot description could not be overwritten since it has "
+                          "type <b>xacro</b>, and the MSA doesn't yet know how to "
+                          "overwrite xacro files. As a result the Gazebo URDF (i.e. "
+                          "'<i>gazebo_")
+                      .append(config_data_->urdf_model_->getName().c_str())
+                      .append(".urdf</i>') will be added as a configuration file. If you "
+                              "still want to overwrite the is original robot "
+                              "description, you can manually add the code that "
+                              "<font color='green'>green</font> in the text field to "
+                              "the original xacro file.");
+    QMessageBox::warning(this, "Overwriting Failed", msg);
+  }
+  else
+  {
+    TiXmlDocument urdf_document;
+
+    urdf_document.Parse((const char*)config_data_->gazebo_urdf_string_.c_str(), nullptr, TIXML_ENCODING_UTF8);
+    urdf_document.SaveFile(config_data_->urdf_path_);
+
+    // Display success message
+    QString msg = QString("Original robot description URDF was successfully overwritten.");
+    QMessageBox::information(this, "Overwriting Successfull", msg);
+
+    // Remove generated Gazebo URDF file from config files
+    config_data_->new_gazebo_urdf_ = false;
+
+    config_data_->changes |= MoveItConfigData::SIMULATION;
+  }
+}
+
+// ******************************************************************************************
+// Displays the gazebo urdf on the GUI
+// ******************************************************************************************
+void SimulationWidget::displayURDF()
+{
+  std::size_t urdf_length = config_data_->gazebo_urdf_string_.length();
+  simulation_text_->clear();
+
   if (urdf_length > 0)
   {
     // Split the added elements from the original urdf to view them in different colors
@@ -138,8 +211,8 @@ void SimulationWidget::generateURDFClick()
     std::regex end_reg_ex("</inertial");
 
     // Search for inertial elemnts using regex
-    std::regex_search(gazebo_compatible_urdf_string, start_match, start_reg_ex);
-    std::regex_search(gazebo_compatible_urdf_string, end_match, end_reg_ex);
+    std::regex_search(config_data_->gazebo_urdf_string_, start_match, start_reg_ex);
+    std::regex_search(config_data_->gazebo_urdf_string_, end_match, end_reg_ex);
 
     // Used to cache the positions of the opening and closing of the inertial elements
     std::vector<int> inertial_opening_matches;
@@ -148,8 +221,8 @@ void SimulationWidget::generateURDFClick()
     inertial_closing_matches.push_back(0);
 
     // Cache the positions of the openings of the inertial elements
-    for (auto it = std::sregex_iterator(gazebo_compatible_urdf_string.begin(), gazebo_compatible_urdf_string.end(),
-                                        start_reg_ex);
+    for (auto it = std::sregex_iterator(config_data_->gazebo_urdf_string_.begin(),
+                                        config_data_->gazebo_urdf_string_.end(), start_reg_ex);
          it != std::sregex_iterator(); ++it)
     {
       inertial_opening_matches.push_back(it->position());
@@ -158,8 +231,8 @@ void SimulationWidget::generateURDFClick()
     inertial_opening_matches.push_back(urdf_length);
 
     // Cache the positions of the closings of the inertial elements
-    for (auto it = std::sregex_iterator(gazebo_compatible_urdf_string.begin(), gazebo_compatible_urdf_string.end(),
-                                        end_reg_ex);
+    for (auto it = std::sregex_iterator(config_data_->gazebo_urdf_string_.begin(),
+                                        config_data_->gazebo_urdf_string_.end(), end_reg_ex);
          it != std::sregex_iterator(); ++it)
     {
       inertial_closing_matches.push_back(it->position());
@@ -170,7 +243,7 @@ void SimulationWidget::generateURDFClick()
       // Show the unmodified elements in black
       simulation_text_->setTextColor(QColor("black"));
       simulation_text_->append(
-          QString(gazebo_compatible_urdf_string
+          QString(config_data_->gazebo_urdf_string_
                       .substr(inertial_closing_matches[match_number],
                               inertial_opening_matches[match_number] - inertial_closing_matches[match_number])
                       .c_str()));
@@ -179,7 +252,7 @@ void SimulationWidget::generateURDFClick()
       simulation_text_->setTextColor(QColor("green"));
 
       simulation_text_->append(
-          QString(gazebo_compatible_urdf_string
+          QString(config_data_->gazebo_urdf_string_
                       .substr(inertial_opening_matches[match_number],
                               inertial_closing_matches[match_number + 1] - inertial_opening_matches[match_number] + 11)
                       .c_str()));
@@ -187,7 +260,7 @@ void SimulationWidget::generateURDFClick()
     }
 
     // Position of the first transmission element in the urdf
-    std::size_t first_transmission = gazebo_compatible_urdf_string.find("<transmission");
+    std::size_t first_transmission = config_data_->gazebo_urdf_string_.find("<transmission");
 
     // Position of the last inertial element in the urdf
     std::size_t last_inertial = inertial_closing_matches[inertial_opening_matches.size() - 1];
@@ -196,24 +269,27 @@ void SimulationWidget::generateURDFClick()
     {
       simulation_text_->setTextColor(QColor("black"));
       simulation_text_->append(
-          QString(gazebo_compatible_urdf_string.substr(last_inertial, first_transmission - last_inertial).c_str()));
+          QString(config_data_->gazebo_urdf_string_.substr(last_inertial, first_transmission - last_inertial).c_str()));
 
       // Write from the first transmission element until the closing robot element in green
       simulation_text_->setTextColor(QColor("green"));
       simulation_text_->append(QString(
-          gazebo_compatible_urdf_string.substr(first_transmission, urdf_length - first_transmission - 10).c_str()));
+          config_data_->gazebo_urdf_string_.substr(first_transmission, urdf_length - first_transmission - 10).c_str()));
 
       // Write the closing robot element in black
       simulation_text_->setTextColor(QColor("black"));
       simulation_text_->append(QString("</robot>"));
     }
 
+    // Overwrite button appears after the text is ready
+    btn_overwrite_->setEnabled(true);
+
     // Copy link appears after the text is ready
     copy_urdf_->setVisible(true);
   }
   else
   {
-    simulation_text_->append(QString(gazebo_compatible_urdf_string.c_str()));
+    simulation_text_->append(QString(config_data_->gazebo_urdf_string_.c_str()));
     no_changes_label_->setVisible(true);
   }
 }

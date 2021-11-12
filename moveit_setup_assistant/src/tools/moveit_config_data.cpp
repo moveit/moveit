@@ -209,6 +209,30 @@ bool MoveItConfigData::outputSetupAssistantFile(const std::string& file_path)
 }
 
 // ******************************************************************************************
+// Check if Gazebo URDF was generated
+// ******************************************************************************************
+bool MoveItConfigData::gazeboURDFGenerated()
+{
+  return new_gazebo_urdf_;
+}
+
+// ******************************************************************************************
+// Output Gazebo URDF file
+// ******************************************************************************************
+bool MoveItConfigData::outputGazeboURDFFile(const std::string& file_path)
+{
+  if (new_gazebo_urdf_)
+  {
+    TiXmlDocument urdf_document;
+
+    urdf_document.Parse((const char*)gazebo_urdf_string_.c_str(), nullptr, TIXML_ENCODING_UTF8);
+    urdf_document.SaveFile(file_path);
+  }
+
+  return true;  // file created successfully
+}
+
+// ******************************************************************************************
 // Output OMPL Planning config files
 // ******************************************************************************************
 bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
@@ -512,7 +536,7 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
   bool new_urdf_needed = false;
   TiXmlDocument urdf_document;
 
-  // Used to convert XmlDocument to std string
+  // Used to convert XmlDocument to std::string
   TiXmlPrinter printer;
   urdf_document.Parse((const char*)urdf_string_.c_str(), nullptr, TIXML_ENCODING_UTF8);
   try
@@ -659,7 +683,7 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
     return std::string(printer.CStr());
   }
 
-  return std::string("");
+  return std::string();
 }
 
 bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
