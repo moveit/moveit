@@ -38,6 +38,7 @@
 // Qt
 class QLabel;
 class QTextEdit;
+class QPushButton;
 
 // SA
 #ifndef Q_MOC_RUN
@@ -76,6 +77,12 @@ private Q_SLOTS:
   /// Generate URDF button clicked
   void generateURDFClick();
 
+  /// Overwrite original URDF button clicked
+  void overwriteURDFClick();
+
+  /// Display gazebo URDF on the GUI
+  void displayURDF();
+
 private:
   // ******************************************************************************************
   // Qt Components
@@ -83,6 +90,7 @@ private:
 
   QTextEdit* simulation_text_;
   QLabel* no_changes_label_;
+  QPushButton* btn_overwrite_;
   QLabel* copy_urdf_;
 
   /// Contains all the configuration data for the setup assistant

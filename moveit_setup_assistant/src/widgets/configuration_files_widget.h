@@ -62,9 +62,10 @@ struct GenerateFile
   std::string file_name_;
   std::string rel_path_;
   std::string description_;
-  unsigned long write_on_changes;  // bitfield indicating required rewrite
-  bool generate_;                  // "generate" checkbox ticked?
-  bool modified_;                  // file externally modified?
+  unsigned long write_on_changes;        // bitfield indicating required rewrite
+  bool generate_;                        // "generate" checkbox ticked?
+  bool modified_;                        // file externally modified?
+  boost::function<bool()> hidden_func_;  // function that hides a file checkbox
   boost::function<bool(std::string)> gen_func_;
 };
 
@@ -125,6 +126,9 @@ private:
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
+
+  /// Relative configuration path
+  std::string config_path_;
 
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;

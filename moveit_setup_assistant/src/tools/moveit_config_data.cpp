@@ -201,6 +201,30 @@ bool MoveItConfigData::outputSetupAssistantFile(const std::string& file_path)
 }
 
 // ******************************************************************************************
+// Check if Gazebo URDF was generated
+// ******************************************************************************************
+bool MoveItConfigData::gazeboURDFGenerated()
+{
+  return new_gazebo_urdf_;
+}
+
+// ******************************************************************************************
+// Output Gazebo URDF file
+// ******************************************************************************************
+bool MoveItConfigData::outputGazeboURDFFile(const std::string& file_path)
+{
+  if (new_gazebo_urdf_)
+  {
+    TiXmlDocument urdf_document;
+
+    urdf_document.Parse((const char*)gazebo_urdf_string_.c_str(), nullptr, TIXML_ENCODING_UTF8);
+    urdf_document.SaveFile(file_path);
+  }
+
+  return true;  // file created successfully
+}
+
+// ******************************************************************************************
 // Output OMPL Planning config files
 // ******************************************************************************************
 bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)

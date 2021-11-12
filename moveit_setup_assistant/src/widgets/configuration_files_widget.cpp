@@ -242,7 +242,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   // -------------------------------------------------------------------------------------------------------------------
   // CONIG FILES -------------------------------------------------------------------------------------------------------
   // -------------------------------------------------------------------------------------------------------------------
-  std::string config_path = "config";
+  config_path_ = "config";
 
   // config/ --------------------------------------------------------------------------------------
   file.file_name_ = "config/";
@@ -257,7 +257,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.file_name_ = config_data_->srdf_pkg_relative_path_.empty() ? config_data_->urdf_model_->getName() + ".srdf" :
                                                                     config_data_->srdf_pkg_relative_path_;
   file.rel_path_ = config_data_->srdf_pkg_relative_path_.empty() ?
-                       config_data_->appendPaths(config_path, file.file_name_) :
+                       config_data_->appendPaths(config_path_, file.file_name_) :
                        config_data_->srdf_pkg_relative_path_;
   file.description_ = "SRDF (<a href='http://www.ros.org/wiki/srdf'>Semantic Robot Description Format</a>) is a "
                       "representation of semantic information about robots. This format is intended to represent "
@@ -269,9 +269,23 @@ bool ConfigurationFilesWidget::loadGenFiles()
   // special step required so the generated .setup_assistant yaml has this value
   config_data_->srdf_pkg_relative_path_ = file.rel_path_;
 
+  // gazebo_<ROBOT>.urdf ---------------------------------------------------------------------------------------
+  file.file_name_ = "gazebo_" + config_data_->urdf_model_->getName() + ".urdf";
+  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
+  file.description_ = "URDF (<a href='https://wiki.ros.org/urdf'>Unified Robot Description Format</a>) is an XML "
+                      "format for representing a robot model. This file is similar to the Robot model you loaded "
+                      "into the MSA but converted to the right format such that it is compatible with GAZEBO "
+                      "(checkout the <a href='http://gazebosim.org/tutorials/?tut=ros_urdf'>URDF gazebo</a> "
+                      "documentation for more information).";
+  file.hidden_func_ = !boost::bind(&MoveItConfigData::gazeboURDFGenerated, config_data_);
+  file.gen_func_ = boost::bind(&MoveItConfigData::outputGazeboURDFFile, config_data_, _1);
+  file.write_on_changes = MoveItConfigData::SIMULATION;
+  gen_files_.push_back(file);
+  file.hidden_func_.clear();
+
   // ompl_planning.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "ompl_planning.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
   file.description_ = "Configures the OMPL (<a href='http://ompl.kavrakilab.org/'>Open Motion Planning Library</a>) "
                       "planning plugin. For every planning group defined in the SRDF, a number of planning "
                       "configurations are specified (under planner_configs). Additionally, default settings for the "
@@ -286,7 +300,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // chomp_planning.yaml  --------------------------------------------------------------------------------------
   file.file_name_ = "chomp_planning.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
   file.description_ = "Specifies which chomp planning plugin parameters to be used for the CHOMP planner";
   file.gen_func_ = boost::bind(&MoveItConfigData::outputCHOMPPlanningYAML, config_data_, _1);
   file.write_on_changes = MoveItConfigData::GROUPS;  // need to double check if this is actually correct!
@@ -294,7 +308,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // kinematics.yaml  --------------------------------------------------------------------------------------
   file.file_name_ = "kinematics.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
   file.description_ = "Specifies which kinematic solver plugin to use for each planning group in the SRDF, as well as "
                       "the kinematic solver search resolution.";
   file.gen_func_ = boost::bind(&MoveItConfigData::outputKinematicsYAML, config_data_, _1);
@@ -303,7 +317,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // joint_limits.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "joint_limits.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
   file.description_ = "Contains additional information about joints that appear in your planning groups that is not "
                       "contained in the URDF, as well as allowing you to set maximum and minimum limits for velocity "
                       "and acceleration than those contained in your URDF. This information is used by our trajectory "
@@ -315,7 +329,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // cartesian_limits.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "cartesian_limits.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
   template_path = config_data_->appendPaths(config_data_->template_package_path_, file.rel_path_);
   file.description_ = "Cartesian velocity for planning in the workspace."
                       "The velocity is used by pilz industrial motion planner as maximum velocity for cartesian "
@@ -326,7 +340,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // fake_controllers.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "fake_controllers.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
   file.description_ = "Creates dummy configurations for controllers that correspond to defined groups. This is mostly "
                       "useful for testing.";
   file.gen_func_ = boost::bind(&MoveItConfigData::outputFakeControllersYAML, config_data_, _1);
@@ -335,7 +349,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // simple_moveit_controllers.yaml -------------------------------------------------------------------------------
   file.file_name_ = "simple_moveit_controllers.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
   file.description_ = "Creates controller configuration for SimpleMoveItControllerManager";
   file.gen_func_ = boost::bind(&MoveItConfigData::outputSimpleControllersYAML, config_data_, _1);
   file.write_on_changes = MoveItConfigData::GROUPS;
@@ -343,7 +357,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // gazebo_controllers.yaml ------------------------------------------------------------------
   file.file_name_ = "gazebo_controllers.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
   template_path = config_data_->appendPaths(config_data_->template_package_path_, file.rel_path_);
   file.description_ = "Configuration of Gazebo controllers";
   file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
@@ -351,7 +365,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // ros_controllers.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "ros_controllers.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
   file.description_ = "Creates controller configurations for ros_control.";
   file.gen_func_ = boost::bind(&MoveItConfigData::outputROSControllersYAML, config_data_, _1);
   file.write_on_changes = MoveItConfigData::GROUPS;
@@ -359,7 +373,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // sensors_3d.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "sensors_3d.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
   file.description_ = "Creates configurations 3d sensors.";
   file.gen_func_ = boost::bind(&MoveItConfigData::output3DSensorPluginYAML, config_data_, _1);
   file.write_on_changes = MoveItConfigData::SENSORS_CONFIG;
@@ -569,6 +583,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.description_ = "Gazebo launch file which also launches ros_controllers and sends robot urdf to param server, "
                       "then using gazebo_ros pkg the robot is spawned to Gazebo";
   file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  file.write_on_changes = MoveItConfigData::SIMULATION;
   gen_files_.push_back(file);
 
   // joystick_control.launch ------------------------------------------------------------------
@@ -906,6 +921,12 @@ bool ConfigurationFilesWidget::showGenFiles()
     // Link the gen_files_ index to this item
     item->setData(Qt::UserRole, QVariant(static_cast<qulonglong>(i)));
 
+    // Disable items that need to be disabled
+    if (file->hidden_func_ && file->hidden_func_())
+    {
+      item->setHidden(file->hidden_func_());
+    }
+
     // Add actions to list
     action_list_->addItem(item);
     action_desc_.append(QString(file->description_.c_str()));
@@ -1141,15 +1162,30 @@ void ConfigurationFilesWidget::loadTemplateStrings()
     addTemplateString("[URDF_LOAD_ATTRIBUTE]", "textfile=\"" + urdf_location + "\"");
 
   // Pair 4
-  addTemplateString("[ROBOT_NAME]", config_data_->srdf_->robot_name_);
+  if (config_data_->new_gazebo_urdf_)
+  {
+    std::string file_name = "gazebo_" + config_data_->urdf_model_->getName() + ".urdf";
+    std::string rel_path = config_data_->appendPaths(config_path_, file_name);
+    addTemplateString("[GAZEBO_URDF_LOAD_ATTRIBUTE]", "textfile=\"$(find " + new_package_name_ + ")/" + rel_path + "\"");
+  }
+  else if (config_data_->urdf_from_xacro_)
+  {
+    addTemplateString("[GAZEBO_URDF_LOAD_ATTRIBUTE]",
+                      "command=\"xacro " + config_data_->xacro_args_ + " '" + urdf_location + "'\"");
+  }
+  else
+    addTemplateString("[GAZEBO_URDF_LOAD_ATTRIBUTE]", "textfile=\"" + urdf_location + "\"");
 
   // Pair 5
-  addTemplateString("[ROBOT_ROOT_LINK]", config_data_->getRobotModel()->getRootLinkName());
+  addTemplateString("[ROBOT_NAME]", config_data_->srdf_->robot_name_);
 
   // Pair 6
-  addTemplateString("[PLANNING_FRAME]", config_data_->getRobotModel()->getModelFrame());
+  addTemplateString("[ROBOT_ROOT_LINK]", config_data_->getRobotModel()->getRootLinkName());
 
   // Pair 7
+  addTemplateString("[PLANNING_FRAME]", config_data_->getRobotModel()->getModelFrame());
+
+  // Pair 8
   std::stringstream vjb;
   for (std::size_t i = 0; i < config_data_->srdf_->virtual_joints_.size(); ++i)
   {
@@ -1159,7 +1195,7 @@ void ConfigurationFilesWidget::loadTemplateStrings()
   }
   addTemplateString("[VIRTUAL_JOINT_BROADCASTER]", vjb.str());
 
-  // Pair 8 - Add dependencies to package.xml if the robot.urdf file is relative to a ROS package
+  // Pair 9 - Add dependencies to package.xml if the robot.urdf file is relative to a ROS package
   if (config_data_->urdf_pkg_name_.empty())
   {
     addTemplateString("[OTHER_DEPENDENCIES", "");  // not relative to a ROS package
@@ -1171,7 +1207,7 @@ void ConfigurationFilesWidget::loadTemplateStrings()
     addTemplateString("[OTHER_DEPENDENCIES]", deps.str());  // not relative to a ROS package
   }
 
-  // Pair 9 - List of ROS Controllers to load in ros_controllers.launch file
+  // Pair 10 - List of ROS Controllers to load in ros_controllers.launch file
   if (config_data_->getControllers().empty())
   {
     addTemplateString("[ROS_CONTROLLERS]", "");
@@ -1188,7 +1224,7 @@ void ConfigurationFilesWidget::loadTemplateStrings()
     addTemplateString("[ROS_CONTROLLERS]", controllers.str());
   }
 
-  // Pair 10 - Add parameter files for the kinematics solvers that should be loaded
+  // Pair 11 - Add parameter files for the kinematics solvers that should be loaded
   // in addition to kinematics.yaml by planning_context.launch
   std::string kinematics_parameters_files_block;
   for (const auto& groups : config_data_->group_meta_data_)

@@ -58,6 +58,7 @@ qtcreator-*
 
 #gdb
 *.gdb
+compile_commands.json
 
 _build
 _autosummary
