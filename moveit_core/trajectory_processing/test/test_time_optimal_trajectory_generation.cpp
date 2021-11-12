@@ -260,6 +260,27 @@ TEST(time_optimal_trajectory_generation, testPluginAPI)
   {
     robot_trajectory::RobotTrajectory test_trajectory(trajectory, true /* deep copy */);
 
+    // Test if the trajectory was copied correctly
+    ASSERT_EQ(test_trajectory.getDuration(), trajectory.getDuration());
+    moveit::core::JointBoundsVector test_bounds = test_trajectory.getRobotModel()->getActiveJointModelsBounds();
+    moveit::core::JointBoundsVector original_bounds = trajectory.getRobotModel()->getActiveJointModelsBounds();
+    ASSERT_EQ(test_bounds.size(), original_bounds.size());
+    for (size_t bound_idx = 0; bound_idx < test_bounds.at(0)->size(); ++bound_idx)
+    {
+      ASSERT_EQ(test_bounds.at(0)->at(bound_idx).max_velocity_, original_bounds.at(0)->at(bound_idx).max_velocity_);
+      ASSERT_EQ(test_bounds.at(0)->at(bound_idx).min_velocity_, original_bounds.at(0)->at(bound_idx).min_velocity_);
+      ASSERT_EQ(test_bounds.at(0)->at(bound_idx).velocity_bounded_,
+                original_bounds.at(0)->at(bound_idx).velocity_bounded_);
+
+      ASSERT_EQ(test_bounds.at(0)->at(bound_idx).max_acceleration_,
+                original_bounds.at(0)->at(bound_idx).max_acceleration_);
+      ASSERT_EQ(test_bounds.at(0)->at(bound_idx).min_acceleration_,
+                original_bounds.at(0)->at(bound_idx).min_acceleration_);
+      ASSERT_EQ(test_bounds.at(0)->at(bound_idx).acceleration_bounded_,
+                original_bounds.at(0)->at(bound_idx).acceleration_bounded_);
+    }
+    ASSERT_EQ(test_trajectory.getWayPointDurationFromPrevious(1), trajectory.getWayPointDurationFromPrevious(1));
+
     TimeOptimalTrajectoryGeneration totg;
     ASSERT_TRUE(totg.computeTimeStamps(test_trajectory)) << "Failed to compute time stamps";
 
@@ -270,9 +291,6 @@ TEST(time_optimal_trajectory_generation, testPluginAPI)
     {
       bool totg_success = totg.computeTimeStamps(test_trajectory);
       EXPECT_TRUE(totg_success) << "Failed to compute time stamps with a same TOTG instance in iteration " << i;
-
-      if (totg_success)
-        break;
     }
 
     test_trajectory.getRobotTrajectoryMsg(first_trajectory_msg_end);
@@ -296,9 +314,6 @@ TEST(time_optimal_trajectory_generation, testPluginAPI)
       TimeOptimalTrajectoryGeneration totg;
       bool totg_success = totg.computeTimeStamps(test_trajectory);
       EXPECT_TRUE(totg_success) << "Failed to compute time stamps with a new TOTG instance in iteration " << i;
-
-      if (totg_success)
-        break;
     }
 
     test_trajectory.getRobotTrajectoryMsg(second_trajectory_msg_end);
@@ -309,12 +324,19 @@ TEST(time_optimal_trajectory_generation, testPluginAPI)
   ASSERT_EQ(first_trajectory_msg_end, second_trajectory_msg_end);
 
   // Iterate on the original trajectory again
+  moveit_msgs::RobotTrajectory third_trajectory_msg_end;
   for (size_t i = 0; i < 100; ++i)
   {
     TimeOptimalTrajectoryGeneration totg;
-    ASSERT_TRUE(totg.computeTimeStamps(trajectory))
-        << "Failed to compute timestamps on a new TOTG instance in iteration " << i;
+    bool totg_success = totg.computeTimeStamps(trajectory);
+    ASSERT_TRUE(totg_success) << "Failed to compute timestamps on a new TOTG instance in iteration " << i;
   }
+
+  // Compare with previous work
+  trajectory.getRobotTrajectoryMsg(third_trajectory_msg_end);
+
+  // Make sure trajectories produce equal waypoints independent of TOTG instances
+  ASSERT_EQ(first_trajectory_msg_end, third_trajectory_msg_end);
 }
 
 int main(int argc, char** argv)
