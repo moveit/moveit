@@ -975,6 +975,11 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
       {
         diverse_point = true;
       }
+      else
+      {
+        ROS_WARN_NAMED(LOGNAME, "TOTG skipped a waypoint because it is nearly identical to the previous waypoint, or "
+                                "has a duration of zero");
+      }
     }
 
     if (diverse_point)
