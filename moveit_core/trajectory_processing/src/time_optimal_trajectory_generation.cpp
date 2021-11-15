@@ -971,19 +971,21 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
     {
       new_point[j] = waypoint->getVariablePosition(idx[j]);
       // If any joint angle is different and duration is nonzero, it's a unique waypoint
-      if ((p > 0) && (std::fabs(new_point[j] - points.back()[j]) > min_angle_change_) && (duration > 0))
+      if ((std::fabs(new_point[j] - points.back()[j]) > min_angle_change_) && (duration > 0))
       {
         diverse_point = true;
-      }
-      else
-      {
-        ROS_WARN_NAMED(LOGNAME, "TOTG skipped a waypoint because it is nearly identical to the previous waypoint, or "
-                                "has a duration of zero");
       }
     }
 
     if (diverse_point)
+    {
       points.push_back(new_point);
+    }
+    else
+    {
+      ROS_WARN_NAMED(LOGNAME, "TOTG skipped a waypoint because it is nearly identical to the previous waypoint, or "
+                              "has a duration of zero");
+    }
   }
 
   // Return trajectory with only the first waypoint if there are not multiple diverse points
