@@ -963,14 +963,15 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
   {
     moveit::core::RobotStatePtr waypoint = trajectory.getWayPointPtr(p);
     Eigen::VectorXd new_point(num_joints);
+    double duration = trajectory.getWayPointDurationFromPrevious(p);
     // The first point should always be kept
     bool diverse_point = (p == 0);
 
     for (size_t j = 0; j < num_joints; ++j)
     {
       new_point[j] = waypoint->getVariablePosition(idx[j]);
-      // If any joint angle is different, it's a unique waypoint
-      if (p > 0 && std::fabs(new_point[j] - points.back()[j]) > min_angle_change_)
+      // If any joint angle is different and duration is nonzero, it's a unique waypoint
+      if ((p > 0) && (std::fabs(new_point[j] - points.back()[j]) > min_angle_change_) && (duration > 0))
       {
         diverse_point = true;
       }
