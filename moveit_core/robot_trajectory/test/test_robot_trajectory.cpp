@@ -245,9 +245,9 @@ TEST_F(RobotTrajectoryTestFixture, RobotTrajectoryDeepCopy)
   trajectory_copy_first_waypoint_after_update.copyJointGroupPositions(arm_jmg_name_,
                                                                       trajectory_copy_first_state_after_update);
 
-  // Check that we updated the joint position correctly in the trajectory
+  // Check that joint positions changed in the original trajectory but not the deep copy
   EXPECT_NE(trajectory_first_state_after_update[0], trajectory_copy_first_state_after_update[0]);
-  // Check that the duration was modified correctly
+  // Check that the first waypoint duration changed in the original trajectory but not the deep copy
   EXPECT_NE(trajectory->getWayPointDurationFromPrevious(0), trajectory_copy->getWayPointDurationFromPrevious(0));
 }
 
