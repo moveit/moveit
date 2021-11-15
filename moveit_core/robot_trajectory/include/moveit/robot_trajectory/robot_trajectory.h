@@ -229,6 +229,7 @@ public:
 
   void swap(robot_trajectory::RobotTrajectory& other);
 
+  /** \brief Clear waypoint and duration vectors */
   RobotTrajectory& clear()
   {
     waypoints_.clear();
