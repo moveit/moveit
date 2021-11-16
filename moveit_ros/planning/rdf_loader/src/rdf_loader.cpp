@@ -162,6 +162,7 @@ bool rdf_loader::RDFLoader::loadFileToString(std::string& buffer, const std::str
 bool rdf_loader::RDFLoader::loadXacroFileToString(std::string& buffer, const std::string& path,
                                                   const std::vector<std::string>& xacro_args)
 {
+  buffer.clear();
   if (path.empty())
   {
     ROS_ERROR_NAMED("rdf_loader", "Path is empty");
