@@ -242,17 +242,17 @@ TEST(time_optimal_trajectory_generation, testPluginAPI)
   waypoint_state.setToDefaultValues();
 
   robot_trajectory::RobotTrajectory trajectory(robot_model, group);
-  waypoint_state.setJointGroupPositions(group, { -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
+  waypoint_state.setJointGroupPositions(group, std::vector<double>{ -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
   trajectory.addSuffixWayPoint(waypoint_state, 0.1);
-  waypoint_state.setJointGroupPositions(group, { -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
+  waypoint_state.setJointGroupPositions(group, std::vector<double>{ -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
   trajectory.addSuffixWayPoint(waypoint_state, 0.1);
-  waypoint_state.setJointGroupPositions(group, { 0.0, -3.5, 1.4, -1.2, -1.0, -0.2, 0.0 });
+  waypoint_state.setJointGroupPositions(group, std::vector<double>{ 0.0, -3.5, 1.4, -1.2, -1.0, -0.2, 0.0 });
   trajectory.addSuffixWayPoint(waypoint_state, 0.1);
-  waypoint_state.setJointGroupPositions(group, { -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
+  waypoint_state.setJointGroupPositions(group, std::vector<double>{ -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
   trajectory.addSuffixWayPoint(waypoint_state, 0.1);
-  waypoint_state.setJointGroupPositions(group, { 0.0, -3.5, 1.4, -1.2, -1.0, -0.2, 0.0 });
+  waypoint_state.setJointGroupPositions(group, std::vector<double>{ 0.0, -3.5, 1.4, -1.2, -1.0, -0.2, 0.0 });
   trajectory.addSuffixWayPoint(waypoint_state, 0.1);
-  waypoint_state.setJointGroupPositions(group, { -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
+  waypoint_state.setJointGroupPositions(group, std::vector<double>{ -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
   trajectory.addSuffixWayPoint(waypoint_state, 0.1);
 
   // Test computing the dynamics repeatedly with the same totg instance
