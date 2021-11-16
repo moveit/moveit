@@ -565,7 +565,6 @@ bool StartScreenWidget::loadURDFFile(const std::string& urdf_file_path, const st
   if (!config_data_->urdf_model_->initString(config_data_->urdf_string_))
   {
     QMessageBox::warning(this, "Error Loading Files", "URDF/COLLADA file is not a valid robot model.");
-    config_data_->urdf_string_ = "";
     return false;
   }
   config_data_->urdf_from_xacro_ = rdf_loader::RDFLoader::isXacroFile(urdf_file_path);
