@@ -963,15 +963,20 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
   {
     moveit::core::RobotStatePtr waypoint = trajectory.getWayPointPtr(p);
     Eigen::VectorXd new_point(num_joints);
-    double duration = trajectory.getWayPointDurationFromPrevious(p);
-    // The first point should always be kept
-    bool diverse_point = (p == 0);
 
+    // The first point should always be kept
+    if (p == 0)
+    {
+      points.push_back(new_point);
+      continue;
+    }
+
+    bool diverse_point = false;
     for (size_t j = 0; j < num_joints; ++j)
     {
       new_point[j] = waypoint->getVariablePosition(idx[j]);
       // If any joint angle is different and duration is nonzero, it's a unique waypoint
-      if ((std::fabs(new_point[j] - points.back()[j]) > min_angle_change_) && (duration > 0))
+      if (std::fabs(new_point[j] - points.back()[j]) > min_angle_change_)
       {
         diverse_point = true;
       }
@@ -983,8 +988,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
     }
     else
     {
-      ROS_WARN_NAMED(LOGNAME, "TOTG skipped a waypoint because it is nearly identical to the previous waypoint, or "
-                              "has a duration of zero");
+      ROS_WARN_NAMED(LOGNAME, "TOTG skipped a waypoint because it is nearly identical to the previous waypoint");
     }
   }
 
