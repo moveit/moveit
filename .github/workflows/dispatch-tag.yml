@@ -13,6 +13,9 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+      - name: Set Repo as Output
+        id: repo-name
+        run: echo "::set-output name=value::$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')"
       - name: Set Ref as Output
         id: vars
         run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
@@ -24,4 +27,4 @@ jobs:
           token: ${{ secrets.ORG_PAT }}
           repository: ${{ matrix.repo }}
           event-type: new-tag
-          client-payload: '{"tag": ${{ toJson(steps.vars.outputs.tag) }}}'
+          client-payload: '{"tag": ${{ toJson(steps.vars.outputs.tag) }}, "name": ${{ toJson(steps.repo-name.outputs.value) }}}'
