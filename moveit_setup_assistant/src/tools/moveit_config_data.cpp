@@ -407,6 +407,19 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
   urdf_document.Parse((const char*)urdf_string_.c_str(), nullptr, TIXML_ENCODING_UTF8);
   try
   {
+    // Map existing SimpleTransmission elements to their joint name
+    std::map<std::string, TiXmlElement*> transitions_elements;
+    for (TiXmlElement* doc_element = urdf_document.RootElement()->FirstChildElement("transmission");
+         doc_element != nullptr; doc_element = doc_element->NextSiblingElement("transmission"))
+    {
+      if (static_cast<std::string>(doc_element->FirstChildElement("type")->GetText()) ==
+          "transmission_interface/SimpleTransmission")
+      {
+        transitions_elements[doc_element->FirstChildElement("joint")->Attribute("name")] = doc_element;
+      }
+    }
+
+    // Loop through Link and Joint elements and add Gazebo tags if not present
     for (TiXmlElement* doc_element = urdf_document.RootElement()->FirstChildElement(); doc_element != nullptr;
          doc_element = doc_element->NextSiblingElement())
     {
@@ -438,35 +451,72 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
       }
       else if (static_cast<std::string>(doc_element->Value()).find("joint") != std::string::npos)
       {
-        // Before adding a transmission element, make sure there the joint is not fixed
+        // Make transition elements Gazebo compatible, make sure the joint is not fixed
+        std::string joint_name = static_cast<std::string>(doc_element->Attribute("name"));
         if (static_cast<std::string>(doc_element->Attribute("type")) != "fixed")
         {
-          new_urdf_needed = true;
-          std::string joint_name = static_cast<std::string>(doc_element->Attribute("name"));
-          TiXmlElement transmission("transmission");
-          TiXmlElement type("type");
-          TiXmlElement joint("joint");
-          TiXmlElement hardware_interface("hardwareInterface");
-          TiXmlElement actuator("actuator");
-          TiXmlElement mechanical_reduction("mechanicalReduction");
+          // Add transition element if it does not exist else make it Gazebo compatible
+          if (transitions_elements.find(joint_name) == transitions_elements.end())
+          {
+            new_urdf_needed = true;
+            TiXmlElement transmission("transmission");
+            TiXmlElement type("type");
+            TiXmlElement joint("joint");
+            TiXmlElement hardware_interface("hardwareInterface");
+            TiXmlElement actuator("actuator");
+            TiXmlElement mechanical_reduction("mechanicalReduction");
 
-          transmission.SetAttribute("name", std::string("trans_") + joint_name);
-          joint.SetAttribute("name", joint_name);
-          actuator.SetAttribute("name", joint_name + std::string("_motor"));
+            transmission.SetAttribute("name", std::string("trans_") + joint_name);
+            joint.SetAttribute("name", joint_name);
+            actuator.SetAttribute("name", joint_name + std::string("_motor"));
 
-          type.InsertEndChild(TiXmlText("transmission_interface/SimpleTransmission"));
-          transmission.InsertEndChild(type);
+            type.InsertEndChild(TiXmlText("transmission_interface/SimpleTransmission"));
+            transmission.InsertEndChild(type);
 
-          hardware_interface.InsertEndChild(TiXmlText(getJointHardwareInterface(joint_name).c_str()));
-          joint.InsertEndChild(hardware_interface);
-          transmission.InsertEndChild(joint);
+            hardware_interface.InsertEndChild(TiXmlText(getJointHardwareInterface(joint_name).c_str()));
+            joint.InsertEndChild(hardware_interface);
+            transmission.InsertEndChild(joint);
 
-          mechanical_reduction.InsertEndChild(TiXmlText("1"));
-          actuator.InsertEndChild(hardware_interface);
-          actuator.InsertEndChild(mechanical_reduction);
-          transmission.InsertEndChild(actuator);
+            mechanical_reduction.InsertEndChild(TiXmlText("1"));
+            actuator.InsertEndChild(hardware_interface);
+            actuator.InsertEndChild(mechanical_reduction);
+            transmission.InsertEndChild(actuator);
 
-          urdf_document.RootElement()->InsertEndChild(transmission);
+            urdf_document.RootElement()->InsertEndChild(transmission);
+          }
+          else
+          {
+            TiXmlElement* transmision = transitions_elements.find(joint_name)->second;
+            TiXmlElement* joint = transmision->FirstChildElement("joint");
+            TiXmlElement* actuator = transmision->FirstChildElement("actuator");
+            TiXmlElement hardware_interface("hardwareInterface");
+            TiXmlElement mechanical_reduction("mechanicalReduction");
+
+            // Add joint hardware interface if not present
+            if (joint->FirstChildElement("hardwareInterface") == nullptr)
+            {
+              new_urdf_needed = true;
+              TiXmlElement hardware_interface("hardwareInterface");
+              hardware_interface.InsertEndChild(TiXmlText(getJointHardwareInterface(joint_name).c_str()));
+              joint->InsertEndChild(hardware_interface);
+            }
+
+            // Add actuator hardware interface if not present
+            if (actuator->FirstChildElement("hardwareInterface") == nullptr)
+            {
+              new_urdf_needed = true;
+              hardware_interface.InsertEndChild(TiXmlText(getJointHardwareInterface(joint_name).c_str()));
+              actuator->InsertEndChild(hardware_interface);
+            }
+
+            // Add actuator mechanical reduction if not present
+            if (actuator->FirstChildElement("mechanicalReduction") == nullptr)
+            {
+              new_urdf_needed = true;
+              mechanical_reduction.InsertEndChild(TiXmlText("1"));
+              actuator->InsertEndChild(mechanical_reduction);
+            }
+          }
         }
       }
     }
