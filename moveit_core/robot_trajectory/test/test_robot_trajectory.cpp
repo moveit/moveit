@@ -118,10 +118,11 @@ protected:
 
     // Modify the first waypoint duration
     double trajectory_first_duration_before_update = trajectory->getWayPointDurationFromPrevious(0);
-    trajectory->setWayPointDurationFromPrevious(0, trajectory_first_duration_before_update + 0.1);
+    double new_duration = trajectory_first_duration_before_update + 0.1;
+    trajectory->setWayPointDurationFromPrevious(0, new_duration);
 
     // Check that the trajectory's first duration was updated
-    EXPECT_NE(trajectory->getWayPointDurationFromPrevious(0), trajectory_first_duration_before_update);
+    EXPECT_EQ(trajectory->getWayPointDurationFromPrevious(0), new_duration);
   }
 
   void modifyFirstWaypointAndCheckTrajectory(robot_trajectory::RobotTrajectoryPtr& trajectory)
