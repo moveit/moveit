@@ -328,6 +328,12 @@ TEST(time_optimal_trajectory_generation, testPluginAPI)
 
   // Iterate on the original trajectory again
   moveit_msgs::RobotTrajectory third_trajectory_msg_end;
+
+  {
+    TimeOptimalTrajectoryGeneration totg;
+    ASSERT_TRUE(totg.computeTimeStamps(trajectory)) << "Failed to compute time stamps";
+  }
+
   for (size_t i = 0; i < totg_iterations; ++i)
   {
     TimeOptimalTrajectoryGeneration totg;
