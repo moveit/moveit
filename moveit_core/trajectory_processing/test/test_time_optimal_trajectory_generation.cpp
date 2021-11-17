@@ -231,13 +231,13 @@ TEST(time_optimal_trajectory_generation, testLargeAccel)
 
 TEST(time_optimal_trajectory_generation, testPluginAPI)
 {
-  constexpr auto ROBOT_NAME{ "panda" };
-  constexpr auto GROUP_NAME{ "panda_arm" };
+  constexpr auto robot_name{ "panda" };
+  constexpr auto group_name{ "panda_arm" };
 
-  auto robot_model = moveit::core::loadTestingRobotModel(ROBOT_NAME);
-  ASSERT_TRUE((bool)robot_model) << "Failed to load robot model" << ROBOT_NAME;
-  auto group = robot_model->getJointModelGroup(GROUP_NAME);
-  ASSERT_TRUE((bool)group) << "Failed to load joint model group " << GROUP_NAME;
+  auto robot_model = moveit::core::loadTestingRobotModel(robot_name);
+  ASSERT_TRUE((bool)robot_model) << "Failed to load robot model" << robot_name;
+  auto group = robot_model->getJointModelGroup(group_name);
+  ASSERT_TRUE((bool)group) << "Failed to load joint model group " << group_name;
   moveit::core::RobotState waypoint_state(robot_model);
   waypoint_state.setToDefaultValues();
 
@@ -256,7 +256,7 @@ TEST(time_optimal_trajectory_generation, testPluginAPI)
   trajectory.addSuffixWayPoint(waypoint_state, 0.1);
 
   // Number TOTG iterations
-  constexpr size_t TOTG_ITERATIONS = 10;
+  constexpr size_t totg_iterations = 10;
 
   // Test computing the dynamics repeatedly with the same totg instance
   moveit_msgs::RobotTrajectory first_trajectory_msg_start, first_trajectory_msg_end;
@@ -290,7 +290,7 @@ TEST(time_optimal_trajectory_generation, testPluginAPI)
     test_trajectory.getRobotTrajectoryMsg(first_trajectory_msg_start);
 
     // Iteratively recompute timestamps with same totg instance
-    for (size_t i = 0; i < TOTG_ITERATIONS; ++i)
+    for (size_t i = 0; i < totg_iterations; ++i)
     {
       bool totg_success = totg.computeTimeStamps(test_trajectory);
       EXPECT_TRUE(totg_success) << "Failed to compute time stamps with a same TOTG instance in iteration " << i;
@@ -312,7 +312,7 @@ TEST(time_optimal_trajectory_generation, testPluginAPI)
     test_trajectory.getRobotTrajectoryMsg(second_trajectory_msg_start);
 
     // Iteratively recompute timestamps with new totg instances
-    for (size_t i = 0; i < TOTG_ITERATIONS; ++i)
+    for (size_t i = 0; i < totg_iterations; ++i)
     {
       TimeOptimalTrajectoryGeneration totg;
       bool totg_success = totg.computeTimeStamps(test_trajectory);
@@ -328,7 +328,7 @@ TEST(time_optimal_trajectory_generation, testPluginAPI)
 
   // Iterate on the original trajectory again
   moveit_msgs::RobotTrajectory third_trajectory_msg_end;
-  for (size_t i = 0; i < TOTG_ITERATIONS; ++i)
+  for (size_t i = 0; i < totg_iterations; ++i)
   {
     TimeOptimalTrajectoryGeneration totg;
     bool totg_success = totg.computeTimeStamps(trajectory);
