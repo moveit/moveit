@@ -41,7 +41,7 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <Eigen/Geometry.h>
 #include <tf2_eigen/tf2_eigen.h>
-#include <boost/bind.hpp>
+#include <functional>
 
 namespace kinematics_constraint_aware
 {
@@ -161,7 +161,8 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
       transformPoses(planning_scene, kinematic_state, request.pose_stamped_vector_, kinematic_model_->getModelFrame());
 
   moveit::core::StateValidityCallbackFn constraint_callback_fn =
-      boost::bind(&KinematicsConstraintAware::validityCallbackFn, this, planning_scene, request, response, _1, _2);
+      std::bind(&KinematicsConstraintAware::validityCallbackFn, this, planning_scene, request, response,
+                std::placeholders::_1, std::placeholders::_2);
 
   bool result = false;
   if (has_sub_groups_)

@@ -57,10 +57,10 @@ bool SBPLMetaInterface::solve(const planning_scene::PlanningSceneConstPtr& plann
   PlanningParameters param_no_bfs;
   param_no_bfs.use_bfs_ = false;
   moveit_msgs::GetMotionPlan::Response res1, res2;
-  boost::thread thread1(boost::bind(&SBPLMetaInterface::runSolver, this, true, boost::cref(planning_scene),
-                                    boost::cref(req), boost::ref(res1), param_bfs));
-  boost::thread thread2(boost::bind(&SBPLMetaInterface::runSolver, this, false, boost::cref(planning_scene),
-                                    boost::cref(req), boost::ref(res2), param_no_bfs));
+  boost::thread thread1(std::bind(&SBPLMetaInterface::runSolver, this, true, boost::cref(planning_scene),
+                                  boost::cref(req), boost::ref(res1), param_bfs));
+  boost::thread thread2(std::bind(&SBPLMetaInterface::runSolver, this, false, boost::cref(planning_scene),
+                                  boost::cref(req), boost::ref(res2), param_no_bfs));
   boost::mutex::scoped_lock lock(planner_done_mutex_);
   planner_done_condition_.wait(lock);
 

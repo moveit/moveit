@@ -141,27 +141,27 @@ XmlTestdataLoader::XmlTestdataLoader(const std::string& path_filename) : Testdat
   pt::read_xml(path_filename_, tree_, pt::xml_parser::no_comments);
 
   using std::placeholders::_1;
-  cmd_getter_funcs_["ptp"] =
-      AbstractCmdGetterUPtr(new CmdGetterAdapter<PtpJoint>(std::bind(&XmlTestdataLoader::getPtpJoint, this, _1)));
+  cmd_getter_funcs_["ptp"] = AbstractCmdGetterUPtr(
+      new CmdGetterAdapter<PtpJoint>(std::bind(&XmlTestdataLoader::getPtpJoint, this, std::placeholders::_1)));
   cmd_getter_funcs_["ptp_joint_cart"] = AbstractCmdGetterUPtr(
-      new CmdGetterAdapter<PtpJointCart>(std::bind(&XmlTestdataLoader::getPtpJointCart, this, _1)));
-  cmd_getter_funcs_["ptp_cart_cart"] =
-      AbstractCmdGetterUPtr(new CmdGetterAdapter<PtpCart>(std::bind(&XmlTestdataLoader::getPtpCart, this, _1)));
+      new CmdGetterAdapter<PtpJointCart>(std::bind(&XmlTestdataLoader::getPtpJointCart, this, std::placeholders::_1)));
+  cmd_getter_funcs_["ptp_cart_cart"] = AbstractCmdGetterUPtr(
+      new CmdGetterAdapter<PtpCart>(std::bind(&XmlTestdataLoader::getPtpCart, this, std::placeholders::_1)));
 
-  cmd_getter_funcs_["lin"] =
-      AbstractCmdGetterUPtr(new CmdGetterAdapter<LinJoint>(std::bind(&XmlTestdataLoader::getLinJoint, this, _1)));
-  cmd_getter_funcs_["lin_cart"] =
-      AbstractCmdGetterUPtr(new CmdGetterAdapter<LinCart>(std::bind(&XmlTestdataLoader::getLinCart, this, _1)));
+  cmd_getter_funcs_["lin"] = AbstractCmdGetterUPtr(
+      new CmdGetterAdapter<LinJoint>(std::bind(&XmlTestdataLoader::getLinJoint, this, std::placeholders::_1)));
+  cmd_getter_funcs_["lin_cart"] = AbstractCmdGetterUPtr(
+      new CmdGetterAdapter<LinCart>(std::bind(&XmlTestdataLoader::getLinCart, this, std::placeholders::_1)));
 
-  cmd_getter_funcs_["circ_center_cart"] = AbstractCmdGetterUPtr(
-      new CmdGetterAdapter<CircCenterCart>(std::bind(&XmlTestdataLoader::getCircCartCenterCart, this, _1)));
-  cmd_getter_funcs_["circ_interim_cart"] = AbstractCmdGetterUPtr(
-      new CmdGetterAdapter<CircInterimCart>(std::bind(&XmlTestdataLoader::getCircCartInterimCart, this, _1)));
-  cmd_getter_funcs_["circ_joint_interim_cart"] = AbstractCmdGetterUPtr(
-      new CmdGetterAdapter<CircJointInterimCart>(std::bind(&XmlTestdataLoader::getCircJointInterimCart, this, _1)));
+  cmd_getter_funcs_["circ_center_cart"] = AbstractCmdGetterUPtr(new CmdGetterAdapter<CircCenterCart>(
+      std::bind(&XmlTestdataLoader::getCircCartCenterCart, this, std::placeholders::_1)));
+  cmd_getter_funcs_["circ_interim_cart"] = AbstractCmdGetterUPtr(new CmdGetterAdapter<CircInterimCart>(
+      std::bind(&XmlTestdataLoader::getCircCartInterimCart, this, std::placeholders::_1)));
+  cmd_getter_funcs_["circ_joint_interim_cart"] = AbstractCmdGetterUPtr(new CmdGetterAdapter<CircJointInterimCart>(
+      std::bind(&XmlTestdataLoader::getCircJointInterimCart, this, std::placeholders::_1)));
 
-  cmd_getter_funcs_["gripper"] =
-      AbstractCmdGetterUPtr(new CmdGetterAdapter<Gripper>(std::bind(&XmlTestdataLoader::getGripper, this, _1)));
+  cmd_getter_funcs_["gripper"] = AbstractCmdGetterUPtr(
+      new CmdGetterAdapter<Gripper>(std::bind(&XmlTestdataLoader::getGripper, this, std::placeholders::_1)));
 }
 
 XmlTestdataLoader::XmlTestdataLoader(const std::string& path_filename,

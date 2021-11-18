@@ -181,27 +181,27 @@ int main(int argc, char** argv)
 
   boost::function<bool(moveit_msgs::SaveRobotStateToWarehouse::Request & request,
                        moveit_msgs::SaveRobotStateToWarehouse::Response & response)>
-      save_cb = boost::bind(&storeState, _1, _2, &rs);
+      save_cb = std::bind(&storeState, std::placeholders::_1, std::placeholders::_2, &rs);
 
   boost::function<bool(moveit_msgs::ListRobotStatesInWarehouse::Request & request,
                        moveit_msgs::ListRobotStatesInWarehouse::Response & response)>
-      list_cb = boost::bind(&listStates, _1, _2, &rs);
+      list_cb = std::bind(&listStates, std::placeholders::_1, std::placeholders::_2, &rs);
 
   boost::function<bool(moveit_msgs::GetRobotStateFromWarehouse::Request & request,
                        moveit_msgs::GetRobotStateFromWarehouse::Response & response)>
-      get_cb = boost::bind(&getState, _1, _2, &rs);
+      get_cb = std::bind(&getState, std::placeholders::_1, std::placeholders::_2, &rs);
 
   boost::function<bool(moveit_msgs::CheckIfRobotStateExistsInWarehouse::Request & request,
                        moveit_msgs::CheckIfRobotStateExistsInWarehouse::Response & response)>
-      has_cb = boost::bind(&hasState, _1, _2, &rs);
+      has_cb = std::bind(&hasState, std::placeholders::_1, std::placeholders::_2, &rs);
 
   boost::function<bool(moveit_msgs::RenameRobotStateInWarehouse::Request & request,
                        moveit_msgs::RenameRobotStateInWarehouse::Response & response)>
-      rename_cb = boost::bind(&renameState, _1, _2, &rs);
+      rename_cb = std::bind(&renameState, std::placeholders::_1, std::placeholders::_2, &rs);
 
   boost::function<bool(moveit_msgs::DeleteRobotStateFromWarehouse::Request & request,
                        moveit_msgs::DeleteRobotStateFromWarehouse::Response & response)>
-      delete_cb = boost::bind(&deleteState, _1, _2, &rs);
+      delete_cb = std::bind(&deleteState, std::placeholders::_1, std::placeholders::_2, &rs);
 
   ros::ServiceServer save_state_server = node.advertiseService("save_robot_state", save_cb);
   ros::ServiceServer list_states_server = node.advertiseService("list_robot_states", list_cb);

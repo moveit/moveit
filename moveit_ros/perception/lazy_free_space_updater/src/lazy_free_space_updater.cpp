@@ -48,8 +48,8 @@ LazyFreeSpaceUpdater::LazyFreeSpaceUpdater(const collision_detection::OccMapTree
   , max_sensor_delta_(1e-3)  // 1mm
   , process_occupied_cells_set_(nullptr)
   , process_model_cells_set_(nullptr)
-  , update_thread_(boost::bind(&LazyFreeSpaceUpdater::lazyUpdateThread, this))
-  , process_thread_(boost::bind(&LazyFreeSpaceUpdater::processThread, this))
+  , update_thread_(std::bind(&LazyFreeSpaceUpdater::lazyUpdateThread, this))
+  , process_thread_(std::bind(&LazyFreeSpaceUpdater::processThread, this))
 {
 }
 
