@@ -34,6 +34,8 @@
 
 /* Author: Ioan Sucan */
 
+#include <functional>
+
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
 #include <moveit/motion_planning_rviz_plugin/motion_planning_frame_joints_widget.h>
