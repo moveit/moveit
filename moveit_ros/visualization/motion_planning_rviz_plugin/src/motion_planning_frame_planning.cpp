@@ -453,8 +453,7 @@ void MotionPlanningFrame::populatePlannerDescription(const moveit_msgs::PlannerI
 void MotionPlanningFrame::populateConstraintsList()
 {
   if (move_group_)
-    planning_display_->addMainLoopJob(
-        std::bind(&MotionPlanningFrame::populateConstraintsList, this, move_group_->getKnownConstraints()));
+    planning_display_->addMainLoopJob([this]() { populateConstraintsList(move_group_->getKnownConstraints()); });
 }
 
 void MotionPlanningFrame::populateConstraintsList(const std::vector<std::string>& constr)

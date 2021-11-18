@@ -337,8 +337,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
     return;
 
   planning_display_->addMainLoopJob(std::bind(&MotionPlanningFrame::fillStateSelectionOptions, this));
-  planning_display_->addMainLoopJob(
-      std::bind(&MotionPlanningFrame::populateConstraintsList, this, std::vector<std::string>()));
+  planning_display_->addMainLoopJob([this]() { populateConstraintsList(std::vector<std::string>()); });
 
   const moveit::core::RobotModelConstPtr& robot_model = planning_display_->getRobotModel();
   std::string group = planning_display_->getCurrentPlanningGroup();
@@ -385,8 +384,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
       std::vector<moveit_msgs::PlannerInterfaceDescription> desc;
       if (move_group_->getInterfaceDescriptions(desc))
         planning_display_->addMainLoopJob(std::bind(&MotionPlanningFrame::populatePlannersList, this, desc));
-      planning_display_->addBackgroundJob(std::bind(&MotionPlanningFrame::populateConstraintsList, this),
-                                          "populateConstraintsList");
+      planning_display_->addBackgroundJob([this]() { populateConstraintsList(); }, "populateConstraintsList");
 
       if (first_time_)
       {
