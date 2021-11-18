@@ -62,8 +62,7 @@ void MotionPlanningFrame::detectObjectsButtonClicked()
       semantic_world_->addTableCallback(std::bind(&MotionPlanningFrame::updateTables, this));
     }
   }
-  planning_display_->addBackgroundJob(std::bind(&MotionPlanningFrame::triggerObjectDetection, this),
-                                      "detect objects");
+  planning_display_->addBackgroundJob(std::bind(&MotionPlanningFrame::triggerObjectDetection, this), "detect objects");
 }
 
 void MotionPlanningFrame::processDetectedObjects()

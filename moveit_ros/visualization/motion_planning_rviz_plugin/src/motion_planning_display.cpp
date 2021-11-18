@@ -174,7 +174,8 @@ MotionPlanningDisplay::MotionPlanningDisplay()
   trajectory_visual_ = std::make_shared<TrajectoryVisualization>(path_category_, this);
 
   // Start background jobs
-  background_process_.setJobUpdateEvent(std::bind(&MotionPlanningDisplay::backgroundJobUpdate, this, std::placeholders::_1, std::placeholders::_2));
+  background_process_.setJobUpdateEvent(
+      std::bind(&MotionPlanningDisplay::backgroundJobUpdate, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 // ******************************************************************************************
@@ -1138,7 +1139,8 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   robot_interaction_ =
       std::make_shared<robot_interaction::RobotInteraction>(getRobotModel(), "rviz_moveit_motion_planning_display");
   robot_interaction::KinematicOptions o;
-  o.state_validity_callback_ = std::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+  o.state_validity_callback_ = std::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, std::placeholders::_1,
+                                         std::placeholders::_2, std::placeholders::_3);
   robot_interaction_->getKinematicOptionsMap()->setOptions(
       robot_interaction::KinematicOptionsMap::ALL, o, robot_interaction::KinematicOptions::STATE_VALIDITY_CALLBACK);
 
@@ -1153,8 +1155,10 @@ void MotionPlanningDisplay::onRobotModelLoaded()
       robot_interaction_, "start", *previous_state_, planning_scene_monitor_->getTFClient());
   query_goal_state_ = std::make_shared<robot_interaction::InteractionHandler>(
       robot_interaction_, "goal", *previous_state_, planning_scene_monitor_->getTFClient());
-  query_start_state_->setUpdateCallback(std::bind(&MotionPlanningDisplay::scheduleDrawQueryStartState, this, std::placeholders::_1, std::placeholders::_2));
-  query_goal_state_->setUpdateCallback(std::bind(&MotionPlanningDisplay::scheduleDrawQueryGoalState, this, std::placeholders::_1, std::placeholders::_2));
+  query_start_state_->setUpdateCallback(std::bind(&MotionPlanningDisplay::scheduleDrawQueryStartState, this,
+                                                  std::placeholders::_1, std::placeholders::_2));
+  query_goal_state_->setUpdateCallback(std::bind(&MotionPlanningDisplay::scheduleDrawQueryGoalState, this,
+                                                 std::placeholders::_1, std::placeholders::_2));
 
   // Interactive marker menus
   populateMenuHandler(menu_handler_start_);

@@ -132,8 +132,9 @@ bool pick_place::ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr
         constraints_sampler_manager_->selectSampler(planning_scene_, planning_group, plan->goal_constraints_);
     if (plan->goal_sampler_)
     {
-      plan->goal_sampler_->setGroupStateValidityCallback(std::bind(
-          &isStateCollisionFree, planning_scene_.get(), collision_matrix_.get(), verbose_, plan.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+      plan->goal_sampler_->setGroupStateValidityCallback(
+          std::bind(&isStateCollisionFree, planning_scene_.get(), collision_matrix_.get(), verbose_, plan.get(),
+                    std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
       plan->goal_sampler_->setVerbose(verbose_);
       if (plan->goal_sampler_->sample(*token_state, plan->shared_data_->max_goal_sampling_attempts_))
       {

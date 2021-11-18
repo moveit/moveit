@@ -133,10 +133,11 @@ public:
         goal.command.max_effort = trajectory.joint_trajectory.points[tpoint].effort[idx];
     }
 
-    controller_action_client_->sendGoal(goal,
-                                        std::bind(&GripperControllerHandle::controllerDoneCallback, this, std::placeholders::_1, std::placeholders::_2),
-                                        std::bind(&GripperControllerHandle::controllerActiveCallback, this),
-                                        std::bind(&GripperControllerHandle::controllerFeedbackCallback, this, std::placeholders::_1));
+    controller_action_client_->sendGoal(
+        goal,
+        std::bind(&GripperControllerHandle::controllerDoneCallback, this, std::placeholders::_1, std::placeholders::_2),
+        std::bind(&GripperControllerHandle::controllerActiveCallback, this),
+        std::bind(&GripperControllerHandle::controllerFeedbackCallback, this, std::placeholders::_1));
 
     done_ = false;
     last_exec_ = moveit_controller_manager::ExecutionStatus::RUNNING;

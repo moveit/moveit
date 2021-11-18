@@ -592,7 +592,9 @@ TEST_F(KinematicsTest, searchIKWithCallback)
     }
 
     kinematics_solver_->searchPositionIK(poses[0], fk_values, timeout_, solution,
-                                         std::bind(&KinematicsTest::searchIKCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), error_code);
+                                         std::bind(&KinematicsTest::searchIKCallback, this, std::placeholders::_1,
+                                                   std::placeholders::_2, std::placeholders::_3),
+                                         error_code);
     if (error_code.val == error_code.SUCCESS)
       success++;
     else

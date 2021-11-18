@@ -53,8 +53,7 @@ namespace moveit_rviz_plugin
 void MotionPlanningFrame::planButtonClicked()
 {
   publishSceneIfNeeded();
-  planning_display_->addBackgroundJob(std::bind(&MotionPlanningFrame::computePlanButtonClicked, this),
-                                      "compute plan");
+  planning_display_->addBackgroundJob(std::bind(&MotionPlanningFrame::computePlanButtonClicked, this), "compute plan");
 }
 
 void MotionPlanningFrame::executeButtonClicked()
@@ -270,7 +269,7 @@ void MotionPlanningFrame::startStateTextChanged(const QString& start_state)
 {
   // use background job: fetching the current state might take up to a second
   planning_display_->addBackgroundJob(std::bind(&MotionPlanningFrame::startStateTextChangedExec, this,
-                                                  start_state.toStdString()),
+                                                start_state.toStdString()),
                                       "update start state");
 }
 
