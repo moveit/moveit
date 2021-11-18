@@ -61,7 +61,7 @@ public:
     : owner_(owner), dynamic_reconfigure_server_(ros::NodeHandle("~/trajectory_execution"))
   {
     dynamic_reconfigure_server_.setCallback(
-        std::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this, _1, _2));
+        std::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this, std::placeholders::_1, std::placeholders::_2));
   }
 
 private:

@@ -63,7 +63,7 @@ void MoveGroupSequenceAction::initialize()
   ROS_INFO_STREAM("initialize move group sequence action");
   move_action_server_ = std::make_unique<actionlib::SimpleActionServer<moveit_msgs::MoveGroupSequenceAction>>(
       root_node_handle_, "sequence_move_group",
-      std::bind(&MoveGroupSequenceAction::executeSequenceCallback, this, _1), false);
+      std::bind(&MoveGroupSequenceAction::executeSequenceCallback, this, std::placeholders::_1), false);
   move_action_server_->registerPreemptCallback(std::bind(&MoveGroupSequenceAction::preemptMoveCallback, this));
   move_action_server_->start();
 
@@ -140,7 +140,7 @@ void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(
   opt.before_execution_callback_ = std::bind(&MoveGroupSequenceAction::startMoveExecutionCallback, this);
 
   opt.plan_callback_ =
-      std::bind(&MoveGroupSequenceAction::planUsingSequenceManager, this, boost::cref(goal->request), _1);
+      std::bind(&MoveGroupSequenceAction::planUsingSequenceManager, this, boost::cref(goal->request), std::placeholders::_1);
 
   if (goal->planning_options.look_around && context_->plan_with_sensing_)
   {

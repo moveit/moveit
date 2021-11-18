@@ -55,7 +55,7 @@ void MoveGroupMoveAction::initialize()
 {
   // start the move action server
   move_action_server_ = std::make_unique<actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction>>(
-      root_node_handle_, MOVE_ACTION, std::bind(&MoveGroupMoveAction::executeMoveCallback, this, _1), false);
+      root_node_handle_, MOVE_ACTION, std::bind(&MoveGroupMoveAction::executeMoveCallback, this, std::placeholders::_1), false);
   move_action_server_->registerPreemptCallback(std::bind(&MoveGroupMoveAction::preemptMoveCallback, this));
   move_action_server_->start();
 }
@@ -135,11 +135,11 @@ void MoveGroupMoveAction::executeMoveCallbackPlanAndExecute(const moveit_msgs::M
   opt.before_execution_callback_ = std::bind(&MoveGroupMoveAction::startMoveExecutionCallback, this);
 
   opt.plan_callback_ =
-      std::bind(&MoveGroupMoveAction::planUsingPlanningPipeline, this, boost::cref(motion_plan_request), _1);
+      std::bind(&MoveGroupMoveAction::planUsingPlanningPipeline, this, boost::cref(motion_plan_request), std::placeholders::_1);
   if (goal->planning_options.look_around && context_->plan_with_sensing_)
   {
     opt.plan_callback_ = std::bind(&plan_execution::PlanWithSensing::computePlan, context_->plan_with_sensing_.get(),
-                                     _1, opt.plan_callback_, goal->planning_options.look_around_attempts,
+                                     std::placeholders::_1, opt.plan_callback_, goal->planning_options.look_around_attempts,
                                      goal->planning_options.max_safe_execution_cost);
     context_->plan_with_sensing_->setBeforeLookCallback(std::bind(&MoveGroupMoveAction::startMoveLookCallback, this));
   }

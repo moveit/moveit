@@ -537,7 +537,7 @@ void PlanningSceneDisplay::loadRobotModel()
   if (psm->getPlanningScene())
   {
     planning_scene_monitor_.swap(psm);
-    planning_scene_monitor_->addUpdateCallback(std::bind(&PlanningSceneDisplay::sceneMonitorReceivedUpdate, this, _1));
+    planning_scene_monitor_->addUpdateCallback(std::bind(&PlanningSceneDisplay::sceneMonitorReceivedUpdate, this, std::placeholders::_1));
     addMainLoopJob(std::bind(&PlanningSceneDisplay::onRobotModelLoaded, this));
     waitForAllMainLoopJobs();
   }

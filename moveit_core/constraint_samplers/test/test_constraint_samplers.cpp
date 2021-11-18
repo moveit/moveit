@@ -82,8 +82,8 @@ protected:
     pr2_kinematics_plugin_left_arm_->initialize(*robot_model_, "left_arm", "torso_lift_link", { "l_wrist_roll_link" },
                                                 .01);
 
-    func_right_arm_ = std::bind(&LoadPlanningModelsPr2::getKinematicsSolverRightArm, this, _1);
-    func_left_arm_ = std::bind(&LoadPlanningModelsPr2::getKinematicsSolverLeftArm, this, _1);
+    func_right_arm_ = std::bind(&LoadPlanningModelsPr2::getKinematicsSolverRightArm, this, std::placeholders::_1);
+    func_left_arm_ = std::bind(&LoadPlanningModelsPr2::getKinematicsSolverLeftArm, this, std::placeholders::_1);
 
     std::map<std::string, moveit::core::SolverAllocatorFn> allocators;
     allocators["right_arm"] = func_right_arm_;
