@@ -44,7 +44,7 @@
 #include <moveit/backtrace/backtrace.h>
 #include <moveit/profiler/profiler.h>
 #include <moveit/macros/console_colors.h>
-#include <boost/bind.hpp>
+#include <functional>
 #include <moveit/robot_model/aabb.h>
 
 namespace moveit

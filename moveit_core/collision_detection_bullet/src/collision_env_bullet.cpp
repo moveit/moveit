@@ -38,7 +38,7 @@
 #include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
 #include <moveit/collision_detection_bullet/bullet_integration/ros_bullet_utils.h>
 #include <moveit/collision_detection_bullet/bullet_integration/contact_checker_common.h>
-#include <boost/bind.hpp>
+#include <functional>
 #include <bullet/btBulletCollisionCommon.h>
 
 namespace collision_detection

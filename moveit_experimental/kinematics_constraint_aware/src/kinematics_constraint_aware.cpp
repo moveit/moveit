@@ -41,7 +41,7 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <Eigen/Geometry.h>
 #include <tf2_eigen/tf2_eigen.h>
-#include <boost/bind.hpp>
+#include <functional>
 
 namespace kinematics_constraint_aware
 {

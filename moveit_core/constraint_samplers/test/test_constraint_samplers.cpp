@@ -49,7 +49,7 @@
 #include <gtest/gtest.h>
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
-#include <boost/bind.hpp>
+#include <functional>
 
 #include "pr2_arm_kinematics_plugin.h"
 

@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan, E. Gil Jones */
 
 #include <moveit/collision_detection/collision_matrix.h>
-#include <boost/bind.hpp>
+#include <functional>
 #include <iomanip>
 
 namespace collision_detection

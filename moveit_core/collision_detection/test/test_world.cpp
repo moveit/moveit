@@ -37,7 +37,7 @@
 #include <gtest/gtest.h>
 #include <moveit/collision_detection/world.h>
 #include <geometric_shapes/shapes.h>
-#include <boost/bind.hpp>
+#include <functional>
 
 TEST(World, AddRemoveShape)
 {

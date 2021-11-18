@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
-#include <boost/bind.hpp>
+#include <functional>
 #include <algorithm>
 
 // we could really use some c++11 lambda functions here :)
