@@ -336,28 +336,20 @@ void MotionPlanningDisplay::updateBackgroundJobProgressBar()
 
   if (n == 0)
   {
-    p->setValue(p->maximum());
-    p->update();
     p->hide();
     p->setMaximum(0);
+    p->setValue(0);
   }
   else
   {
-    if (n == 1)
+    if (p->maximum() < n)  // increase max
     {
-      if (p->maximum() == 0)
-        p->setValue(0);
-      else
-        p->setValue(p->maximum() - 1);
+      p->setMaximum(n);
+      if (n > 1)  // only show bar if there will be a progress to show
+        p->show();
     }
-    else
-    {
-      if (p->maximum() < n)
-        p->setMaximum(n);
-      else
-        p->setValue(p->maximum() - n);
-    }
-    p->show();
+    else  // progress
+      p->setValue(p->maximum() - n);
     p->update();
   }
 }
