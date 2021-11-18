@@ -136,7 +136,7 @@ bool MoveGroupCartesianPathService::computeService(moveit_msgs::GetCartesianPath
             ls = std::make_unique<planning_scene_monitor::LockedPlanningSceneRO>(context_->planning_scene_monitor_);
             kset = std::make_unique<kinematic_constraints::KinematicConstraintSet>((*ls)->getRobotModel());
             kset->add(req.path_constraints, (*ls)->getTransforms());
-            constraint_fn = boost::bind(
+            constraint_fn = std::bind(
                 &isStateValid,
                 req.avoid_collisions ? static_cast<const planning_scene::PlanningSceneConstPtr&>(*ls).get() : nullptr,
                 kset->empty() ? nullptr : kset.get(), _1, _2, _3);

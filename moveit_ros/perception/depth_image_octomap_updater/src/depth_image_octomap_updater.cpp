@@ -129,7 +129,7 @@ bool DepthImageOctomapUpdater::initialize()
   mesh_filter_->setShadowThreshold(shadow_threshold_);
   mesh_filter_->setPaddingOffset(padding_offset_);
   mesh_filter_->setPaddingScale(padding_scale_);
-  mesh_filter_->setTransformCallback(boost::bind(&DepthImageOctomapUpdater::getShapeTransform, this, _1, _2));
+  mesh_filter_->setTransformCallback(std::bind(&DepthImageOctomapUpdater::getShapeTransform, this, _1, _2));
 
   return true;
 }

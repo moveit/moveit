@@ -134,9 +134,9 @@ public:
     }
 
     controller_action_client_->sendGoal(goal,
-                                        boost::bind(&GripperControllerHandle::controllerDoneCallback, this, _1, _2),
-                                        boost::bind(&GripperControllerHandle::controllerActiveCallback, this),
-                                        boost::bind(&GripperControllerHandle::controllerFeedbackCallback, this, _1));
+                                        std::bind(&GripperControllerHandle::controllerDoneCallback, this, _1, _2),
+                                        std::bind(&GripperControllerHandle::controllerActiveCallback, this),
+                                        std::bind(&GripperControllerHandle::controllerFeedbackCallback, this, _1));
 
     done_ = false;
     last_exec_ = moveit_controller_manager::ExecutionStatus::RUNNING;

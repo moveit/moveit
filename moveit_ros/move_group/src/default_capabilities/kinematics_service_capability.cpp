@@ -158,7 +158,7 @@ bool MoveGroupKinematicsService::computeIKService(moveit_msgs::GetPositionIK::Re
     moveit::core::RobotState rs = ls->getCurrentState();
     kset.add(req.ik_request.constraints, ls->getTransforms());
     computeIK(req.ik_request, res.solution, res.error_code, rs,
-              boost::bind(&isIKSolutionValid,
+              std::bind(&isIKSolutionValid,
                           req.ik_request.avoid_collisions ?
                               static_cast<const planning_scene::PlanningSceneConstPtr&>(ls).get() :
                               nullptr,

@@ -566,7 +566,7 @@ bool IKConstraintSampler::sampleHelper(moveit::core::RobotState& state, const mo
   kinematics::KinematicsBase::IKCallbackFn adapted_ik_validity_callback;
   if (group_state_validity_callback_)
     adapted_ik_validity_callback =
-        boost::bind(&samplingIkCallbackFnAdapter, &state, jmg_, group_state_validity_callback_, _1, _2, _3);
+        std::bind(&samplingIkCallbackFnAdapter, &state, jmg_, group_state_validity_callback_, _1, _2, _3);
 
   for (unsigned int a = 0; a < max_attempts; ++a)
   {

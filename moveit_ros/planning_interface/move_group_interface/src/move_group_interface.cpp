@@ -1247,7 +1247,7 @@ public:
     if (constraints_init_thread_)
       constraints_init_thread_->join();
     constraints_init_thread_ = std::make_unique<boost::thread>(
-        boost::bind(&MoveGroupInterfaceImpl::initializeConstraintsStorageThread, this, host, port));
+        std::bind(&MoveGroupInterfaceImpl::initializeConstraintsStorageThread, this, host, port));
   }
 
   void setWorkspace(double minx, double miny, double minz, double maxx, double maxy, double maxz)

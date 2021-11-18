@@ -1280,7 +1280,7 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
         robot_state.setFromIK(robot_state.getJointModelGroup(req.motion_plan_request.group_name), ik_pose,
                               req.motion_plan_request.num_planning_attempts,
                               req.motion_plan_request.allowed_planning_time,
-                              boost::bind(&isIKSolutionCollisionFree, planning_scene_.get(), _1, _2, _3, &reachable));
+                              std::bind(&isIKSolutionCollisionFree, planning_scene_.get(), _1, _2, _3, &reachable));
     if (success)
     {
       ROS_INFO("  Success!");
@@ -1370,7 +1370,7 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
           robot_state.setFromIK(robot_state.getJointModelGroup(req.motion_plan_request.group_name), ik_pose,
                                 req.motion_plan_request.num_planning_attempts,
                                 req.motion_plan_request.allowed_planning_time,
-                                boost::bind(&isIKSolutionCollisionFree, planning_scene_.get(), _1, _2, _3, &reachable));
+                                std::bind(&isIKSolutionCollisionFree, planning_scene_.get(), _1, _2, _3, &reachable));
       double duration = (ros::WallTime::now() - startTime).toSec();
 
       if (success)
