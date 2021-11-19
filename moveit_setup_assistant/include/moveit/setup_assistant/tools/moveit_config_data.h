@@ -57,8 +57,8 @@ static const std::string ROBOT_DESCRIPTION = "robot_description";
 static const std::string MOVEIT_ROBOT_STATE = "moveit_robot_state";
 
 // Default kin solver values
-static const double DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION_ = 0.005;
-static const double DEFAULT_KIN_SOLVER_TIMEOUT_ = 0.005;
+static const double DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION_ = 0.005;  // NOLINT(readability-identifier-naming)
+static const double DEFAULT_KIN_SOLVER_TIMEOUT_ = 0.005;            // NOLINT(readability-identifier-naming)
 
 // ******************************************************************************************
 // Structs
@@ -513,7 +513,7 @@ public:
    * \param jm2 - a pointer to the second joint model to compare
    * \return bool of alphabetical sorting comparison
    */
-  struct joint_model_compare
+  struct joint_model_compare  // NOLINT(readability-identifier-naming)
   {
     bool operator()(const robot_model::JointModel* jm1, const robot_model::JointModel* jm2) const
     {

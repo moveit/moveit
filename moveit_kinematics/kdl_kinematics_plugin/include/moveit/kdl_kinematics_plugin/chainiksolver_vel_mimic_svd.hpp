@@ -84,11 +84,12 @@ public:
    *
    * where W_q and W_x are joint- and Cartesian weights respectively.
    * A smaller joint weight (< 1.0) will reduce the contribution of this joint to the solution. */
+  // NOLINTNEXTLINE(readability-identifier-naming)
   int CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out, const Eigen::VectorXd& joint_weights,
                 const Eigen::Matrix<double, 6, 1>& cartesian_weights);
 
   /// not implemented.
-  int CartToJnt(const JntArray& q_init, const FrameVel& v_in, JntArrayVel& q_out) override
+  int CartToJnt(const JntArray& /*q_init*/, const FrameVel& /*v_in*/, JntArrayVel& /*q_out*/) override
   {
     return -1;
   }

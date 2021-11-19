@@ -136,19 +136,19 @@ public:
   }
 
   /** \brief Start counting time */
-  static void Start()
+  static void Start()  // NOLINT(readability-identifier-naming)
   {
     instance().start();
   }
 
   /** \brief Stop counting time */
-  static void Stop()
+  static void Stop()  // NOLINT(readability-identifier-naming)
   {
     instance().stop();
   }
 
   /** \brief Clear counted time and events */
-  static void Clear()
+  static void Clear()  // NOLINT(readability-identifier-naming)
   {
     instance().clear();
   }
@@ -163,7 +163,7 @@ public:
   void clear();
 
   /** \brief Count a specific event for a number of times */
-  static void Event(const std::string& name, const unsigned int times = 1)
+  static void Event(const std::string& name, const unsigned int times = 1)  // NOLINT(readability-identifier-naming)
   {
     instance().event(name, times);
   }
@@ -172,7 +172,7 @@ public:
   void event(const std::string& name, const unsigned int times = 1);
 
   /** \brief Maintain the average of a specific value */
-  static void Average(const std::string& name, const double value)
+  static void Average(const std::string& name, const double value)  // NOLINT(readability-identifier-naming)
   {
     instance().average(name, value);
   }
@@ -181,13 +181,13 @@ public:
   void average(const std::string& name, const double value);
 
   /** \brief Begin counting time for a specific chunk of code */
-  static void Begin(const std::string& name)
+  static void Begin(const std::string& name)  // NOLINT(readability-identifier-naming)
   {
     instance().begin(name);
   }
 
   /** \brief Stop counting time for a specific chunk of code */
-  static void End(const std::string& name)
+  static void End(const std::string& name)  // NOLINT(readability-identifier-naming)
   {
     instance().end(name);
   }
@@ -201,7 +201,7 @@ public:
   /** \brief Print the status of the profiled code chunks and
       events. Optionally, computation done by different threads
       can be printed separately. */
-  static void Status(std::ostream& out = std::cout, bool merge = true)
+  static void Status(std::ostream& out = std::cout, bool merge = true)  // NOLINT(readability-identifier-naming)
   {
     instance().status(out, merge);
   }
@@ -213,7 +213,7 @@ public:
 
   /** \brief Print the status of the profiled code chunks and
       events to the console (using msg::Console) */
-  static void Console(void)
+  static void Console()  // NOLINT(readability-identifier-naming)
   {
     instance().console();
   }
@@ -229,7 +229,7 @@ public:
   }
 
   /** \brief Check if the profiler is counting time or not */
-  static bool Running(void)
+  static bool Running()  // NOLINT(readability-identifier-naming)
   {
     return instance().running();
   }
