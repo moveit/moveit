@@ -79,7 +79,7 @@ public:
   RobotInteraction(const robot_model::RobotModelConstPtr& robot_model, const std::string& ns = "");
   virtual ~RobotInteraction();
 
-  const std::string& getServerTopic(void) const
+  const std::string& getServerTopic() const
   {
     return topic_;
   }

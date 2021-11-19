@@ -112,7 +112,7 @@ public:
 
 private:
   /** \brief Notification function */
-  void notify(const World::ObjectConstPtr&, World::Action);
+  void notify(const World::ObjectConstPtr& obj, World::Action action);
 
   /** keep changes in a map so they can be coalesced */
   std::map<std::string, World::Action> changes_;

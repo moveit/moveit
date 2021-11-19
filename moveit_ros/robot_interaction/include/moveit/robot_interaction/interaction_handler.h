@@ -217,7 +217,7 @@ public:
 
   /** \brief Clear any error settings.
    * This makes the markers appear as if the state is no longer invalid. */
-  void clearError(void);
+  void clearError();
 
 protected:
   bool transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback,

@@ -76,7 +76,7 @@ enum DiscretizationMethod
   SOME_RANDOM_SAMPLED /**< the discretization for some redundant joint will be randomly generated.
                            The unused redundant joints will be fixed at their current value. */
 };
-}
+}  // namespace DiscretizationMethods
 typedef DiscretizationMethods::DiscretizationMethod DiscretizationMethod;
 
 /*
@@ -98,7 +98,7 @@ enum KinematicError
   NO_SOLUTION                          /**< A valid joint solution that can reach this pose(s) could not be found */
 
 };
-}
+}  // namespace KinematicErrors
 typedef KinematicErrors::KinematicError KinematicError;
 
 /**
@@ -298,7 +298,7 @@ public:
                    double timeout, const std::vector<double>& consistency_limits, std::vector<double>& solution,
                    const IKCallbackFn& solution_callback, moveit_msgs::MoveItErrorCodes& error_code,
                    const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions(),
-                   const moveit::core::RobotState* context_state = NULL) const
+                   const moveit::core::RobotState* context_state = nullptr) const
   {
     // For IK solvers that do not support multiple poses, fall back to single pose call
     if (ik_poses.size() == 1)
@@ -508,7 +508,7 @@ public:
    *          supported.
    * \return True if the group is supported, false if not.
    */
-  virtual bool supportsGroup(const moveit::core::JointModelGroup* jmg, std::string* error_text_out = NULL) const;
+  virtual bool supportsGroup(const moveit::core::JointModelGroup* jmg, std::string* error_text_out = nullptr) const;
 
   /**
    * @brief  Set the search discretization value for all the redundant joints

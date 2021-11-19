@@ -97,7 +97,7 @@ public:
     return WriteLock(tree_mutex_);
   }
 
-  void triggerUpdateCallback(void)
+  void triggerUpdateCallback()
   {
     if (update_callback_)
       update_callback_();

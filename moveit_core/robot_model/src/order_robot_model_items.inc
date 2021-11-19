@@ -65,6 +65,6 @@ struct OrderGroupsByName
   }
 };
 
-}
-}
-}
+}  // namespace
+}  // namespace core
+}  // namespace moveit

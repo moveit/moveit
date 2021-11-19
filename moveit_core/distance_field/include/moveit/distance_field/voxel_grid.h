@@ -342,7 +342,7 @@ protected:
 template <typename T>
 VoxelGrid<T>::VoxelGrid(double size_x, double size_y, double size_z, double resolution, double origin_x,
                         double origin_y, double origin_z, T default_object)
-  : data_(NULL)
+  : data_(nullptr)
 {
   resize(size_x, size_y, size_z, resolution, origin_x, origin_y, origin_z, default_object);
 }
@@ -369,7 +369,7 @@ void VoxelGrid<T>::resize(double size_x, double size_y, double size_z, double re
                           double origin_y, double origin_z, T default_object)
 {
   delete[] data_;
-  data_ = NULL;
+  data_ = nullptr;
 
   size_[DIM_X] = size_x;
   size_[DIM_Y] = size_y;
