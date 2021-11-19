@@ -963,7 +963,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
   for (size_t p = 0; p < num_points; ++p)
   {
     moveit::core::RobotStatePtr waypoint = trajectory.getWayPointPtr(p);
-    Eigen::VectorXd new_point(num_joints);
+    Eigen::VectorXd new_point = Eigen::VectorXd::Zero(num_joints);
 
     // The first point should always be kept
     if (p == 0)
