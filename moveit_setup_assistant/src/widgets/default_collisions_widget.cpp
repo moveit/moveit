@@ -235,8 +235,7 @@ void DefaultCollisionsWidget::startGeneratingCollisionTable()
   btn_revert_->setEnabled(true);  // allow to interrupt and revert
 
   // create a MonitorThread running generateCollisionTable() in a worker thread and monitoring the progress
-  worker_ = new MonitorThread(std::bind(&DefaultCollisionsWidget::generateCollisionTable, this, std::placeholders::_1),
-                              progress_bar_);
+  worker_ = new MonitorThread([this](unsigned int* progress) { generateCollisionTable(progress); }, progress_bar_);
   connect(worker_, SIGNAL(finished()), this, SLOT(finishGeneratingCollisionTable()));
   worker_->start();  // start after having finished() signal connected
 }

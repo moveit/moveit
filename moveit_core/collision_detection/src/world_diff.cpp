@@ -35,7 +35,6 @@
 /* Author: Acorn Pooley, Ioan Sucan */
 
 #include <moveit/collision_detection/world_diff.h>
-#include <functional>
 
 namespace collision_detection
 {
@@ -53,7 +52,7 @@ WorldDiff::WorldDiff()
 WorldDiff::WorldDiff(const WorldPtr& world) : world_(world)
 {
   observer_handle_ =
-      world->addObserver(std::bind(&WorldDiff::notify, this, std::placeholders::_1, std::placeholders::_2));
+      world->addObserver([this](const World::ObjectConstPtr& obj, World::Action action) { notify(obj, action); });
 }
 
 WorldDiff::WorldDiff(WorldDiff& other)
@@ -65,7 +64,7 @@ WorldDiff::WorldDiff(WorldDiff& other)
 
     WorldWeakPtr(world).swap(world_);
     observer_handle_ =
-        world->addObserver(std::bind(&WorldDiff::notify, this, std::placeholders::_1, std::placeholders::_2));
+        world->addObserver([this](const World::ObjectConstPtr& obj, World::Action action) { notify(obj, action); });
   }
 }
 
@@ -90,7 +89,7 @@ void WorldDiff::reset(const WorldPtr& world)
 
   WorldWeakPtr(world).swap(world_);
   observer_handle_ =
-      world->addObserver(std::bind(&WorldDiff::notify, this, std::placeholders::_1, std::placeholders::_2));
+      world->addObserver([this](const World::ObjectConstPtr& obj, World::Action action) { notify(obj, action); });
 }
 
 void WorldDiff::setWorld(const WorldPtr& world)
@@ -105,7 +104,7 @@ void WorldDiff::setWorld(const WorldPtr& world)
   WorldWeakPtr(world).swap(world_);
 
   observer_handle_ =
-      world->addObserver(std::bind(&WorldDiff::notify, this, std::placeholders::_1, std::placeholders::_2));
+      world->addObserver([this](const World::ObjectConstPtr& obj, World::Action action) { notify(obj, action); });
   world->notifyObserverAllObjects(observer_handle_, World::CREATE | World::ADD_SHAPE);
 }
 

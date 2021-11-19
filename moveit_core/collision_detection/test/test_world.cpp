@@ -37,7 +37,6 @@
 #include <gtest/gtest.h>
 #include <moveit/collision_detection/world.h>
 #include <geometric_shapes/shapes.h>
-#include <functional>
 
 TEST(World, AddRemoveShape)
 {
@@ -222,12 +221,12 @@ struct TestAction
 };
 
 /* notification callback */
-static void TrackChangesNotify(TestAction* ta, const collision_detection::World::ObjectConstPtr& obj,
+static void TrackChangesNotify(TestAction& ta, const collision_detection::World::ObjectConstPtr& obj,
                                collision_detection::World::Action action)
 {
-  ta->obj_ = *obj;
-  ta->action_ = action;
-  ta->cnt_++;
+  ta.obj_ = *obj;
+  ta.action_ = action;
+  ta.cnt_++;
 }
 
 TEST(World, TrackChanges)
@@ -236,7 +235,8 @@ TEST(World, TrackChanges)
 
   TestAction ta;
   collision_detection::World::ObserverHandle observer_ta;
-  observer_ta = world.addObserver(std::bind(TrackChangesNotify, &ta, std::placeholders::_1, std::placeholders::_2));
+  observer_ta = world.addObserver(
+      [&ta](const World::ObjectConstPtr& obj, World::Action action) { return TrackChangesNotify(ta, obj, action); });
 
   // Create some shapes
   shapes::ShapePtr ball(new shapes::Sphere(1.0));
@@ -267,7 +267,8 @@ TEST(World, TrackChanges)
 
   TestAction ta2;
   collision_detection::World::ObserverHandle observer_ta2;
-  observer_ta2 = world.addObserver(std::bind(TrackChangesNotify, &ta2, std::placeholders::_1, std::placeholders::_2));
+  observer_ta2 = world.addObserver(
+      [&ta2](const World::ObjectConstPtr& obj, World::Action action) { return TrackChangesNotify(ta2, obj, action); });
 
   world.addToObject("obj2", cyl, Eigen::Isometry3d::Identity());
 
@@ -305,7 +306,8 @@ TEST(World, TrackChanges)
 
   TestAction ta3;
   collision_detection::World::ObserverHandle observer_ta3;
-  observer_ta3 = world.addObserver(std::bind(TrackChangesNotify, &ta3, std::placeholders::_1, std::placeholders::_2));
+  observer_ta3 = world.addObserver(
+      [&ta3](const World::ObjectConstPtr& obj, World::Action action) { return TrackChangesNotify(ta3, obj, action); });
 
   bool rm_good = world.removeShapeFromObject("obj2", cyl);
   EXPECT_TRUE(rm_good);
@@ -371,7 +373,8 @@ TEST(World, ObjectPoseAndSubframes)
 
   TestAction ta;
   collision_detection::World::ObserverHandle observer_ta;
-  observer_ta = world.addObserver(std::bind(TrackChangesNotify, &ta, std::placeholders::_1, std::placeholders::_2));
+  observer_ta = world.addObserver(
+      [&ta](const World::ObjectConstPtr& obj, World::Action action) { return TrackChangesNotify(ta, obj, action); });
 
   // Create shapes
   shapes::ShapePtr ball(new shapes::Sphere(1.0));

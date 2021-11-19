@@ -35,7 +35,6 @@
 /* Author: Ioan Sucan, E. Gil Jones */
 
 #include <moveit/collision_detection/collision_matrix.h>
-#include <functional>
 #include <iomanip>
 
 namespace collision_detection
@@ -247,11 +246,6 @@ bool AllowedCollisionMatrix::getDefaultEntry(const std::string& name, DecideCont
   return true;
 }
 
-static bool andDecideContact(const DecideContactFn& f1, const DecideContactFn& f2, Contact& contact)
-{
-  return f1(contact) && f2(contact);
-}
-
 bool AllowedCollisionMatrix::getAllowedCollision(const std::string& name1, const std::string& name2,
                                                  DecideContactFn& fn) const
 {
@@ -268,7 +262,7 @@ bool AllowedCollisionMatrix::getAllowedCollision(const std::string& name1, const
     else if (!found1 && found2)
       fn = fn2;
     else if (found1 && found2)
-      fn = std::bind(&andDecideContact, fn1, fn2, std::placeholders::_1);
+      fn = [fn1, fn2](Contact& contact) { return fn1(contact) && fn2(contact); };
     else
       return false;
     return true;
