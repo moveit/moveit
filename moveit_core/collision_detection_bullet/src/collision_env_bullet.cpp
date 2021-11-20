@@ -54,8 +54,9 @@ CollisionEnvBullet::CollisionEnvBullet(const moveit::core::RobotModelConstPtr& m
   : CollisionEnv(model, padding, scale)
 {
   // request notifications about changes to new world
-  observer_handle_ = getWorld()->addObserver(
-      std::bind(&CollisionEnvBullet::notifyObjectChange, this, std::placeholders::_1, std::placeholders::_2));
+  observer_handle_ = getWorld()->addObserver([this](auto&& PH1, auto&& PH2) {
+    notifyObjectChange(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
+  });
 
   for (const std::pair<const std::string, urdf::LinkSharedPtr>& link : robot_model_->getURDF()->links_)
   {
@@ -68,8 +69,9 @@ CollisionEnvBullet::CollisionEnvBullet(const moveit::core::RobotModelConstPtr& m
   : CollisionEnv(model, world, padding, scale)
 {
   // request notifications about changes to new world
-  observer_handle_ = getWorld()->addObserver(
-      std::bind(&CollisionEnvBullet::notifyObjectChange, this, std::placeholders::_1, std::placeholders::_2));
+  observer_handle_ = getWorld()->addObserver([this](auto&& PH1, auto&& PH2) {
+    notifyObjectChange(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
+  });
 
   for (const std::pair<const std::string, urdf::LinkSharedPtr>& link : robot_model_->getURDF()->links_)
   {
@@ -83,8 +85,9 @@ CollisionEnvBullet::CollisionEnvBullet(const CollisionEnvBullet& other, const Wo
   : CollisionEnv(other, world)
 {
   // request notifications about changes to new world
-  observer_handle_ = getWorld()->addObserver(
-      std::bind(&CollisionEnvBullet::notifyObjectChange, this, std::placeholders::_1, std::placeholders::_2));
+  observer_handle_ = getWorld()->addObserver([this](auto&& PH1, auto&& PH2) {
+    notifyObjectChange(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
+  });
 
   for (const std::pair<const std::string, urdf::LinkSharedPtr>& link : other.robot_model_->getURDF()->links_)
   {
@@ -307,8 +310,9 @@ void CollisionEnvBullet::setWorld(const WorldPtr& world)
   CollisionEnv::setWorld(world);
 
   // request notifications about changes to new world
-  observer_handle_ = getWorld()->addObserver(
-      std::bind(&CollisionEnvBullet::notifyObjectChange, this, std::placeholders::_1, std::placeholders::_2));
+  observer_handle_ = getWorld()->addObserver([this](auto&& PH1, auto&& PH2) {
+    notifyObjectChange(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
+  });
 
   // get notifications any objects already in the new world
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);

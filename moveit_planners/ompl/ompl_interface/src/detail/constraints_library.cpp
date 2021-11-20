@@ -184,8 +184,11 @@ bool interpolateUsingStoredStates(const ConstraintApproximationStateStorage* sta
 ompl_interface::InterpolationFunction ompl_interface::ConstraintApproximation::getInterpolationFunction() const
 {
   if (explicit_motions_ && milestones_ > 0 && milestones_ < state_storage_->size())
-    return std::bind(&interpolateUsingStoredStates, state_storage_, std::placeholders::_1, std::placeholders::_2,
-                     std::placeholders::_3, std::placeholders::_4);
+    return [this](auto&& PH1, auto&& PH2, auto&& PH3, auto&& PH4) {
+      return interpolateUsingStoredStates(state_storage_, std::forward<decltype(PH1)>(PH1),
+                                          std::forward<decltype(PH2)>(PH2), std::forward<decltype(PH3)>(PH3),
+                                          std::forward<decltype(PH4)>(PH4));
+    };
   return InterpolationFunction();
 }
 
@@ -225,8 +228,10 @@ ompl_interface::ConstraintApproximation::getStateSamplerAllocator(const moveit_m
 {
   if (state_storage_->size() == 0)
     return ompl::base::StateSamplerAllocator();
-  return std::bind(&allocConstraintApproximationStateSampler, std::placeholders::_1, space_signature_, state_storage_,
-                   milestones_);
+  return [this](auto&& PH1) {
+    return allocConstraintApproximationStateSampler(std::forward<decltype(PH1)>(PH1), space_signature_, state_storage_,
+                                                    milestones_);
+  };
 }
 /*
 void ompl_interface::ConstraintApproximation::visualizeDistribution(const

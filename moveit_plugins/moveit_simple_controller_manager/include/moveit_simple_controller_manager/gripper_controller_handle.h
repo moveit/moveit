@@ -135,9 +135,11 @@ public:
 
     controller_action_client_->sendGoal(
         goal,
-        std::bind(&GripperControllerHandle::controllerDoneCallback, this, std::placeholders::_1, std::placeholders::_2),
-        std::bind(&GripperControllerHandle::controllerActiveCallback, this),
-        std::bind(&GripperControllerHandle::controllerFeedbackCallback, this, std::placeholders::_1));
+        [this](auto&& PH1, auto&& PH2) {
+          controllerDoneCallback(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
+        },
+        [this] { controllerActiveCallback(); },
+        [this](auto&& PH1) { controllerFeedbackCallback(std::forward<decltype(PH1)>(PH1)); });
 
     done_ = false;
     last_exec_ = moveit_controller_manager::ExecutionStatus::RUNNING;

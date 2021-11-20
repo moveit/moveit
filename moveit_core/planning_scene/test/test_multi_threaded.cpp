@@ -126,8 +126,10 @@ TEST_P(CollisionDetectorTests, Threaded)
   }
 
   for (unsigned int i = 0; i < THREADS; ++i)
-    threads.push_back(new std::thread(
-        std::bind(&runCollisionDetectionAssert, i, TRIALS, planning_scene_.get(), states[i].get(), collisions[i])));
+    threads.push_back(
+        new std::thread([i, capture0 = planning_scene_.get(), capture1 = states[i].get(), capture2 = collisions[i]] {
+          return runCollisionDetectionAssert(i, TRIALS, capture0, capture1, capture2);
+        }));
 
   for (unsigned int i = 0; i < states.size(); ++i)
   {

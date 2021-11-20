@@ -200,17 +200,21 @@ void OccupancyMapMonitor::addUpdater(const OccupancyMapUpdaterPtr& updater)
       // when we had one updater only, we passed direcly the transform cache callback to that updater
       if (map_updaters_.size() == 2)
       {
-        map_updaters_[0]->setTransformCacheCallback(std::bind(&OccupancyMapMonitor::getShapeTransformCache, this, 0,
-                                                              std::placeholders::_1, std::placeholders::_2,
-                                                              std::placeholders::_3));
-        map_updaters_[1]->setTransformCacheCallback(std::bind(&OccupancyMapMonitor::getShapeTransformCache, this, 1,
-                                                              std::placeholders::_1, std::placeholders::_2,
-                                                              std::placeholders::_3));
+        map_updaters_[0]->setTransformCacheCallback([this](auto&& PH1, auto&& PH2, auto&& PH3) {
+          getShapeTransformCache(0, std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2),
+                                 std::forward<decltype(PH3)>(PH3));
+        });
+        map_updaters_[1]->setTransformCacheCallback([this](auto&& PH1, auto&& PH2, auto&& PH3) {
+          getShapeTransformCache(1, std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2),
+                                 std::forward<decltype(PH3)>(PH3));
+        });
       }
       else
-        map_updaters_.back()->setTransformCacheCallback(std::bind(&OccupancyMapMonitor::getShapeTransformCache, this,
-                                                                  map_updaters_.size() - 1, std::placeholders::_1,
-                                                                  std::placeholders::_2, std::placeholders::_3));
+        map_updaters_.back()->setTransformCacheCallback(
+            [this, capture0 = map_updaters_.size() - 1](auto&& PH1, auto&& PH2, auto&& PH3) {
+              getShapeTransformCache(capture0, std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2),
+                                     std::forward<decltype(PH3)>(PH3));
+            });
     }
     else
       updater->setTransformCacheCallback(transform_cache_callback_);

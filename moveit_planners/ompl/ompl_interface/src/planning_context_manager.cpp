@@ -300,7 +300,7 @@ void ompl_interface::PlanningContextManager::registerDefaultStateSpaces()
 
 ompl_interface::ConfiguredPlannerSelector ompl_interface::PlanningContextManager::getPlannerSelector() const
 {
-  return std::bind(&PlanningContextManager::plannerSelector, this, std::placeholders::_1);
+  return [this](auto&& PH1) { plannerSelector(std::forward<decltype(PH1)>(PH1)); };
 }
 
 void ompl_interface::PlanningContextManager::setPlannerConfigurations(
@@ -466,10 +466,11 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   auto it = pc->second.config.find("enforce_joint_model_state_space");
 
   if (it != pc->second.config.end() && boost::lexical_cast<bool>(it->second))
-    factory_selector = std::bind(&PlanningContextManager::getStateSpaceFactory1, this, std::placeholders::_1,
-                                 JointModelStateSpace::PARAMETERIZATION_TYPE);
+    factory_selector = [this](auto&& PH1) {
+      getStateSpaceFactory1(std::forward<decltype(PH1)>(PH1), JointModelStateSpace::PARAMETERIZATION_TYPE);
+    };
   else
-    factory_selector = std::bind(&PlanningContextManager::getStateSpaceFactory2, this, std::placeholders::_1, req);
+    factory_selector = [this, req](auto&& PH1) { getStateSpaceFactory2(std::forward<decltype(PH1)>(PH1), req); };
 
   ModelBasedPlanningContextPtr context = getPlanningContext(pc->second, factory_selector, req);
 

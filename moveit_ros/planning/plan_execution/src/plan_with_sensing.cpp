@@ -52,8 +52,9 @@ public:
   DynamicReconfigureImpl(PlanWithSensing* owner)
     : owner_(owner), dynamic_reconfigure_server_(ros::NodeHandle("~/sense_for_plan"))
   {
-    dynamic_reconfigure_server_.setCallback(std::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this,
-                                                      std::placeholders::_1, std::placeholders::_2));
+    dynamic_reconfigure_server_.setCallback([this](auto&& PH1, auto&& PH2) {
+      dynamicReconfigureCallback(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
+    });
   }
 
 private:

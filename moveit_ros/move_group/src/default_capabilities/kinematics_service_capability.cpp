@@ -158,12 +158,13 @@ bool MoveGroupKinematicsService::computeIKService(moveit_msgs::GetPositionIK::Re
     moveit::core::RobotState rs = ls->getCurrentState();
     kset.add(req.ik_request.constraints, ls->getTransforms());
     computeIK(req.ik_request, res.solution, res.error_code, rs,
-              std::bind(&isIKSolutionValid,
-                        req.ik_request.avoid_collisions ?
-                            static_cast<const planning_scene::PlanningSceneConstPtr&>(ls).get() :
-                            nullptr,
-                        kset.empty() ? nullptr : &kset, std::placeholders::_1, std::placeholders::_2,
-                        std::placeholders::_3));
+              [capture0 = req.ik_request.avoid_collisions ?
+                              static_cast<const planning_scene::PlanningSceneConstPtr&>(ls).get() :
+                              nullptr,
+               capture1 = kset.empty() ? nullptr : &kset](auto&& PH1, auto&& PH2, auto&& PH3) {
+                return isIKSolutionValid(capture0, capture1, std::forward<decltype(PH1)>(PH1),
+                                         std::forward<decltype(PH2)>(PH2), std::forward<decltype(PH3)>(PH3));
+              });
   }
   else
   {

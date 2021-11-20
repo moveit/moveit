@@ -206,8 +206,9 @@ void InteractionHandler::handleGeneric(const GenericInteraction& g,
   {
     StateChangeCallbackFn callback;
     // modify the RobotState in-place with the state_lock_ held.
-    LockedRobotState::modifyState(
-        std::bind(&InteractionHandler::updateStateGeneric, this, std::placeholders::_1, &g, &feedback, &callback));
+    LockedRobotState::modifyState([this, capture0 = &g, capture1 = &feedback, capture2 = &callback](auto&& PH1) {
+      updateStateGeneric(std::forward<decltype(PH1)>(PH1), capture0, capture1, capture2);
+    });
 
     // This calls update_callback_ to notify client that state changed.
     if (callback)
@@ -238,8 +239,9 @@ void InteractionHandler::handleEndEffector(const EndEffectorInteraction& eef,
 
   // modify the RobotState in-place with state_lock_ held.
   // This locks state_lock_ before calling updateState()
-  LockedRobotState::modifyState(std::bind(&InteractionHandler::updateStateEndEffector, this, std::placeholders::_1,
-                                          &eef, &tpose.pose, &callback));
+  LockedRobotState::modifyState([this, capture0 = &eef, capture1 = &tpose.pose, capture2 = &callback](auto&& PH1) {
+    updateStateEndEffector(std::forward<decltype(PH1)>(PH1), capture0, capture1, capture2);
+  });
 
   // This calls update_callback_ to notify client that state changed.
   if (callback)
@@ -269,8 +271,9 @@ void InteractionHandler::handleJoint(const JointInteraction& vj,
 
   // modify the RobotState in-place with state_lock_ held.
   // This locks state_lock_ before calling updateState()
-  LockedRobotState::modifyState(
-      std::bind(&InteractionHandler::updateStateJoint, this, std::placeholders::_1, &vj, &tpose.pose, &callback));
+  LockedRobotState::modifyState([this, capture0 = &vj, capture1 = &tpose.pose, capture2 = &callback](auto&& PH1) {
+    updateStateJoint(std::forward<decltype(PH1)>(PH1), capture0, capture1, capture2);
+  });
 
   // This calls update_callback_ to notify client that state changed.
   if (callback)

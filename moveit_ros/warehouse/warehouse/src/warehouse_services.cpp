@@ -181,27 +181,39 @@ int main(int argc, char** argv)
 
   boost::function<bool(moveit_msgs::SaveRobotStateToWarehouse::Request & request,
                        moveit_msgs::SaveRobotStateToWarehouse::Response & response)>
-      save_cb = std::bind(&storeState, std::placeholders::_1, std::placeholders::_2, &rs);
+      save_cb = [capture0 = &rs](auto&& PH1, auto&& PH2) {
+        return storeState(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2), capture0);
+      };
 
   boost::function<bool(moveit_msgs::ListRobotStatesInWarehouse::Request & request,
                        moveit_msgs::ListRobotStatesInWarehouse::Response & response)>
-      list_cb = std::bind(&listStates, std::placeholders::_1, std::placeholders::_2, &rs);
+      list_cb = [capture0 = &rs](auto&& PH1, auto&& PH2) {
+        return listStates(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2), capture0);
+      };
 
   boost::function<bool(moveit_msgs::GetRobotStateFromWarehouse::Request & request,
                        moveit_msgs::GetRobotStateFromWarehouse::Response & response)>
-      get_cb = std::bind(&getState, std::placeholders::_1, std::placeholders::_2, &rs);
+      get_cb = [capture0 = &rs](auto&& PH1, auto&& PH2) {
+        return getState(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2), capture0);
+      };
 
   boost::function<bool(moveit_msgs::CheckIfRobotStateExistsInWarehouse::Request & request,
                        moveit_msgs::CheckIfRobotStateExistsInWarehouse::Response & response)>
-      has_cb = std::bind(&hasState, std::placeholders::_1, std::placeholders::_2, &rs);
+      has_cb = [capture0 = &rs](auto&& PH1, auto&& PH2) {
+        return hasState(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2), capture0);
+      };
 
   boost::function<bool(moveit_msgs::RenameRobotStateInWarehouse::Request & request,
                        moveit_msgs::RenameRobotStateInWarehouse::Response & response)>
-      rename_cb = std::bind(&renameState, std::placeholders::_1, std::placeholders::_2, &rs);
+      rename_cb = [capture0 = &rs](auto&& PH1, auto&& PH2) {
+        return renameState(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2), capture0);
+      };
 
   boost::function<bool(moveit_msgs::DeleteRobotStateFromWarehouse::Request & request,
                        moveit_msgs::DeleteRobotStateFromWarehouse::Response & response)>
-      delete_cb = std::bind(&deleteState, std::placeholders::_1, std::placeholders::_2, &rs);
+      delete_cb = [capture0 = &rs](auto&& PH1, auto&& PH2) {
+        return deleteState(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2), capture0);
+      };
 
   ros::ServiceServer save_state_server = node.advertiseService("save_robot_state", save_cb);
   ros::ServiceServer list_states_server = node.advertiseService("list_robot_states", list_cb);

@@ -117,8 +117,10 @@ int main(int argc, char** argv)
     std::vector<boost::thread*> threads;
 
     for (unsigned int i = 0; i < states.size(); ++i)
-      threads.push_back(new boost::thread(
-          std::bind(&runCollisionDetection, i, trials, psm.getPlanningScene().get(), states[i].get())));
+      threads.push_back(
+          new boost::thread([i, trials, capture0 = psm.getPlanningScene().get(), capture1 = states[i].get()] {
+            return runCollisionDetection(i, trials, capture0, capture1);
+          }));
 
     for (unsigned int i = 0; i < states.size(); ++i)
     {

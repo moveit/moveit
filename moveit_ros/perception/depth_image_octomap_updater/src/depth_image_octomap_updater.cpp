@@ -129,8 +129,9 @@ bool DepthImageOctomapUpdater::initialize()
   mesh_filter_->setShadowThreshold(shadow_threshold_);
   mesh_filter_->setPaddingOffset(padding_offset_);
   mesh_filter_->setPaddingScale(padding_scale_);
-  mesh_filter_->setTransformCallback(
-      std::bind(&DepthImageOctomapUpdater::getShapeTransform, this, std::placeholders::_1, std::placeholders::_2));
+  mesh_filter_->setTransformCallback([this](auto&& PH1, auto&& PH2) {
+    getShapeTransform(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
+  });
 
   return true;
 }

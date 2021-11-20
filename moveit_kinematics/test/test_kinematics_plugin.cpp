@@ -591,10 +591,13 @@ TEST_F(KinematicsTest, searchIKWithCallback)
       continue;
     }
 
-    kinematics_solver_->searchPositionIK(poses[0], fk_values, timeout_, solution,
-                                         std::bind(&KinematicsTest::searchIKCallback, this, std::placeholders::_1,
-                                                   std::placeholders::_2, std::placeholders::_3),
-                                         error_code);
+    kinematics_solver_->searchPositionIK(
+        poses[0], fk_values, timeout_, solution,
+        [this](auto&& PH1, auto&& PH2, auto&& PH3) {
+          searchIKCallback(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2),
+                           std::forward<decltype(PH3)>(PH3));
+        },
+        error_code);
     if (error_code.val == error_code.SUCCESS)
       success++;
     else

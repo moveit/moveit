@@ -62,12 +62,13 @@ bool FollowJointTrajectoryControllerHandle::sendTrajectory(const moveit_msgs::Ro
 
   control_msgs::FollowJointTrajectoryGoal goal = goal_template_;
   goal.trajectory = trajectory.joint_trajectory;
-  controller_action_client_->sendGoal(goal,
-                                      std::bind(&FollowJointTrajectoryControllerHandle::controllerDoneCallback, this,
-                                                std::placeholders::_1, std::placeholders::_2),
-                                      std::bind(&FollowJointTrajectoryControllerHandle::controllerActiveCallback, this),
-                                      std::bind(&FollowJointTrajectoryControllerHandle::controllerFeedbackCallback,
-                                                this, std::placeholders::_1));
+  controller_action_client_->sendGoal(
+      goal,
+      [this](auto&& PH1, auto&& PH2) {
+        controllerDoneCallback(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
+      },
+      [this] { controllerActiveCallback(); },
+      [this](auto&& PH1) { controllerFeedbackCallback(std::forward<decltype(PH1)>(PH1)); });
   done_ = false;
   last_exec_ = moveit_controller_manager::ExecutionStatus::RUNNING;
   return true;

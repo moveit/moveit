@@ -49,10 +49,12 @@ constexpr char LOGNAME[] = "constrained_goal_sampler";
 ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedPlanningContext* pc,
                                                                kinematic_constraints::KinematicConstraintSetPtr ks,
                                                                constraint_samplers::ConstraintSamplerPtr cs)
-  : ob::GoalLazySamples(pc->getOMPLSimpleSetup()->getSpaceInformation(),
-                        std::bind(&ConstrainedGoalSampler::sampleUsingConstraintSampler, this, std::placeholders::_1,
-                                  std::placeholders::_2),
-                        false)
+  : ob::GoalLazySamples(
+        pc->getOMPLSimpleSetup()->getSpaceInformation(),
+        [this](auto&& PH1, auto&& PH2) {
+          sampleUsingConstraintSampler(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
+        },
+        false)
   , planning_context_(pc)
   , kinematic_constraint_set_(std::move(ks))
   , constraint_sampler_(std::move(cs))
@@ -121,12 +123,10 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
     if (constraint_sampler_)
     {
       // makes the constraint sampler also perform a validity callback
-      moveit::core::GroupStateValidityCallbackFn gsvcf =
-          std::bind(&ompl_interface::ConstrainedGoalSampler::stateValidityCallback, this, new_goal,
-                    std::placeholders::_1,  // pointer to state
-                    std::placeholders::_2,  // const* joint model group
-                    std::placeholders::_3,  // double* of joint positions
-                    verbose);
+      moveit::core::GroupStateValidityCallbackFn gsvcf = [this, new_goal, verbose](auto&& PH1, auto&& PH2, auto&& PH3) {
+        stateValidityCallback(new_goal, std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2),
+                              std::forward<decltype(PH3)>(PH3), verbose);
+      };
       constraint_sampler_->setGroupStateValidityCallback(gsvcf);
 
       if (constraint_sampler_->sample(work_state_, planning_context_->getMaximumStateSamplingAttempts()))

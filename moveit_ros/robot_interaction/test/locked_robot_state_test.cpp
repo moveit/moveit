@@ -433,7 +433,7 @@ void MyInfo::modifyThreadFunc(robot_interaction::LockedRobotState* locked_state,
     {
       val += 0.0001;
 
-      locked_state->modifyState(std::bind(&MyInfo::modifyFunc, this, std::placeholders::_1, val));
+      locked_state->modifyState([this, val](auto&& PH1) { modifyFunc(std::forward<decltype(PH1)>(PH1), val); });
     }
 
     cnt_lock_.lock();

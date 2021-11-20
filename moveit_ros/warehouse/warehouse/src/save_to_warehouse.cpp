@@ -186,16 +186,20 @@ int main(int argc, char** argv)
       ROS_INFO(" * %s", name.c_str());
   }
 
-  psm.addUpdateCallback(std::bind(&onSceneUpdate, &psm, &pss));
+  psm.addUpdateCallback([capture0 = &psm, capture1 = &pss] { return onSceneUpdate(capture0, capture1); });
 
-  boost::function<void(const moveit_msgs::MotionPlanRequestConstPtr&)> callback1 =
-      std::bind(&onMotionPlanRequest, std::placeholders::_1, &psm, &pss);
+  boost::function<void(const moveit_msgs::MotionPlanRequestConstPtr&)> callback1 = [capture0 = &psm,
+                                                                                    capture1 = &pss](auto&& PH1) {
+    return onMotionPlanRequest(std::forward<decltype(PH1)>(PH1), capture0, capture1);
+  };
   ros::Subscriber mplan_req_sub = nh.subscribe("motion_plan_request", 100, callback1);
-  boost::function<void(const moveit_msgs::ConstraintsConstPtr&)> callback2 =
-      std::bind(&onConstraints, std::placeholders::_1, &cs);
+  boost::function<void(const moveit_msgs::ConstraintsConstPtr&)> callback2 = [capture0 = &cs](auto&& PH1) {
+    return onConstraints(std::forward<decltype(PH1)>(PH1), capture0);
+  };
   ros::Subscriber constr_sub = nh.subscribe("constraints", 100, callback2);
-  boost::function<void(const moveit_msgs::RobotStateConstPtr&)> callback3 =
-      std::bind(&onRobotState, std::placeholders::_1, &rs);
+  boost::function<void(const moveit_msgs::RobotStateConstPtr&)> callback3 = [capture0 = &rs](auto&& PH1) {
+    return onRobotState(std::forward<decltype(PH1)>(PH1), capture0);
+  };
   ros::Subscriber state_sub = nh.subscribe("robot_state", 100, callback3);
 
   std::vector<std::string> topics;

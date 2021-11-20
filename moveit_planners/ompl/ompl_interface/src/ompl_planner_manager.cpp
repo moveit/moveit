@@ -112,8 +112,9 @@ public:
     std::string ompl_ns = ns.empty() ? "ompl" : ns + "/ompl";
     dynamic_reconfigure_server_ =
         std::make_unique<dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig>>(ros::NodeHandle(nh_, ompl_ns));
-    dynamic_reconfigure_server_->setCallback(
-        std::bind(&OMPLPlannerManager::dynamicReconfigureCallback, this, std::placeholders::_1, std::placeholders::_2));
+    dynamic_reconfigure_server_->setCallback([this](auto&& PH1, auto&& PH2) {
+      dynamicReconfigureCallback(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
+    });
     config_settings_ = ompl_interface_->getPlannerConfigurations();
     return true;
   }

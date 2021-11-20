@@ -1780,8 +1780,10 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Is
   // set callback function
   kinematics::KinematicsBase::IKCallbackFn ik_callback_fn;
   if (constraint)
-    ik_callback_fn = std::bind(&ikCallbackFnAdapter, this, jmg, constraint, std::placeholders::_1,
-                               std::placeholders::_2, std::placeholders::_3);
+    ik_callback_fn = [this, jmg, constraint](auto&& PH1, auto&& PH2, auto&& PH3) {
+      return ikCallbackFnAdapter(this, jmg, constraint, std::forward<decltype(PH1)>(PH1),
+                                 std::forward<decltype(PH2)>(PH2), std::forward<decltype(PH3)>(PH3));
+    };
 
   // Bijection
   const std::vector<unsigned int>& bij = jmg->getKinematicsSolverJointBijection();
@@ -1924,8 +1926,10 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
   std::vector<geometry_msgs::Pose> ik_queries(poses_in.size());
   kinematics::KinematicsBase::IKCallbackFn ik_callback_fn;
   if (constraint)
-    ik_callback_fn = std::bind(&ikCallbackFnAdapter, this, jmg, constraint, std::placeholders::_1,
-                               std::placeholders::_2, std::placeholders::_3);
+    ik_callback_fn = [this, jmg, constraint](auto&& PH1, auto&& PH2, auto&& PH3) {
+      return ikCallbackFnAdapter(this, jmg, constraint, std::forward<decltype(PH1)>(PH1),
+                                 std::forward<decltype(PH2)>(PH2), std::forward<decltype(PH3)>(PH3));
+    };
 
   for (std::size_t i = 0; i < transformed_poses.size(); ++i)
   {

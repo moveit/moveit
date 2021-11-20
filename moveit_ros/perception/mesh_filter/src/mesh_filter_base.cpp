@@ -68,8 +68,10 @@ mesh_filter::MeshFilterBase::MeshFilterBase(const TransformCallback& transform_c
   , padding_offset_(0.01)
   , shadow_threshold_(0.5)
 {
-  filter_thread_ = std::thread(std::bind(&MeshFilterBase::run, this, render_vertex_shader, render_fragment_shader,
-                                         filter_vertex_shader, filter_fragment_shader));
+  filter_thread_ =
+      std::thread([this, render_vertex_shader, render_fragment_shader, filter_vertex_shader, filter_fragment_shader] {
+        run(render_vertex_shader, render_fragment_shader, filter_vertex_shader, filter_fragment_shader);
+      });
 }
 
 void mesh_filter::MeshFilterBase::initialize(const std::string& render_vertex_shader,
@@ -173,7 +175,7 @@ mesh_filter::MeshHandle mesh_filter::MeshFilterBase::addMesh(const shapes::Mesh&
 {
   std::unique_lock<std::mutex> _(meshes_mutex_);
 
-  JobPtr job(new FilterJob<void>(std::bind(&MeshFilterBase::addMeshHelper, this, next_handle_, &mesh)));
+  JobPtr job(new FilterJob<void>([this, capture0 = &mesh] { addMeshHelper(next_handle_, capture0); }));
   addJob(job);
   job->wait();
   mesh_filter::MeshHandle ret = next_handle_;
@@ -196,7 +198,7 @@ void mesh_filter::MeshFilterBase::addMeshHelper(MeshHandle handle, const shapes:
 void mesh_filter::MeshFilterBase::removeMesh(MeshHandle handle)
 {
   std::unique_lock<std::mutex> _(meshes_mutex_);
-  FilterJob<bool>* remover = new FilterJob<bool>(std::bind(&MeshFilterBase::removeMeshHelper, this, handle));
+  FilterJob<bool>* remover = new FilterJob<bool>([this, handle] { removeMeshHelper(handle); });
   JobPtr job(remover);
   addJob(job);
   job->wait();
@@ -219,16 +221,17 @@ void mesh_filter::MeshFilterBase::setShadowThreshold(float threshold)
 
 void mesh_filter::MeshFilterBase::getModelLabels(LabelType* labels) const
 {
-  JobPtr job(new FilterJob<void>(std::bind(&GLRenderer::getColorBuffer, mesh_renderer_.get(), (unsigned char*)labels)));
+  JobPtr job(new FilterJob<void>(
+      [capture0 = mesh_renderer_.get(), capture1 = (unsigned char*)labels] { capture0->getColorBuffer(capture1); }));
   addJob(job);
   job->wait();
 }
 
 void mesh_filter::MeshFilterBase::getModelDepth(float* depth) const
 {
-  JobPtr job1(new FilterJob<void>(std::bind(&GLRenderer::getDepthBuffer, mesh_renderer_.get(), depth)));
+  JobPtr job1(new FilterJob<void>([capture0 = mesh_renderer_.get(), depth] { capture0->getDepthBuffer(depth); }));
   JobPtr job2(new FilterJob<void>(
-      std::bind(&SensorModel::Parameters::transformModelDepthToMetricDepth, sensor_parameters_.get(), depth)));
+      [capture0 = sensor_parameters_.get(), depth] { capture0->transformModelDepthToMetricDepth(depth); }));
   {
     std::unique_lock<std::mutex> lock(jobs_mutex_);
     jobs_queue_.push(job1);
@@ -241,9 +244,9 @@ void mesh_filter::MeshFilterBase::getModelDepth(float* depth) const
 
 void mesh_filter::MeshFilterBase::getFilteredDepth(float* depth) const
 {
-  JobPtr job1(new FilterJob<void>(std::bind(&GLRenderer::getDepthBuffer, depth_filter_.get(), depth)));
+  JobPtr job1(new FilterJob<void>([capture0 = depth_filter_.get(), depth] { capture0->getDepthBuffer(depth); }));
   JobPtr job2(new FilterJob<void>(
-      std::bind(&SensorModel::Parameters::transformFilteredDepthToMetricDepth, sensor_parameters_.get(), depth)));
+      [capture0 = sensor_parameters_.get(), depth] { capture0->transformFilteredDepthToMetricDepth(depth); }));
   {
     std::unique_lock<std::mutex> lock(jobs_mutex_);
     jobs_queue_.push(job1);
@@ -256,7 +259,8 @@ void mesh_filter::MeshFilterBase::getFilteredDepth(float* depth) const
 
 void mesh_filter::MeshFilterBase::getFilteredLabels(LabelType* labels) const
 {
-  JobPtr job(new FilterJob<void>(std::bind(&GLRenderer::getColorBuffer, depth_filter_.get(), (unsigned char*)labels)));
+  JobPtr job(new FilterJob<void>(
+      [capture0 = depth_filter_.get(), capture1 = (unsigned char*)labels] { capture0->getColorBuffer(capture1); }));
   addJob(job);
   job->wait();
 }
@@ -296,7 +300,7 @@ void mesh_filter::MeshFilterBase::filter(const void* sensor_data, GLushort type,
     throw std::runtime_error(msg.str());
   }
 
-  JobPtr job(new FilterJob<void>(std::bind(&MeshFilterBase::doFilter, this, sensor_data, type)));
+  JobPtr job(new FilterJob<void>([this, sensor_data, type] { doFilter(sensor_data, type); }));
   addJob(job);
   if (wait)
     job->wait();

@@ -565,8 +565,11 @@ bool IKConstraintSampler::sampleHelper(moveit::core::RobotState& state, const mo
 
   kinematics::KinematicsBase::IKCallbackFn adapted_ik_validity_callback;
   if (group_state_validity_callback_)
-    adapted_ik_validity_callback = std::bind(&samplingIkCallbackFnAdapter, &state, jmg_, group_state_validity_callback_,
-                                             std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+    adapted_ik_validity_callback = [capture0 = &state, capture1 = jmg_,
+                                    capture2 = group_state_validity_callback_](auto&& PH1, auto&& PH2, auto&& PH3) {
+      return samplingIkCallbackFnAdapter(capture0, capture1, capture2, std::forward<decltype(PH1)>(PH1),
+                                         std::forward<decltype(PH2)>(PH2), std::forward<decltype(PH3)>(PH3));
+    };
 
   for (unsigned int a = 0; a < max_attempts; ++a)
   {

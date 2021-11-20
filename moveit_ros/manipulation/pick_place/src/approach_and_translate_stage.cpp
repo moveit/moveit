@@ -181,8 +181,9 @@ void addGripperTrajectory(const ManipulationPlanPtr& plan,
     plan_execution::ExecutableTrajectory et(ee_closed_traj, name);
 
     // Add a callback to attach the object to the EE after closing the gripper
-    et.effect_on_success_ =
-        std::bind(&executeAttachObject, plan->shared_data_, plan->approach_posture_, std::placeholders::_1);
+    et.effect_on_success_ = [capture0 = plan->shared_data_, capture1 = plan->approach_posture_](auto&& PH1) {
+      return executeAttachObject(capture0, capture1, std::forward<decltype(PH1)>(PH1));
+    };
     et.allowed_collision_matrix_ = collision_matrix;
     plan->trajectories_.push_back(et);
   }
@@ -226,8 +227,11 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
 
   // state validity checking during the approach must ensure that the gripper posture is that for pre-grasping
   moveit::core::GroupStateValidityCallbackFn approach_valid_callback =
-      std::bind(&isStateCollisionFree, planning_scene_.get(), collision_matrix_.get(), verbose_,
-                &plan->approach_posture_, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+      [capture0 = planning_scene_.get(), capture1 = collision_matrix_.get(), capture2 = verbose_,
+       capture3 = &plan->approach_posture_](auto&& PH1, auto&& PH2, auto&& PH3) {
+        return isStateCollisionFree(capture0, capture1, capture2, capture3, std::forward<decltype(PH1)>(PH1),
+                                    std::forward<decltype(PH2)>(PH2), std::forward<decltype(PH3)>(PH3));
+      };
   plan->goal_sampler_->setVerbose(verbose_);
   std::size_t attempted_possible_goal_states = 0;
   do  // continously sample possible goal states
@@ -277,8 +281,11 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
           // state validity checking during the retreat after the grasp must ensure the gripper posture is that of the
           // actual grasp
           moveit::core::GroupStateValidityCallbackFn retreat_valid_callback =
-              std::bind(&isStateCollisionFree, planning_scene_after_approach.get(), collision_matrix_.get(), verbose_,
-                        &plan->retreat_posture_, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+              [capture0 = planning_scene_after_approach.get(), capture1 = collision_matrix_.get(), capture2 = verbose_,
+               capture3 = &plan->retreat_posture_](auto&& PH1, auto&& PH2, auto&& PH3) {
+                return isStateCollisionFree(capture0, capture1, capture2, capture3, std::forward<decltype(PH1)>(PH1),
+                                            std::forward<decltype(PH2)>(PH2), std::forward<decltype(PH3)>(PH3));
+              };
 
           // try to compute a straight line path that moves from the goal in a desired direction
           moveit::core::RobotStatePtr last_retreat_state(

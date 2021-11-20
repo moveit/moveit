@@ -60,8 +60,9 @@ public:
   DynamicReconfigureImpl(TrajectoryExecutionManager* owner)
     : owner_(owner), dynamic_reconfigure_server_(ros::NodeHandle("~/trajectory_execution"))
   {
-    dynamic_reconfigure_server_.setCallback(std::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this,
-                                                      std::placeholders::_1, std::placeholders::_2));
+    dynamic_reconfigure_server_.setCallback([this](auto&& PH1, auto&& PH2) {
+      dynamicReconfigureCallback(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
+    });
   }
 
 private:
@@ -359,8 +360,7 @@ bool TrajectoryExecutionManager::pushAndExecute(const moveit_msgs::RobotTrajecto
       boost::mutex::scoped_lock slock(continuous_execution_mutex_);
       continuous_execution_queue_.push_back(context);
       if (!continuous_execution_thread_)
-        continuous_execution_thread_ =
-            std::make_unique<boost::thread>(std::bind(&TrajectoryExecutionManager::continuousExecutionThread, this));
+        continuous_execution_thread_ = std::make_unique<boost::thread>([this] { continuousExecutionThread(); });
     }
     last_execution_status_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
     continuous_execution_condition_.notify_all();

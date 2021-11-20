@@ -390,9 +390,12 @@ TEST_F(IntegrationTestSequenceAction, TestActionServerCallbacks)
   }
 
   // send goal using mocked callback methods
-  ac_.sendGoal(seq_goal, std::bind(&IntegrationTestSequenceAction::done_callback, this, ph::_1, ph::_2),
-               std::bind(&IntegrationTestSequenceAction::active_callback, this),
-               std::bind(&IntegrationTestSequenceAction::feedback_callback, this, ph::_1));
+  ac_.sendGoal(
+      seq_goal,
+      [this](auto&& PH1, auto&& PH2) {
+        done_callback(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
+      },
+      [this] { active_callback(); }, [this](auto&& PH1) { feedback_callback(std::forward<decltype(PH1)>(PH1)); });
 
   // wait for the ecpected events
   BARRIER({ GOAL_SUCCEEDED_EVENT, SERVER_IDLE_EVENT });
