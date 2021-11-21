@@ -1114,7 +1114,7 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Isomet
       std::string visual_geometry_mesh_url;
       in >> visual_geometry_mesh_url;
       if (!visual_geometry_mesh_url.empty() && visual_geometry_mesh_url != "no_visual_geometry" &&
-          visual_geometry_mesh_url != "*")
+          visual_geometry_mesh_url != "*" && visual_geometry_mesh_url != ".")
       {
         readPoseFromText(in, pose);
         double scaling_factor;
@@ -1125,6 +1125,11 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Isomet
       {
         // we already started reading the next object, need to rewind
         in.seekg(before_visual);
+      }
+      else if (visual_geometry_mesh_url == ".")
+      {
+        // Marks the end of the scene geometry;
+        return true;
       }
     }
     else if (marker == ".")
