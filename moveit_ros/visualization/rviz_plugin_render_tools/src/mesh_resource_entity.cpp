@@ -197,7 +197,7 @@ void MeshResourceEntity::onNewMessage(const rviz::Color& color, float alpha, con
     {
       Ogre::Technique* technique = material->getTechnique(0);
       Ogre::Pass* pass0 = technique->getPass(0);
-      Ogre::Pass* passT = technique->getPass(technique->getNumPasses() - 1);
+      Ogre::Pass* pass_t = technique->getPass(technique->getNumPasses() - 1);
       if (tinting)
       {
         // modify material's original color to use given alpha value
@@ -205,8 +205,8 @@ void MeshResourceEntity::onNewMessage(const rviz::Color& color, float alpha, con
         color.a = a;
         pass0->setDiffuse(color);
         // tint by re-rendering with marker color
-        passT->setAmbient(r * 0.5f, g * 0.5f, b * 0.5f);
-        passT->setDiffuse(r, g, b, std::min(a, 0.5f));
+        pass_t->setAmbient(r * 0.5f, g * 0.5f, b * 0.5f);
+        pass_t->setDiffuse(r, g, b, std::min(a, 0.5f));
       }
       else
       {

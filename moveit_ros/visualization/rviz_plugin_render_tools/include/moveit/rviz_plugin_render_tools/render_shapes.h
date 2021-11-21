@@ -70,8 +70,8 @@ public:
   void renderShape(Ogre::SceneNode* node, const shapes::Shape* s, const Eigen::Isometry3d& p,
                    OctreeVoxelRenderMode octree_voxel_rendering, OctreeVoxelColorMode octree_color_mode,
                    const rviz::Color& color, float alpha);
-  void updateVisualMesh(Ogre::SceneNode* node, std::string id, std::string mesh_resource, const Eigen::Isometry3d& p,
-                        double scale, const rviz::Color& color, float alpha);
+  void updateVisualMesh(Ogre::SceneNode* node, const std::string& id, const std::string& mesh_resource,
+                        const Eigen::Isometry3d& p, double scale, const rviz::Color& color, float alpha);
   void trimVisualMeshes(const std::vector<std::string>& ids);
   void updateShapeColors(float r, float g, float b, float a);
   void clear();

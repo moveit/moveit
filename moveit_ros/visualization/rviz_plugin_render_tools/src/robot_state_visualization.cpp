@@ -116,6 +116,7 @@ void RobotStateVisualization::updateHelper(const moveit::core::RobotStateConstPt
 
   // remove all objects that no longer exist (and thus cannot be updated)
   std::vector<std::string> ids;
+  ids.reserve(attached_bodies.size());
   for (const moveit::core::AttachedBody* attached_body : attached_bodies)
   {
     ids.push_back(attached_body->getName());

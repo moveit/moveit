@@ -189,7 +189,7 @@ void RenderShapes::renderShape(Ogre::SceneNode* node, const shapes::Shape* s, co
   }
 }
 
-void RenderShapes::updateVisualMesh(Ogre::SceneNode* node, std::string id, std::string mesh_resource,
+void RenderShapes::updateVisualMesh(Ogre::SceneNode* node, const std::string& id, const std::string& mesh_resource,
                                     const Eigen::Isometry3d& p, double scale, const rviz::Color& color, float alpha)
 {
   auto it = visual_meshes_.find(id);
