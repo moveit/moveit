@@ -34,6 +34,7 @@ jobs:
         export PATH=$HOME/micromamba-bin:$PATH
         rosdep init
         rosdep update
+        git clone -b add-visual-geometry-resource https://github.com/felixvd/moveit_msgs.git
         rosdep install --from-paths moveit_core --ignore-src -r -y
 
     - name: Build MoveIt Core on Unix
@@ -64,6 +65,7 @@ jobs:
 
         rosdep init
         rosdep update
+        git clone -b add-visual-geometry-resource https://github.com/felixvd/moveit_msgs.git
         rosdep install --from-paths moveit_core --ignore-src -r -y
 
     - name: Build MoveIt Core on Windows
