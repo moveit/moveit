@@ -63,8 +63,8 @@ void MoveGroupSequenceAction::initialize()
   ROS_INFO_STREAM("initialize move group sequence action");
   move_action_server_ = std::make_unique<actionlib::SimpleActionServer<moveit_msgs::MoveGroupSequenceAction>>(
       root_node_handle_, "sequence_move_group",
-      boost::bind(&MoveGroupSequenceAction::executeSequenceCallback, this, _1), false);
-  move_action_server_->registerPreemptCallback(boost::bind(&MoveGroupSequenceAction::preemptMoveCallback, this));
+      std::bind(&MoveGroupSequenceAction::executeSequenceCallback, this, std::placeholders::_1), false);
+  move_action_server_->registerPreemptCallback(std::bind(&MoveGroupSequenceAction::preemptMoveCallback, this));
   move_action_server_->start();
 
   command_list_manager_ = std::make_unique<pilz_industrial_motion_planner::CommandListManager>(
@@ -137,10 +137,10 @@ void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(
   opt.replan_ = goal->planning_options.replan;
   opt.replan_attempts_ = goal->planning_options.replan_attempts;
   opt.replan_delay_ = goal->planning_options.replan_delay;
-  opt.before_execution_callback_ = boost::bind(&MoveGroupSequenceAction::startMoveExecutionCallback, this);
+  opt.before_execution_callback_ = std::bind(&MoveGroupSequenceAction::startMoveExecutionCallback, this);
 
-  opt.plan_callback_ =
-      boost::bind(&MoveGroupSequenceAction::planUsingSequenceManager, this, boost::cref(goal->request), _1);
+  opt.plan_callback_ = std::bind(&MoveGroupSequenceAction::planUsingSequenceManager, this, boost::cref(goal->request),
+                                 std::placeholders::_1);
 
   if (goal->planning_options.look_around && context_->plan_with_sensing_)
   {

@@ -42,7 +42,7 @@
 #include <moveit/collision_distance_field/collision_common_distance_field.h>
 #include <moveit/distance_field/propagation_distance_field.h>
 #include <moveit/collision_distance_field/collision_detector_allocator_distance_field.h>
-#include <boost/bind.hpp>
+#include <functional>
 #include <memory>
 #include <utility>
 
@@ -69,7 +69,8 @@ CollisionEnvDistanceField::CollisionEnvDistanceField(
   distance_field_cache_entry_world_ = generateDistanceFieldCacheEntryWorld();
 
   // request notifications about changes to world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionEnvDistanceField::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(
+      std::bind(&CollisionEnvDistanceField::notifyObjectChange, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 CollisionEnvDistanceField::CollisionEnvDistanceField(
@@ -85,7 +86,8 @@ CollisionEnvDistanceField::CollisionEnvDistanceField(
   distance_field_cache_entry_world_ = generateDistanceFieldCacheEntryWorld();
 
   // request notifications about changes to world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionEnvDistanceField::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(
+      std::bind(&CollisionEnvDistanceField::notifyObjectChange, this, std::placeholders::_1, std::placeholders::_2));
 
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
@@ -108,7 +110,8 @@ CollisionEnvDistanceField::CollisionEnvDistanceField(const CollisionEnvDistanceF
   planning_scene_ = std::make_shared<planning_scene::PlanningScene>(robot_model_);
 
   // request notifications about changes to world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionEnvDistanceField::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(
+      std::bind(&CollisionEnvDistanceField::notifyObjectChange, this, std::placeholders::_1, std::placeholders::_2));
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
 
@@ -1705,7 +1708,8 @@ void CollisionEnvDistanceField::setWorld(const WorldPtr& world)
   CollisionEnv::setWorld(world);
 
   // request notifications about changes to new world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionEnvDistanceField::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(
+      std::bind(&CollisionEnvDistanceField::notifyObjectChange, this, std::placeholders::_1, std::placeholders::_2));
 
   // get notifications any objects already in the new world
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);

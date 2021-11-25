@@ -136,10 +136,11 @@ bool MoveGroupCartesianPathService::computeService(moveit_msgs::GetCartesianPath
             ls = std::make_unique<planning_scene_monitor::LockedPlanningSceneRO>(context_->planning_scene_monitor_);
             kset = std::make_unique<kinematic_constraints::KinematicConstraintSet>((*ls)->getRobotModel());
             kset->add(req.path_constraints, (*ls)->getTransforms());
-            constraint_fn = boost::bind(
+            constraint_fn = std::bind(
                 &isStateValid,
                 req.avoid_collisions ? static_cast<const planning_scene::PlanningSceneConstPtr&>(*ls).get() : nullptr,
-                kset->empty() ? nullptr : kset.get(), _1, _2, _3);
+                kset->empty() ? nullptr : kset.get(), std::placeholders::_1, std::placeholders::_2,
+                std::placeholders::_3);
           }
           bool global_frame = !moveit::core::Transforms::sameFrame(link_name, req.header.frame_id);
           ROS_INFO_NAMED(getName(),

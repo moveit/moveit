@@ -38,7 +38,7 @@
 #include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
 #include <moveit/collision_detection_bullet/bullet_integration/ros_bullet_utils.h>
 #include <moveit/collision_detection_bullet/bullet_integration/contact_checker_common.h>
-#include <boost/bind.hpp>
+#include <functional>
 #include <bullet/btBulletCollisionCommon.h>
 
 namespace collision_detection
@@ -54,7 +54,8 @@ CollisionEnvBullet::CollisionEnvBullet(const moveit::core::RobotModelConstPtr& m
   : CollisionEnv(model, padding, scale)
 {
   // request notifications about changes to new world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionEnvBullet::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(
+      std::bind(&CollisionEnvBullet::notifyObjectChange, this, std::placeholders::_1, std::placeholders::_2));
 
   for (const std::pair<const std::string, urdf::LinkSharedPtr>& link : robot_model_->getURDF()->links_)
   {
@@ -67,7 +68,8 @@ CollisionEnvBullet::CollisionEnvBullet(const moveit::core::RobotModelConstPtr& m
   : CollisionEnv(model, world, padding, scale)
 {
   // request notifications about changes to new world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionEnvBullet::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(
+      std::bind(&CollisionEnvBullet::notifyObjectChange, this, std::placeholders::_1, std::placeholders::_2));
 
   for (const std::pair<const std::string, urdf::LinkSharedPtr>& link : robot_model_->getURDF()->links_)
   {
@@ -81,7 +83,8 @@ CollisionEnvBullet::CollisionEnvBullet(const CollisionEnvBullet& other, const Wo
   : CollisionEnv(other, world)
 {
   // request notifications about changes to new world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionEnvBullet::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(
+      std::bind(&CollisionEnvBullet::notifyObjectChange, this, std::placeholders::_1, std::placeholders::_2));
 
   for (const std::pair<const std::string, urdf::LinkSharedPtr>& link : other.robot_model_->getURDF()->links_)
   {
@@ -304,7 +307,8 @@ void CollisionEnvBullet::setWorld(const WorldPtr& world)
   CollisionEnv::setWorld(world);
 
   // request notifications about changes to new world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionEnvBullet::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(
+      std::bind(&CollisionEnvBullet::notifyObjectChange, this, std::placeholders::_1, std::placeholders::_2));
 
   // get notifications any objects already in the new world
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);

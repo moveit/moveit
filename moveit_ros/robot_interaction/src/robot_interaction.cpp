@@ -70,7 +70,7 @@ RobotInteraction::RobotInteraction(const moveit::core::RobotModelConstPtr& robot
 
   // spin a thread that will process feedback events
   run_processing_thread_ = true;
-  processing_thread_ = std::make_unique<boost::thread>(boost::bind(&RobotInteraction::processingThread, this));
+  processing_thread_ = std::make_unique<boost::thread>(std::bind(&RobotInteraction::processingThread, this));
 }
 
 RobotInteraction::~RobotInteraction()
@@ -539,7 +539,8 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr& handle
   for (const visualization_msgs::InteractiveMarker& im : ims)
   {
     int_marker_server_->insert(im);
-    int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
+    int_marker_server_->setCallback(im.name, std::bind(&RobotInteraction::processInteractiveMarkerFeedback, this,
+                                                       std::placeholders::_1));
 
     // Add menu handler to all markers that this interaction handler creates.
     if (std::shared_ptr<interactive_markers::MenuHandler> mh = handler->getMenuHandler())
@@ -569,7 +570,8 @@ void RobotInteraction::toggleMoveInteractiveMarkerTopic(bool enable)
         std::string topic_name = int_marker_move_topics_[i];
         std::string marker_name = int_marker_names_[i];
         int_marker_move_subscribers_.push_back(nh.subscribe<geometry_msgs::PoseStamped>(
-            topic_name, 1, boost::bind(&RobotInteraction::moveInteractiveMarker, this, marker_name, _1)));
+            topic_name, 1,
+            std::bind(&RobotInteraction::moveInteractiveMarker, this, marker_name, std::placeholders::_1)));
       }
     }
   }
