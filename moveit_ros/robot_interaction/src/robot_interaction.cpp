@@ -280,7 +280,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string& group, Intera
   const std::pair<moveit::core::JointModelGroup::KinematicsSolver, moveit::core::JointModelGroup::KinematicsSolverMap>&
       smap = jmg->getGroupKinematics();
 
-  auto addActiveEndEffectorsForSingleGroup = [&](const moveit::core::JointModelGroup* single_group) {
+  auto add_active_end_effectors_for_single_group = [&](const moveit::core::JointModelGroup* single_group) {
     bool found_eef{ false };
     for (const srdf::Model::EndEffector& eef : eefs)
       if ((single_group->hasLinkModel(eef.parent_link_) || single_group->getName() == eef.parent_group_) &&
@@ -316,14 +316,14 @@ void RobotInteraction::decideActiveEndEffectors(const std::string& group, Intera
   // if we have an IK solver for the selected group, we check if there are any end effectors attached to this group
   if (smap.first)
   {
-    addActiveEndEffectorsForSingleGroup(jmg);
+    add_active_end_effectors_for_single_group(jmg);
   }
   // if the group contains subgroups with IK, add markers for them individually
   else if (!smap.second.empty())
   {
     for (const std::pair<const moveit::core::JointModelGroup* const, moveit::core::JointModelGroup::KinematicsSolver>&
              it : smap.second)
-      addActiveEndEffectorsForSingleGroup(it.first);
+      add_active_end_effectors_for_single_group(it.first);
   }
 
   // lastly determine automatic marker sizes
