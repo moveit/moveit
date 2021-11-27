@@ -1888,10 +1888,8 @@ bool PlanningScene::processCollisionObjectAdd(const moveit_msgs::CollisionObject
   }
   world_->setSubframesOfObject(object.id, subframes);
 
-  ROS_WARN_STREAM_NAMED(LOGNAME, "Got object with url " << object.visual_geometry_mesh_url);
   if (!object.visual_geometry_mesh_url.empty())
   {
-    ROS_WARN_NAMED(LOGNAME, "DEBUG 1");
     Eigen::Isometry3d visual_geometry_pose;
     PlanningScene::poseMsgToEigen(object.visual_geometry_pose, visual_geometry_pose);
     world_->setObjectVisualGeometry(object.id, object.visual_geometry_mesh_url, visual_geometry_pose,

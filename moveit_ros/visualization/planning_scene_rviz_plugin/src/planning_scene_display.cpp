@@ -701,7 +701,6 @@ void PlanningSceneDisplay::update(float wall_dt, float ros_dt)
 
 void PlanningSceneDisplay::updateInternal(float wall_dt, float /*ros_dt*/)
 {
-  // ROS_WARN_STREAM("== updateInternal ");
   current_scene_time_ += wall_dt;
   if (planning_scene_render_ &&
       ((current_scene_time_ > scene_display_time_property_->getFloat() && robot_state_needs_render_) ||
