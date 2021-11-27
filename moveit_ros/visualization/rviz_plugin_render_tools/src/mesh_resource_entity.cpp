@@ -95,7 +95,7 @@ void MeshResourceEntity::onNewMessage(const rviz::Color& color, float alpha, con
   float a = alpha;
 
   // todo: when should this be enabled?
-  bool mesh_use_embedded_materials = false;
+  bool mesh_use_embedded_materials = true;
 
   if (!entity_ || mesh_resource_ != mesh_resource)
   {
