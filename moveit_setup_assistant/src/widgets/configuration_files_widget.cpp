@@ -287,9 +287,9 @@ bool ConfigurationFilesWidget::loadGenFiles()
   // chomp_planning.yaml  --------------------------------------------------------------------------------------
   file.file_name_ = "chomp_planning.yaml";
   file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  template_path = config_data_->appendPaths(config_data_->template_package_path_, file.rel_path_);
   file.description_ = "Specifies which chomp planning plugin parameters to be used for the CHOMP planner";
-  file.gen_func_ = std::bind(&MoveItConfigData::outputCHOMPPlanningYAML, config_data_, std::placeholders::_1);
-  file.write_on_changes = MoveItConfigData::GROUPS;  // need to double check if this is actually correct!
+  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   gen_files_.push_back(file);
 
   // stomp_planning.yaml  --------------------------------------------------------------------------------------
