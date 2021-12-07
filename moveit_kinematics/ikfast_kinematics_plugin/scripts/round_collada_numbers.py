@@ -83,7 +83,7 @@ if __name__ == "__main__":
     print("Rounding numbers to", decimal_places, "decimal places\n")
 
     # Read string from file
-    f = open(input_file, "r")
+    f = open(input_file, "rb")
     xml = f.read()
 
     # Parse XML
@@ -122,6 +122,6 @@ if __name__ == "__main__":
         elements[i].text = doRound(elements[i].text, decimal_places)
 
     # save changes
-    f = open(output_file, "w")
+    f = open(output_file, "wb")
     f.write(etree.tostring(dom))
     f.close()
