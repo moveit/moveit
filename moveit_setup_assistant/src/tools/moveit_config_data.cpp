@@ -370,7 +370,7 @@ bool MoveItConfigData::outputSTOMPPlanningYAML(const std::string& file_path)
     emitter << YAML::Value << "0.02";
     emitter << YAML::Key << "rgb";
     emitter << YAML::Flow;
-    std::vector<float> noisy_filters_rgb{255, 255, 0};
+    std::vector<float> noisy_filters_rgb{ 255, 255, 0 };
     emitter << YAML::Value << noisy_filters_rgb;
     emitter << YAML::Key << "marker_array_topic";
     emitter << YAML::Value << "stomp_trajectories";
@@ -394,11 +394,11 @@ bool MoveItConfigData::outputSTOMPPlanningYAML(const std::string& file_path)
     emitter << YAML::Value << "0.05";
     emitter << YAML::Key << "rgb";
     emitter << YAML::Flow;
-    std::vector<float> update_filters_rgb{0, 191, 255};
+    std::vector<float> update_filters_rgb{ 0, 191, 255 };
     emitter << YAML::Value << update_filters_rgb;
     emitter << YAML::Key << "error_rgb";
     emitter << YAML::Flow;
-    std::vector<float> update_filters_error_rgb{255, 0, 0};
+    std::vector<float> update_filters_error_rgb{ 255, 0, 0 };
     emitter << YAML::Value << update_filters_error_rgb;
     emitter << YAML::Key << "publish_intermediate";
     emitter << YAML::Value << "True";
