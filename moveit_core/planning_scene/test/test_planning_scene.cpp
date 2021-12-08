@@ -234,34 +234,19 @@ TEST(PlanningScene, loadBadSceneGeometry)
   // This should fail since there is no planning scene name and no end of geometry marker.
   EXPECT_FALSE(ps->loadGeometryFromStream(empty_scene_geometry));
 
-  // Old Scene file format
-  std::istringstream malformed_scene_geometry_old_format;
-  malformed_scene_geometry_old_format.str("malformed_scene_geometry\n"
-                                          "* foo\n"
-                                          "1\n"
-                                          "box\n"
-                                          "2.58 1.36\n" /* Only two tokens; should be 3 */
-                                          "1.49257 1.00222 0.170051\n"
-                                          "0 0 4.16377e-05 1\n"
-                                          "0 0 1 0.3\n"
-                                          ".\n");
-  EXPECT_FALSE(ps->loadGeometryFromStream(malformed_scene_geometry_old_format));
-
-  // New Scene file format
-  std::istringstream malformed_scene_geometry_new_format;
-  malformed_scene_geometry_new_format.str("malformed_scene_geometry\n"
-                                          "* foo\n"
-                                          "0 0 0\n"
-                                          "0 0 0 1\n"
-                                          "1\n"
-                                          "box\n"
-                                          "2.58 1.36\n" /* Only two tokens; should be 3 */
-                                          "1.49257 1.00222 0.170051\n"
-                                          "0 0 4.16377e-05 1\n"
-                                          "0 0 1 0.3\n"
-                                          "0\n" /* subframe count */
-                                          ".\n");
-  EXPECT_FALSE(ps->loadGeometryFromStream(malformed_scene_geometry_new_format));
+  std::istringstream malformed_scene_geometry;
+  malformed_scene_geometry.str("malformed_scene_geometry\n"
+                               "* foo\n"
+                               "0 0 0\n"
+                               "0 0 0 1\n"
+                               "1\n"
+                               "box\n"
+                               "2.58 1.36\n" /* Only two tokens; should be 3 */
+                               "1.49257 1.00222 0.170051\n"
+                               "0 0 4.16377e-05 1\n"
+                               "0 0 1 0.3\n"
+                               ".\n");
+  EXPECT_FALSE(ps->loadGeometryFromStream(malformed_scene_geometry));
 }
 
 class CollisionDetectorTests : public testing::TestWithParam<const char*>
