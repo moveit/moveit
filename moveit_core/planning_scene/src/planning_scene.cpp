@@ -1000,56 +1000,29 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in)
   return loadGeometryFromStream(in, Eigen::Isometry3d::Identity());  // Use no offset
 }
 
-bool PlanningScene::loadGeometryFromStream(std::istream& in_istream, const Eigen::Isometry3d& offset)
+bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Isometry3d& offset)
 {
-  if (!in_istream.good() || in_istream.eof())
+  if (!in.good() || in.eof())
   {
     ROS_ERROR_NAMED(LOGNAME, "Bad input stream when loading scene geometry");
     return false;
   }
-
-  // We need to get the full string of the stream for version detection,
-  // so create a stringstream for processing. We pass the entire istream
-  // into this stringstream
-  std::stringstream in;
-  in << in_istream.rdbuf();
-
   // Read scene name
   std::getline(in, name_);
 
   // Identify scene format version for backwards compatibility of parser
-  const std::string in_str = in.str();
-  std::vector<std::string> in_lines;
-  boost::split(in_lines, in_str, boost::is_any_of("\n"));
-  bool uses_new_scene_format = true;
-  for (std::size_t i = 0; i < in_lines.size() - 1; ++i)
+  auto pos = in.tellg();  // remember current stream position
+  std::string line;
+  do
   {
-    // An asterisk at the start of the line signifies a new object.
-    // An object can consist of multiple shapes.
-    if (in_lines[i][0] == '*')
-    {
-      // Detect the version of the serialization format based on the
-      // line succeeding the object identifier.
-
-      // Trim leading and trailing spaces (in-place)
-      boost::algorithm::trim(in_lines[i + 1]);
-
-      // Reliable way of detecting the format version is to check
-      // whether there are spaces left _after_ trimming:
-      // If there are, they are delimiters of the translation of the pose.
-      bool has_spaces_as_delimiters_after_trimming = in_lines[i + 1].find(" ") != std::string::npos;
-      if (has_spaces_as_delimiters_after_trimming)
-      {
-        uses_new_scene_format = true;
-        break;
-      }
-      else
-      {
-        uses_new_scene_format = false;
-        break;
-      }
-    }
-  }
+    std::getline(in, line);
+  } while (in.good() && !in.eof() && (line.empty() || line[0] != '*'));  // read * marker
+  std::getline(in, line);                                                // next line determines format
+  boost::algorithm::trim(line);
+  // new format: line specifies position of object, with spaces as delimiter -> spaces indicate new format
+  // old format: line specifies number of shapes
+  bool uses_new_scene_format = line.find(' ') != std::string::npos;
+  in.seekg(pos);
 
   Eigen::Isometry3d pose;  // Transient
   do
