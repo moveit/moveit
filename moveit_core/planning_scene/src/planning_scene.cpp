@@ -539,12 +539,14 @@ void PlanningScene::getCollidingPairs(collision_detection::CollisionResult::Cont
 
 void PlanningScene::getCollidingPairs(collision_detection::CollisionResult::ContactMap& contacts,
                                       const moveit::core::RobotState& robot_state,
-                                      const collision_detection::AllowedCollisionMatrix& acm) const
+                                      const collision_detection::AllowedCollisionMatrix& acm,
+                                      const std::string& group_name) const
 {
   collision_detection::CollisionRequest req;
   req.contacts = true;
   req.max_contacts = getRobotModel()->getLinkModelsWithCollisionGeometry().size() + 1;
   req.max_contacts_per_pair = 1;
+  req.group_name = group_name;
   collision_detection::CollisionResult res;
   checkCollision(req, res, robot_state, acm);
   res.contacts.swap(contacts);
