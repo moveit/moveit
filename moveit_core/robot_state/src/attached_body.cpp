@@ -47,10 +47,14 @@ AttachedBody::AttachedBody(const LinkModel* parent, const std::string& id, const
                            const std::vector<shapes::ShapeConstPtr>& shapes,
                            const EigenSTL::vector_Isometry3d& shape_poses, const std::set<std::string>& touch_links,
                            const trajectory_msgs::JointTrajectory& detach_posture,
-                           const FixedTransformsMap& subframe_poses)
+                           const FixedTransformsMap& subframe_poses, const std::string& visual_geometry_mesh_url,
+                           const Eigen::Isometry3d& visual_geometry_pose, double visual_geometry_mesh_scaling_factor)
   : parent_link_model_(parent)
   , id_(id)
   , pose_(pose)
+  , visual_geometry_mesh_url_(visual_geometry_mesh_url)
+  , visual_geometry_pose_(visual_geometry_pose)
+  , visual_geometry_mesh_scaling_factor_(visual_geometry_mesh_scaling_factor)
   , shapes_(shapes)
   , shape_poses_(shape_poses)
   , touch_links_(touch_links)

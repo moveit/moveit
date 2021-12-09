@@ -120,7 +120,8 @@ private Q_SLOTS:
   void changedMoveGroupNS();
   void changedRobotDescription();
   void changedSceneName();
-  void changedSceneEnabled();
+  void changedSceneGeometryVisualEnabled();
+  void changedSceneGeometryCollisionEnabled();
   void changedSceneRobotVisualEnabled();
   void changedSceneRobotCollisionEnabled();
   void changedRobotSceneAlpha();
@@ -128,6 +129,7 @@ private Q_SLOTS:
   void changedSceneColor();
   void changedPlanningSceneTopic();
   void changedSceneDisplayTime();
+  void changedSceneMeshScale();
   void changedOctreeRenderMode();
   void changedOctreeColorMode();
   void setSceneName(const QString& name);
@@ -203,7 +205,8 @@ protected:
   rviz::StringProperty* move_group_ns_property_;
   rviz::StringProperty* robot_description_property_;
   rviz::StringProperty* scene_name_property_;
-  rviz::BoolProperty* scene_enabled_property_;
+  rviz::BoolProperty* scene_geometry_visual_enabled_property_;
+  rviz::BoolProperty* scene_geometry_collision_enabled_property_;
   rviz::BoolProperty* scene_robot_visual_enabled_property_;
   rviz::BoolProperty* scene_robot_collision_enabled_property_;
   rviz::RosTopicProperty* planning_scene_topic_property_;

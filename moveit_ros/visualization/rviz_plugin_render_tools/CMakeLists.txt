@@ -1,6 +1,7 @@
 set(MOVEIT_LIB_NAME moveit_rviz_plugin_render_tools)
 
 set(HEADERS
+  include/moveit/rviz_plugin_render_tools/mesh_resource_entity.h
   include/moveit/rviz_plugin_render_tools/octomap_render.h
   include/moveit/rviz_plugin_render_tools/planning_link_updater.h
   include/moveit/rviz_plugin_render_tools/planning_scene_render.h
@@ -13,6 +14,7 @@ set(HEADERS
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(${MOVEIT_LIB_NAME}
+  src/mesh_resource_entity.cpp
   src/render_shapes.cpp
   src/robot_state_visualization.cpp
   src/planning_scene_render.cpp

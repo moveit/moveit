@@ -89,12 +89,14 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
   // Planning scene category -------------------------------------------------------------------------------------------
   scene_category_ = new rviz::Property("Scene Geometry", QVariant(), "", this);
 
-  scene_name_property_ = new rviz::StringProperty("Scene Name", "(noname)", "Shows the name of the planning scene",
-                                                  scene_category_, SLOT(changedSceneName()), this);
-  scene_name_property_->setShouldBeSaved(false);
-  scene_enabled_property_ =
-      new rviz::BoolProperty("Show Scene Geometry", true, "Indicates whether planning scenes should be displayed",
-                             scene_category_, SLOT(changedSceneEnabled()), this);
+  scene_geometry_visual_enabled_property_ =
+      new rviz::BoolProperty("Show Visual", true,
+                             "Indicates whether planning scene geometry visual should be displayed", scene_category_,
+                             SLOT(changedSceneGeometryVisualEnabled()), this);
+  scene_geometry_collision_enabled_property_ =
+      new rviz::BoolProperty("Show Collision", true,
+                             "Indicates whether planning scene geometry visuals should be displayed", scene_category_,
+                             SLOT(changedSceneGeometryCollisionEnabled()), this);
 
   scene_alpha_property_ = new rviz::FloatProperty("Scene Alpha", 0.9f, "Specifies the alpha for the scene geometry",
                                                   scene_category_, SLOT(changedSceneAlpha()), this);
@@ -124,6 +126,10 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
                                                          "updates to the planning scene (if any)",
                                                          scene_category_, SLOT(changedSceneDisplayTime()), this);
   scene_display_time_property_->setMin(0.0001);
+
+  scene_name_property_ = new rviz::StringProperty("Scene Name", "(noname)", "Shows the name of the planning scene",
+                                                  scene_category_, SLOT(changedSceneName()), this);
+  scene_name_property_->setShouldBeSaved(false);
 
   if (show_scene_robot)
   {
@@ -201,6 +207,11 @@ void PlanningSceneDisplay::onInitialize()
     changedRobotSceneAlpha();
     changedAttachedBodyColor();
   }
+  if (planning_scene_render_)
+  {
+    planning_scene_render_->setVisualVisible(scene_geometry_visual_enabled_property_->getBool());
+    planning_scene_render_->setCollisionVisible(scene_geometry_collision_enabled_property_->getBool());
+  }
 }
 
 void PlanningSceneDisplay::reset()
@@ -217,6 +228,11 @@ void PlanningSceneDisplay::reset()
     planning_scene_robot_->setVisible(true);
     planning_scene_robot_->setVisualVisible(scene_robot_visual_enabled_property_->getBool());
     planning_scene_robot_->setCollisionVisible(scene_robot_collision_enabled_property_->getBool());
+  }
+  if (planning_scene_render_)
+  {
+    planning_scene_render_->setVisualVisible(scene_geometry_visual_enabled_property_->getBool());
+    planning_scene_render_->setCollisionVisible(scene_geometry_collision_enabled_property_->getBool());
   }
 }
 
@@ -359,7 +375,8 @@ void PlanningSceneDisplay::renderPlanningScene()
   {
     ROS_ERROR("Caught %s while rendering planning scene", ex.what());
   }
-  planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool());
+  planning_scene_render_->getVisualGeometryNode()->setVisible(scene_geometry_visual_enabled_property_->getBool());
+  planning_scene_render_->getCollisionGeometryNode()->setVisible(scene_geometry_collision_enabled_property_->getBool());
 }
 
 void PlanningSceneDisplay::changedSceneAlpha()
@@ -398,6 +415,14 @@ void PlanningSceneDisplay::changedSceneDisplayTime()
 {
 }
 
+void PlanningSceneDisplay::changedSceneMeshScale()
+{
+  if (isEnabled() && planning_scene_render_)
+  {
+    planning_scene_needs_render_ = true;
+  }
+}
+
 void PlanningSceneDisplay::changedOctreeRenderMode()
 {
 }
@@ -426,10 +451,24 @@ void PlanningSceneDisplay::changedSceneRobotCollisionEnabled()
   }
 }
 
-void PlanningSceneDisplay::changedSceneEnabled()
+void PlanningSceneDisplay::changedSceneGeometryVisualEnabled()
 {
   if (planning_scene_render_)
-    planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool());
+  {
+    // TODO (felixvd): setVisualVisible only seems to do the same thing again? Why does this split exist?
+    planning_scene_render_->getVisualGeometryNode()->setVisible(scene_geometry_visual_enabled_property_->getBool());
+    planning_scene_render_->setVisualVisible(scene_geometry_visual_enabled_property_->getBool());
+  }
+}
+
+void PlanningSceneDisplay::changedSceneGeometryCollisionEnabled()
+{
+  if (planning_scene_render_)
+  {
+    planning_scene_render_->getCollisionGeometryNode()->setVisible(
+        scene_geometry_collision_enabled_property_->getBool());
+    planning_scene_render_->setVisualVisible(scene_geometry_visual_enabled_property_->getBool());
+  }
 }
 
 void PlanningSceneDisplay::setGroupColor(rviz::Robot* robot, const std::string& group_name, const QColor& color)
@@ -552,8 +591,11 @@ void PlanningSceneDisplay::loadRobotModel()
 void PlanningSceneDisplay::onRobotModelLoaded()
 {
   changedPlanningSceneTopic();
-  planning_scene_render_ = std::make_shared<PlanningSceneRender>(planning_scene_node_, context_, planning_scene_robot_);
-  planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool());
+  planning_scene_render_.reset(new PlanningSceneRender(planning_scene_node_, context_, planning_scene_robot_));
+  planning_scene_render_->getVisualGeometryNode()->setVisible(scene_geometry_visual_enabled_property_->getBool());
+  planning_scene_render_->getCollisionGeometryNode()->setVisible(scene_geometry_collision_enabled_property_->getBool());
+  planning_scene_render_->setVisualVisible(scene_geometry_visual_enabled_property_->getBool());
+  planning_scene_render_->setCollisionVisible(scene_geometry_collision_enabled_property_->getBool());
 
   const planning_scene_monitor::LockedPlanningSceneRO& ps = getPlanningSceneRO();
   if (planning_scene_robot_)
@@ -578,6 +620,7 @@ void PlanningSceneDisplay::onNewPlanningSceneState()
 void PlanningSceneDisplay::sceneMonitorReceivedUpdate(
     planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
 {
+  // ROS_WARN_STREAM("== inside callback: " << update_type);
   onSceneMonitorReceivedUpdate(update_type);
 }
 
@@ -608,7 +651,13 @@ void PlanningSceneDisplay::onEnable()
     planning_scene_robot_->setCollisionVisible(scene_robot_collision_enabled_property_->getBool());
   }
   if (planning_scene_render_)
-    planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool());
+  {
+    planning_scene_render_->getVisualGeometryNode()->setVisible(scene_geometry_visual_enabled_property_->getBool());
+    planning_scene_render_->getCollisionGeometryNode()->setVisible(
+        scene_geometry_collision_enabled_property_->getBool());
+    planning_scene_render_->setVisualVisible(scene_geometry_visual_enabled_property_->getBool());
+    planning_scene_render_->setCollisionVisible(scene_geometry_collision_enabled_property_->getBool());
+  }
 
   calculateOffsetPosition();
   planning_scene_needs_render_ = true;
@@ -623,7 +672,10 @@ void PlanningSceneDisplay::onDisable()
   {
     planning_scene_monitor_->stopSceneMonitor();
     if (planning_scene_render_)
-      planning_scene_render_->getGeometryNode()->setVisible(false);
+    {
+      planning_scene_render_->getVisualGeometryNode()->setVisible(false);
+      planning_scene_render_->getCollisionGeometryNode()->setVisible(false);
+    }
   }
   if (planning_scene_robot_)
     planning_scene_robot_->setVisible(false);

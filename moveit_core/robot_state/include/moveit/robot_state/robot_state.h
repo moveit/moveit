@@ -1658,6 +1658,9 @@ public:
    * @param link_name The link to attach to
    * @param detach_posture The posture of the gripper when placing the object
    * @param subframe_poses Transforms to points of interest on the object (can be used as end effector link)
+   * @param visual_geometry_mesh_url The URL of the visual representation of the object
+   * @param visual_geometry_pose The pose of the object's visual relative to the object pose
+   * @param visual_geometry_mesh_scaling_factor The scaling factor applied to the visual mesh
    *
    * This only adds the given body to this RobotState
    * instance.  It does not change anything about other
@@ -1670,7 +1673,10 @@ public:
                   const std::vector<shapes::ShapeConstPtr>& shapes, const EigenSTL::vector_Isometry3d& shape_poses,
                   const std::set<std::string>& touch_links, const std::string& link_name,
                   const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory(),
-                  const moveit::core::FixedTransformsMap& subframe_poses = moveit::core::FixedTransformsMap());
+                  const moveit::core::FixedTransformsMap& subframe_poses = moveit::core::FixedTransformsMap(),
+                  const std::string& visual_geometry_mesh_url = "",
+                  const Eigen::Isometry3d& visual_geometry_pose = Eigen::Isometry3d::Identity(),
+                  double visual_geometry_mesh_scaling_factor = 1.0);
 
   /** @brief Add an attached body to a link
    * @param id The string id associated with the attached body
@@ -1681,6 +1687,9 @@ public:
    * @param link_name The link to attach to
    * @param detach_posture The posture of the gripper when placing the object
    * @param subframe_poses Transforms to points of interest on the object (can be used as end effector link)
+   * @param visual_geometry_mesh_url The URL of the visual representation of the object
+   * @param visual_geometry_pose The pose of the object's visual relative to the object pose
+   * @param visual_geometry_mesh_scaling_factor The scaling factor applied to the visual mesh
    *
    * This only adds the given body to this RobotState
    * instance.  It does not change anything about other
@@ -1693,10 +1702,14 @@ public:
                   const std::vector<shapes::ShapeConstPtr>& shapes, const EigenSTL::vector_Isometry3d& shape_poses,
                   const std::vector<std::string>& touch_links, const std::string& link_name,
                   const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory(),
-                  const moveit::core::FixedTransformsMap& subframe_poses = moveit::core::FixedTransformsMap())
+                  const moveit::core::FixedTransformsMap& subframe_poses = moveit::core::FixedTransformsMap(),
+                  const std::string& visual_geometry_mesh_url = "",
+                  const Eigen::Isometry3d& visual_geometry_pose = Eigen::Isometry3d::Identity(),
+                  double visual_geometry_mesh_scaling_factor = 1.0)
   {
     std::set<std::string> touch_links_set(touch_links.begin(), touch_links.end());
-    attachBody(id, pose, shapes, shape_poses, touch_links_set, link_name, detach_posture, subframe_poses);
+    attachBody(id, pose, shapes, shape_poses, touch_links_set, link_name, detach_posture, subframe_poses,
+               visual_geometry_mesh_url, visual_geometry_pose, visual_geometry_mesh_scaling_factor);
   }
 
   /** \brief Get all bodies attached to the model corresponding to this state */

@@ -356,7 +356,6 @@ bool PlanningSceneInterface::applyCollisionObjects(const std::vector<moveit_msgs
     else
       break;
   }
-
   return applyPlanningScene(ps);
 }
 

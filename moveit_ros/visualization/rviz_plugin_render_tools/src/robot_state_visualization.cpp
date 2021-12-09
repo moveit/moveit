@@ -113,6 +113,16 @@ void RobotStateVisualization::updateHelper(const moveit::core::RobotStateConstPt
 
   std::vector<const moveit::core::AttachedBody*> attached_bodies;
   kinematic_state->getAttachedBodies(attached_bodies);
+
+  // remove all objects that no longer exist (and thus cannot be updated)
+  std::vector<std::string> ids;
+  ids.reserve(attached_bodies.size());
+  for (const moveit::core::AttachedBody* attached_body : attached_bodies)
+  {
+    ids.push_back(attached_body->getName());
+  }
+  render_shapes_->trimVisualMeshes(ids);
+
   for (const moveit::core::AttachedBody* attached_body : attached_bodies)
   {
     std_msgs::ColorRGBA color = default_attached_object_color;
@@ -137,10 +147,25 @@ void RobotStateVisualization::updateHelper(const moveit::core::RobotStateConstPt
     rviz::Color rcolor(color.r, color.g, color.b);
     const EigenSTL::vector_Isometry3d& ab_t = attached_body->getShapePosesInLinkFrame();
     const std::vector<shapes::ShapeConstPtr>& ab_shapes = attached_body->getShapes();
+
+    bool force_draw_collision_shapes_as_visual = false;
+    if (!attached_body->getVisualGeometryUrl().empty())
+    {
+      render_shapes_->updateVisualMesh(link->getVisualNode(), attached_body->getName(),
+                                       attached_body->getVisualGeometryUrl(),
+                                       attached_body->getPose() * attached_body->getVisualGeometryPose(),
+                                       attached_body->getVisualGeometryScalingFactor(), rcolor, alpha);
+    }
+    else  // If no visual geometry defined
+      force_draw_collision_shapes_as_visual = true;
+
     for (std::size_t j = 0; j < ab_shapes.size(); ++j)
     {
-      render_shapes_->renderShape(link->getVisualNode(), ab_shapes[j].get(), ab_t[j], octree_voxel_render_mode_,
-                                  octree_voxel_color_mode_, rcolor, alpha);
+      if (force_draw_collision_shapes_as_visual)
+      {
+        render_shapes_->renderShape(link->getVisualNode(), ab_shapes[j].get(), ab_t[j], octree_voxel_render_mode_,
+                                    octree_voxel_color_mode_, rcolor, alpha);
+      }
       render_shapes_->renderShape(link->getCollisionNode(), ab_shapes[j].get(), ab_t[j], octree_voxel_render_mode_,
                                   octree_voxel_color_mode_, rcolor, alpha);
     }
