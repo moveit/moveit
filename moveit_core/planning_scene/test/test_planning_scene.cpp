@@ -164,7 +164,7 @@ TEST(PlanningScene, isStateValid)
   }
 }
 
-TEST(PlanningScene, loadGoodSceneGeometry)
+TEST(PlanningScene, loadGoodSceneGeometryNewFormat)
 {
   moveit::core::RobotModelPtr robot_model = moveit::core::loadTestingRobotModel("pr2");
   auto ps = std::make_shared<planning_scene::PlanningScene>(robot_model->getURDF(), robot_model->getSRDF());
@@ -199,6 +199,32 @@ TEST(PlanningScene, loadGoodSceneGeometry)
   EXPECT_FALSE(ps->getWorld()->hasObject("baz"));  // Sanity check.
 }
 
+TEST(PlanningScene, loadGoodSceneGeometryOldFormat)
+{
+  moveit::core::RobotModelPtr robot_model = moveit::core::loadTestingRobotModel("pr2");
+  auto ps = std::make_shared<planning_scene::PlanningScene>(robot_model->getURDF(), robot_model->getSRDF());
+
+  std::istringstream good_scene_geometry;
+  good_scene_geometry.str("foobar_scene\n"
+                          "* foo\n"
+                          "2\n"
+                          "box\n"
+                          ".77 0.39 0.05\n"
+                          "0 0 0.025\n"
+                          "0 0 0 1\n"
+                          "0.82 0.75 0.60 1\n"
+                          "box\n"
+                          ".77 0.39 0.05\n"
+                          "0 0 1.445\n"
+                          "0 0 0 1\n"
+                          "0.82 0.75 0.60 1\n"
+                          ".\n");
+  EXPECT_TRUE(ps->loadGeometryFromStream(good_scene_geometry));
+  EXPECT_EQ(ps->getName(), "foobar_scene");
+  EXPECT_TRUE(ps->getWorld()->hasObject("foo"));
+  EXPECT_FALSE(ps->getWorld()->hasObject("baz"));  // Sanity check.
+}
+
 TEST(PlanningScene, loadBadSceneGeometry)
 {
   moveit::core::RobotModelPtr robot_model = moveit::core::loadTestingRobotModel("pr2");
@@ -211,6 +237,8 @@ TEST(PlanningScene, loadBadSceneGeometry)
   std::istringstream malformed_scene_geometry;
   malformed_scene_geometry.str("malformed_scene_geometry\n"
                                "* foo\n"
+                               "0 0 0\n"
+                               "0 0 0 1\n"
                                "1\n"
                                "box\n"
                                "2.58 1.36\n" /* Only two tokens; should be 3 */
