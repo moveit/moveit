@@ -100,7 +100,7 @@ public:
   /** \brief Return true if the model is empty (has no root link, no joints) */
   bool isEmpty() const
   {
-    return root_link_ == NULL;
+    return root_link_ == nullptr;
   }
 
   /** \brief Get the parsed URDF model */

@@ -873,14 +873,14 @@ public:
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance and feasibility) */
   bool isPathValid(const moveit_msgs::RobotState& start_state, const moveit_msgs::RobotTrajectory& trajectory,
                    const std::string& group = "", bool verbose = false,
-                   std::vector<std::size_t>* invalid_index = NULL) const;
+                   std::vector<std::size_t>* invalid_index = nullptr) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and
    * constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the
    * passed in trajectory. */
   bool isPathValid(const moveit_msgs::RobotState& start_state, const moveit_msgs::RobotTrajectory& trajectory,
                    const moveit_msgs::Constraints& path_constraints, const std::string& group = "",
-                   bool verbose = false, std::vector<std::size_t>* invalid_index = NULL) const;
+                   bool verbose = false, std::vector<std::size_t>* invalid_index = nullptr) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and
    * constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the
@@ -888,7 +888,7 @@ public:
   bool isPathValid(const moveit_msgs::RobotState& start_state, const moveit_msgs::RobotTrajectory& trajectory,
                    const moveit_msgs::Constraints& path_constraints, const moveit_msgs::Constraints& goal_constraints,
                    const std::string& group = "", bool verbose = false,
-                   std::vector<std::size_t>* invalid_index = NULL) const;
+                   std::vector<std::size_t>* invalid_index = nullptr) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and
    * constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the
@@ -896,7 +896,7 @@ public:
   bool isPathValid(const moveit_msgs::RobotState& start_state, const moveit_msgs::RobotTrajectory& trajectory,
                    const moveit_msgs::Constraints& path_constraints,
                    const std::vector<moveit_msgs::Constraints>& goal_constraints, const std::string& group = "",
-                   bool verbose = false, std::vector<std::size_t>* invalid_index = NULL) const;
+                   bool verbose = false, std::vector<std::size_t>* invalid_index = nullptr) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and
    * constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the
@@ -904,7 +904,7 @@ public:
   bool isPathValid(const robot_trajectory::RobotTrajectory& trajectory,
                    const moveit_msgs::Constraints& path_constraints,
                    const std::vector<moveit_msgs::Constraints>& goal_constraints, const std::string& group = "",
-                   bool verbose = false, std::vector<std::size_t>* invalid_index = NULL) const;
+                   bool verbose = false, std::vector<std::size_t>* invalid_index = nullptr) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and
    * constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the
@@ -912,17 +912,17 @@ public:
   bool isPathValid(const robot_trajectory::RobotTrajectory& trajectory,
                    const moveit_msgs::Constraints& path_constraints, const moveit_msgs::Constraints& goal_constraints,
                    const std::string& group = "", bool verbose = false,
-                   std::vector<std::size_t>* invalid_index = NULL) const;
+                   std::vector<std::size_t>* invalid_index = nullptr) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and
    * constraint satisfaction). */
   bool isPathValid(const robot_trajectory::RobotTrajectory& trajectory,
                    const moveit_msgs::Constraints& path_constraints, const std::string& group = "",
-                   bool verbose = false, std::vector<std::size_t>* invalid_index = NULL) const;
+                   bool verbose = false, std::vector<std::size_t>* invalid_index = nullptr) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance and feasibility) */
   bool isPathValid(const robot_trajectory::RobotTrajectory& trajectory, const std::string& group = "",
-                   bool verbose = false, std::vector<std::size_t>* invalid_index = NULL) const;
+                   bool verbose = false, std::vector<std::size_t>* invalid_index = nullptr) const;
 
   /** \brief Get the top \e max_costs cost sources for a specified trajectory. The resulting costs are stored in \e
    * costs */

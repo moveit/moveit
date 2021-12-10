@@ -54,7 +54,7 @@ class TrajectoryPanel : public rviz::Panel
   Q_OBJECT
 
 public:
-  TrajectoryPanel(QWidget* parent = 0);
+  TrajectoryPanel(QWidget* parent = nullptr);
 
   ~TrajectoryPanel() override;
 

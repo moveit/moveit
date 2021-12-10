@@ -286,8 +286,8 @@ private:
 
   template <class T = KinematicsPlugin>
   typename std::enable_if<!hasRobotModelAPI<T>::value, bool>::type
-  initializeImpl(const moveit::core::RobotModel&, const std::string&, const std::string&,
-                 const std::vector<std::string>&, double)
+  initializeImpl(const moveit::core::RobotModel& /*unused*/, const std::string& /*unused*/,
+                 const std::string& /*unused*/, const std::vector<std::string>& /*unused*/, double /*unused*/)
   {
     return false;  // API not supported
   }
@@ -306,7 +306,8 @@ private:
 
   template <class T = KinematicsPlugin>
   typename std::enable_if<!hasRobotDescAPI<T>::value, bool>::type
-  initializeImpl(const std::string&, const std::string&, const std::string&, const std::string&, double)
+  initializeImpl(const std::string& /*unused*/, const std::string& /*unused*/, const std::string& /*unused*/,
+                 const std::string& /*unused*/, double /*unused*/)
   {
     return false;  // API not supported
   }

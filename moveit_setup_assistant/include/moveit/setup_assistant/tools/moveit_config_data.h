@@ -44,6 +44,8 @@
 #include <urdf/model.h>                                               // to share throughout app
 #include <srdfdom/srdf_writer.h>                                      // for writing srdf data
 
+#include <utility>
+
 namespace moveit_setup_assistant
 {
 // ******************************************************************************************
@@ -55,8 +57,8 @@ static const std::string ROBOT_DESCRIPTION = "robot_description";
 static const std::string MOVEIT_ROBOT_STATE = "moveit_robot_state";
 
 // Default kin solver values
-static const double DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION_ = 0.005;
-static const double DEFAULT_KIN_SOLVER_TIMEOUT_ = 0.005;
+static const double DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION_ = 0.005;  // NOLINT(readability-identifier-naming)
+static const double DEFAULT_KIN_SOLVER_TIMEOUT_ = 0.005;            // NOLINT(readability-identifier-naming)
 
 // ******************************************************************************************
 // Structs
@@ -144,25 +146,25 @@ public:
 
   void setName(std::string name)
   {
-    name_ = name;
+    name_ = std::move(name);
   };
   void setValue(std::string value)
   {
-    value_ = value;
+    value_ = std::move(value);
   };
   void setComment(std::string comment)
   {
-    comment_ = comment;
+    comment_ = std::move(comment);
   };
-  std::string getName()
+  const std::string& getName() const
   {
     return name_;
   };
-  std::string getValue()
+  const std::string& getValue() const
   {
     return value_;
   };
-  std::string getComment()
+  const std::string& getComment() const
   {
     return comment_;
   };
@@ -176,7 +178,7 @@ private:
 MOVEIT_CLASS_FORWARD(MoveItConfigData);  // Defines MoveItConfigDataPtr, ConstPtr, WeakPtr... etc
 
 /** \brief This class is shared with all widgets and contains the common configuration data
-    needed for generating each robot's MoveIt! configuration package.
+    needed for generating each robot's MoveIt configuration package.
 
     All SRDF data is contained in a subclass of this class -
     srdf_writer.cpp. This class also contains the functions for writing
@@ -204,7 +206,7 @@ public:
   };
   unsigned long changes;  // bitfield of changes (composed of InformationFields)
 
-  // All of the data needed for creating a MoveIt! Configuration Files
+  // All of the data needed for creating a MoveIt Configuration Files
 
   // ******************************************************************************************
   // URDF Data
@@ -304,7 +306,7 @@ public:
   // ******************************************************************************************
   // Public Functions for outputting configuration and setting files
   // ******************************************************************************************
-  std::vector<OMPLPlannerDescription> getOMPLPlanners();
+  std::vector<OMPLPlannerDescription> getOMPLPlanners() const;
   bool outputSetupAssistantFile(const std::string& file_path);
   bool outputOMPLPlanningYAML(const std::string& file_path);
   bool outputCHOMPPlanningYAML(const std::string& file_path);
@@ -511,7 +513,7 @@ public:
    * \param jm2 - a pointer to the second joint model to compare
    * \return bool of alphabetical sorting comparison
    */
-  struct joint_model_compare
+  struct joint_model_compare  // NOLINT(readability-identifier-naming)
   {
     bool operator()(const robot_model::JointModel* jm1, const robot_model::JointModel* jm2) const
     {

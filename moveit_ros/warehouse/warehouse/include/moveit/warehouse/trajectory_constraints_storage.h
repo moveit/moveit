@@ -79,10 +79,10 @@ public:
   void removeTrajectoryConstraints(const std::string& name, const std::string& robot = "",
                                    const std::string& group = "");
 
-  void reset(void);
+  void reset();
 
 private:
-  void createCollections(void);
+  void createCollections();
 
   TrajectoryConstraintsCollection constraints_collection_;
 };

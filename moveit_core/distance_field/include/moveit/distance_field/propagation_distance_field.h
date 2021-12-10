@@ -417,20 +417,20 @@ public:
       dist = sqrt_table_[cell->distance_square_];
       pos = cell->closest_point_;
       const PropDistanceFieldVoxel* ncell = &voxel_grid_->getCell(pos.x(), pos.y(), pos.z());
-      return ncell == cell ? NULL : ncell;
+      return ncell == cell ? nullptr : ncell;
     }
     if (cell->negative_distance_square_ > 0)
     {
       dist = -sqrt_table_[cell->negative_distance_square_];
       pos = cell->closest_negative_point_;
       const PropDistanceFieldVoxel* ncell = &voxel_grid_->getCell(pos.x(), pos.y(), pos.z());
-      return ncell == cell ? NULL : ncell;
+      return ncell == cell ? nullptr : ncell;
     }
     dist = 0.0;
     pos.x() = x;
     pos.y() = y;
     pos.z() = z;
-    return NULL;
+    return nullptr;
   }
 
   /**

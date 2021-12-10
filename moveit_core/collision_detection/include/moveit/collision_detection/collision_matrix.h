@@ -66,7 +66,7 @@ enum Type
       imply that the two bodies are in collision*/
   CONDITIONAL
 };
-}
+}  // namespace AllowedCollision
 
 /** \brief Signature of predicate that decides whether a contact is allowed or not (when AllowedCollision::Type is
  * CONDITIONAL) */

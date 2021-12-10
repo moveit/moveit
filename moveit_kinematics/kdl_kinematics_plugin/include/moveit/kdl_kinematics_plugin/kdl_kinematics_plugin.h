@@ -53,7 +53,7 @@
 #include <kdl/chainfksolver.hpp>
 #include <kdl/chainiksolver.hpp>
 
-// MoveIt!
+// MoveIt
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/kdl_kinematics_plugin/joint_mimic.hpp>
 #include <moveit/robot_model/robot_model.h>
@@ -143,6 +143,7 @@ protected:
   typedef Eigen::Matrix<double, 6, 1> Twist;
 
   /// Solve position IK given initial joint values
+  // NOLINTNEXTLINE(readability-identifier-naming)
   int CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, const KDL::JntArray& q_init, const KDL::Frame& p_in,
                 KDL::JntArray& q_out, const unsigned int max_iter, const Eigen::VectorXd& joint_weights,
                 const Twist& cartesian_weights) const;
