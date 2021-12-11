@@ -37,7 +37,11 @@ jobs:
       AFTER_SETUP_UPSTREAM_WORKSPACE: vcs pull $BASEDIR/upstream_ws/src
       AFTER_SETUP_DOWNSTREAM_WORKSPACE: vcs pull $BASEDIR/downstream_ws/src
       # Compile CCOV with Debug. Enable -Werror (except CLANG_TIDY=pedantic, which makes the clang-tidy step fail on warnings)
+      # Changing linker to lld as it is much more performant than ld
       TARGET_CMAKE_ARGS: >
+        -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld
+        -DCMAKE_SHARED_LINKER_FLAGS=-fuse-ld=lld
+        -DCMAKE_MODULE_LINKER_FLAGS=-fuse-ld=lld
         -DCMAKE_BUILD_TYPE=${{ matrix.env.CCOV && 'Debug' || 'Release'}}
         -DCMAKE_CXX_FLAGS="${{ matrix.env.CLANG_TIDY != 'pedantic' && '-Werror ' || '' }}$CXXFLAGS${{ matrix.env.CCOV && ' --coverage -O2 -fno-omit-frame-pointer'}}"
       UPSTREAM_CMAKE_ARGS: "-DCMAKE_CXX_FLAGS=''"
@@ -53,6 +57,7 @@ jobs:
       BUILDER: ${{ matrix.env.BUILDER || 'catkin_tools' }}
       CC: ${{ matrix.env.CLANG_TIDY && 'clang' }}
       CXX: ${{ matrix.env.CLANG_TIDY && 'clang++' }}
+      ADDITIONAL_DEBS: lld
 
     name: "${{ matrix.env.IMAGE }}${{ matrix.env.CATKIN_LINT && ' + catkin_lint' || ''}}${{ matrix.env.CCOV && ' + ccov' || ''}}${{ matrix.env.IKFAST_TEST && ' + ikfast' || ''}}${{ matrix.env.CLANG_TIDY && (github.event_name != 'workflow_dispatch' && ' + clang-tidy (delta)' || ' + clang-tidy (all)') || '' }}"
     runs-on: ubuntu-latest
