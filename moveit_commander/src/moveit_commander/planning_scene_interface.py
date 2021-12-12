@@ -42,6 +42,7 @@ from geometry_msgs.msg import Pose, Point
 from shape_msgs.msg import SolidPrimitive, Plane, Mesh, MeshTriangle
 from .exception import MoveItCommanderException
 from moveit_msgs.srv import ApplyPlanningScene, ApplyPlanningSceneRequest
+from std_msgs.msg import ColorRGBA
 
 try:
     from pyassimp import pyassimp
@@ -243,6 +244,18 @@ class PlanningSceneInterface(object):
             conversions.msg_from_string(msg, ser_aobjs[key])
             aobjs[key] = msg
         return aobjs
+
+    def get_object_colors(self):
+        """
+         Get all available object colors. Result key corresponds to the object id.
+        """
+        ser_colors = self._psi.get_object_colors()
+        colors = dict()
+        for key in ser_colors:
+            msg = ColorRGBA()
+            conversions.msg_from_string(msg, ser_colors[key])
+            colors[key] = msg
+        return colors
 
     def apply_planning_scene(self, planning_scene_message):
         """

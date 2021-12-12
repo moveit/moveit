@@ -104,6 +104,17 @@ public:
     return py_bindings_tools::dictFromType(ser_aobjs);
   }
 
+  bp::dict getObjectColorsPython()
+  {
+    std::map<std::string, std_msgs::ColorRGBA> colors = getObjectColors();
+    std::map<std::string, py_bindings_tools::ByteString> ser_colors;
+    for (std::map<std::string, std_msgs::ColorRGBA>::const_iterator it = colors.begin();
+         it != colors.end(); ++it)
+      ser_colors[it->first] = py_bindings_tools::serializeMsg(it->second);
+
+    return py_bindings_tools::dictFromType(ser_colors);
+  }
+
   bool applyPlanningScenePython(const py_bindings_tools::ByteString& ps_str)
   {
     moveit_msgs::PlanningScene ps_msg;
@@ -123,6 +134,7 @@ static void wrap_planning_scene_interface()
   planning_scene_class.def("get_object_poses", &PlanningSceneInterfaceWrapper::getObjectPosesPython);
   planning_scene_class.def("get_objects", &PlanningSceneInterfaceWrapper::getObjectsPython);
   planning_scene_class.def("get_attached_objects", &PlanningSceneInterfaceWrapper::getAttachedObjectsPython);
+  planning_scene_class.def("get_object_colors", &PlanningSceneInterfaceWrapper::getObjectColorsPython);
   planning_scene_class.def("apply_planning_scene", &PlanningSceneInterfaceWrapper::applyPlanningScenePython);
 }
 }  // namespace planning_interface
