@@ -247,7 +247,7 @@ class PlanningSceneInterface(object):
 
     def get_object_colors(self):
         """
-         Get all available object colors. Result key corresponds to the object id.
+        Get all available object color information. Result key corresponds to the object id.
         """
         ser_colors = self._psi.get_object_colors()
         colors = dict()
