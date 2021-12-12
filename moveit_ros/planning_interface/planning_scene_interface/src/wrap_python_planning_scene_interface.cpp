@@ -108,8 +108,7 @@ public:
   {
     std::map<std::string, std_msgs::ColorRGBA> colors = getObjectColors();
     std::map<std::string, py_bindings_tools::ByteString> ser_colors;
-    for (std::map<std::string, std_msgs::ColorRGBA>::const_iterator it = colors.begin();
-         it != colors.end(); ++it)
+    for (std::map<std::string, std_msgs::ColorRGBA>::const_iterator it = colors.begin(); it != colors.end(); ++it)
       ser_colors[it->first] = py_bindings_tools::serializeMsg(it->second);
 
     return py_bindings_tools::dictFromType(ser_colors);
