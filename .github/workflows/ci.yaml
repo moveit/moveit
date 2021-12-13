@@ -37,8 +37,8 @@ jobs:
       AFTER_SETUP_UPSTREAM_WORKSPACE: vcs pull $BASEDIR/upstream_ws/src
       AFTER_SETUP_DOWNSTREAM_WORKSPACE: vcs pull $BASEDIR/downstream_ws/src
       # Clear the ccache stats before and log the stats after the build
-      BEFORE_BUILD_UPSTREAM_WORKSPACE: ccache -z
-      AFTER_BUILD_TARGET_WORKSPACE: ccache -s
+      BEFORE_BUILD_UPSTREAM_WORKSPACE: ccache --zero-stats --max-size=10.0G
+      AFTER_BUILD_TARGET_WORKSPACE: ccache --show-stats
       # Compile CCOV with Debug. Enable -Werror (except CLANG_TIDY=pedantic, which makes the clang-tidy step fail on warnings)
       # Changing linker to lld as it is much more performant than ld
       TARGET_CMAKE_ARGS: >
@@ -117,10 +117,6 @@ jobs:
             ${{ env.CACHE_PREFIX }}
         env:
           CACHE_PREFIX: ccache-${{ matrix.env.IMAGE }}${{ matrix.env.CCOV && '-ccov' || '' }}
-      - name: Configure ccache
-        run: |
-          mkdir -p ${{ env.CCACHE_DIR }}
-          cp .github/ccache.conf ${{ env.CCACHE_DIR }}/ccache.conf
 
       - name: Generate ikfast packages
         if: matrix.env.IKFAST_TEST
