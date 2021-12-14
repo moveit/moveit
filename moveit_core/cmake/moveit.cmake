@@ -5,6 +5,8 @@ macro(moveit_build_options)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
   set(CMAKE_CXX_EXTENSIONS OFF)
 
+  find_package(backward_ros QUIET)
+
   if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
     message("${PROJECT_NAME}: You did not request a specific build type: Choosing 'Release' for maximum performance")
     set(CMAKE_BUILD_TYPE Release)
