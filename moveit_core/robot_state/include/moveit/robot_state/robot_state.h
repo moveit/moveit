@@ -1699,6 +1699,27 @@ public:
     attachBody(id, pose, shapes, shape_poses, touch_links_set, link_name, detach_posture, subframe_poses);
   }
 
+  [[deprecated("No offset pose for the attached shapes can be specified with this overload; using a default offset of "
+               "identity")]] void
+  attachBody(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
+             const EigenSTL::vector_Isometry3d& shape_poses, const std::set<std::string>& touch_links,
+             const std::string& link_name,
+             const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory())
+  {
+    attachBody(id, Eigen::Isometry3d::Identity(), shapes, shape_poses, touch_links, link_name, detach_posture);
+  }
+
+  [[deprecated("No offset pose for the attached shapes can be specified with this overload; using a default offset of "
+               "identity")]] void
+  attachBody(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
+             const EigenSTL::vector_Isometry3d& shape_poses, const std::vector<std::string>& touch_links,
+             const std::string& link_name,
+             const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory())
+  {
+    std::set<std::string> touch_links_set(touch_links.begin(), touch_links.end());
+    attachBody(id, Eigen::Isometry3d::Identity(), shapes, shape_poses, touch_links_set, link_name, detach_posture);
+  }
+
   /** \brief Get all bodies attached to the model corresponding to this state */
   void getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies) const;
 
