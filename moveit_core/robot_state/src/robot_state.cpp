@@ -2213,12 +2213,12 @@ void RobotState::printTransforms(std::ostream& out) const
   const std::vector<const JointModel*>& jm = robot_model_->getJointModels();
   for (const JointModel* joint : jm)
   {
-    out << "  " << joint->getName();
+    out << "  " << joint->getName() << ": ";
     const int idx = joint->getJointIndex();
     if (dirty_joint_transforms_[idx])
-      out << " [dirty]";
-    out << ": ";
-    printTransform(variable_joint_transforms_[idx], out);
+      out << " [dirty]" << std::endl;
+    else
+      printTransform(variable_joint_transforms_[idx], out);
   }
 
   out << "Link poses:" << std::endl;
