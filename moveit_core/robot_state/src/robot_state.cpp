@@ -2194,7 +2194,6 @@ void RobotState::printStateInfo(std::ostream& out) const
 
 void RobotState::printTransform(const Eigen::Isometry3d& transform, std::ostream& out) const
 {
-  ASSERT_ISOMETRY(transform)  // unsanitized input, could contain a non-isometry
   Eigen::Quaterniond q(transform.linear());
   out << "T.xyz = [" << transform.translation().x() << ", " << transform.translation().y() << ", "
       << transform.translation().z() << "], Q.xyzw = [" << q.x() << ", " << q.y() << ", " << q.z() << ", " << q.w()
@@ -2213,12 +2212,13 @@ void RobotState::printTransforms(std::ostream& out) const
   const std::vector<const JointModel*>& jm = robot_model_->getJointModels();
   for (const JointModel* joint : jm)
   {
-    out << "  " << joint->getName() << ": ";
+    out << "  " << joint->getName();
     const int idx = joint->getJointIndex();
     if (dirty_joint_transforms_[idx])
-      out << " [dirty]" << std::endl;
+      out << " [dirty]:" << std::endl;
     else
-      printTransform(variable_joint_transforms_[idx], out);
+      out << ": " << std::endl;
+    printTransform(variable_joint_transforms_[idx], out);
   }
 
   out << "Link poses:" << std::endl;
