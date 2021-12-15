@@ -605,4 +605,10 @@ void TrajectoryVisualization::trajectorySliderPanelVisibilityChange(bool enable)
     trajectory_slider_panel_->onDisable();
 }
 
+void TrajectoryVisualization::clearRobotModel()
+{
+  robot_model_.reset();
+  robot_state_.reset();
+}
+
 }  // namespace moveit_rviz_plugin

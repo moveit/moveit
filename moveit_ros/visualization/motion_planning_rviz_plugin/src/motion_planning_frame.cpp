@@ -405,6 +405,13 @@ void MotionPlanningFrame::changePlanningGroupHelper()
   }
 }
 
+void MotionPlanningFrame::clearRobotModel()
+{
+  ui_->planner_param_treeview->setMoveGroup(moveit::planning_interface::MoveGroupInterfacePtr());
+  joints_tab_->clearRobotModel();
+  move_group_.reset();
+}
+
 void MotionPlanningFrame::changePlanningGroup()
 {
   planning_display_->addBackgroundJob(std::bind(&MotionPlanningFrame::changePlanningGroupHelper, this),

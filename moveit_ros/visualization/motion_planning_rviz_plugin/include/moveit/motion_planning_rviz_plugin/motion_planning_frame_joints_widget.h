@@ -126,6 +126,7 @@ public:
   MotionPlanningFrameJointsWidget(MotionPlanningDisplay* display, QWidget* parent = nullptr);
   ~MotionPlanningFrameJointsWidget() override;
 
+  void clearRobotModel();
   void changePlanningGroup(const std::string& group_name,
                            const robot_interaction::InteractionHandlerPtr& start_state_handler,
                            const robot_interaction::InteractionHandlerPtr& goal_state_handler);

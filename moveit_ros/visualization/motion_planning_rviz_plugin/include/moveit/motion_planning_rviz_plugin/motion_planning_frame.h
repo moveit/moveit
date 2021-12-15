@@ -105,6 +105,7 @@ public:
   MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::DisplayContext* context, QWidget* parent = nullptr);
   ~MotionPlanningFrame() override;
 
+  void clearRobotModel();
   void changePlanningGroup();
   void enable();
   void disable();
