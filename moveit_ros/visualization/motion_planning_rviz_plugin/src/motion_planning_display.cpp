@@ -1145,11 +1145,14 @@ void MotionPlanningDisplay::clearRobotModel()
   // Invalidate all references to the RobotModel ...
   if (frame_)
     frame_->clearRobotModel();
+  if (trajectory_visual_)
+    trajectory_visual_->clearRobotModel();
   previous_state_.reset();
   query_start_state_.reset();
   query_goal_state_.reset();
   kinematics_metrics_.reset();
   robot_interaction_.reset();
+  dynamics_solver_.clear();
   // ... before calling the parent's method, which finally destroys the creating RobotModelLoader.
   PlanningSceneDisplay::clearRobotModel();
 }

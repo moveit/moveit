@@ -201,6 +201,8 @@ MotionPlanningFrameJointsWidget::~MotionPlanningFrameJointsWidget()
 void MotionPlanningFrameJointsWidget::clearRobotModel()
 {
   ui_->joints_view_->setModel(nullptr);
+  start_state_handler_.reset();
+  goal_state_handler_.reset();
   start_state_model_.reset();
   goal_state_model_.reset();
 }
