@@ -23,6 +23,7 @@ API changes in MoveIt! releases
   Use [the corresponding `InteractionStyle` definitions](https://github.com/ros-planning/moveit/pull/1287/files#diff-24e57a8ea7f2f2d8a63cfc31580d09ddL240) instead
 - `moveit_ros_plannning` no longer depends on `moveit_ros_perception`
 - The joint states of `passive` joints must be published in ROS and the CurrentStateMonitor will now wait for them as well. Their semantics dictate that they cannot be actively controlled, but they must be known to use the full robot state in collision checks. (https://github.com/ros-planning/moveit/pull/2663)
+- In release 1.0.9 the macro `MOVEIT_VERSION` was renamed to `MOVEIT_VERSION_STR` in favour of `MOVEIT_VERSION` becoming a numeric version identifier suitable for a version check via: `#if MOVEIT_VERSION >= MOVEIT_VERSION_CHECK(1, 0, 9)`.
 
 ## ROS Kinetic
 
