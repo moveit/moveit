@@ -2194,11 +2194,20 @@ void RobotState::printStateInfo(std::ostream& out) const
 
 void RobotState::printTransform(const Eigen::Isometry3d& transform, std::ostream& out) const
 {
-  ASSERT_ISOMETRY(transform)  // unsanitized input, could contain a non-isometry
-  Eigen::Quaterniond q(transform.linear());
-  out << "T.xyz = [" << transform.translation().x() << ", " << transform.translation().y() << ", "
-      << transform.translation().z() << "], Q.xyzw = [" << q.x() << ", " << q.y() << ", " << q.z() << ", " << q.w()
-      << "]" << std::endl;
+  if (checkIsometry(transform, CHECK_ISOMETRY_PRECISION, false))
+  {
+    Eigen::Quaterniond q(transform.linear());
+    out << "T.xyz = [" << transform.translation().x() << ", " << transform.translation().y() << ", "
+        << transform.translation().z() << "], Q.xyzw = [" << q.x() << ", " << q.y() << ", " << q.z() << ", " << q.w()
+        << "]";
+  }
+  else
+  {
+    out << "[NON-ISOMETRY] "
+        << transform.matrix().format(
+               Eigen::IOFormat(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", "; ", "", "", "[", "]"));
+  }
+  out << std::endl;
 }
 
 void RobotState::printTransforms(std::ostream& out) const
