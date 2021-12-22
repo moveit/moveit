@@ -97,7 +97,11 @@ bool setup(moveit_setup_assistant::MoveItConfigData& config_data, bool keep_old,
   }
 
   if (!keep_old)
-    config_data.srdf_->collision_pairs_.clear();
+  {
+    config_data.srdf_->no_default_collision_links_.clear();
+    config_data.srdf_->enabled_collision_pairs_.clear();
+    config_data.srdf_->disabled_collision_pairs_.clear();
+  }
 
   return true;
 }

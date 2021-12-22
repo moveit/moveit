@@ -156,9 +156,11 @@ void PlanningScene::initialize()
   // load collision defaults
   for (const std::string& name : getRobotModel()->getSRDF()->getNoDefaultCollisionLinks())
     acm_->setDefaultEntry(name, collision_detection::AllowedCollision::ALWAYS);
-  // allow collisions for pairs that have been disabled
-  for (auto const& collision : getRobotModel()->getSRDF()->getCollisionPairs())
-    acm_->setEntry(collision.link1_, collision.link2_, collision.disabled_);
+  // load collision pairs
+  for (auto const& collision : getRobotModel()->getSRDF()->getEnabledCollisionPairs())
+    acm_->setEntry(collision.link1_, collision.link2_, false);
+  for (auto const& collision : getRobotModel()->getSRDF()->getDisabledCollisionPairs())
+    acm_->setEntry(collision.link1_, collision.link2_, true);
 
   setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorFCL::create());
 }

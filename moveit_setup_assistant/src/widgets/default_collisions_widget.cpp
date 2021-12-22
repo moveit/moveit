@@ -677,7 +677,7 @@ void DefaultCollisionsWidget::checkedFilterChanged()
 void DefaultCollisionsWidget::linkPairsToSRDF()
 {
   // reset the data in the SRDF Writer class
-  config_data_->srdf_->collision_pairs_.clear();
+  config_data_->srdf_->disabled_collision_pairs_.clear();
 
   // Create temp disabled collision
   srdf::Model::CollisionPair dc;
@@ -692,8 +692,7 @@ void DefaultCollisionsWidget::linkPairsToSRDF()
       dc.link1_ = pair_it->first.first;
       dc.link2_ = pair_it->first.second;
       dc.reason_ = moveit_setup_assistant::disabledReasonToString(pair_it->second.reason);
-      dc.disabled_ = pair_it->second.disable_check;
-      config_data_->srdf_->collision_pairs_.push_back(dc);
+      config_data_->srdf_->disabled_collision_pairs_.push_back(dc);
     }
   }
 
@@ -720,7 +719,7 @@ void DefaultCollisionsWidget::linkPairsFromSRDF()
   std::pair<std::string, std::string> link_pair;
 
   // Loop through all disabled collisions in SRDF and update the comprehensive list that has already been created
-  for (const auto& disabled_collision : config_data_->srdf_->collision_pairs_)
+  for (const auto& disabled_collision : config_data_->srdf_->disabled_collision_pairs_)
   {
     // Set the link names
     link_pair.first = disabled_collision.link1_;
