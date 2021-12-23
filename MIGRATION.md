@@ -29,6 +29,7 @@ API changes in MoveIt releases
 - All uses of `MOVEIT_CLASS_FORWARD` et. al. must now be followed by a semicolon for consistency (and to get -pedantic builds to pass for the codebase).
 - In case you start RViz in a namespace, the default topic for the trajectory visualization display now uses the relative instead of the absolute namespace (i.e. `<ns>/move_group/display_planned_path` instead of `/move_group/display_planned_path`).
 - `RobotState::attachBody()` now takes a unique_ptr instead of an owning raw pointer.
+- Moved the class `MoveItErrorCode` from both `moveit_ros_planning` and `moveit_ros_planning_interface` to `moveit_core`. The class now is in namespace `moveit::core`, access via `moveit::planning_interface` or `moveit_cpp::PlanningComponent` is deprecated.
 
 ## ROS Melodic
 
