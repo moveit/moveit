@@ -40,6 +40,7 @@
 #include <ros/ros.h>
 #include <moveit/moveit_cpp/moveit_cpp.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
+#include <moveit/utils/moveit_error_code.h>
 
 namespace moveit_cpp
 {
@@ -50,34 +51,7 @@ class PlanningComponent
 public:
   MOVEIT_STRUCT_FORWARD(PlanSolution);
 
-  class MoveItErrorCode : public moveit_msgs::MoveItErrorCodes
-  {
-  public:
-    MoveItErrorCode()
-    {
-      val = 0;
-    }
-    MoveItErrorCode(int code)
-    {
-      val = code;
-    }
-    MoveItErrorCode(const moveit_msgs::MoveItErrorCodes& code)
-    {
-      val = code.val;
-    }
-    explicit operator bool() const
-    {
-      return val == moveit_msgs::MoveItErrorCodes::SUCCESS;
-    }
-    bool operator==(const int code) const
-    {
-      return val == code;
-    }
-    bool operator!=(const int code) const
-    {
-      return val != code;
-    }
-  };
+  using MoveItErrorCode [[deprecated("Use moveit::core::MoveItErrorCode")]] = moveit::core::MoveItErrorCode;
 
   /// The representation of a plan solution
   struct PlanSolution

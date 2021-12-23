@@ -60,34 +60,7 @@ namespace moveit
 /** \brief Simple interface to MoveIt components */
 namespace planning_interface
 {
-class MoveItErrorCode : public moveit_msgs::MoveItErrorCodes
-{
-public:
-  MoveItErrorCode()
-  {
-    val = 0;
-  }
-  MoveItErrorCode(int code)
-  {
-    val = code;
-  }
-  MoveItErrorCode(const moveit_msgs::MoveItErrorCodes& code)
-  {
-    val = code.val;
-  }
-  explicit operator bool() const
-  {
-    return val == moveit_msgs::MoveItErrorCodes::SUCCESS;
-  }
-  bool operator==(const int c) const
-  {
-    return val == c;
-  }
-  bool operator!=(const int c) const
-  {
-    return val != c;
-  }
-};
+using MoveItErrorCode [[deprecated("Use moveit::core::MoveItErrorCode")]] = moveit::core::MoveItErrorCode;
 
 MOVEIT_CLASS_FORWARD(MoveGroupInterface);  // Defines MoveGroupInterfacePtr, ConstPtr, WeakPtr... etc
 
