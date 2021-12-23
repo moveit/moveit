@@ -63,7 +63,7 @@ public:
     robot_trajectory::RobotTrajectoryPtr trajectory;
 
     /// Reason why the plan failed
-    MoveItErrorCode error_code;
+    moveit::core::MoveItErrorCode error_code;
 
     explicit operator bool() const
     {
