@@ -162,7 +162,7 @@ bool MotionPlanningFrame::computeCartesianPlan()
 bool MotionPlanningFrame::computeJointSpacePlan()
 {
   current_plan_ = std::make_shared<moveit::planning_interface::MoveGroupInterface::Plan>();
-  return move_group_->plan(*current_plan_) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
+  return move_group_->plan(*current_plan_) == moveit::core::MoveItErrorCode::SUCCESS;
 }
 
 void MotionPlanningFrame::computePlanButtonClicked()
@@ -199,7 +199,7 @@ void MotionPlanningFrame::computeExecuteButtonClicked()
   if (mgi && current_plan_)
   {
     ui_->stop_button->setEnabled(true);  // enable stopping
-    bool success = mgi->execute(*current_plan_) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
+    bool success = mgi->execute(*current_plan_) == moveit::core::MoveItErrorCode::SUCCESS;
     onFinishedExecution(success);
   }
 }
@@ -221,7 +221,7 @@ void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
   }
   else
   {
-    bool success = move_group_->move() == moveit::planning_interface::MoveItErrorCode::SUCCESS;
+    bool success = move_group_->move() == moveit::core::MoveItErrorCode::SUCCESS;
     onFinishedExecution(success);
   }
   ui_->plan_and_execute_button->setEnabled(true);
