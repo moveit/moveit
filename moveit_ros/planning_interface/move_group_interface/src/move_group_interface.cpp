@@ -1597,7 +1597,10 @@ void MoveGroupInterface::setStartState(const moveit_msgs::RobotState& start_stat
   if (start_state.is_diff)
     impl_->getCurrentState(rs);
   else
+  {
     rs = std::make_shared<moveit::core::RobotState>(getRobotModel());
+    rs->setToDefaultValues();  // initialize robot state values for conversion
+  }
   moveit::core::robotStateMsgToRobotState(start_state, *rs);
   setStartState(*rs);
 }
