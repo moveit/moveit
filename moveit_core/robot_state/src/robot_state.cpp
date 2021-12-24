@@ -176,8 +176,8 @@ void RobotState::copyFrom(const RobotState& other)
 
   // copy attached bodies
   clearAttachedBodies();
-  for (const auto& attachedBody : other.attached_body_map_)
-    attachBody(std::make_unique<AttachedBody>(*attachedBody.second));
+  for (const auto& attached_body : other.attached_body_map_)
+    attachBody(std::make_unique<AttachedBody>(*attached_body.second));
 }
 
 bool RobotState::checkJointTransforms(const JointModel* joint) const
@@ -740,9 +740,9 @@ void RobotState::updateLinkTransformsInternal(const JointModel* start)
   }
 
   // update attached bodies tf; these are usually very few, so we update them all
-  for (const auto& attachedBody : attached_body_map_)
-    attachedBody.second->computeTransform(
-        global_link_transforms_[attachedBody.second->getAttachedLink()->getLinkIndex()]);
+  for (const auto& attached_body : attached_body_map_)
+    attached_body.second->computeTransform(
+        global_link_transforms_[attached_body.second->getAttachedLink()->getLinkIndex()]);
 }
 
 void RobotState::updateStateWithLinkAt(const LinkModel* link, const Eigen::Isometry3d& transform, bool backward)
@@ -792,9 +792,9 @@ void RobotState::updateStateWithLinkAt(const LinkModel* link, const Eigen::Isome
   }
 
   // update attached bodies tf; these are usually very few, so we update them all
-  for (const auto& attachedBody : attached_body_map_)
-    attachedBody.second->computeTransform(
-        global_link_transforms_[attachedBody.second->getAttachedLink()->getLinkIndex()]);
+  for (const auto& attached_body : attached_body_map_)
+    attached_body.second->computeTransform(
+        global_link_transforms_[attached_body.second->getAttachedLink()->getLinkIndex()]);
 }
 
 const LinkModel* RobotState::getRigidlyConnectedParentLinkModel(const std::string& frame) const
@@ -978,7 +978,7 @@ bool RobotState::hasAttachedBody(const std::string& id) const
 
 const AttachedBody* RobotState::getAttachedBody(const std::string& id) const
 {
-  const auto it = attached_body_map_.find(id);
+  const auto& it = attached_body_map_.find(id);
   if (it == attached_body_map_.end())
   {
     ROS_ERROR_NAMED(LOGNAME, "Attached body '%s' not found", id.c_str());

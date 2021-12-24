@@ -1659,9 +1659,7 @@ public:
    * the body positions will get corrupted.  You need to make a fresh
    * copy of the AttachedBody object for each RobotState you attach it
    * to.*/
-  [[deprecated("Deprecated use the overload requiring an unique_ptr instead")]] void
-  attachBody(AttachedBody* attached_body);
-  // TODO Remove this function
+  [[deprecated("Deprecated. Pass a unique_ptr instead")]] void attachBody(AttachedBody* attached_body);
 
   /** @brief Add an attached body to a link
    * @param id The string id associated with the attached body
