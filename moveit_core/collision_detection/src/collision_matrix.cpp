@@ -51,6 +51,19 @@ AllowedCollisionMatrix::AllowedCollisionMatrix(const std::vector<std::string>& n
       setEntry(names[i], names[j], allowed);
 }
 
+AllowedCollisionMatrix::AllowedCollisionMatrix(const srdf::Model& srdf)
+{
+  // load collision defaults
+  for (const std::string& name : srdf.getNoDefaultCollisionLinks())
+    setDefaultEntry(name, collision_detection::AllowedCollision::ALWAYS);
+  // re-enable specific collision pairs
+  for (auto const& collision : srdf.getEnabledCollisionPairs())
+    setEntry(collision.link1_, collision.link2_, false);
+  // *finally* disable selected collision pairs
+  for (auto const& collision : srdf.getDisabledCollisionPairs())
+    setEntry(collision.link1_, collision.link2_, true);
+}
+
 AllowedCollisionMatrix::AllowedCollisionMatrix(const moveit_msgs::AllowedCollisionMatrix& msg)
 {
   if (msg.entry_names.size() != msg.entry_values.size() ||

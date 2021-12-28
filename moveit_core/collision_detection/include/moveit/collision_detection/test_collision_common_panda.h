@@ -78,14 +78,7 @@ protected:
     robot_model_ = moveit::core::loadTestingRobotModel("panda");
     robot_model_ok_ = static_cast<bool>(robot_model_);
 
-    acm_ = std::make_shared<collision_detection::AllowedCollisionMatrix>();
-
-    // load collision defaults
-    for (const std::string& name : robot_model_->getSRDF()->getNoDefaultCollisionLinks())
-      acm_->setDefaultEntry(name, collision_detection::AllowedCollision::NEVER);
-    // allow collisions for pairs that have been disabled
-    for (auto const& collision : robot_model_->getSRDF()->getCollisionPairs())
-      acm_->setEntry(collision.link1_, collision.link2_, collision.disabled_);
+    acm_ = std::make_shared<collision_detection::AllowedCollisionMatrix>(*robot_model_->getSRDF());
 
     cenv_ = value_->allocateEnv(robot_model_);
 

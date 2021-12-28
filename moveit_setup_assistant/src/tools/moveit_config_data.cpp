@@ -140,14 +140,17 @@ planning_scene::PlanningScenePtr MoveItConfigData::getPlanningScene()
 // ******************************************************************************************
 void MoveItConfigData::loadAllowedCollisionMatrix()
 {
-  // Clear the allowed collision matrix
   allowed_collision_matrix_.clear();
 
-  // Update the allowed collision matrix, in case there has been a change
-  for (const auto& collision : srdf_->collision_pairs_)
-  {
-    allowed_collision_matrix_.setEntry(collision.link1_, collision.link2_, collision.disabled_);
-  }
+  // load collision defaults
+  for (const std::string& name : srdf_->no_default_collision_links_)
+    allowed_collision_matrix_.setDefaultEntry(name, collision_detection::AllowedCollision::ALWAYS);
+  // re-enable specific collision pairs
+  for (auto const& collision : srdf_->enabled_collision_pairs_)
+    allowed_collision_matrix_.setEntry(collision.link1_, collision.link2_, false);
+  // *finally* disable selected collision pairs
+  for (auto const& collision : srdf_->disabled_collision_pairs_)
+    allowed_collision_matrix_.setEntry(collision.link1_, collision.link2_, true);
 }
 
 // ******************************************************************************************
