@@ -860,12 +860,11 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem* item)
     if (ab)
     {
       known_collision_objects_[item->type()].first = item_text;
-      moveit::core::AttachedBody* new_ab =
-          new moveit::core::AttachedBody(ab->getAttachedLink(), known_collision_objects_[item->type()].first,
-                                         ab->getPose(), ab->getShapes(), ab->getShapePoses(), ab->getTouchLinks(),
-                                         ab->getDetachPosture(), ab->getSubframes());
+      auto new_ab = std::make_unique<moveit::core::AttachedBody>(
+          ab->getAttachedLink(), known_collision_objects_[item->type()].first, ab->getPose(), ab->getShapes(),
+          ab->getShapePoses(), ab->getTouchLinks(), ab->getDetachPosture(), ab->getSubframes());
       cs.clearAttachedBody(ab->getName());
-      cs.attachBody(new_ab);
+      cs.attachBody(std::move(new_ab));
     }
   }
   setLocalSceneEdited();

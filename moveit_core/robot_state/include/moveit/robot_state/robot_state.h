@@ -1068,12 +1068,12 @@ public:
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
   bool setFromIK(const JointModelGroup* group, const EigenSTL::vector_Isometry3d& poses,
-                 const std::vector<std::string>& tips, const std::vector<std::vector<double> >& consistency_limits,
+                 const std::vector<std::string>& tips, const std::vector<std::vector<double>>& consistency_limits,
                  double timeout = 0.0, const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
   [[deprecated("The attempts argument is not supported anymore.")]] bool
   setFromIK(const JointModelGroup* group, const EigenSTL::vector_Isometry3d& poses,
-            const std::vector<std::string>& tips, const std::vector<std::vector<double> >& consistency_limits,
+            const std::vector<std::string>& tips, const std::vector<std::vector<double>>& consistency_limits,
             unsigned int /* attempts */, double timeout = 0.0,
             const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
             const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
@@ -1091,12 +1091,12 @@ public:
       @param constraint A state validity constraint to be required for IK solutions */
   bool setFromIKSubgroups(const JointModelGroup* group, const EigenSTL::vector_Isometry3d& poses,
                           const std::vector<std::string>& tips,
-                          const std::vector<std::vector<double> >& consistency_limits, double timeout = 0.0,
+                          const std::vector<std::vector<double>>& consistency_limits, double timeout = 0.0,
                           const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                           const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
   [[deprecated("The attempts argument is not supported anymore.")]] bool
   setFromIKSubgroups(const JointModelGroup* group, const EigenSTL::vector_Isometry3d& poses,
-                     const std::vector<std::string>& tips, const std::vector<std::vector<double> >& consistency_limits,
+                     const std::vector<std::string>& tips, const std::vector<std::vector<double>>& consistency_limits,
                      unsigned int /* attempts */, double timeout = 0.0,
                      const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                      const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
@@ -1628,6 +1628,18 @@ public:
    *  @{
    */
 
+  /** \brief Add an attached body to this state.
+   *
+   * This only adds the given body to this RobotState
+   * instance.  It does not change anything about other
+   * representations of the object elsewhere in the system.  So if the
+   * body represents an object in a collision_detection::World (like
+   * from a planning_scene::PlanningScene), you will likely need to remove the
+   * corresponding object from that world to avoid having collisions
+   * detected against it.
+   **/
+  void attachBody(std::unique_ptr<AttachedBody> attached_body);
+
   /** \brief Add an attached body to this state. Ownership of the
    * memory for the attached body is assumed by the state.
    *
@@ -1647,7 +1659,7 @@ public:
    * the body positions will get corrupted.  You need to make a fresh
    * copy of the AttachedBody object for each RobotState you attach it
    * to.*/
-  void attachBody(AttachedBody* attached_body);
+  [[deprecated("Deprecated. Pass a unique_ptr instead")]] void attachBody(AttachedBody* attached_body);
 
   /** @brief Add an attached body to a link
    * @param id The string id associated with the attached body
@@ -1951,7 +1963,7 @@ private:
   unsigned char* dirty_joint_transforms_;
 
   /** \brief All attached bodies that are part of this state, indexed by their name */
-  std::map<std::string, AttachedBody*> attached_body_map_;
+  std::map<std::string, std::unique_ptr<AttachedBody>> attached_body_map_;
 
   /** \brief This event is called when there is a change in the attached bodies for this state;
       The event specifies the body that changed and whether it was just attached or about to be detached. */
