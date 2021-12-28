@@ -978,7 +978,7 @@ bool RobotState::hasAttachedBody(const std::string& id) const
 
 const AttachedBody* RobotState::getAttachedBody(const std::string& id) const
 {
-  const auto& it = attached_body_map_.find(id);
+  const auto it = attached_body_map_.find(id);
   if (it == attached_body_map_.end())
   {
     ROS_ERROR_NAMED(LOGNAME, "Attached body '%s' not found", id.c_str());
