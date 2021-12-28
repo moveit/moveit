@@ -87,10 +87,10 @@ protected:
   std::string kinect_dae_resource_;
 };
 
-#ifdef NDEBUG  // Don't perform timing tests in Debug mode (but evaluate expression)
-#define EXPECT_TIME_LT(EXPR, VAL) (void)(EXPR)
-#else
+#ifdef NDEBUG
 #define EXPECT_TIME_LT(EXPR, VAL) EXPECT_LT(EXPR, VAL)
+#else  // Don't perform timing checks in Debug mode (but evaluate expression)
+#define EXPECT_TIME_LT(EXPR, VAL) (void)(EXPR)
 #endif
 
 TYPED_TEST_CASE_P(CollisionDetectorTest);
