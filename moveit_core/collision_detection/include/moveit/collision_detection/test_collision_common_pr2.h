@@ -87,6 +87,12 @@ protected:
   std::string kinect_dae_resource_;
 };
 
+#ifdef NDEBUG
+#define EXPECT_TIME_LT(EXPR, VAL) EXPECT_LT(EXPR, VAL)
+#else  // Don't perform timing checks in Debug mode (but evaluate expression)
+#define EXPECT_TIME_LT(EXPR, VAL) (void)(EXPR)
+#endif
+
 TYPED_TEST_CASE_P(CollisionDetectorTest);
 
 TYPED_TEST_P(CollisionDetectorTest, InitOK)
@@ -361,7 +367,7 @@ TYPED_TEST_P(CollisionDetectorTest, DiffSceneTester)
   new_cenv->checkSelfCollision(req, res, robot_state);
   double second_check = (ros::WallTime::now() - before).toSec();
 
-  EXPECT_LT(fabs(first_check - second_check), .05);
+  EXPECT_TIME_LT(fabs(first_check - second_check), .05);
 
   std::vector<shapes::ShapeConstPtr> shapes;
   shapes.resize(1);
@@ -382,7 +388,7 @@ TYPED_TEST_P(CollisionDetectorTest, DiffSceneTester)
   second_check = (ros::WallTime::now() - before).toSec();
 
   // the first check is going to take a while, as data must be constructed
-  EXPECT_LT(second_check, .1);
+  EXPECT_TIME_LT(second_check, .1);
 
   collision_detection::CollisionEnvPtr other_new_cenv = this->value_->allocateEnv(this->cenv_, this->cenv_->getWorld());
   before = ros::WallTime::now();
@@ -392,7 +398,7 @@ TYPED_TEST_P(CollisionDetectorTest, DiffSceneTester)
   new_cenv->checkSelfCollision(req, res, robot_state);
   second_check = (ros::WallTime::now() - before).toSec();
 
-  EXPECT_LT(fabs(first_check - second_check), .05);
+  EXPECT_TIME_LT(fabs(first_check - second_check), .05);
 }
 
 TYPED_TEST_P(CollisionDetectorTest, ConvertObjectToAttached)
@@ -418,7 +424,7 @@ TYPED_TEST_P(CollisionDetectorTest, ConvertObjectToAttached)
   this->cenv_->checkRobotCollision(req, res, robot_state);
   double second_check = (ros::WallTime::now() - before).toSec();
 
-  EXPECT_LT(second_check, .05);
+  EXPECT_TIME_LT(second_check, .05);
 
   collision_detection::CollisionEnv::ObjectConstPtr object = this->cenv_->getWorld()->getObject("kinect");
   this->cenv_->getWorld()->removeObject("kinect");
@@ -457,8 +463,8 @@ TYPED_TEST_P(CollisionDetectorTest, ConvertObjectToAttached)
   this->cenv_->checkSelfCollision(req, res, robot_state2, *this->acm_);
   second_check = (ros::WallTime::now() - before).toSec();
 
-  EXPECT_LT(first_check, .05);
-  EXPECT_LT(fabs(first_check - second_check), .1);
+  EXPECT_TIME_LT(first_check, .05);
+  EXPECT_TIME_LT(fabs(first_check - second_check), .1);
 }
 
 TYPED_TEST_P(CollisionDetectorTest, TestCollisionMapAdditionSpeed)
@@ -474,7 +480,7 @@ TYPED_TEST_P(CollisionDetectorTest, TestCollisionMapAdditionSpeed)
   this->cenv_->getWorld()->addToObject("map", shapes, poses);
   double t = (ros::WallTime::now() - start).toSec();
   // TODO (j-petit): investigate why bullet collision checking is considerably slower here
-  EXPECT_GE(5.0, t);
+  EXPECT_TIME_LT(t, 5.0);
   // this is not really a failure; it is just that slow;
   // looking into doing collision checking with a voxel grid.
   ROS_INFO_NAMED("collision_detection.bullet", "Adding boxes took %g", t);
