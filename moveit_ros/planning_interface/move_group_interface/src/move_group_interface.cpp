@@ -685,12 +685,12 @@ public:
     if (!place_action_client_)
     {
       ROS_ERROR_STREAM_NAMED(LOGNAME, "place action client not found");
-      return moveit_msgs::MoveItErrorCodes::FAILURE;
+      return moveit::core::MoveItErrorCode::FAILURE;
     }
     if (!place_action_client_->isServerConnected())
     {
       ROS_WARN_STREAM_NAMED(LOGNAME, "place action server not connected");
-      return moveit_msgs::MoveItErrorCodes::COMMUNICATION_FAILURE;
+      return moveit::core::MoveItErrorCode::COMMUNICATION_FAILURE;
     }
 
     place_action_client_->sendGoal(goal);
@@ -716,12 +716,12 @@ public:
     if (!pick_action_client_)
     {
       ROS_ERROR_STREAM_NAMED(LOGNAME, "pick action client not found");
-      return moveit_msgs::MoveItErrorCodes::FAILURE;
+      return moveit::core::MoveItErrorCode::FAILURE;
     }
     if (!pick_action_client_->isServerConnected())
     {
       ROS_WARN_STREAM_NAMED(LOGNAME, "pick action server not connected");
-      return moveit_msgs::MoveItErrorCodes::COMMUNICATION_FAILURE;
+      return moveit::core::MoveItErrorCode::COMMUNICATION_FAILURE;
     }
 
     pick_action_client_->sendGoal(goal);
@@ -755,7 +755,7 @@ public:
     {
       ROS_ERROR_STREAM_NAMED(LOGNAME,
                              "Asked for grasps for the object '" << object << "', but the object could not be found");
-      return moveit_msgs::MoveItErrorCodes::INVALID_OBJECT_NAME;
+      return moveit::core::MoveItErrorCode::INVALID_OBJECT_NAME;
     }
 
     return planGraspsAndPick(objects[object], plan_only);
@@ -769,7 +769,7 @@ public:
                                           << GRASP_PLANNING_SERVICE_NAME
                                           << "' is not available."
                                              " This has to be implemented and started separately.");
-      return moveit_msgs::MoveItErrorCodes::COMMUNICATION_FAILURE;
+      return moveit::core::MoveItErrorCode::COMMUNICATION_FAILURE;
     }
 
     moveit_msgs::GraspPlanning::Request request;
@@ -784,7 +784,7 @@ public:
         response.error_code.val != moveit_msgs::MoveItErrorCodes::SUCCESS)
     {
       ROS_ERROR_NAMED(LOGNAME, "Grasp planning failed. Unable to pick.");
-      return moveit_msgs::MoveItErrorCodes::FAILURE;
+      return moveit::core::MoveItErrorCode::FAILURE;
     }
 
     return pick(constructPickupGoal(object.id, std::move(response.grasps), plan_only));
@@ -795,12 +795,12 @@ public:
     if (!move_action_client_)
     {
       ROS_ERROR_STREAM_NAMED(LOGNAME, "move action client not found");
-      return moveit_msgs::MoveItErrorCodes::FAILURE;
+      return moveit::core::MoveItErrorCode::FAILURE;
     }
     if (!move_action_client_->isServerConnected())
     {
       ROS_WARN_STREAM_NAMED(LOGNAME, "move action server not connected");
-      return moveit_msgs::MoveItErrorCodes::COMMUNICATION_FAILURE;
+      return moveit::core::MoveItErrorCode::COMMUNICATION_FAILURE;
     }
 
     moveit_msgs::MoveGroupGoal goal;
@@ -836,12 +836,12 @@ public:
     if (!move_action_client_)
     {
       ROS_ERROR_STREAM_NAMED(LOGNAME, "move action client not found");
-      return moveit_msgs::MoveItErrorCodes::FAILURE;
+      return moveit::core::MoveItErrorCode::FAILURE;
     }
     if (!move_action_client_->isServerConnected())
     {
       ROS_WARN_STREAM_NAMED(LOGNAME, "move action server not connected");
-      return moveit_msgs::MoveItErrorCodes::COMMUNICATION_FAILURE;
+      return moveit::core::MoveItErrorCode::COMMUNICATION_FAILURE;
     }
 
     moveit_msgs::MoveGroupGoal goal;
@@ -856,7 +856,7 @@ public:
     move_action_client_->sendGoal(goal);
     if (!wait)
     {
-      return moveit_msgs::MoveItErrorCodes::SUCCESS;
+      return moveit::core::MoveItErrorCode::SUCCESS;
     }
 
     if (!move_action_client_->waitForResult())
@@ -881,12 +881,12 @@ public:
     if (!execute_action_client_)
     {
       ROS_ERROR_STREAM_NAMED(LOGNAME, "execute action client not found");
-      return moveit_msgs::MoveItErrorCodes::FAILURE;
+      return moveit::core::MoveItErrorCode::FAILURE;
     }
     if (!execute_action_client_->isServerConnected())
     {
       ROS_WARN_STREAM_NAMED(LOGNAME, "execute action server not connected");
-      return moveit_msgs::MoveItErrorCodes::COMMUNICATION_FAILURE;
+      return moveit::core::MoveItErrorCode::COMMUNICATION_FAILURE;
     }
 
     moveit_msgs::ExecuteTrajectoryGoal goal;
@@ -895,7 +895,7 @@ public:
     execute_action_client_->sendGoal(goal);
     if (!wait)
     {
-      return moveit_msgs::MoveItErrorCodes::SUCCESS;
+      return moveit::core::MoveItErrorCode::SUCCESS;
     }
 
     if (!execute_action_client_->waitForResult())
