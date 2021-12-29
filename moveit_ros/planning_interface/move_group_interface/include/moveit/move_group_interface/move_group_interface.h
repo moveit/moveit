@@ -151,8 +151,8 @@ public:
   MoveGroupInterface(const MoveGroupInterface&) = delete;
   MoveGroupInterface& operator=(const MoveGroupInterface&) = delete;
 
-  MoveGroupInterface(MoveGroupInterface&& other);
-  MoveGroupInterface& operator=(MoveGroupInterface&& other);
+  MoveGroupInterface(MoveGroupInterface&& other) noexcept;
+  MoveGroupInterface& operator=(MoveGroupInterface&& other) noexcept;
 
   /** \brief Get the name of the group this instance operates on */
   const std::string& getName() const;

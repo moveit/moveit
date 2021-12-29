@@ -120,8 +120,8 @@ public:
   MoveItCpp(const MoveItCpp&) = delete;
   MoveItCpp& operator=(const MoveItCpp&) = delete;
 
-  MoveItCpp(MoveItCpp&& other);
-  MoveItCpp& operator=(MoveItCpp&& other);
+  MoveItCpp(MoveItCpp&& other) noexcept;
+  MoveItCpp& operator=(MoveItCpp&& other) noexcept;
 
   /** \brief Destructor */
   ~MoveItCpp();

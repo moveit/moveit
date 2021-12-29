@@ -96,7 +96,7 @@ MoveItCpp::MoveItCpp(const Options& options, const ros::NodeHandle& nh,
   ROS_INFO_NAMED(LOGNAME, "MoveItCpp running");
 }
 
-MoveItCpp::MoveItCpp(MoveItCpp&& other)
+MoveItCpp::MoveItCpp(MoveItCpp&& other) noexcept
 {
   other.clearContents();
 }
@@ -107,7 +107,7 @@ MoveItCpp::~MoveItCpp()
   clearContents();
 }
 
-MoveItCpp& MoveItCpp::operator=(MoveItCpp&& other)
+MoveItCpp& MoveItCpp::operator=(MoveItCpp&& other) noexcept
 {
   if (this != &other)
   {

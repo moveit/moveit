@@ -92,7 +92,7 @@ PlanningComponent::~PlanningComponent()
   clearContents();
 }
 
-PlanningComponent& PlanningComponent::operator=(PlanningComponent&& other)
+PlanningComponent& PlanningComponent::operator=(PlanningComponent&& other) noexcept
 {
   if (this != &other)
   {

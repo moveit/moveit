@@ -111,8 +111,8 @@ public:
   PlanningComponent(const PlanningComponent&) = delete;
   PlanningComponent& operator=(const PlanningComponent&) = delete;
 
-  PlanningComponent(PlanningComponent&& other);
-  PlanningComponent& operator=(PlanningComponent&& other);
+  PlanningComponent(PlanningComponent&& other) noexcept;
+  PlanningComponent& operator=(PlanningComponent&& other) noexcept;
 
   /** \brief Destructor */
   ~PlanningComponent();
