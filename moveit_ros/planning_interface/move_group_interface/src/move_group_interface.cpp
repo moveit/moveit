@@ -804,7 +804,7 @@ public:
     if (!execute_action_client_->isServerConnected())
     {
       ROS_WARN_STREAM_NAMED("move_group_interface", "execute action server not connected");
-      return moveit::core::MoveItErrorCode::COMMUNICATION_FAILURE;
+      return moveit::core::MoveItErrorCode::FAILURE;
     }
 
     moveit_msgs::ExecuteTrajectoryGoal goal;
