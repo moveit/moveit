@@ -1314,14 +1314,14 @@ moveit::planning_interface::MoveGroupInterface::~MoveGroupInterface()
   delete impl_;
 }
 
-moveit::planning_interface::MoveGroupInterface::MoveGroupInterface(MoveGroupInterface&& other)
+moveit::planning_interface::MoveGroupInterface::MoveGroupInterface(MoveGroupInterface&& other) noexcept
   : remembered_joint_values_(std::move(other.remembered_joint_values_)), impl_(other.impl_)
 {
   other.impl_ = nullptr;
 }
 
 moveit::planning_interface::MoveGroupInterface&
-moveit::planning_interface::MoveGroupInterface::operator=(MoveGroupInterface&& other)
+moveit::planning_interface::MoveGroupInterface::operator=(MoveGroupInterface&& other) noexcept
 {
   if (this != &other)
   {
