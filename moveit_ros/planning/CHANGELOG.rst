@@ -2,6 +2,15 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.7 (2021-12-31)
+------------------
+* Move ``MoveItErrorCode`` class to ``moveit_core`` (`#3009 <https://github.com/ros-planning/moveit/issues/3009>`_)
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* ``MoveitCpp``: Added ability to set path constraints for ``PlanningComponent`` (`#2959 <https://github.com/ros-planning/moveit/issues/2959>`_)
+* ``RDFLoader``: clear buffer before reading content (`#2963 <https://github.com/ros-planning/moveit/issues/2963>`_)
+* Reset markers on ``display_contacts`` topic for a new planning attempt (`#2944 <https://github.com/ros-planning/moveit/issues/2944>`_)
+* Contributors: Colin Kohler, Jafar Abdi, Jochen Sprickerhof, Rick Staa, Robert Haschke
+
 1.1.6 (2021-11-06)
 ------------------
 * Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``

@@ -2,6 +2,19 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.7 (2021-12-31)
+------------------
+* Move ``MoveItErrorCode`` class to ``moveit_core`` (`#3009 <https://github.com/ros-planning/moveit/issues/3009>`_)
+* ``RobotState::attachBody``: Migrate to ``unique_ptr`` argument (`#3011 <https://github.com/ros-planning/moveit/issues/3011>`_)
+* Fix "ClassLoader: SEVERE WARNING" on reset of MPD (`#2925 <https://github.com/ros-planning/moveit/issues/2925>`_)
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* Various fixes to MotionPlanning display (`#2944 <https://github.com/ros-planning/moveit/issues/2944>`_)
+
+  * Avoid flickering of the progress bar
+  * Joints widget: avoid flickering of the nullspace slider
+* Modernize: std::make_shared
+* Contributors: Jafar Abdi, JafarAbdi, Jochen Sprickerhof, Robert Haschke, pvanlaar
+
 1.1.6 (2021-11-06)
 ------------------
 * Re-initialize params, subscribers, and topics when the ``MoveGroupNS`` has changed (`#2922 <https://github.com/ros-planning/moveit/issues/2922>`_)

@@ -2,6 +2,9 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.7 (2021-12-31)
+------------------
+
 1.1.6 (2021-11-06)
 ------------------
 * Use relative imports (`#2912 <https://github.com/ros-planning/moveit/issues/2912>`_)

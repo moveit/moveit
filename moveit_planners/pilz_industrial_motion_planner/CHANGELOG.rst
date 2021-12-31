@@ -2,6 +2,12 @@
 Changelog for package pilz_industrial_motion_planner
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.7 (2021-12-31)
+------------------
+* Pilz planner: improve reporting of invalid start joints (`#3000 <https://github.com/ros-planning/moveit/issues/3000>`_)
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* Contributors: Jochen Sprickerhof, Robert Haschke, v4hn
+
 1.1.6 (2021-11-06)
 ------------------
 * Fix calculation of subframe offset (`#2890 <https://github.com/ros-planning/moveit/issues/2890>`_)

@@ -2,6 +2,9 @@
 Changelog for package moveit_servo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.7 (2021-12-31)
+------------------
+
 1.1.6 (2021-11-06)
 ------------------
 * Backport position limit enforcement from MoveIt2 (`#2898 <https://github.com/ros-planning/moveit/issues/2898>`_)

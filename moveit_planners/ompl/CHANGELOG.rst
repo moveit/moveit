@@ -2,6 +2,12 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.7 (2021-12-31)
+------------------
+* Use termination condition for simplification step (`#2981 <https://github.com/ros-planning/moveit/issues/2981>`_)
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* Contributors: Jochen Sprickerhof, Simon Schmeisser
+
 1.1.6 (2021-11-06)
 ------------------
 * Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``

@@ -2,6 +2,12 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.7 (2021-12-31)
+------------------
+* ``round_collada_numbers.py``: python 2/3 compatibility (`#2983 <https://github.com/ros-planning/moveit/issues/2983>`_)
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* Contributors: Jochen Sprickerhof, Tomislav Bazina
+
 1.1.6 (2021-11-06)
 ------------------
 * Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``

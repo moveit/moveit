@@ -2,6 +2,14 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.7 (2021-12-31)
+------------------
+* Pass xacro_args to both, urdf and srdf loading (`#3013 <https://github.com/ros-planning/moveit/issues/3013>`_)
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* Update timestamp of .setup_assistant file when writing files (`#2964 <https://github.com/ros-planning/moveit/issues/2964>`_)
+* Upload controller_list for simple controller manager (`#2954 <https://github.com/ros-planning/moveit/issues/2954>`_)
+* Contributors: Jochen Sprickerhof, Rick Staa, Robert Haschke
+
 1.1.6 (2021-11-06)
 ------------------
 * Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``

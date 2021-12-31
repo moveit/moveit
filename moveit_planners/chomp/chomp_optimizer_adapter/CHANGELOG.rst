@@ -2,6 +2,9 @@
 Changelog for package moveit_chomp_optimizer_adapter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.7 (2021-12-31)
+------------------
+
 1.1.6 (2021-11-06)
 ------------------
 * Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``

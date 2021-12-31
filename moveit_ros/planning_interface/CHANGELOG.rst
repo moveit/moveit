@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.7 (2021-12-31)
+------------------
+* Move ``MoveItErrorCode`` class to ``moveit_core`` (`#3009 <https://github.com/ros-planning/moveit/issues/3009>`_)
+* Fix uninitialized ``RobotState`` in ``MoveGroupInterface`` (`#3008 <https://github.com/ros-planning/moveit/issues/3008>`_)
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* Contributors: Captain Yoshi, Jafar Abdi, Jochen Sprickerhof
+
 1.1.6 (2021-11-06)
 ------------------
 * Use test_environment.launch in unittests (`#2949 <https://github.com/ros-planning/moveit/issues/2949>`_)

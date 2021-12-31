@@ -2,6 +2,11 @@
 Changelog for package moveit_planners
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.7 (2021-12-31)
+------------------
+* Add pilz planner to ``moveit_planners`` dependency
+* Contributors: v4hn
+
 1.1.6 (2021-11-06)
 ------------------
 

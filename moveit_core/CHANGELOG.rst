@@ -2,6 +2,21 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.7 (2021-12-31)
+------------------
+* Move ``MoveItErrorCode`` class to ``moveit_core`` (`#3009 <https://github.com/ros-planning/moveit/issues/3009>`_)
+* Disable (flaky) timing tests in ``DEBUG`` mode (`#3012 <https://github.com/ros-planning/moveit/issues/3012>`_)
+* ``RobotState::attachBody``: Migrate to unique_ptr argument (`#3011 <https://github.com/ros-planning/moveit/issues/3011>`_)
+* Add API stress tests for ``TOTG``, fix undefined behavior (`#2957 <https://github.com/ros-planning/moveit/issues/2957>`_)
+* Do not assert on printTransform with non-isometry (`#3005 <https://github.com/ros-planning/moveit/issues/3005>`_)
+* Provide ``MOVEIT_VERSION_CHECK`` macro (`#2997 <https://github.com/ros-planning/moveit/issues/2997>`_)
+* Quietly use backward_cpp/ros if available (`#2988 <https://github.com/ros-planning/moveit/issues/2988>`_)
+* Allow restricting collision pairs to a group (`#2987 <https://github.com/ros-planning/moveit/issues/2987>`_)
+* Add backwards compatibility for old scene serialization format (`#2986 <https://github.com/ros-planning/moveit/issues/2986>`_)
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* Add waypoint duration to the trajectory deep copy unit test (`#2961 <https://github.com/ros-planning/moveit/issues/2961>`_)
+* Contributors: AndyZe, Henning Kayser, Jafar Abdi, Jochen Sprickerhof, Michael Görner, Robert Haschke, Simon Schmeisser, Wolfgang Merkt, pvanlaar
+
 1.1.6 (2021-11-06)
 ------------------
 * Silent warning about invalid ``virtual_joint`` in Gazebo setups
