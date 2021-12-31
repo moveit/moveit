@@ -958,8 +958,8 @@ DistanceFieldCacheEntryPtr CollisionEnvDistanceField::generateDistanceFieldCache
       for (collision_detection::PosedBodyPointDecompositionVectorPtr& non_group_attached_body_decomposition :
            non_group_attached_body_decompositions)
       {
-        all_points.insert(all_points.end(), non_group_attached_body_decomposition->getCollisionPoints().begin(),
-                          non_group_attached_body_decomposition->getCollisionPoints().end());
+        const EigenSTL::vector_Vector3d collision_points = non_group_attached_body_decomposition->getCollisionPoints();
+        all_points.insert(all_points.end(), collision_points.begin(), collision_points.end());
       }
 
       dfce->distance_field_->addPointsToField(all_points);
