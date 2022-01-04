@@ -111,7 +111,7 @@ PlanningComponent::PlanSolution PlanningComponent::plan(const PlanRequestParamet
   if (!joint_model_group_)
   {
     ROS_ERROR_NAMED(LOGNAME, "Failed to retrieve joint model group for name '%s'.", group_name_.c_str());
-    last_plan_solution_->error_code = MoveItErrorCode(moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME);
+    last_plan_solution_->error_code = moveit::core::MoveItErrorCode::INVALID_GROUP_NAME;
     return *last_plan_solution_;
   }
 
@@ -148,7 +148,7 @@ PlanningComponent::PlanSolution PlanningComponent::plan(const PlanRequestParamet
   if (current_goal_constraints_.empty())
   {
     ROS_ERROR_NAMED(LOGNAME, "No goal constraints set for planning request");
-    last_plan_solution_->error_code = MoveItErrorCode(moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
+    last_plan_solution_->error_code = moveit::core::MoveItErrorCode::INVALID_GOAL_CONSTRAINTS;
     return *last_plan_solution_;
   }
   req.goal_constraints = current_goal_constraints_;
@@ -161,7 +161,7 @@ PlanningComponent::PlanSolution PlanningComponent::plan(const PlanRequestParamet
   if (planning_pipeline_names_.find(parameters.planning_pipeline) == planning_pipeline_names_.end())
   {
     ROS_ERROR_NAMED(LOGNAME, "No planning pipeline available for name '%s'", parameters.planning_pipeline.c_str());
-    last_plan_solution_->error_code = MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
+    last_plan_solution_->error_code = moveit::core::MoveItErrorCode::FAILURE;
     return *last_plan_solution_;
   }
   const planning_pipeline::PlanningPipelinePtr pipeline =
