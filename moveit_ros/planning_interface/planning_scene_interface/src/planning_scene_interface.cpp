@@ -156,12 +156,7 @@ public:
     {
       if (std::find(object_ids.begin(), object_ids.end(), collision_object.id) != object_ids.end())
       {
-        if (collision_object.mesh_poses.empty() && collision_object.primitive_poses.empty())
-          continue;
-        if (!collision_object.mesh_poses.empty())
-          result[collision_object.id] = collision_object.mesh_poses[0];
-        else
-          result[collision_object.id] = collision_object.primitive_poses[0];
+        result[collision_object.id] = collision_object.pose;
       }
     }
     return result;

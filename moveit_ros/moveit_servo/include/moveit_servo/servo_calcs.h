@@ -148,7 +148,7 @@ private:
   void enforceVelLimits(Eigen::ArrayXd& delta_theta);
 
   /** \brief Avoid overshooting joint limits */
-  bool enforcePositionLimits();
+  bool enforcePositionLimits(sensor_msgs::JointState& joint_state);
 
   /** \brief Possibly calculate a velocity scaling factor, due to proximity of
    * singularity and direction of motion

@@ -54,8 +54,8 @@ public:
   DynamicReconfigureImpl(PlanExecution* owner)
     : owner_(owner), dynamic_reconfigure_server_(ros::NodeHandle("~/plan_execution"))
   {
-    dynamic_reconfigure_server_.setCallback(
-        boost::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this, _1, _2));
+    dynamic_reconfigure_server_.setCallback(std::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this,
+                                                      std::placeholders::_1, std::placeholders::_2));
   }
 
 private:
@@ -86,7 +86,8 @@ plan_execution::PlanExecution::PlanExecution(
   new_scene_update_ = false;
 
   // we want to be notified when new information is available
-  planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanExecution::planningSceneUpdatedCallback, this, _1));
+  planning_scene_monitor_->addUpdateCallback(
+      std::bind(&PlanExecution::planningSceneUpdatedCallback, this, std::placeholders::_1));
 
   // start the dynamic-reconfigure server
   reconfigure_impl_ = new DynamicReconfigureImpl(this);
@@ -404,9 +405,9 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(E
     trajectory_monitor_->startTrajectoryMonitor();
 
   // start a trajectory execution thread
-  trajectory_execution_manager_->execute(boost::bind(&PlanExecution::doneWithTrajectoryExecution, this, _1),
-                                         boost::bind(&PlanExecution::successfulTrajectorySegmentExecution, this, &plan,
-                                                     _1));
+  trajectory_execution_manager_->execute(
+      std::bind(&PlanExecution::doneWithTrajectoryExecution, this, std::placeholders::_1),
+      std::bind(&PlanExecution::successfulTrajectorySegmentExecution, this, &plan, std::placeholders::_1));
   // wait for path to be done, while checking that the path does not become invalid
   ros::Rate r(100);
   path_became_invalid_ = false;

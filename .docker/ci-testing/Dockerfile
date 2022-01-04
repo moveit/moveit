@@ -1,8 +1,9 @@
 # moveit/moveit:noetic-ci-shadow-fixed
 # Sets up a base image to use for running Continuous Integration on Travis
 
-FROM moveit/moveit:noetic-ci
-MAINTAINER Dave Coleman dave@picknik.ai
+ARG IMAGE=noetic
+FROM moveit/moveit:${IMAGE}-ci
+MAINTAINER Robert Haschke rhaschke@techfak.uni-bielefeld.de
 
 # Switch to ros-shadow-fixed
 RUN echo "deb http://packages.ros.org/ros-shadow-fixed/ubuntu `lsb_release -cs` main" | tee /etc/apt/sources.list.d/ros-latest.list

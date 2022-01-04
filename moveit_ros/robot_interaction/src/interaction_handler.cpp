@@ -207,7 +207,7 @@ void InteractionHandler::handleGeneric(const GenericInteraction& g,
     StateChangeCallbackFn callback;
     // modify the RobotState in-place with the state_lock_ held.
     LockedRobotState::modifyState(
-        boost::bind(&InteractionHandler::updateStateGeneric, this, _1, &g, &feedback, &callback));
+        std::bind(&InteractionHandler::updateStateGeneric, this, std::placeholders::_1, &g, &feedback, &callback));
 
     // This calls update_callback_ to notify client that state changed.
     if (callback)
@@ -238,8 +238,8 @@ void InteractionHandler::handleEndEffector(const EndEffectorInteraction& eef,
 
   // modify the RobotState in-place with state_lock_ held.
   // This locks state_lock_ before calling updateState()
-  LockedRobotState::modifyState(
-      boost::bind(&InteractionHandler::updateStateEndEffector, this, _1, &eef, &tpose.pose, &callback));
+  LockedRobotState::modifyState(std::bind(&InteractionHandler::updateStateEndEffector, this, std::placeholders::_1,
+                                          &eef, &tpose.pose, &callback));
 
   // This calls update_callback_ to notify client that state changed.
   if (callback)
@@ -270,7 +270,7 @@ void InteractionHandler::handleJoint(const JointInteraction& vj,
   // modify the RobotState in-place with state_lock_ held.
   // This locks state_lock_ before calling updateState()
   LockedRobotState::modifyState(
-      boost::bind(&InteractionHandler::updateStateJoint, this, _1, &vj, &tpose.pose, &callback));
+      std::bind(&InteractionHandler::updateStateJoint, this, std::placeholders::_1, &vj, &tpose.pose, &callback));
 
   // This calls update_callback_ to notify client that state changed.
   if (callback)
@@ -285,7 +285,7 @@ void InteractionHandler::updateStateGeneric(moveit::core::RobotState* state, con
   bool ok = g->process_feedback(*state, *feedback);
   bool error_state_changed = setErrorState(g->marker_name_suffix, !ok);
   if (update_callback_)
-    *callback = boost::bind(update_callback_, _1, error_state_changed);
+    *callback = std::bind(update_callback_, std::placeholders::_1, error_state_changed);
 }
 
 // MUST hold state_lock_ when calling this!
@@ -299,7 +299,7 @@ void InteractionHandler::updateStateEndEffector(moveit::core::RobotState* state,
   bool ok = kinematic_options.setStateFromIK(*state, eef->parent_group, eef->parent_link, *pose);
   bool error_state_changed = setErrorState(eef->parent_group, !ok);
   if (update_callback_)
-    *callback = boost::bind(update_callback_, _1, error_state_changed);
+    *callback = std::bind(update_callback_, std::placeholders::_1, error_state_changed);
 }
 
 // MUST hold state_lock_ when calling this!
@@ -316,7 +316,7 @@ void InteractionHandler::updateStateJoint(moveit::core::RobotState* state, const
   state->update();
 
   if (update_callback_)
-    *callback = boost::bind(update_callback_, _1, false);
+    *callback = std::bind(update_callback_, std::placeholders::_1, false);
 }
 
 bool InteractionHandler::inError(const EndEffectorInteraction& eef) const

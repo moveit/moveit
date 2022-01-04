@@ -531,7 +531,7 @@ class MoveitJoy:
         for name in planning_groups.keys():
             print(name, planning_groups[name])
         self.planning_groups = planning_groups
-        self.planning_groups_keys = (
+        self.planning_groups_keys = list(
             planning_groups.keys()
         )  # we'd like to store the 'order'
         self.frame_id = ri.get_planning_frame()

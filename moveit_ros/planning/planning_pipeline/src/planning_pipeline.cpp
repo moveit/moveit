@@ -264,6 +264,11 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
     ROS_DEBUG_STREAM("Motion planner reported a solution path with " << state_count << " states");
     if (check_solution_paths_)
     {
+      visualization_msgs::MarkerArray arr;
+      visualization_msgs::Marker m;
+      m.action = visualization_msgs::Marker::DELETEALL;
+      arr.markers.push_back(m);
+
       std::vector<std::size_t> index;
       if (!planning_scene->isPathValid(*res.trajectory_, req.path_constraints, req.group_name, false, &index))
       {
@@ -301,7 +306,6 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
                              << private_nh_.resolveName(MOTION_CONTACTS_TOPIC));
 
             // call validity checks in verbose mode for the problematic states
-            visualization_msgs::MarkerArray arr;
             for (std::size_t it : index)
             {
               // check validity with verbose on
@@ -325,8 +329,6 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
               }
             }
             ROS_ERROR_STREAM("Completed listing of explanations for invalid states.");
-            if (!arr.markers.empty())
-              contacts_publisher_.publish(arr);
           }
         }
         else
@@ -335,6 +337,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
       }
       else
         ROS_DEBUG("Planned path was found to be valid when rechecked");
+      contacts_publisher_.publish(arr);
     }
   }
 

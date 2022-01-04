@@ -46,7 +46,7 @@ BackgroundProcessing::BackgroundProcessing()
   // spin a thread that will process user events
   run_processing_thread_ = true;
   processing_ = false;
-  processing_thread_ = std::make_unique<boost::thread>(boost::bind(&BackgroundProcessing::processingThread, this));
+  processing_thread_ = std::make_unique<boost::thread>(std::bind(&BackgroundProcessing::processingThread, this));
 }
 
 BackgroundProcessing::~BackgroundProcessing()

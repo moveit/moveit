@@ -560,37 +560,42 @@ public:
     getCollidingPairs(contacts, getCurrentState(), getAllowedCollisionMatrix());
   }
 
-  /** \brief Get the names of the links that are involved in collisions for the state \e robot_state */
+  /** \brief Get the names of the links that are involved in collisions for the state \e robot_state.
+   *  Can be restricted to links part of or updated by \e group_name */
   void getCollidingPairs(collision_detection::CollisionResult::ContactMap& contacts,
-                         const moveit::core::RobotState& robot_state) const
+                         const moveit::core::RobotState& robot_state, const std::string& group_name = "") const
   {
-    getCollidingPairs(contacts, robot_state, getAllowedCollisionMatrix());
+    getCollidingPairs(contacts, robot_state, getAllowedCollisionMatrix(), group_name);
   }
 
   /** \brief Get the names of the links that are involved in collisions for the state \e robot_state.
-      Update the link transforms for \e robot_state if needed. */
+      Update the link transforms for \e robot_state if needed.
+      Can be restricted to links part of or updated by \e group_name */
   void getCollidingPairs(collision_detection::CollisionResult::ContactMap& contacts,
-                         moveit::core::RobotState& robot_state) const
+                         moveit::core::RobotState& robot_state, const std::string& group_name = "") const
   {
     robot_state.updateCollisionBodyTransforms();
-    getCollidingPairs(contacts, static_cast<const moveit::core::RobotState&>(robot_state), getAllowedCollisionMatrix());
+    getCollidingPairs(contacts, static_cast<const moveit::core::RobotState&>(robot_state), getAllowedCollisionMatrix(),
+                      group_name);
   }
 
   /** \brief  Get the names of the links that are involved in collisions for the state \e robot_state given the
-      allowed collision matrix (\e acm). Update the link transforms for \e robot_state if needed. */
+      allowed collision matrix (\e acm). Update the link transforms for \e robot_state if needed.
+      Can be restricted to links part of or updated by \e group_name*/
   void getCollidingPairs(collision_detection::CollisionResult::ContactMap& contacts,
-                         moveit::core::RobotState& robot_state,
-                         const collision_detection::AllowedCollisionMatrix& acm) const
+                         moveit::core::RobotState& robot_state, const collision_detection::AllowedCollisionMatrix& acm,
+                         const std::string& group_name = "") const
   {
     robot_state.updateCollisionBodyTransforms();
-    getCollidingPairs(contacts, static_cast<const moveit::core::RobotState&>(robot_state), acm);
+    getCollidingPairs(contacts, static_cast<const moveit::core::RobotState&>(robot_state), acm, group_name);
   }
 
   /** \brief  Get the names of the links that are involved in collisions for the state \e robot_state given the
-      allowed collision matrix (\e acm) */
+      allowed collision matrix (\e acm). Can be restricted to links part of or updated by \e group_name */
   void getCollidingPairs(collision_detection::CollisionResult::ContactMap& contacts,
                          const moveit::core::RobotState& robot_state,
-                         const collision_detection::AllowedCollisionMatrix& acm) const;
+                         const collision_detection::AllowedCollisionMatrix& acm,
+                         const std::string& group_name = "") const;
 
   /**@}*/
 
@@ -732,6 +737,15 @@ public:
   /** \brief Call setPlanningSceneMsg() or setPlanningSceneDiffMsg() depending on how the is_diff member of the message
    * is set */
   bool usePlanningSceneMsg(const moveit_msgs::PlanningScene& scene);
+
+  /** \brief Takes the object message and returns the object pose, shapes and shape poses.
+   * If the object pose is empty (identity) but the shape pose is set, this uses the shape
+   * pose as the object pose. The shape pose becomes the identity instead.
+   */
+  bool shapesAndPosesFromCollisionObjectMessage(const moveit_msgs::CollisionObject& object,
+                                                Eigen::Isometry3d& object_pose_in_header_frame,
+                                                std::vector<shapes::ShapeConstPtr>& shapes,
+                                                EigenSTL::vector_Isometry3d& shape_poses);
 
   bool processCollisionObjectMsg(const moveit_msgs::CollisionObject& object);
   bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject& object);
@@ -973,6 +987,10 @@ private:
   bool processCollisionObjectAdd(const moveit_msgs::CollisionObject& object);
   bool processCollisionObjectRemove(const moveit_msgs::CollisionObject& object);
   bool processCollisionObjectMove(const moveit_msgs::CollisionObject& object);
+
+  /* For exporting and importing the planning scene */
+  bool readPoseFromText(std::istream& in, Eigen::Isometry3d& pose) const;
+  void writePoseToText(std::ostream& out, const Eigen::Isometry3d& pose) const;
 
   /** convert Pose msg to Eigen::Isometry, normalizing the quaternion part if necessary. */
   static void poseMsgToEigen(const geometry_msgs::Pose& msg, Eigen::Isometry3d& out);

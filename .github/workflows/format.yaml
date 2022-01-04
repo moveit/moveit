@@ -17,15 +17,11 @@ jobs:
       - uses: actions/setup-python@v2
       - name: Install clang-format-10
         run: sudo apt-get install clang-format-10
-      - name: Install catkin-lint
-        run: |
-          lsb_release -sc
-          sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-          sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-          sudo apt-get -q update
-          sudo apt-get -q install python3-rosdep
-          sudo rosdep init
-          rosdep update
-          sudo apt-get -q install catkin-lint
-          export ROS_DISTRO=noetic
-      - uses: pre-commit/action@v2.0.0
+      - uses: rhaschke/install-catkin_lint-action@v1.0
+      - uses: pre-commit/action@v2.0.3
+        id: precommit
+      - name: Upload pre-commit changes
+        if: failure() && steps.precommit.outcome == 'failure'
+        uses: rhaschke/upload-git-patch-action@main
+        with:
+          name: pre-commit

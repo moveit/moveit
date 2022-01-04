@@ -36,7 +36,7 @@
 
 #include <moveit/constraint_samplers/default_constraint_samplers.h>
 #include <cassert>
-#include <boost/bind.hpp>
+#include <functional>
 
 namespace constraint_samplers
 {
@@ -565,8 +565,8 @@ bool IKConstraintSampler::sampleHelper(moveit::core::RobotState& state, const mo
 
   kinematics::KinematicsBase::IKCallbackFn adapted_ik_validity_callback;
   if (group_state_validity_callback_)
-    adapted_ik_validity_callback =
-        boost::bind(&samplingIkCallbackFnAdapter, &state, jmg_, group_state_validity_callback_, _1, _2, _3);
+    adapted_ik_validity_callback = std::bind(&samplingIkCallbackFnAdapter, &state, jmg_, group_state_validity_callback_,
+                                             std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 
   for (unsigned int a = 0; a < max_attempts; ++a)
   {

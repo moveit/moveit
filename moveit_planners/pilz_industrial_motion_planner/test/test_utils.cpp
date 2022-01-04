@@ -219,7 +219,7 @@ bool testutils::checkCartesianLinearity(const moveit::core::RobotModelConstPtr& 
                                         const trajectory_msgs::JointTrajectory& trajectory,
                                         const planning_interface::MotionPlanRequest& req,
                                         const double translation_norm_tolerance, const double rot_axis_norm_tolerance,
-                                        const double rot_angle_tolerance)
+                                        const double /*rot_angle_tolerance*/)
 {
   std::string link_name;
   Eigen::Isometry3d goal_pose_expect;
@@ -1034,12 +1034,14 @@ bool testutils::getBlendTestData(const ros::NodeHandle& nh, const size_t& datase
 }
 
 bool testutils::generateTrajFromBlendTestData(
-    const robot_model::RobotModelConstPtr& robot_model,
+    const planning_scene::PlanningSceneConstPtr& scene,
     const std::shared_ptr<pilz_industrial_motion_planner::TrajectoryGenerator>& tg, const std::string& group_name,
     const std::string& link_name, const testutils::BlendTestData& data, const double& sampling_time_1,
     const double& sampling_time_2, planning_interface::MotionPlanResponse& res_1,
     planning_interface::MotionPlanResponse& res_2, double& dis_1, double& dis_2)
 {
+  const robot_model::RobotModelConstPtr robot_model = scene->getRobotModel();
+
   // generate first trajectory
   planning_interface::MotionPlanRequest req_1;
   req_1.group_name = group_name;
@@ -1058,7 +1060,7 @@ bool testutils::generateTrajFromBlendTestData(
       goal_state_1, goal_state_1.getRobotModel()->getJointModelGroup(group_name)));
 
   // trajectory generation
-  if (!tg->generate(req_1, res_1, sampling_time_1))
+  if (!tg->generate(scene, req_1, res_1, sampling_time_1))
   {
     std::cout << "Failed to generate first trajectory." << std::endl;
     return false;
@@ -1078,7 +1080,7 @@ bool testutils::generateTrajFromBlendTestData(
   req_2.goal_constraints.push_back(kinematic_constraints::constructGoalConstraints(
       goal_state_2, goal_state_2.getRobotModel()->getJointModelGroup(group_name)));
   // trajectory generation
-  if (!tg->generate(req_2, res_2, sampling_time_2))
+  if (!tg->generate(scene, req_2, res_2, sampling_time_2))
   {
     std::cout << "Failed to generate second trajectory." << std::endl;
     return false;
@@ -1100,7 +1102,8 @@ bool testutils::checkBlendResult(const pilz_industrial_motion_planner::Trajector
                                  const pilz_industrial_motion_planner::TrajectoryBlendResponse& blend_res,
                                  const pilz_industrial_motion_planner::LimitsContainer& limits,
                                  double joint_velocity_tolerance, double joint_acceleration_tolerance,
-                                 double cartesian_velocity_tolerance, double cartesian_angular_velocity_tolerance)
+                                 double /*cartesian_velocity_tolerance*/,
+                                 double /*cartesian_angular_velocity_tolerance*/)
 {
   // ++++++++++++++++++++++
   // + Check trajectories +

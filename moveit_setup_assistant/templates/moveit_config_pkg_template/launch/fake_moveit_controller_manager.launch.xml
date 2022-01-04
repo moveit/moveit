@@ -1,7 +1,7 @@
 <launch>
 
   <!-- execute the trajectory in 'interpolate' mode or jump to goal position in 'last point' mode -->
-  <arg name="execution_type" default="interpolate" />
+  <arg name="fake_execution_type" default="interpolate" />
 
   <!-- Set the param that trajectory_execution_manager needs to find the controller plugin -->
   <param name="moveit_controller_manager" value="moveit_fake_controller_manager/MoveItFakeControllerManager"/>

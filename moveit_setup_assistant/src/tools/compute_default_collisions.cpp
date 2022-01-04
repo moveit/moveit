@@ -564,7 +564,7 @@ unsigned int disableNeverInCollision(const unsigned int num_trials, planning_sce
   for (int i = 0; i < num_threads; ++i)
   {
     ThreadComputation tc(scene, req, i, num_trials / num_threads, &links_seen_colliding, &lock, progress);
-    bgroup.create_thread(boost::bind(&disableNeverInCollisionThread, tc));
+    bgroup.create_thread(std::bind(&disableNeverInCollisionThread, tc));
   }
 
   try

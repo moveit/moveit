@@ -37,7 +37,7 @@
 #include <gtest/gtest.h>
 #include <moveit/collision_detection/world.h>
 #include <geometric_shapes/shapes.h>
-#include <boost/bind.hpp>
+#include <functional>
 
 TEST(World, AddRemoveShape)
 {
@@ -236,7 +236,7 @@ TEST(World, TrackChanges)
 
   TestAction ta;
   collision_detection::World::ObserverHandle observer_ta;
-  observer_ta = world.addObserver(boost::bind(TrackChangesNotify, &ta, _1, _2));
+  observer_ta = world.addObserver(std::bind(TrackChangesNotify, &ta, std::placeholders::_1, std::placeholders::_2));
 
   // Create some shapes
   shapes::ShapePtr ball(new shapes::Sphere(1.0));
@@ -267,7 +267,7 @@ TEST(World, TrackChanges)
 
   TestAction ta2;
   collision_detection::World::ObserverHandle observer_ta2;
-  observer_ta2 = world.addObserver(boost::bind(TrackChangesNotify, &ta2, _1, _2));
+  observer_ta2 = world.addObserver(std::bind(TrackChangesNotify, &ta2, std::placeholders::_1, std::placeholders::_2));
 
   world.addToObject("obj2", cyl, Eigen::Isometry3d::Identity());
 
@@ -305,7 +305,7 @@ TEST(World, TrackChanges)
 
   TestAction ta3;
   collision_detection::World::ObserverHandle observer_ta3;
-  observer_ta3 = world.addObserver(boost::bind(TrackChangesNotify, &ta3, _1, _2));
+  observer_ta3 = world.addObserver(std::bind(TrackChangesNotify, &ta3, std::placeholders::_1, std::placeholders::_2));
 
   bool rm_good = world.removeShapeFromObject("obj2", cyl);
   EXPECT_TRUE(rm_good);
@@ -363,6 +363,90 @@ TEST(World, TrackChanges)
   EXPECT_EQ(9, ta.cnt_);
   EXPECT_EQ(3, ta2.cnt_);
   EXPECT_EQ(4, ta3.cnt_);
+}
+
+TEST(World, ObjectPoseAndSubframes)
+{
+  collision_detection::World world;
+
+  TestAction ta;
+  collision_detection::World::ObserverHandle observer_ta;
+  observer_ta = world.addObserver(std::bind(TrackChangesNotify, &ta, std::placeholders::_1, std::placeholders::_2));
+
+  // Create shapes
+  shapes::ShapePtr ball(new shapes::Sphere(1.0));
+  shapes::ShapePtr box(new shapes::Box(1, 1, 1));
+  shapes::ShapePtr cyl(new shapes::Cylinder(0.5, 3));  // radius, length
+
+  // Confirm that setting object pose creates an object
+  world.setObjectPose("mix1", Eigen::Isometry3d::Identity());
+
+  EXPECT_EQ(1, ta.cnt_);
+  EXPECT_EQ("mix1", ta.obj_.id_);
+  EXPECT_EQ(collision_detection::World::CREATE, ta.action_);
+
+  // Move multi-shape objects, use object pose, use subframes
+  world.addToObject("mix1", box, Eigen::Isometry3d::Identity());
+  world.addToObject("mix1", cyl, Eigen::Isometry3d(Eigen::Translation3d(0, 0, 2)));
+
+  moveit::core::FixedTransformsMap subframes;
+  subframes["frame1"] = Eigen::Isometry3d(Eigen::Translation3d(0, 0, 2));
+  subframes["frame2"] = Eigen::Isometry3d(Eigen::Translation3d(0, 1, 0));
+  world.setSubframesOfObject("mix1", subframes);
+
+  // Check subframes and shape poses
+  bool found_ok, found_bad;
+  Eigen::Isometry3d pose = world.getTransform("mix1/frame1", found_ok);
+  EXPECT_TRUE(found_ok);
+  EXPECT_EQ(2.0, pose(2, 3));  // check translation.z
+
+  pose = world.getTransform("mix1/frame2", found_ok);
+  EXPECT_TRUE(found_ok);
+  EXPECT_EQ(1.0, pose(1, 3));  // check translation.y
+  EXPECT_EQ(0.0, pose(2, 3));  // z
+
+  pose = world.getTransform("mix1/frame3", found_bad);
+  EXPECT_FALSE(found_bad);
+
+  // Set new object pose, check that all shapes and subframes moved
+  world.setObjectPose("mix1", Eigen::Isometry3d(Eigen::Translation3d(0, 0, 1)));
+
+  pose = world.getTransform("mix1/frame1", found_ok);
+  EXPECT_TRUE(found_ok);
+  EXPECT_EQ(3.0, pose(2, 3));  // z
+
+  pose = world.getTransform("mix1/frame2", found_ok);
+  EXPECT_TRUE(found_ok);
+  EXPECT_EQ(1.0, pose(1, 3));  // y
+  EXPECT_EQ(1.0, pose(2, 3));  // z
+
+  pose = world.getGlobalShapeTransform("mix1", 0);
+  EXPECT_TRUE(found_ok);
+  EXPECT_EQ(1.0, pose(2, 3));  // z
+
+  collision_detection::World::ObjectConstPtr obj = world.getObject("mix1");
+  EXPECT_EQ(0.0, obj->shape_poses_[0](2, 3));  // Internal shape poses do *not* change
+  EXPECT_EQ(2.0, obj->shape_poses_[1](2, 3));
+
+  // Shift object, check that object pose changed
+  world.moveObject("mix1", Eigen::Isometry3d(Eigen::Translation3d(0, 0, 1)));
+
+  pose = world.getTransform("mix1", found_ok);
+  EXPECT_TRUE(found_ok);
+  EXPECT_EQ(2.0, pose(2, 3));  // z
+
+  pose = world.getTransform("mix1/frame1", found_ok);
+  EXPECT_TRUE(found_ok);
+  EXPECT_EQ(4.0, pose(2, 3));  // z
+
+  EXPECT_EQ(0.0, obj->shape_poses_[0](2, 3));  // Internal shape poses should still be constant
+  EXPECT_EQ(2.0, obj->shape_poses_[1](2, 3));
+
+  // Move object absolute, check object pose
+  world.setObjectPose("mix1", Eigen::Isometry3d(Eigen::Translation3d(0, 0, 1)));
+  pose = world.getTransform("mix1", found_ok);
+  EXPECT_TRUE(found_ok);
+  EXPECT_EQ(1.0, pose(2, 3));  // z
 }
 
 int main(int argc, char** argv)

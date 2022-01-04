@@ -89,7 +89,7 @@ inline std::string getJointName(size_t joint_number, const std::string& joint_pr
  */
 pilz_industrial_motion_planner::JointLimitsContainer createFakeLimits(const std::vector<std::string>& joint_names);
 
-inline std::string demangel(char const* name)
+inline std::string demangle(char const* name)
 {
   return boost::core::demangle(name);
 }
@@ -430,7 +430,7 @@ bool checkBlendResult(const pilz_industrial_motion_planner::TrajectoryBlendReque
  * @param[out] dis_lin_2: translational distance of the second LIN
  * @return true if succeed
  */
-bool generateTrajFromBlendTestData(const moveit::core::RobotModelConstPtr& robot_model,
+bool generateTrajFromBlendTestData(const planning_scene::PlanningSceneConstPtr& scene,
                                    const std::shared_ptr<pilz_industrial_motion_planner::TrajectoryGenerator>& tg,
                                    const std::string& group_name, const std::string& link_name,
                                    const BlendTestData& data, const double& sampling_time_1,

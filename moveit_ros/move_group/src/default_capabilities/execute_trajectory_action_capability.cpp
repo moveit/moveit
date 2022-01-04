@@ -52,9 +52,9 @@ void MoveGroupExecuteTrajectoryAction::initialize()
   // start the move action server
   execute_action_server_ = std::make_unique<actionlib::SimpleActionServer<moveit_msgs::ExecuteTrajectoryAction>>(
       root_node_handle_, EXECUTE_ACTION_NAME,
-      boost::bind(&MoveGroupExecuteTrajectoryAction::executePathCallback, this, _1), false);
+      std::bind(&MoveGroupExecuteTrajectoryAction::executePathCallback, this, std::placeholders::_1), false);
   execute_action_server_->registerPreemptCallback(
-      boost::bind(&MoveGroupExecuteTrajectoryAction::preemptExecuteTrajectoryCallback, this));
+      std::bind(&MoveGroupExecuteTrajectoryAction::preemptExecuteTrajectoryCallback, this));
   execute_action_server_->start();
 }
 

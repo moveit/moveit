@@ -548,11 +548,11 @@ void RobotModel::buildGroups(const srdf::Model& srdf_model)
     joint_model_group_names_.push_back(joint_model_group->getName());
   }
 
-  buildGroupsInfoSubgroups(srdf_model);
+  buildGroupsInfoSubgroups();
   buildGroupsInfoEndEffectors(srdf_model);
 }
 
-void RobotModel::buildGroupsInfoSubgroups(const srdf::Model& srdf_model)
+void RobotModel::buildGroupsInfoSubgroups()
 {
   // compute subgroups
   for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
@@ -922,10 +922,16 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
     {
       if (virtual_joint.child_link_ != child_link->name)
       {
-        ROS_WARN_NAMED(LOGNAME,
-                       "Skipping virtual joint '%s' because its child frame '%s' "
-                       "does not match the URDF frame '%s'",
-                       virtual_joint.name_.c_str(), virtual_joint.child_link_.c_str(), child_link->name.c_str());
+        if (child_link->name == "world" && virtual_joint.type_ == "fixed" && child_link->collision_array.empty() &&
+            !child_link->collision && child_link->visual_array.empty() && !child_link->visual)
+          // Gazebo requires a fixed link from a dummy world link to the first robot's link
+          // Skip warning in this case and create a fixed joint with given name
+          new_joint_model = new FixedJointModel(virtual_joint.name_);
+        else
+          ROS_WARN_NAMED(LOGNAME,
+                         "Skipping virtual joint '%s' because its child frame '%s' "
+                         "does not match the URDF frame '%s'",
+                         virtual_joint.name_.c_str(), virtual_joint.child_link_.c_str(), child_link->name.c_str());
       }
       else if (virtual_joint.parent_frame_.empty())
       {

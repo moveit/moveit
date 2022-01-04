@@ -68,7 +68,7 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
   , trajectory_slider_dock_panel_(nullptr)
 {
   trajectory_topic_property_ =
-      new rviz::RosTopicProperty("Trajectory Topic", "/move_group/display_planned_path",
+      new rviz::RosTopicProperty("Trajectory Topic", "move_group/display_planned_path",
                                  ros::message_traits::datatype<moveit_msgs::DisplayTrajectory>(),
                                  "The topic on which the moveit_msgs::DisplayTrajectory messages are received", widget,
                                  SLOT(changedTrajectoryTopic()), this);
@@ -603,6 +603,12 @@ void TrajectoryVisualization::trajectorySliderPanelVisibilityChange(bool enable)
     trajectory_slider_panel_->onEnable();
   else
     trajectory_slider_panel_->onDisable();
+}
+
+void TrajectoryVisualization::clearRobotModel()
+{
+  robot_model_.reset();
+  robot_state_.reset();
 }
 
 }  // namespace moveit_rviz_plugin

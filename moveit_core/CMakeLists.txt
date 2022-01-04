@@ -1,35 +1,19 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(moveit_core)
 
-if(NOT "${CMAKE_CXX_STANDARD}")
-  set(CMAKE_CXX_STANDARD 14)
-endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  # Enable warnings
-  add_compile_options(-Wall -Wextra
-    -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wcast-qual
-    -Wno-unused-parameter -Wno-unused-function)
-endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  # This too often has false-positives
+  # Silent these warnings. They are too often false-positives.
+  message("TODO: Analyse and fix gcc's maybe-uninitialized warnings")
   add_compile_options(-Wno-maybe-uninitialized)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
-
-if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-  message("${PROJECT_NAME}: You did not request a specific build type: Choosing 'Release' for maximum performance")
-  set(CMAKE_BUILD_TYPE Release)
-endif()
+include(cmake/moveit.cmake)
+moveit_build_options()
 
 find_package(Boost REQUIRED system filesystem date_time thread iostreams regex ${EXTRA_BOOST_COMPONENTS})
 find_package(Eigen3 REQUIRED)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
-
 # TODO: Move collision detection into separate packages
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 find_package(Bullet 2.87)
 
 # TODO(j-petit): Version check can be dropped when Xenial reaches end-of-life
@@ -44,8 +28,16 @@ endif()
 
 find_package(fcl QUIET)
 if (fcl_FOUND)
-  set(LIBFCL_LIBRARIES ${FCL_LIBRARIES})
-  set(LIBFCL_INCLUDE_DIRS ${FCL_INCLUDE_DIRS})
+  # convert cmake target to variables for catkin_package DEPENDS
+  if(TARGET ${FCL_LIBRARIES})
+    get_target_property(LIBFCL_LOCATION ${FCL_LIBRARIES} LOCATION)
+    get_target_property(LIBFCL_INTERFACE_LINK_LIBRARIES ${FCL_LIBRARIES} INTERFACE_LINK_LIBRARIES)
+    get_target_property(LIBFCL_INCLUDE_DIRS ${FCL_LIBRARIES} INTERFACE_INCLUDE_DIRECTORIES)
+    set(LIBFCL_LIBRARIES ${LIBFCL_LOCATION} ${LIBFCL_INTERFACE_LINK_LIBRARIES})
+  else()
+    set(LIBFCL_LIBRARIES ${FCL_LIBRARIES})
+    set(LIBFCL_INCLUDE_DIRS ${FCL_INCLUDE_DIRS})
+  endif()
 else()
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(LIBFCL_PC REQUIRED fcl)
@@ -179,6 +171,8 @@ catkin_package(
     urdfdom
     urdfdom_headers
     ${BULLET_ENABLE}
+  CFG_EXTRAS
+    moveit.cmake
     )
 
 if (WIN32)

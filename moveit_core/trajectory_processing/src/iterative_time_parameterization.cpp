@@ -50,6 +50,7 @@ IterativeParabolicTimeParameterization::IterativeParabolicTimeParameterization(u
 {
 }
 
+#if 0  // unused functions
 namespace
 {
 void printPoint(const trajectory_msgs::JointTrajectoryPoint& point, std::size_t i)
@@ -94,6 +95,7 @@ void printStats(const trajectory_msgs::JointTrajectory& trajectory, const std::v
     printPoint(trajectory.points[i], i);
 }
 }  // namespace
+#endif
 
 // Applies velocity
 void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,

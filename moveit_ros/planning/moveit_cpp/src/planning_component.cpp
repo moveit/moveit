@@ -99,6 +99,12 @@ const std::string& PlanningComponent::getPlanningGroupName() const
   return group_name_;
 }
 
+bool PlanningComponent::setPathConstraints(const moveit_msgs::Constraints& path_constraints)
+{
+  current_path_constraints_ = path_constraints;
+  return true;
+}
+
 PlanningComponent::PlanSolution PlanningComponent::plan(const PlanRequestParameters& parameters)
 {
   last_plan_solution_ = std::make_shared<PlanSolution>();
@@ -146,6 +152,9 @@ PlanningComponent::PlanSolution PlanningComponent::plan(const PlanRequestParamet
     return *last_plan_solution_;
   }
   req.goal_constraints = current_goal_constraints_;
+
+  // Set path constraints
+  req.path_constraints = current_path_constraints_;
 
   // Run planning attempt
   ::planning_interface::MotionPlanResponse res;
