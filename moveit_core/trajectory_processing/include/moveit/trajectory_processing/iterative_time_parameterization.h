@@ -37,19 +37,19 @@
 #pragma once
 
 #include <moveit/robot_trajectory/robot_trajectory.h>
+#include <moveit/trajectory_processing/time_parameterization.h>
 
 namespace trajectory_processing
 {
 /// \brief This class  modifies the timestamps of a trajectory to respect
 /// velocity and acceleration constraints.
-class IterativeParabolicTimeParameterization
+class IterativeParabolicTimeParameterization : public TimeParameterization
 {
 public:
   IterativeParabolicTimeParameterization(unsigned int max_iterations = 100, double max_time_change_per_it = .01);
-  ~IterativeParabolicTimeParameterization() = default;
 
   bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory, const double max_velocity_scaling_factor = 1.0,
-                         const double max_acceleration_scaling_factor = 1.0) const;
+                         const double max_acceleration_scaling_factor = 1.0) const override;
 
 private:
   unsigned int max_iterations_;    /// @brief maximum number of iterations to find solution
