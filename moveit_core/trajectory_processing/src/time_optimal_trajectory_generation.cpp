@@ -867,10 +867,6 @@ TimeOptimalTrajectoryGeneration::TimeOptimalTrajectoryGeneration(const double pa
 {
 }
 
-TimeOptimalTrajectoryGeneration::~TimeOptimalTrajectoryGeneration()
-{
-}
-
 bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
                                                         const double max_velocity_scaling_factor,
                                                         const double max_acceleration_scaling_factor) const
