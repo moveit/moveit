@@ -36,7 +36,7 @@ import rospy
 from rosgraph.names import ns_join
 
 from moveit_msgs.msg import PlanningScene, CollisionObject, AttachedCollisionObject
-from moveit_ros_planning_interface import pymoveit_planning_scene_interface
+from moveit.planning_interface import PlanningSceneInterface as _PlanningSceneInterface
 from geometry_msgs.msg import Point
 from shape_msgs.msg import SolidPrimitive, Plane, Mesh, MeshTriangle
 from .exception import MoveItCommanderException
@@ -64,7 +64,7 @@ class PlanningSceneInterface(object):
     """
 
     def __init__(self, ns="", synchronous=False, service_timeout=5.0):
-        self._psi = pymoveit_planning_scene_interface.PlanningSceneInterface(ns)
+        self._psi = _PlanningSceneInterface(ns)
 
         self._pub_co = rospy.Publisher(
             ns_join(ns, "collision_object"), CollisionObject, queue_size=100

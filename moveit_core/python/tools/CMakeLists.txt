@@ -20,10 +20,8 @@ install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 #catkin_lint: ignore undefined_target
 
 # moveit.binding_tools
-pybind11_add_module(pymoveit_binding_tools pymoveit_binding_tools.cpp)
+pybind_add_module(pymoveit_binding_tools pymoveit_binding_tools.cpp)
 target_link_libraries(pymoveit_binding_tools PRIVATE ${MOVEIT_LIB_NAME})
-set_target_properties(pymoveit_binding_tools PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-set_target_properties(pymoveit_binding_tools PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION})
 
 install(TARGETS pymoveit_binding_tools
   LIBRARY DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
