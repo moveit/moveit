@@ -96,16 +96,6 @@ public:
     return values;
   }
 
-  void rememberJointValuesFromPythonList(const std::string& string, const std::vector<double>& values)
-  {
-    rememberJointValues(string, values);
-  }
-
-  const char* getPlanningFrameCStr() const
-  {
-    return getPlanningFrame().c_str();
-  }
-
   moveit_msgs::PlannerInterfaceDescription getInterfaceDescriptionPython()
   {
     moveit_msgs::PlannerInterfaceDescription msg;
@@ -158,31 +148,6 @@ public:
     moveit_msgs::RobotState state_message;
     moveit::core::robotStateToRobotStateMsg(*current_state, state_message);
     return state_message;
-  }
-
-  const char* getEndEffectorLinkCStr() const
-  {
-    return getEndEffectorLink().c_str();
-  }
-
-  const char* getPoseReferenceFrameCStr() const
-  {
-    return getPoseReferenceFrame().c_str();
-  }
-
-  const char* getNameCStr() const
-  {
-    return getName().c_str();
-  }
-
-  const char* getPlannerIdCStr() const
-  {
-    return getPlannerId().c_str();
-  }
-
-  const char* getPlanningPipelineIdCStr() const
-  {
-    return getPlanningPipelineId().c_str();
   }
 
   bool movePython()
@@ -345,8 +310,8 @@ PYBIND11_MODULE(pymoveit_move_group_interface, m)
       .def("place", &MoveGroupInterfaceWrapper::placeAnywhere, py::arg("object"), py::arg("plan_only") = false)
       .def("stop", &MoveGroupInterfaceWrapper::stop)
 
-      .def("get_name", &MoveGroupInterfaceWrapper::getNameCStr)
-      .def("get_planning_frame", &MoveGroupInterfaceWrapper::getPlanningFrameCStr)
+      .def("get_name", &MoveGroupInterfaceWrapper::getName)
+      .def("get_planning_frame", &MoveGroupInterfaceWrapper::getPlanningFrame)
       .def("get_interface_description", &MoveGroupInterfaceWrapper::getInterfaceDescriptionPython)
 
       .def("get_active_joints", &MoveGroupInterface::getActiveJoints)
@@ -357,8 +322,8 @@ PYBIND11_MODULE(pymoveit_move_group_interface, m)
 
       .def("set_pose_reference_frame", &MoveGroupInterfaceWrapper::setPoseReferenceFrame, py::arg("reference_frame"))
       .def("set_end_effector_link", &MoveGroupInterfaceWrapper::setEndEffectorLink, py::arg("end_effector_link"))
-      .def("get_end_effector_link", &MoveGroupInterfaceWrapper::getEndEffectorLinkCStr)
-      .def("get_pose_reference_frame", &MoveGroupInterfaceWrapper::getPoseReferenceFrameCStr)
+      .def("get_end_effector_link", &MoveGroupInterfaceWrapper::getEndEffectorLink)
+      .def("get_pose_reference_frame", &MoveGroupInterfaceWrapper::getPoseReferenceFrame)
 
       .def("set_pose_target",
            py::overload_cast<const geometry_msgs::PoseStamped&, const std::string&>(&MoveGroupInterface::setPoseTarget),
@@ -466,10 +431,10 @@ PYBIND11_MODULE(pymoveit_move_group_interface, m)
       .def("set_max_acceleration_scaling_factor", &MoveGroupInterfaceWrapper::setMaxAccelerationScalingFactor,
            py::arg("max_acceleration_scaling_factor"))
       .def("set_planner_id", &MoveGroupInterfaceWrapper::setPlannerId, py::arg("planner_id"))
-      .def("get_planner_id", &MoveGroupInterfaceWrapper::getPlannerIdCStr)
+      .def("get_planner_id", &MoveGroupInterfaceWrapper::getPlannerId)
       .def("set_planning_pipeline_id", &MoveGroupInterfaceWrapper::setPlanningPipelineId,
            py::arg("planning_pipeline_id"))
-      .def("get_planning_pipeline_id", &MoveGroupInterfaceWrapper::getPlanningPipelineIdCStr)
+      .def("get_planning_pipeline_id", &MoveGroupInterfaceWrapper::getPlanningPipelineId)
       .def("set_num_planning_attempts", &MoveGroupInterfaceWrapper::setNumPlanningAttempts,
            py::arg("num_planning_attempts"))
       .def("plan", &MoveGroupInterfaceWrapper::planPython)

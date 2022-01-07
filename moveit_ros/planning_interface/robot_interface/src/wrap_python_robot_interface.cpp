@@ -151,9 +151,9 @@ public:
     return result;
   }
 
-  const char* getPlanningFrame() const
+  const std::string& getPlanningFrame() const
   {
-    return robot_model_->getModelFrame().c_str();
+    return robot_model_->getModelFrame();
   }
 
   py::list getLinkPose(const std::string& name)
