@@ -9,9 +9,6 @@ pybind_add_module(py${MOVEIT_LIB_NAME} src/wrap_python_planning_scene_interface.
 set_target_properties(py${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(py${MOVEIT_LIB_NAME} PRIVATE ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 set_target_properties(py${MOVEIT_LIB_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_PYTHON_DESTINATION}")
-if(WIN32)
-  set_target_properties(py${MOVEIT_LIB_NAME} PROPERTIES SUFFIX .pyd)
-endif(WIN32)
 
 install(TARGETS ${MOVEIT_LIB_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
