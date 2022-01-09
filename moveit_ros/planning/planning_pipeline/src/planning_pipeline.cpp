@@ -55,11 +55,12 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const robot_model::RobotMo
   : nh_(nh), robot_model_(model)
 {
   std::string planner;
-  if (nh_.getParam(planner_plugin_param_name, planner))
+  ros::NodeHandle cnh = planning_interface::getConfigNodeHandle(nh);
+  if (cnh.getParam(planner_plugin_param_name, planner))
     planner_plugin_name_ = planner;
 
   std::string adapters;
-  if (nh_.getParam(adapter_plugins_param_name, adapters))
+  if (cnh.getParam(adapter_plugins_param_name, adapters))
   {
     boost::char_separator<char> sep(" ");
     boost::tokenizer<boost::char_separator<char> > tok(adapters, sep);
@@ -114,7 +115,7 @@ void planning_pipeline::PlanningPipeline::configure()
   try
   {
     planner_instance_ = planner_plugin_loader_->createUniqueInstance(planner_plugin_name_);
-    if (!planner_instance_->initialize(robot_model_, nh_.getNamespace()))
+    if (!planner_instance_->initialize(robot_model_, planning_interface::getConfigNodeHandle(nh_).getNamespace()))
       throw std::runtime_error("Unable to initialize planning plugin");
     ROS_INFO_STREAM("Using planning interface '" << planner_instance_->getDescription() << "'");
   }

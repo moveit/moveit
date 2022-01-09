@@ -41,7 +41,7 @@ to be moved out of singularities.
 
 ## Test Sequence:
   1. Bringup can: `sudo ip link set can0 up type can bitrate 1000000`
-  2. Run `roslaunch moveit_resources_prbt_moveit_config moveit_planning_execution.launch sim:=False pipeline:=pilz_industrial_motion_planner`
+  2. Run `roslaunch moveit_resources_prbt_moveit_config demo.launch pipeline:=pilz_industrial_motion_planner`
   3. In the motion planing widget (lower left part of moveit) choose PTP in the dropdown below "Trapezoidal Command Planner" (see image)
 ![moveit_1](img/acceptance_test_lin_img1.png)
   4. Switch to the tab "Planning" in the moveit planning plugin. Move the ball handle to select a singularity free position. Click on "plan and execute".

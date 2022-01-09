@@ -40,9 +40,10 @@
 #include <moveit/plan_execution/plan_execution.h>
 #include <moveit/plan_execution/plan_with_sensing.h>
 
-move_group::MoveGroupContext::MoveGroupContext(
-    const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor, bool allow_trajectory_execution,
-    bool debug)
+namespace move_group
+{
+MoveGroupContext::MoveGroupContext(const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
+                                   bool allow_trajectory_execution, bool debug)
   : planning_scene_monitor_(planning_scene_monitor)
   , allow_trajectory_execution_(allow_trajectory_execution)
   , debug_(debug)
@@ -67,7 +68,7 @@ move_group::MoveGroupContext::MoveGroupContext(
     planning_pipeline_->publishReceivedRequests(true);
 }
 
-move_group::MoveGroupContext::~MoveGroupContext()
+MoveGroupContext::~MoveGroupContext()
 {
   plan_with_sensing_.reset();
   plan_execution_.reset();
@@ -76,7 +77,7 @@ move_group::MoveGroupContext::~MoveGroupContext()
   planning_scene_monitor_.reset();
 }
 
-bool move_group::MoveGroupContext::status() const
+bool MoveGroupContext::status() const
 {
   const planning_interface::PlannerManagerPtr& planner_interface = planning_pipeline_->getPlannerManager();
   if (planner_interface)
@@ -91,3 +92,5 @@ bool move_group::MoveGroupContext::status() const
     return false;
   }
 }
+
+}  // namespace move_group

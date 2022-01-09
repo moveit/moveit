@@ -51,6 +51,13 @@ MOVEIT_CLASS_FORWARD(PlanningScene);  // Defines PlanningScenePtr, ConstPtr, Wea
 /** \brief This namespace includes the base class for MoveIt! planners */
 namespace planning_interface
 {
+/** \brief Retrieve NodeHandle/namespace defining the PlanningPipeline parameters
+ * Traditionally, these were directly defined in the private namespace of the move_group node.
+ * Since MoveIt 1.1.2 multiple pipeline configs are supported in parallel.
+ * In Melodic we support this new scheme by allowing to choose the default pipeline,
+ * specified via the parameter ~default_planning_pipeline. */
+ros::NodeHandle getConfigNodeHandle(const ros::NodeHandle& nh = ros::NodeHandle("~"));
+
 /**
    \brief Specify the settings for a particular planning algorithm, for a particular group. The Planner plugin uses
    these settings to configure the algorithm.
