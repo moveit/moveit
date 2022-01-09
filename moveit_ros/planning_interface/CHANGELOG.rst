@@ -2,6 +2,18 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.9 (2022-01-09)
+------------------
+* Use moveit-resources@master (`#2951 <https://github.com/ros-planning/moveit/issues/2951>`_)
+
+  - Simplify launch files to use the test_environment.launch files from moveit_resources@master
+  - Provide compatibility to the Noetic-style configuration of (multiple) planning pipelines
+    Only a single pipeline can be used at a time, specified via the ~default_planning_pipeline parameter.
+* Add missing noexcept declarations (`#3016 <https://github.com/ros-planning/moveit/issues/3016>`_)
+* Move ``MoveItErrorCode`` class to ``moveit_core`` (`#3009 <https://github.com/ros-planning/moveit/issues/3009>`_)
+* Revert "Fix scaling factor parameter names" (`#2907 <https://github.com/ros-planning/moveit/issues/2907>`_)
+* Contributors: Michael Görner, Robert Haschke
+
 1.0.8 (2021-05-23)
 ------------------
 * planning_interface: synchronize async interfaces in test (`#2640 <https://github.com/ros-planning/moveit/issues/2640>`_)

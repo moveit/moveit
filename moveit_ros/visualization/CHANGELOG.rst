@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.9 (2022-01-09)
+------------------
+* Move ``MoveItErrorCode`` class to ``moveit_core`` (`#3009 <https://github.com/ros-planning/moveit/issues/3009>`_)
+* Contributors: Michael Görner, Robert Haschke
+
 1.0.8 (2021-05-23)
 ------------------
 * Remove unused model_is_loading\_

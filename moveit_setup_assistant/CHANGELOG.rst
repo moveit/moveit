@@ -2,6 +2,18 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.9 (2022-01-09)
+------------------
+* Use moveit-resources@master (`#2951 <https://github.com/ros-planning/moveit/issues/2951>`_)
+
+  - Simplify launch files to use the test_environment.launch files from moveit_resources@master
+  - Provide compatibility to the Noetic-style configuration of (multiple) planning pipelines
+    Only a single pipeline can be used at a time, specified via the ~default_planning_pipeline parameter.
+  - Rename launch argument execution_type -> fake_execution_type
+* Templates: Fix passing capabilities arguments (`#2729 <https://github.com/ros-planning/moveit/issues/2729>`_)
+* Fix writing an empty sensor config (`#2708 <https://github.com/ros-planning/moveit/issues/2708>`_)
+* Contributors: David V. Lu!!, G.A. vd. Hoorn, Michael Görner, Robert Haschke
+
 1.0.8 (2021-05-23)
 ------------------
 * Let users override fake execution type from demo.launch (`#2602 <https://github.com/ros-planning/moveit/issues/2602>`_)

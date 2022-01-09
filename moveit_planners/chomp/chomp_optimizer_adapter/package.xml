@@ -3,7 +3,7 @@
   <name>moveit_chomp_optimizer_adapter</name>
   <description>MoveIt planning request adapter utilizing chomp for solution optimization</description>
 
-  <version>1.0.8</version>
+  <version>1.0.9</version>
   <author email="raghavendersahdev@gmail.com">Raghavender Sahdev</author>
   <maintainer email="raghavendersahdev@gmail.com">Raghavender Sahdev</maintainer>
   <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>

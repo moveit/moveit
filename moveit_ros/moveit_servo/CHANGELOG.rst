@@ -2,6 +2,11 @@
 Changelog for package moveit_servo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.9 (2022-01-09)
+------------------
+* Fix an off-by-one error in servo_calcs.cpp (`#2908 <https://github.com/ros-planning/moveit/issues/2908>`_)
+* Contributors: Michael Görner
+
 1.0.8 (2021-05-23)
 ------------------
 * Avoid joint jump when SuddenHalt() is called in velocity mode (`#2594 <https://github.com/ros-planning/moveit/issues/2594>`_)

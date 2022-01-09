@@ -2,6 +2,9 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.9 (2022-01-09)
+------------------
+
 1.0.8 (2021-05-23)
 ------------------
 * Add clear() to Python PSI + Allow empty call to remove_attached_object() (`#2609 <https://github.com/ros-planning/moveit/issues/2609>`_)

@@ -2,6 +2,19 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.9 (2022-01-09)
+------------------
+* Use moveit-resources@master (`#2951 <https://github.com/ros-planning/moveit/issues/2951>`_)
+
+  - Simplify launch files to use the test_environment.launch files from moveit_resources@master
+  - Provide compatibility to the Noetic-style configuration of (multiple) planning pipelines
+    Only a single pipeline can be used at a time, specified via the ~default_planning_pipeline parameter.
+* Make TimeParameterization classes polymorphic (`#3023 <https://github.com/ros-planning/moveit/issues/3023>`_)
+* Move ``MoveItErrorCode`` class to ``moveit_core`` (`#3009 <https://github.com/ros-planning/moveit/issues/3009>`_)
+* Provide ``MOVEIT_VERSION_CHECK`` macro (`#2997 <https://github.com/ros-planning/moveit/issues/2997>`_)
+* Fix padding collision attached objects (`#2721 <https://github.com/ros-planning/moveit/issues/2721>`_)
+* Contributors: Michael Görner, Robert Haschke, Toru Kuga, Andrea Pupa
+
 1.0.8 (2021-05-23)
 ------------------
 * RobotState interpolation: warn if interpolation parameter is out of range [0, 1] (`#2664 <https://github.com/ros-planning/moveit/issues/2664>`_)
