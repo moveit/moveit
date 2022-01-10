@@ -89,48 +89,41 @@ public:
     return approx ? setApproximateJointValueTarget(pose_msg, eef) : setJointValueTarget(pose_msg, eef);
   }
 
-  std::vector<double> getJointValueTargetPythonList()
-  {
-    std::vector<double> values;
-    MoveGroupInterface::getJointValueTarget(values);
-    return values;
-  }
-
-  moveit_msgs::PlannerInterfaceDescription getInterfaceDescriptionPython()
-  {
-    moveit_msgs::PlannerInterfaceDescription msg;
-    getInterfaceDescription(msg);
-    return msg;
-  }
-
-  bool placePose(const std::string& object_name, geometry_msgs::Pose pose, bool plan_only = false)
-  {
-    geometry_msgs::PoseStamped msg;
-    msg.pose = pose;
-    msg.header.frame_id = getPoseReferenceFrame();
-    msg.header.stamp = ros::Time::now();
-    py::gil_scoped_release gr;
-    return place(object_name, msg, plan_only) == moveit::core::MoveItErrorCode::SUCCESS;
-  }
-
-  bool placePoses(const std::string& object_name, std::vector<geometry_msgs::PoseStamped> const& poses_list,
-                  bool plan_only = false)
+  moveit::core::MoveItErrorCode placePoseStamped(const std::string& object_name, const geometry_msgs::PoseStamped& pose,
+                                                 bool plan_only)
   {
     py::gil_scoped_release gr;
-    return place(object_name, poses_list, plan_only) == moveit::core::MoveItErrorCode::SUCCESS;
+    return MoveGroupInterfaceWrapper::place(object_name, pose, plan_only);
   }
 
-  bool placeLocations(const std::string& object_name, std::vector<moveit_msgs::PlaceLocation> location_list,
-                      bool plan_only = false)
+  moveit::core::MoveItErrorCode placePose(const std::string& object_name, const geometry_msgs::Pose& pose,
+                                          bool plan_only)
   {
-    py::gil_scoped_release gr;
-    return place(object_name, std::move(location_list), plan_only) == moveit::core::MoveItErrorCode::SUCCESS;
+    geometry_msgs::PoseStamped stamped;
+    stamped.pose = pose;
+    stamped.header.frame_id = getPoseReferenceFrame();
+    stamped.header.stamp = ros::Time::now();
+    return place(object_name, stamped, plan_only);
   }
 
-  bool placeAnywhere(const std::string& object_name, bool plan_only = false)
+  moveit::core::MoveItErrorCode placePoses(const std::string& object_name,
+                                           const std::vector<geometry_msgs::PoseStamped>& poses_list, bool plan_only)
   {
     py::gil_scoped_release gr;
-    return place(object_name, plan_only) == moveit::core::MoveItErrorCode::SUCCESS;
+    return MoveGroupInterfaceWrapper::place(object_name, poses_list, plan_only);
+  }
+
+  moveit::core::MoveItErrorCode placeLocations(const std::string& object_name,
+                                               const std::vector<moveit_msgs::PlaceLocation>& locations, bool plan_only)
+  {
+    py::gil_scoped_release gr;
+    return place(object_name, locations, plan_only);
+  }
+
+  moveit::core::MoveItErrorCode placeAnywhere(const std::string& object_name, bool plan_only = false)
+  {
+    py::gil_scoped_release gr;
+    return place(object_name, plan_only);
   }
 
   moveit_msgs::RobotState getCurrentStateBoundedPython()
@@ -150,34 +143,12 @@ public:
     return state_message;
   }
 
-  bool movePython()
-  {
-    py::gil_scoped_release gr;
-    return move() == moveit::core::MoveItErrorCode::SUCCESS;
-  }
-
-  bool asyncMovePython()
-  {
-    return asyncMove() == moveit::core::MoveItErrorCode::SUCCESS;
-  }
-
-  bool executePython(const moveit_msgs::RobotTrajectory& plan)
-  {
-    py::gil_scoped_release gr;
-    return execute(plan) == moveit::core::MoveItErrorCode::SUCCESS;
-  }
-
-  bool asyncExecutePython(const moveit_msgs::RobotTrajectory& plan)
-  {
-    return asyncExecute(plan) == moveit::core::MoveItErrorCode::SUCCESS;
-  }
-
   std::tuple<moveit_msgs::MoveItErrorCodes, moveit_msgs::RobotTrajectory, double> planPython()
   {
-    MoveGroupInterface::Plan plan;
+    MoveGroupInterfaceWrapper::Plan plan;
     moveit_msgs::MoveItErrorCodes res;
     py::gil_scoped_release gr;
-    res = MoveGroupInterface::plan(plan);
+    res = MoveGroupInterfaceWrapper::plan(plan);
     return { res, plan.trajectory_, plan.planning_time_ };
   }
 
@@ -293,29 +264,50 @@ PYBIND11_MODULE(pymoveit_move_group_interface, m)
            py::arg("robot_description") = "robot_description", py::arg("namespace") = std::string{},
            py::arg("wait_for_servers") = 5.0)
 
-      .def("async_move", &MoveGroupInterfaceWrapper::asyncMovePython)
-      .def("move", &MoveGroupInterfaceWrapper::movePython)
-      .def("execute", &MoveGroupInterfaceWrapper::executePython, py::arg("plan"))
-      .def("async_execute", &MoveGroupInterfaceWrapper::asyncExecutePython, py::arg("plan"))
+      .def("move",
+           [](MoveGroupInterfaceWrapper* self) {
+             py::gil_scoped_release gr;
+             return self->move();
+           })
+      .def("async_move", &MoveGroupInterfaceWrapper::asyncMove)
+      .def(
+          "execute",
+          [](MoveGroupInterfaceWrapper* self, const moveit_msgs::RobotTrajectory& trajectory) {
+            py::gil_scoped_release gr;
+            return self->execute(trajectory);
+          },
+          py::arg("trajectory"))
+      .def("async_execute",
+           py::overload_cast<const moveit_msgs::RobotTrajectory&>(&MoveGroupInterfaceWrapper::asyncExecute),
+           py::arg("trajectory"))
 
       .def("pick",
-           py::overload_cast<const std::string&, std::vector<moveit_msgs::Grasp>, bool>(&MoveGroupInterface::pick),
+           py::overload_cast<const std::string&, std::vector<moveit_msgs::Grasp>, bool>(
+               &MoveGroupInterfaceWrapper::pick),
            py::arg("object"), py::arg("grasps"), py::arg("plan_only") = false)
+
       .def("place", &MoveGroupInterfaceWrapper::placePose, py::arg("object"), py::arg("pose"),
            py::arg("plan_only") = false)
-      .def("place_poses_list", &MoveGroupInterfaceWrapper::placePoses, py::arg("object"), py::arg("poses_list"),
+      .def("place", &MoveGroupInterfaceWrapper::placePoseStamped, py::arg("object"), py::arg("pose"),
            py::arg("plan_only") = false)
-      .def("place_locations_list", &MoveGroupInterfaceWrapper::placeLocations, py::arg("object"),
-           py::arg("locations_list"), py::arg("plan_only") = false)
+      .def("place", &MoveGroupInterfaceWrapper::placePoses, py::arg("object"), py::arg("poses_list"),
+           py::arg("plan_only") = false)
+      .def("place", &MoveGroupInterfaceWrapper::placeLocations, py::arg("object"), py::arg("locations_list"),
+           py::arg("plan_only") = false)
       .def("place", &MoveGroupInterfaceWrapper::placeAnywhere, py::arg("object"), py::arg("plan_only") = false)
       .def("stop", &MoveGroupInterfaceWrapper::stop)
 
       .def("get_name", &MoveGroupInterfaceWrapper::getName)
       .def("get_planning_frame", &MoveGroupInterfaceWrapper::getPlanningFrame)
-      .def("get_interface_description", &MoveGroupInterfaceWrapper::getInterfaceDescriptionPython)
+      .def("get_interface_description",
+           [](MoveGroupInterfaceWrapper* self) {
+             moveit_msgs::PlannerInterfaceDescription msg;
+             self->getInterfaceDescription(msg);
+             return msg;
+           })
 
-      .def("get_active_joints", &MoveGroupInterface::getActiveJoints)
-      .def("get_joints", &MoveGroupInterface::getJoints)
+      .def("get_active_joints", &MoveGroupInterfaceWrapper::getActiveJoints)
+      .def("get_joints", &MoveGroupInterfaceWrapper::getJoints)
       .def("get_variable_count", &MoveGroupInterfaceWrapper::getVariableCount)
       .def("allow_looking", &MoveGroupInterfaceWrapper::allowLooking, py::arg("flag"))
       .def("allow_replanning", &MoveGroupInterfaceWrapper::allowReplanning, py::arg("flag"))
@@ -326,14 +318,15 @@ PYBIND11_MODULE(pymoveit_move_group_interface, m)
       .def("get_pose_reference_frame", &MoveGroupInterfaceWrapper::getPoseReferenceFrame)
 
       .def("set_pose_target",
-           py::overload_cast<const geometry_msgs::PoseStamped&, const std::string&>(&MoveGroupInterface::setPoseTarget),
+           py::overload_cast<const geometry_msgs::PoseStamped&, const std::string&>(
+               &MoveGroupInterfaceWrapper::setPoseTarget),
            py::arg("target_pose"), py::arg("end_effector_link") = std::string{})
       .def("set_pose_target",
-           py::overload_cast<const geometry_msgs::Pose&, const std::string&>(&MoveGroupInterface::setPoseTarget),
+           py::overload_cast<const geometry_msgs::Pose&, const std::string&>(&MoveGroupInterfaceWrapper::setPoseTarget),
            py::arg("target_pose"), py::arg("end_effector_link") = std::string{})
       .def("set_pose_targets",
            py::overload_cast<const std::vector<geometry_msgs::Pose>&, std::string const&>(
-               &MoveGroupInterface::setPoseTargets),
+               &MoveGroupInterfaceWrapper::setPoseTargets),
            py::arg("target_poses"), py::arg("end_effector_link") = std::string{})
 
       .def("set_position_target", &MoveGroupInterfaceWrapper::setPositionTarget, py::arg("x"), py::arg("y"),
@@ -343,27 +336,28 @@ PYBIND11_MODULE(pymoveit_move_group_interface, m)
       .def("set_orientation_target", &MoveGroupInterfaceWrapper::setOrientationTarget, py::arg("x"), py::arg("y"),
            py::arg("z"), py::arg("w"), py::arg("end_effector_link") = std::string{})
 
-      .def("get_current_pose", &MoveGroupInterface::getCurrentPose, py::arg("end_effector_link") = std::string{})
-      .def("get_current_rpy", &MoveGroupInterface::getCurrentRPY, py::arg("end_effector_link") = std::string{})
+      .def("get_current_pose", &MoveGroupInterfaceWrapper::getCurrentPose, py::arg("end_effector_link") = std::string{})
+      .def("get_current_rpy", &MoveGroupInterfaceWrapper::getCurrentRPY, py::arg("end_effector_link") = std::string{})
 
-      .def("get_random_pose", &MoveGroupInterface::getRandomPose, py::arg("end_effector_link") = std::string{})
+      .def("get_random_pose", &MoveGroupInterfaceWrapper::getRandomPose, py::arg("end_effector_link") = std::string{})
 
       .def("clear_pose_target", &MoveGroupInterfaceWrapper::clearPoseTarget,
            py::arg("end_effector_link") = std::string{})
       .def("clear_pose_targets", &MoveGroupInterfaceWrapper::clearPoseTargets)
 
       .def("set_joint_value_target",
-           py::overload_cast<const std::vector<double>&>(&MoveGroupInterface::setJointValueTarget),
+           py::overload_cast<const std::vector<double>&>(&MoveGroupInterfaceWrapper::setJointValueTarget),
            py::arg("group_variable_values"))
       .def("set_joint_value_target",
-           py::overload_cast<std::map<std::string, double> const&>(&MoveGroupInterface::setJointValueTarget),
+           py::overload_cast<std::map<std::string, double> const&>(&MoveGroupInterfaceWrapper::setJointValueTarget),
            py::arg("group_variabe_names_and_values"))
 
       .def("set_joint_value_target",
-           py::overload_cast<const std::string&, const std::vector<double>&>(&MoveGroupInterface::setJointValueTarget),
+           py::overload_cast<const std::string&, const std::vector<double>&>(
+               &MoveGroupInterfaceWrapper::setJointValueTarget),
            py::arg("joint_name"), py::arg("joint_values"))
       .def("set_joint_value_target",
-           py::overload_cast<const std::string&, double>(&MoveGroupInterface::setJointValueTarget),
+           py::overload_cast<const std::string&, double>(&MoveGroupInterfaceWrapper::setJointValueTarget),
            py::arg("joint_name"), py::arg("joint_value"))
 
       .def("set_joint_value_target_from_pose", &MoveGroupInterfaceWrapper::setJointValueTargetFromPosePython,
@@ -371,25 +365,31 @@ PYBIND11_MODULE(pymoveit_move_group_interface, m)
       .def("set_joint_value_target_from_pose_stamped",
            &MoveGroupInterfaceWrapper::setJointValueTargetFromPoseStampedPython)
       .def("set_joint_value_target",
-           py::overload_cast<sensor_msgs::JointState const&>(&MoveGroupInterface::setJointValueTarget),
+           py::overload_cast<sensor_msgs::JointState const&>(&MoveGroupInterfaceWrapper::setJointValueTarget),
            py::arg("joint_state"))
 
-      .def("get_joint_value_target", &MoveGroupInterfaceWrapper::getJointValueTargetPythonList)
+      .def("get_joint_value_target",
+           [](MoveGroupInterfaceWrapper* self) {
+             std::vector<double> values;
+             self->getJointValueTarget(values);
+             return values;
+           })
 
       .def("set_named_target", &MoveGroupInterfaceWrapper::setNamedTarget, py::arg("name"))
       .def("set_random_target", &MoveGroupInterfaceWrapper::setRandomTarget)
 
-      .def("remember_joint_values", py::overload_cast<const std::string&>(&MoveGroupInterface::rememberJointValues),
-           py::arg("name"))
+      .def("remember_joint_values",
+           py::overload_cast<const std::string&>(&MoveGroupInterfaceWrapper::rememberJointValues), py::arg("name"))
 
       .def("remember_joint_values",
-           py::overload_cast<const std::string&, const std::vector<double>&>(&MoveGroupInterface::rememberJointValues),
+           py::overload_cast<const std::string&, const std::vector<double>&>(
+               &MoveGroupInterfaceWrapper::rememberJointValues),
            py::arg("name"), py::arg("values"))
 
       .def("start_state_monitor", &MoveGroupInterfaceWrapper::startStateMonitor, py::arg("wait") = 1.0)
-      .def("get_current_joint_values", &MoveGroupInterface::getCurrentJointValues)
-      .def("get_random_joint_values", &MoveGroupInterface::getRandomJointValues)
-      .def("get_remembered_joint_values", &MoveGroupInterface::getRememberedJointValues)
+      .def("get_current_joint_values", &MoveGroupInterfaceWrapper::getCurrentJointValues)
+      .def("get_random_joint_values", &MoveGroupInterfaceWrapper::getRandomJointValues)
+      .def("get_remembered_joint_values", &MoveGroupInterfaceWrapper::getRememberedJointValues)
 
       .def("forget_joint_values", &MoveGroupInterfaceWrapper::forgetJointValues, py::arg("name"))
 
@@ -404,22 +404,24 @@ PYBIND11_MODULE(pymoveit_move_group_interface, m)
       .def("set_goal_tolerance", &MoveGroupInterfaceWrapper::setGoalTolerance, py::arg("tolerance"))
 
       .def("set_start_state_to_current_state", &MoveGroupInterfaceWrapper::setStartStateToCurrentState)
-      .def("set_start_state", py::overload_cast<const moveit_msgs::RobotState&>(&MoveGroupInterface::setStartState),
+      .def("set_start_state",
+           py::overload_cast<const moveit_msgs::RobotState&>(&MoveGroupInterfaceWrapper::setStartState),
            py::arg("start_state"))
 
-      .def("set_path_constraints", py::overload_cast<const std::string&>(&MoveGroupInterface::setPathConstraints),
+      .def("set_path_constraints",
+           py::overload_cast<const std::string&>(&MoveGroupInterfaceWrapper::setPathConstraints),
            py::arg("constraint_name"))
       .def("set_path_constraints",
-           py::overload_cast<moveit_msgs::Constraints const&>(&MoveGroupInterface::setPathConstraints),
+           py::overload_cast<moveit_msgs::Constraints const&>(&MoveGroupInterfaceWrapper::setPathConstraints),
            py::arg("constraints"))
-      .def("get_path_constraints", &MoveGroupInterface::getPathConstraints)
+      .def("get_path_constraints", &MoveGroupInterfaceWrapper::getPathConstraints)
       .def("clear_path_constraints", &MoveGroupInterfaceWrapper::clearPathConstraints)
 
-      .def("set_trajectory_constraints", &MoveGroupInterface::setTrajectoryConstraints,
+      .def("set_trajectory_constraints", &MoveGroupInterfaceWrapper::setTrajectoryConstraints,
            py::arg("trajectory_constraints"))
-      .def("get_trajectory_constraints", &MoveGroupInterface::getTrajectoryConstraints)
+      .def("get_trajectory_constraints", &MoveGroupInterfaceWrapper::getTrajectoryConstraints)
       .def("clear_trajectory_constraints", &MoveGroupInterfaceWrapper::clearTrajectoryConstraints)
-      .def("get_known_constraints", &MoveGroupInterface::getKnownConstraints)
+      .def("get_known_constraints", &MoveGroupInterfaceWrapper::getKnownConstraints)
       .def("set_constraints_database", &MoveGroupInterfaceWrapper::setConstraintsDatabase, py::arg("host"),
            py::arg("port"))
       .def("set_workspace", &MoveGroupInterfaceWrapper::setWorkspace, py::arg("minx"), py::arg("miny"), py::arg("minz"),
@@ -446,14 +448,14 @@ PYBIND11_MODULE(pymoveit_move_group_interface, m)
       .def("set_support_surface_name", &MoveGroupInterfaceWrapper::setSupportSurfaceName, py::arg("name"))
       .def("attach_object",
            py::overload_cast<const std::string&, const std::string&, const std::vector<std::string>&>(
-               &MoveGroupInterface::attachObject),
+               &MoveGroupInterfaceWrapper::attachObject),
            py::arg("object"), py::arg("link"), py::arg("touch_links"))
       .def("detach_object", &MoveGroupInterfaceWrapper::detachObject, py::arg("name") = std::string{})
       .def("retime_trajectory", &MoveGroupInterfaceWrapper::retimeTrajectory, py::arg("ref_state_msg"),
            py::arg("traj_msg"), py::arg("velocity_scaling_factor"), py::arg("acceleration_scaling_factor"),
            py::arg("algorithm"))
-      .def("get_named_targets", &MoveGroupInterface::getNamedTargets)
-      .def("get_named_target_values", &MoveGroupInterface::getNamedTargetValues, py::arg("name"))
+      .def("get_named_targets", &MoveGroupInterfaceWrapper::getNamedTargets)
+      .def("get_named_target_values", &MoveGroupInterfaceWrapper::getNamedTargetValues, py::arg("name"))
       .def("get_current_state_bounded", &MoveGroupInterfaceWrapper::getCurrentStateBoundedPython)
       .def("get_current_state", &MoveGroupInterfaceWrapper::getCurrentStatePython)
       .def("get_jacobian_matrix", &MoveGroupInterfaceWrapper::getJacobianMatrixPython, py::arg("joint_values"),
