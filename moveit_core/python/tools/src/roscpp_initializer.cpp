@@ -39,7 +39,7 @@
 #include <ros/init.h>
 #include <ros/spinner.h>
 
-static const char* LOGNAME = "py_bindings_tools";
+static const char* LOGNAME = "py_tools";
 
 namespace moveit
 {

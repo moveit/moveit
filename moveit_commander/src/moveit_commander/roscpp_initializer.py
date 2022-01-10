@@ -32,7 +32,7 @@
 #
 # Author: Ioan Sucan
 
-from moveit.binding_tools import roscpp_init, roscpp_shutdown, InitOption
+from moveit.tools import roscpp_init, roscpp_shutdown, InitOption
 import rospy
 
 

@@ -32,4 +32,4 @@
 #
 # Author: Robert Haschke
 
-from pymoveit_binding_tools import *
+from pymoveit_tools import *

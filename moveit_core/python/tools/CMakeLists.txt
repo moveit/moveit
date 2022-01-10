@@ -1,4 +1,4 @@
-set(MOVEIT_LIB_NAME moveit_py_bindings_tools)
+set(MOVEIT_LIB_NAME moveit_python_bindings_tools)
 
 add_library(${MOVEIT_LIB_NAME}
   src/ros_msg_typecasters.cpp
@@ -20,8 +20,8 @@ install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 #catkin_lint: ignore undefined_target
 
 # moveit.binding_tools
-pybind_add_module(pymoveit_binding_tools pymoveit_binding_tools.cpp)
-target_link_libraries(pymoveit_binding_tools PRIVATE ${MOVEIT_LIB_NAME})
+pybind_add_module(pymoveit_tools pymoveit_tools.cpp)
+target_link_libraries(pymoveit_tools PRIVATE ${MOVEIT_LIB_NAME})
 
-install(TARGETS pymoveit_binding_tools
+install(TARGETS pymoveit_tools
   LIBRARY DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
