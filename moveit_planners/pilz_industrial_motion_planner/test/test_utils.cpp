@@ -219,7 +219,7 @@ bool testutils::checkCartesianLinearity(const moveit::core::RobotModelConstPtr& 
                                         const trajectory_msgs::JointTrajectory& trajectory,
                                         const planning_interface::MotionPlanRequest& req,
                                         const double translation_norm_tolerance, const double rot_axis_norm_tolerance,
-                                        const double rot_angle_tolerance)
+                                        const double /*rot_angle_tolerance*/)
 {
   std::string link_name;
   Eigen::Isometry3d goal_pose_expect;
@@ -1102,7 +1102,8 @@ bool testutils::checkBlendResult(const pilz_industrial_motion_planner::Trajector
                                  const pilz_industrial_motion_planner::TrajectoryBlendResponse& blend_res,
                                  const pilz_industrial_motion_planner::LimitsContainer& limits,
                                  double joint_velocity_tolerance, double joint_acceleration_tolerance,
-                                 double cartesian_velocity_tolerance, double cartesian_angular_velocity_tolerance)
+                                 double /*cartesian_velocity_tolerance*/,
+                                 double /*cartesian_angular_velocity_tolerance*/)
 {
   // ++++++++++++++++++++++
   // + Check trajectories +

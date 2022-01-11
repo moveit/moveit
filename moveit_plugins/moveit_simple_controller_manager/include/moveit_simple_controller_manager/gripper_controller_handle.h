@@ -51,10 +51,11 @@ class GripperControllerHandle : public ActionBasedControllerHandle<control_msgs:
 {
 public:
   /* Topics will map to name/ns/goal, name/ns/result, etc */
-  GripperControllerHandle(const std::string& name, const std::string& ns)
+  GripperControllerHandle(const std::string& name, const std::string& ns, const double max_effort = 0.0)
     : ActionBasedControllerHandle<control_msgs::GripperCommandAction>(name, ns)
     , allow_failure_(false)
     , parallel_jaw_gripper_(false)
+    , max_effort_(max_effort)
   {
   }
 
@@ -110,7 +111,6 @@ public:
     // goal to be sent
     control_msgs::GripperCommandGoal goal;
     goal.command.position = 0.0;
-    goal.command.max_effort = 0.0;
 
     // send last point
     int tpoint = trajectory.joint_trajectory.points.size() - 1;
@@ -130,13 +130,20 @@ public:
       goal.command.position += trajectory.joint_trajectory.points[tpoint].positions[idx];
 
       if (trajectory.joint_trajectory.points[tpoint].effort.size() > idx)
+      {
         goal.command.max_effort = trajectory.joint_trajectory.points[tpoint].effort[idx];
+      }
+      else
+      {
+        goal.command.max_effort = max_effort_;
+      }
     }
 
-    controller_action_client_->sendGoal(goal,
-                                        boost::bind(&GripperControllerHandle::controllerDoneCallback, this, _1, _2),
-                                        boost::bind(&GripperControllerHandle::controllerActiveCallback, this),
-                                        boost::bind(&GripperControllerHandle::controllerFeedbackCallback, this, _1));
+    controller_action_client_->sendGoal(
+        goal,
+        std::bind(&GripperControllerHandle::controllerDoneCallback, this, std::placeholders::_1, std::placeholders::_2),
+        std::bind(&GripperControllerHandle::controllerActiveCallback, this),
+        std::bind(&GripperControllerHandle::controllerFeedbackCallback, this, std::placeholders::_1));
 
     done_ = false;
     last_exec_ = moveit_controller_manager::ExecutionStatus::RUNNING;
@@ -200,6 +207,12 @@ private:
    * and the command will be the sum of the two joints.
    */
   bool parallel_jaw_gripper_;
+
+  /*
+   * The ``max_effort`` used in the GripperCommand message when no ``max_effort`` was
+   * specified in the requested trajectory. Defaults to ``0.0``.
+   */
+  double max_effort_;
 
   /*
    * A GripperCommand message has only a single float64 for the

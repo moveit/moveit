@@ -105,6 +105,8 @@ bool DepthImageOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
     readXmlParam(params, "skip_horizontal_pixels", &skip_horizontal_pixels_);
     if (params.hasMember("filtered_cloud_topic"))
       filtered_cloud_topic_ = static_cast<const std::string&>(params["filtered_cloud_topic"]);
+    if (params.hasMember("ns"))
+      ns_ = static_cast<const std::string&>(params["ns"]);
   }
   catch (XmlRpc::XmlRpcException& ex)
   {
@@ -127,7 +129,8 @@ bool DepthImageOctomapUpdater::initialize()
   mesh_filter_->setShadowThreshold(shadow_threshold_);
   mesh_filter_->setPaddingOffset(padding_offset_);
   mesh_filter_->setPaddingScale(padding_scale_);
-  mesh_filter_->setTransformCallback(boost::bind(&DepthImageOctomapUpdater::getShapeTransform, this, _1, _2));
+  mesh_filter_->setTransformCallback(
+      std::bind(&DepthImageOctomapUpdater::getShapeTransform, this, std::placeholders::_1, std::placeholders::_2));
 
   return true;
 }
@@ -135,14 +138,18 @@ bool DepthImageOctomapUpdater::initialize()
 void DepthImageOctomapUpdater::start()
 {
   image_transport::TransportHints hints("raw", ros::TransportHints(), nh_);
-  pub_model_depth_image_ = model_depth_transport_.advertiseCamera("model_depth", 1);
 
+  std::string prefix = "";
+  if (!ns_.empty())
+    prefix = ns_ + "/";
+
+  pub_model_depth_image_ = model_depth_transport_.advertiseCamera(prefix + "model_depth", 1);
   if (!filtered_cloud_topic_.empty())
-    pub_filtered_depth_image_ = filtered_depth_transport_.advertiseCamera(filtered_cloud_topic_, 1);
+    pub_filtered_depth_image_ = filtered_depth_transport_.advertiseCamera(prefix + filtered_cloud_topic_, 1);
   else
-    pub_filtered_depth_image_ = filtered_depth_transport_.advertiseCamera("filtered_depth", 1);
+    pub_filtered_depth_image_ = filtered_depth_transport_.advertiseCamera(prefix + "filtered_depth", 1);
 
-  pub_filtered_label_image_ = filtered_label_transport_.advertiseCamera("filtered_label", 1);
+  pub_filtered_label_image_ = filtered_label_transport_.advertiseCamera(prefix + "filtered_label", 1);
 
   sub_depth_image_ = input_depth_transport_.subscribeCamera(image_topic_, queue_size_,
                                                             &DepthImageOctomapUpdater::depthImageCallback, this, hints);

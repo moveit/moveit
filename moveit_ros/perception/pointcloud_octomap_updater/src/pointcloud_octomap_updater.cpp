@@ -82,6 +82,8 @@ bool PointCloudOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
       readXmlParam(params, "max_update_rate", &max_update_rate_);
     if (params.hasMember("filtered_cloud_topic"))
       filtered_cloud_topic_ = static_cast<const std::string&>(params["filtered_cloud_topic"]);
+    if (params.hasMember("ns"))
+      ns_ = static_cast<const std::string&>(params["ns"]);
   }
   catch (XmlRpc::XmlRpcException& ex)
   {
@@ -97,9 +99,15 @@ bool PointCloudOctomapUpdater::initialize()
   tf_buffer_ = std::make_shared<tf2_ros::Buffer>();
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_, root_nh_);
   shape_mask_ = std::make_unique<point_containment_filter::ShapeMask>();
-  shape_mask_->setTransformCallback(boost::bind(&PointCloudOctomapUpdater::getShapeTransform, this, _1, _2));
+  shape_mask_->setTransformCallback(
+      std::bind(&PointCloudOctomapUpdater::getShapeTransform, this, std::placeholders::_1, std::placeholders::_2));
+
+  std::string prefix = "";
+  if (!ns_.empty())
+    prefix = ns_ + "/";
   if (!filtered_cloud_topic_.empty())
-    filtered_cloud_publisher_ = private_nh_.advertise<sensor_msgs::PointCloud2>(filtered_cloud_topic_, 10, false);
+    filtered_cloud_publisher_ =
+        private_nh_.advertise<sensor_msgs::PointCloud2>(prefix + filtered_cloud_topic_, 10, false);
   return true;
 }
 
@@ -113,13 +121,15 @@ void PointCloudOctomapUpdater::start()
   {
     point_cloud_filter_ = new tf2_ros::MessageFilter<sensor_msgs::PointCloud2>(*point_cloud_subscriber_, *tf_buffer_,
                                                                                monitor_->getMapFrame(), 5, root_nh_);
-    point_cloud_filter_->registerCallback(boost::bind(&PointCloudOctomapUpdater::cloudMsgCallback, this, _1));
+    point_cloud_filter_->registerCallback(
+        std::bind(&PointCloudOctomapUpdater::cloudMsgCallback, this, std::placeholders::_1));
     ROS_INFO_NAMED(LOGNAME, "Listening to '%s' using message filter with target frame '%s'", point_cloud_topic_.c_str(),
                    point_cloud_filter_->getTargetFramesString().c_str());
   }
   else
   {
-    point_cloud_subscriber_->registerCallback(boost::bind(&PointCloudOctomapUpdater::cloudMsgCallback, this, _1));
+    point_cloud_subscriber_->registerCallback(
+        std::bind(&PointCloudOctomapUpdater::cloudMsgCallback, this, std::placeholders::_1));
     ROS_INFO_NAMED(LOGNAME, "Listening to '%s'", point_cloud_topic_.c_str());
   }
 }

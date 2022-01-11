@@ -1,16 +1,6 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(moveit_ros_planning_interface)
 
-if(NOT "${CMAKE_CXX_STANDARD}")
-  set(CMAKE_CXX_STANDARD 14)
-endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
-
 find_package(catkin REQUIRED COMPONENTS
   moveit_msgs
   moveit_ros_planning
@@ -28,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   rosconsole
 )
+moveit_build_options()
 
 find_package(Boost REQUIRED COMPONENTS
   date_time

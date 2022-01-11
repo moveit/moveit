@@ -44,7 +44,7 @@
 #include <moveit/backtrace/backtrace.h>
 #include <moveit/profiler/profiler.h>
 #include <moveit/macros/console_colors.h>
-#include <boost/bind.hpp>
+#include <functional>
 #include <moveit/robot_model/aabb.h>
 
 namespace moveit
@@ -176,8 +176,8 @@ void RobotState::copyFrom(const RobotState& other)
 
   // copy attached bodies
   clearAttachedBodies();
-  for (const std::pair<const std::string, AttachedBody*>& it : other.attached_body_map_)
-    attachBody(new AttachedBody(*it.second));
+  for (const auto& attached_body : other.attached_body_map_)
+    attachBody(std::make_unique<AttachedBody>(*attached_body.second));
 }
 
 bool RobotState::checkJointTransforms(const JointModel* joint) const
@@ -470,7 +470,7 @@ void RobotState::setVariableEffort(const std::map<std::string, double>& variable
 {
   markEffort();
   for (const std::pair<const std::string, double>& it : variable_map)
-    acceleration_[robot_model_->getVariableIndex(it.first)] = it.second;
+    effort_[robot_model_->getVariableIndex(it.first)] = it.second;
 }
 
 void RobotState::setVariableEffort(const std::map<std::string, double>& variable_map,
@@ -740,9 +740,9 @@ void RobotState::updateLinkTransformsInternal(const JointModel* start)
   }
 
   // update attached bodies tf; these are usually very few, so we update them all
-  for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin();
-       it != attached_body_map_.end(); ++it)
-    it->second->computeTransform(global_link_transforms_[it->second->getAttachedLink()->getLinkIndex()]);
+  for (const auto& attached_body : attached_body_map_)
+    attached_body.second->computeTransform(
+        global_link_transforms_[attached_body.second->getAttachedLink()->getLinkIndex()]);
 }
 
 void RobotState::updateStateWithLinkAt(const LinkModel* link, const Eigen::Isometry3d& transform, bool backward)
@@ -792,9 +792,34 @@ void RobotState::updateStateWithLinkAt(const LinkModel* link, const Eigen::Isome
   }
 
   // update attached bodies tf; these are usually very few, so we update them all
-  for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin();
-       it != attached_body_map_.end(); ++it)
-    it->second->computeTransform(global_link_transforms_[it->second->getAttachedLink()->getLinkIndex()]);
+  for (const auto& attached_body : attached_body_map_)
+    attached_body.second->computeTransform(
+        global_link_transforms_[attached_body.second->getAttachedLink()->getLinkIndex()]);
+}
+
+const LinkModel* RobotState::getRigidlyConnectedParentLinkModel(const std::string& frame) const
+{
+  const moveit::core::LinkModel* link{ nullptr };
+
+  size_t idx = 0;
+  if ((idx = frame.find('/')) != std::string::npos)
+  {  // resolve sub frame
+    std::string object{ frame.substr(0, idx) };
+    if (!hasAttachedBody(object))
+      return nullptr;
+    auto body{ getAttachedBody(object) };
+    if (!body->hasSubframeTransform(frame))
+      return nullptr;
+    link = body->getAttachedLink();
+  }
+  else if (hasAttachedBody(frame))
+  {
+    link = getAttachedBody(frame)->getAttachedLink();
+  }
+  else if (getRobotModel()->hasLinkModel(frame))
+    link = getLinkModel(frame);
+
+  return getRobotModel()->getRigidlyConnectedParentLinkModel(link);
 }
 
 bool RobotState::satisfiesBounds(double margin) const
@@ -953,25 +978,30 @@ bool RobotState::hasAttachedBody(const std::string& id) const
 
 const AttachedBody* RobotState::getAttachedBody(const std::string& id) const
 {
-  std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(id);
+  const auto it = attached_body_map_.find(id);
   if (it == attached_body_map_.end())
   {
     ROS_ERROR_NAMED(LOGNAME, "Attached body '%s' not found", id.c_str());
     return nullptr;
   }
   else
-    return it->second;
+    return it->second.get();
 }
 
-void RobotState::attachBody(AttachedBody* attached_body)
+void RobotState::attachBody(std::unique_ptr<AttachedBody> attached_body)
 {
   // If an attached body with the same id exists, remove it
   clearAttachedBody(attached_body->getName());
 
-  attached_body_map_[attached_body->getName()] = attached_body;
   attached_body->computeTransform(getGlobalLinkTransform(attached_body->getAttachedLink()));
   if (attached_body_update_callback_)
-    attached_body_update_callback_(attached_body, true);
+    attached_body_update_callback_(attached_body.get(), true);
+  attached_body_map_[attached_body->getName()] = std::move(attached_body);
+}
+
+void RobotState::attachBody(AttachedBody* attached_body)
+{
+  attachBody(std::unique_ptr<AttachedBody>(attached_body));
 }
 
 void RobotState::attachBody(const std::string& id, const Eigen::Isometry3d& pose,
@@ -980,90 +1010,81 @@ void RobotState::attachBody(const std::string& id, const Eigen::Isometry3d& pose
                             const std::string& link, const trajectory_msgs::JointTrajectory& detach_posture,
                             const moveit::core::FixedTransformsMap& subframe_poses)
 {
-  const LinkModel* l = robot_model_->getLinkModel(link);
-  attachBody(new AttachedBody(l, id, pose, shapes, shape_poses, touch_links, detach_posture, subframe_poses));
+  attachBody(std::make_unique<AttachedBody>(robot_model_->getLinkModel(link), id, pose, shapes, shape_poses,
+                                            touch_links, detach_posture, subframe_poses));
 }
 
 void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies) const
 {
   attached_bodies.clear();
   attached_bodies.reserve(attached_body_map_.size());
-  for (const std::pair<const std::string, AttachedBody*>& it : attached_body_map_)
-    attached_bodies.push_back(it.second);
+  for (const auto& it : attached_body_map_)
+    attached_bodies.push_back(it.second.get());
 }
 
 void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const JointModelGroup* group) const
 {
   attached_bodies.clear();
-  for (const std::pair<const std::string, AttachedBody*>& it : attached_body_map_)
+  for (const auto& it : attached_body_map_)
     if (group->hasLinkModel(it.second->getAttachedLinkName()))
-      attached_bodies.push_back(it.second);
+      attached_bodies.push_back(it.second.get());
 }
 
 void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const LinkModel* link_model) const
 {
   attached_bodies.clear();
-  for (const std::pair<const std::string, AttachedBody*>& it : attached_body_map_)
+  for (const auto& it : attached_body_map_)
     if (it.second->getAttachedLink() == link_model)
-      attached_bodies.push_back(it.second);
+      attached_bodies.push_back(it.second.get());
 }
 
 void RobotState::clearAttachedBodies()
 {
-  for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin();
-       it != attached_body_map_.end(); ++it)
+  for (const auto& it : attached_body_map_)
   {
     if (attached_body_update_callback_)
-      attached_body_update_callback_(it->second, false);
-    delete it->second;
+      attached_body_update_callback_(it.second.get(), false);
   }
   attached_body_map_.clear();
 }
 
 void RobotState::clearAttachedBodies(const LinkModel* link)
 {
-  std::map<std::string, AttachedBody*>::iterator it = attached_body_map_.begin();
-  while (it != attached_body_map_.end())
+  for (auto it = attached_body_map_.cbegin(); it != attached_body_map_.cend(); ++it)
   {
     if (it->second->getAttachedLink() != link)
     {
-      ++it;
       continue;
     }
     if (attached_body_update_callback_)
-      attached_body_update_callback_(it->second, false);
-    delete it->second;
-    std::map<std::string, AttachedBody*>::iterator del = it++;
+      attached_body_update_callback_(it->second.get(), false);
+    const auto del = it++;
     attached_body_map_.erase(del);
   }
 }
 
 void RobotState::clearAttachedBodies(const JointModelGroup* group)
 {
-  std::map<std::string, AttachedBody*>::iterator it = attached_body_map_.begin();
-  while (it != attached_body_map_.end())
+  for (auto it = attached_body_map_.cbegin(); it != attached_body_map_.cend(); ++it)
   {
     if (!group->hasLinkModel(it->second->getAttachedLinkName()))
     {
-      ++it;
       continue;
     }
     if (attached_body_update_callback_)
-      attached_body_update_callback_(it->second, false);
-    delete it->second;
-    std::map<std::string, AttachedBody*>::iterator del = it++;
+      attached_body_update_callback_(it->second.get(), false);
+    const auto del = it++;
     attached_body_map_.erase(del);
   }
 }
 
 bool RobotState::clearAttachedBody(const std::string& id)
 {
-  std::map<std::string, AttachedBody*>::iterator it = attached_body_map_.find(id);
+  const auto it = attached_body_map_.find(id);
   if (it != attached_body_map_.end())
   {
     if (attached_body_update_callback_)
-      attached_body_update_callback_(it->second, false);
-    delete it->second;
+      attached_body_update_callback_(it->second.get(), false);
     attached_body_map_.erase(it);
     return true;
   }
@@ -1112,7 +1133,7 @@ const Eigen::Isometry3d& RobotState::getFrameInfo(const std::string& frame_id, c
   robot_link = nullptr;
 
   // Check names of the attached bodies
-  std::map<std::string, AttachedBody*>::const_iterator jt = attached_body_map_.find(frame_id);
+  const auto jt = attached_body_map_.find(frame_id);
   if (jt != attached_body_map_.end())
   {
     const Eigen::Isometry3d& transform = jt->second->getGlobalPose();
@@ -1123,7 +1144,7 @@ const Eigen::Isometry3d& RobotState::getFrameInfo(const std::string& frame_id, c
   }
 
   // Check if an AttachedBody has a subframe with name frame_id
-  for (const std::pair<const std::string, AttachedBody*>& body : attached_body_map_)
+  for (const auto& body : attached_body_map_)
   {
     const Eigen::Isometry3d& transform = body.second->getGlobalSubframeTransform(frame_id, &frame_found);
     if (frame_found)
@@ -1147,12 +1168,12 @@ bool RobotState::knowsFrameTransform(const std::string& frame_id) const
     return true;
 
   // Check if an AttachedBody with name frame_id exists
-  std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(frame_id);
+  const auto it = attached_body_map_.find(frame_id);
   if (it != attached_body_map_.end())
     return !it->second->getGlobalCollisionBodyTransforms().empty();
 
   // Check if an AttachedBody has a subframe with name frame_id
-  for (const std::pair<const std::string, AttachedBody*>& body : attached_body_map_)
+  for (const auto& body : attached_body_map_)
   {
     if (body.second->hasSubframeTransform(frame_id))
       return true;
@@ -1187,7 +1208,7 @@ void RobotState::getRobotMarkers(visualization_msgs::MarkerArray& arr, const std
     if (!link_model)
       continue;
     if (include_attached)
-      for (const std::pair<const std::string, AttachedBody*>& it : attached_body_map_)
+      for (const auto& it : attached_body_map_)
         if (it.second->getAttachedLink() == link_model)
         {
           for (std::size_t j = 0; j < it.second->getShapes().size(); ++j)
@@ -1755,7 +1776,8 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Is
   // set callback function
   kinematics::KinematicsBase::IKCallbackFn ik_callback_fn;
   if (constraint)
-    ik_callback_fn = boost::bind(&ikCallbackFnAdapter, this, jmg, constraint, _1, _2, _3);
+    ik_callback_fn = std::bind(&ikCallbackFnAdapter, this, jmg, constraint, std::placeholders::_1,
+                               std::placeholders::_2, std::placeholders::_3);
 
   // Bijection
   const std::vector<unsigned int>& bij = jmg->getKinematicsSolverJointBijection();
@@ -1786,7 +1808,7 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
                                     const std::vector<std::string>& tips_in,
                                     const std::vector<std::vector<double> >& consistency_limits, double timeout,
                                     const GroupStateValidityCallbackFn& constraint,
-                                    const kinematics::KinematicsQueryOptions& options)
+                                    const kinematics::KinematicsQueryOptions& /*options*/)
 {
   // Assume we have already ran setFromIK() and those checks
 
@@ -1898,7 +1920,8 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
   std::vector<geometry_msgs::Pose> ik_queries(poses_in.size());
   kinematics::KinematicsBase::IKCallbackFn ik_callback_fn;
   if (constraint)
-    ik_callback_fn = boost::bind(&ikCallbackFnAdapter, this, jmg, constraint, _1, _2, _3);
+    ik_callback_fn = std::bind(&ikCallbackFnAdapter, this, jmg, constraint, std::placeholders::_1,
+                               std::placeholders::_2, std::placeholders::_3);
 
   for (std::size_t i = 0; i < transformed_poses.size(); ++i)
   {
@@ -2028,7 +2051,7 @@ void RobotState::computeAABB(std::vector<double>& aabb) const
     transform.translate(link->getCenteredBoundingBoxOffset());
     bounding_box.extendWithTransformedBox(transform, extents);
   }
-  for (const std::pair<const std::string, AttachedBody*>& it : attached_body_map_)
+  for (const auto& it : attached_body_map_)
   {
     const EigenSTL::vector_Isometry3d& transforms = it.second->getGlobalCollisionBodyTransforms();
     const std::vector<shapes::ShapeConstPtr>& shapes = it.second->getShapes();
@@ -2167,11 +2190,20 @@ void RobotState::printStateInfo(std::ostream& out) const
 
 void RobotState::printTransform(const Eigen::Isometry3d& transform, std::ostream& out) const
 {
-  ASSERT_ISOMETRY(transform)  // unsanitized input, could contain a non-isometry
-  Eigen::Quaterniond q(transform.linear());
-  out << "T.xyz = [" << transform.translation().x() << ", " << transform.translation().y() << ", "
-      << transform.translation().z() << "], Q.xyzw = [" << q.x() << ", " << q.y() << ", " << q.z() << ", " << q.w()
-      << "]" << std::endl;
+  if (checkIsometry(transform, CHECK_ISOMETRY_PRECISION, false))
+  {
+    Eigen::Quaterniond q(transform.linear());
+    out << "T.xyz = [" << transform.translation().x() << ", " << transform.translation().y() << ", "
+        << transform.translation().z() << "], Q.xyzw = [" << q.x() << ", " << q.y() << ", " << q.z() << ", " << q.w()
+        << "]";
+  }
+  else
+  {
+    out << "[NON-ISOMETRY] "
+        << transform.matrix().format(
+               Eigen::IOFormat(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", "; ", "", "", "[", "]"));
+  }
+  out << std::endl;
 }
 
 void RobotState::printTransforms(std::ostream& out) const
@@ -2203,7 +2235,7 @@ void RobotState::printTransforms(std::ostream& out) const
   }
 }
 
-std::string RobotState::getStateTreeString(const std::string& prefix) const
+std::string RobotState::getStateTreeString() const
 {
   std::stringstream ss;
   ss << "ROBOT: " << robot_model_->getName() << std::endl;

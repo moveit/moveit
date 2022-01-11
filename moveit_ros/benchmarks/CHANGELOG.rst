@@ -2,6 +2,19 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.7 (2021-12-31)
+------------------
+* Provide ``MOVEIT_VERSION_CHECK`` macro (`#2997 <https://github.com/ros-planning/moveit/issues/2997>`_)
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* Contributors: Jochen Sprickerhof, Robert Haschke
+
+1.1.6 (2021-11-06)
+------------------
+* Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``
+* clang-tidy: modernize-make-shared, modernize-make-unique (`#2762 <https://github.com/ros-planning/moveit/issues/2762>`_)
+* Fix predefined poses benchmark example (`#2718 <https://github.com/ros-planning/moveit/issues/2718>`_)
+* Contributors: Captain Yoshi, Robert Haschke
+
 1.1.5 (2021-05-23)
 ------------------
 

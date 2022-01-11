@@ -137,7 +137,7 @@ void TrajectoryBlenderTransitionWindowTest::SetUp()
   planner_limits_.setCartesianLimits(cart_limits);
 
   // initialize trajectory generators and blender
-  lin_generator_ = std::make_unique<TrajectoryGeneratorLIN>(robot_model_, planner_limits_);
+  lin_generator_ = std::make_unique<TrajectoryGeneratorLIN>(robot_model_, planner_limits_, planning_group_);
   ASSERT_NE(nullptr, lin_generator_) << "failed to create LIN trajectory generator";
   blender_ = std::make_unique<TrajectoryBlenderTransitionWindow>(planner_limits_);
   ASSERT_NE(nullptr, blender_) << "failed to create trajectory blender";

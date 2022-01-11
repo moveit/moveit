@@ -408,7 +408,7 @@ struct FCLShapeCache
   unsigned int clean_count_;
 };
 
-bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& min_dist)
+bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& /*min_dist*/)
 {
   DistanceData* cdata = reinterpret_cast<DistanceData*>(data);
 

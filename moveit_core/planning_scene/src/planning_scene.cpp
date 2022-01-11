@@ -539,12 +539,14 @@ void PlanningScene::getCollidingPairs(collision_detection::CollisionResult::Cont
 
 void PlanningScene::getCollidingPairs(collision_detection::CollisionResult::ContactMap& contacts,
                                       const moveit::core::RobotState& robot_state,
-                                      const collision_detection::AllowedCollisionMatrix& acm) const
+                                      const collision_detection::AllowedCollisionMatrix& acm,
+                                      const std::string& group_name) const
 {
   collision_detection::CollisionRequest req;
   req.contacts = true;
   req.max_contacts = getRobotModel()->getLinkModelsWithCollisionGeometry().size() + 1;
   req.max_contacts_per_pair = 1;
+  req.group_name = group_name;
   collision_detection::CollisionResult res;
   checkCollision(req, res, robot_state, acm);
   res.contacts.swap(contacts);
@@ -1007,7 +1009,23 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Isomet
     ROS_ERROR_NAMED(LOGNAME, "Bad input stream when loading scene geometry");
     return false;
   }
+  // Read scene name
   std::getline(in, name_);
+
+  // Identify scene format version for backwards compatibility of parser
+  auto pos = in.tellg();  // remember current stream position
+  std::string line;
+  do
+  {
+    std::getline(in, line);
+  } while (in.good() && !in.eof() && (line.empty() || line[0] != '*'));  // read * marker
+  std::getline(in, line);                                                // next line determines format
+  boost::algorithm::trim(line);
+  // new format: line specifies position of object, with spaces as delimiter -> spaces indicate new format
+  // old format: line specifies number of shapes
+  bool uses_new_scene_format = line.find(' ') != std::string::npos;
+  in.seekg(pos);
+
   Eigen::Isometry3d pose;  // Transient
   do
   {
@@ -1029,8 +1047,9 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Isomet
       }
       boost::algorithm::trim(object_id);
 
-      // Read in object pose
-      if (!readPoseFromText(in, pose))
+      // Read in object pose (added in the new scene format)
+      pose.setIdentity();
+      if (uses_new_scene_format && !readPoseFromText(in, pose))
       {
         ROS_ERROR_NAMED(LOGNAME, "Failed to read object pose from scene file");
         return false;
@@ -1075,22 +1094,25 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Isomet
         }
       }
 
-      // Read in subframes
-      moveit::core::FixedTransformsMap subframes;
-      unsigned int subframe_count;
-      in >> subframe_count;
-      for (std::size_t i = 0; i < subframe_count && in.good() && !in.eof(); ++i)
+      // Read in subframes (added in the new scene format)
+      if (uses_new_scene_format)
       {
-        std::string subframe_name;
-        in >> subframe_name;
-        if (!readPoseFromText(in, pose))
+        moveit::core::FixedTransformsMap subframes;
+        unsigned int subframe_count;
+        in >> subframe_count;
+        for (std::size_t i = 0; i < subframe_count && in.good() && !in.eof(); ++i)
         {
-          ROS_ERROR_NAMED(LOGNAME, "Failed to read subframe pose from scene file");
-          return false;
+          std::string subframe_name;
+          in >> subframe_name;
+          if (!readPoseFromText(in, pose))
+          {
+            ROS_ERROR_NAMED(LOGNAME, "Failed to read subframe pose from scene file");
+            return false;
+          }
+          subframes[subframe_name] = pose;
         }
-        subframes[subframe_name] = pose;
+        world_->setSubframesOfObject(object_id, subframes);
       }
-      world_->setSubframesOfObject(object_id, subframes);
     }
     else if (marker == ".")
     {

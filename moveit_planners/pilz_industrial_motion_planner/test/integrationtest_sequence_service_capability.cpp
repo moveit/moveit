@@ -248,7 +248,9 @@ TEST_F(IntegrationTestSequenceService, TestSecondTrajInvalidStartState)
 
   // Set start state
   using std::placeholders::_1;
-  JointConfiguration config{ "MyGroupName", { -1., 2., -3., 4., -5., 0. }, std::bind(&createJointName, _1) };
+  JointConfiguration config{ "MyGroupName",
+                             { -1., 2., -3., 4., -5., 0. },
+                             std::bind(&createJointName, std::placeholders::_1) };
   req_list.items[1].req.start_state.joint_state = config.toSensorMsg();
 
   moveit_msgs::GetMotionSequence srv;

@@ -6,7 +6,7 @@ API changes in MoveIt releases
 - `CollisionObject` messages are now defined with a `Pose`, and shapes and subframes are defined relative to the object's pose. This makes it easier to place objects with subframes and multiple shapes in the scene. This causes several changes:
     - `getFrameTransform()` now returns this pose instead of the first shape's pose.
     - The Rviz plugin's manipulation tab now uses the object's pose instead of the shape pose to evaluate if object's are in the region of interest.
-    - Planning scene geometry text files (`.scene`) have changed format. Add a line `0 0 0 0 0 0 1` under each line with an asterisk to upgrade old files if required.
+    - Planning scene geometry text files (`.scene`) have changed format. Loading old files is still supported. You can add a line `0 0 0 0 0 0 1` under each line with an asterisk to upgrade old files.
 - add API for passing RNG to setToRandomPositionsNearBy
 - Static member variable interface of the CollisionDetectorAllocatorTemplate for the string NAME was replaced with a virtual method `getName`.
 - RobotModel no longer overrides empty URDF collision geometry by matching the visual geometry of the link.
@@ -28,7 +28,12 @@ API changes in MoveIt releases
 - Removed deprecated header `moveit/macros/deprecation.h`. Use `[[deprecated]]` instead.
 - All uses of `MOVEIT_CLASS_FORWARD` et. al. must now be followed by a semicolon for consistency (and to get -pedantic builds to pass for the codebase).
 - In case you start RViz in a namespace, the default topic for the trajectory visualization display now uses the relative instead of the absolute namespace (i.e. `<ns>/move_group/display_planned_path` instead of `/move_group/display_planned_path`).
-- Moved py_bindings_tools from moveit_ros_planning_interface to moveit_core
+- `RobotState::attachBody()` now takes a unique_ptr instead of an owning raw pointer.
+- Moved the class `MoveItErrorCode` from both `moveit_ros_planning` and `moveit_ros_planning_interface` to `moveit_core`. The class now is in namespace `moveit::core`, access via `moveit::planning_interface` or `moveit_cpp::PlanningComponent` is deprecated.
+- Thoroughly reworked Python API
+  - Migrated C++ wrapper to pybind11, renaming libs to pymoveit_*.so
+  - Moved `py_bindings_tools` from `moveit_ros_planning_interface` to `moveit_core`
+  - New package naming scheme: moveit.[core|planning_interface]
 
 ## ROS Melodic
 

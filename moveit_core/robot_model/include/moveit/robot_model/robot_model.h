@@ -604,7 +604,7 @@ protected:
   void buildGroups(const srdf::Model& srdf_model);
 
   /** \brief Compute helpful information about groups (that can be queried later) */
-  void buildGroupsInfoSubgroups(const srdf::Model& srdf_model);
+  void buildGroupsInfoSubgroups();
 
   /** \brief Compute helpful information about groups (that can be queried later) */
   void buildGroupsInfoEndEffectors(const srdf::Model& srdf_model);

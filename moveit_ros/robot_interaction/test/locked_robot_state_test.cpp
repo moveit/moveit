@@ -433,7 +433,7 @@ void MyInfo::modifyThreadFunc(robot_interaction::LockedRobotState* locked_state,
     {
       val += 0.0001;
 
-      locked_state->modifyState(boost::bind(&MyInfo::modifyFunc, this, _1, val));
+      locked_state->modifyState(std::bind(&MyInfo::modifyFunc, this, std::placeholders::_1, val));
     }
 
     cnt_lock_.lock();
@@ -551,62 +551,70 @@ TEST(LockedRobotState, set1)
   runThreads(1, 1, 0);
 }
 
-TEST(LockedRobotState, set2)
+// skip all more complex locking checks when optimizations are disabled
+// they can easily outrun 20 minutes with Debug builds
+#ifdef NDEBUG
+#define OPT_TEST(F, N) TEST(F, N)
+#else
+#define OPT_TEST(F, N) TEST(F, DISABLED_##N)
+#endif
+
+OPT_TEST(LockedRobotState, set2)
 {
   runThreads(1, 2, 0);
 }
 
-TEST(LockedRobotState, set3)
+OPT_TEST(LockedRobotState, set3)
 {
   runThreads(1, 3, 0);
 }
 
-TEST(LockedRobotState, mod1)
+OPT_TEST(LockedRobotState, mod1)
 {
   runThreads(1, 0, 1);
 }
 
-TEST(LockedRobotState, mod2)
+OPT_TEST(LockedRobotState, mod2)
 {
   runThreads(1, 0, 1);
 }
 
-TEST(LockedRobotState, mod3)
+OPT_TEST(LockedRobotState, mod3)
 {
   runThreads(1, 0, 1);
 }
 
-TEST(LockedRobotState, set1mod1)
+OPT_TEST(LockedRobotState, set1mod1)
 {
   runThreads(1, 1, 1);
 }
 
-TEST(LockedRobotState, set2mod1)
+OPT_TEST(LockedRobotState, set2mod1)
 {
   runThreads(1, 2, 1);
 }
 
-TEST(LockedRobotState, set1mod2)
+OPT_TEST(LockedRobotState, set1mod2)
 {
   runThreads(1, 1, 2);
 }
 
-TEST(LockedRobotState, set3mod1)
+OPT_TEST(LockedRobotState, set3mod1)
 {
   runThreads(1, 3, 1);
 }
 
-TEST(LockedRobotState, set1mod3)
+OPT_TEST(LockedRobotState, set1mod3)
 {
   runThreads(1, 1, 3);
 }
 
-TEST(LockedRobotState, set3mod3)
+OPT_TEST(LockedRobotState, set3mod3)
 {
   runThreads(1, 3, 3);
 }
 
-TEST(LockedRobotState, set3mod3c3)
+OPT_TEST(LockedRobotState, set3mod3c3)
 {
   runThreads(3, 3, 3);
 }

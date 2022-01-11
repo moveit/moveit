@@ -10,10 +10,10 @@
 
   <!-- Load universal robot description format (URDF) -->
   <param name="$(arg robot_description)"
-         command="$(find xacro)/xacro --inorder $(find moveit_resources_prbt_support)/urdf/prbt.xacro gripper:=$(arg gripper)"/>
+         command="$(find xacro)/xacro $(find moveit_resources_prbt_support)/urdf/prbt.xacro gripper:=$(arg gripper)"/>
 
   <!-- The semantic description that corresponds to the URDF -->
-  <param name="$(arg robot_description)_semantic" command="$(find xacro)/xacro --inorder
+  <param name="$(arg robot_description)_semantic" command="$(find xacro)/xacro
          $(find moveit_resources_prbt_moveit_config)/config/prbt.srdf.xacro gripper:=$(arg gripper)" />
 
 

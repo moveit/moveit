@@ -40,6 +40,7 @@
 #include <ros/ros.h>
 #include <moveit/moveit_cpp/moveit_cpp.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
+#include <moveit/utils/moveit_error_code.h>
 
 namespace moveit_cpp
 {
@@ -50,34 +51,7 @@ class PlanningComponent
 public:
   MOVEIT_STRUCT_FORWARD(PlanSolution);
 
-  class MoveItErrorCode : public moveit_msgs::MoveItErrorCodes
-  {
-  public:
-    MoveItErrorCode()
-    {
-      val = 0;
-    }
-    MoveItErrorCode(int code)
-    {
-      val = code;
-    }
-    MoveItErrorCode(const moveit_msgs::MoveItErrorCodes& code)
-    {
-      val = code.val;
-    }
-    explicit operator bool() const
-    {
-      return val == moveit_msgs::MoveItErrorCodes::SUCCESS;
-    }
-    bool operator==(const int code) const
-    {
-      return val == code;
-    }
-    bool operator!=(const int code) const
-    {
-      return val != code;
-    }
-  };
+  using MoveItErrorCode [[deprecated("Use moveit::core::MoveItErrorCode")]] = moveit::core::MoveItErrorCode;
 
   /// The representation of a plan solution
   struct PlanSolution
@@ -89,7 +63,7 @@ public:
     robot_trajectory::RobotTrajectoryPtr trajectory;
 
     /// Reason why the plan failed
-    MoveItErrorCode error_code;
+    moveit::core::MoveItErrorCode error_code;
 
     explicit operator bool() const
     {
@@ -175,6 +149,9 @@ public:
   /** \brief Set the goal constraints generated from a named target state */
   bool setGoal(const std::string& named_target);
 
+  /** \brief Set the path constraints used for planning */
+  bool setPathConstraints(const moveit_msgs::Constraints& path_constraints);
+
   /** \brief Run a plan from start or current state to fulfill the last goal constraints provided by setGoal() using
    * default parameters. */
   PlanSolution plan();
@@ -202,6 +179,7 @@ private:
   // The start state used in the planning motion request
   moveit::core::RobotStatePtr considered_start_state_;
   std::vector<moveit_msgs::Constraints> current_goal_constraints_;
+  moveit_msgs::Constraints current_path_constraints_;
   PlanRequestParameters plan_request_parameters_;
   moveit_msgs::WorkspaceParameters workspace_parameters_;
   bool workspace_parameters_set_ = false;

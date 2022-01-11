@@ -49,21 +49,21 @@
 #include <gtest/gtest.h>
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
-#include <boost/bind.hpp>
+#include <functional>
 
 #include "pr2_arm_kinematics_plugin.h"
 
 class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
-  kinematics::KinematicsBasePtr getKinematicsSolverRightArm(const moveit::core::JointModelGroup* jmg)
+  kinematics::KinematicsBasePtr getKinematicsSolverRightArm(const moveit::core::JointModelGroup* /*jmg*/)
   {
     {
       return pr2_kinematics_plugin_right_arm_;
     }
   }
 
-  kinematics::KinematicsBasePtr getKinematicsSolverLeftArm(const moveit::core::JointModelGroup* jmg)
+  kinematics::KinematicsBasePtr getKinematicsSolverLeftArm(const moveit::core::JointModelGroup* /*jmg*/)
   {
     {
       return pr2_kinematics_plugin_left_arm_;
@@ -82,8 +82,8 @@ protected:
     pr2_kinematics_plugin_left_arm_->initialize(*robot_model_, "left_arm", "torso_lift_link", { "l_wrist_roll_link" },
                                                 .01);
 
-    func_right_arm_ = boost::bind(&LoadPlanningModelsPr2::getKinematicsSolverRightArm, this, _1);
-    func_left_arm_ = boost::bind(&LoadPlanningModelsPr2::getKinematicsSolverLeftArm, this, _1);
+    func_right_arm_ = std::bind(&LoadPlanningModelsPr2::getKinematicsSolverRightArm, this, std::placeholders::_1);
+    func_left_arm_ = std::bind(&LoadPlanningModelsPr2::getKinematicsSolverLeftArm, this, std::placeholders::_1);
 
     std::map<std::string, moveit::core::SolverAllocatorFn> allocators;
     allocators["right_arm"] = func_right_arm_;

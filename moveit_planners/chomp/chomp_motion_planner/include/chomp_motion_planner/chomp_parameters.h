@@ -78,14 +78,9 @@ public:
   double smoothness_cost_velocity_;      /// variables associated with the cost in velocity
   double smoothness_cost_acceleration_;  /// variables associated with the cost in acceleration
   double smoothness_cost_jerk_;          /// variables associated with the cost in jerk
-  // bool add_randomness_;
-  // bool use_hamiltonian_monte_carlo_;
   bool use_stochastic_descent_;  /// set this to true/false if you want to use stochastic descent while optimizing the
                                  /// cost.
 
-  // double hmc_stochasticity_;
-  // double hmc_discretization_;
-  // double hmc_annealing_factor_;
   double ridge_factor_;  /// the noise added to the diagnal of the total quadratic cost matrix in the objective function
   bool use_pseudo_inverse_;             /// enable pseudo inverse calculations or not.
   double pseudo_inverse_ridge_factor_;  /// set the ridge factor if pseudo inverse is enabled
@@ -94,7 +89,6 @@ public:
   double min_clearance_;        /// the minimum distance that needs to be maintained to avoid obstacles
   double collision_threshold_;  /// the collision threshold cost that needs to be mainted to avoid collisions
   bool filter_mode_;
-  // double random_jump_amount_;
 
   static const std::vector<std::string> VALID_INITIALIZATION_METHODS;
   std::string trajectory_initialization_method_;  /// trajectory initialization method to be specified

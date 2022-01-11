@@ -89,6 +89,7 @@ public:
   virtual void reset();
 
   void onInitialize(Ogre::SceneNode* scene_node, rviz::DisplayContext* context, const ros::NodeHandle& update_nh);
+  void clearRobotModel();
   void onRobotModelLoaded(const moveit::core::RobotModelConstPtr& robot_model);
   void onEnable();
   void onDisable();

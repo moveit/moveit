@@ -403,8 +403,12 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_m
 
 void ompl_interface::ModelBasedPlanningContext::simplifySolution(double timeout)
 {
-  ompl_simple_setup_->simplifySolution(timeout);
+  ompl::time::point start = ompl::time::now();
+  ob::PlannerTerminationCondition ptc = constructPlannerTerminationCondition(timeout, start);
+  registerTerminationCondition(ptc);
+  ompl_simple_setup_->simplifySolution(ptc);
   last_simplify_time_ = ompl_simple_setup_->getLastSimplificationTime();
+  unregisterTerminationCondition();
 }
 
 void ompl_interface::ModelBasedPlanningContext::interpolateSolution()

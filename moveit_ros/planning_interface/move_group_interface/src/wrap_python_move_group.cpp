@@ -110,27 +110,27 @@ public:
     msg.header.frame_id = getPoseReferenceFrame();
     msg.header.stamp = ros::Time::now();
     py::gil_scoped_release gr;
-    return place(object_name, msg, plan_only) == MoveItErrorCode::SUCCESS;
+    return place(object_name, msg, plan_only) == moveit::core::MoveItErrorCode::SUCCESS;
   }
 
   bool placePoses(const std::string& object_name, std::vector<geometry_msgs::PoseStamped> const& poses_list,
                   bool plan_only = false)
   {
     py::gil_scoped_release gr;
-    return place(object_name, poses_list, plan_only) == MoveItErrorCode::SUCCESS;
+    return place(object_name, poses_list, plan_only) == moveit::core::MoveItErrorCode::SUCCESS;
   }
 
   bool placeLocations(const std::string& object_name, std::vector<moveit_msgs::PlaceLocation> location_list,
                       bool plan_only = false)
   {
     py::gil_scoped_release gr;
-    return place(object_name, std::move(location_list), plan_only) == MoveItErrorCode::SUCCESS;
+    return place(object_name, std::move(location_list), plan_only) == moveit::core::MoveItErrorCode::SUCCESS;
   }
 
   bool placeAnywhere(const std::string& object_name, bool plan_only = false)
   {
     py::gil_scoped_release gr;
-    return place(object_name, plan_only) == MoveItErrorCode::SUCCESS;
+    return place(object_name, plan_only) == moveit::core::MoveItErrorCode::SUCCESS;
   }
 
   moveit_msgs::RobotState getCurrentStateBoundedPython()
@@ -153,23 +153,23 @@ public:
   bool movePython()
   {
     py::gil_scoped_release gr;
-    return move() == MoveItErrorCode::SUCCESS;
+    return move() == moveit::core::MoveItErrorCode::SUCCESS;
   }
 
   bool asyncMovePython()
   {
-    return asyncMove() == MoveItErrorCode::SUCCESS;
+    return asyncMove() == moveit::core::MoveItErrorCode::SUCCESS;
   }
 
   bool executePython(const moveit_msgs::RobotTrajectory& plan)
   {
     py::gil_scoped_release gr;
-    return execute(plan) == MoveItErrorCode::SUCCESS;
+    return execute(plan) == moveit::core::MoveItErrorCode::SUCCESS;
   }
 
   bool asyncExecutePython(const moveit_msgs::RobotTrajectory& plan)
   {
-    return asyncExecute(plan) == MoveItErrorCode::SUCCESS;
+    return asyncExecute(plan) == moveit::core::MoveItErrorCode::SUCCESS;
   }
 
   std::tuple<moveit_msgs::MoveItErrorCodes, moveit_msgs::RobotTrajectory, double> planPython()

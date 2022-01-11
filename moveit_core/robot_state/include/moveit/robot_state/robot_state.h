@@ -1068,12 +1068,12 @@ public:
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
   bool setFromIK(const JointModelGroup* group, const EigenSTL::vector_Isometry3d& poses,
-                 const std::vector<std::string>& tips, const std::vector<std::vector<double> >& consistency_limits,
+                 const std::vector<std::string>& tips, const std::vector<std::vector<double>>& consistency_limits,
                  double timeout = 0.0, const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
   [[deprecated("The attempts argument is not supported anymore.")]] bool
   setFromIK(const JointModelGroup* group, const EigenSTL::vector_Isometry3d& poses,
-            const std::vector<std::string>& tips, const std::vector<std::vector<double> >& consistency_limits,
+            const std::vector<std::string>& tips, const std::vector<std::vector<double>>& consistency_limits,
             unsigned int /* attempts */, double timeout = 0.0,
             const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
             const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
@@ -1091,12 +1091,12 @@ public:
       @param constraint A state validity constraint to be required for IK solutions */
   bool setFromIKSubgroups(const JointModelGroup* group, const EigenSTL::vector_Isometry3d& poses,
                           const std::vector<std::string>& tips,
-                          const std::vector<std::vector<double> >& consistency_limits, double timeout = 0.0,
+                          const std::vector<std::vector<double>>& consistency_limits, double timeout = 0.0,
                           const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                           const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
   [[deprecated("The attempts argument is not supported anymore.")]] bool
   setFromIKSubgroups(const JointModelGroup* group, const EigenSTL::vector_Isometry3d& poses,
-                     const std::vector<std::string>& tips, const std::vector<std::vector<double> >& consistency_limits,
+                     const std::vector<std::string>& tips, const std::vector<std::vector<double>>& consistency_limits,
                      unsigned int /* attempts */, double timeout = 0.0,
                      const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                      const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
@@ -1376,6 +1376,13 @@ public:
   /** \brief Update the state after setting a particular link to the input global transform pose.*/
   void updateStateWithLinkAt(const LinkModel* link, const Eigen::Isometry3d& transform, bool backward = false);
 
+  /** \brief Get the latest link upwards the kinematic tree which is only connected via fixed joints.
+   *
+   * This behaves the same as RobotModel::getRigidlyConnectedParentLinkModel,
+   * but can additionally resolve parents for attached objects / subframes.
+   */
+  const moveit::core::LinkModel* getRigidlyConnectedParentLinkModel(const std::string& frame) const;
+
   /** \brief Get the link transform w.r.t. the root link (model frame) of the RobotModel.
    *   This is typically the root link of the URDF unless a virtual joint is present.
    *   Checks the cache and if there are any dirty (non-updated) transforms, first updates them as needed.
@@ -1621,6 +1628,18 @@ public:
    *  @{
    */
 
+  /** \brief Add an attached body to this state.
+   *
+   * This only adds the given body to this RobotState
+   * instance.  It does not change anything about other
+   * representations of the object elsewhere in the system.  So if the
+   * body represents an object in a collision_detection::World (like
+   * from a planning_scene::PlanningScene), you will likely need to remove the
+   * corresponding object from that world to avoid having collisions
+   * detected against it.
+   **/
+  void attachBody(std::unique_ptr<AttachedBody> attached_body);
+
   /** \brief Add an attached body to this state. Ownership of the
    * memory for the attached body is assumed by the state.
    *
@@ -1640,7 +1659,7 @@ public:
    * the body positions will get corrupted.  You need to make a fresh
    * copy of the AttachedBody object for each RobotState you attach it
    * to.*/
-  void attachBody(AttachedBody* attached_body);
+  [[deprecated("Deprecated. Pass a unique_ptr instead")]] void attachBody(AttachedBody* attached_body);
 
   /** @brief Add an attached body to a link
    * @param id The string id associated with the attached body
@@ -1826,7 +1845,7 @@ public:
 
   void printDirtyInfo(std::ostream& out = std::cout) const;
 
-  std::string getStateTreeString(const std::string& prefix = "") const;
+  std::string getStateTreeString() const;
 
   /**
    * \brief Transform pose from the robot model's base frame to the reference frame of the IK solver
@@ -1944,7 +1963,7 @@ private:
   unsigned char* dirty_joint_transforms_;
 
   /** \brief All attached bodies that are part of this state, indexed by their name */
-  std::map<std::string, AttachedBody*> attached_body_map_;
+  std::map<std::string, std::unique_ptr<AttachedBody>> attached_body_map_;
 
   /** \brief This event is called when there is a change in the attached bodies for this state;
       The event specifies the body that changed and whether it was just attached or about to be detached. */

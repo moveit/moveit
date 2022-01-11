@@ -37,8 +37,8 @@
 #include <moveit/version.h>
 #include <cstdio>
 
-int main(int argc, char** argv)
+int main(int /*argc*/, char** /*argv*/)
 {
-  printf("%s\n", MOVEIT_VERSION);
+  printf("%s\n", MOVEIT_VERSION_STR);
   return 0;
 }

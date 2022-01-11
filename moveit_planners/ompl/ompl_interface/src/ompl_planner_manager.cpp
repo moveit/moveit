@@ -295,7 +295,7 @@ private:
       pub_valid_states_ = nh_.advertise<moveit_msgs::DisplayRobotState>("ompl_planner_valid_states", 5);
       pub_valid_traj_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("ompl_planner_valid_trajectories", 5);
       display_random_valid_states_ = true;
-      //    pub_valid_states_thread_.reset(new boost::thread(boost::bind(&OMPLPlannerManager::displayRandomValidStates,
+      //    pub_valid_states_thread_.reset(new boost::thread(std::bind(&OMPLPlannerManager::displayRandomValidStates,
       //    this)));
     }
   }

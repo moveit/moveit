@@ -142,7 +142,7 @@ protected:
 
   /// This function is used by loadRobotModel() and should only be called in the MainLoop
   /// You probably should not call this function directly
-  void clearRobotModel();
+  virtual void clearRobotModel();
 
   /// This function constructs a new planning scene. Probably this should be called in a background thread
   /// as it may take some time to complete its execution

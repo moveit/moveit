@@ -9,7 +9,6 @@ on:
   push:
     branches:
       - master
-      - "[kmn]*-devel"
 
 jobs:
   default:
@@ -19,7 +18,7 @@ jobs:
         env:
           - IMAGE: noetic-ci
             CCOV: true
-            BUILDER: .github/workflows/catkin_tools_devel.sh
+            BUILDER: catkin_tools_devel
           - IMAGE: noetic-ci-shadow-fixed
             IKFAST_TEST: true
             CATKIN_LINT: true
@@ -27,7 +26,9 @@ jobs:
           - IMAGE: master-ci # ROS Melodic with all dependencies required for master
             CATKIN_LINT: true
     env:
-      CXXFLAGS: "-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-deprecated-copy"
+      CXXFLAGS: >-
+        -Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls
+      CLANG_TIDY_ARGS: --fix --fix-errors --format-style=file
       DOCKER_IMAGE: moveit/moveit:${{ matrix.env.IMAGE }}
       UPSTREAM_WORKSPACE: .github/workflows/upstream.rosinstall
       TARGET_WORKSPACE: $TARGET_REPO_PATH github:ros-planning/moveit_resources#master
@@ -35,24 +36,33 @@ jobs:
       # Pull any updates to the upstream workspace (after restoring it from cache)
       AFTER_SETUP_UPSTREAM_WORKSPACE: vcs pull $BASEDIR/upstream_ws/src
       AFTER_SETUP_DOWNSTREAM_WORKSPACE: vcs pull $BASEDIR/downstream_ws/src
-      AFTER_RUN_TARGET_TEST: ${{ matrix.env.CCOV && './.ci.prepare_codecov' || '' }}
+      # Clear the ccache stats before and log the stats after the build
+      AFTER_SETUP_CCACHE: ccache --zero-stats --max-size=10.0G
+      AFTER_BUILD_TARGET_WORKSPACE: ccache --show-stats
+      AFTER_BUILD_DOWNSTREAM_WORKSPACE: ccache --show-stats
+      # Compile CCOV with Debug. Enable -Werror (except CLANG_TIDY=pedantic, which makes the clang-tidy step fail on warnings)
       TARGET_CMAKE_ARGS: >
-        -DCMAKE_BUILD_TYPE=${{ matrix.env.CCOV && 'RelWithDebInfo' || 'Release'}}
-        -DCMAKE_CXX_FLAGS="-Werror $CXXFLAGS ${{ matrix.env.CCOV && '--coverage'}}"
-      DOWNSTREAM_CMAKE_ARGS: -DCMAKE_CXX_FLAGS="-Werror $CXXFLAGS"
+        -DCMAKE_BUILD_TYPE=${{ matrix.env.CCOV && 'Debug' || 'Release'}}
+        -DCMAKE_CXX_FLAGS="${{ matrix.env.CLANG_TIDY != 'pedantic' && '-Werror ' || '' }}$CXXFLAGS${{ matrix.env.CCOV && ' --coverage -O2 -fno-omit-frame-pointer'}}"
+      UPSTREAM_CMAKE_ARGS: "-DCMAKE_CXX_FLAGS=''"
+      DOWNSTREAM_CMAKE_ARGS: -DCMAKE_CXX_FLAGS="-Wall -Wextra"
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       BASEDIR: ${{ github.workspace }}/.work
-      CLANG_TIDY_BASE_REF: ${{ github.base_ref || github.ref }}
-      BEFORE_CLANG_TIDY_CHECKS: (cd $TARGET_REPO_PATH; clang-tidy --list-checks)
+      CLANG_TIDY_BASE_REF: ${{ github.event_name != 'workflow_dispatch' && (github.base_ref || github.ref) || '' }}
+      BEFORE_CLANG_TIDY_CHECKS: |
+        # Show list of applied checks
+        (cd $TARGET_REPO_PATH; clang-tidy --list-checks)
+        # Disable clang-tidy for ikfast plugins as we cannot fix the generated code
+        find $BASEDIR/target_ws/build -iwholename "*_ikfast_plugin/compile_commands.json" -exec rm {} \;
       BUILDER: ${{ matrix.env.BUILDER || 'catkin_tools' }}
       CC: ${{ matrix.env.CLANG_TIDY && 'clang' }}
       CXX: ${{ matrix.env.CLANG_TIDY && 'clang++' }}
 
-    name: "${{ matrix.env.IMAGE }}${{ matrix.env.CATKIN_LINT && ' + catkin_lint' || ''}}${{ matrix.env.CCOV && ' + ccov' || ''}}${{ matrix.env.IKFAST_TEST && ' + ikfast' || ''}}${{ matrix.env.CLANG_TIDY && ' + clang-tidy' || '' }}"
+    name: "${{ matrix.env.IMAGE }}${{ matrix.env.CATKIN_LINT && ' + catkin_lint' || ''}}${{ matrix.env.CCOV && ' + ccov' || ''}}${{ matrix.env.IKFAST_TEST && ' + ikfast' || ''}}${{ matrix.env.CLANG_TIDY && (github.event_name != 'workflow_dispatch' && ' + clang-tidy (delta)' || ' + clang-tidy (all)') || '' }}"
     runs-on: ubuntu-latest
     steps:
       - name: "Free up disk space"
-        if: ${{ matrix.env.CCOV }}
+        if: matrix.env.CCOV
         run: |
           sudo apt-get -qq purge build-essential "ghc*"
           sudo apt-get clean
@@ -66,7 +76,7 @@ jobs:
           sudo rm -rf /usr/local
           df -h
       - uses: actions/checkout@v2
-      - name: cache upstream workspace
+      - name: Cache upstream workspace
         uses: pat-s/always-upload-cache@v2.1.5
         with:
           path: ${{ env.BASEDIR }}/upstream_ws
@@ -74,7 +84,7 @@ jobs:
           restore-keys: ${{ env.CACHE_PREFIX }}
         env:
           CACHE_PREFIX: upstream_ws-${{ matrix.env.IMAGE }}-${{ hashFiles('.github/workflows/upstream.rosinstall', '.github/workflows/ci.yaml') }}
-      - name: cache downstream workspace
+      - name: Cache downstream workspace
         uses: pat-s/always-upload-cache@v2.1.5
         with:
           path: ${{ env.BASEDIR }}/downstream_ws
@@ -84,8 +94,8 @@ jobs:
           CACHE_PREFIX: downstream_ws-${{ matrix.env.IMAGE }}-${{ hashFiles('.github/workflows/downstream.rosinstall', '.github/workflows/ci.yaml') }}
       # The target directory cache doesn't include the source directory because
       # that comes from the checkout.  See "prepare target_ws for cache" task below
-      - name: cache target workspace
-        if: ${{ ! matrix.env.CCOV }}
+      - name: Cache target workspace
+        if: "!matrix.env.CCOV"
         uses: pat-s/always-upload-cache@v2.1.5
         with:
           path: ${{ env.BASEDIR }}/target_ws
@@ -93,7 +103,7 @@ jobs:
           restore-keys: ${{ env.CACHE_PREFIX }}
         env:
           CACHE_PREFIX: target_ws${{ matrix.env.CCOV && '-ccov' || '' }}-${{ matrix.env.IMAGE }}-${{ hashFiles('**/CMakeLists.txt', '**/package.xml', '.github/workflows/ci.yaml') }}
-      - name: cache ccache
+      - name: Cache ccache
         uses: pat-s/always-upload-cache@v2.1.5
         with:
           path: ${{ env.CCACHE_DIR }}
@@ -104,29 +114,60 @@ jobs:
         env:
           CACHE_PREFIX: ccache-${{ matrix.env.IMAGE }}${{ matrix.env.CCOV && '-ccov' || '' }}
 
-      - name: generate ikfast packages
-        if: ${{ matrix.env.IKFAST_TEST }}
-        run: |
-          moveit_kinematics/test/test_ikfast_plugins.sh
-      - id: industrial_ci
+      - name: Generate ikfast packages
+        if: matrix.env.IKFAST_TEST
+        run: moveit_kinematics/test/test_ikfast_plugins.sh
+      - id: ici
+        name: Run industrial_ci
         uses: ros-industrial/industrial_ci@master
         env: ${{ matrix.env }}
 
-      - name: upload test artifacts (on failure)
+      - name: Upload test artifacts (on failure)
         uses: actions/upload-artifact@v2
-        if: steps.industrial_ci.outcome != 'success'
+        if: failure() && (steps.ici.outputs.run_target_test || steps.ici.outputs.target_test_results)
         with:
           name: test-results-${{ matrix.env.IMAGE }}
           path: ${{ env.BASEDIR }}/target_ws/**/test_results/**/*.xml
-      - name: upload codecov report
-        uses: codecov/codecov-action@v1
-        if: ${{ matrix.env.CCOV }}
+      - name: Generate codecov report
+        uses: rhaschke/lcov-action@main
+        if: always() && matrix.env.CCOV && steps.ici.outputs.target_test_results == '0'
         with:
-          files: ${{ env.BASEDIR }}/coverage.info
-      - name: prepare target_ws for cache
-        if: ${{ always() && ! matrix.env.CCOV }}
+          docker: $DOCKER_IMAGE
+          workdir: ${{ env.BASEDIR }}/target_ws
+          ignore: '"*/target_ws/build/*" "*/target_ws/install/*" "*/test/*"'
+      - name: Upload codecov report
+        uses: codecov/codecov-action@v2
+        if: always() && matrix.env.CCOV && steps.ici.outputs.target_test_results == '0'
+        with:
+          files: ${{ env.BASEDIR }}/target_ws/coverage.info
+      - name: Upload clang-tidy changes
+        uses: rhaschke/upload-git-patch-action@main
+        if: always() && matrix.env.CLANG_TIDY
+        with:
+          name: clang-tidy
+          path: ${{ env.BASEDIR }}/target_ws/src/$(basename $(pwd))
+      - name: Prepare target_ws for cache
+        if: always() && !matrix.env.CCOV
         run: |
           du -sh ${{ env.BASEDIR }}/target_ws
           sudo find ${{ env.BASEDIR }}/target_ws -wholename '*/test_results/*' -delete
           sudo rm -rf ${{ env.BASEDIR }}/target_ws/src
           du -sh ${{ env.BASEDIR }}/target_ws
+
+  # Sync noetic-devel branch with master on successful build
+  sync-noetic-devel:
+    runs-on: ubuntu-latest
+    needs: default # only trigger on success of default build job
+    if: github.event_name == 'push' && github.repository_owner == 'ros-planning' && github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Fast-forward noetic-devel to sync with master
+        run: |
+          # Configure push user+url
+          git config --global user.name 'GHA sync bot'
+          git config --global user.email 'rhaschke@users.noreply.github.com'
+          git remote set-url origin https://x-access-token:${{ secrets.GH_PAGES_TOKEN }}@github.com/${{ github.repository }}
+          # Extend shallow copy from actions/checkout to connect noetic-devel..master
+          git fetch --depth=1 origin noetic-devel
+          git fetch --depth=200 origin master
+          git push origin master:noetic-devel

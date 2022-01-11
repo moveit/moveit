@@ -16,3 +16,5 @@ dependencies:
   - orocos-kdl 1.5.0
   - python-orocos-kdl 1.5.0
   - openssl 1.1.1*
+  # we need the static library of this build
+  - tinyxml2 9.0.0 *_1

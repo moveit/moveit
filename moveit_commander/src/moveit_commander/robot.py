@@ -32,7 +32,8 @@
 #
 # Author: Ioan Sucan
 
-from moveit_commander import MoveGroupCommander, MoveItCommanderException
+from moveit_commander import MoveGroupCommander
+from .exception import MoveItCommanderException
 from moveit.planning_interface import RobotInterface
 from moveit_msgs.msg import RobotState
 import moveit_commander.conversions as conversions

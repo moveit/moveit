@@ -114,7 +114,7 @@ void ManipulationPipeline::start()
     stage->resetStopSignal();
   for (std::size_t i = 0; i < processing_threads_.size(); ++i)
     if (!processing_threads_[i])
-      processing_threads_[i] = new boost::thread(boost::bind(&ManipulationPipeline::processingThread, this, i));
+      processing_threads_[i] = new boost::thread(std::bind(&ManipulationPipeline::processingThread, this, i));
 }
 
 void ManipulationPipeline::signalStop()

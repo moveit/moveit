@@ -1,17 +1,12 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(moveit_chomp_optimizer_adapter)
 
-if(NOT "${CMAKE_CXX_STANDARD}")
-  set(CMAKE_CXX_STANDARD 14)
-endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
   chomp_motion_planner
   pluginlib
-  )
+)
+moveit_build_options()
 
 catkin_package()
 

@@ -118,7 +118,7 @@ int main(int argc, char** argv)
 
     for (unsigned int i = 0; i < states.size(); ++i)
       threads.push_back(new boost::thread(
-          boost::bind(&runCollisionDetection, i, trials, psm.getPlanningScene().get(), states[i].get())));
+          std::bind(&runCollisionDetection, i, trials, psm.getPlanningScene().get(), states[i].get())));
 
     for (unsigned int i = 0; i < states.size(); ++i)
     {

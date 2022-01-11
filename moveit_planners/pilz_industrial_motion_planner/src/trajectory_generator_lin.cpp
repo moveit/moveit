@@ -52,7 +52,7 @@
 namespace pilz_industrial_motion_planner
 {
 TrajectoryGeneratorLIN::TrajectoryGeneratorLIN(const moveit::core::RobotModelConstPtr& robot_model,
-                                               const LimitsContainer& planner_limits)
+                                               const LimitsContainer& planner_limits, const std::string& /*group_name*/)
   : TrajectoryGenerator::TrajectoryGenerator(robot_model, planner_limits)
 {
   if (!planner_limits_.hasFullCartesianLimits())
@@ -116,12 +116,7 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_scene::Plannin
     {
       frame_id = req.goal_constraints.front().position_constraints.front().header.frame_id;
     }
-    geometry_msgs::Pose goal_pose_msg;
-    goal_pose_msg.position =
-        req.goal_constraints.front().position_constraints.front().constraint_region.primitive_poses.front().position;
-    goal_pose_msg.orientation = req.goal_constraints.front().orientation_constraints.front().orientation;
-    normalizeQuaternion(goal_pose_msg.orientation);
-    tf2::fromMsg(goal_pose_msg, info.goal_pose);
+    info.goal_pose = getConstraintPose(req.goal_constraints.front());
   }
 
   assert(req.start_state.joint_state.name.size() == req.start_state.joint_state.position.size());
