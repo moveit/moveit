@@ -169,6 +169,62 @@ class XBoxStatus(JoyStatus):
         self.orig_msg = msg
 
 
+class PS3DualShockStatus(JoyStatus):
+    def __init__(self, msg):
+        JoyStatus.__init__(self)
+        # creating from sensor_msgs/Joy
+        if msg.buttons[0] == 1:
+            self.cross = True
+        else:
+            self.cross = False
+        if msg.buttons[1] == 1:
+            self.circle = True
+        else:
+            self.circle = False
+        if msg.buttons[2] == 1:
+            self.triangle = True
+        else:
+            self.triangle = False
+        if msg.buttons[3] == 1:
+            self.square = True
+        else:
+            self.square = False
+        if msg.buttons[4] == 1:
+            self.L1 = True
+        else:
+            self.L1 = False
+        if msg.buttons[5] == 1:
+            self.R1 = True
+        else:
+            self.R1 = False
+        if msg.buttons[6] == 1:
+            self.L2 = True
+        else:
+            self.L2 = False
+        if msg.buttons[7] == 1:
+            self.R2 = True
+        else:
+            self.R2 = False
+        if msg.buttons[8] == 1:
+            self.select = True
+        else:
+            self.select = False
+        if msg.buttons[9] == 1:
+            self.start = True
+        else:
+            self.start = False
+        if msg.buttons[10] == 1:
+            self.center = True
+        else:
+            self.center = False
+        self.left_analog_x = msg.axes[0]
+        self.left_analog_y = msg.axes[1]
+        self.right_analog_x = msg.axes[3]
+        self.right_analog_y = msg.axes[4]
+
+        self.orig_msg = msg
+
+
 class PS3Status(JoyStatus):
     def __init__(self, msg):
         JoyStatus.__init__(self)
@@ -666,6 +722,8 @@ class MoveitJoy:
                 self.marker_lock.release()
 
     def joyCB(self, msg):
+        axes_amount = len(msg.axes)
+        buttons_amount = len(msg.buttons)
         if len(msg.axes) == 27 and len(msg.buttons) == 19:
             status = PS3WiredStatus(msg)
         elif len(msg.axes) == 8 and len(msg.buttons) == 11:
@@ -676,8 +734,10 @@ class MoveitJoy:
             status = PS4Status(msg)
         elif len(msg.axes) == 8 and len(msg.buttons) == 13:
             status = PS4WiredStatus(msg)
+        elif len(msg.axes) == 6 and len(msg.buttons) == 17:
+            status = PS3DualShockStatus(msg)
         else:
-            raise Exception("Unknown joystick")
+            raise Exception(f"Unknown joystick, axes: {axes_amount}, buttons: {buttons_amount}")
         self.run(status)
         self.history.add(status)
 
