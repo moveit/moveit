@@ -724,17 +724,17 @@ class MoveitJoy:
     def joyCB(self, msg):
         axes_amount = len(msg.axes)
         buttons_amount = len(msg.buttons)
-        if len(msg.axes) == 27 and len(msg.buttons) == 19:
+        if axes_amount == 27 and buttons_amount == 19:
             status = PS3WiredStatus(msg)
-        elif len(msg.axes) == 8 and len(msg.buttons) == 11:
+        elif axes_amount == 8 and buttons_amount == 11:
             status = XBoxStatus(msg)
-        elif len(msg.axes) == 20 and len(msg.buttons) == 17:
+        elif axes_amount == 20 and buttons_amount == 17:
             status = PS3Status(msg)
-        elif len(msg.axes) == 14 and len(msg.buttons) == 14:
+        elif axes_amount == 14 and buttons_amount == 14:
             status = PS4Status(msg)
-        elif len(msg.axes) == 8 and len(msg.buttons) == 13:
+        elif axes_amount == 8 and buttons_amount == 13:
             status = PS4WiredStatus(msg)
-        elif len(msg.axes) == 6 and len(msg.buttons) == 17:
+        elif axes_amount == 6 and buttons_amount == 17:
             status = PS3DualShockStatus(msg)
         else:
             raise Exception(
