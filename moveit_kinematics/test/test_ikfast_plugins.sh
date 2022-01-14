@@ -9,6 +9,7 @@ set -e # fail script on error
 
 sudo update-alternatives --install /usr/bin/python python /usr/bin/python2 1
 sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 2
+sudo apt-get -q update
 
 if [ "$ROS_DISTRO" == "noetic" ]; then
 	sudo update-alternatives --set python /usr/bin/python3
