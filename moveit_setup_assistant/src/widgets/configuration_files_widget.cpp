@@ -357,6 +357,15 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.gen_func_ = std::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, std::placeholders::_1);
   gen_files_.push_back(file);
 
+  // gazebo_controllers.yaml ------------------------------------------------------------------
+  file.file_name_ = "gazebo_moveit_controllers.yaml";
+  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  template_path = config_data_->appendPaths(config_data_->template_package_path_, file.rel_path_);
+  file.description_ = "Creates MoveIt controller manager configuration for Gazebo controllers";
+  file.gen_func_ = std::bind(&MoveItConfigData::outputGazeboControllersYAML, config_data_, std::placeholders::_1);
+  file.write_on_changes = MoveItConfigData::GROUPS;
+  gen_files_.push_back(file);
+
   // ros_controllers.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "ros_controllers.yaml";
   file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
@@ -564,7 +573,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.file_name_ = "simple_moveit_controller_manager.launch.xml";
   file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
   template_path = config_data_->appendPaths(template_launch_path, file.file_name_);
-  file.description_ = "Loads the default controller plugin.";
+  file.description_ = "Loads the default MoveItControllerManager plugin.";
   file.gen_func_ = std::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, std::placeholders::_1);
   file.write_on_changes = 0;
   gen_files_.push_back(file);
@@ -572,7 +581,15 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.file_name_ = "ros_control_moveit_controller_manager.launch.xml";
   file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
   template_path = config_data_->appendPaths(template_launch_path, file.file_name_);
-  file.description_ = "Loads the ros_control controller plugin.";
+  file.description_ = "Loads a MoveItControllerManager plugin (needs customization).";
+  file.gen_func_ = std::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, std::placeholders::_1);
+  file.write_on_changes = 0;
+  gen_files_.push_back(file);
+
+  file.file_name_ = "gazebo_moveit_controller_manager.launch.xml";
+  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
+  template_path = config_data_->appendPaths(template_launch_path, file.file_name_);
+  file.description_ = "Loads a MoveItControllerManager plugin to work with ROS controllers in Gazebo.";
   file.gen_func_ = std::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, std::placeholders::_1);
   file.write_on_changes = 0;
   gen_files_.push_back(file);

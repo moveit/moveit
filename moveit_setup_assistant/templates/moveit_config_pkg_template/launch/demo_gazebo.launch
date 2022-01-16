@@ -12,10 +12,15 @@
     <arg name="paused" value="$(arg paused)"/>
     <arg name="gazebo_gui" value="$(arg gazebo_gui)"/>
   </include>
-
+  
+  <!-- read joint_states from gazebo and send them to tf -->
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <rosparam param="source_list">[ [ROBOT_NAME]/joint_states ]</rosparam>
+  </node>
+  
   <include file="$(dirname)/demo.launch" pass_all_args="true">
     <!-- robot description is loaded by gazebo.launch, to enable Gazebo features -->
     <arg name="load_robot_description" value="false" />
-    <arg name="moveit_controller_manager" value="ros_control" />
+    <arg name="moveit_controller_manager" value="gazebo" />
   </include>
 </launch>

@@ -314,6 +314,8 @@ public:
   bool outputJointLimitsYAML(const std::string& file_path);
   bool outputFakeControllersYAML(const std::string& file_path);
   bool outputSimpleControllersYAML(const std::string& file_path);
+  bool outputSimpleControllersYAMLBase(const std::string& file_path, const std::string &controller_ns);
+  bool outputGazeboControllersYAML(const std::string &file_path);
   bool outputROSControllersYAML(const std::string& file_path);
   bool output3DSensorPluginYAML(const std::string& file_path);
 

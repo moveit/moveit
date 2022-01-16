@@ -585,7 +585,8 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
 
     plugin.SetAttribute("name", "gazebo_ros_control");
     plugin.SetAttribute("filename", "libgazebo_ros_control.so");
-    robot_namespace.InsertEndChild(TiXmlText(std::string("/")));
+    // Gazebo will use the urdf robot name as the namespace (default behavior of Gazebo)
+    robot_namespace.InsertEndChild(TiXmlText(std::string("/") + srdf_->robot_name_));
 
     plugin.InsertEndChild(robot_namespace);
     gazebo.InsertEndChild(plugin);
@@ -955,6 +956,18 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
 // ******************************************************************************************
 bool MoveItConfigData::outputSimpleControllersYAML(const std::string& file_path)
 {
+	return outputSimpleControllersYAMLBase(file_path, "");
+}
+
+bool MoveItConfigData::outputGazeboControllersYAML(const std::string &file_path)
+{
+    // The controllers exposed by Gazebo will be inside a namespace
+	std::string controller_ns = srdf_->robot_name_ + "/";
+	return outputSimpleControllersYAMLBase(file_path, controller_ns);
+}
+
+bool MoveItConfigData::outputSimpleControllersYAMLBase(const std::string& file_path, const std::string &controller_ns)
+{
   YAML::Emitter emitter;
   emitter << YAML::BeginMap;
   emitter << YAML::Key << "controller_list";
@@ -969,7 +982,7 @@ bool MoveItConfigData::outputSimpleControllersYAML(const std::string& file_path)
     {
       emitter << YAML::BeginMap;
       emitter << YAML::Key << "name";
-      emitter << YAML::Value << controller.name_;
+      emitter << YAML::Value << controller_ns + controller.name_;
       emitter << YAML::Key << "action_ns";
       emitter << YAML::Value << (type == "FollowJointTrajectory" ? "follow_joint_trajectory" : "gripper_action");
       emitter << YAML::Key << "type";

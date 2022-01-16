@@ -19,14 +19,16 @@
   <arg name="unpause" value="$(eval '' if arg('paused') else '-unpause')" />
   <!-- push robot_description to factory and spawn robot in gazebo at the origin, change x,y,z arguments to spawn in a different position -->
   <arg name="world_pose" value="-x 0 -y 0 -z 0" />
-  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot $(arg unpause) $(arg world_pose) $(arg initial_joint_positions)"
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model [ROBOT_NAME] $(arg unpause) $(arg world_pose) $(arg initial_joint_positions)"
     respawn="false" output="screen" />
 
-  <!-- Load joint controller parameters for Gazebo -->
-  <rosparam file="$(find [GENERATED_PACKAGE_NAME])/config/gazebo_controllers.yaml" />
+  <!-- Load joint state controller parameters for the controller manager in Gazebo to read.-->
+  <rosparam ns="[ROBOT_NAME]" file="$(find [GENERATED_PACKAGE_NAME])/config/gazebo_controllers.yaml" />
+  <!-- Load other parameters for other controllers inside Gazebo.-->
+  <rosparam ns="[ROBOT_NAME]" file="$(find [GENERATED_PACKAGE_NAME])/config/ros_controllers.yaml" />
+
   <!-- Spawn Gazebo ROS controllers -->
-  <node name="gazebo_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller" />
-  <!-- Load ROS controllers -->
-  <include file="$(dirname)/ros_controllers.launch"/>
+  <node ns="[ROBOT_NAME]" name="gazebo_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"
+   args="joint_state_controller [ROS_CONTROLLERS]" />
 
 </launch>

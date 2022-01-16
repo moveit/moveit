@@ -1,0 +1,8 @@
+<launch>
+  <!-- Select the MoveIt controller manager plugin that resides in MoveIt to connect
+       to the ROS controller manager in use. -->
+  <param name="moveit_controller_manager" value="moveit_simple_controller_manager/MoveItSimpleControllerManager" />
+
+  <!-- Tell MoveIt where the ROS controllers are available -->
+  <rosparam file="$(find [GENERATED_PACKAGE_NAME])/config/gazebo_moveit_controllers.yaml" />
+</launch>
