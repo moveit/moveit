@@ -966,7 +966,7 @@ bool MoveItConfigData::outputGazeboControllersYAML(const std::string& file_path)
   return outputSimpleControllersYAMLBase(file_path, controller_ns);
 }
 
-bool MoveItConfigData::outputSimpleControllersYAMLBase(const std::string& file_path, const std::string &controller_ns)
+bool MoveItConfigData::outputSimpleControllersYAMLBase(const std::string& file_path, const std::string& controller_ns)
 {
   YAML::Emitter emitter;
   emitter << YAML::BeginMap;
