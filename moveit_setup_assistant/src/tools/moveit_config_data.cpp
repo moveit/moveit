@@ -956,14 +956,14 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
 // ******************************************************************************************
 bool MoveItConfigData::outputSimpleControllersYAML(const std::string& file_path)
 {
-	return outputSimpleControllersYAMLBase(file_path, "");
+  return outputSimpleControllersYAMLBase(file_path, "");
 }
 
-bool MoveItConfigData::outputGazeboControllersYAML(const std::string &file_path)
+bool MoveItConfigData::outputGazeboControllersYAML(const std::string& file_path)
 {
-    // The controllers exposed by Gazebo will be inside a namespace
-	std::string controller_ns = srdf_->robot_name_ + "/";
-	return outputSimpleControllersYAMLBase(file_path, controller_ns);
+  // The controllers exposed by Gazebo will be inside a namespace
+  std::string controller_ns = srdf_->robot_name_ + "/";
+  return outputSimpleControllersYAMLBase(file_path, controller_ns);
 }
 
 bool MoveItConfigData::outputSimpleControllersYAMLBase(const std::string& file_path, const std::string &controller_ns)
@@ -1772,25 +1772,25 @@ bool MoveItConfigData::extractPackageNameFromPath(const std::string& path, std::
   return true;
 }
 
-bool MoveItConfigData::extractPackageNameFromPackageXml(const std::string &package_xml_path,
-		std::string &package_name) const
+bool MoveItConfigData::extractPackageNameFromPackageXml(const std::string& package_xml_path,
+		std::string& package_name) const
 {
-	TiXmlDocument package_xml_document;
-	if (! package_xml_document.LoadFile(package_xml_path.c_str(), TIXML_ENCODING_UTF8))
-	{
-		ROS_ERROR_STREAM_NAMED("moveit_config_data", "Failed to parse : '" << package_xml_path << "'");
-		return false;
-	}
+  TiXmlDocument package_xml_document;
+  if (! package_xml_document.LoadFile(package_xml_path.c_str(), TIXML_ENCODING_UTF8))
+  {
+    ROS_ERROR_STREAM_NAMED("moveit_config_data", "Failed to parse : '" << package_xml_path << "'");
+    return false;
+  }
 
-	const TiXmlElement *package_elem = package_xml_document.RootElement();
-	const TiXmlElement *name_elem = package_elem->FirstChildElement("name");
-	if (! name_elem)
-	{
-		ROS_ERROR_STREAM_NAMED("moveit_config_data", "'name' element not found : " << package_xml_path);
-		return false;
-	}
-	package_name = name_elem->GetText();
-	return true;
+  const TiXmlElement *package_elem = package_xml_document.RootElement();
+  const TiXmlElement *name_elem = package_elem->FirstChildElement("name");
+  if (! name_elem)
+  {
+    ROS_ERROR_STREAM_NAMED("moveit_config_data", "'name' element not found : " << package_xml_path);
+    return false;
+  }
+  package_name = name_elem->GetText();
+  return true;
 }
 
 // ******************************************************************************************

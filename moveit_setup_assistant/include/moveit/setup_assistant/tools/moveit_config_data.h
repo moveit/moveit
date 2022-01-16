@@ -314,8 +314,8 @@ public:
   bool outputJointLimitsYAML(const std::string& file_path);
   bool outputFakeControllersYAML(const std::string& file_path);
   bool outputSimpleControllersYAML(const std::string& file_path);
-  bool outputSimpleControllersYAMLBase(const std::string& file_path, const std::string &controller_ns);
-  bool outputGazeboControllersYAML(const std::string &file_path);
+  bool outputSimpleControllersYAMLBase(const std::string& file_path, const std::string& controller_ns);
+  bool outputGazeboControllersYAML(const std::string& file_path);
   bool outputROSControllersYAML(const std::string& file_path);
   bool output3DSensorPluginYAML(const std::string& file_path);
 
@@ -413,7 +413,7 @@ public:
 
   /**
    * Get the package name from package.xml.
-   * 
+   *
    * For cases where the name differs from the directory.
    * (Example: panda_description in moveit_resources.)
    *
@@ -421,8 +421,8 @@ public:
    * @param[out] package_name package name will be stored here.
    * @return true when all went OK. false if parsing fails or tag not found.
    */
-  bool extractPackageNameFromPackageXml(const std::string &package_xml_path,
-		  std::string &package_name) const;
+  bool extractPackageNameFromPackageXml(const std::string& package_xml_path,
+		  std::string& package_name) const;
 
   /**
    * Resolve path to .setup_assistant file
