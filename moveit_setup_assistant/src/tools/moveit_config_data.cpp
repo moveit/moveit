@@ -1752,9 +1752,9 @@ bool MoveItConfigData::extractPackageNameFromPath(const std::string& path, std::
     if (fs::is_regular_file(sub_path / "package.xml"))
     {
       ROS_DEBUG_STREAM("Found package.xml in " << sub_path.make_preferred().string());
+      package_found = true;
       relative_filepath = relative_path.string();
-      std::string package_xml_path = (sub_path / "package.xml").string();
-      package_found = extractPackageNameFromPackageXml(package_xml_path, package_name);
+      package_name = sub_path.leaf().string();
       break;
     }
     relative_path = sub_path.leaf() / relative_path;
@@ -1769,27 +1769,6 @@ bool MoveItConfigData::extractPackageNameFromPath(const std::string& path, std::
   }
 
   ROS_DEBUG_STREAM("Package name for file \"" << path << "\" is \"" << package_name << "\"");
-  return true;
-}
-
-bool MoveItConfigData::extractPackageNameFromPackageXml(const std::string& package_xml_path,
-		std::string& package_name) const
-{
-  TiXmlDocument package_xml_document;
-  if (! package_xml_document.LoadFile(package_xml_path.c_str(), TIXML_ENCODING_UTF8))
-  {
-    ROS_ERROR_STREAM_NAMED("moveit_config_data", "Failed to parse : '" << package_xml_path << "'");
-    return false;
-  }
-
-  const TiXmlElement *package_elem = package_xml_document.RootElement();
-  const TiXmlElement *name_elem = package_elem->FirstChildElement("name");
-  if (! name_elem)
-  {
-    ROS_ERROR_STREAM_NAMED("moveit_config_data", "'name' element not found : " << package_xml_path);
-    return false;
-  }
-  package_name = name_elem->GetText();
   return true;
 }
 

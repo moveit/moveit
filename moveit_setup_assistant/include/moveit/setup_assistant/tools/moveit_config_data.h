@@ -412,19 +412,6 @@ public:
                                   std::string& relative_filepath) const;
 
   /**
-   * Get the package name from package.xml.
-   *
-   * For cases where the name differs from the directory.
-   * (Example: panda_description in moveit_resources.)
-   *
-   * @param package_xml_path path to "package.xml"
-   * @param[out] package_name package name will be stored here.
-   * @return true when all went OK. false if parsing fails or tag not found.
-   */
-  bool extractPackageNameFromPackageXml(const std::string& package_xml_path,
-		  std::string& package_name) const;
-
-  /**
    * Resolve path to .setup_assistant file
    * @param path resolved path
    * @return true if the path could be resolved
