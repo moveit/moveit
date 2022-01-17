@@ -151,15 +151,7 @@ void PlanningScene::initialize()
   robot_state_->setToDefaultValues();
   robot_state_->update();
 
-  acm_ = std::make_shared<collision_detection::AllowedCollisionMatrix>();
-  // Use default collision operations in the SRDF to setup the acm
-  const std::vector<std::string>& collision_links = robot_model_->getLinkModelNamesWithCollisionGeometry();
-  acm_->setEntry(collision_links, collision_links, false);
-
-  // allow collisions for pairs that have been disabled
-  const std::vector<srdf::Model::DisabledCollision>& dc = getRobotModel()->getSRDF()->getDisabledCollisionPairs();
-  for (const srdf::Model::DisabledCollision& it : dc)
-    acm_->setEntry(it.link1_, it.link2_, true);
+  acm_ = std::make_shared<collision_detection::AllowedCollisionMatrix>(*getRobotModel()->getSRDF());
 
   setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorFCL::create());
 }

@@ -331,13 +331,6 @@ public:
   std::string getGazeboCompatibleURDF();
 
   /**
-   * \brief Set list of collision link pairs in SRDF; sorted; with optional filter
-   * \param link_pairs list of collision link pairs
-   * \param skip_mask mask of shifted moveit_setup_assistant::DisabledReason values that will be skipped
-   */
-  void setCollisionLinkPairs(const moveit_setup_assistant::LinkPairMap& link_pairs, size_t skip_mask = 0);
-
-  /**
    * \brief Decide the best two joints to be used for the projection evaluator
    * \param planning_group name of group to use
    * \return string - value to insert into yaml file

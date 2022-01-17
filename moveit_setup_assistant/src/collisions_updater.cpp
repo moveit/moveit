@@ -97,7 +97,11 @@ bool setup(moveit_setup_assistant::MoveItConfigData& config_data, bool keep_old,
   }
 
   if (!keep_old)
-    config_data.srdf_->disabled_collisions_.clear();
+  {
+    config_data.srdf_->no_default_collision_links_.clear();
+    config_data.srdf_->enabled_collision_pairs_.clear();
+    config_data.srdf_->disabled_collision_pairs_.clear();
+  }
 
   return true;
 }
@@ -109,6 +113,52 @@ moveit_setup_assistant::LinkPairMap compute(moveit_setup_assistant::MoveItConfig
   unsigned int collision_progress;
   return moveit_setup_assistant::computeDefaultCollisions(config_data.getPlanningScene(), &collision_progress,
                                                           trials > 0, trials, min_collision_fraction, verbose);
+}
+
+// less operation for two CollisionPairs
+struct CollisionPairLess
+{
+  bool operator()(const srdf::Model::CollisionPair& left, const srdf::Model::CollisionPair& right) const
+  {
+    return left.link1_ < right.link1_ && left.link2_ < right.link2_;
+  }
+};
+
+// Update collision pairs
+void updateCollisionLinkPairs(std::vector<srdf::Model::CollisionPair>& target_pairs,
+                              const moveit_setup_assistant::LinkPairMap& source_pairs, size_t skip_mask)
+{
+  // remove duplicates
+  std::set<srdf::Model::CollisionPair, CollisionPairLess> filtered;
+  for (auto& p : target_pairs)
+  {
+    if (p.link1_ >= p.link2_)
+      std::swap(p.link1_, p.link2_);  // unify link1, link2 sorting
+    filtered.insert(p);
+  }
+
+  // copy the data in this class's LinkPairMap datastructure to srdf::Model::CollisionPair format
+  for (const auto& link_pair : source_pairs)
+  {
+    // Only copy those that are actually disabled
+    if (!link_pair.second.disable_check)
+      continue;
+
+    // Filter out pairs matching the skip_mask
+    if ((1 << link_pair.second.reason) & skip_mask)
+      continue;
+
+    srdf::Model::CollisionPair pair;
+    pair.link1_ = link_pair.first.first;
+    pair.link2_ = link_pair.first.second;
+    if (pair.link1_ >= pair.link2_)
+      std::swap(pair.link1_, pair.link2_);
+    pair.reason_ = moveit_setup_assistant::disabledReasonToString(link_pair.second.reason);
+
+    filtered.insert(pair);
+  }
+
+  target_pairs.assign(filtered.begin(), filtered.end());
 }
 
 int main(int argc, char* argv[])
@@ -201,7 +251,7 @@ int main(int argc, char* argv[])
   if (!include_always)
     skip_mask |= (1 << moveit_setup_assistant::ALWAYS);
 
-  config_data.setCollisionLinkPairs(link_pairs, skip_mask);
+  updateCollisionLinkPairs(config_data.srdf_->disabled_collision_pairs_, link_pairs, skip_mask);
 
   config_data.srdf_->writeSRDF(output_path.empty() ? config_data.srdf_path_ : output_path);
 

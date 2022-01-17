@@ -674,7 +674,7 @@ bool ConfigurationFilesWidget::checkDependencies()
   }
 
   // Check that at least 1 link pair is disabled from collision checking
-  if (config_data_->srdf_->disabled_collisions_.empty())
+  if (config_data_->srdf_->disabled_collision_pairs_.empty())
   {
     dependencies << "No self-collisions have been disabled";
   }
