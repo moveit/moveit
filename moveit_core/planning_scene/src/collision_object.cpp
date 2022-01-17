@@ -248,7 +248,7 @@ moveit_msgs::CollisionObject urdf_to_collision_object(urdf::Model& _urdf_model)
     tf_transform.header.frame_id = stripSlash(segment_pair->second.root);
     tf_transform.child_frame_id = stripSlash(segment_pair->second.tip);
     // 2.1 push the transform into the tf_buffer
-    if (not tf_buffer.setTransform(tf_transform, "the_boss", true))
+    if (not tf_buffer.setTransform(tf_transform, "default_authority", true))
     {
       ROS_ERROR("Link ill defined");
     }
@@ -324,21 +324,4 @@ void addChildren(const KDL::SegmentMap::const_iterator _segment,
   }
 }
 
-void update_frames(const Eigen::Isometry3d& _base_pose, moveit_msgs::CollisionObject& _result)
-{
-  geometry_msgs::Pose pose;
-  geometry_msgs::TransformStamped base_transform = tf2::eigenToTransform(_base_pose);
-
-  tf::poseEigenToMsg(_base_pose, pose);
-  _result.primitive_poses[0] = pose;
-  for (std::size_t i = 1; i < _result.primitive_poses.size(); i++)
-  {
-    tf2::doTransform(_result.primitive_poses[i], _result.primitive_poses[i], base_transform);
-  }
-
-  for (std::size_t i = 0; i < _result.subframe_poses.size(); i++)
-  {
-    tf2::doTransform(_result.subframe_poses[i], _result.subframe_poses[i], base_transform);
-  }
-}
 }  // namespace planning_scene
