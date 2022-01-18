@@ -13,6 +13,10 @@
     uri: https://github.com/ros-planning/geometric_shapes.git
     version: noetic-devel
 - git:
+    local-name: srdfdom
+    uri: https://github.com/ros-planning/srdfdom
+    version: noetic-devel
+- git:
     local-name: moveit
     uri: https://github.com/ros-planning/moveit.git
     version: master

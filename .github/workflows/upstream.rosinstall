@@ -8,5 +8,5 @@
     version: noetic-devel
 - git:
     local-name: srdfdom
-    uri: https://github.com/ubi-agni/srdfdom
+    uri: https://github.com/ros-planning/srdfdom
     version: noetic-devel
