@@ -40,7 +40,7 @@
 #include <moveit_msgs/CollisionObject.h>
 #include <urdf/model.h>
 
-namespace planning_scene
-{
-moveit_msgs::CollisionObject urdf_to_collision_object(urdf::Model& _urdf_model);
+namespace planning_scene {
+/** \brief Converts a urdf model \e _urdf_model into a CollisionObject. */
+moveit_msgs::CollisionObject urdf_to_collision_object(urdf::Model &_urdf_model);
 }
