@@ -79,7 +79,7 @@ std::string stripSlash(const std::string& in)
   return in;
 }
 
-moveit_msgs::CollisionObject urdf_to_collision_object(urdf::Model& _urdf_model)
+moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_model)
 {
   KDL::Tree kdl_tree;
   tf2_ros::Buffer tf_buffer;
@@ -315,12 +315,12 @@ void addChildren(const KDL::SegmentMap::const_iterator _segment,
   for (size_t i = 0; i < children.size(); ++i)
   {
     const KDL::Segment& child = GetTreeElementSegment(children[i]->second);
-    robot_state_publisher::SegmentPair s(GetTreeElementSegment(children[i]->second), root, child.getName());
-    if (child.getJoint().getType() == KDL::Joint::None)
-    {
-      _segments_fixed.insert(make_pair(child.getJoint().getName(), s));
-      addChildren(children[i], _segments_fixed);
-    }
+    robot_state_publisher::SegmentPair segment_pair(GetTreeElementSegment(children[i]->second), root, child.getName());
+    // const KDL::Joint& old_joint = child.getJoint();
+    // KDL::Joint new_joint(old_joint.JointOrigin(), old_joint.JointAxis(), KDL::Joint::None);
+
+    _segments_fixed.insert(make_pair(child.getJoint().getName(), segment_pair));
+    addChildren(children[i], _segments_fixed);
   }
 }
 

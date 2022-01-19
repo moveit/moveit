@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2021, Universitaet Hamburg
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,16 +32,49 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author:  Rafael A. Rojas*/
+/* Author: Rafael A. Rojas*/
 
-#pragma once
-#include <Eigen/Geometry>
-#include <map>
-#include <moveit_msgs/CollisionObject.h>
-#include <urdf/model.h>
+#include <gtest/gtest.h>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/planning_scene/collision_object.h>
+#include <moveit/utils/message_checks.h>
+#include <moveit/utils/robot_model_test_utils.h>
+#include <urdf_parser/urdf_parser.h>
+#include <string>
+#include <ros/package.h>
+#include <tf2_eigen/tf2_eigen.h>
+#include <moveit/rdf_loader/rdf_loader.h>
+#include <kdl/tree.hpp>
+#include <kdl/chain.hpp>
+#include <kdl/chainfksolverpos_recursive.hpp>
+#include <kdl_parser/kdl_parser.hpp>
 
-namespace planning_scene
+TEST(URDF_TO_COLLISION_OBJECT, LoadFromFile)
 {
-/** \brief Converts a urdf model \e _urdf_model into a CollisionObject. */
-moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_model);
-}  // namespace planning_scene
+  std::string path = ros::package::getPath("moveit_resources_fanuc_description") + "/urdf/fanuc.urdf";
+  urdf::Model urdf_model;
+  urdf_model.initFile(path);
+
+  // use rdf_loader::RDFLoader with urdf and srdf to instantiate a robot model and check the kinematics
+
+  KDL::Tree tree;
+  KDL::Chain chain;
+  kdl_parser::treeFromUrdfModel(urdf_model, tree);
+
+  tree.getChain("base_link", "tool0", chain);
+
+  KDL::ChainFkSolverPos_recursive fk_solver(chain);
+
+  KDL::JntArray joint_array;
+  joint_array.data = Eigen::VectorXd::Zero(6);
+  // chain.getSegment(0).
+  // fk_solver.ChainFkSolverPos::JntToCart(joint_array, );
+
+  moveit_msgs::CollisionObject collision_object = planning_scene::urdf_to_collision_object(urdf_model);
+}
+
+int main(int argc, char** argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
