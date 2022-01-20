@@ -68,9 +68,17 @@ TEST(URDF_TO_COLLISION_OBJECT, LoadFromFile)
   KDL::JntArray joint_array;
   joint_array.data = Eigen::VectorXd::Zero(6);
   // chain.getSegment(0).
-  // fk_solver.ChainFkSolverPos::JntToCart(joint_array, );
+  for (std::size_t i = 0; i < chain.getNrOfSegments(); i++)
+  {
+    KDL::Frame frame;
+    chain.getSegment(0).getName();
+    fk_solver.ChainFkSolverPos::JntToCart(joint_array, frame, i);
+  }
 
   moveit_msgs::CollisionObject collision_object = planning_scene::urdf_to_collision_object(urdf_model);
+
+  std::cout << "KDL Segments " << tree.getNrOfSegments() << "  collision object frames "
+            << collision_object.primitives.size() << "\n";
 }
 
 int main(int argc, char** argv)
