@@ -213,14 +213,27 @@ int main(int argc, char** argv)
   {
     if (planning_pipeline_configs.getType() != XmlRpc::XmlRpcValue::TypeStruct)
     {
-      ROS_ERROR("Failed to read parameter 'move_group/planning_pipelines'");
+      ROS_ERROR_STREAM("Parameter '" << moveit_cpp_options.planning_pipeline_options.parent_namespace
+                                     << "' is expected to be a dictionary of pipeline configurations.");
     }
     else
     {
       for (std::pair<const std::string, XmlRpc::XmlRpcValue>& config : planning_pipeline_configs)
       {
-        moveit_cpp_options.planning_pipeline_options.pipeline_names.push_back(config.first);
+        if (config.second.getType() != XmlRpc::XmlRpcValue::TypeStruct ||
+            std::find_if(config.second.begin(), config.second.end(),
+                         [](std::pair<const std::string, XmlRpc::XmlRpcValue>& item) {
+                           return item.first == "planning_plugin";
+                         }) == config.second.end())
+          ROS_ERROR_STREAM("Planning pipeline parameter '~planning_pipelines/" << config.first
+                                                                               << "/planning_plugin' doesn't exist");
+        else
+          moveit_cpp_options.planning_pipeline_options.pipeline_names.push_back(config.first);
       }
+      if (planning_pipeline_configs.size() && moveit_cpp_options.planning_pipeline_options.pipeline_names.empty())
+        ROS_WARN_STREAM("No valid planning pipelines found in "
+                        << moveit_cpp_options.planning_pipeline_options.parent_namespace
+                        << ". Did you use a namespace, e.g. planning_pipelines/ompl/ ?");
     }
   }
 
@@ -229,15 +242,15 @@ int main(int argc, char** argv)
   std::string default_planning_pipeline;
   if (pnh.getParam("default_planning_pipeline", default_planning_pipeline))
   {
-    // Ignore default_planning_pipeline if there is no known entry in pipeline_names
+    // Ignore default_planning_pipeline if there is no matching entry in pipeline_names
     if (std::find(pipeline_names.begin(), pipeline_names.end(), default_planning_pipeline) == pipeline_names.end())
     {
-      ROS_WARN("MoveGroup launched with ~default_planning_pipeline '%s' not configured in ~/planning_pipelines",
+      ROS_WARN("MoveGroup launched with ~default_planning_pipeline '%s' not configured in ~planning_pipelines",
                default_planning_pipeline.c_str());
       default_planning_pipeline = "";  // reset invalid pipeline id
     }
   }
-  else
+  else if (pipeline_names.size() > 1)  // only warn if there are multiple pipelines to choose from
   {
     // Handle deprecated move_group.launch
     ROS_WARN("MoveGroup launched without ~default_planning_pipeline specifying the namespace for the default "
@@ -254,7 +267,7 @@ int main(int argc, char** argv)
     }
     else
     {
-      ROS_WARN("Falling back to using the the move_group node namespace (deprecated behavior).");
+      ROS_WARN("Falling back to using the move_group node's namespace (deprecated Melodic behavior).");
       moveit_cpp_options.planning_pipeline_options.pipeline_names = { default_planning_pipeline };
       moveit_cpp_options.planning_pipeline_options.parent_namespace = pnh.getNamespace();
     }
