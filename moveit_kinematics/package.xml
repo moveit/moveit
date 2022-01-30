@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>moveit_kinematics</name>
-  <version>1.1.7</version>
+  <version>1.1.8</version>
   <description>Package for all inverse kinematics solvers in MoveIt</description>
 
   <author email="dave@picknik.ai">Dave Coleman</author>

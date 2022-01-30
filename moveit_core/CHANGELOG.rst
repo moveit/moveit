@@ -2,6 +2,21 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.8 (2022-01-30)
+------------------
+* Avoid downgrading default C++ standard (`#3043 <https://github.com/ros-planning/moveit/issues/3043>`_)
+* Implement ACM defaults as a fallback instead of an override (`#2938 <https://github.com/ros-planning/moveit/issues/2938>`_)
+
+  This allows disabling collisions for specific links/objects by default and re-enabling individual pairs if necessary.
+* Adapt message passing of AllowedCollisionMatrix
+
+  - Serialize full current state (previously pairs with a default, but no entry were skipped)
+  - Only initialize matrix entries that deviate from the default.
+* Make ``TimeParameterization`` classes polymorphic (`#3021 <https://github.com/ros-planning/moveit/issues/3021>`_)
+* Fix wrong transform in distance fields' determineCollisionSpheres() (`#3022 <https://github.com/ros-planning/moveit/issues/3022>`_)
+* ``collision_distance_field``: Fix undefined behavior vector insertion (`#3017 <https://github.com/ros-planning/moveit/issues/3017>`_)
+* Contributors: Jafar Abdi, Jochen Sprickerhof, Martin Oehler, Robert Haschke
+
 1.1.7 (2021-12-31)
 ------------------
 * Move ``MoveItErrorCode`` class to ``moveit_core`` (`#3009 <https://github.com/ros-planning/moveit/issues/3009>`_)

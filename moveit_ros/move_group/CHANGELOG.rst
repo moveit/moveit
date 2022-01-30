@@ -2,6 +2,14 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.8 (2022-01-30)
+------------------
+* Improve loading of planning pipelines (`#3036 <https://github.com/ros-planning/moveit/issues/3036>`_)
+
+  Ensure that planning pipelines considered in `~/planning_pipelines/*` actually have a `planning_plugin` parameter defined.
+  Otherwise, issue an error message.
+* Contributors: Robert Haschke
+
 1.1.7 (2021-12-31)
 ------------------
 * Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)

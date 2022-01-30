@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.8 (2022-01-30)
+------------------
+
 1.1.7 (2021-12-31)
 ------------------
 * Add marker for subgroups even if no endeffector is defined for them (`#2977 <https://github.com/ros-planning/moveit/issues/2977>`_)

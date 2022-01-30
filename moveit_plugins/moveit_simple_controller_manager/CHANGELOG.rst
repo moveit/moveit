@@ -2,6 +2,9 @@
 Changelog for package moveit_simple_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.8 (2022-01-30)
+------------------
+
 1.1.7 (2021-12-31)
 ------------------
 * ``simple_controller_manager``: add ``max_effort`` parameter to ``GripperCommand`` action (`#2984 <https://github.com/ros-planning/moveit/issues/2984>`_)
