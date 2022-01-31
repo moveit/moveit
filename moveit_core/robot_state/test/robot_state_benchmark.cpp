@@ -39,7 +39,7 @@
 #include <eigen_stl_containers/eigen_stl_containers.h>
 #include <gtest/gtest.h>
 #include <chrono>
-
+#include <random_numbers.h>
 // Helper class to measure time within a scoped block and output the result
 class ScopedTimer
 {
@@ -96,12 +96,15 @@ public:
 TEST_F(Timing, stateUpdate)
 {
   moveit::core::RobotModelPtr model = moveit::core::loadTestingRobotModel("pr2_description");
+  const moveit::core::JointModelGroup* g_mim = model->getJointModelGroup("mim_joints");
   ASSERT_TRUE(bool(model));
   moveit::core::RobotState state(model);
   ScopedTimer t("RobotState updates: ");
+
   for (unsigned i = 0; i < 1e5; ++i)
   {
-    state.setToRandomPositions();
+    random_numbers::RandomNumberGenerator rng(void);
+    state.setToRandomPositions(g_min, rng);
     state.update();
   }
 }
