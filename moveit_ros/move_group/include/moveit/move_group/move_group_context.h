@@ -36,6 +36,7 @@
 
 #pragma once
 
+#include <string>
 #include <moveit/macros/class_forward.h>
 
 namespace moveit_cpp
