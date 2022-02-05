@@ -1,6 +1,7 @@
 set(MOVEIT_LIB_NAME moveit_planning_scene)
 
-add_library(${MOVEIT_LIB_NAME} src/planning_scene.cpp src/collision_object.cpp)
+add_library(${MOVEIT_LIB_NAME} src/planning_scene.cpp
+                               src/urdf2collisionobject.cpp)
 set_target_properties(${MOVEIT_LIB_NAME}
                       PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
@@ -55,7 +56,7 @@ if(CATKIN_ENABLE_TESTING)
                         moveit_test_utils)
 
   catkin_add_gtest(test_urdf_to_collision_object
-                   test/test_urdf_to_collision_object.cpp)
+                   test/test_urdf2collisionobject.cpp)
   target_link_libraries(test_urdf_to_collision_object ${MOVEIT_LIB_NAME}
                         moveit_test_utils ${catkin_LIBRARIES})
 endif()
