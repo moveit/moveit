@@ -47,18 +47,25 @@ std::vector<collision_detection::CollisionSphere>
 collision_detection::determineCollisionSpheres(const bodies::Body* body, Eigen::Isometry3d& relative_transform)
 {
   std::vector<collision_detection::CollisionSphere> css;
-
-  bodies::BoundingCylinder cyl;
-  body->computeBoundingCylinder(cyl);
-  unsigned int num_points = ceil(cyl.length / (cyl.radius / 2.0));
-  double spacing = cyl.length / ((num_points * 1.0) - 1.0);
-  relative_transform = cyl.pose;
-
-  for (unsigned int i = 1; i < num_points - 1; i++)
+  if (body->getType() == shapes::ShapeType::SPHERE)
   {
-    collision_detection::CollisionSphere cs(
-        relative_transform * Eigen::Vector3d(0, 0, (-cyl.length / 2.0) + i * spacing), cyl.radius);
+    collision_detection::CollisionSphere cs(body->getPose().translation(), body->getDimensions()[0]);
     css.push_back(cs);
+  }
+  else
+  {
+    bodies::BoundingCylinder cyl;
+    body->computeBoundingCylinder(cyl);
+    unsigned int num_points = ceil(cyl.length / (cyl.radius / 2.0));
+    double spacing = cyl.length / ((num_points * 1.0) - 1.0);
+    relative_transform = cyl.pose;
+
+    for (unsigned int i = 1; i < num_points - 1; i++)
+    {
+      collision_detection::CollisionSphere cs(
+          relative_transform * Eigen::Vector3d(0, 0, (-cyl.length / 2.0) + i * spacing), cyl.radius);
+      css.push_back(cs);
+    }
   }
 
   return css;
