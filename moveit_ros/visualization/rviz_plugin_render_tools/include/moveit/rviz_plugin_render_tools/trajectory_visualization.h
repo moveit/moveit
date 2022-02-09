@@ -85,7 +85,7 @@ public:
 
   ~TrajectoryVisualization() override;
 
-  virtual void update(float wall_dt, float ros_dt);
+  virtual void update(float wall_dt, float sim_dt);
   virtual void reset();
 
   void onInitialize(Ogre::SceneNode* scene_node, rviz::DisplayContext* context, const ros::NodeHandle& update_nh);
@@ -110,7 +110,7 @@ private Q_SLOTS:
   void changedDisplayPathCollisionEnabled();
   void changedRobotPathAlpha();
   void changedLoopDisplay();
-  void changedUseRosTime();
+  void changedUseSimTime();
   void changedShowTrail();
   void changedTrailStepSize();
   void changedTrajectoryTopic();
@@ -169,7 +169,7 @@ protected:
   rviz::RosTopicProperty* trajectory_topic_property_;
   rviz::FloatProperty* robot_path_alpha_property_;
   rviz::BoolProperty* loop_display_property_;
-  rviz::BoolProperty* use_ros_time_property_;
+  rviz::BoolProperty* use_sim_time_property_;
   rviz::BoolProperty* trail_display_property_;
   rviz::BoolProperty* interrupt_display_property_;
   rviz::ColorProperty* robot_color_property_;
