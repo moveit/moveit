@@ -603,7 +603,7 @@ class MoveGroupCommander(object):
         elif joints is not None:
             try:
                 self.set_joint_value_target(self.get_remembered_joint_values()[joints])
-            except TypeError:
+            except (KeyError, TypeError):
                 self.set_joint_value_target(joints)
         if wait:
             return self._g.move()
