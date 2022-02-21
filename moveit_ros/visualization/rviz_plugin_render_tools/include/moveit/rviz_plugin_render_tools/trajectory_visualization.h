@@ -110,7 +110,6 @@ private Q_SLOTS:
   void changedDisplayPathCollisionEnabled();
   void changedRobotPathAlpha();
   void changedLoopDisplay();
-  void changedUseSimTime();
   void changedShowTrail();
   void changedTrailStepSize();
   void changedTrajectoryTopic();

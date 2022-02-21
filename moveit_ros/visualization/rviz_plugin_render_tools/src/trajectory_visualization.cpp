@@ -105,7 +105,7 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
   use_sim_time_property_ = new rviz::BoolProperty("Use Sim Time", false,
                                                   "Indicates wether simulation time or wall-time is "
                                                   "used for state display timing.",
-                                                  widget, SLOT(changedUseSimTime()), this);
+                                                  widget, nullptr, this);
 
   loop_display_property_ = new rviz::BoolProperty("Loop Animation", false,
                                                   "Indicates whether the last received path "
@@ -222,10 +222,6 @@ void TrajectoryVisualization::changedLoopDisplay()
   display_path_robot_->setVisible(display_->isEnabled() && displaying_trajectory_message_ && animating_path_);
   if (loop_display_property_->getBool() && trajectory_slider_panel_)
     trajectory_slider_panel_->pauseButton(false);
-}
-
-void TrajectoryVisualization::changedUseSimTime()
-{
 }
 
 void TrajectoryVisualization::changedShowTrail()
