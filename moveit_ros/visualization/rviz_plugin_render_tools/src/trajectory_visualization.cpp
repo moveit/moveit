@@ -103,7 +103,7 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
   state_display_time_property_->addOptionStd("0.5s");
 
   use_sim_time_property_ = new rviz::BoolProperty("Use Sim Time", false,
-                                                  "Indicates wether simulation time or wall-time is "
+                                                  "Indicates whether simulation time or wall-time is "
                                                   "used for state display timing.",
                                                   widget, nullptr, this);
 
