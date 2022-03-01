@@ -120,7 +120,12 @@ struct CollisionPairLess
 {
   bool operator()(const srdf::Model::CollisionPair& left, const srdf::Model::CollisionPair& right) const
   {
-    return left.link1_ < right.link1_ && left.link2_ < right.link2_;
+    // bool result = left.link1_ < right.link1_ && left.link2_ < right.link2_;
+    auto left_pair = std::make_pair(left.link1_, left.link2_);
+    auto right_pair = std::make_pair(right.link1_, right.link2_);
+    bool result = left_pair < right_pair;
+    // ROS_INFO_STREAM("Comparing (" << left.link1_ << ", " << right.link1_ << ") to (" <<  left.link2_ << ", " << right.link2_ << "): result = " << result);
+    return result;
   }
 };
 
