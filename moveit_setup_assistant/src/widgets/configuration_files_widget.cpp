@@ -289,14 +289,14 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
   template_path = config_data_->appendPaths(config_data_->template_package_path_, file.rel_path_);
   file.description_ = "Specifies which chomp planning plugin parameters to be used for the CHOMP planner";
-  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  file.gen_func_ = std::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, std::placeholders::_1);
   gen_files_.push_back(file);
 
   // stomp_planning.yaml  --------------------------------------------------------------------------------------
   file.file_name_ = "stomp_planning.yaml";
   file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
   file.description_ = "Specifies which stomp planning plugin parameters to be used for the STOMP planner";
-  file.gen_func_ = boost::bind(&MoveItConfigData::outputSTOMPPlanningYAML, config_data_, _1);
+  file.gen_func_ = std::bind(&MoveItConfigData::outputSTOMPPlanningYAML, config_data_, std::placeholders::_1);
   file.write_on_changes = MoveItConfigData::GROUPS;  // need to double check if this is actually correct!
   gen_files_.push_back(file);
 
@@ -463,7 +463,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.description_ = "Intended to be included in other launch files that require the STOMP planning plugin. Defines "
                       "the proper plugin name on the parameter server and a default selection of planning request "
                       "adapters.";
-  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  file.gen_func_ = std::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, std::placeholders::_1);
   file.write_on_changes = 0;
   gen_files_.push_back(file);
 
@@ -476,7 +476,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
       "Intended to be included in other launch files that require the OMPL-CHOMP planning plugins. Defines "
       "the proper plugin name on the parameter server and a default selection of planning request "
       "adapters.";
-  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  file.gen_func_ = std::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, std::placeholders::_1);
   file.write_on_changes = 0;
   gen_files_.push_back(file);
 
