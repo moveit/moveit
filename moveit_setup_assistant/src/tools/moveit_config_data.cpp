@@ -522,11 +522,12 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
     for (TiXmlElement* doc_element = urdf_document.RootElement()->FirstChildElement("transmission");
          doc_element != nullptr; doc_element = doc_element->NextSiblingElement("transmission"))
     {
-      if (static_cast<std::string>(doc_element->FirstChildElement("type")->GetText()) ==
-          "transmission_interface/SimpleTransmission")
-      {
+      auto type_tag = doc_element->FirstChildElement("type");
+      auto joint_tag = doc_element->FirstChildElement("joint");
+      if (!type_tag || !type_tag->GetText() || !joint_tag || !joint_tag->Attribute("name"))
+        continue;  // ignore invalid tags
+      if (static_cast<std::string>(type_tag->GetText()) == "transmission_interface/SimpleTransmission")
         transmission_elements[doc_element->FirstChildElement("joint")->Attribute("name")] = doc_element;
-      }
     }
 
     // Loop through Link and Joint elements and add Gazebo tags if not present
