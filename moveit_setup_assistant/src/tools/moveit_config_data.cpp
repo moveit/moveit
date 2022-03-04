@@ -526,7 +526,7 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
       auto joint_tag = doc_element->FirstChildElement("joint");
       if (!type_tag || !type_tag->GetText() || !joint_tag || !joint_tag->Attribute("name"))
         continue;  // ignore invalid tags
-      if (static_cast<std::string>(type_tag->GetText()) == "transmission_interface/SimpleTransmission")
+      if (std::string(type_tag->GetText()) == "transmission_interface/SimpleTransmission")
         transmission_elements[doc_element->FirstChildElement("joint")->Attribute("name")] = doc_element;
     }
 
@@ -534,7 +534,7 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
     for (TiXmlElement* doc_element = urdf_document.RootElement()->FirstChildElement(); doc_element != nullptr;
          doc_element = doc_element->NextSiblingElement())
     {
-      if (static_cast<std::string>(doc_element->Value()).find("link") != std::string::npos)
+      if (std::string(doc_element->Value()).find("link") != std::string::npos)
       {
         // Before adding inertial elements, make sure there is none and the link has collision element
         if (doc_element->FirstChildElement("inertial") == nullptr &&
@@ -560,11 +560,11 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
           doc_element->InsertEndChild(inertia_link);
         }
       }
-      else if (static_cast<std::string>(doc_element->Value()).find("joint") != std::string::npos)
+      else if (std::string(doc_element->Value()).find("joint") != std::string::npos)
       {
         // Make transition elements Gazebo compatible, make sure the joint is not fixed
-        std::string joint_name = static_cast<std::string>(doc_element->Attribute("name"));
-        if (static_cast<std::string>(doc_element->Attribute("type")) != "fixed")
+        std::string joint_name(doc_element->Attribute("name"));
+        if (std::string(doc_element->Attribute("type")) != "fixed")
         {
           // Add new transition element if it does not exist yet
           if (transmission_elements.find(joint_name) == transmission_elements.end())
