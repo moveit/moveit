@@ -9,7 +9,7 @@ add_library(${MOVEIT_LIB_NAME}
 )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
-target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${gl_LIBS} GLUT::GLUT ${GLEW_LIBRARIES})
+target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${gl_LIBS} GLUT::GLUT GLEW::GLEW)
 
 add_library(moveit_depth_self_filter
   src/depth_self_filter_nodelet.cpp
