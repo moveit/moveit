@@ -518,14 +518,14 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
   try
   {
     // Map existing SimpleTransmission elements to their joint name
-    std::map<std::string, TiXmlElement*> transitions_elements;
+    std::map<std::string, TiXmlElement*> transmission_elements;
     for (TiXmlElement* doc_element = urdf_document.RootElement()->FirstChildElement("transmission");
          doc_element != nullptr; doc_element = doc_element->NextSiblingElement("transmission"))
     {
       if (static_cast<std::string>(doc_element->FirstChildElement("type")->GetText()) ==
           "transmission_interface/SimpleTransmission")
       {
-        transitions_elements[doc_element->FirstChildElement("joint")->Attribute("name")] = doc_element;
+        transmission_elements[doc_element->FirstChildElement("joint")->Attribute("name")] = doc_element;
       }
     }
 
@@ -566,7 +566,7 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
         if (static_cast<std::string>(doc_element->Attribute("type")) != "fixed")
         {
           // Add transition element if it does not exist else make it Gazebo compatible
-          if (transitions_elements.find(joint_name) == transitions_elements.end())
+          if (transmission_elements.find(joint_name) == transmission_elements.end())
           {
             new_urdf_needed = true;
             TiXmlElement transmission("transmission");
@@ -596,7 +596,7 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
           }
           else
           {
-            TiXmlElement* transmision = transitions_elements.find(joint_name)->second;
+            TiXmlElement* transmision = transmission_elements.find(joint_name)->second;
             TiXmlElement* joint = transmision->FirstChildElement("joint");
             TiXmlElement* actuator = transmision->FirstChildElement("actuator");
             TiXmlElement hardware_interface("hardwareInterface");
