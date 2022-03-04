@@ -566,7 +566,7 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
         std::string joint_name = static_cast<std::string>(doc_element->Attribute("name"));
         if (static_cast<std::string>(doc_element->Attribute("type")) != "fixed")
         {
-          // Add transition element if it does not exist else make it Gazebo compatible
+          // Add new transition element if it does not exist yet
           if (transmission_elements.find(joint_name) == transmission_elements.end())
           {
             new_urdf_needed = true;
@@ -595,7 +595,7 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
 
             urdf_document.RootElement()->InsertEndChild(transmission);
           }
-          else
+          else  // Ensure Gazebo compatibility
           {
             TiXmlElement* transmision = transmission_elements.find(joint_name)->second;
             TiXmlElement* joint = transmision->FirstChildElement("joint");
