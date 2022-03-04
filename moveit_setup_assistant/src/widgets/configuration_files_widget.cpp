@@ -1201,13 +1201,8 @@ void ConfigurationFilesWidget::loadTemplateStrings()
     std::string rel_path = config_data_->appendPaths(config_path_, file_name);
     addTemplateString("[GAZEBO_URDF_LOAD_ATTRIBUTE]", "textfile=\"$(find " + new_package_name_ + ")/" + rel_path + "\"");
   }
-  else if (config_data_->urdf_from_xacro_)
-  {
-    addTemplateString("[GAZEBO_URDF_LOAD_ATTRIBUTE]",
-                      "command=\"xacro " + config_data_->xacro_args_ + " '" + urdf_location + "'\"");
-  }
-  else
-    addTemplateString("[GAZEBO_URDF_LOAD_ATTRIBUTE]", "textfile=\"" + urdf_location + "\"");
+  else  // reuse [URDF_LOAD_ATTRIBUTE] template
+    addTemplateString("[GAZEBO_URDF_LOAD_ATTRIBUTE]", template_strings_.back().second);
 
   // Pair 5
   addTemplateString("[ROBOT_NAME]", config_data_->srdf_->robot_name_);
