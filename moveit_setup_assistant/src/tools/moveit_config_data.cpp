@@ -534,7 +534,8 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
     for (TiXmlElement* doc_element = urdf_document.RootElement()->FirstChildElement(); doc_element != nullptr;
          doc_element = doc_element->NextSiblingElement())
     {
-      if (std::string(doc_element->Value()).find("link") != std::string::npos)
+      const std::string tag_name(doc_element->Value());
+      if (tag_name == "link")
       {
         // Before adding inertial elements, make sure there is none and the link has collision element
         if (doc_element->FirstChildElement("inertial") == nullptr &&
@@ -560,7 +561,7 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
           doc_element->InsertEndChild(inertia_link);
         }
       }
-      else if (std::string(doc_element->Value()).find("joint") != std::string::npos)
+      else if (tag_name == "joint")
       {
         // Make transition elements Gazebo compatible, make sure the joint is not fixed
         std::string joint_name(doc_element->Attribute("name"));
