@@ -449,7 +449,11 @@ class MoveitJoy:
         elif axes_amount == 6 and buttons_amount == 17:
             status = PS3DualShockStatus(msg)
         else:
-            raise Exception("Unknown joystick, axes: {}, buttons: {}".format(axes_amount, buttons_amount))
+            raise Exception(
+                "Unknown joystick, axes: {}, buttons: {}".format(
+                    axes_amount, buttons_amount
+                )
+            )
         self.run(status)
         self.history.add(status)
 
