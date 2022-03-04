@@ -44,6 +44,7 @@ namespace trajectory_processing
 {
 /// \brief This class  modifies the timestamps of a trajectory to respect
 /// velocity and acceleration constraints.
+MOVEIT_CLASS_FORWARD(IterativeParabolicTimeParameterization);
 class IterativeParabolicTimeParameterization : public TimeParameterization
 {
 public:

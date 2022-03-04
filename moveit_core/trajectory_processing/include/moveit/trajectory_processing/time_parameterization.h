@@ -7,6 +7,7 @@ namespace trajectory_processing
 /**
  * @brief Base class for trajectory parameterization algorithms
  */
+MOVEIT_CLASS_FORWARD(TimeParameterization);
 class TimeParameterization
 {
 public:
