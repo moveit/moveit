@@ -120,7 +120,8 @@ struct CollisionPairLess
 {
   bool operator()(const srdf::Model::CollisionPair& left, const srdf::Model::CollisionPair& right) const
   {
-    return left.link1_ < right.link1_ && left.link2_ < right.link2_;
+    // use std::pair's operator<: (left.link1_, left.link2_) < (right.link1_, right.link2_)
+    return left.link1_ < right.link1_ || (!(right.link1_ < left.link1_) && left.link2_ < right.link2_);
   }
 };
 
