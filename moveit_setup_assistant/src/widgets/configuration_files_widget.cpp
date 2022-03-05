@@ -70,7 +70,7 @@ const std::string SETUP_ASSISTANT_FILE = ".setup_assistant";
 // Outer User Interface for MoveIt Configuration Assistant
 // ******************************************************************************************
 ConfigurationFilesWidget::ConfigurationFilesWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
-  : SetupScreenWidget(parent), config_data_(config_data), has_generated_pkg_(false), first_focusGiven_(true)
+  : SetupScreenWidget(parent), config_data_(config_data), has_generated_pkg_(false)
 {
   // Basic widget container
   QVBoxLayout* layout = new QVBoxLayout();
@@ -270,18 +270,19 @@ bool ConfigurationFilesWidget::loadGenFiles()
   config_data_->srdf_pkg_relative_path_ = file.rel_path_;
 
   // gazebo_<ROBOT>.urdf ---------------------------------------------------------------------------------------
-  file.file_name_ = "gazebo_" + config_data_->urdf_model_->getName() + ".urdf";
-  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
-  file.description_ =
-      "This <a href='https://wiki.ros.org/urdf'>URDF</a> file comprises your original robot description "
-      "augmented with tags required for use with Gazebo, i.e. defining inertia and transmission properties. "
-      "Checkout the <a href='http://gazebosim.org/tutorials/?tut=ros_urdf'>URDF Gazebo documentation</a> "
-      "for more infos.";
-  file.hidden_func_ = !boost::bind(&MoveItConfigData::gazeboURDFGenerated, config_data_);
-  file.gen_func_ = std::bind(&MoveItConfigData::outputGazeboURDFFile, config_data_, std::placeholders::_1);
-  file.write_on_changes = MoveItConfigData::SIMULATION;
-  gen_files_.push_back(file);
-  file.hidden_func_.clear();
+  if (config_data_->gazeboURDFGenerated())
+  {
+    file.file_name_ = "gazebo_" + config_data_->urdf_model_->getName() + ".urdf";
+    file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
+    file.description_ =
+        "This <a href='https://wiki.ros.org/urdf'>URDF</a> file comprises your original robot description "
+        "augmented with tags required for use with Gazebo, i.e. defining inertia and transmission properties. "
+        "Checkout the <a href='http://gazebosim.org/tutorials/?tut=ros_urdf'>URDF Gazebo documentation</a> "
+        "for more infos.";
+    file.gen_func_ = std::bind(&MoveItConfigData::outputGazeboURDFFile, config_data_, std::placeholders::_1);
+    file.write_on_changes = MoveItConfigData::SIMULATION;
+    gen_files_.push_back(file);
+  }
 
   // ompl_planning.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "ompl_planning.yaml";
@@ -816,14 +817,7 @@ void ConfigurationFilesWidget::changeCheckedState(QListWidgetItem* item)
 // ******************************************************************************************
 void ConfigurationFilesWidget::focusGiven()
 {
-  if (first_focusGiven_)
-  {
-    // only generate list once
-    first_focusGiven_ = false;
-
-    // Load this list of all files to be generated
-    loadGenFiles();
-  }
+  loadGenFiles();
 
   // Which files have been modified outside the Setup Assistant?
   bool files_already_modified = checkGenFiles();
@@ -953,12 +947,6 @@ bool ConfigurationFilesWidget::showGenFiles()
 
     // Link the gen_files_ index to this item
     item->setData(Qt::UserRole, QVariant(static_cast<qulonglong>(i)));
-
-    // Disable items that need to be disabled
-    if (file->hidden_func_ && file->hidden_func_())
-    {
-      item->setHidden(file->hidden_func_());
-    }
 
     // Add actions to list
     action_list_->addItem(item);

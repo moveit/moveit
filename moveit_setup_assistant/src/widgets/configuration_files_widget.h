@@ -62,11 +62,10 @@ struct GenerateFile
   std::string file_name_;
   std::string rel_path_;
   std::string description_;
-  unsigned long write_on_changes;        // bitfield indicating required rewrite
-  bool generate_;                        // "generate" checkbox ticked?
-  bool modified_;                        // file externally modified?
-  boost::function<bool()> hidden_func_;  // function that hides a file checkbox
-  boost::function<bool(std::string)> gen_func_;
+  unsigned long write_on_changes;  // bitfield indicating required rewrite
+  bool generate_;                  // "generate" checkbox ticked?
+  bool modified_;                  // file externally modified?
+  std::function<bool(std::string)> gen_func_;
 };
 
 // Typedef for storing template string replacement pairs
@@ -141,9 +140,6 @@ private:
 
   /// Has the package been generated yet this program execution? Used for popping up exit warning
   bool has_generated_pkg_;
-
-  /// Populate the 'Files to be Generated' list just once
-  bool first_focusGiven_;
 
   /// Vector of all files to be generated
   std::vector<GenerateFile> gen_files_;
