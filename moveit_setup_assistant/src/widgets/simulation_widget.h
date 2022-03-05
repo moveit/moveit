@@ -80,9 +80,6 @@ private Q_SLOTS:
   /// Overwrite original URDF button clicked
   void overwriteURDF();
 
-  /// Display gazebo URDF on the GUI
-  void displayURDF();
-
 private:
   // ******************************************************************************************
   // Qt Components
