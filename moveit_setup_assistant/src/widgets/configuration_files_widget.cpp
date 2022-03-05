@@ -272,11 +272,11 @@ bool ConfigurationFilesWidget::loadGenFiles()
   // gazebo_<ROBOT>.urdf ---------------------------------------------------------------------------------------
   file.file_name_ = "gazebo_" + config_data_->urdf_model_->getName() + ".urdf";
   file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
-  file.description_ = "URDF (<a href='https://wiki.ros.org/urdf'>Unified Robot Description Format</a>) is an XML "
-                      "format for representing a robot model. This file is similar to the Robot model you loaded "
-                      "into the MSA but converted to the right format such that it is compatible with GAZEBO "
-                      "(checkout the <a href='http://gazebosim.org/tutorials/?tut=ros_urdf'>URDF gazebo</a> "
-                      "documentation for more information).";
+  file.description_ =
+      "This <a href='https://wiki.ros.org/urdf'>URDF</a> file comprises your original robot description "
+      "augmented with tags required for use with Gazebo, i.e. defining inertia and transmission properties. "
+      "Checkout the <a href='http://gazebosim.org/tutorials/?tut=ros_urdf'>URDF Gazebo documentation</a> "
+      "for more infos.";
   file.hidden_func_ = !boost::bind(&MoveItConfigData::gazeboURDFGenerated, config_data_);
   file.gen_func_ = std::bind(&MoveItConfigData::outputGazeboURDFFile, config_data_, std::placeholders::_1);
   file.write_on_changes = MoveItConfigData::SIMULATION;

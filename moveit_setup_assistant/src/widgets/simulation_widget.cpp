@@ -164,17 +164,11 @@ void SimulationWidget::overwriteURDFClick()
   // Overwrite original URDF if not xacro
   if (config_data_->urdf_from_xacro_)
   {
-    QString msg = QString("Robot description could not be overwritten since it has "
-                          "type <b>xacro</b>, and the MSA doesn't yet know how to "
-                          "overwrite xacro files. As a result the Gazebo URDF (i.e. "
-                          "'<i>gazebo_")
-                      .append(config_data_->urdf_model_->getName().c_str())
-                      .append(".urdf</i>') will be added as a configuration file. If you "
-                              "still want to overwrite the is original robot "
-                              "description, you can manually add the code that "
-                              "<font color='green'>green</font> in the text field to "
-                              "the original xacro file.");
-    QMessageBox::warning(this, "Overwriting Failed", msg);
+    QString msg("Robot description could not be overwritten since it is generated via <b>xacro</b>. "
+                "Instead, the Gazebo URDF (<i>gazebo_%1.urdf</i>) will be added as a new config file. "
+                "You can manually merge the required <font color='green'>Gazebo tags</font> "
+                "into your xacro file later.");
+    QMessageBox::warning(this, "Overwriting Failed", msg.arg(config_data_->urdf_model_->getName().c_str()));
   }
   else
   {
@@ -184,7 +178,7 @@ void SimulationWidget::overwriteURDFClick()
     urdf_document.SaveFile(config_data_->urdf_path_);
 
     // Display success message
-    QString msg = QString("Original robot description URDF was successfully overwritten.");
+    QString msg("Original robot description URDF was successfully overwritten.");
     QMessageBox::information(this, "Overwriting Successfull", msg);
 
     // Remove generated Gazebo URDF file from config files
