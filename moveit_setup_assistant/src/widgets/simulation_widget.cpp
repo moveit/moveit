@@ -71,24 +71,21 @@ SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& c
                                           "needed changes are shown in green.",
                                           this);
   layout->addWidget(header);
-
-  // Spacing
-  QSpacerItem* blank_space = new QSpacerItem(1, 8);
-  layout->addSpacerItem(blank_space);
+  layout->addSpacerItem(new QSpacerItem(1, 8, QSizePolicy::Fixed, QSizePolicy::Fixed));
 
   QLabel* instructions = new QLabel(this);
   instructions->setText("You can run the following command to quickly find the necessary URDF file to edit:");
+  instructions->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
   layout->addWidget(instructions);
 
   QTextEdit* instructions_command = new QTextEdit(this);
   instructions_command->setText(std::string("roscd " + config_data->urdf_pkg_name_).c_str());
   instructions_command->setReadOnly(true);
   instructions_command->setMaximumHeight(30);
+  instructions_command->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
   layout->addWidget(instructions_command);
 
-  // Spacing
-  blank_space = new QSpacerItem(1, 6);
-  layout->addSpacerItem(blank_space);
+  layout->addSpacerItem(new QSpacerItem(1, 6, QSizePolicy::Fixed, QSizePolicy::Fixed));
 
   // Top Buttons --------------------------------------------------
   QHBoxLayout* controls_layout = new QHBoxLayout();
@@ -96,15 +93,11 @@ SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& c
   // Used to overwrite the original URDF
   btn_overwrite_ = new QPushButton("&Overwrite original URDF", this);
   btn_overwrite_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  btn_overwrite_->setMinimumWidth(180);
-  btn_overwrite_->setMinimumHeight(40);
   btn_overwrite_->setEnabled(false);
   connect(btn_overwrite_, SIGNAL(clicked()), this, SLOT(overwriteURDF()));
   controls_layout->addWidget(btn_overwrite_);
-  controls_layout->setAlignment(btn_overwrite_, Qt::AlignLeft);
-
-  // Spacer
-  controls_layout->addItem(new QSpacerItem(20, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
+  // Align buttons to the left
+  controls_layout->addItem(new QSpacerItem(20, 20, QSizePolicy::Expanding, QSizePolicy::Fixed));
 
   // Add layout
   layout->addLayout(controls_layout);
@@ -113,6 +106,8 @@ SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& c
   no_changes_label_ = new QLabel(this);
   no_changes_label_->setText("URDF is ready for Gazebo. No changes required.");
   no_changes_label_->setFont(QFont(QFont().defaultFamily(), 18));
+  no_changes_label_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+  no_changes_label_->setAlignment(Qt::AlignTop);
   layout->addWidget(no_changes_label_);
 
   // URDF text
