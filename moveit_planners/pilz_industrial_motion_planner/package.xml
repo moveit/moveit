@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>pilz_industrial_motion_planner</name>
-  <version>1.0.9</version>
+  <version>1.0.10</version>
   <description>MoveIt plugin to generate industrial trajectories PTP, LIN, CIRC and sequences thereof.</description>
 
   <maintainer email="a.gutenkunst@pilz.de">Alexander Gutenkunst</maintainer>

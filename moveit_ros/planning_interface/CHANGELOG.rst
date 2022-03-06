@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.10 (2022-03-06)
+-------------------
+
 1.0.9 (2022-01-09)
 ------------------
 * Use moveit-resources@master (`#2951 <https://github.com/ros-planning/moveit/issues/2951>`_)

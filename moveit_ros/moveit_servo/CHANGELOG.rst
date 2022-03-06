@@ -2,6 +2,9 @@
 Changelog for package moveit_servo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.10 (2022-03-06)
+-------------------
+
 1.0.9 (2022-01-09)
 ------------------
 * Fix an off-by-one error in servo_calcs.cpp (`#2908 <https://github.com/ros-planning/moveit/issues/2908>`_)
