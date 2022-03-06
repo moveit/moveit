@@ -64,6 +64,8 @@ public:
   // ******************************************************************************************
 
   SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& config_data);
+  void focusGiven() override;
+  bool focusLost() override;
 
 private Q_SLOTS:
 
@@ -74,10 +76,10 @@ private Q_SLOTS:
   // Called the copy to clipboard button is clicked
   void copyURDF(const QString& link);
 
-  /// Generate URDF button clicked
-  void generateURDFClick();
+  /// Generate Gazebo-compatible URDF, starting from original URDF
+  void generateURDF();
 
-  /// Overwrite original URDF button clicked
+  /// Overwrite original URDF with content of document
   void overwriteURDF();
 
 private:

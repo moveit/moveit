@@ -93,14 +93,6 @@ SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& c
   // Top Buttons --------------------------------------------------
   QHBoxLayout* controls_layout = new QHBoxLayout();
 
-  // Used to make the new URDF visible
-  QPushButton* btn_generate = new QPushButton("&Generate URDF", this);
-  btn_generate->setMinimumWidth(180);
-  btn_generate->setMinimumHeight(40);
-  connect(btn_generate, SIGNAL(clicked()), this, SLOT(generateURDFClick()));
-  controls_layout->addWidget(btn_generate);
-  controls_layout->setAlignment(btn_generate, Qt::AlignLeft);
-
   // Used to overwrite the original URDF
   btn_overwrite_ = new QPushButton("&Overwrite original URDF", this);
   btn_overwrite_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -139,17 +131,47 @@ SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& c
   copy_urdf_ = new QLabel(this);
   copy_urdf_->setText("<a href='contract'>Copy to Clipboard</a>");
   connect(copy_urdf_, SIGNAL(linkActivated(const QString)), this, SLOT(copyURDF(const QString)));
-  copy_urdf_->setVisible(false);
   layout->addWidget(copy_urdf_);
 
   // Finish Layout --------------------------------------------------
   this->setLayout(layout);
 }
 
+void SimulationWidget::focusGiven()
+{
+  if (simulation_text_->document()->isEmpty())
+    generateURDF();
+}
+
+bool SimulationWidget::focusLost()
+{
+  if (!config_data_->save_gazebo_urdf_)
+    return true;  // saving is disabled anyway
+
+  // validate XML
+  TiXmlDocument doc;
+  auto urdf = simulation_text_->document()->toPlainText().toStdString();
+  doc.Parse(urdf.c_str(), nullptr, TIXML_ENCODING_UTF8);
+  if (doc.Error())
+  {
+    QTextCursor cursor = simulation_text_->textCursor();
+    cursor.movePosition(QTextCursor::Start);
+    cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, doc.ErrorRow());
+    cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, doc.ErrorCol());
+    simulation_text_->setTextCursor(cursor);
+    QMessageBox::warning(this, tr("Gazebo URDF"), tr("Error parsing XML:\n").append(doc.ErrorDesc()));
+    simulation_text_->setFocus(Qt::OtherFocusReason);
+    return false;  // reject switching
+  }
+  else
+    config_data_->gazebo_urdf_string_ = std::move(urdf);
+  return true;
+}
+
 // ******************************************************************************************
 // Called when generate URDF button is clicked
 // ******************************************************************************************
-void SimulationWidget::generateURDFClick()
+void SimulationWidget::generateURDF()
 {
   simulation_text_->setVisible(true);
   std::string text = config_data_->getGazeboCompatibleURDF();
@@ -187,6 +209,9 @@ void SimulationWidget::generateURDFClick()
 // ******************************************************************************************
 void SimulationWidget::overwriteURDF()
 {
+  if (!focusLost())  // validate XML
+    return;
+
   if (!config_data_->outputGazeboURDFFile(config_data_->urdf_path_))
     QMessageBox::warning(this, "Gazebo URDF", tr("Failed to save to ").append(config_data_->urdf_path_.c_str()));
   else  // Display success message
