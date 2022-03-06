@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.9 (2022-03-06)
+------------------
+* Fix missing include (`#3051 <https://github.com/ros-planning/moveit/issues/3051>`_)
+* Contributors: Tobias Fischer
+
 1.1.8 (2022-01-30)
 ------------------
 * Improve loading of planning pipelines (`#3036 <https://github.com/ros-planning/moveit/issues/3036>`_)

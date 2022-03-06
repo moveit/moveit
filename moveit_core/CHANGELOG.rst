@@ -2,6 +2,13 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.9 (2022-03-06)
+------------------
+* Add special case for sphere bodies in sphere decomposition (`#3056 <https://github.com/ros-planning/moveit/issues/3056>`_)
+* Add Ptr definitions for TimeParameterization classes (`#3078 <https://github.com/ros-planning/moveit/issues/3078>`_)
+* Fix python-versioned dependency (`#3063 <https://github.com/ros-planning/moveit/issues/3063>`_)
+* Contributors: Jochen Sprickerhof, Martin Oehler, Michael Görner
+
 1.1.8 (2022-01-30)
 ------------------
 * Avoid downgrading default C++ standard (`#3043 <https://github.com/ros-planning/moveit/issues/3043>`_)

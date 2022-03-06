@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.9 (2022-03-06)
+------------------
+
 1.1.8 (2022-01-30)
 ------------------
 * Fix deprecation warning in moveit_cpp (`#3019 <https://github.com/ros-planning/moveit/issues/3019>`_)

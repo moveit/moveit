@@ -2,6 +2,13 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.9 (2022-03-06)
+------------------
+* Fix collisions_updater's set comparison (`#3076 <https://github.com/ros-planning/moveit/issues/3076>`_)
+* MSA: boost::bind -> std::bind (`#3039 <https://github.com/ros-planning/moveit/issues/3039>`_)
+* Do not automatically load robot description in move_group.launch (`#3065 <https://github.com/ros-planning/moveit/issues/3065>`_)
+* Contributors: Jochen Sprickerhof, Loy van Beek, Michael Görner
+
 1.1.8 (2022-01-30)
 ------------------
 * Implement ACM defaults as a fallback instead of an override (`#2938 <https://github.com/ros-planning/moveit/issues/2938>`_)

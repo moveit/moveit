@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.9 (2022-03-06)
+------------------
+* Add PS3 dual shock model to moveit joy (`#3025 <https://github.com/ros-planning/moveit/issues/3025>`_)
+* Add option to use simulation time for rviz trajectory display (`#3055 <https://github.com/ros-planning/moveit/issues/3055>`_)
+* Contributors: Job van Dieten, Martin Oehler
+
 1.1.8 (2022-01-30)
 ------------------
 

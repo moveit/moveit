@@ -2,6 +2,11 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.9 (2022-03-06)
+------------------
+* Fix move_group_commander.go(tuple(...)) (`#3066 <https://github.com/ros-planning/moveit/issues/3066>`_)
+* Contributors: Hongzhuo Liang, Michael Görner
+
 1.1.8 (2022-01-30)
 ------------------
 
