@@ -209,27 +209,21 @@ bool MoveItConfigData::outputSetupAssistantFile(const std::string& file_path)
 }
 
 // ******************************************************************************************
-// Check if Gazebo URDF was generated
-// ******************************************************************************************
-bool MoveItConfigData::gazeboURDFGenerated()
-{
-  return new_gazebo_urdf_;
-}
-
-// ******************************************************************************************
 // Output Gazebo URDF file
 // ******************************************************************************************
 bool MoveItConfigData::outputGazeboURDFFile(const std::string& file_path)
 {
-  if (new_gazebo_urdf_)
+  std::ofstream os(file_path.c_str(), std::ios_base::trunc);
+  if (!os.good())
   {
-    TiXmlDocument urdf_document;
-
-    urdf_document.Parse((const char*)gazebo_urdf_string_.c_str(), nullptr, TIXML_ENCODING_UTF8);
-    urdf_document.SaveFile(file_path);
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
+    return false;
   }
 
-  return true;  // file created successfully
+  os << gazebo_urdf_string_.c_str() << std::endl;
+  os.close();
+
+  return true;
 }
 
 // ******************************************************************************************

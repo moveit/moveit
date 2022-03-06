@@ -78,7 +78,7 @@ private Q_SLOTS:
   void generateURDFClick();
 
   /// Overwrite original URDF button clicked
-  void overwriteURDFClick();
+  void overwriteURDF();
 
   /// Display gazebo URDF on the GUI
   void displayURDF();

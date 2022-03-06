@@ -270,7 +270,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   config_data_->srdf_pkg_relative_path_ = file.rel_path_;
 
   // gazebo_<ROBOT>.urdf ---------------------------------------------------------------------------------------
-  if (config_data_->gazeboURDFGenerated())
+  if (config_data_->save_gazebo_urdf_)
   {
     file.file_name_ = "gazebo_" + config_data_->urdf_model_->getName() + ".urdf";
     file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
@@ -1183,7 +1183,7 @@ void ConfigurationFilesWidget::loadTemplateStrings()
     addTemplateString("[URDF_LOAD_ATTRIBUTE]", "textfile=\"" + urdf_location + "\"");
 
   // Pair 4
-  if (config_data_->new_gazebo_urdf_)
+  if (config_data_->save_gazebo_urdf_)
   {
     std::string file_name = "gazebo_" + config_data_->urdf_model_->getName() + ".urdf";
     std::string rel_path = config_data_->appendPaths(config_path_, file_name);

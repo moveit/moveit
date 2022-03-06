@@ -101,12 +101,12 @@ SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& c
   controls_layout->setAlignment(btn_generate, Qt::AlignLeft);
 
   // Used to overwrite the original URDF
-  btn_overwrite_ = new QPushButton("&Overwrite Original URDF", this);
+  btn_overwrite_ = new QPushButton("&Overwrite original URDF", this);
   btn_overwrite_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   btn_overwrite_->setMinimumWidth(180);
   btn_overwrite_->setMinimumHeight(40);
   btn_overwrite_->setEnabled(false);
-  connect(btn_overwrite_, SIGNAL(clicked()), this, SLOT(overwriteURDFClick()));
+  connect(btn_overwrite_, SIGNAL(clicked()), this, SLOT(overwriteURDF()));
   controls_layout->addWidget(btn_overwrite_);
   controls_layout->setAlignment(btn_overwrite_, Qt::AlignLeft);
 
@@ -118,7 +118,8 @@ SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& c
 
   // When there are no changes to be made
   no_changes_label_ = new QLabel(this);
-  no_changes_label_->setText("No Changes To Be Made");
+  no_changes_label_->setText("URDF is ready for Gazebo. No changes required.");
+  no_changes_label_->setFont(QFont(QFont().defaultFamily(), 18));
   layout->addWidget(no_changes_label_);
   no_changes_label_->setVisible(false);
 
@@ -144,48 +145,51 @@ SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& c
 void SimulationWidget::generateURDFClick()
 {
   simulation_text_->setVisible(true);
-  std::string gazebo_compatible_urdf_string = config_data_->getGazeboCompatibleURDF();
-  config_data_->gazebo_urdf_string_ = gazebo_compatible_urdf_string;
+  std::string text = config_data_->getGazeboCompatibleURDF();
+  config_data_->gazebo_urdf_string_ = text;
 
   // Check if the urdf do need new elements to be added
   displayURDF();
 
   // Add generated Gazebo URDF to config file if not empty
-  config_data_->new_gazebo_urdf_ = !gazebo_compatible_urdf_string.empty();
+  bool have_changes = !text.empty();
+  config_data_->save_gazebo_urdf_ = have_changes;
 
-  config_data_->changes |= MoveItConfigData::SIMULATION;
+  // GUI elements are visible only if there are URDF changes to display/edit
+  simulation_text_->setVisible(have_changes);
+  btn_overwrite_->setVisible(have_changes);
+  copy_urdf_->setVisible(have_changes);
+  no_changes_label_->setVisible(!have_changes);
+
+  // Disable overwrite button if URDF originates from xacro
+  btn_overwrite_->setDisabled(config_data_->urdf_from_xacro_);
+  QString tooltip;
+  if (btn_overwrite_->isEnabled())
+    tooltip = tr("Overwrite URDF in original location:\n").append(config_data_->urdf_path_.c_str());
+  else
+    tooltip = tr("Cannot overwrite original, <i>xacro-based</i> URDF");
+  btn_overwrite_->setToolTip(tooltip);
+
+  if (have_changes)
+    config_data_->changes |= MoveItConfigData::SIMULATION;
+  else
+    config_data_->changes &= ~MoveItConfigData::SIMULATION;
 }
 
 // ******************************************************************************************
 // Called when save URDF button is clicked
 // ******************************************************************************************
-void SimulationWidget::overwriteURDFClick()
+void SimulationWidget::overwriteURDF()
 {
-  // Overwrite original URDF if not xacro
-  if (config_data_->urdf_from_xacro_)
-  {
-    QString msg("Robot description could not be overwritten since it is generated via <b>xacro</b>. "
-                "Instead, the Gazebo URDF (<i>gazebo_%1.urdf</i>) will be added as a new config file. "
-                "You can manually merge the required <font color='green'>Gazebo tags</font> "
-                "into your xacro file later.");
-    QMessageBox::warning(this, "Overwriting Failed", msg.arg(config_data_->urdf_model_->getName().c_str()));
-  }
-  else
-  {
-    TiXmlDocument urdf_document;
+  if (!config_data_->outputGazeboURDFFile(config_data_->urdf_path_))
+    QMessageBox::warning(this, "Gazebo URDF", tr("Failed to save to ").append(config_data_->urdf_path_.c_str()));
+  else  // Display success message
+    QMessageBox::information(this, "Overwriting Successfull",
+                             "Original robot description URDF was successfully overwritten.");
 
-    urdf_document.Parse((const char*)config_data_->gazebo_urdf_string_.c_str(), nullptr, TIXML_ENCODING_UTF8);
-    urdf_document.SaveFile(config_data_->urdf_path_);
-
-    // Display success message
-    QString msg("Original robot description URDF was successfully overwritten.");
-    QMessageBox::information(this, "Overwriting Successfull", msg);
-
-    // Remove generated Gazebo URDF file from config files
-    config_data_->new_gazebo_urdf_ = false;
-
-    config_data_->changes |= MoveItConfigData::SIMULATION;
-  }
+  // Remove Gazebo URDF file from list of to-be-written config files
+  config_data_->save_gazebo_urdf_ = false;
+  config_data_->changes &= ~MoveItConfigData::SIMULATION;
 }
 
 // ******************************************************************************************
@@ -274,17 +278,10 @@ void SimulationWidget::displayURDF()
       simulation_text_->setTextColor(QColor("black"));
       simulation_text_->append(QString("</robot>"));
     }
-
-    // Overwrite button appears after the text is ready
-    btn_overwrite_->setEnabled(true);
-
-    // Copy link appears after the text is ready
-    copy_urdf_->setVisible(true);
   }
   else
   {
-    simulation_text_->append(QString(config_data_->gazebo_urdf_string_.c_str()));
-    no_changes_label_->setVisible(true);
+    simulation_text_->clear();
   }
 }
 

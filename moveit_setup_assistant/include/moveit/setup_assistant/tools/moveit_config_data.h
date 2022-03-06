@@ -237,7 +237,7 @@ public:
   std::string gazebo_urdf_string_;
 
   /// Whether a new Gazebo URDF is created
-  bool new_gazebo_urdf_;
+  bool save_gazebo_urdf_;
 
   // ******************************************************************************************
   // SRDF Data
@@ -309,11 +309,6 @@ public:
 
   /// Load the allowed collision matrix from the SRDF's list of link pairs
   void loadAllowedCollisionMatrix();
-
-  // ******************************************************************************************
-  // Public Functions that influence the configuration files widget
-  // ******************************************************************************************
-  bool gazeboURDFGenerated();
 
   // ******************************************************************************************
   // Public Functions for outputting configuration and setting files
