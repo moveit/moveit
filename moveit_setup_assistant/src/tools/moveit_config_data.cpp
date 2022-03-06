@@ -527,12 +527,12 @@ std::string MoveItConfigData::getJointHardwareInterface(const std::string& joint
 // ******************************************************************************************
 std::string MoveItConfigData::getGazeboCompatibleURDF()
 {
-  bool new_urdf_needed = false;
   TiXmlDocument urdf_document;
-
-  // Used to convert XmlDocument to std::string
-  TiXmlPrinter printer;
   urdf_document.Parse((const char*)urdf_string_.c_str(), nullptr, TIXML_ENCODING_UTF8);
+
+  // Normalize original urdf_string
+  TiXmlPrinter orig_urdf;
+  urdf_document.Accept(&orig_urdf);
 
   // Map existing SimpleTransmission elements to their joint name
   std::map<std::string, TiXmlElement*> transmission_elements;
@@ -558,7 +558,6 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
       if (doc_element->FirstChildElement("inertial") == nullptr &&
           doc_element->FirstChildElement("collision") != nullptr)
       {
-        new_urdf_needed = true;
         TiXmlElement inertia_link("inertial");
         TiXmlElement mass("mass");
         TiXmlElement inertia_joint("inertia");
@@ -587,7 +586,6 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
         // Add new transition element if it does not exist yet
         if (transmission_elements.find(joint_name) == transmission_elements.end())
         {
-          new_urdf_needed = true;
           TiXmlElement transmission("transmission");
           TiXmlElement type("type");
           TiXmlElement joint("joint");
@@ -624,7 +622,6 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
           // Add joint hardware interface if not present
           if (joint->FirstChildElement("hardwareInterface") == nullptr)
           {
-            new_urdf_needed = true;
             TiXmlElement hardware_interface("hardwareInterface");
             hardware_interface.InsertEndChild(TiXmlText(getJointHardwareInterface(joint_name).c_str()));
             joint->InsertEndChild(hardware_interface);
@@ -633,7 +630,6 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
           // Add actuator hardware interface if not present
           if (actuator->FirstChildElement("hardwareInterface") == nullptr)
           {
-            new_urdf_needed = true;
             hardware_interface.InsertEndChild(TiXmlText(getJointHardwareInterface(joint_name).c_str()));
             actuator->InsertEndChild(hardware_interface);
           }
@@ -641,7 +637,6 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
           // Add actuator mechanical reduction if not present
           if (actuator->FirstChildElement("mechanicalReduction") == nullptr)
           {
-            new_urdf_needed = true;
             mechanical_reduction.InsertEndChild(TiXmlText("1"));
             actuator->InsertEndChild(mechanical_reduction);
           }
@@ -664,13 +659,11 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
 
   urdf_document.RootElement()->InsertEndChild(gazebo);
 
-  if (new_urdf_needed)
-  {
-    urdf_document.Accept(&printer);
-    return std::string(printer.CStr());
-  }
-
-  return std::string();
+  // generate new URDF
+  TiXmlPrinter new_urdf;
+  urdf_document.Accept(&new_urdf);
+  // and return it when there are changes
+  return orig_urdf.Str() == new_urdf.Str() ? std::string() : new_urdf.Str();
 }
 
 bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
