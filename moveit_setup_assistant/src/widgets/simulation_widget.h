@@ -81,6 +81,8 @@ private Q_SLOTS:
 
   /// Overwrite original URDF with content of document
   void overwriteURDF();
+  /// Open original URDF with system editor
+  void openURDF();
 
 private:
   // ******************************************************************************************
@@ -90,6 +92,7 @@ private:
   QTextEdit* simulation_text_;
   QLabel* no_changes_label_;
   QPushButton* btn_overwrite_;
+  QPushButton* btn_open_;
   QLabel* copy_urdf_;
 
   /// Contains all the configuration data for the setup assistant

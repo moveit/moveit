@@ -45,6 +45,7 @@
 #include <QPushButton>
 #include <QTextEdit>
 #include <QVBoxLayout>
+#include <QProcess>
 
 #include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/DisplayRobotState.h>
@@ -73,29 +74,21 @@ SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& c
   layout->addWidget(header);
   layout->addSpacerItem(new QSpacerItem(1, 8, QSizePolicy::Fixed, QSizePolicy::Fixed));
 
-  QLabel* instructions = new QLabel(this);
-  instructions->setText("You can run the following command to quickly find the necessary URDF file to edit:");
-  instructions->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
-  layout->addWidget(instructions);
-
-  QTextEdit* instructions_command = new QTextEdit(this);
-  instructions_command->setText(std::string("roscd " + config_data->urdf_pkg_name_).c_str());
-  instructions_command->setReadOnly(true);
-  instructions_command->setMaximumHeight(30);
-  instructions_command->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
-  layout->addWidget(instructions_command);
-
-  layout->addSpacerItem(new QSpacerItem(1, 6, QSizePolicy::Fixed, QSizePolicy::Fixed));
-
   // Top Buttons --------------------------------------------------
   QHBoxLayout* controls_layout = new QHBoxLayout();
 
   // Used to overwrite the original URDF
-  btn_overwrite_ = new QPushButton("&Overwrite original URDF", this);
+  btn_overwrite_ = new QPushButton("Over&write original URDF", this);
   btn_overwrite_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  btn_overwrite_->setEnabled(false);
   connect(btn_overwrite_, SIGNAL(clicked()), this, SLOT(overwriteURDF()));
   controls_layout->addWidget(btn_overwrite_);
+
+  btn_open_ = new QPushButton("&Open original URDF", this);
+  btn_open_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  btn_open_->setToolTip("Open original URDF file in editor");
+  connect(btn_open_, SIGNAL(clicked()), this, SLOT(openURDF()));
+  controls_layout->addWidget(btn_open_);
+
   // Align buttons to the left
   controls_layout->addItem(new QSpacerItem(20, 20, QSizePolicy::Expanding, QSizePolicy::Fixed));
 
@@ -181,6 +174,7 @@ void SimulationWidget::generateURDF()
   // GUI elements are visible only if there are URDF changes to display/edit
   simulation_text_->setVisible(have_changes);
   btn_overwrite_->setVisible(have_changes);
+  btn_open_->setVisible(have_changes && !qgetenv("EDITOR").isEmpty());
   copy_urdf_->setVisible(have_changes);
   no_changes_label_->setVisible(!have_changes);
 
@@ -216,6 +210,11 @@ void SimulationWidget::overwriteURDF()
   // Remove Gazebo URDF file from list of to-be-written config files
   config_data_->save_gazebo_urdf_ = false;
   config_data_->changes &= ~MoveItConfigData::SIMULATION;
+}
+
+void SimulationWidget::openURDF()
+{
+  QProcess::startDetached(qgetenv("EDITOR"), { config_data_->urdf_path_.c_str() });
 }
 
 // ******************************************************************************************
