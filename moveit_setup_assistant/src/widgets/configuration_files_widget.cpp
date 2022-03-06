@@ -64,7 +64,8 @@ namespace moveit_setup_assistant
 // Boost file system
 namespace fs = boost::filesystem;
 
-const std::string SETUP_ASSISTANT_FILE = ".setup_assistant";
+static const std::string SETUP_ASSISTANT_FILE = ".setup_assistant";
+static const std::string CONFIG_PATH = "config";
 
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
@@ -242,7 +243,6 @@ bool ConfigurationFilesWidget::loadGenFiles()
   // -------------------------------------------------------------------------------------------------------------------
   // CONIG FILES -------------------------------------------------------------------------------------------------------
   // -------------------------------------------------------------------------------------------------------------------
-  config_path_ = "config";
 
   // config/ --------------------------------------------------------------------------------------
   file.file_name_ = "config/";
@@ -257,7 +257,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.file_name_ = config_data_->srdf_pkg_relative_path_.empty() ? config_data_->urdf_model_->getName() + ".srdf" :
                                                                     config_data_->srdf_pkg_relative_path_;
   file.rel_path_ = config_data_->srdf_pkg_relative_path_.empty() ?
-                       config_data_->appendPaths(config_path_, file.file_name_) :
+                       config_data_->appendPaths(CONFIG_PATH, file.file_name_) :
                        config_data_->srdf_pkg_relative_path_;
   file.description_ = "SRDF (<a href='http://www.ros.org/wiki/srdf'>Semantic Robot Description Format</a>) is a "
                       "representation of semantic information about robots. This format is intended to represent "
@@ -273,7 +273,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   if (config_data_->save_gazebo_urdf_)
   {
     file.file_name_ = "gazebo_" + config_data_->urdf_model_->getName() + ".urdf";
-    file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
+    file.rel_path_ = config_data_->appendPaths(CONFIG_PATH, file.file_name_);
     file.description_ =
         "This <a href='https://wiki.ros.org/urdf'>URDF</a> file comprises your original robot description "
         "augmented with tags required for use with Gazebo, i.e. defining inertia and transmission properties. "
@@ -286,7 +286,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // ompl_planning.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "ompl_planning.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(CONFIG_PATH, file.file_name_);
   file.description_ = "Configures the OMPL (<a href='http://ompl.kavrakilab.org/'>Open Motion Planning Library</a>) "
                       "planning plugin. For every planning group defined in the SRDF, a number of planning "
                       "configurations are specified (under planner_configs). Additionally, default settings for the "
@@ -301,7 +301,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // chomp_planning.yaml  --------------------------------------------------------------------------------------
   file.file_name_ = "chomp_planning.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(CONFIG_PATH, file.file_name_);
   template_path = config_data_->appendPaths(config_data_->template_package_path_, file.rel_path_);
   file.description_ = "Specifies which chomp planning plugin parameters to be used for the CHOMP planner";
   file.gen_func_ = std::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, std::placeholders::_1);
@@ -309,7 +309,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // stomp_planning.yaml  --------------------------------------------------------------------------------------
   file.file_name_ = "stomp_planning.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(CONFIG_PATH, file.file_name_);
   file.description_ = "Specifies which stomp planning plugin parameters to be used for the STOMP planner";
   file.gen_func_ = std::bind(&MoveItConfigData::outputSTOMPPlanningYAML, config_data_, std::placeholders::_1);
   file.write_on_changes = MoveItConfigData::GROUPS;  // need to double check if this is actually correct!
@@ -317,7 +317,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // kinematics.yaml  --------------------------------------------------------------------------------------
   file.file_name_ = "kinematics.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(CONFIG_PATH, file.file_name_);
   file.description_ = "Specifies which kinematic solver plugin to use for each planning group in the SRDF, as well as "
                       "the kinematic solver search resolution.";
   file.gen_func_ = std::bind(&MoveItConfigData::outputKinematicsYAML, config_data_, std::placeholders::_1);
@@ -326,7 +326,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // joint_limits.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "joint_limits.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(CONFIG_PATH, file.file_name_);
   file.description_ = "Contains additional information about joints that appear in your planning groups that is not "
                       "contained in the URDF, as well as allowing you to set maximum and minimum limits for velocity "
                       "and acceleration than those contained in your URDF. This information is used by our trajectory "
@@ -338,7 +338,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // cartesian_limits.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "cartesian_limits.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(CONFIG_PATH, file.file_name_);
   template_path = config_data_->appendPaths(config_data_->template_package_path_, file.rel_path_);
   file.description_ = "Cartesian velocity for planning in the workspace."
                       "The velocity is used by pilz industrial motion planner as maximum velocity for cartesian "
@@ -349,7 +349,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // fake_controllers.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "fake_controllers.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(CONFIG_PATH, file.file_name_);
   file.description_ = "Creates dummy configurations for controllers that correspond to defined groups. This is mostly "
                       "useful for testing.";
   file.gen_func_ = std::bind(&MoveItConfigData::outputFakeControllersYAML, config_data_, std::placeholders::_1);
@@ -358,7 +358,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // simple_moveit_controllers.yaml -------------------------------------------------------------------------------
   file.file_name_ = "simple_moveit_controllers.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(CONFIG_PATH, file.file_name_);
   file.description_ = "Creates controller configuration for SimpleMoveItControllerManager";
   file.gen_func_ = std::bind(&MoveItConfigData::outputSimpleControllersYAML, config_data_, std::placeholders::_1);
   file.write_on_changes = MoveItConfigData::GROUPS;
@@ -366,7 +366,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // gazebo_controllers.yaml ------------------------------------------------------------------
   file.file_name_ = "gazebo_controllers.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(CONFIG_PATH, file.file_name_);
   template_path = config_data_->appendPaths(config_data_->template_package_path_, file.rel_path_);
   file.description_ = "Configuration of Gazebo controllers";
   file.gen_func_ = std::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, std::placeholders::_1);
@@ -374,7 +374,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // ros_controllers.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "ros_controllers.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(CONFIG_PATH, file.file_name_);
   file.description_ = "Creates controller configurations for ros_control.";
   file.gen_func_ = std::bind(&MoveItConfigData::outputROSControllersYAML, config_data_, std::placeholders::_1);
   file.write_on_changes = MoveItConfigData::GROUPS;
@@ -382,7 +382,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   // sensors_3d.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "sensors_3d.yaml";
-  file.rel_path_ = config_data_->appendPaths(config_path_, file.file_name_);
+  file.rel_path_ = config_data_->appendPaths(CONFIG_PATH, file.file_name_);
   file.description_ = "Creates configurations 3d sensors.";
   file.gen_func_ = std::bind(&MoveItConfigData::output3DSensorPluginYAML, config_data_, std::placeholders::_1);
   file.write_on_changes = MoveItConfigData::SENSORS_CONFIG;
@@ -1186,7 +1186,7 @@ void ConfigurationFilesWidget::loadTemplateStrings()
   if (config_data_->save_gazebo_urdf_)
   {
     std::string file_name = "gazebo_" + config_data_->urdf_model_->getName() + ".urdf";
-    std::string rel_path = config_data_->appendPaths(config_path_, file_name);
+    std::string rel_path = config_data_->appendPaths(CONFIG_PATH, file_name);
     addTemplateString("[GAZEBO_URDF_LOAD_ATTRIBUTE]", "textfile=\"$(find " + new_package_name_ + ")/" + rel_path + "\"");
   }
   else  // reuse [URDF_LOAD_ATTRIBUTE] template

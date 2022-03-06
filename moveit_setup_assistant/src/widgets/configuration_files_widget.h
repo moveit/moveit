@@ -126,9 +126,6 @@ private:
   // Variables
   // ******************************************************************************************
 
-  /// Relative configuration path
-  std::string config_path_;
-
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
 
