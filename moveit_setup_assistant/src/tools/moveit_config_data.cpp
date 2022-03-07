@@ -35,7 +35,6 @@
 /* Author: Dave Coleman */
 
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
-#include <moveit/setup_assistant/tools/xml_manipulation.h>
 
 // Reading/Writing Files
 #include <iostream>  // For writing yaml and launch files
@@ -522,91 +521,6 @@ std::string MoveItConfigData::getJointHardwareInterface(const std::string& joint
   }
   // If the joint was not found in any controller return EffortJointInterface
   return "hardware_interface/EffortJointInterface";
-}
-
-// ******************************************************************************************
-// Writes a Gazebo compatible robot URDF to gazebo_compatible_urdf_string_
-// ******************************************************************************************
-std::string MoveItConfigData::getGazeboCompatibleURDF()
-{
-  TiXmlDocument doc;
-  doc.Parse(urdf_string_.c_str(), nullptr, TIXML_ENCODING_UTF8);
-  auto root = doc.RootElement();
-
-  // Normalize original urdf_string_
-  TiXmlPrinter orig_urdf;
-  doc.Accept(&orig_urdf);
-
-  // Map existing SimpleTransmission elements to their joint name
-  std::map<std::string, TiXmlElement*> transmission_elements;
-  for (TiXmlElement* element = root->FirstChildElement("transmission"); element != nullptr;
-       element = element->NextSiblingElement(element->Value()))
-  {
-    auto type_tag = element->FirstChildElement("type");
-    auto joint_tag = element->FirstChildElement("joint");
-    if (!type_tag || !type_tag->GetText() || !joint_tag || !joint_tag->Attribute("name"))
-      continue;  // ignore invalid tags
-    if (std::string(type_tag->GetText()) == "transmission_interface/SimpleTransmission")
-      transmission_elements[element->FirstChildElement("joint")->Attribute("name")] = element;
-  }
-
-  // Loop through Link and Joint elements and add Gazebo tags if not present
-  for (TiXmlElement* element = root->FirstChildElement(); element != nullptr; element = element->NextSiblingElement())
-  {
-    const std::string tag_name(element->Value());
-    if (tag_name == "link" && element->FirstChildElement("collision"))
-    {
-      TiXmlElement* inertial = uniqueInsert(*element, "inertial");
-      uniqueInsert(*inertial, "mass", { { "value", "0.1" } });
-      uniqueInsert(*inertial, "inertia",
-                   { { "ixx", "0.03" },
-                     { "iyy", "0.03" },
-                     { "izz", "0.03" },
-                     { "ixy", "0.0" },
-                     { "ixz", "0.0" },
-                     { "iyz", "0.0" } });
-    }
-    else if (tag_name == "joint")
-    {
-      const char* joint_type = element->Attribute("type");
-      const char* joint_name = element->Attribute("name");
-      if (!joint_type || !joint_name || strcmp(joint_type, "fixed") == 0)
-        continue;  // skip invalid or fixed joints
-
-      // find existing or create new transmission element for this joint
-      TiXmlElement* transmission;
-      auto it = transmission_elements.find(joint_name);
-      if (it != transmission_elements.end())
-        transmission = it->second;
-      else
-      {
-        transmission = root->InsertEndChild(TiXmlElement("transmission"))->ToElement();
-        transmission->SetAttribute("name", std::string("trans_") + joint_name);
-      }
-
-      uniqueInsert(*transmission, "type", {}, "transmission_interface/SimpleTransmission");
-
-      std::string hw_interface = getJointHardwareInterface(joint_name);
-      auto* joint = uniqueInsert(*transmission, "joint", { { "name", joint_name } });
-      uniqueInsert(*joint, "hardwareInterface", {}, hw_interface.c_str());
-
-      auto actuator_name = joint_name + std::string("_motor");
-      auto* actuator = uniqueInsert(*transmission, "actuator", { { "name", actuator_name.c_str() } });
-      uniqueInsert(*actuator, "hardwareInterface", {}, hw_interface.c_str());
-      uniqueInsert(*actuator, "mechanicalReduction", {}, "1");
-    }
-  }
-
-  // Add gazebo_ros_control plugin which reads the transmission tags
-  TiXmlElement* gazebo = uniqueInsert(*root, "gazebo");
-  TiXmlElement* plugin = uniqueInsert(*gazebo, "plugin", { { "name", "gazebo_ros_control", true } });
-  uniqueInsert(*plugin, "robotNamespace", {}, "/");
-
-  // generate new URDF
-  TiXmlPrinter new_urdf;
-  doc.Accept(&new_urdf);
-  // and return it when there are changes
-  return orig_urdf.Str() == new_urdf.Str() ? std::string() : new_urdf.Str();
 }
 
 bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)

@@ -67,22 +67,21 @@ public:
   void focusGiven() override;
   bool focusLost() override;
 
-private Q_SLOTS:
+private:
+  /// Generate Gazebo-compatible URDF, starting from original URDF
+  std::string generateGazeboCompatibleURDF() const;
 
+private Q_SLOTS:
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
-
-  // Called the copy to clipboard button is clicked
-  void copyURDF(const QString& link);
-
-  /// Generate Gazebo-compatible URDF, starting from original URDF
-  void generateURDF();
 
   /// Overwrite original URDF with content of document
   void overwriteURDF();
   /// Open original URDF with system editor
   void openURDF();
+  /// Copy the content of the URDF document to the clipboard
+  void copyURDF();
 
 private:
   // ******************************************************************************************

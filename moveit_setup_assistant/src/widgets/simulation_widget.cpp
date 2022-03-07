@@ -37,6 +37,7 @@
 #include "simulation_widget.h"
 #include "header_widget.h"
 #include "../tools/xml_syntax_highlighter.h"
+#include <moveit/setup_assistant/tools/xml_manipulation.h>
 
 // Qt
 #include <QColor>
@@ -118,7 +119,7 @@ SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& c
   // Copy URDF link, hidden initially
   copy_urdf_ = new QLabel(this);
   copy_urdf_->setText("<a href='contract'>Copy to Clipboard</a>");
-  connect(copy_urdf_, SIGNAL(linkActivated(const QString)), this, SLOT(copyURDF(const QString)));
+  connect(copy_urdf_, &QLabel::linkActivated, this, &SimulationWidget::copyURDF);
   layout->addWidget(copy_urdf_);
 
   // Finish Layout --------------------------------------------------
@@ -127,42 +128,11 @@ SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& c
 
 void SimulationWidget::focusGiven()
 {
-  if (simulation_text_->document()->isEmpty())
-    generateURDF();
-}
+  if (!simulation_text_->document()->isEmpty())
+    return;  // nothing to do
 
-bool SimulationWidget::focusLost()
-{
-  if (!config_data_->save_gazebo_urdf_)
-    return true;  // saving is disabled anyway
-
-  // validate XML
-  TiXmlDocument doc;
-  auto urdf = simulation_text_->document()->toPlainText().toStdString();
-  doc.Parse(urdf.c_str(), nullptr, TIXML_ENCODING_UTF8);
-  if (doc.Error())
-  {
-    QTextCursor cursor = simulation_text_->textCursor();
-    cursor.movePosition(QTextCursor::Start);
-    cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, doc.ErrorRow());
-    cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, doc.ErrorCol());
-    simulation_text_->setTextCursor(cursor);
-    QMessageBox::warning(this, tr("Gazebo URDF"), tr("Error parsing XML:\n").append(doc.ErrorDesc()));
-    simulation_text_->setFocus(Qt::OtherFocusReason);
-    return false;  // reject switching
-  }
-  else
-    config_data_->gazebo_urdf_string_ = std::move(urdf);
-  return true;
-}
-
-// ******************************************************************************************
-// Called when generate URDF button is clicked
-// ******************************************************************************************
-void SimulationWidget::generateURDF()
-{
   simulation_text_->setVisible(true);
-  std::string text = config_data_->getGazeboCompatibleURDF();
+  std::string text = generateGazeboCompatibleURDF();
   config_data_->gazebo_urdf_string_ = text;
 
   simulation_text_->document()->setPlainText(QString::fromStdString(text));
@@ -193,6 +163,31 @@ void SimulationWidget::generateURDF()
     config_data_->changes &= ~MoveItConfigData::SIMULATION;
 }
 
+bool SimulationWidget::focusLost()
+{
+  if (!config_data_->save_gazebo_urdf_)
+    return true;  // saving is disabled anyway
+
+  // validate XML
+  TiXmlDocument doc;
+  auto urdf = simulation_text_->document()->toPlainText().toStdString();
+  doc.Parse(urdf.c_str(), nullptr, TIXML_ENCODING_UTF8);
+  if (doc.Error())
+  {
+    QTextCursor cursor = simulation_text_->textCursor();
+    cursor.movePosition(QTextCursor::Start);
+    cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, doc.ErrorRow());
+    cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, doc.ErrorCol());
+    simulation_text_->setTextCursor(cursor);
+    QMessageBox::warning(this, tr("Gazebo URDF"), tr("Error parsing XML:\n").append(doc.ErrorDesc()));
+    simulation_text_->setFocus(Qt::OtherFocusReason);
+    return false;  // reject switching
+  }
+  else
+    config_data_->gazebo_urdf_string_ = std::move(urdf);
+  return true;
+}
+
 // ******************************************************************************************
 // Called when save URDF button is clicked
 // ******************************************************************************************
@@ -220,10 +215,93 @@ void SimulationWidget::openURDF()
 // ******************************************************************************************
 // Called the copy to clipboard button is clicked
 // ******************************************************************************************
-void SimulationWidget::copyURDF(const QString& /*link*/)
+void SimulationWidget::copyURDF()
 {
   simulation_text_->selectAll();
   simulation_text_->copy();
+}
+
+// Generate a Gazebo-compatible robot URDF
+std::string SimulationWidget::generateGazeboCompatibleURDF() const
+{
+  TiXmlDocument doc;
+  doc.Parse(config_data_->urdf_string_.c_str(), nullptr, TIXML_ENCODING_UTF8);
+  auto root = doc.RootElement();
+
+  // Normalize original urdf_string_
+  TiXmlPrinter orig_urdf;
+  doc.Accept(&orig_urdf);
+
+  // Map existing SimpleTransmission elements to their joint name
+  std::map<std::string, TiXmlElement*> transmission_elements;
+  for (TiXmlElement* element = root->FirstChildElement("transmission"); element != nullptr;
+       element = element->NextSiblingElement(element->Value()))
+  {
+    auto type_tag = element->FirstChildElement("type");
+    auto joint_tag = element->FirstChildElement("joint");
+    if (!type_tag || !type_tag->GetText() || !joint_tag || !joint_tag->Attribute("name"))
+      continue;  // ignore invalid tags
+    if (std::string(type_tag->GetText()) == "transmission_interface/SimpleTransmission")
+      transmission_elements[element->FirstChildElement("joint")->Attribute("name")] = element;
+  }
+
+  // Loop through Link and Joint elements and add Gazebo tags if not present
+  for (TiXmlElement* element = root->FirstChildElement(); element != nullptr; element = element->NextSiblingElement())
+  {
+    const std::string tag_name(element->Value());
+    if (tag_name == "link" && element->FirstChildElement("collision"))
+    {
+      TiXmlElement* inertial = uniqueInsert(*element, "inertial");
+      uniqueInsert(*inertial, "mass", { { "value", "0.1" } });
+      uniqueInsert(*inertial, "inertia",
+                   { { "ixx", "0.03" },
+                     { "iyy", "0.03" },
+                     { "izz", "0.03" },
+                     { "ixy", "0.0" },
+                     { "ixz", "0.0" },
+                     { "iyz", "0.0" } });
+    }
+    else if (tag_name == "joint")
+    {
+      const char* joint_type = element->Attribute("type");
+      const char* joint_name = element->Attribute("name");
+      if (!joint_type || !joint_name || strcmp(joint_type, "fixed") == 0)
+        continue;  // skip invalid or fixed joints
+
+      // find existing or create new transmission element for this joint
+      TiXmlElement* transmission;
+      auto it = transmission_elements.find(joint_name);
+      if (it != transmission_elements.end())
+        transmission = it->second;
+      else
+      {
+        transmission = root->InsertEndChild(TiXmlElement("transmission"))->ToElement();
+        transmission->SetAttribute("name", std::string("trans_") + joint_name);
+      }
+
+      uniqueInsert(*transmission, "type", {}, "transmission_interface/SimpleTransmission");
+
+      std::string hw_interface = config_data_->getJointHardwareInterface(joint_name);
+      auto* joint = uniqueInsert(*transmission, "joint", { { "name", joint_name } });
+      uniqueInsert(*joint, "hardwareInterface", {}, hw_interface.c_str());
+
+      auto actuator_name = joint_name + std::string("_motor");
+      auto* actuator = uniqueInsert(*transmission, "actuator", { { "name", actuator_name.c_str() } });
+      uniqueInsert(*actuator, "hardwareInterface", {}, hw_interface.c_str());
+      uniqueInsert(*actuator, "mechanicalReduction", {}, "1");
+    }
+  }
+
+  // Add gazebo_ros_control plugin which reads the transmission tags
+  TiXmlElement* gazebo = uniqueInsert(*root, "gazebo");
+  TiXmlElement* plugin = uniqueInsert(*gazebo, "plugin", { { "name", "gazebo_ros_control", true } });
+  uniqueInsert(*plugin, "robotNamespace", {}, "/");
+
+  // generate new URDF
+  TiXmlPrinter new_urdf;
+  doc.Accept(&new_urdf);
+  // and return it when there are changes
+  return orig_urdf.Str() == new_urdf.Str() ? std::string() : new_urdf.Str();
 }
 
 }  // namespace moveit_setup_assistant
