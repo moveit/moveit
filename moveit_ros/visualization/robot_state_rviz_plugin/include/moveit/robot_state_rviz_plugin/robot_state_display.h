@@ -43,6 +43,8 @@
 #include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
 #include <moveit_msgs/DisplayRobotState.h>
 #include <ros/ros.h>
+
+#include <mutex>
 #endif
 
 namespace rviz
@@ -128,6 +130,7 @@ protected:
   rdf_loader::RDFLoaderPtr rdf_loader_;
   moveit::core::RobotModelConstPtr robot_model_;
   moveit::core::RobotStatePtr robot_state_;
+  std::mutex robot_state_mutex_;
   std::map<std::string, std_msgs::ColorRGBA> highlights_;
   bool update_state_;
 

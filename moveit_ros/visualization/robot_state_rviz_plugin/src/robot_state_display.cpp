@@ -291,6 +291,7 @@ void RobotStateDisplay::changedRobotStateTopic()
   robot_state_subscriber_.shutdown();
 
   // reset model to default state, we don't want to show previous messages
+  std::lock_guard<std::mutex> lock(robot_state_mutex_);
   if (static_cast<bool>(robot_state_))
     robot_state_->setToDefaultValues();
   update_state_ = true;
@@ -305,6 +306,8 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
 {
   if (!robot_model_)
     return;
+
+  std::lock_guard<std::mutex> lock(robot_state_mutex_);
   if (!robot_state_)
     robot_state_ = std::make_shared<moveit::core::RobotState>(robot_model_);
   // possibly use TF to construct a moveit::core::Transforms object to pass in to the conversion function?
@@ -379,6 +382,7 @@ void RobotStateDisplay::loadRobotModel()
   {
     try
     {
+      std::lock_guard<std::mutex> lock(robot_state_mutex_);
       const srdf::ModelSharedPtr& srdf =
           rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : std::make_shared<srdf::Model>();
       robot_model_ = std::make_shared<moveit::core::RobotModel>(rdf_loader_->getURDF(), srdf);
@@ -437,6 +441,7 @@ void RobotStateDisplay::update(float wall_dt, float ros_dt)
 {
   Display::update(wall_dt, ros_dt);
   calculateOffsetPosition();
+  std::lock_guard<std::mutex> lock(robot_state_mutex_);
   if (robot_ && update_state_ && robot_state_)
   {
     update_state_ = false;
