@@ -37,11 +37,10 @@
 #pragma once
 
 #include <moveit/macros/class_forward.h>
-#include <moveit/planning_scene/planning_scene.h>                     // for getting kinematic model
-#include <moveit/setup_assistant/tools/compute_default_collisions.h>  // for LinkPairMap
-#include <yaml-cpp/yaml.h>                                            // outputing yaml config files
-#include <urdf/model.h>                                               // to share throughout app
-#include <srdfdom/srdf_writer.h>                                      // for writing srdf data
+#include <moveit/planning_scene/planning_scene.h>  // for getting kinematic model
+#include <yaml-cpp/yaml.h>                         // outputing yaml config files
+#include <urdf/model.h>                            // to share throughout app
+#include <srdfdom/srdf_writer.h>                   // for writing srdf data
 
 #include <utility>
 
@@ -308,7 +307,7 @@ public:
   srdf::Model::Group* findGroupByName(const std::string& name);
 
   /// Load the allowed collision matrix from the SRDF's list of link pairs
-  void loadAllowedCollisionMatrix();
+  void loadAllowedCollisionMatrix(const srdf::SRDFWriter& srdf);
 
   // ******************************************************************************************
   // Public Functions for outputting configuration and setting files

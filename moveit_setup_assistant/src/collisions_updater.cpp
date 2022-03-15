@@ -35,6 +35,8 @@
 /* Author: Mathias Lüdtke */
 
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
+#include <moveit/setup_assistant/tools/compute_default_collisions.h>
+
 #include <moveit/rdf_loader/rdf_loader.h>
 
 #include <boost/program_options.hpp>

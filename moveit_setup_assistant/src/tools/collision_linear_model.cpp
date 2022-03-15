@@ -41,8 +41,6 @@
 #include <QPainter>
 #include <cmath>
 
-using namespace moveit_setup_assistant;
-
 CollisionLinearModel::CollisionLinearModel(CollisionMatrixModel* src, QObject* parent) : QAbstractProxyModel(parent)
 {
   setSourceModel(src);

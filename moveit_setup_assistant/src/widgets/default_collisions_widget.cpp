@@ -62,6 +62,34 @@
 #include "../tools/rotated_header_view.h"
 #include <ros/console.h>
 
+namespace
+{
+// ******************************************************************************************
+// Convert LinkPairMap to SRDF
+// ******************************************************************************************
+void linkPairsToSRDF(const moveit_setup_assistant::LinkPairMap& pairs, srdf::SRDFWriter& srdf)
+{
+  // reset the data in the SRDF Writer class
+  srdf.disabled_collision_pairs_.clear();
+
+  // Create temp disabled collision
+  srdf::Model::CollisionPair dc;
+
+  // copy the data in this class's LinkPairMap datastructure to srdf::Model::CollisionPair format
+  for (const auto& item : pairs)
+  {
+    // Only copy those that are actually disabled
+    if (item.second.disable_check)
+    {
+      dc.link1_ = item.first.first;
+      dc.link2_ = item.first.second;
+      dc.reason_ = moveit_setup_assistant::disabledReasonToString(item.second.reason);
+      srdf.disabled_collision_pairs_.push_back(dc);
+    }
+  }
+}
+}  // namespace
+
 namespace moveit_setup_assistant
 {
 // ******************************************************************************************
@@ -274,13 +302,16 @@ void DefaultCollisionsWidget::generateCollisionTable(unsigned int* collision_pro
   config_data_->getPlanningScene()->getAllowedCollisionMatrixNonConst().clear();
 
   // Find the default collision matrix - all links that are allowed to collide
-  link_pairs_ = moveit_setup_assistant::computeDefaultCollisions(
+  auto link_pairs = moveit_setup_assistant::computeDefaultCollisions(
       config_data_->getPlanningScene(), collision_progress, include_never_colliding, num_trials, min_frac, verbose);
+  linkPairsToSRDF(link_pairs, *wip_srdf_);
+  // Update collision_matrix for robot pose's use
+  config_data_->loadAllowedCollisionMatrix(*wip_srdf_);
 
   // End the progress bar loop
   *collision_progress = 100;
 
-  ROS_INFO_STREAM("Thread complete " << link_pairs_.size());
+  ROS_INFO_STREAM("Thread complete " << link_pairs.size());
 }
 
 // ******************************************************************************************
@@ -289,7 +320,7 @@ void DefaultCollisionsWidget::generateCollisionTable(unsigned int* collision_pro
 void DefaultCollisionsWidget::loadCollisionTable()
 {
   CollisionMatrixModel* matrix_model = new CollisionMatrixModel(
-      link_pairs_, config_data_->getPlanningScene()->getRobotModel()->getLinkModelNamesWithCollisionGeometry());
+      wip_srdf_, config_data_->getPlanningScene()->getRobotModel()->getLinkModelNamesWithCollisionGeometry());
   QAbstractItemModel* model;
 
   if (view_mode_buttons_->checkedId() == MATRIX_MODE)
@@ -554,7 +585,7 @@ void DefaultCollisionsWidget::showSections(QHeaderView* header, const QList<int>
 
 void DefaultCollisionsWidget::revertChanges()
 {
-  linkPairsFromSRDF();
+  *wip_srdf_ = *config_data_->srdf_;
   loadCollisionTable();
   btn_revert_->setEnabled(false);  // no changes to revert
 }
@@ -671,70 +702,6 @@ void DefaultCollisionsWidget::checkedFilterChanged()
   m->setShowAll(collision_checkbox_->checkState() == Qt::Checked);
 }
 
-// Output Link Pairs to SRDF Format and update the collision matrix
-// ******************************************************************************************
-void DefaultCollisionsWidget::linkPairsToSRDF()
-{
-  // reset the data in the SRDF Writer class
-  config_data_->srdf_->disabled_collision_pairs_.clear();
-
-  // Create temp disabled collision
-  srdf::Model::CollisionPair dc;
-
-  // copy the data in this class's LinkPairMap datastructure to srdf::Model::CollisionPair format
-  for (moveit_setup_assistant::LinkPairMap::const_iterator pair_it = link_pairs_.begin(); pair_it != link_pairs_.end();
-       ++pair_it)
-  {
-    // Only copy those that are actually disabled
-    if (pair_it->second.disable_check)
-    {
-      dc.link1_ = pair_it->first.first;
-      dc.link2_ = pair_it->first.second;
-      dc.reason_ = moveit_setup_assistant::disabledReasonToString(pair_it->second.reason);
-      config_data_->srdf_->disabled_collision_pairs_.push_back(dc);
-    }
-  }
-
-  // Update collision_matrix for robot pose's use
-  config_data_->loadAllowedCollisionMatrix();
-}
-
-// ******************************************************************************************
-// Load Link Pairs from SRDF Format
-// ******************************************************************************************
-void DefaultCollisionsWidget::linkPairsFromSRDF()
-{
-  // Clear all the previous data in the compute_default_collisions tool
-  link_pairs_.clear();
-
-  // Create new instance of planning scene using pointer
-  planning_scene::PlanningScenePtr scene = config_data_->getPlanningScene()->diff();
-
-  // Populate link_pairs_ list with every possible n choose 2 combination of links
-  moveit_setup_assistant::computeLinkPairs(*scene, link_pairs_);
-
-  // Create temp link pair data struct
-  moveit_setup_assistant::LinkPairData link_pair_data;
-  std::pair<std::string, std::string> link_pair;
-
-  // Loop through all disabled collisions in SRDF and update the comprehensive list that has already been created
-  for (const auto& disabled_collision : config_data_->srdf_->disabled_collision_pairs_)
-  {
-    // Set the link names
-    link_pair.first = disabled_collision.link1_;
-    link_pair.second = disabled_collision.link2_;
-    if (link_pair.first >= link_pair.second)
-      std::swap(link_pair.first, link_pair.second);
-
-    // Set the link meta data
-    link_pair_data.reason = moveit_setup_assistant::disabledReasonFromString(disabled_collision.reason_);
-    link_pair_data.disable_check = true;  // disable checking the collision btw the 2 links
-
-    // Insert into map
-    link_pairs_[link_pair] = link_pair_data;
-  }
-}
-
 // ******************************************************************************************
 // Preview whatever element is selected
 // ******************************************************************************************
@@ -787,8 +754,8 @@ void DefaultCollisionsWidget::previewSelectedLinear(const QModelIndex& index)
 // ******************************************************************************************
 void DefaultCollisionsWidget::focusGiven()
 {
-  // Convert the SRDF data to LinkPairData format
-  linkPairsFromSRDF();
+  // srdf backup
+  wip_srdf_ = std::make_shared<srdf::SRDFWriter>(*config_data_->srdf_);
 
   // Load the data to the table
   loadCollisionTable();
@@ -809,9 +776,8 @@ bool DefaultCollisionsWidget::focusLost()
     worker_->cancel();
     worker_->wait();
   }
+  *config_data_->srdf_ = *wip_srdf_;
 
-  // Copy changes to srdf_writer object and config_data_->allowed_collision_matrix_
-  linkPairsToSRDF();
   return true;
 }
 

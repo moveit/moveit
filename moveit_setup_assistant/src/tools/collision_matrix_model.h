@@ -37,6 +37,7 @@
 #pragma once
 
 #include <QAbstractTableModel>
+#include <srdfdom/srdf_writer.h>
 
 #ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/compute_default_collisions.h>
@@ -48,7 +49,7 @@ class CollisionMatrixModel : public QAbstractTableModel
 {
   Q_OBJECT
 public:
-  CollisionMatrixModel(moveit_setup_assistant::LinkPairMap& pairs, const std::vector<std::string>& names,
+  CollisionMatrixModel(const srdf::SRDFWriterPtr& srdf, const std::vector<std::string>& names,
                        QObject* parent = nullptr);
   int rowCount(const QModelIndex& parent = QModelIndex()) const override;
   int columnCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -65,14 +66,12 @@ public Q_SLOTS:
   void setFilterRegExp(const QString& filter);
 
 private:
-  moveit_setup_assistant::LinkPairMap::iterator item(const QModelIndex& index);
-  moveit_setup_assistant::LinkPairMap::const_iterator item(const QModelIndex& index) const
-  {
-    return const_cast<CollisionMatrixModel*>(this)->item(index);
-  }
+  bool disabledByDefault(const std::string& link1, const std::string& link2) const;
+  std::vector<srdf::Model::CollisionPair>::iterator find(std::vector<srdf::Model::CollisionPair>& pairs,
+                                                         const std::string& link1, const std::string& link2) const;
 
 private:
-  moveit_setup_assistant::LinkPairMap& pairs;
+  srdf::SRDFWriterPtr srdf;
   const std::vector<std::string> std_names;  // names of links
   QList<QString> q_names;                    // names of links
   QList<int> visual_to_index;                // map from visual index to actual index
