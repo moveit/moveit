@@ -165,7 +165,6 @@ bool MoveItCpp::loadPlanningPipelines(const PlanningPipelineOptions& options)
   {
     for (const auto& group_name : group_names)
     {
-      groups_pipelines_map_[group_name] = {};
       const auto& pipeline = pipeline_entry.second;
       for (const auto& planner_configuration : pipeline->getPlannerManager()->getPlannerConfigurations())
       {
