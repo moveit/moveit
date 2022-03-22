@@ -253,6 +253,7 @@ std::string SimulationWidget::generateGazeboCompatibleURDF() const
     {
       TiXmlElement* inertial = uniqueInsert(*element, "inertial");
       uniqueInsert(*inertial, "mass", { { "value", "0.1" } });
+      uniqueInsert(*inertial, "origin", { { "xyz", "0 0 0" }, { "rpy", "0 0 0" } });
       uniqueInsert(*inertial, "inertia",
                    { { "ixx", "0.03" },
                      { "iyy", "0.03" },
