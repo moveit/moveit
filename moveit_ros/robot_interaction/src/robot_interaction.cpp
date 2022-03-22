@@ -283,7 +283,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string& group, Intera
   auto add_active_end_effectors_for_single_group = [&](const moveit::core::JointModelGroup* single_group) {
     bool found_eef{ false };
     for (const srdf::Model::EndEffector& eef : eefs)
-      if ((single_group->hasLinkModel(eef.parent_link_) || single_group->getName() == eef.parent_group_) &&
+      if (single_group->hasLinkModel(eef.parent_link_) && single_group->getName() == eef.parent_group_ &&
           single_group->canSetStateFromIK(eef.parent_link_))
       {
         // We found an end-effector whose parent is the group.
