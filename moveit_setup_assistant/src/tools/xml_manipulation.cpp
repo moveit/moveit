@@ -67,9 +67,12 @@ TiXmlElement* uniqueInsert(TiXmlElement& element, const char* tag, const std::ve
   if (!result)  // if not yet present, create new element
     result = element.InsertEndChild(TiXmlElement(tag))->ToElement();
 
-  // set attributes
+  // set (not-yet existing) attributes
   for (const auto& attr : attributes)
-    result->SetAttribute(attr.name, attr.value);
+  {
+    if (!result->Attribute(attr.name))
+      result->SetAttribute(attr.name, attr.value);
+  }
 
   // insert text if required
   if (text && !result->GetText())
