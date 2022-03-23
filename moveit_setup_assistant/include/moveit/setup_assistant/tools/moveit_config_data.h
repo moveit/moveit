@@ -199,8 +199,9 @@ public:
     POSES = 1 << 6,
     END_EFFECTORS = 1 << 7,
     PASSIVE_JOINTS = 1 << 8,
-    AUTHOR_INFO = 1 << 9,
-    SENSORS_CONFIG = 1 << 10,
+    SIMULATION = 1 << 9,
+    AUTHOR_INFO = 1 << 10,
+    SENSORS_CONFIG = 1 << 11,
     SRDF = COLLISIONS | VIRTUAL_JOINTS | GROUPS | GROUP_CONTENTS | POSES | END_EFFECTORS | PASSIVE_JOINTS
   };
   unsigned long changes;  // bitfield of changes (composed of InformationFields)
@@ -230,6 +231,13 @@ public:
 
   /// URDF robot model string
   std::string urdf_string_;
+
+  /// Gazebo URDF robot model string
+  // NOTE: Created when the robot urdf is not compatible with Gazebo.
+  std::string gazebo_urdf_string_;
+
+  /// Whether a new Gazebo URDF is created
+  bool save_gazebo_urdf_;
 
   // ******************************************************************************************
   // SRDF Data
@@ -308,6 +316,7 @@ public:
   std::vector<OMPLPlannerDescription> getOMPLPlanners() const;
   std::map<std::string, double> getInitialJoints() const;
   bool outputSetupAssistantFile(const std::string& file_path);
+  bool outputGazeboURDFFile(const std::string& file_path);
   bool outputOMPLPlanningYAML(const std::string& file_path);
   bool outputSTOMPPlanningYAML(const std::string& file_path);
   bool outputKinematicsYAML(const std::string& file_path);
@@ -322,13 +331,6 @@ public:
    * \return controller type
    */
   std::string getJointHardwareInterface(const std::string& joint_name);
-
-  /**
-   * \brief Parses the existing urdf and constructs a string from it with the elements required by gazebo simulator
-   * added
-   * \return gazebo compatible urdf or empty if error encountered
-   */
-  std::string getGazeboCompatibleURDF();
 
   /**
    * \brief Decide the best two joints to be used for the projection evaluator

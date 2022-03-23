@@ -35,6 +35,7 @@
 /* Author: Dave Coleman */
 
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
+
 // Reading/Writing Files
 #include <iostream>  // For writing yaml and launch files
 #include <fstream>
@@ -206,6 +207,24 @@ bool MoveItConfigData::outputSetupAssistantFile(const std::string& file_path)
   config_pkg_generated_timestamp_ = cur_time;
 
   return true;  // file created successfully
+}
+
+// ******************************************************************************************
+// Output Gazebo URDF file
+// ******************************************************************************************
+bool MoveItConfigData::outputGazeboURDFFile(const std::string& file_path)
+{
+  std::ofstream os(file_path.c_str(), std::ios_base::trunc);
+  if (!os.good())
+  {
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
+    return false;
+  }
+
+  os << gazebo_urdf_string_.c_str() << std::endl;
+  os.close();
+
+  return true;
 }
 
 // ******************************************************************************************
@@ -502,112 +521,6 @@ std::string MoveItConfigData::getJointHardwareInterface(const std::string& joint
   }
   // If the joint was not found in any controller return EffortJointInterface
   return "hardware_interface/EffortJointInterface";
-}
-
-// ******************************************************************************************
-// Writes a Gazebo compatible robot URDF to gazebo_compatible_urdf_string_
-// ******************************************************************************************
-std::string MoveItConfigData::getGazeboCompatibleURDF()
-{
-  bool new_urdf_needed = false;
-  TiXmlDocument urdf_document;
-
-  // Used to convert XmlDocument to std string
-  TiXmlPrinter printer;
-  urdf_document.Parse((const char*)urdf_string_.c_str(), nullptr, TIXML_ENCODING_UTF8);
-  try
-  {
-    for (TiXmlElement* doc_element = urdf_document.RootElement()->FirstChildElement(); doc_element != nullptr;
-         doc_element = doc_element->NextSiblingElement())
-    {
-      if (static_cast<std::string>(doc_element->Value()).find("link") != std::string::npos)
-      {
-        // Before adding inertial elements, make sure there is none and the link has collision element
-        if (doc_element->FirstChildElement("inertial") == nullptr &&
-            doc_element->FirstChildElement("collision") != nullptr)
-        {
-          new_urdf_needed = true;
-          TiXmlElement inertia_link("inertial");
-          TiXmlElement mass("mass");
-          TiXmlElement inertia_joint("inertia");
-
-          mass.SetAttribute("value", "0.1");
-
-          inertia_joint.SetAttribute("ixx", "0.03");
-          inertia_joint.SetAttribute("iyy", "0.03");
-          inertia_joint.SetAttribute("izz", "0.03");
-          inertia_joint.SetAttribute("ixy", "0.0");
-          inertia_joint.SetAttribute("ixz", "0.0");
-          inertia_joint.SetAttribute("iyz", "0.0");
-
-          inertia_link.InsertEndChild(mass);
-          inertia_link.InsertEndChild(inertia_joint);
-
-          doc_element->InsertEndChild(inertia_link);
-        }
-      }
-      else if (static_cast<std::string>(doc_element->Value()).find("joint") != std::string::npos)
-      {
-        // Before adding a transmission element, make sure there the joint is not fixed
-        if (static_cast<std::string>(doc_element->Attribute("type")) != "fixed")
-        {
-          new_urdf_needed = true;
-          std::string joint_name = static_cast<std::string>(doc_element->Attribute("name"));
-          TiXmlElement transmission("transmission");
-          TiXmlElement type("type");
-          TiXmlElement joint("joint");
-          TiXmlElement hardware_interface("hardwareInterface");
-          TiXmlElement actuator("actuator");
-          TiXmlElement mechanical_reduction("mechanicalReduction");
-
-          transmission.SetAttribute("name", std::string("trans_") + joint_name);
-          joint.SetAttribute("name", joint_name);
-          actuator.SetAttribute("name", joint_name + std::string("_motor"));
-
-          type.InsertEndChild(TiXmlText("transmission_interface/SimpleTransmission"));
-          transmission.InsertEndChild(type);
-
-          hardware_interface.InsertEndChild(TiXmlText(getJointHardwareInterface(joint_name).c_str()));
-          joint.InsertEndChild(hardware_interface);
-          transmission.InsertEndChild(joint);
-
-          mechanical_reduction.InsertEndChild(TiXmlText("1"));
-          actuator.InsertEndChild(hardware_interface);
-          actuator.InsertEndChild(mechanical_reduction);
-          transmission.InsertEndChild(actuator);
-
-          urdf_document.RootElement()->InsertEndChild(transmission);
-        }
-      }
-    }
-
-    // Add gazebo_ros_control plugin which reads the transmission tags
-    TiXmlElement gazebo("gazebo");
-    TiXmlElement plugin("plugin");
-    TiXmlElement robot_namespace("robotNamespace");
-
-    plugin.SetAttribute("name", "gazebo_ros_control");
-    plugin.SetAttribute("filename", "libgazebo_ros_control.so");
-    robot_namespace.InsertEndChild(TiXmlText(std::string("/")));
-
-    plugin.InsertEndChild(robot_namespace);
-    gazebo.InsertEndChild(plugin);
-
-    urdf_document.RootElement()->InsertEndChild(gazebo);
-  }
-  catch (YAML::ParserException& e)  // Catch errors
-  {
-    ROS_ERROR_STREAM_NAMED("moveit_config_data", e.what());
-    return std::string("");
-  }
-
-  if (new_urdf_needed)
-  {
-    urdf_document.Accept(&printer);
-    return std::string(printer.CStr());
-  }
-
-  return std::string("");
 }
 
 bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
