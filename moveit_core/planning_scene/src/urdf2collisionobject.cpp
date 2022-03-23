@@ -90,12 +90,19 @@ moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_m
   // -------  Part I ----------
   //  Get the links from the urdf model and extract its geometry.
   //  output: an array with names and sapes
+  //    - solid_primitives_map
+  //    - mesh_map
   // ----------------------------------
   //
   std::map<std::string, std::pair<shape_msgs::SolidPrimitive, Eigen::Isometry3d>> solid_primitives_map;
   std::map<std::string, std::pair<shape_msgs::Mesh, Eigen::Isometry3d>> mesh_map;
 
   kdl_parser::treeFromUrdfModel(_urdf_model, kdl_tree);
+  if (kdl_tree.getSegments().size() == 0)
+  {
+    ROS_ERROR("The urdf is empty");
+    return result_empty;
+  }
   std::vector<urdf::LinkSharedPtr> links_in_object;
 
   const std::string& root_link_name = GetTreeElementSegment(kdl_tree.getRootSegment()->second).getName();
@@ -106,10 +113,15 @@ moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_m
       find_if(links_in_object.begin(), links_in_object.end(),
               [&root_link_name](const urdf::LinkSharedPtr& _link) { return _link->name == root_link_name; });
 
+  if (it == links_in_object.end())
+  {
+    ROS_ERROR("could not find root link or the urdf is empty");
+    return result_empty;
+  }
+
+  // Place the root object at the beginnig of the array
   urdf::LinkSharedPtr root_link = *it;
-
   links_in_object.erase(it);
-
   links_in_object.insert(links_in_object.begin(), root_link);
 
   shape_msgs::SolidPrimitive solid_primitive;
@@ -132,100 +144,102 @@ moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_m
     }
     else
     {
-      ROS_ERROR("Link ill defined");
-      return result_empty;
+      ROS_WARN("Link ill defined: Link %s has not visual or collision tag", link->name.c_str());
     }
 
-    switch (geometry->type)
+    if (link->collision or link->visual)
     {
-      case urdf::Geometry::BOX:
+      switch (geometry->type)
       {
-        solid_primitive.type = solid_primitive.BOX;
-        // downcast
-        const urdf::BoxConstSharedPtr box = std::dynamic_pointer_cast<const urdf::Box>(geometry);
-        // set dimensions
-        if (box)
+        case urdf::Geometry::BOX:
         {
-          solid_primitive.dimensions = std::vector<double>{ box->dim.x, box->dim.y, box->dim.z };
-          solid_primitives_map[link->name] =
-              std::make_pair(solid_primitive, collision_detection_bullet::urdfPose2Eigen(pose));
-        }
-        else
-        {
-          ROS_ERROR("Link ill defined");
-        }
-        break;
-      }
-      case urdf::Geometry::CYLINDER:
-      {
-        // set type
-        solid_primitive.type = solid_primitive.CYLINDER;
-        // downcast
-        const urdf::CylinderConstSharedPtr cylinder = std::dynamic_pointer_cast<const urdf::Cylinder>(geometry);
-        // set dimensions
-        if (cylinder)
-        {
-          solid_primitive.dimensions = std::vector<double>{ cylinder->length, cylinder->radius };
-          solid_primitives_map[link->name] =
-              std::make_pair(solid_primitive, collision_detection_bullet::urdfPose2Eigen(pose));
-        }
-        else
-        {
-          ROS_ERROR("Link ill defined");
-        }
-        break;
-      }
-      case urdf::Geometry::SPHERE:
-      {
-        // set type
-        solid_primitive.type = solid_primitive.SPHERE;
-        // downcast
-        const urdf::SphereConstSharedPtr sphere = std::dynamic_pointer_cast<const urdf::Sphere>(geometry);
-        if (sphere)
-        {
+          solid_primitive.type = solid_primitive.BOX;
+          // downcast
+          const urdf::BoxConstSharedPtr box = std::dynamic_pointer_cast<const urdf::Box>(geometry);
           // set dimensions
-          solid_primitive.dimensions = std::vector<double>{ sphere->radius };
-          solid_primitives_map[link->name] =
-              std::make_pair(solid_primitive, collision_detection_bullet::urdfPose2Eigen(pose));
-        }
-        else
-        {
-          ROS_ERROR("Link ill defined");
-        }
-        break;
-      }
-      case urdf::Geometry::MESH:
-      {
-        const urdf::MeshConstSharedPtr mesh = std::dynamic_pointer_cast<const urdf::Mesh>(geometry);
-        shape_msgs::Mesh mesh_msg;
-        if (mesh)
-        {
-          const Eigen::Vector3d scaling = Eigen::Vector3d(mesh->scale.x, mesh->scale.y, mesh->scale.z);
-          mesh_map[link->name] = std::make_pair(mesh_msg, collision_detection_bullet::urdfPose2Eigen(pose));
-
-          // handle geometric_shapes specific stuff
-          std::unique_ptr<const shapes::Shape> shape_primitive =
-              std::unique_ptr<const shapes::Shape>(shapes::createMeshFromResource(mesh->filename, scaling));
-          shapes::ShapeMsg shape_primitive_msg;
-          shapes::constructMsgFromShape(shape_primitive.get(), shape_primitive_msg);
-          try
+          if (box)
           {
-            mesh_msg = boost::get<shape_msgs::Mesh>(shape_primitive_msg);
+            solid_primitive.dimensions = std::vector<double>{ box->dim.x, box->dim.y, box->dim.z };
+            solid_primitives_map[link->name] =
+                std::make_pair(solid_primitive, collision_detection_bullet::urdfPose2Eigen(pose));
+          }
+          else
+          {
+            ROS_ERROR("Link ill defined: urdf::Geometry could not be casted into urdf::Box");
+          }
+          break;
+        }
+        case urdf::Geometry::CYLINDER:
+        {
+          // set type
+          solid_primitive.type = solid_primitive.CYLINDER;
+          // downcast
+          const urdf::CylinderConstSharedPtr cylinder = std::dynamic_pointer_cast<const urdf::Cylinder>(geometry);
+          // set dimensions
+          if (cylinder)
+          {
+            solid_primitive.dimensions = std::vector<double>{ cylinder->length, cylinder->radius };
+            solid_primitives_map[link->name] =
+                std::make_pair(solid_primitive, collision_detection_bullet::urdfPose2Eigen(pose));
+          }
+          else
+          {
+            ROS_ERROR("Link ill defined: urdf::Geometry could not be casted into urdf::Cylinder");
+          }
+          break;
+        }
+        case urdf::Geometry::SPHERE:
+        {
+          // set type
+          solid_primitive.type = solid_primitive.SPHERE;
+          // downcast
+          const urdf::SphereConstSharedPtr sphere = std::dynamic_pointer_cast<const urdf::Sphere>(geometry);
+          if (sphere)
+          {
+            // set dimensions
+            solid_primitive.dimensions = std::vector<double>{ sphere->radius };
+            solid_primitives_map[link->name] =
+                std::make_pair(solid_primitive, collision_detection_bullet::urdfPose2Eigen(pose));
+          }
+          else
+          {
+            ROS_ERROR("Link ill defined: urdf::Geometry could not be casted into urdf::Sphere");
+          }
+          break;
+        }
+        case urdf::Geometry::MESH:
+        {
+          const urdf::MeshConstSharedPtr mesh = std::dynamic_pointer_cast<const urdf::Mesh>(geometry);
+          shape_msgs::Mesh mesh_msg;
+          if (mesh)
+          {
+            const Eigen::Vector3d scaling = Eigen::Vector3d(mesh->scale.x, mesh->scale.y, mesh->scale.z);
             mesh_map[link->name] = std::make_pair(mesh_msg, collision_detection_bullet::urdfPose2Eigen(pose));
+
+            // handle geometric_shapes specific stuff
+            std::unique_ptr<const shapes::Shape> shape_primitive =
+                std::unique_ptr<const shapes::Shape>(shapes::createMeshFromResource(mesh->filename, scaling));
+            shapes::ShapeMsg shape_primitive_msg;
+            shapes::constructMsgFromShape(shape_primitive.get(), shape_primitive_msg);
+            try
+            {
+              mesh_msg = boost::get<shape_msgs::Mesh>(shape_primitive_msg);
+              mesh_map[link->name] = std::make_pair(mesh_msg, collision_detection_bullet::urdfPose2Eigen(pose));
+            }
+            catch (std::exception const& ex)
+            {
+              ROS_ERROR("Link ill defined: could to build the mesh");
+            }
           }
-          catch (std::exception const& ex)
+          else
           {
-            ROS_ERROR("Link ill defined");
+            ROS_ERROR("Link ill defined: could not cast geometry to mesh");
           }
+          break;
         }
-        else
-        {
-          ROS_ERROR("Link ill defined");
-        }
-        break;
+        default:
+          ROS_ERROR("Link ill defined: geomtry type unknown");
       }
-      default:
-        ROS_ERROR("Link ill defined");
     }
   }
   // ----------------------------------
@@ -233,6 +247,7 @@ moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_m
   // Get the relative positions of the shapes
   // ----------------------------------
 
+  std::cout << "---- 2 \n";
   // II.1 build the array of segmenets
   std::map<std::string, robot_state_publisher::SegmentPair> segments;
 
@@ -277,6 +292,7 @@ moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_m
       ROS_ERROR("cannot find a tranform from %s to %s\n", root_link_name.c_str(), it.first.c_str());
     }
   }
+  std::cout << "--------- eNDEEEE  -- \n";
   for (const auto& it : mesh_map)
   {
     if (it.first == root_link_name)
@@ -299,8 +315,13 @@ moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_m
       ROS_ERROR("cannot find a tranform from %s to %s\n", root_link_name.c_str(), it.first.c_str());
     }
   }
-  std::iter_swap(result.primitive_poses.begin(), result.primitive_poses.begin() + root_index);
-  std::iter_swap(result.primitives.begin(), result.primitives.begin() + root_index);
+  std::cout << "--------- eNDEEEE  -- \n";
+  // TODO
+  // 1. check if the root link has visual and collision. Handle if not
+  // 2. check if the root link is a mesh or a primitive. Handle the array positions.
+  // std::iter_swap(result.primitive_poses.begin(), result.primitive_poses.begin() + root_index);
+  // std::iter_swap(result.primitives.begin(), result.primitives.begin() + root_index);
+  std::cout << "--------- eNDEEEE  -- \n";
   return result;
 }
 

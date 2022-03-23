@@ -43,6 +43,7 @@ install(FILES ${CATKIN_DEVEL_PREFIX}/include/moveit/${MOVEIT_LIB_NAME}_export.h
         DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
 
 if(CATKIN_ENABLE_TESTING)
+  find_package(orocos_kdl REQUIRED)
   catkin_add_gtest(test_planning_scene test/test_planning_scene.cpp)
   target_link_libraries(test_planning_scene ${MOVEIT_LIB_NAME}
                         moveit_test_utils)
@@ -57,6 +58,8 @@ if(CATKIN_ENABLE_TESTING)
 
   catkin_add_gtest(test_urdf_to_collision_object
                    test/test_urdf2collisionobject.cpp)
-  target_link_libraries(test_urdf_to_collision_object ${MOVEIT_LIB_NAME}
-                        moveit_test_utils ${catkin_LIBRARIES})
+  message(WARNING ${orocos_kdl_LIBRARIES})
+  target_link_libraries(
+    test_urdf_to_collision_object ${MOVEIT_LIB_NAME} moveit_test_utils
+    ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
 endif()

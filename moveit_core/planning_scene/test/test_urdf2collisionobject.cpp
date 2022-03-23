@@ -43,42 +43,52 @@
 #include <string>
 #include <ros/package.h>
 #include <tf2_eigen/tf2_eigen.h>
-#include <moveit/rdf_loader/rdf_loader.h>
+// #include <moveit/rdf_loader/rdf_loader.h>
 #include <kdl/tree.hpp>
 #include <kdl/chain.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl_parser/kdl_parser.hpp>
 
+/** Test if a urdf is loaded as collision object correctly. This test loads a
+ * fanuc model and check if the first link was loaded correctly as a collition
+ * object
+ **/
 TEST(URDF_TO_COLLISION_OBJECT, LoadFromFile)
 {
+  ros::Time::init();
   std::string path = ros::package::getPath("moveit_resources_fanuc_description") + "/urdf/fanuc.urdf";
   urdf::Model urdf_model;
+
   urdf_model.initFile(path);
+  moveit_msgs::CollisionObject collision_object = planning_scene::urdf_to_collision_object(urdf_model);
 
   // use rdf_loader::RDFLoader with urdf and srdf to instantiate a robot model and check the kinematics
 
+  std::cout << "---- \n";
   KDL::Tree tree;
   KDL::Chain chain;
   kdl_parser::treeFromUrdfModel(urdf_model, tree);
+  std::cout << "---- \n";
 
   tree.getChain("base_link", "tool0", chain);
+  std::cout << "---- \n";
 
   KDL::ChainFkSolverPos_recursive fk_solver(chain);
 
-  KDL::JntArray joint_array;
+  std::cout << "---- \n";
+  KDL::JntArray joint_array(6);
   joint_array.data = Eigen::VectorXd::Zero(6);
+  std::cout << "---- \n";
   // chain.getSegment(0).
-  for (std::size_t i = 0; i < chain.getNrOfSegments(); i++)
-  {
-    KDL::Frame frame;
-    chain.getSegment(0).getName();
-    fk_solver.ChainFkSolverPos::JntToCart(joint_array, frame, i);
-  }
-
-  moveit_msgs::CollisionObject collision_object = planning_scene::urdf_to_collision_object(urdf_model);
-
-  std::cout << "KDL Segments " << tree.getNrOfSegments() << "  collision object frames "
-            << collision_object.primitives.size() << "\n";
+  KDL::Frame frame;
+  std::cout << "---- \n";
+  fk_solver.JntToCart(joint_array, frame, 1);
+  std::cout << "---- \n";
+  EXPECT_LE(std::abs(frame.p.x() - 0.0), 0.0001);
+  EXPECT_LE(std::abs(frame.p.y() - 0.0), 0.0001);
+  EXPECT_LE(std::abs(frame.p.z() - 0.45), 0.0001);
+  EXPECT_TRUE(collision_object.primitives.empty());
+  EXPECT_EQ(collision_object.meshes.size(), 7);
 }
 
 int main(int argc, char** argv)
