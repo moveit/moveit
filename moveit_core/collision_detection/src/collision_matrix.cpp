@@ -340,10 +340,14 @@ void AllowedCollisionMatrix::getAllEntryNames(std::vector<std::string>& names) c
 {
   names.clear();
   for (const auto& entry : entries_)
-    if (!names.empty() && names.back() == entry.first)
-      continue;
-    else
-      names.push_back(entry.first);
+    names.push_back(entry.first);
+
+  for (const auto& item : default_entries_)
+  {
+    auto it = std::lower_bound(names.begin(), names.end(), item.first);
+    if (it != names.end() && *it != item.first)
+      names.insert(it, item.first);
+  }
 }
 
 void AllowedCollisionMatrix::getMessage(moveit_msgs::AllowedCollisionMatrix& msg) const
@@ -354,7 +358,6 @@ void AllowedCollisionMatrix::getMessage(moveit_msgs::AllowedCollisionMatrix& msg
   msg.default_entry_values.clear();
 
   getAllEntryNames(msg.entry_names);
-  std::sort(msg.entry_names.begin(), msg.entry_names.end());
 
   msg.entry_values.resize(msg.entry_names.size());
   for (std::size_t i = 0; i < msg.entry_names.size(); ++i)
@@ -385,7 +388,6 @@ void AllowedCollisionMatrix::print(std::ostream& out) const
 {
   std::vector<std::string> names;
   getAllEntryNames(names);
-  std::sort(names.begin(), names.end());
 
   std::size_t spacing = 4;
   for (auto& name : names)
