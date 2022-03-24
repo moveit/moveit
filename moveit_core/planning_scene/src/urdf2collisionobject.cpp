@@ -72,7 +72,7 @@ void addChildren(const KDL::SegmentMap::const_iterator _segment,
 /* Auxiliar function, used to fix names */
 std::string stripSlash(const std::string& in)
 {
-  if (in.size() && in[0] == '/')
+  if (not in.empty() && in[0] == '/')
   {
     return in.substr(1);
   }
@@ -84,7 +84,7 @@ moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_m
   KDL::Tree kdl_tree;
   moveit_msgs::CollisionObject result;
 
-  const moveit_msgs::CollisionObject result_empty;  // empty collision object
+  moveit_msgs::CollisionObject result_empty;  // empty collision object should be const
   // ----------------------------------
   // -------  Part I ----------
   //  Get the links from the urdf model and extract its geometry.
@@ -97,7 +97,7 @@ moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_m
   std::map<std::string, std::pair<shape_msgs::Mesh, Eigen::Isometry3d>> mesh_map;
 
   kdl_parser::treeFromUrdfModel(_urdf_model, kdl_tree);
-  if (kdl_tree.getSegments().size() == 0)
+  if (kdl_tree.getSegments().empty())
   {
     ROS_ERROR("The urdf is empty");
     return result_empty;
@@ -316,7 +316,7 @@ void addChildren(const KDL::SegmentMap::const_iterator _segment,
   // get children of the segment
   const std::vector<KDL::SegmentMap::const_iterator>& children = GetTreeElementChildren(_segment->second);
 
-  for (size_t i = 0; i < children.size(); ++i)
+  for (std::size_t i = 0; i < children.size(); ++i)
   {
     const KDL::Segment& child = GetTreeElementSegment(children[i]->second);
     robot_state_publisher::SegmentPair segment_pair(GetTreeElementSegment(children[i]->second), root, child.getName());
