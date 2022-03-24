@@ -316,15 +316,15 @@ void addChildren(const KDL::SegmentMap::const_iterator _segment,
   // get children of the segment
   const std::vector<KDL::SegmentMap::const_iterator>& children = GetTreeElementChildren(_segment->second);
 
-  for (std::size_t i = 0; i < children.size(); ++i)
+  for (auto& element : children)
   {
-    const KDL::Segment& child = GetTreeElementSegment(children[i]->second);
-    robot_state_publisher::SegmentPair segment_pair(GetTreeElementSegment(children[i]->second), root, child.getName());
+    const KDL::Segment& child = GetTreeElementSegment(element->second);
+    robot_state_publisher::SegmentPair segment_pair(GetTreeElementSegment(element->second), root, child.getName());
     // const KDL::Joint& old_joint = child.getJoint();
     // KDL::Joint new_joint(old_joint.JointOrigin(), old_joint.JointAxis(), KDL::Joint::None);
 
     _segments_fixed.insert(make_pair(child.getJoint().getName(), segment_pair));
-    addChildren(children[i], _segments_fixed);
+    addChildren(element, _segments_fixed);
   }
 }
 
