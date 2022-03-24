@@ -42,6 +42,13 @@
 
 namespace planning_scene
 {
-/** \brief Converts a urdf model \e _urdf_model into a CollisionObject. */
+/*** Converts a urdf model \e _urdf_model into a CollisionObject.
+ *
+ *  In case of error, the result will have both CollisionObject::primitives
+ *  and CollisionObject::shapes vectors empty.
+ *  All the joints found in the URDF will be set to FIXED type.  All the
+ *  relative positions of the primitive shapes and the meshens are computed
+ *  with respect to the root of the URDF computed by the KDL lib.
+ * */
 moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_model);
 }  // namespace planning_scene

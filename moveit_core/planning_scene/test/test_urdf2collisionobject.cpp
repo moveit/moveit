@@ -43,7 +43,6 @@
 #include <string>
 #include <ros/package.h>
 #include <tf2_eigen/tf2_eigen.h>
-// #include <moveit/rdf_loader/rdf_loader.h>
 #include <kdl/tree.hpp>
 #include <kdl/chain.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
@@ -62,31 +61,25 @@ TEST(URDF_TO_COLLISION_OBJECT, LoadFromFile)
   urdf_model.initFile(path);
   moveit_msgs::CollisionObject collision_object = planning_scene::urdf_to_collision_object(urdf_model);
 
-  // use rdf_loader::RDFLoader with urdf and srdf to instantiate a robot model and check the kinematics
-
-  std::cout << "---- \n";
   KDL::Tree tree;
   KDL::Chain chain;
   kdl_parser::treeFromUrdfModel(urdf_model, tree);
-  std::cout << "---- \n";
 
   tree.getChain("base_link", "tool0", chain);
-  std::cout << "---- \n";
 
   KDL::ChainFkSolverPos_recursive fk_solver(chain);
 
-  std::cout << "---- \n";
   KDL::JntArray joint_array(6);
   joint_array.data = Eigen::VectorXd::Zero(6);
-  std::cout << "---- \n";
-  // chain.getSegment(0).
   KDL::Frame frame;
-  std::cout << "---- \n";
-  fk_solver.JntToCart(joint_array, frame, 1);
-  std::cout << "---- \n";
-  EXPECT_LE(std::abs(frame.p.x() - 0.0), 0.0001);
-  EXPECT_LE(std::abs(frame.p.y() - 0.0), 0.0001);
-  EXPECT_LE(std::abs(frame.p.z() - 0.45), 0.0001);
+
+  for (std::size_t i = 0; i < 7; i++)
+  {
+    fk_solver.JntToCart(joint_array, frame, i);
+    EXPECT_NEAR(collision_object.mesh_poses[i].position.x, frame.p.x(), 0.0001) << "link " << i;
+    EXPECT_NEAR(collision_object.mesh_poses[i].position.y, frame.p.y(), 0.0001) << "link " << i;
+    EXPECT_NEAR(collision_object.mesh_poses[i].position.z, frame.p.z(), 0.0001) << "link " << i;
+  }
   EXPECT_TRUE(collision_object.primitives.empty());
   EXPECT_EQ(collision_object.meshes.size(), 7);
 }

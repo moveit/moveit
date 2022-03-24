@@ -82,14 +82,13 @@ std::string stripSlash(const std::string& in)
 moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_model)
 {
   KDL::Tree kdl_tree;
-  tf2_ros::Buffer tf_buffer;
   moveit_msgs::CollisionObject result;
 
   const moveit_msgs::CollisionObject result_empty;  // empty collision object
   // ----------------------------------
   // -------  Part I ----------
   //  Get the links from the urdf model and extract its geometry.
-  //  output: an array with names and sapes
+  //  output: the following maps with names and geometries
   //    - solid_primitives_map
   //    - mesh_map
   // ----------------------------------
@@ -115,7 +114,7 @@ moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_m
 
   if (it == links_in_object.end())
   {
-    ROS_ERROR("could not find root link or the urdf is empty");
+    ROS_ERROR("could not find root link");
     return result_empty;
   }
 
@@ -210,25 +209,24 @@ moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_m
         case urdf::Geometry::MESH:
         {
           const urdf::MeshConstSharedPtr mesh = std::dynamic_pointer_cast<const urdf::Mesh>(geometry);
-          shape_msgs::Mesh mesh_msg;
           if (mesh)
           {
             const Eigen::Vector3d scaling = Eigen::Vector3d(mesh->scale.x, mesh->scale.y, mesh->scale.z);
-            mesh_map[link->name] = std::make_pair(mesh_msg, collision_detection_bullet::urdfPose2Eigen(pose));
-
-            // handle geometric_shapes specific stuff
+            // build a shapes::Shape from the file in the URDF
             std::unique_ptr<const shapes::Shape> shape_primitive =
                 std::unique_ptr<const shapes::Shape>(shapes::createMeshFromResource(mesh->filename, scaling));
+            // build a shapes::ShapeMsg from the shapes:Shape
             shapes::ShapeMsg shape_primitive_msg;
             shapes::constructMsgFromShape(shape_primitive.get(), shape_primitive_msg);
             try
             {
-              mesh_msg = boost::get<shape_msgs::Mesh>(shape_primitive_msg);
+              // build a shape_msgs::Mesh from a shapes::ShapeMsg
+              shape_msgs::Mesh mesh_msg = boost::get<shape_msgs::Mesh>(shape_primitive_msg);
               mesh_map[link->name] = std::make_pair(mesh_msg, collision_detection_bullet::urdfPose2Eigen(pose));
             }
             catch (std::exception const& ex)
             {
-              ROS_ERROR("Link ill defined: could to build the mesh");
+              ROS_ERROR("Link ill defined: unable to build the mesh. Exeption:  %s", ex.what());
             }
           }
           else
@@ -238,7 +236,7 @@ moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_m
           break;
         }
         default:
-          ROS_ERROR("Link ill defined: geomtry type unknown");
+          ROS_ERROR("Link ill defined: geometry type unknown");
       }
     }
   }
@@ -247,13 +245,13 @@ moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_m
   // Get the relative positions of the shapes
   // ----------------------------------
 
-  std::cout << "---- 2 \n";
-  // II.1 build the array of segmenets
+  // 1. build the array of segmenets
   std::map<std::string, robot_state_publisher::SegmentPair> segments;
 
   addChildren(kdl_tree.getRootSegment(), segments);
 
   // 2. for each segment compute the required transform
+  tf2_ros::Buffer tf_buffer;  // this steps fills this buffer with transforms
   for (std::map<std::string, robot_state_publisher::SegmentPair>::const_iterator segment_pair = segments.begin();
        segment_pair != segments.end(); segment_pair++)
   {
@@ -265,16 +263,12 @@ moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_m
     // 2.1 push the transform into the tf_buffer
     if (not tf_buffer.setTransform(tf_transform, "default_authority", true))
     {
-      ROS_ERROR("Link ill defined");
+      ROS_ERROR("Cannot compute the transformation between %s and %s", tf_transform.header.frame_id.c_str(),
+                tf_transform.child_frame_id.c_str());
     }
   }
-  std::size_t counter = 0;     // use to fid the position of the root link
-  std::size_t root_index = 0;  // use to fid the position of the root link
   for (const auto& it : solid_primitives_map)
   {
-    if (it.first == root_link_name)
-      root_index = counter;
-    counter++;
     if (tf_buffer.canTransform(root_link_name, it.first, ros::Time::now()))
     {
       geometry_msgs::TransformStamped primitive_transform =
@@ -292,12 +286,8 @@ moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_m
       ROS_ERROR("cannot find a tranform from %s to %s\n", root_link_name.c_str(), it.first.c_str());
     }
   }
-  std::cout << "--------- eNDEEEE  -- \n";
   for (const auto& it : mesh_map)
   {
-    if (it.first == root_link_name)
-      root_index = counter;
-    counter++;
     if (tf_buffer.canTransform(root_link_name, it.first, ros::Time::now()))
     {
       geometry_msgs::TransformStamped primitive_transform =
@@ -315,13 +305,6 @@ moveit_msgs::CollisionObject urdf_to_collision_object(const urdf::Model& _urdf_m
       ROS_ERROR("cannot find a tranform from %s to %s\n", root_link_name.c_str(), it.first.c_str());
     }
   }
-  std::cout << "--------- eNDEEEE  -- \n";
-  // TODO
-  // 1. check if the root link has visual and collision. Handle if not
-  // 2. check if the root link is a mesh or a primitive. Handle the array positions.
-  // std::iter_swap(result.primitive_poses.begin(), result.primitive_poses.begin() + root_index);
-  // std::iter_swap(result.primitives.begin(), result.primitives.begin() + root_index);
-  std::cout << "--------- eNDEEEE  -- \n";
   return result;
 }
 
