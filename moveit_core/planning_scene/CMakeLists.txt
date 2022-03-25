@@ -58,7 +58,6 @@ if(CATKIN_ENABLE_TESTING)
 
   catkin_add_gtest(test_urdf_to_collision_object
                    test/test_urdf2collisionobject.cpp)
-  message(WARNING ${orocos_kdl_LIBRARIES})
   target_link_libraries(
     test_urdf_to_collision_object ${MOVEIT_LIB_NAME} moveit_test_utils
     ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})

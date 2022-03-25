@@ -81,7 +81,7 @@ TEST(URDF_TO_COLLISION_OBJECT, LoadFromFile)
     EXPECT_NEAR(collision_object.mesh_poses[i].position.z, frame.p.z(), 0.0001) << "link " << i;
   }
   EXPECT_TRUE(collision_object.primitives.empty());
-  EXPECT_EQ(collision_object.meshes.size(), 7);
+  EXPECT_EQ(collision_object.meshes.size(), 7u);
 }
 
 int main(int argc, char** argv)
