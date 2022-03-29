@@ -252,9 +252,9 @@ TEST(PlanningScene, loadBadSceneGeometry)
 TEST(PlanningScene, FailRetrievingNonExistentObject)
 {
   moveit::core::RobotModelPtr robot_model = moveit::core::loadTestingRobotModel("pr2");
-  auto ps = std::make_shared<planning_scene::PlanningScene>(robot_model->getURDF(), robot_model->getSRDF());
+  planning_scene::PlanningScene ps{ robot_model };
   moveit_msgs::CollisionObject obj;
-  EXPECT_FALSE(ps->getCollisionObjectMsg(obj, "non_existent_object"));
+  EXPECT_FALSE(ps.getCollisionObjectMsg(obj, "non_existent_object"));
 }
 
 class CollisionDetectorTests : public testing::TestWithParam<const char*>
