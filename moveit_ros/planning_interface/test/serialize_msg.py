@@ -102,14 +102,14 @@ class PythonMsgSerializeTest(unittest.TestCase):
 
     def test_rejectUnicode(self):
         with self.assertRaisesRegexp(Exception, "Python argument types in"):
-            self.helper.compareEmbeddedZeros("kdasd")
+            self.helper.compareEmbeddedZeros(u"kdasd")  # fmt: skip
 
     @unittest.skipIf(py_version_maj == 2, "does not trigger with python 2.7")
     def test_rejectUnicodeTuple(self):
         with self.assertRaisesRegexp(
             RuntimeError, "Underlying python object is not a Bytes/String instance"
         ):
-            self.helper.compareVectorTuple(("kdasd",))
+            self.helper.compareVectorTuple((u"kdasd",))  # fmt: skip
 
 
 if __name__ == "__main__":
