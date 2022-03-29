@@ -754,12 +754,12 @@ private:
 bool PlanningScene::getCollisionObjectMsg(moveit_msgs::CollisionObject& collision_obj, const std::string& ns) const
 {
   collision_detection::CollisionEnv::ObjectConstPtr obj = world_->getObject(ns);
+  if (!obj)
+    return false;
   collision_obj.header.frame_id = getPlanningFrame();
   collision_obj.pose = tf2::toMsg(obj->pose_);
   collision_obj.id = ns;
   collision_obj.operation = moveit_msgs::CollisionObject::ADD;
-  if (!obj)
-    return false;
   ShapeVisitorAddToCollisionObject sv(&collision_obj);
   for (std::size_t j = 0; j < obj->shapes_.size(); ++j)
   {

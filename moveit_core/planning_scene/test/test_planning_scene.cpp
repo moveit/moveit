@@ -249,6 +249,14 @@ TEST(PlanningScene, loadBadSceneGeometry)
   EXPECT_FALSE(ps->loadGeometryFromStream(malformed_scene_geometry));
 }
 
+TEST(PlanningScene, FailRetrievingNonExistentObject)
+{
+  moveit::core::RobotModelPtr robot_model = moveit::core::loadTestingRobotModel("pr2");
+  planning_scene::PlanningScene ps{ robot_model };
+  moveit_msgs::CollisionObject obj;
+  EXPECT_FALSE(ps.getCollisionObjectMsg(obj, "non_existent_object"));
+}
+
 class CollisionDetectorTests : public testing::TestWithParam<const char*>
 {
 };
