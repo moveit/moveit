@@ -368,8 +368,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
 }
 
 const ompl_interface::ModelBasedStateSpaceFactoryPtr&
-ompl_interface::PlanningContextManager::getStateSpaceFactory1(const std::string& /* dummy */,
-                                                              const std::string& factory_type) const
+ompl_interface::PlanningContextManager::getStateSpaceFactory(const std::string& factory_type) const
 {
   auto f = factory_type.empty() ? state_space_factories_.begin() : state_space_factories_.find(factory_type);
   if (f != state_space_factories_.end())
@@ -383,8 +382,8 @@ ompl_interface::PlanningContextManager::getStateSpaceFactory1(const std::string&
 }
 
 const ompl_interface::ModelBasedStateSpaceFactoryPtr&
-ompl_interface::PlanningContextManager::getStateSpaceFactory2(const std::string& group,
-                                                              const moveit_msgs::MotionPlanRequest& req) const
+ompl_interface::PlanningContextManager::getStateSpaceFactory(const std::string& group,
+                                                             const moveit_msgs::MotionPlanRequest& req) const
 {
   // find the problem representation to use
   auto best = state_space_factories_.end();
@@ -466,10 +465,11 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   auto it = pc->second.config.find("enforce_joint_model_state_space");
 
   if (it != pc->second.config.end() && boost::lexical_cast<bool>(it->second))
-    factory_selector = std::bind(&PlanningContextManager::getStateSpaceFactory1, this, std::placeholders::_1,
-                                 JointModelStateSpace::PARAMETERIZATION_TYPE);
+    factory_selector = [this](const std::string&) {
+      return getStateSpaceFactory(JointModelStateSpace::PARAMETERIZATION_TYPE);
+    };
   else
-    factory_selector = std::bind(&PlanningContextManager::getStateSpaceFactory2, this, std::placeholders::_1, req);
+    factory_selector = [this, &req](const std::string& group) { return getStateSpaceFactory(group, req); };
 
   ModelBasedPlanningContextPtr context = getPlanningContext(pc->second, factory_selector, req);
 
