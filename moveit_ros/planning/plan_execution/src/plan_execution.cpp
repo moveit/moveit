@@ -406,8 +406,8 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(E
 
   // start a trajectory execution thread
   trajectory_execution_manager_->execute(
-      std::bind(&PlanExecution::doneWithTrajectoryExecution, this, std::placeholders::_1),
-      std::bind(&PlanExecution::successfulTrajectorySegmentExecution, this, &plan, std::placeholders::_1));
+      [this](const moveit_controller_manager::ExecutionStatus& status) { doneWithTrajectoryExecution(status); },
+      [this, &plan](std::size_t index) { successfulTrajectorySegmentExecution(plan, index); });
   // wait for path to be done, while checking that the path does not become invalid
   ros::Rate r(100);
   path_became_invalid_ = false;
@@ -501,19 +501,19 @@ void plan_execution::PlanExecution::doneWithTrajectoryExecution(
   execution_complete_ = true;
 }
 
-void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const ExecutableMotionPlan* plan,
+void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const ExecutableMotionPlan& plan,
                                                                          std::size_t index)
 {
-  if (plan->plan_components_.empty())
+  if (plan.plan_components_.empty())
   {
     ROS_WARN_NAMED("plan_execution", "Length of provided motion plan is zero.");
     return;
   }
 
   // if any side-effects are associated to the trajectory part that just completed, execute them
-  ROS_DEBUG_NAMED("plan_execution", "Completed '%s'", plan->plan_components_[index].description_.c_str());
-  if (plan->plan_components_[index].effect_on_success_)
-    if (!plan->plan_components_[index].effect_on_success_(plan))
+  ROS_DEBUG_NAMED("plan_execution", "Completed '%s'", plan.plan_components_[index].description_.c_str());
+  if (plan.plan_components_[index].effect_on_success_)
+    if (!plan.plan_components_[index].effect_on_success_(&plan))
     {
       // execution of side-effect failed
       ROS_ERROR_NAMED("plan_execution", "Execution of path-completion side-effect failed. Preempting.");
@@ -523,14 +523,14 @@ void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const E
 
   // if there is a next trajectory, check it for validity, before we start execution
   ++index;
-  if (index < plan->plan_components_.size() && plan->plan_components_[index].trajectory_ &&
-      !plan->plan_components_[index].trajectory_->empty())
+  if (index < plan.plan_components_.size() && plan.plan_components_[index].trajectory_ &&
+      !plan.plan_components_[index].trajectory_->empty())
   {
     std::pair<int, int> next_index(static_cast<int>(index), 0);
-    if (!isRemainingPathValid(*plan, next_index))
+    if (!isRemainingPathValid(plan, next_index))
     {
       ROS_INFO_NAMED("plan_execution", "Upcoming trajectory component '%s' is invalid",
-                     plan->plan_components_[next_index.first].description_.c_str());
+                     plan.plan_components_[next_index.first].description_.c_str());
       path_became_invalid_ = true;
     }
   }

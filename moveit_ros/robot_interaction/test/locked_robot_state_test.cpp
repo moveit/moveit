@@ -319,7 +319,7 @@ public:
 
 private:
   // helper function for modifyThreadFunc
-  void modifyFunc(moveit::core::RobotState* state, double val);
+  void modifyFunc(moveit::core::RobotState& state, double val);
 
   // Checks state for validity and self-consistancy.
   void checkState(robot_interaction::LockedRobotState& locked_state);
@@ -415,11 +415,11 @@ void MyInfo::setThreadFunc(robot_interaction::LockedRobotState* locked_state, in
 }
 
 // modify the state in place.  Used by MyInfo::modifyThreadFunc()
-void MyInfo::modifyFunc(moveit::core::RobotState* state, double val)
+void MyInfo::modifyFunc(moveit::core::RobotState& state, double val)
 {
-  state->setVariablePosition(JOINT_A, val + 0.00001);
-  state->setVariablePosition(JOINT_C, val + 0.00002);
-  state->setVariablePosition(JOINT_F, val + 0.00003);
+  state.setVariablePosition(JOINT_A, val + 0.00001);
+  state.setVariablePosition(JOINT_C, val + 0.00002);
+  state.setVariablePosition(JOINT_F, val + 0.00003);
 }
 
 // spin, modifying the state to different values
@@ -433,7 +433,7 @@ void MyInfo::modifyThreadFunc(robot_interaction::LockedRobotState* locked_state,
     {
       val += 0.0001;
 
-      locked_state->modifyState(std::bind(&MyInfo::modifyFunc, this, std::placeholders::_1, val));
+      locked_state->modifyState([this, val](moveit::core::RobotState* state) { modifyFunc(*state, val); });
     }
 
     cnt_lock_.lock();

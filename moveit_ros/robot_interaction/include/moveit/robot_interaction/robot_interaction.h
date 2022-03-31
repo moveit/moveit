@@ -171,7 +171,7 @@ private:
   // called by decideActiveComponents(); add markers for planar and floating joints
   void decideActiveJoints(const std::string& group);
 
-  void moveInteractiveMarker(const std::string& name, const geometry_msgs::PoseStampedConstPtr& msg);
+  void moveInteractiveMarker(const std::string& name, const geometry_msgs::PoseStamped& msg);
   // register the name of the topic and marker name to move interactive marker from other ROS nodes
   void registerMoveInteractiveMarkerTopic(const std::string& marker_name, const std::string& name);
   // return the diameter of the sphere that certainly can enclose the AABB of the link

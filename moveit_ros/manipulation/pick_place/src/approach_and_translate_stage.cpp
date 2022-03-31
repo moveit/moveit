@@ -123,7 +123,7 @@ bool samplePossibleGoalStates(const ManipulationPlanPtr& plan, const moveit::cor
 // object
 bool executeAttachObject(const ManipulationPlanSharedDataConstPtr& shared_plan_data,
                          const trajectory_msgs::JointTrajectory& detach_posture,
-                         const plan_execution::ExecutableMotionPlan* motion_plan)
+                         const plan_execution::ExecutableMotionPlan& motion_plan)
 {
   if (shared_plan_data->diff_attached_object_.object.id.empty())
   {
@@ -135,14 +135,14 @@ bool executeAttachObject(const ManipulationPlanSharedDataConstPtr& shared_plan_d
                                   "object to end effector)");
   bool ok = false;
   {
-    planning_scene_monitor::LockedPlanningSceneRW ps(motion_plan->planning_scene_monitor_);
+    planning_scene_monitor::LockedPlanningSceneRW ps(motion_plan.planning_scene_monitor_);
     moveit_msgs::AttachedCollisionObject msg = shared_plan_data->diff_attached_object_;
     // remember the configuration of the gripper before the grasp;
     // this configuration will be set again when releasing the object
     msg.detach_posture = detach_posture;
     ok = ps->processAttachedCollisionObjectMsg(msg);
   }
-  motion_plan->planning_scene_monitor_->triggerSceneUpdateEvent(
+  motion_plan.planning_scene_monitor_->triggerSceneUpdateEvent(
       (planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType)(
           planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY +
           planning_scene_monitor::PlanningSceneMonitor::UPDATE_STATE));
@@ -181,8 +181,9 @@ void addGripperTrajectory(const ManipulationPlanPtr& plan,
     plan_execution::ExecutableTrajectory et(ee_closed_traj, name);
 
     // Add a callback to attach the object to the EE after closing the gripper
-    et.effect_on_success_ =
-        std::bind(&executeAttachObject, plan->shared_data_, plan->approach_posture_, std::placeholders::_1);
+    et.effect_on_success_ = [plan](const plan_execution::ExecutableMotionPlan* motion_plan) {
+      return executeAttachObject(plan->shared_data_, plan->approach_posture_, *motion_plan);
+    };
     et.allowed_collision_matrix_ = collision_matrix;
     plan->trajectories_.push_back(et);
   }

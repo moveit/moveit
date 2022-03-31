@@ -173,7 +173,7 @@ mesh_filter::MeshHandle mesh_filter::MeshFilterBase::addMesh(const shapes::Mesh&
 {
   std::unique_lock<std::mutex> _(meshes_mutex_);
 
-  JobPtr job(new FilterJob<void>(std::bind(&MeshFilterBase::addMeshHelper, this, next_handle_, &mesh)));
+  JobPtr job(new FilterJob<void>([this, &mesh] { addMeshHelper(next_handle_, mesh); }));
   addJob(job);
   job->wait();
   mesh_filter::MeshHandle ret = next_handle_;
@@ -188,9 +188,9 @@ mesh_filter::MeshHandle mesh_filter::MeshFilterBase::addMesh(const shapes::Mesh&
   return ret;
 }
 
-void mesh_filter::MeshFilterBase::addMeshHelper(MeshHandle handle, const shapes::Mesh* cmesh)
+void mesh_filter::MeshFilterBase::addMeshHelper(MeshHandle handle, const shapes::Mesh& cmesh)
 {
-  meshes_[handle] = std::make_shared<GLMesh>(*cmesh, handle);
+  meshes_[handle] = std::make_shared<GLMesh>(cmesh, handle);
 }
 
 void mesh_filter::MeshFilterBase::removeMesh(MeshHandle handle)
