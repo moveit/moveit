@@ -1246,8 +1246,8 @@ public:
     initializing_constraints_ = true;
     if (constraints_init_thread_)
       constraints_init_thread_->join();
-    constraints_init_thread_ = std::make_unique<boost::thread>(
-        std::bind(&MoveGroupInterfaceImpl::initializeConstraintsStorageThread, this, host, port));
+    constraints_init_thread_ =
+        std::make_unique<boost::thread>([this, host, port] { initializeConstraintsStorageThread(host, port); });
   }
 
   void setWorkspace(double minx, double miny, double minz, double maxx, double maxy, double maxz)

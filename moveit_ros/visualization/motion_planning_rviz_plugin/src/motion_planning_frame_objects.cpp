@@ -146,7 +146,7 @@ void MotionPlanningFrame::clearScene()
     ps->getPlanningSceneMsg(msg);
     planning_scene_publisher_.publish(msg);
     setLocalSceneEdited(false);
-    planning_display_->addMainLoopJob(std::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
+    planning_display_->addMainLoopJob([this] { populateCollisionObjectsList(); });
     planning_display_->queueRenderSceneGeometry();
   }
 }
@@ -228,7 +228,7 @@ void MotionPlanningFrame::removeSceneObject()
         ps->getCurrentStateNonConst().clearAttachedBody(sel[i]->text().toStdString());
     scene_marker_.reset();
     setLocalSceneEdited();
-    planning_display_->addMainLoopJob(std::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
+    planning_display_->addMainLoopJob([this] { populateCollisionObjectsList(); });
     planning_display_->queueRenderSceneGeometry();
   }
 }
@@ -498,7 +498,7 @@ void MotionPlanningFrame::copySelectedCollisionObject()
     ROS_DEBUG("Copied collision object to '%s'", name.c_str());
   }
   setLocalSceneEdited();
-  planning_display_->addMainLoopJob(std::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
+  planning_display_->addMainLoopJob([this] { populateCollisionObjectsList(); });
 }
 
 void MotionPlanningFrame::computeSaveSceneButtonClicked()
@@ -517,7 +517,7 @@ void MotionPlanningFrame::computeSaveSceneButtonClicked()
       ROS_ERROR("%s", ex.what());
     }
 
-    planning_display_->addMainLoopJob(std::bind(&MotionPlanningFrame::populatePlanningSceneTreeView, this));
+    planning_display_->addMainLoopJob([this] { populatePlanningSceneTreeView(); });
   }
 }
 
@@ -538,7 +538,7 @@ void MotionPlanningFrame::computeSaveQueryButtonClicked(const std::string& scene
       ROS_ERROR("%s", ex.what());
     }
 
-    planning_display_->addMainLoopJob(std::bind(&MotionPlanningFrame::populatePlanningSceneTreeView, this));
+    planning_display_->addMainLoopJob([this] { populatePlanningSceneTreeView(); });
   }
 }
 
@@ -575,7 +575,7 @@ void MotionPlanningFrame::computeDeleteSceneButtonClicked()
           ROS_ERROR("%s", ex.what());
         }
       }
-      planning_display_->addMainLoopJob(std::bind(&MotionPlanningFrame::populatePlanningSceneTreeView, this));
+      planning_display_->addMainLoopJob([this] { populatePlanningSceneTreeView(); });
     }
   }
 }
@@ -600,8 +600,7 @@ void MotionPlanningFrame::computeDeleteQueryButtonClicked()
         {
           ROS_ERROR("%s", ex.what());
         }
-        planning_display_->addMainLoopJob(
-            std::bind(&MotionPlanningFrame::computeDeleteQueryButtonClickedHelper, this, s));
+        planning_display_->addMainLoopJob([this, s] { computeDeleteQueryButtonClickedHelper(s); });
       }
     }
   }
@@ -847,7 +846,7 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem* item)
       if (scene_marker_)
       {
         scene_marker_.reset();
-        planning_display_->addMainLoopJob(std::bind(&MotionPlanningFrame::createSceneInteractiveMarker, this));
+        planning_display_->addMainLoopJob([this] { createSceneInteractiveMarker(); });
       }
     }
   }
@@ -996,8 +995,8 @@ void MotionPlanningFrame::exportGeometryAsTextButtonClicked()
   QString path =
       QFileDialog::getSaveFileName(this, tr("Export Scene Geometry"), tr(""), tr("Scene Geometry (*.scene)"));
   if (!path.isEmpty())
-    planning_display_->addBackgroundJob(
-        std::bind(&MotionPlanningFrame::computeExportGeometryAsText, this, path.toStdString()), "export as text");
+    planning_display_->addBackgroundJob([this, path = path.toStdString()] { computeExportGeometryAsText(path); },
+                                        "export as text");
 }
 
 void MotionPlanningFrame::computeExportGeometryAsText(const std::string& path)
@@ -1027,7 +1026,7 @@ void MotionPlanningFrame::computeImportGeometryFromText(const std::string& path)
     if (ps->loadGeometryFromStream(fin))
     {
       ROS_INFO("Loaded scene geometry from '%s'", path.c_str());
-      planning_display_->addMainLoopJob(std::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
+      planning_display_->addMainLoopJob([this] { populateCollisionObjectsList(); });
       planning_display_->queueRenderSceneGeometry();
       setLocalSceneEdited();
     }
@@ -1045,7 +1044,7 @@ void MotionPlanningFrame::importGeometryFromTextButtonClicked()
   QString path =
       QFileDialog::getOpenFileName(this, tr("Import Scene Geometry"), tr(""), tr("Scene Geometry (*.scene)"));
   if (!path.isEmpty())
-    planning_display_->addBackgroundJob(
-        std::bind(&MotionPlanningFrame::computeImportGeometryFromText, this, path.toStdString()), "import from text");
+    planning_display_->addBackgroundJob([this, path = path.toStdString()] { computeImportGeometryFromText(path); },
+                                        "import from text");
 }
 }  // namespace moveit_rviz_plugin

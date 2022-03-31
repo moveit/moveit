@@ -209,7 +209,7 @@ void PlanningSceneDisplay::reset()
   Display::reset();
 
   if (isEnabled())
-    addBackgroundJob(std::bind(&PlanningSceneDisplay::loadRobotModel, this), "loadRobotModel");
+    addBackgroundJob([this] { loadRobotModel(); }, "loadRobotModel");
 
   if (planning_scene_robot_)
   {
@@ -385,7 +385,7 @@ void PlanningSceneDisplay::changedPlanningSceneTopic()
       service_name = ros::names::append(getMoveGroupNS(), service_name);
     auto bg_func = [=]() {
       if (planning_scene_monitor_->requestPlanningSceneState(service_name))
-        addMainLoopJob(std::bind(&PlanningSceneDisplay::onNewPlanningSceneState, this));
+        addMainLoopJob([this] { onNewPlanningSceneState(); });
       else
         setStatus(rviz::StatusProperty::Warn, "PlanningScene", "Requesting initial scene failed");
     };
@@ -528,7 +528,7 @@ void PlanningSceneDisplay::loadRobotModel()
   // we need to make sure the clearing of the robot model is in the main thread,
   // so that rendering operations do not have data removed from underneath,
   // so the next function is executed in the main loop
-  addMainLoopJob(std::bind(&PlanningSceneDisplay::clearRobotModel, this));
+  addMainLoopJob([this] { clearRobotModel(); });
 
   waitForAllMainLoopJobs();
 
@@ -537,8 +537,10 @@ void PlanningSceneDisplay::loadRobotModel()
   {
     planning_scene_monitor_.swap(psm);
     planning_scene_monitor_->addUpdateCallback(
-        std::bind(&PlanningSceneDisplay::sceneMonitorReceivedUpdate, this, std::placeholders::_1));
-    addMainLoopJob(std::bind(&PlanningSceneDisplay::onRobotModelLoaded, this));
+        [this](planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType type) {
+          sceneMonitorReceivedUpdate(type);
+        });
+    addMainLoopJob([this] { onRobotModelLoaded(); });
     waitForAllMainLoopJobs();
   }
   else
@@ -598,7 +600,7 @@ void PlanningSceneDisplay::onEnable()
 {
   Display::onEnable();
 
-  addBackgroundJob(std::bind(&PlanningSceneDisplay::loadRobotModel, this), "loadRobotModel");
+  addBackgroundJob([this] { loadRobotModel(); }, "loadRobotModel");
 
   if (planning_scene_robot_)
   {

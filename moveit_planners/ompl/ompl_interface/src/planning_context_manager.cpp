@@ -300,7 +300,7 @@ void ompl_interface::PlanningContextManager::registerDefaultStateSpaces()
 
 ompl_interface::ConfiguredPlannerSelector ompl_interface::PlanningContextManager::getPlannerSelector() const
 {
-  return std::bind(&PlanningContextManager::plannerSelector, this, std::placeholders::_1);
+  return [this](const std::string& planner) { return plannerSelector(planner); };
 }
 
 void ompl_interface::PlanningContextManager::setPlannerConfigurations(

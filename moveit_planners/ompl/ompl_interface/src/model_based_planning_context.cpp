@@ -114,7 +114,7 @@ void ompl_interface::ModelBasedPlanningContext::configure(const ros::NodeHandle&
   complete_initial_robot_state_.update();
   ompl_simple_setup_->getStateSpace()->computeSignature(space_signature_);
   ompl_simple_setup_->getStateSpace()->setStateSamplerAllocator(
-      std::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, std::placeholders::_1));
+      [this](const ompl::base::StateSpace* ss) { return allocPathConstrainedSampler(ss); });
 
   // convert the input state to the corresponding OMPL state
   ompl::base::ScopedState<> ompl_start_state(spec_.state_space_);
@@ -370,7 +370,8 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
     cfg.erase(it);
     const std::string planner_name = getGroupName() + "/" + name_;
     ompl_simple_setup_->setPlannerAllocator(
-        std::bind(spec_.planner_selector_(type), std::placeholders::_1, planner_name, std::cref(spec_)));
+        [planner_name, &spec = this->spec_, allocator = spec_.planner_selector_(type)](
+            const ompl::base::SpaceInformationPtr& si) { return allocator(si, planner_name, spec); });
     ROS_INFO_NAMED(LOGNAME,
                    "Planner configuration '%s' will use planner '%s'. "
                    "Additional configuration parameters will be set when the planner is constructed.",

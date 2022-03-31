@@ -118,7 +118,7 @@ MeshFilterTest<Type>::MeshFilterTest(unsigned width, unsigned height, double nea
   , shadow_(shadow)
   , epsilon_(epsilon)
   , sensor_parameters_(width, height, near_, far_, width >> 1, height >> 1, width >> 1, height >> 1, 0.1, 0.1)
-  , filter_(std::bind(&MeshFilterTest<Type>::transformCallback, this, std::placeholders::_1, std::placeholders::_2),
+  , filter_([this](mesh_filter::MeshHandle mesh, Eigen::Isometry3d& tf) { return transformCallback(mesh, tf); },
             sensor_parameters_)
   , sensor_data_(width_ * height_)
   , distance_(0.0)
