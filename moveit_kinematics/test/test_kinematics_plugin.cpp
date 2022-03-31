@@ -261,8 +261,7 @@ public:
     return testing::AssertionSuccess();
   }
 
-  void searchIKCallback(const geometry_msgs::Pose& /*ik_pose*/, const std::vector<double>& joint_state,
-                        moveit_msgs::MoveItErrorCodes& error_code)
+  void searchIKCallback(const std::vector<double>& joint_state, moveit_msgs::MoveItErrorCodes& error_code)
   {
     std::vector<std::string> link_names = { tip_link_ };
     std::vector<geometry_msgs::Pose> poses;
@@ -591,10 +590,11 @@ TEST_F(KinematicsTest, searchIKWithCallback)
       continue;
     }
 
-    kinematics_solver_->searchPositionIK(poses[0], fk_values, timeout_, solution,
-                                         std::bind(&KinematicsTest::searchIKCallback, this, std::placeholders::_1,
-                                                   std::placeholders::_2, std::placeholders::_3),
-                                         error_code);
+    kinematics_solver_->searchPositionIK(
+        poses[0], fk_values, timeout_, solution,
+        [this](const geometry_msgs::Pose&, const std::vector<double>& joints,
+               moveit_msgs::MoveItErrorCodes& error_code) { searchIKCallback(joints, error_code); },
+        error_code);
     if (error_code.val == error_code.SUCCESS)
       success++;
     else
