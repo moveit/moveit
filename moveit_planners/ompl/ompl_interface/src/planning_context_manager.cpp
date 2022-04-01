@@ -310,11 +310,8 @@ void ompl_interface::PlanningContextManager::setPlannerConfigurations(
 }
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
-    const planning_interface::PlannerConfigurationSettings& config,
-    const StateSpaceFactoryTypeSelector& factory_selector, const moveit_msgs::MotionPlanRequest& /*req*/) const
+    const planning_interface::PlannerConfigurationSettings& config, const ModelBasedStateSpaceFactoryPtr& factory) const
 {
-  const ompl_interface::ModelBasedStateSpaceFactoryPtr& factory = factory_selector(config.group);
-
   // Check for a cached planning context
   ModelBasedPlanningContextPtr context;
 
@@ -461,17 +458,15 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   // However consecutive IK solutions are not checked for proximity at the moment and sometimes happen to be flipped,
   // leading to invalid trajectories. This workaround lets the user prevent this problem by forcing rejection sampling
   // in JointModelStateSpace.
-  StateSpaceFactoryTypeSelector factory_selector;
+  ModelBasedStateSpaceFactoryPtr factory;
   auto it = pc->second.config.find("enforce_joint_model_state_space");
 
   if (it != pc->second.config.end() && boost::lexical_cast<bool>(it->second))
-    factory_selector = [this](const std::string&) {
-      return getStateSpaceFactory(JointModelStateSpace::PARAMETERIZATION_TYPE);
-    };
+    factory = getStateSpaceFactory(JointModelStateSpace::PARAMETERIZATION_TYPE);
   else
-    factory_selector = [this, &req](const std::string& group) { return getStateSpaceFactory(group, req); };
+    factory = getStateSpaceFactory(pc->second.group, req);
 
-  ModelBasedPlanningContextPtr context = getPlanningContext(pc->second, factory_selector, req);
+  ModelBasedPlanningContextPtr context = getPlanningContext(pc->second, factory);
 
   if (context)
   {
