@@ -1109,7 +1109,7 @@ void MotionPlanningDisplay::populateMenuHandler(std::shared_ptr<interactive_mark
     if ((state_name == "same as start" && is_start) || (state_name == "same as goal" && !is_start))
       continue;
     mh->insert(menu_states, state_name,
-               [this, is_start, state_name](auto&&) { setQueryStateHelper(is_start, state_name); });
+               [this, is_start, state_name](auto&& /*unused*/) { setQueryStateHelper(is_start, state_name); });
   }
 
   //  // Group commands, which end up being the same for both interaction handlers

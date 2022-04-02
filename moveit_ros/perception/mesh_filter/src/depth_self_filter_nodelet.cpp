@@ -72,8 +72,8 @@ void mesh_filter::DepthSelfFiltering::onInit()
   private_nh.param("tf_update_rate", tf_update_rate, 30.0);
   transform_provider_.setUpdateRate(tf_update_rate);
 
-  image_transport::SubscriberStatusCallback itssc = [this](auto&&) { connectCb(); };
-  ros::SubscriberStatusCallback rssc = [this](auto&&) { connectCb(); };
+  image_transport::SubscriberStatusCallback itssc = [this](auto&& /*unused*/) { connectCb(); };
+  ros::SubscriberStatusCallback rssc = [this](auto&& /*unused*/) { connectCb(); };
 
   std::lock_guard<std::mutex> lock(connect_mutex_);
   pub_filtered_depth_image_ =

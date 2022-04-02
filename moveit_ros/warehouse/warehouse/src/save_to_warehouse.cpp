@@ -186,7 +186,7 @@ int main(int argc, char** argv)
       ROS_INFO(" * %s", name.c_str());
   }
 
-  psm.addUpdateCallback([&psm, &pss](auto&&) { return onSceneUpdate(psm, pss); });
+  psm.addUpdateCallback([&psm, &pss](auto&& /*unused*/) { return onSceneUpdate(psm, pss); });
 
   ros::Subscriber mplan_req_sub = nh.subscribe<moveit_msgs::MotionPlanRequest>(
       "motion_plan_request", 100, [&psm, &pss](const auto& req) { onMotionPlanRequest(*req, psm, pss); });

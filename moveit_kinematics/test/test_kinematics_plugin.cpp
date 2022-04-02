@@ -592,7 +592,7 @@ TEST_F(KinematicsTest, searchIKWithCallback)
 
     kinematics_solver_->searchPositionIK(
         poses[0], fk_values, timeout_, solution,
-        [this](const geometry_msgs::Pose&, const std::vector<double>& joints,
+        [this](const geometry_msgs::Pose& /*unused*/, const std::vector<double>& joints,
                moveit_msgs::MoveItErrorCodes& error_code) { searchIKCallback(joints, error_code); },
         error_code);
     if (error_code.val == error_code.SUCCESS)
