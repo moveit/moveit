@@ -291,7 +291,7 @@ bool AllowedCollisionMatrix::getAllowedCollision(const std::string& name1, const
     else if (!found1 && found2)
       fn = fn2;
     else if (found1 && found2)
-      fn = std::bind(&andDecideContact, fn1, fn2, std::placeholders::_1);
+      fn = [fn1, fn2](Contact& contact) { return andDecideContact(fn1, fn2, contact); };
     else
       return false;
   }

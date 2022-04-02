@@ -72,8 +72,8 @@ void mesh_filter::DepthSelfFiltering::onInit()
   private_nh.param("tf_update_rate", tf_update_rate, 30.0);
   transform_provider_.setUpdateRate(tf_update_rate);
 
-  image_transport::SubscriberStatusCallback itssc = std::bind(&DepthSelfFiltering::connectCb, this);
-  ros::SubscriberStatusCallback rssc = std::bind(&DepthSelfFiltering::connectCb, this);
+  image_transport::SubscriberStatusCallback itssc = [this](auto&& /*unused*/) { connectCb(); };
+  ros::SubscriberStatusCallback rssc = [this](auto&& /*unused*/) { connectCb(); };
 
   std::lock_guard<std::mutex> lock(connect_mutex_);
   pub_filtered_depth_image_ =
@@ -91,7 +91,9 @@ void mesh_filter::DepthSelfFiltering::onInit()
   model_label_ptr_ = std::make_shared<cv_bridge::CvImage>();
 
   mesh_filter_ = std::make_shared<MeshFilter<StereoCameraModel>>(
-      std::bind(&TransformProvider::getTransform, &transform_provider_, std::placeholders::_1, std::placeholders::_2),
+      [&tfp = transform_provider_](mesh_filter::MeshHandle mesh, Eigen::Isometry3d& tf) {
+        return tfp.getTransform(mesh, tf);
+      },
       mesh_filter::StereoCameraModel::REGISTERED_PSDK_PARAMS);
   mesh_filter_->parameters().setDepthRange(near_clipping_plane_distance_, far_clipping_plane_distance_);
   mesh_filter_->setShadowThreshold(shadow_threshold_);

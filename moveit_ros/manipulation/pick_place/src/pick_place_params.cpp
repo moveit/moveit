@@ -49,8 +49,8 @@ class DynamicReconfigureImpl
 public:
   DynamicReconfigureImpl() : dynamic_reconfigure_server_(ros::NodeHandle("~/pick_place"))
   {
-    dynamic_reconfigure_server_.setCallback(std::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this,
-                                                      std::placeholders::_1, std::placeholders::_2));
+    dynamic_reconfigure_server_.setCallback(
+        [this](auto& config, uint32_t level) { dynamicReconfigureCallback(config, level); });
   }
 
   const PickPlaceParams& getParams() const

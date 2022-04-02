@@ -130,7 +130,7 @@ bool DepthImageOctomapUpdater::initialize()
   mesh_filter_->setPaddingOffset(padding_offset_);
   mesh_filter_->setPaddingScale(padding_scale_);
   mesh_filter_->setTransformCallback(
-      std::bind(&DepthImageOctomapUpdater::getShapeTransform, this, std::placeholders::_1, std::placeholders::_2));
+      [this](mesh_filter::MeshHandle mesh, Eigen::Isometry3d& tf) { return getShapeTransform(mesh, tf); });
 
   return true;
 }

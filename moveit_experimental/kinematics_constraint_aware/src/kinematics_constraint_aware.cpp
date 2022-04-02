@@ -160,9 +160,11 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
   EigenSTL::vector_Isometry3d goals =
       transformPoses(planning_scene, kinematic_state, request.pose_stamped_vector_, kinematic_model_->getModelFrame());
 
-  moveit::core::StateValidityCallbackFn constraint_callback_fn =
-      std::bind(&KinematicsConstraintAware::validityCallbackFn, this, planning_scene, request, response,
-                std::placeholders::_1, std::placeholders::_2);
+  moveit::core::StateValidityCallbackFn constraint_callback_fn = [this, &planning_scene, &request,
+                                                                  &response](moveit::core::JointStateGroup* jsg,
+                                                                             const std::vector<double>& jg_values) {
+    validityCallbackFn(planning_scene, request, response, jsg, jg_values);
+  };
 
   bool result = false;
   if (has_sub_groups_)

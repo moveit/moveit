@@ -1112,7 +1112,7 @@ ConstraintEvaluationResult VisibilityConstraint::decide(const moveit::core::Robo
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
   collision_detection::AllowedCollisionMatrix acm;
-  acm.setDefaultEntry("cone", std::bind(&VisibilityConstraint::decideContact, this, std::placeholders::_1));
+  acm.setDefaultEntry("cone", [this](collision_detection::Contact& contact) { return decideContact(contact); });
   req.contacts = true;
   req.verbose = verbose;
   req.max_contacts = 1;

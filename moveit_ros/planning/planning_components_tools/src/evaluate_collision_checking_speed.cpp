@@ -40,8 +40,8 @@
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 
-void runCollisionDetection(unsigned int id, unsigned int trials, const planning_scene::PlanningScene* scene,
-                           const moveit::core::RobotState* state)
+void runCollisionDetection(unsigned int id, unsigned int trials, const planning_scene::PlanningScene& scene,
+                           const moveit::core::RobotState& state)
 {
   ROS_INFO("Starting thread %u", id);
   collision_detection::CollisionRequest req;
@@ -49,7 +49,7 @@ void runCollisionDetection(unsigned int id, unsigned int trials, const planning_
   for (unsigned int i = 0; i < trials; ++i)
   {
     collision_detection::CollisionResult res;
-    scene->checkCollision(req, res, *state);
+    scene.checkCollision(req, res, state);
   }
   double duration = (ros::WallTime::now() - start).toSec();
   ROS_INFO("Thread %u performed %lf collision checks per second", id, (double)trials / duration);
@@ -117,8 +117,9 @@ int main(int argc, char** argv)
     std::vector<boost::thread*> threads;
 
     for (unsigned int i = 0; i < states.size(); ++i)
-      threads.push_back(new boost::thread(
-          std::bind(&runCollisionDetection, i, trials, psm.getPlanningScene().get(), states[i].get())));
+      threads.push_back(new boost::thread([i, trials, &scene = *psm.getPlanningScene(), &state = *states[i]] {
+        return runCollisionDetection(i, trials, scene, state);
+      }));
 
     for (unsigned int i = 0; i < states.size(); ++i)
     {
