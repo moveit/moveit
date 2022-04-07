@@ -72,7 +72,8 @@ public:
     int rng_seed;
     if (ros::param::get("~constraint_sampler_random_seed", rng_seed))
     {
-      ROS_WARN_STREAM_NAMED("constraint_samplers", "Creating random number generator with seed " << std::to_string(rng_seed));
+      ROS_WARN_STREAM_NAMED("constraint_samplers",
+                            "Creating random number generator with seed " << std::to_string(rng_seed));
       random_number_generator_ =
           std::make_unique<random_numbers::RandomNumberGenerator>(static_cast<uint32_t>(rng_seed));
     }
@@ -320,7 +321,8 @@ public:
     int rng_seed;
     if (ros::param::get("~constraint_sampler_random_seed", rng_seed))
     {
-      ROS_WARN_STREAM_NAMED("constraint_samplers", "Creating random number generator with seed " << std::to_string(rng_seed));
+      ROS_WARN_STREAM_NAMED("constraint_samplers",
+                            "Creating random number generator with seed " << std::to_string(rng_seed));
       random_number_generator_ =
           std::make_unique<random_numbers::RandomNumberGenerator>(static_cast<uint32_t>(rng_seed));
     }
@@ -537,11 +539,11 @@ protected:
   bool validate(moveit::core::RobotState& state) const;
 
   std::unique_ptr<random_numbers::RandomNumberGenerator>
-      random_number_generator_;   /**< \brief Random number generator used to sample */
-  IKSamplingPose sampling_pose_;                                  /**< \brief Holder for the pose used for sampling */
-  kinematics::KinematicsBaseConstPtr kb_;                         /**< \brief Holds the kinematics solver */
-  double ik_timeout_;                                             /**< \brief Holds the timeout associated with IK */
-  std::string ik_frame_;                                          /**< \brief Holds the base from of the IK solver */
+      random_number_generator_;           /**< \brief Random number generator used to sample */
+  IKSamplingPose sampling_pose_;          /**< \brief Holder for the pose used for sampling */
+  kinematics::KinematicsBaseConstPtr kb_; /**< \brief Holds the kinematics solver */
+  double ik_timeout_;                     /**< \brief Holds the timeout associated with IK */
+  std::string ik_frame_;                  /**< \brief Holds the base from of the IK solver */
   bool transform_ik_; /**< \brief True if the frame associated with the kinematic model is different than the base frame
                          of the IK solver */
   bool need_eef_to_ik_tip_transform_; /**< \brief True if the tip frame of the inverse kinematic is different than the
