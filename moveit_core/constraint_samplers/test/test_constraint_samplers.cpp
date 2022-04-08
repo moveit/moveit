@@ -1126,7 +1126,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupPoseConstraintsSampler)
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSeeded)
 {
-  ros::param::set("~constraint_sampler_random_seed", 12345);
+  ros::param::set("~joint_constraint_sampler_random_seed", 12345);
   constraint_samplers::JointConstraintSampler seeded_sampler1(ps_, "right_arm");
   kinematic_constraints::JointConstraint jc(robot_model_);
   moveit_msgs::JointConstraint jcm;
@@ -1155,7 +1155,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSeeded)
   using namespace testing;
   EXPECT_THAT(joint_positions_v, ContainerEq(joint_positions_v2));
 
-  ros::param::del("~constraint_sampler_random_seed");
+  ros::param::del("~joint_constraint_sampler_random_seed");
   constraint_samplers::JointConstraintSampler seeded_sampler3(ps_, "right_arm");
   EXPECT_TRUE(seeded_sampler3.configure(js));
   ks.setToDefaultValues();

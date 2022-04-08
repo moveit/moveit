@@ -70,12 +70,10 @@ public:
     : ConstraintSampler(scene, group_name)
   {
     int rng_seed;
-    if (ros::param::get("~constraint_sampler_random_seed", rng_seed))
+    if (ros::param::get("~joint_constraint_sampler_random_seed", rng_seed))
     {
-      ROS_WARN_STREAM_NAMED("constraint_samplers",
-                            "Creating random number generator with seed " << std::to_string(rng_seed));
-      random_number_generator_ =
-          std::make_unique<random_numbers::RandomNumberGenerator>(static_cast<uint32_t>(rng_seed));
+      ROS_DEBUG_STREAM_NAMED("constraint_samplers", "Creating random number generator with seed " << rng_seed);
+      random_number_generator_ = std::make_unique<random_numbers::RandomNumberGenerator>(rng_seed);
     }
     else
     {
@@ -319,12 +317,10 @@ public:
     : ConstraintSampler(scene, group_name)
   {
     int rng_seed;
-    if (ros::param::get("~constraint_sampler_random_seed", rng_seed))
+    if (ros::param::get("~ik_constraint_sampler_random_seed", rng_seed))
     {
-      ROS_WARN_STREAM_NAMED("constraint_samplers",
-                            "Creating random number generator with seed " << std::to_string(rng_seed));
-      random_number_generator_ =
-          std::make_unique<random_numbers::RandomNumberGenerator>(static_cast<uint32_t>(rng_seed));
+      ROS_DEBUG_STREAM_NAMED("constraint_samplers", "Creating random number generator with seed " << rng_seed);
+      random_number_generator_ = std::make_unique<random_numbers::RandomNumberGenerator>(rng_seed);
     }
     else
     {
