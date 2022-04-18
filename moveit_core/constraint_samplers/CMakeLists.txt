@@ -28,10 +28,11 @@ if(CATKIN_ENABLE_TESTING)
   find_package(orocos_kdl REQUIRED)
   find_package(angles REQUIRED)
   find_package(tf2_kdl REQUIRED)
-
+  find_package(rostest REQUIRED)
   include_directories(SYSTEM ${orocos_kdl_INCLUDE_DIRS} ${angles_INCLUDE_DIRS} ${tf2_kdl_INCLUDE_DIRS})
 
-  catkin_add_gmock(test_constraint_samplers
+  add_rostest_gtest(test_constraint_samplers
+    test/constraint_samplers.test
     test/test_constraint_samplers.cpp
     test/pr2_arm_kinematics_plugin.cpp
     test/pr2_arm_ik.cpp
