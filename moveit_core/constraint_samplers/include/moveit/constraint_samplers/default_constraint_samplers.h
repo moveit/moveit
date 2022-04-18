@@ -42,6 +42,8 @@
 
 namespace constraint_samplers
 {
+random_numbers::RandomNumberGenerator createSeededRNG(const std::string& seed_param);
+
 MOVEIT_CLASS_FORWARD(JointConstraintSampler);  // Defines JointConstraintSamplerPtr, ConstPtr, WeakPtr... etc
 
 /**
@@ -68,18 +70,10 @@ public:
    */
   JointConstraintSampler(const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name)
     : ConstraintSampler(scene, group_name)
+    , random_number_generator_(createSeededRNG("~joint_constraint_sampler_random_seed"))
   {
-    int rng_seed;
-    if (ros::param::get("~joint_constraint_sampler_random_seed", rng_seed))
-    {
-      ROS_DEBUG_STREAM_NAMED("constraint_samplers", "Creating random number generator with seed " << rng_seed);
-      random_number_generator_ = std::make_unique<random_numbers::RandomNumberGenerator>(rng_seed);
-    }
-    else
-    {
-      random_number_generator_ = std::make_unique<random_numbers::RandomNumberGenerator>();
-    }
   }
+
   /**
    * \brief Configures a joint constraint given a Constraints message.
    *
@@ -201,8 +195,7 @@ protected:
 
   void clear() override;
 
-  std::unique_ptr<random_numbers::RandomNumberGenerator>
-      random_number_generator_;   /**< \brief Random number generator used to sample */
+  random_numbers::RandomNumberGenerator random_number_generator_; /**< \brief Random number generator used to sample */
   std::vector<JointInfo> bounds_; /**< \brief The bounds for any joint with bounds that are more restrictive than the
                                      joint limits */
 
@@ -315,17 +308,8 @@ public:
    */
   IKConstraintSampler(const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name)
     : ConstraintSampler(scene, group_name)
+    , random_number_generator_(createSeededRNG("~ik_constraint_sampler_random_seed"))
   {
-    int rng_seed;
-    if (ros::param::get("~ik_constraint_sampler_random_seed", rng_seed))
-    {
-      ROS_DEBUG_STREAM_NAMED("constraint_samplers", "Creating random number generator with seed " << rng_seed);
-      random_number_generator_ = std::make_unique<random_numbers::RandomNumberGenerator>(rng_seed);
-    }
-    else
-    {
-      random_number_generator_ = std::make_unique<random_numbers::RandomNumberGenerator>();
-    }
   }
 
   /**
@@ -534,12 +518,11 @@ protected:
                     unsigned int max_attempts, bool project);
   bool validate(moveit::core::RobotState& state) const;
 
-  std::unique_ptr<random_numbers::RandomNumberGenerator>
-      random_number_generator_;           /**< \brief Random number generator used to sample */
-  IKSamplingPose sampling_pose_;          /**< \brief Holder for the pose used for sampling */
-  kinematics::KinematicsBaseConstPtr kb_; /**< \brief Holds the kinematics solver */
-  double ik_timeout_;                     /**< \brief Holds the timeout associated with IK */
-  std::string ik_frame_;                  /**< \brief Holds the base from of the IK solver */
+  random_numbers::RandomNumberGenerator random_number_generator_; /**< \brief Random generator used by the sampler */
+  IKSamplingPose sampling_pose_;                                  /**< \brief Holder for the pose used for sampling */
+  kinematics::KinematicsBaseConstPtr kb_;                         /**< \brief Holds the kinematics solver */
+  double ik_timeout_;                                             /**< \brief Holds the timeout associated with IK */
+  std::string ik_frame_;                                          /**< \brief Holds the base from of the IK solver */
   bool transform_ik_; /**< \brief True if the frame associated with the kinematic model is different than the base frame
                          of the IK solver */
   bool need_eef_to_ik_tip_transform_; /**< \brief True if the tip frame of the inverse kinematic is different than the

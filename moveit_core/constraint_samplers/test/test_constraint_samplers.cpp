@@ -1238,6 +1238,5 @@ int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "test_constraint_samplers");
-  ros::Time::init();
   return RUN_ALL_TESTS();
 }

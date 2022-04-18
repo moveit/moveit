@@ -40,6 +40,20 @@
 
 namespace constraint_samplers
 {
+random_numbers::RandomNumberGenerator createSeededRNG(const std::string& seed_param)
+{
+  int rng_seed;
+  if (ros::param::get(seed_param, rng_seed))
+  {
+    ROS_DEBUG_STREAM_NAMED("constraint_samplers", "Creating random number generator with seed " << rng_seed);
+    return random_numbers::RandomNumberGenerator(rng_seed);
+  }
+  else
+  {
+    return random_numbers::RandomNumberGenerator();
+  }
+}
+
 bool JointConstraintSampler::configure(const moveit_msgs::Constraints& constr)
 {
   // construct the constraints
@@ -162,14 +176,14 @@ bool JointConstraintSampler::sample(moveit::core::RobotState& state,
   for (std::size_t i = 0; i < unbounded_.size(); ++i)
   {
     v.resize(unbounded_[i]->getVariableCount());
-    unbounded_[i]->getVariableRandomPositions(*random_number_generator_, &v[0]);
+    unbounded_[i]->getVariableRandomPositions(random_number_generator_, &v[0]);
     for (std::size_t j = 0; j < v.size(); ++j)
       values_[uindex_[i] + j] = v[j];
   }
 
   // enforce the constraints for the constrained components (could be all of them)
   for (const JointInfo& bound : bounds_)
-    values_[bound.index_] = random_number_generator_->uniformReal(bound.min_bound_, bound.max_bound_);
+    values_[bound.index_] = random_number_generator_.uniformReal(bound.min_bound_, bound.max_bound_);
 
   state.setJointGroupPositions(jmg_, values_);
 
@@ -430,9 +444,9 @@ bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& q
     if (!b.empty())
     {
       bool found = false;
-      std::size_t k = random_number_generator_->uniformInteger(0, b.size() - 1);
+      std::size_t k = random_number_generator_.uniformInteger(0, b.size() - 1);
       for (std::size_t i = 0; i < b.size(); ++i)
-        if (b[(i + k) % b.size()]->samplePointInside(*random_number_generator_, max_attempts, pos))
+        if (b[(i + k) % b.size()]->samplePointInside(random_number_generator_, max_attempts, pos))
         {
           found = true;
           break;
@@ -467,13 +481,13 @@ bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& q
   {
     // sample a rotation matrix within the allowed bounds
     double angle_x =
-        2.0 * (random_number_generator_->uniform01() - 0.5) *
+        2.0 * (random_number_generator_.uniform01() - 0.5) *
         (sampling_pose_.orientation_constraint_->getXAxisTolerance() - std::numeric_limits<double>::epsilon());
     double angle_y =
-        2.0 * (random_number_generator_->uniform01() - 0.5) *
+        2.0 * (random_number_generator_.uniform01() - 0.5) *
         (sampling_pose_.orientation_constraint_->getYAxisTolerance() - std::numeric_limits<double>::epsilon());
     double angle_z =
-        2.0 * (random_number_generator_->uniform01() - 0.5) *
+        2.0 * (random_number_generator_.uniform01() - 0.5) *
         (sampling_pose_.orientation_constraint_->getZAxisTolerance() - std::numeric_limits<double>::epsilon());
 
     Eigen::Isometry3d diff;
@@ -518,7 +532,7 @@ bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& q
   {
     // sample a random orientation
     double q[4];
-    random_number_generator_->quaternion(q);
+    random_number_generator_.quaternion(q);
     quat = Eigen::Quaterniond(q[3], q[0], q[1], q[2]);  // quat is normalized by contract
   }
 
@@ -644,7 +658,7 @@ bool IKConstraintSampler::callIK(const geometry_msgs::Pose& ik_query,
     state.copyJointGroupPositions(jmg_, vals);
   else
     // sample a seed value
-    jmg_->getVariableRandomPositions(*random_number_generator_, vals);
+    jmg_->getVariableRandomPositions(random_number_generator_, vals);
 
   assert(vals.size() == ik_joint_bijection.size());
   for (std::size_t i = 0; i < ik_joint_bijection.size(); ++i)
