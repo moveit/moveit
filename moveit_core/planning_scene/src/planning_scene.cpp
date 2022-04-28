@@ -711,6 +711,19 @@ void PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_ms
     if (do_omap)
       getOctomapMsg(scene_msg.world.octomap);
   }
+
+  // This fixes an issue where detaching an object from the robot state diff is causing it to stay as attached collision
+  // object once applied back to the main scene, to get around this issue we make sure to delete it from robot state
+  for (const auto& collision_object : scene_msg.world.collision_objects)
+  {
+    if (parent_->getCurrentState().hasAttachedBody(collision_object.id))
+    {
+      moveit_msgs::AttachedCollisionObject aco;
+      aco.object.id = collision_object.id;
+      aco.object.operation = moveit_msgs::CollisionObject::REMOVE;
+      scene_msg.robot_state.attached_collision_objects.push_back(aco);
+    }
+  }
 }
 
 namespace
