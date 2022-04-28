@@ -652,8 +652,8 @@ void PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_ms
   else
   {
     scene_msg.robot_state = moveit_msgs::RobotState();
-    scene_msg.robot_state.is_diff = true;
   }
+  scene_msg.robot_state.is_diff = true;
 
   if (acm_)
     acm_->getMessage(scene_msg.allowed_collision_matrix);
