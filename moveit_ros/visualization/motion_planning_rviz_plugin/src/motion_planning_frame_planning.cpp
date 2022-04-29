@@ -206,13 +206,15 @@ void MotionPlanningFrame::computeExecuteButtonClicked()
 
 void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
 {
-  if (!move_group_)
+  // ensures the MoveGroupInterface is not destroyed while executing
+  moveit::planning_interface::MoveGroupInterfacePtr mgi(move_group_);
+  if (!mgi)
     return;
   configureForPlanning();
   planning_display_->rememberPreviousStartState();
   // move_group::move() on the server side, will always start from the current state
   // to suppress a warning, we pass an empty state (which encodes "start from current state")
-  move_group_->setStartStateToCurrentState();
+  mgi->setStartStateToCurrentState();
   ui_->stop_button->setEnabled(true);
   if (ui_->use_cartesian_path->isEnabled() && ui_->use_cartesian_path->checkState())
   {
@@ -221,7 +223,7 @@ void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
   }
   else
   {
-    bool success = move_group_->move() == moveit::core::MoveItErrorCode::SUCCESS;
+    bool success = mgi->move() == moveit::core::MoveItErrorCode::SUCCESS;
     onFinishedExecution(success);
   }
   ui_->plan_and_execute_button->setEnabled(true);
