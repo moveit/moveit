@@ -450,7 +450,7 @@ TEST(PlanningScene, RobotStateDiffBug)
     EXPECT_EQ(get_attached_collision_objects_names(*ps), (std::set<std::string>{ "object1", "object2" }));
   }
 
-  // Test that trigger the bug related to removing an object from when having a robot state as diff
+  // Test that triggered a bug related to removing an object when having a robot state diff
   {
     const auto ps1 = create_planning_scene_diff(*ps, "object2", moveit_msgs::CollisionObject::REMOVE, true);
     ps->usePlanningSceneMsg(ps1);
