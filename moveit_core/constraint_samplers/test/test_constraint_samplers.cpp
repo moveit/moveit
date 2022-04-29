@@ -1205,7 +1205,7 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerSeeded)
   EXPECT_TRUE(seeded_sampler1.sample(ks, ks, 1));
   ks.update();
   bool found = false;
-  const Eigen::Isometry3d root_T_left_tool1 = ks.getFrameTransform("l_gripper_tool_frame", &found);
+  const Eigen::Isometry3d root_to_left_tool1 = ks.getFrameTransform("l_gripper_tool_frame", &found);
   EXPECT_TRUE(found);
 
   constraint_samplers::IKConstraintSampler seeded_sampler2(ps_, "left_arm");
@@ -1215,7 +1215,7 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerSeeded)
   EXPECT_TRUE(seeded_sampler2.sample(ks, ks, 1));
   ks.update();
   found = false;
-  const Eigen::Isometry3d root_T_left_tool2 = ks.getFrameTransform("l_gripper_tool_frame", &found);
+  const Eigen::Isometry3d root_to_left_tool2 = ks.getFrameTransform("l_gripper_tool_frame", &found);
   EXPECT_TRUE(found);
 
   ros::param::del("~ik_constraint_sampler_random_seed");
@@ -1226,12 +1226,12 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerSeeded)
   EXPECT_TRUE(seeded_sampler3.sample(ks, ks, 1));
   ks.update();
   found = false;
-  const Eigen::Isometry3d root_T_left_tool3 = ks.getFrameTransform("l_gripper_tool_frame", &found);
+  const Eigen::Isometry3d root_to_left_tool3 = ks.getFrameTransform("l_gripper_tool_frame", &found);
   EXPECT_TRUE(found);
 
-  EXPECT_TRUE((root_T_left_tool1 * root_T_left_tool2.inverse()).matrix().isIdentity(1e-7));
-  EXPECT_FALSE((root_T_left_tool1 * root_T_left_tool3.inverse()).matrix().isIdentity(1e-7));
-  EXPECT_FALSE((root_T_left_tool2 * root_T_left_tool3.inverse()).matrix().isIdentity(1e-7));
+  EXPECT_TRUE((root_to_left_tool1 * root_to_left_tool2.inverse()).matrix().isIdentity(1e-7));
+  EXPECT_FALSE((root_to_left_tool1 * root_to_left_tool3.inverse()).matrix().isIdentity(1e-7));
+  EXPECT_FALSE((root_to_left_tool2 * root_to_left_tool3.inverse()).matrix().isIdentity(1e-7));
 }
 
 int main(int argc, char** argv)
