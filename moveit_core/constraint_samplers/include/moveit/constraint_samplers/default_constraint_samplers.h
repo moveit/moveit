@@ -67,7 +67,7 @@ public:
    *
    */
   JointConstraintSampler(const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name)
-    : ConstraintSampler(scene, group_name)
+    : ConstraintSampler(scene, group_name), random_number_generator_(new random_numbers::RandomNumberGenerator())
   {
   }
   /**
@@ -154,6 +154,11 @@ public:
     return SAMPLER_NAME;
   }
 
+  void setRandomSeed(const boost::uint32_t seed)
+  {
+    random_number_generator_ = std::make_unique<random_numbers::RandomNumberGenerator>(seed);
+  }
+
 protected:
   /// \brief An internal structure used for maintaining constraints on a particular joint
   struct JointInfo
@@ -191,7 +196,8 @@ protected:
 
   void clear() override;
 
-  random_numbers::RandomNumberGenerator random_number_generator_; /**< \brief Random number generator used to sample */
+  std::unique_ptr<random_numbers::RandomNumberGenerator>
+      random_number_generator_;   /**< \brief Random number generator used to sample */
   std::vector<JointInfo> bounds_; /**< \brief The bounds for any joint with bounds that are more restrictive than the
                                      joint limits */
 
@@ -199,6 +205,8 @@ protected:
                                                              limits */
   std::vector<unsigned int> uindex_; /**< \brief The index of the unbounded joints in the joint state vector */
   std::vector<double> values_;       /**< \brief Values associated with this group to avoid continuously reallocating */
+  std::vector<const moveit::core::JointModel*>
+      continuous_jms_; /**< \brief The continuous revolute joints should enforce bounds after sampling */
 };
 
 /**

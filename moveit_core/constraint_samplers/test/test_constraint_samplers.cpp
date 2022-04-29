@@ -109,6 +109,57 @@ protected:
   moveit::core::SolverAllocatorFn func_left_arm_;
 };
 
+TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerForContinuousRevoluteJointType)
+{
+  moveit::core::RobotState ks(robot_model_);
+  ks.setToDefaultValues();
+
+  moveit::core::RobotState ks_const(robot_model_);
+  ks_const.setToDefaultValues();
+
+  kinematic_constraints::JointConstraint jc(robot_model_);
+
+  moveit_msgs::JointConstraint jcm;
+
+  jcm.joint_name = "l_forearm_roll_joint";
+
+  // Continous type joint
+  const auto ptr = dynamic_cast<const moveit::core::RevoluteJointModel*>(ks.getJointModel(jcm.joint_name));
+  EXPECT_TRUE(ptr != nullptr);
+  EXPECT_TRUE(ptr->isContinuous());
+
+  // []
+  jcm.position = M_PI - 0.01;
+  jcm.tolerance_above = 0.3;
+  jcm.tolerance_below = 0.3;
+  jcm.weight = 1.0;
+
+  EXPECT_TRUE(jc.configure(jcm));
+
+  constraint_samplers::JointConstraintSampler jcs(ps_, "arms");
+
+  jcs.setRandomSeed(3003);
+
+  jcs.configure({ jc });
+
+  bool has_negative_samples = false;
+
+  for (int t = 0; t < 100; ++t)
+  {
+    EXPECT_TRUE(jcs.sample(ks, ks_const, 1));
+    const double sampled_pos = ks.getVariablePosition(jc.getJointVariableIndex());
+
+    // jcm.tolerance_above = 0.3 samples position > pi.
+    // Continous joint makes position > pi => -pi < position < -pi + 0.3
+    if (-M_PI < sampled_pos && sampled_pos < -M_PI + jcm.tolerance_above)
+    {
+      has_negative_samples = true;
+    }
+  }
+
+  EXPECT_TRUE(has_negative_samples);
+}
+
 TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
 {
   moveit::core::RobotState ks(robot_model_);

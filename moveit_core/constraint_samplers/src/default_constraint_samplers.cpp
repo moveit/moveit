@@ -86,11 +86,21 @@ bool JointConstraintSampler::configure(const std::vector<kinematic_constraints::
       ji = it->second;
     else
       ji.index_ = jmg_->getVariableGroupIndex(joint_constraint.getJointVariableName());
-    ji.potentiallyAdjustMinMaxBounds(
-        std::max(joint_bounds.min_position_,
-                 joint_constraint.getDesiredJointPosition() - joint_constraint.getJointToleranceBelow()),
-        std::min(joint_bounds.max_position_,
-                 joint_constraint.getDesiredJointPosition() + joint_constraint.getJointToleranceAbove()));
+
+    if (joint_constraint.isJointContinous())
+    {
+      continuous_jms_.push_back(jm);
+      ji.min_bound_ = joint_constraint.getDesiredJointPosition() - joint_constraint.getJointToleranceBelow();
+      ji.max_bound_ = joint_constraint.getDesiredJointPosition() + joint_constraint.getJointToleranceAbove();
+    }
+    else
+    {
+      ji.potentiallyAdjustMinMaxBounds(
+          std::max(joint_bounds.min_position_,
+                   joint_constraint.getDesiredJointPosition() - joint_constraint.getJointToleranceBelow()),
+          std::min(joint_bounds.max_position_,
+                   joint_constraint.getDesiredJointPosition() + joint_constraint.getJointToleranceAbove()));
+    }
 
     ROS_DEBUG_NAMED("constraint_samplers", "Bounds for %s JointConstraint are %g %g",
                     joint_constraint.getJointVariableName().c_str(), ji.min_bound_, ji.max_bound_);
@@ -162,16 +172,20 @@ bool JointConstraintSampler::sample(moveit::core::RobotState& state,
   for (std::size_t i = 0; i < unbounded_.size(); ++i)
   {
     v.resize(unbounded_[i]->getVariableCount());
-    unbounded_[i]->getVariableRandomPositions(random_number_generator_, &v[0]);
+    unbounded_[i]->getVariableRandomPositions(*random_number_generator_, &v[0]);
     for (std::size_t j = 0; j < v.size(); ++j)
       values_[uindex_[i] + j] = v[j];
   }
 
   // enforce the constraints for the constrained components (could be all of them)
   for (const JointInfo& bound : bounds_)
-    values_[bound.index_] = random_number_generator_.uniformReal(bound.min_bound_, bound.max_bound_);
+    values_[bound.index_] = random_number_generator_->uniformReal(bound.min_bound_, bound.max_bound_);
 
   state.setJointGroupPositions(jmg_, values_);
+
+  // Enforce position bounds for continuous revolute joints
+  for (const auto jm : continuous_jms_)
+    state.enforcePositionBounds(jm);
 
   // we are always successful
   return true;

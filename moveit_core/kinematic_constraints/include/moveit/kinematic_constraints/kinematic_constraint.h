@@ -322,6 +322,16 @@ public:
     return joint_tolerance_below_;
   }
 
+  /**
+   * \brief Return whtehr it's joint type is continuous
+   *
+   * @return True if it is continuous, otherwise false
+   */
+  bool isJointContinous() const
+  {
+    return joint_is_continuous_;
+  }
+
 protected:
   const moveit::core::JointModel* joint_model_; /**< \brief The joint from the kinematic model for this constraint */
   bool joint_is_continuous_;                    /**< \brief Whether or not the joint is continuous */
