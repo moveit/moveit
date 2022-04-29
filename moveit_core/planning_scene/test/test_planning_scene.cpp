@@ -438,7 +438,7 @@ TEST(PlanningScene, RobotStateDiffBug)
   // Attached collision objects case
   ps = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
 
-  // Test that trigger the bug related to having two diffs that adds two different objects
+  // Test that triggered a bug related to having two diffs that add two different objects
   {
     const auto ps1 = create_planning_scene_diff(*ps, "object1", moveit_msgs::CollisionObject::ADD, true);
     const auto ps2 = create_planning_scene_diff(*ps, "object2", moveit_msgs::CollisionObject::ADD, true);
