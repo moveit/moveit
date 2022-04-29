@@ -152,6 +152,12 @@ void RobotModelLoader::configure(const Options& opt)
         bool has_acc_limits;
         if (nh.getParam(prefix + "has_acceleration_limits", has_acc_limits))
           joint_limit[joint_id].has_acceleration_limits = has_acc_limits;
+
+        double weight;
+        if (nh.getParam(prefix + "weight", weight))
+        {
+            joint_model->setDistanceFactor(weight);
+        }
       }
       joint_model->setVariableBounds(joint_limit);
     }
