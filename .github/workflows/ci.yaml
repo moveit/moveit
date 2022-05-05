@@ -33,6 +33,8 @@ jobs:
       UPSTREAM_WORKSPACE: .github/workflows/upstream.rosinstall
       TARGET_WORKSPACE: $TARGET_REPO_PATH github:ros-planning/moveit_resources#master
       DOWNSTREAM_WORKSPACE: .github/workflows/downstream.rosinstall
+      # Fix for https://github.blog/2022-04-12-git-security-vulnerability-announced
+      GIT_CEILING_DIRECTORIES: ${{ github.workspace }}/.work
       # Pull any updates to the upstream workspace (after restoring it from cache)
       AFTER_SETUP_UPSTREAM_WORKSPACE: vcs pull $BASEDIR/upstream_ws/src
       AFTER_SETUP_DOWNSTREAM_WORKSPACE: vcs pull $BASEDIR/downstream_ws/src
