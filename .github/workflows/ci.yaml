@@ -31,7 +31,7 @@ jobs:
       CLANG_TIDY_ARGS: --fix --fix-errors --format-style=file
       DOCKER_IMAGE: moveit/moveit:${{ matrix.env.IMAGE }}
       UPSTREAM_WORKSPACE: .github/workflows/upstream.rosinstall
-      TARGET_WORKSPACE: $TARGET_REPO_PATH github:ros-planning/moveit_resources#master
+      TARGET_WORKSPACE: $TARGET_REPO_PATH github:ros-planning/moveit_resources#heads/master
       DOWNSTREAM_WORKSPACE: .github/workflows/downstream.rosinstall
       # Fix for https://github.blog/2022-04-12-git-security-vulnerability-announced
       GIT_CEILING_DIRECTORIES: ${{ github.workspace }}/.work
