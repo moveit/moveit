@@ -210,13 +210,7 @@ class MoveGroupCommander(object):
         allows setting the joint target of the group by calling IK. This does not send a pose to the planner and the planner will do no IK.
         Instead, one IK solution will be computed first, and that will be sent to the planner.
         """
-        if isinstance(arg1, RobotState):
-            if not self._g.set_state_value_target(conversions.msg_to_string(arg1)):
-                raise MoveItCommanderException(
-                    "Error setting state target. Is the target state within bounds?"
-                )
-
-        elif isinstance(arg1, JointState):
+        if isinstance(arg1, JointState):
             if arg2 is not None or arg3 is not None:
                 raise MoveItCommanderException("Too many arguments specified")
             if not self._g.set_joint_value_target_from_joint_state_message(
