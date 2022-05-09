@@ -40,6 +40,20 @@
 
 namespace constraint_samplers
 {
+random_numbers::RandomNumberGenerator createSeededRNG(const std::string& seed_param)
+{
+  int rng_seed;
+  if (ros::param::get(seed_param, rng_seed))
+  {
+    ROS_DEBUG_STREAM_NAMED("constraint_samplers", "Creating random number generator with seed " << rng_seed);
+    return random_numbers::RandomNumberGenerator(rng_seed);
+  }
+  else
+  {
+    return random_numbers::RandomNumberGenerator();
+  }
+}
+
 bool JointConstraintSampler::configure(const moveit_msgs::Constraints& constr)
 {
   // construct the constraints
