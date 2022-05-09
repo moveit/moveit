@@ -715,13 +715,13 @@ class MoveGroupCommandInterpreter(object):
     def command_current(self, g):
         res = (
             "joints = ["
-            + " ".join([str(x) for x in g.get_current_joint_values()])
+            + ", ".join([str(x) for x in g.get_current_joint_values()])
             + "]"
         )
         if len(g.get_end_effector_link()) > 0:
             res = (
                 res
-                + "\n"
+                + "\n\n"
                 + g.get_end_effector_link()
                 + " pose = [\n"
                 + str(g.get_current_pose())
