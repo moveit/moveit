@@ -715,7 +715,7 @@ void PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_ms
   // Ensure any detached collision objects get detached from the parent planning scene, too
   for (const auto& collision_object : scene_msg.world.collision_objects)
   {
-    if (parent_->getCurrentState().hasAttachedBody(collision_object.id))
+    if (parent_ && parent_->getCurrentState().hasAttachedBody(collision_object.id))
     {
       moveit_msgs::AttachedCollisionObject aco;
       aco.object.id = collision_object.id;
