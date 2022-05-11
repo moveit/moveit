@@ -1288,8 +1288,9 @@ bool PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene& sc
   for (const moveit_msgs::CollisionObject& collision_object : scene_msg.world.collision_objects)
     result &= processCollisionObjectMsg(collision_object);
 
-  // process octomap updates
-  processOctomapMsg(scene_msg.world.octomap);
+  // if an octomap was specified, replace the one we have with that one
+  if (!scene_msg.world.octomap.octomap.data.empty())
+    processOctomapMsg(scene_msg.world.octomap);
 
   return result;
 }
