@@ -44,6 +44,8 @@
 #include <string>
 #include <boost/filesystem/path.hpp>
 #include <ros/package.h>
+#include <octomap_msgs/conversions.h>
+#include <octomap/octomap.h>
 
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection/collision_plugin_cache.h>
@@ -60,6 +62,73 @@ TEST(PlanningScene, LoadRestore)
   ps.setPlanningSceneMsg(ps_msg);
   EXPECT_EQ(ps.getName(), ps_msg.name);
   EXPECT_EQ(ps.getRobotModel()->getName(), ps_msg.robot_model_name);
+}
+
+TEST(PlanningScene, LoadOctomap)
+{
+  urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
+  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  planning_scene::PlanningScene ps(urdf_model, srdf_model);
+
+  {
+    // check octomap before doing any operations on it
+    octomap_msgs::OctomapWithPose octomap_msg;
+    ps.getOctomapMsg(octomap_msg);
+    EXPECT_FALSE(octomap_msg.octomap.id.empty());
+    EXPECT_TRUE(octomap_msg.octomap.data.empty());
+  }
+
+  {
+    // set octomap to something
+
+    // create octomap by hand
+    octomap::OcTree octomap(0.1);
+    octomap::point3d origin(0, 0, 0);
+    octomap::point3d end(0, 1, 2);
+    octomap.insertRay(origin, end);
+
+    // create planning scene
+    moveit_msgs::PlanningScene ps_msg;
+    ps_msg.is_diff = true;
+    octomap_msgs::fullMapToMsg(octomap, ps_msg.world.octomap.octomap);
+
+    ps.setPlanningSceneDiffMsg(ps_msg);
+    octomap_msgs::OctomapWithPose octomap_msg;
+    ps.getOctomapMsg(octomap_msg);
+    EXPECT_EQ(octomap_msg.octomap.id, "OcTree");
+    EXPECT_EQ(octomap_msg.octomap.data.size(), ps_msg.world.octomap.octomap.data.size());
+  }
+
+  {
+    // verify that setting planning scene with octomap id empty does not modify octomap
+
+    // create planning scene
+    moveit_msgs::PlanningScene ps_msg;
+    ps_msg.is_diff = true;
+    ps_msg.world.octomap.octomap.id = "";
+
+    ps.setPlanningSceneDiffMsg(ps_msg);
+    octomap_msgs::OctomapWithPose octomap_msg;
+    ps.getOctomapMsg(octomap_msg);
+    EXPECT_EQ(octomap_msg.octomap.id, "OcTree");
+    EXPECT_FALSE(octomap_msg.octomap.data.empty());
+  }
+
+  {
+    // zero/clear/unset octomap
+    moveit_msgs::PlanningScene ps_msg;
+    ps_msg.is_diff = true;
+
+    // create empty octomap
+    octomap::OcTree octomap(0.1);
+    octomap_msgs::fullMapToMsg(octomap, ps_msg.world.octomap.octomap);
+
+    ps.setPlanningSceneDiffMsg(ps_msg);
+    octomap_msgs::OctomapWithPose octomap_msg;
+    ps.getOctomapMsg(octomap_msg);
+    EXPECT_EQ(octomap_msg.octomap.id, "empty");
+    EXPECT_TRUE(octomap_msg.octomap.data.empty());
+  }
 }
 
 TEST(PlanningScene, LoadRestoreDiff)
