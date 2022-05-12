@@ -165,7 +165,6 @@ bool MoveItCpp::loadPlanningPipelines(const PlanningPipelineOptions& options)
   {
     for (const auto& group_name : group_names)
     {
-      groups_pipelines_map_[group_name] = {};
       const auto& pipeline = pipeline_entry.second;
       for (const auto& planner_configuration : pipeline->getPlannerManager()->getPlannerConfigurations())
       {
@@ -219,32 +218,15 @@ const std::map<std::string, planning_pipeline::PlanningPipelinePtr>& MoveItCpp::
 
 std::set<std::string> MoveItCpp::getPlanningPipelineNames(const std::string& group_name) const
 {
-  std::set<std::string> result_names;
-  if (!group_name.empty() && groups_pipelines_map_.count(group_name) == 0)
+  if (group_name.empty() || groups_pipelines_map_.count(group_name) == 0)
   {
     ROS_ERROR_NAMED(LOGNAME,
                     "No planning pipelines loaded for group '%s'. Check planning pipeline and controller setup.",
                     group_name.c_str());
-    return result_names;  // empty
+    return {};  // empty
   }
-  for (const auto& pipeline_entry : planning_pipelines_)
-  {
-    const std::string& pipeline_name = pipeline_entry.first;
-    // If group_name is defined and valid, skip pipelines that don't belong to the planning group
-    if (!group_name.empty())
-    {
-      const auto& group_pipelines = groups_pipelines_map_.at(group_name);
-      if (group_pipelines.find(pipeline_name) == group_pipelines.end())
-        continue;
-    }
-    result_names.insert(pipeline_name);
-  }
-  // No valid planning pipelines
-  if (result_names.empty())
-    ROS_ERROR_NAMED(LOGNAME,
-                    "No planning pipelines loaded for group '%s'. Check planning pipeline and controller setup.",
-                    group_name.c_str());
-  return result_names;
+
+  return groups_pipelines_map_.at(group_name);
 }
 
 const planning_scene_monitor::PlanningSceneMonitorPtr& MoveItCpp::getPlanningSceneMonitor() const
