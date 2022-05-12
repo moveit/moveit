@@ -1159,7 +1159,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSeeded)
   constraint_samplers::JointConstraintSampler seeded_sampler3(ps_, "right_arm");
   EXPECT_TRUE(seeded_sampler3.configure(js));
   ks.setToDefaultValues();
-  EXPECT_TRUE(seeded_sampler3.sample(ks, ks, 1));
+  EXPECT_TRUE(seeded_sampler3.sample(ks, ks, 5));
   const double* joint_positions3 = ks.getVariablePositions();
   const std::vector<double> joint_positions_v3(joint_positions3, joint_positions3 + ks.getVariableCount());
   EXPECT_THAT(joint_positions_v, Not(ContainerEq(joint_positions_v3)));
@@ -1223,7 +1223,7 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerSeeded)
   EXPECT_TRUE(seeded_sampler3.configure(constraint_samplers::IKSamplingPose(pc)));
   ks.setToDefaultValues();
   ks.update();
-  EXPECT_TRUE(seeded_sampler3.sample(ks, ks, 1));
+  EXPECT_TRUE(seeded_sampler3.sample(ks, ks, 5));
   ks.update();
   found = false;
   const Eigen::Isometry3d root_to_left_tool3 = ks.getFrameTransform("l_gripper_tool_frame", &found);
