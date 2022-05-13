@@ -31,7 +31,7 @@ jobs:
       CLANG_TIDY_ARGS: --fix --fix-errors --format-style=file
       DOCKER_IMAGE: moveit/moveit:${{ matrix.env.IMAGE }}
       UPSTREAM_WORKSPACE: .github/workflows/upstream.rosinstall
-      TARGET_WORKSPACE: $TARGET_REPO_PATH github:ros-planning/moveit_resources#heads/master
+      TARGET_WORKSPACE: $TARGET_REPO_PATH github:ros-planning/moveit_resources#master
       DOWNSTREAM_WORKSPACE: .github/workflows/downstream.rosinstall
       # Pull any updates to the upstream workspace (after restoring it from cache)
       AFTER_SETUP_UPSTREAM_WORKSPACE: vcs pull $BASEDIR/upstream_ws/src
