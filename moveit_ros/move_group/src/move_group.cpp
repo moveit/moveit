@@ -303,6 +303,11 @@ int main(int argc, char** argv)
 
     move_group::MoveGroupExe mge(moveit_cpp, default_planning_pipeline, debug);
 
+    if (pnh.param<bool>("monitor_dynamics", false))
+    {
+      ROS_INFO_NAMED(LOGNAME, "MoveGroup monitors robot dynamics (higher load)");
+      planning_scene_monitor->getStateMonitor()->enableCopyDynamics(true);
+    }
     planning_scene_monitor->publishDebugInformation(debug);
 
     mge.status();
