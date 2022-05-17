@@ -465,6 +465,26 @@ TEST(PlanningScene, RobotStateDiffBug)
     EXPECT_TRUE(get_collision_objects_names(*ps).empty());
     EXPECT_EQ(get_attached_collision_objects_names(*ps), (std::set<std::string>{ "object1", "object2" }));
   }
+
+  // Removing an attached collision object completely
+  {
+    auto ps1 = ps->diff();
+    moveit_msgs::CollisionObject co;
+    co.id = "object2";
+    co.operation = moveit_msgs::CollisionObject::REMOVE;
+    moveit_msgs::AttachedCollisionObject aco;
+    aco.object = co;
+
+    ps1->processAttachedCollisionObjectMsg(aco);  // detach
+    ps1->processCollisionObjectMsg(co);           // and eventually remove object
+
+    moveit_msgs::PlanningScene msg;
+    ps1->getPlanningSceneDiffMsg(msg);
+    ps->usePlanningSceneMsg(msg);
+
+    EXPECT_TRUE(get_collision_objects_names(*ps).empty());
+    EXPECT_EQ(get_attached_collision_objects_names(*ps), (std::set<std::string>{ "object1" }));
+  }
 }
 
 #ifndef INSTANTIATE_TEST_SUITE_P  // prior to gtest 1.10
