@@ -650,9 +650,7 @@ void PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_ms
   if (robot_state_)
     moveit::core::robotStateToRobotStateMsg(*robot_state_, scene_msg.robot_state);
   else
-  {
     scene_msg.robot_state = moveit_msgs::RobotState();
-  }
   scene_msg.robot_state.is_diff = true;
 
   if (acm_)
