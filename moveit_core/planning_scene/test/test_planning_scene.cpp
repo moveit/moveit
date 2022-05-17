@@ -346,9 +346,9 @@ TEST_P(CollisionDetectorTests, ClearDiff)
 }
 
 // Returns a planning scene diff message
-moveit_msgs::PlanningScene create_planning_scene_diff(planning_scene::PlanningScene& ps, const std::string& object_name,
-                                                      const int8_t operation, const bool attach_object = false,
-                                                      const bool create_object = true)
+moveit_msgs::PlanningScene create_planning_scene_diff(const planning_scene::PlanningScene& ps,
+                                                      const std::string& object_name, const int8_t operation,
+                                                      const bool attach_object = false, const bool create_object = true)
 {
   // Helper function to create an object for RobotStateDiffBug
   auto add_object = [](const std::string& object_name, const int8_t operation) {
