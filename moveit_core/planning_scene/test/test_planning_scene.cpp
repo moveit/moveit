@@ -418,16 +418,17 @@ TEST(PlanningScene, RobotStateDiffBug)
   auto srdf_model = std::make_shared<srdf::Model>();
   auto ps = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
 
-  // It works as expected for collision objects case
+  // Adding collision objects incrementally
   {
     const auto ps1 = create_planning_scene_diff(*ps, "object1", moveit_msgs::CollisionObject::ADD);
     const auto ps2 = create_planning_scene_diff(*ps, "object2", moveit_msgs::CollisionObject::ADD);
 
-    ps->usePlanningSceneMsg(ps2);
     ps->usePlanningSceneMsg(ps1);
+    ps->usePlanningSceneMsg(ps2);
     EXPECT_EQ(get_collision_objects_names(*ps), (std::set<std::string>{ "object1", "object2" }));
   }
 
+  // Removing a collision object
   {
     const auto ps1 = create_planning_scene_diff(*ps, "object2", moveit_msgs::CollisionObject::REMOVE);
 
@@ -435,10 +436,8 @@ TEST(PlanningScene, RobotStateDiffBug)
     EXPECT_EQ(get_collision_objects_names(*ps), (std::set<std::string>{ "object1" }));
   }
 
-  // Attached collision objects case
+  // Adding attached collision objects incrementally
   ps = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
-
-  // Test that triggered a bug related to having two diffs that add two different objects
   {
     const auto ps1 = create_planning_scene_diff(*ps, "object1", moveit_msgs::CollisionObject::ADD, true);
     const auto ps2 = create_planning_scene_diff(*ps, "object2", moveit_msgs::CollisionObject::ADD, true);
@@ -446,11 +445,10 @@ TEST(PlanningScene, RobotStateDiffBug)
     ps->usePlanningSceneMsg(ps1);
     ps->usePlanningSceneMsg(ps2);
     EXPECT_TRUE(get_collision_objects_names(*ps).empty());
-    // Should print object1 and object2 -- it prints object2 only (or object1 depending on the order of operation)
     EXPECT_EQ(get_attached_collision_objects_names(*ps), (std::set<std::string>{ "object1", "object2" }));
   }
 
-  // Test that triggered a bug related to removing an object when having a robot state diff
+  // Removing an attached collision object
   {
     const auto ps1 = create_planning_scene_diff(*ps, "object2", moveit_msgs::CollisionObject::REMOVE, true);
     ps->usePlanningSceneMsg(ps1);
@@ -459,6 +457,7 @@ TEST(PlanningScene, RobotStateDiffBug)
     EXPECT_EQ(get_attached_collision_objects_names(*ps), (std::set<std::string>{ "object1" }));
   }
 
+  // Turn an existing collision object into an attached object
   {
     const auto ps1 = create_planning_scene_diff(*ps, "object2", moveit_msgs::CollisionObject::ADD, true, false);
     ps->usePlanningSceneMsg(ps1);
