@@ -380,7 +380,7 @@ moveit_msgs::PlanningScene create_planning_scene_diff(const planning_scene::Plan
   };
 
   auto new_ps = ps.diff();
-  if (operation == moveit_msgs::CollisionObject::REMOVE ||
+  if ((operation == moveit_msgs::CollisionObject::REMOVE && !attach_object) ||
       (operation == moveit_msgs::CollisionObject::ADD && create_object))
     new_ps->processCollisionObjectMsg(add_object(object_name, operation));
   if (attach_object)
