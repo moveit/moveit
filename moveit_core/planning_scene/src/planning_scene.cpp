@@ -650,9 +650,7 @@ void PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_ms
   if (robot_state_)
     moveit::core::robotStateToRobotStateMsg(*robot_state_, scene_msg.robot_state);
   else
-  {
     scene_msg.robot_state = moveit_msgs::RobotState();
-  }
   scene_msg.robot_state.is_diff = true;
 
   if (acm_)
@@ -712,7 +710,9 @@ void PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_ms
       getOctomapMsg(scene_msg.world.octomap);
   }
 
-  // Ensure any detached collision objects get detached from the parent planning scene, too
+  // Ensure all detached collision objects actually get removed when applying the diff
+  // Because RobotState doesn't handle diffs (yet), we explicitly declare attached objects
+  // as removed, if they show up as "normal" collision objects but were attached in parent
   for (const auto& collision_object : scene_msg.world.collision_objects)
   {
     if (parent_ && parent_->getCurrentState().hasAttachedBody(collision_object.id))
