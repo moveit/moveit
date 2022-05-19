@@ -41,11 +41,11 @@
 
 namespace collision_detection
 {
-World::World()
+World::World() : use_detailed_mesh_(true)
 {
 }
 
-World::World(const World& other)
+World::World(const World& other) : use_detailed_mesh_(true)
 {
   objects_ = other.objects_;
 }

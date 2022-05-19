@@ -257,7 +257,12 @@ void CollisionEnvBullet::addToManager(const World::Object* obj)
   for (const shapes::ShapeConstPtr& shape : obj->shapes_)
   {
     if (shape->type == shapes::MESH)
-      collision_object_types.push_back(collision_detection_bullet::CollisionObjectType::CONVEX_HULL);
+    {
+      if (getWorld()->getUseDetailedMesh())
+        collision_object_types.push_back(collision_detection_bullet::CollisionObjectType::USE_SHAPE_TYPE);
+      else
+        collision_object_types.push_back(collision_detection_bullet::CollisionObjectType::CONVEX_HULL);
+    }
     else
       collision_object_types.push_back(collision_detection_bullet::CollisionObjectType::USE_SHAPE_TYPE);
   }
