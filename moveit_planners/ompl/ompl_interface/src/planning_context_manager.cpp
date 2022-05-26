@@ -66,6 +66,7 @@
 #include <ompl/geometric/planners/prm/LazyPRMstar.h>
 #include <ompl/geometric/planners/prm/SPARS.h>
 #include <ompl/geometric/planners/prm/SPARStwo.h>
+#include <ompl/geometric/planners/cforest/CForest.h>
 
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
@@ -270,6 +271,7 @@ void ompl_interface::PlanningContextManager::registerDefaultPlanners()
   registerPlannerAllocatorHelper<og::BiEST>("geometric::BiEST");
   registerPlannerAllocatorHelper<og::BiTRRT>("geometric::BiTRRT");
   registerPlannerAllocatorHelper<og::BKPIECE1>("geometric::BKPIECE");
+  registerPlannerAllocatorHelper<og::CForest>("geometric::CForest");
   registerPlannerAllocatorHelper<og::EST>("geometric::EST");
   registerPlannerAllocatorHelper<og::FMT>("geometric::FMT");
   registerPlannerAllocatorHelper<og::KPIECE1>("geometric::KPIECE");
