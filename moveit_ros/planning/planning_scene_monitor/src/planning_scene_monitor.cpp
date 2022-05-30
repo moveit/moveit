@@ -48,6 +48,8 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <moveit/profiler/profiler.h>
 
+#include <boost/algorithm/string/join.hpp>
+
 #include <memory>
 
 namespace planning_scene_monitor
