@@ -42,7 +42,7 @@
 #include <moveit/macros/class_forward.h>
 #include <moveit/planning_interface/planning_interface.h>
 
-#include <pluginlib/class_loader.h>
+#include <pluginlib/class_loader.hpp>
 
 // Boost includes
 #include <boost/scoped_ptr.hpp>

@@ -120,5 +120,5 @@ bool MoveGroupSequenceService::plan(moveit_msgs::GetMotionSequence::Request& req
 
 }  // namespace pilz_industrial_motion_planner
 
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 PLUGINLIB_EXPORT_CLASS(pilz_industrial_motion_planner::MoveGroupSequenceService, move_group::MoveGroupCapability)
