@@ -311,5 +311,5 @@ void MoveGroupSequenceAction::setMoveState(move_group::MoveGroupState state)
 
 }  // namespace pilz_industrial_motion_planner
 
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 PLUGINLIB_EXPORT_CLASS(pilz_industrial_motion_planner::MoveGroupSequenceAction, move_group::MoveGroupCapability)

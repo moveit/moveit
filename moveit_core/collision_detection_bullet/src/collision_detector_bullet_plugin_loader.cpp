@@ -35,7 +35,7 @@
 /* Author: Jens Petit */
 
 #include <moveit/collision_detection_bullet/collision_detector_bullet_plugin_loader.h>
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 
 namespace collision_detection
 {

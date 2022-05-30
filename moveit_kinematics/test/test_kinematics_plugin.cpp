@@ -38,7 +38,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 #include <functional>
-#include <pluginlib/class_loader.h>
+#include <pluginlib/class_loader.hpp>
 #include <ros/ros.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <xmlrpcpp/XmlRpcValue.h>
