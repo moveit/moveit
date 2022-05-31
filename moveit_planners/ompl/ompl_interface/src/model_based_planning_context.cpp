@@ -510,9 +510,13 @@ ompl_interface::ModelBasedPlanningContext::constructPlannerTerminationCondition(
   else if (termination_and_params[0] == "Iteration")
   {
     if (termination_and_params.size() > 1)
-      return ob::plannerOrTerminationCondition(
-          ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start)),
-          ob::IterationTerminationCondition(std::stoul(termination_and_params[1])));
+    {
+      ptcs_.clear();
+      ptcs_.push_back(std::make_shared<ob::PlannerTerminationCondition>(
+          ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start))));
+      it_ptc_ = std::make_shared<ob::IterationTerminationCondition>(std::stoul(termination_and_params[1]));
+      return ob::plannerOrTerminationCondition(*ptcs_[0], *it_ptc_);
+    }
     else
       ROS_ERROR_NAMED(LOGNAME, "Missing argument to Iteration termination condition");
   }
@@ -530,9 +534,12 @@ ompl_interface::ModelBasedPlanningContext::constructPlannerTerminationCondition(
       if (termination_and_params.size() > 2)
         epsilon = moveit::core::toDouble(termination_and_params[2]);
     }
-    return ob::plannerOrTerminationCondition(
-        ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start)),
-        ob::CostConvergenceTerminationCondition(ompl_simple_setup_->getProblemDefinition(), solutions_window, epsilon));
+    ptcs_.clear();
+    ptcs_.push_back(std::make_shared<ob::PlannerTerminationCondition>(
+        ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start))));
+    ptcs_.push_back(std::make_shared<ob::CostConvergenceTerminationCondition>(
+        ompl_simple_setup_->getProblemDefinition(), solutions_window, epsilon));
+    return ob::plannerOrTerminationCondition(*ptcs_[0], *ptcs_[1]);
   }
 #endif
   // Terminate as soon as an exact solution is found or a timeout occurs.
@@ -540,9 +547,12 @@ ompl_interface::ModelBasedPlanningContext::constructPlannerTerminationCondition(
   // the first feasible solution.
   else if (termination_and_params[0] == "ExactSolution")
   {
-    return ob::plannerOrTerminationCondition(
-        ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start)),
-        ob::exactSolnPlannerTerminationCondition(ompl_simple_setup_->getProblemDefinition()));
+    ptcs_.clear();
+    ptcs_.push_back(std::make_shared<ob::PlannerTerminationCondition>(
+        ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start))));
+    ptcs_.push_back(std::make_shared<ob::PlannerTerminationCondition>(
+        ob::exactSolnPlannerTerminationCondition(ompl_simple_setup_->getProblemDefinition())));
+    return ob::plannerOrTerminationCondition(*ptcs_[0], *ptcs_[1]);
   }
   else
     ROS_ERROR_NAMED(LOGNAME, "Unknown planner termination condition");
