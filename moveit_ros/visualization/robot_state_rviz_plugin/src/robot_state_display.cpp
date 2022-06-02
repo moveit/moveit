@@ -294,8 +294,7 @@ void RobotStateDisplay::changedRobotStateTopic()
   robot_state_subscriber_.shutdown();
 
   // reset model to default state, we don't want to show previous messages
-  if (static_cast<bool>(robot_state_->getState()))
-    robot_state_->modifyState([](robot_state::RobotState* state) { state->setToDefaultValues(); });
+  robot_state_->modifyState([](robot_state::RobotState* state) { state->setToDefaultValues(); });
   update_state_ = true;
   robot_->setVisible(false);
   setStatus(rviz::StatusProperty::Warn, "RobotState", "No msg received");
@@ -323,8 +322,7 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
   }
   catch (const moveit::Exception& e)
   {
-    if (static_cast<bool>(robot_state_->getState()))
-      robot_state_->modifyState([](robot_state::RobotState* state) { state->setToDefaultValues(); });
+    robot_state_->modifyState([](robot_state::RobotState* state) { state->setToDefaultValues(); });
     setRobotHighlights(moveit_msgs::DisplayRobotState::_highlight_links_type());
     setStatus(rviz::StatusProperty::Error, "RobotState", e.what());
     robot_->setVisible(false);

@@ -43,8 +43,6 @@
 #include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
 #include <moveit_msgs/DisplayRobotState.h>
 #include <ros/ros.h>
-
-#include <mutex>
 #endif
 
 namespace rviz
