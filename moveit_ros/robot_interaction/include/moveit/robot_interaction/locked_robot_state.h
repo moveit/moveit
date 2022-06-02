@@ -62,6 +62,7 @@ class LockedRobotState
 public:
   LockedRobotState(const moveit::core::RobotState& state);
   LockedRobotState(const moveit::core::RobotModelPtr& model);
+  LockedRobotState();
 
   virtual ~LockedRobotState();
 

@@ -57,6 +57,11 @@ class RosTopicProperty;
 class ColorProperty;
 }  // namespace rviz
 
+namespace robot_interaction
+{
+MOVEIT_CLASS_FORWARD(LockedRobotState);
+}
+
 namespace moveit_rviz_plugin
 {
 class RobotStateVisualization;
@@ -129,8 +134,7 @@ protected:
   RobotStateVisualizationPtr robot_;
   rdf_loader::RDFLoaderPtr rdf_loader_;
   moveit::core::RobotModelConstPtr robot_model_;
-  moveit::core::RobotStatePtr robot_state_;
-  std::mutex robot_state_mutex_;
+  robot_interaction::LockedRobotStatePtr robot_state_;
   std::map<std::string, std_msgs::ColorRGBA> highlights_;
   bool update_state_;
 

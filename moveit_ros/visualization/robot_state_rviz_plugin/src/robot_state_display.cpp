@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/robot_state_rviz_plugin/robot_state_display.h>
+#include <moveit/robot_interaction/locked_robot_state.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/utils/message_checks.h>
 
@@ -101,6 +102,8 @@ RobotStateDisplay::RobotStateDisplay() : Display(), update_state_(false)
 
   show_all_links_ = new rviz::BoolProperty("Show All Links", true, "Toggle all links visibility on or off.", this,
                                            SLOT(changedAllLinks()), this);
+
+  robot_state_ = std::make_shared<robot_interaction::LockedRobotState>();
 }
 
 // ******************************************************************************************
@@ -291,9 +294,8 @@ void RobotStateDisplay::changedRobotStateTopic()
   robot_state_subscriber_.shutdown();
 
   // reset model to default state, we don't want to show previous messages
-  std::lock_guard<std::mutex> lock(robot_state_mutex_);
-  if (static_cast<bool>(robot_state_))
-    robot_state_->setToDefaultValues();
+  if (static_cast<bool>(robot_state_->getState()))
+    robot_state_->modifyState([](robot_state::RobotState* state) { state->setToDefaultValues(); });
   update_state_ = true;
   robot_->setVisible(false);
   setStatus(rviz::StatusProperty::Warn, "RobotState", "No msg received");
@@ -307,19 +309,22 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
   if (!robot_model_)
     return;
 
-  std::lock_guard<std::mutex> lock(robot_state_mutex_);
-  if (!robot_state_)
-    robot_state_ = std::make_shared<moveit::core::RobotState>(robot_model_);
+  if (!robot_state_->getState())
+    robot_state_->setState(moveit::core::RobotState(robot_model_));
   // possibly use TF to construct a moveit::core::Transforms object to pass in to the conversion function?
   try
   {
     if (!moveit::core::isEmpty(state_msg->state))
-      moveit::core::robotStateMsgToRobotState(state_msg->state, *robot_state_);
+      robot_state_->modifyState([state_msg](robot_state::RobotState* state) {
+        moveit::core::robotStateMsgToRobotState(state_msg->state, *state);
+      });
+
     setRobotHighlights(state_msg->highlight_links);
   }
   catch (const moveit::Exception& e)
   {
-    robot_state_->setToDefaultValues();
+    if (static_cast<bool>(robot_state_->getState()))
+      robot_state_->modifyState([](robot_state::RobotState* state) { state->setToDefaultValues(); });
     setRobotHighlights(moveit_msgs::DisplayRobotState::_highlight_links_type());
     setStatus(rviz::StatusProperty::Error, "RobotState", e.what());
     robot_->setVisible(false);
@@ -382,13 +387,13 @@ void RobotStateDisplay::loadRobotModel()
   {
     try
     {
-      std::lock_guard<std::mutex> lock(robot_state_mutex_);
       const srdf::ModelSharedPtr& srdf =
           rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : std::make_shared<srdf::Model>();
       robot_model_ = std::make_shared<moveit::core::RobotModel>(rdf_loader_->getURDF(), srdf);
       robot_->load(*robot_model_->getURDF());
-      robot_state_ = std::make_shared<moveit::core::RobotState>(robot_model_);
-      robot_state_->setToDefaultValues();
+      robot_state::RobotState state(robot_model_);
+      state.setToDefaultValues();
+      robot_state_->setState(state);
       bool old_state = root_link_name_property_->blockSignals(true);
       root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
       root_link_name_property_->blockSignals(old_state);
@@ -441,12 +446,11 @@ void RobotStateDisplay::update(float wall_dt, float ros_dt)
 {
   Display::update(wall_dt, ros_dt);
   calculateOffsetPosition();
-  std::lock_guard<std::mutex> lock(robot_state_mutex_);
-  if (robot_ && update_state_ && robot_state_)
+  if (robot_ && update_state_ && robot_state_->getState())
   {
     update_state_ = false;
-    robot_state_->update();
-    robot_->update(robot_state_);
+    robot_state_->modifyState([](robot_state::RobotState* state) { state->update(); });
+    robot_->update(robot_state_->getState());
   }
 }
 
