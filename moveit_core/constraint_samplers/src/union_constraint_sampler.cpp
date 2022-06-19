@@ -131,6 +131,7 @@ bool UnionConstraintSampler::sample(moveit::core::RobotState& state, const movei
 
   if (!samplers_.empty())
   {
+    state.updateLinkTransforms();
     if (!samplers_[0]->sample(state, reference_state, max_attempts))
       return false;
   }
@@ -141,7 +142,7 @@ bool UnionConstraintSampler::sample(moveit::core::RobotState& state, const movei
     // but requires a state with clean link transforms as input. This means that we need to clean the link
     // transforms between calls to ConstraintSampler::sample.
     state.updateLinkTransforms();
-    if (!samplers_[i]->sample(state, state, max_attempts))
+    if (!samplers_[i]->project(state, max_attempts))
       return false;
   }
   return true;
