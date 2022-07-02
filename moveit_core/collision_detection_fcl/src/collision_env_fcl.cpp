@@ -306,7 +306,8 @@ void CollisionEnvFCL::checkCollisionHelper(const CollisionRequest& req, Collisio
     dreq.group_name = req.group_name;
     dreq.acm = acm;
     dreq.enableGroup(getRobotModel());
-    distanceSelf(dreq, dres, state);
+    DistanceData drd(&dreq, &dres);
+    manager_->distance(&drd, &distanceCallback);
     res.distance = dres.minimum_distance.distance;
   }
 
@@ -322,7 +323,8 @@ void CollisionEnvFCL::checkCollisionHelper(const CollisionRequest& req, Collisio
       dreq.group_name = req.group_name;
       dreq.acm = acm;
       dreq.enableGroup(getRobotModel());
-      distanceRobot(dreq, dres, state);
+      DistanceData drd(&dreq, &dres);
+      manager_->distance(manager.manager_.get(), &drd, &distanceCallback);
       res.distance = dres.minimum_distance.distance;
     }
   }
