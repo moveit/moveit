@@ -277,6 +277,57 @@ void CollisionEnvFCL::checkSelfCollisionHelper(const CollisionRequest& req, Coll
   }
 }
 
+void CollisionEnvFCL::checkCollision(const CollisionRequest& req, CollisionResult& res,
+                                     const moveit::core::RobotState& state) const
+{
+  checkCollisionHelper(req, res, state, nullptr);
+}
+
+void CollisionEnvFCL::checkCollision(const CollisionRequest& req, CollisionResult& res,
+                                     const moveit::core::RobotState& state, const AllowedCollisionMatrix& acm) const
+{
+  checkCollisionHelper(req, res, state, &acm);
+}
+
+void CollisionEnvFCL::checkCollisionHelper(const CollisionRequest& req, CollisionResult& res,
+                                           const moveit::core::RobotState& state,
+                                           const AllowedCollisionMatrix* acm) const
+{
+  FCLManager manager;
+  allocSelfCollisionBroadPhase(state, manager);
+  CollisionData cd(&req, &res, acm);
+  cd.enableGroup(getRobotModel());
+  manager.manager_->collide(&cd, &collisionCallback);
+  if (req.distance)
+  {
+    DistanceRequest dreq;
+    DistanceResult dres;
+
+    dreq.group_name = req.group_name;
+    dreq.acm = acm;
+    dreq.enableGroup(getRobotModel());
+    distanceSelf(dreq, dres, state);
+    res.distance = dres.minimum_distance.distance;
+  }
+
+  if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
+  {
+    manager_->collide(manager.manager_.get(), &cd, &collisionCallback);
+
+    if (req.distance)
+    {
+      DistanceRequest dreq;
+      DistanceResult dres;
+
+      dreq.group_name = req.group_name;
+      dreq.acm = acm;
+      dreq.enableGroup(getRobotModel());
+      distanceRobot(dreq, dres, state);
+      res.distance = dres.minimum_distance.distance;
+    }
+  }
+}
+
 void CollisionEnvFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                           const moveit::core::RobotState& state) const
 {
