@@ -46,6 +46,8 @@
 
 namespace moveit_fake_controller_manager
 {
+const std::string LOGNAME = "planning_scene";
+
 MOVEIT_CLASS_FORWARD(BaseFakeController);  // Defines BaseFakeControllerPtr, ConstPtr, WeakPtr... etc
 
 // common base class to all fake controllers in this package
@@ -61,7 +63,6 @@ protected:
   std::vector<std::string> joints_;
   const ros::Publisher& pub_;
   moveit_controller_manager::ExecutionStatus status_;
-  std::string name_ = "fake_controllers";
 };
 
 class LastPointController : public BaseFakeController

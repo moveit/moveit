@@ -58,8 +58,8 @@ void MoveGroupExecuteTrajectoryAction::initialize()
 
 void MoveGroupExecuteTrajectoryAction::executePathCallback(ExecuteTrajectoryActionServer::GoalHandle goal)
 {
-  ROS_INFO_NAMED(name_, "Goal received (ExecuteTrajectoryActionServer)");
-  ROS_DEBUG_STREAM_NAMED(name_, "Goal ID" << goal.getGoalID()); 
+  ROS_INFO_NAMED(LOGNAME, "Goal received (ExecuteTrajectoryActionServer)");
+  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Goal ID" << goal.getGoalID()); 
   moveit_msgs::ExecuteTrajectoryGoal goal_msg = *goal.getGoal();
   moveit_msgs::ExecuteTrajectoryResult action_res;
   
@@ -74,12 +74,10 @@ void MoveGroupExecuteTrajectoryAction::executePathCallback(ExecuteTrajectoryActi
   
   // Define a lambda that sets the goal state when the trajectory is completed.
   // This is called when the trajectory finishes.
-  bool execution_complete = false;
   auto goalId = goal.getGoalID();
   // Copy goalId here so that it is still available when this lambda is called later (otherwise it is deleted when the parent function ends)
   auto completedTrajectoryCallback = [&, goalId](const moveit_controller_manager::ExecutionStatus& status) {
-    ROS_DEBUG_NAMED(name_, "Entered lambda");
-    execution_complete = true;
+    ROS_DEBUG_NAMED(LOGNAME, "Entered lambda");
     if (status == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
     {
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
@@ -96,12 +94,12 @@ void MoveGroupExecuteTrajectoryAction::executePathCallback(ExecuteTrajectoryActi
     {
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
     }
-    ROS_DEBUG_STREAM_NAMED(name_, "Execution completed: " << status.asString());
+    ROS_DEBUG_STREAM_NAMED(LOGNAME, "Execution completed: " << status.asString());
 
-    ROS_DEBUG_NAMED(name_, "getting ActionResultString");
+    ROS_DEBUG_NAMED(LOGNAME, "getting ActionResultString");
     const std::string response = this->getActionResultString(action_res.error_code, false, false);
 
-    ROS_DEBUG_STREAM_NAMED(name_, "List of goal_handles_: " << goal_handles_.size());
+    ROS_DEBUG_STREAM_NAMED(LOGNAME, "List of goal_handles_: " << goal_handles_.size());
     
     {
       boost::mutex::scoped_lock lock(goal_handles_mutex_);
@@ -109,7 +107,7 @@ void MoveGroupExecuteTrajectoryAction::executePathCallback(ExecuteTrajectoryActi
       {
         if (it->getGoalID() == goalId)
         {
-          ROS_DEBUG_STREAM_NAMED(name_, "goal (" << it->getGoal()->trajectory.joint_trajectory.joint_names[0] << ") set to " << response);
+          ROS_DEBUG_STREAM_NAMED(LOGNAME, "goal (" << it->getGoal()->trajectory.joint_trajectory.joint_names[0] << ") set to " << response);
           if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
           {
             it->setSucceeded(action_res, response);
@@ -122,7 +120,7 @@ void MoveGroupExecuteTrajectoryAction::executePathCallback(ExecuteTrajectoryActi
           break;
         }
       }
-      // ROS_DEBUG_STREAM_NAMED(name_, "goal set to " << response);
+      // ROS_DEBUG_STREAM_NAMED(LOGNAME, "goal set to " << response);
     }
     }; // end of lambda expression
 
@@ -130,12 +128,12 @@ void MoveGroupExecuteTrajectoryAction::executePathCallback(ExecuteTrajectoryActi
       boost::mutex::scoped_lock lock(goal_handles_mutex_);
       if (context_->trajectory_execution_manager_->pushAndExecuteSimultaneous(goal.getGoal()->trajectory, "", completedTrajectoryCallback))
       {
-        ROS_DEBUG_STREAM_NAMED(name_, "Pushed trajectory to queue.");
+        ROS_DEBUG_STREAM_NAMED(LOGNAME, "Pushed trajectory to queue.");
         goal_handles_.push_back(goal);
       }
       else
       {
-        ROS_DEBUG_STREAM_NAMED(name_, "Failed to pushed trajectory to queue.");
+        ROS_DEBUG_STREAM_NAMED(LOGNAME, "Failed to push trajectory to queue.");
         action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
         const std::string response = getActionResultString(action_res.error_code, false, false);
         goal.setAborted(action_res, response);

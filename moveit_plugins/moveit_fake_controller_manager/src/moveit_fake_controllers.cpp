@@ -51,7 +51,7 @@ BaseFakeController::BaseFakeController(const std::string& name, const std::vecto
   ss << "Fake controller '" << name << "' with joints [ ";
   std::copy(joints.begin(), joints.end(), std::ostream_iterator<std::string>(ss, " "));
   ss << "]";
-  ROS_INFO_STREAM_NAMED(name_, ss.str());
+  ROS_INFO_STREAM_NAMED(LOGNAME, ss.str());
 }
 
 void BaseFakeController::getJoints(std::vector<std::string>& joints) const
@@ -74,7 +74,7 @@ LastPointController::~LastPointController() = default;
 
 bool LastPointController::sendTrajectory(const moveit_msgs::RobotTrajectory& t)
 {
-  ROS_INFO_NAMED(name_, "Fake execution of trajectory: Last point start");
+  ROS_INFO_NAMED(LOGNAME, "Fake execution of trajectory: Last point start");
   if (t.joint_trajectory.points.empty())
     return true;
 
@@ -89,7 +89,7 @@ bool LastPointController::sendTrajectory(const moveit_msgs::RobotTrajectory& t)
   js.effort = last.effort;
   pub_.publish(js);
   status_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
-  ROS_INFO_NAMED(name_, "Fake execution of trajectory: Last point done");
+  ROS_INFO_NAMED(LOGNAME, "Fake execution of trajectory: Last point done");
 
   return true;
 }
@@ -135,7 +135,7 @@ bool ThreadedController::sendTrajectory(const moveit_msgs::RobotTrajectory& t)
 bool ThreadedController::cancelExecution()
 {
   cancelTrajectory();
-  ROS_INFO_NAMED(name_, "Fake trajectory execution cancelled");
+  ROS_INFO_NAMED(LOGNAME, "Fake trajectory execution cancelled");
   status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
   return true;
 }
@@ -162,7 +162,7 @@ ViaPointController::~ViaPointController() = default;
 
 void ViaPointController::execTrajectory(const moveit_msgs::RobotTrajectory& t)
 {
-  ROS_INFO_NAMED(name_, "Fake execution of trajectory: start");
+  ROS_INFO_NAMED(LOGNAME, "Fake execution of trajectory: start");
   status_ = moveit_controller_manager::ExecutionStatus::RUNNING;
   sensor_msgs::JointState js;
   js.header = t.joint_trajectory.header;
@@ -182,14 +182,15 @@ void ViaPointController::execTrajectory(const moveit_msgs::RobotTrajectory& t)
     ros::Duration wait_time = via->time_from_start - (ros::Time::now() - start_time);
     if (wait_time.toSec() > std::numeric_limits<float>::epsilon())
     {
-      ROS_DEBUG_NAMED(name_, "Fake execution: waiting %0.1fs for next via point, %ld remaining", wait_time.toSec(), end - via);
+      ROS_DEBUG_NAMED(LOGNAME, "Fake execution: waiting %0.1fs for next via point, %ld remaining", wait_time.toSec(),
+                      end - via);
       wait_time.sleep();
     }
     js.header.stamp = ros::Time::now();
     pub_.publish(js);
   }
   status_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
-  ROS_INFO_NAMED(name_, "Fake execution of trajectory: done");
+  ROS_INFO_NAMED(LOGNAME, "Fake execution of trajectory: done");
 }
 
 InterpolatingController::InterpolatingController(const std::string& name, const std::vector<std::string>& joints,
@@ -223,7 +224,7 @@ void interpolate(sensor_msgs::JointState& js, const trajectory_msgs::JointTrajec
 
 void InterpolatingController::execTrajectory(const moveit_msgs::RobotTrajectory& t)
 {
-  ROS_INFO_NAMED(name_, "Fake execution of trajectory: start");
+  ROS_INFO_NAMED(LOGNAME, "Fake execution of trajectory: start");
   status_ = moveit_controller_manager::ExecutionStatus::RUNNING;
   if (t.joint_trajectory.points.empty())
     return;
@@ -251,10 +252,10 @@ void InterpolatingController::execTrajectory(const moveit_msgs::RobotTrajectory&
       break;
 
     double duration = (next->time_from_start - prev->time_from_start).toSec();
-    ROS_DEBUG_NAMED(name_, "elapsed: %.3f via points %td,%td / %td  alpha: %.3f", elapsed.toSec(), prev - points.begin(),
-              next - points.begin(), end - points.begin(),
-              duration > std::numeric_limits<double>::epsilon() ? (elapsed - prev->time_from_start).toSec() / duration :
-                                                                  1.0);
+    ROS_DEBUG_NAMED(
+        LOGNAME, "elapsed: %.3f via points %td,%td / %td  alpha: %.3f", elapsed.toSec(), prev - points.begin(),
+        next - points.begin(), end - points.begin(),
+        duration > std::numeric_limits<double>::epsilon() ? (elapsed - prev->time_from_start).toSec() / duration : 1.0);
     interpolate(js, *prev, *next, elapsed);
     js.header.stamp = ros::Time::now();
     pub_.publish(js);
@@ -267,15 +268,15 @@ void InterpolatingController::execTrajectory(const moveit_msgs::RobotTrajectory&
   }
 
   ros::Duration elapsed = ros::Time::now() - start_time;
-  ROS_DEBUG_NAMED(name_, "elapsed: %.3f via points %td,%td / %td  alpha: 1.0", elapsed.toSec(), prev - points.begin(),
-            next - points.begin(), end - points.begin());
+  ROS_DEBUG_NAMED(LOGNAME, "elapsed: %.3f via points %td,%td / %td  alpha: 1.0", elapsed.toSec(), prev - points.begin(),
+                  next - points.begin(), end - points.begin());
 
   // publish last point
   interpolate(js, *prev, *prev, prev->time_from_start);
   js.header.stamp = ros::Time::now();
   pub_.publish(js);
   status_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
-  ROS_INFO_NAMED(name_, "Fake execution of trajectory: done");
+  ROS_INFO_NAMED(LOGNAME, "Fake execution of trajectory: done");
 }
 
 }  // end namespace moveit_fake_controller_manager

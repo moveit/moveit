@@ -48,6 +48,7 @@
 typedef actionlib::ActionServer<moveit_msgs::ExecuteTrajectoryAction> ExecuteTrajectoryActionServer;
 namespace move_group
 {
+const std::string LOGNAME = "trajectory_execution_action_capability";
 
 class MoveGroupExecuteTrajectoryAction : public MoveGroupCapability
 {
@@ -59,8 +60,9 @@ public:
 private:
   void executePathCallback(ExecuteTrajectoryActionServer::GoalHandle goal);
   void setExecuteTrajectoryState(MoveGroupState state);
+  // TODO(cambel): Update preempt logic with cancelling goals 
+  // void preemptExecuteTrajectoryCallback();
 
-  const std::string name_ = "trajectory_execution_action_capability";
   boost::mutex goal_handles_mutex_;
 
   std::unique_ptr<ExecuteTrajectoryActionServer> execute_action_server_;

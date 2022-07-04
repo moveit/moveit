@@ -57,6 +57,8 @@
 
 namespace trajectory_execution_manager
 {
+const std::string LOGNAME = "trajectory_execution_manager";
+
 MOVEIT_CLASS_FORWARD(TrajectoryExecutionManager);  // Defines TrajectoryExecutionManagerPtr, ConstPtr, WeakPtr... etc
 
 // Two modes:
@@ -336,9 +338,6 @@ private:
   bool hasCommonHandles(TrajectoryExecutionContext& context1, TrajectoryExecutionContext& context2);
 
   bool checkCollisionsWithCurrentState(moveit_msgs::RobotTrajectory& trajectory);
-
-  // Name of this class for logging
-  const std::string name_ = "trajectory_execution_manager";
 
   moveit::core::RobotModelConstPtr robot_model_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
