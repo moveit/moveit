@@ -275,6 +275,16 @@ void CollisionEnv::getScale(std::vector<moveit_msgs::LinkScale>& scale) const
   }
 }
 
+bool CollisionEnv::getSelfCollisionUsesPaddedRobot() const
+{
+  return self_collision_uses_padded_robot_;
+}
+
+void CollisionEnv::setSelfCollisionUsesPaddedRobot(bool use_padded_robot)
+{
+  self_collision_uses_padded_robot_ = use_padded_robot;
+}
+
 void CollisionEnv::updatedPaddingOrScaling(const std::vector<std::string>& /*links*/)
 {
 }

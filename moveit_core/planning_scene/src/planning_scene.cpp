@@ -489,9 +489,9 @@ void PlanningScene::checkCollision(const collision_detection::CollisionRequest& 
                                    const moveit::core::RobotState& robot_state,
                                    const collision_detection::AllowedCollisionMatrix& acm) const
 {
-  bool usePaddingForSelfCollisionCheck = true;
-  bool noPaddingSet = false;
-  if (usePaddingForSelfCollisionCheck || noPaddingSet)
+  bool use_padding_for_self_collision = getCollisionEnv()->getSelfCollisionUsesPaddedRobot();
+  bool no_padding_set = false;
+  if (use_padding_for_self_collision || no_padding_set)
   {
     // check collision with the world and self-collisions using the padded version
     getCollisionEnv()->checkCollision(req, res, robot_state, acm);
