@@ -41,6 +41,9 @@
 #include <dynamic_reconfigure/server.h>
 #include <tf2_eigen/tf2_eigen.h>
 
+// Name of this class for logging
+static const std::string LOGNAME = "trajectory_execution_manager";
+
 namespace trajectory_execution_manager
 {
 const std::string TrajectoryExecutionManager::EXECUTION_EVENT_TOPIC = "trajectory_execution_event";
