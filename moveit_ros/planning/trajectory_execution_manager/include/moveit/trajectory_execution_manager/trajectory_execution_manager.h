@@ -300,9 +300,6 @@ private:
 
   void loadControllerParams();
 
-  // Name of this class for logging
-  const std::string name_ = "trajectory_execution_manager";
-
   moveit::core::RobotModelConstPtr robot_model_;
   planning_scene_monitor::CurrentStateMonitorPtr csm_;
   ros::NodeHandle node_handle_;
