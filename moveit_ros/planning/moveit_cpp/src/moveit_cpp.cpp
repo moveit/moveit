@@ -81,8 +81,8 @@ MoveItCpp::MoveItCpp(const Options& options, const ros::NodeHandle& nh,
   }
 
   // TODO(henningkayser): configure trajectory execution manager
-  trajectory_execution_manager_ = std::make_shared<trajectory_execution_manager::TrajectoryExecutionManager>(
-      robot_model_, planning_scene_monitor_);
+  trajectory_execution_manager_ =
+      std::make_shared<trajectory_execution_manager::TrajectoryExecutionManager>(robot_model_, planning_scene_monitor_);
 
   ROS_DEBUG_NAMED(LOGNAME, "MoveItCpp running");
 }
@@ -274,7 +274,6 @@ bool MoveItCpp::execute(const std::string& group_name, const robot_trajectory::R
     trajectory_execution_manager_->execute();
     return trajectory_execution_manager_->waitForExecution();
   }
-  // TODO: Does this point to the same instance? Multiple TEMs may not be safe to execute. @henningkayser?
   trajectory_execution_manager_->pushAndExecuteSimultaneous(robot_trajectory_msg);
   return true;
 }
