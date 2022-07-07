@@ -2093,13 +2093,12 @@ bool TrajectoryExecutionManager::validateAndExecuteContext(TrajectoryExecutionCo
     ROS_DEBUG_STREAM_NAMED(LOGNAME, "Next-up trajectory has duration " << context.trajectory_parts_[i].joint_trajectory.points.back().time_from_start);
   }
 
-  if (!checkCollisionsWithCurrentState(context.trajectory_))
-  {
-    ROS_DEBUG_STREAM_NAMED(LOGNAME, "Trajectory collides with current state. Cannot execute yet.");
+  // 1. Skip trajectory if it collides with other active trajectories
+  if (!checkContextForCollisions(context, active_contexts_map)){
     return false;
   }
-  
-  // 1. Check that controllers are not busy, wait for execution to finish if they are.
+
+  // 2. Check that controllers are not busy, wait for execution to finish if they are.
   for (std::size_t i = 0; i < context.trajectory_parts_.size(); ++i)
   {
     std::set<moveit_controller_manager::MoveItControllerHandlePtr>::iterator uit = used_handles.begin();            
@@ -2115,8 +2114,10 @@ bool TrajectoryExecutionManager::validateAndExecuteContext(TrajectoryExecutionCo
         ++uit;
   }
 
-  // Skip trajectory if it collides with the current scene state
-  if (!checkContextForCollisions(context, active_contexts_map)){
+  // 3. Skip trajectory if it collides with current state
+  if (!checkCollisionsWithCurrentState(context.trajectory_))
+  {
+    ROS_DEBUG_STREAM_NAMED(LOGNAME, "Trajectory collides with current state. Cannot execute yet.");
     return false;
   }
 
