@@ -305,6 +305,9 @@ public:
   bool getSelfCollisionUsesPaddedRobot() const;
   void setSelfCollisionUsesPaddedRobot(bool newSelf_collision_use_padded_robot);
 
+  /** @brief Get if any non default padding or scaling is set*/
+  bool getNoPaddingScaling() const;
+
 protected:
   /** @brief When the scale or padding is changed for a set of links by any of the functions in this class,
      updatedPaddingOrScaling() function is called.
@@ -329,6 +332,7 @@ protected:
 private:
   WorldPtr world_;             // The world always valid, never nullptr.
   WorldConstPtr world_const_;  // always same as world_
+  bool no_padding_scaling_;    // to allow for optimizations if padded==unpadded
 };
 
 }  // namespace collision_detection

@@ -490,7 +490,7 @@ void PlanningScene::checkCollision(const collision_detection::CollisionRequest& 
                                    const collision_detection::AllowedCollisionMatrix& acm) const
 {
   bool use_padding_for_self_collision = getCollisionEnv()->getSelfCollisionUsesPaddedRobot();
-  bool no_padding_set = false;
+  bool no_padding_set = getCollisionEnv()->getNoPaddingScaling();
   if (use_padding_for_self_collision || no_padding_set)
   {
     // check collision with the world and self-collisions using the padded version
