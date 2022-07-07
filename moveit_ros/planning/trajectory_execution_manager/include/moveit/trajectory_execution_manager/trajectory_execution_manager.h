@@ -209,15 +209,15 @@ public:
   bool pushAndExecuteSimultaneous(const sensor_msgs::JointState& state, const std::vector<std::string>& controllers, const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
 
   /// Wait until the execution is complete. This only works for executions started by execute().  If you call this after
-  /// pushAndExecute(), it will immediately stop execution.
+  /// pushAndExecuteSimultaneous(), it will immediately stop execution.
   moveit_controller_manager::ExecutionStatus waitForExecution();
 
   /// Get the state that the robot is expected to be at, given current time, after execute() has been called. The return
   /// value is a pair of two index values:
-  /// first = the index of the trajectory to be executed (in the order push() was called), second = the index of the
+  /// first = the index of the trajectory to be executed (in the order pushToBlockingQueue() was called), second = the index of the
   /// point within that trajectory.
   /// Values of -1 are returned when there is no trajectory being executed, or if the trajectory was passed using
-  /// pushAndExecute().
+  /// pushAndExecuteSimultaneous().
   std::pair<int, int> getCurrentExpectedTrajectoryIndex() const;
 
   /// Return the controller status for the last attempted execution
@@ -349,14 +349,14 @@ private:
   bool manage_controllers_;
 
   // Thread used to execute trajectories using the execute() command. This is blocking and executes only one TrajectoryContext at a time.
-  std::unique_ptr<boost::thread> execution_thread_;
+  std::unique_ptr<boost::thread> blocking_execution_thread_;
 
   // Thread used to execute trajectories using pushAndExecuteSimultaneous(). This executes multiple TrajectoryContexts at the same time.
   std::unique_ptr<boost::thread> continuous_execution_thread_;
 
   boost::mutex execution_state_mutex_;
-  boost::mutex continuous_execution_mutex_;
-  boost::mutex execution_thread_mutex_;
+  boost::mutex continuous_execution_thread_mutex_;
+  boost::mutex blocking_execution_thread_mutex_;
 
   boost::condition_variable continuous_execution_condition_;
 
