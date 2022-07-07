@@ -474,6 +474,7 @@ void TrajectoryExecutionManager::continuousExecutionThread()
         if (created_at + ros::Duration(expiration_time) < ros::Time::now())
         {
           ROS_WARN_STREAM_NAMED(LOGNAME, "Backlog item with duration " << current_context->trajectory_parts_[0].joint_trajectory.points.back().time_from_start << " has expired (older than 1 minute). Assuming malfunction, removing from backlog.");
+          current_context->execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
           it = backlog.erase(it);
           continue;
         }
@@ -1916,7 +1917,7 @@ bool TrajectoryExecutionManager::checkCollisionBetweenTrajectories(const moveit_
   // Allow all collisions
     // TODO: This has optimization potential (ACM is not used, all collisions are checked (instead of robot-robot only)
     // collision_detection::AllowedCollisionMatrix& acm = scene.getAllowedCollisionMatrixNonConst();
-  ROS_DEBUG_STREAM_NAMED(name_, "getCurrentState");
+  ROS_DEBUG_STREAM_NAMED(LOGNAME, "getCurrentState");
   // before we start planning, ensure that we have the latest robot state received...
   planning_scene_monitor_->waitForCurrentRobotState(ros::Time::now());
   planning_scene_monitor_->updateFrameTransforms();
@@ -1925,7 +1926,7 @@ bool TrajectoryExecutionManager::checkCollisionBetweenTrajectories(const moveit_
   moveit::core::RobotState start_state = ps->getCurrentState();
   
   moveit_msgs::RobotState start_state_msg;
-  ROS_DEBUG_STREAM_NAMED(name_, "compute collision check");
+  ROS_DEBUG_STREAM_NAMED(LOGNAME, "compute collision check");
   for(std::size_t i = 0; i < active_trajectory.joint_trajectory.points.size(); ++i)
     if (jointTrajPointToRobotState(active_trajectory.joint_trajectory, i, start_state))
     {
@@ -2118,7 +2119,7 @@ bool TrajectoryExecutionManager::validateAndExecuteContext(TrajectoryExecutionCo
     // Check whether this trajectory part starts at current robot state
     if (!validate(context))
     {
-      ROS_ERROR_NAMED(name_, "Trajectory became invalid before execution, abort.");
+      ROS_ERROR_NAMED(LOGNAME, "Trajectory became invalid before execution, abort.");
       context.execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
       return true;
     }
