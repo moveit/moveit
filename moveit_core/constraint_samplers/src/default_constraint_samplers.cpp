@@ -191,11 +191,6 @@ bool JointConstraintSampler::sample(moveit::core::RobotState& state,
   return true;
 }
 
-bool JointConstraintSampler::project(moveit::core::RobotState& state, unsigned int max_attempts)
-{
-  return sample(state, state, max_attempts);
-}
-
 void JointConstraintSampler::clear()
 {
   ConstraintSampler::clear();
@@ -564,11 +559,11 @@ void samplingIkCallbackFnAdapter(moveit::core::RobotState* state, const moveit::
 bool IKConstraintSampler::sample(moveit::core::RobotState& state, const moveit::core::RobotState& reference_state,
                                  unsigned int max_attempts)
 {
-  return sampleHelper(state, reference_state, max_attempts, false);
+  return sampleHelper(state, reference_state, max_attempts);
 }
 
 bool IKConstraintSampler::sampleHelper(moveit::core::RobotState& state, const moveit::core::RobotState& reference_state,
-                                       unsigned int max_attempts, bool project)
+                                       unsigned int max_attempts)
 {
   if (!is_valid_)
   {
@@ -626,15 +621,10 @@ bool IKConstraintSampler::sampleHelper(moveit::core::RobotState& state, const mo
     ik_query.orientation.z = quat.z();
     ik_query.orientation.w = quat.w();
 
-    if (callIK(ik_query, adapted_ik_validity_callback, ik_timeout_, state, project && a == 0))
+    if (callIK(ik_query, adapted_ik_validity_callback, ik_timeout_, state, a == 0))
       return true;
   }
   return false;
-}
-
-bool IKConstraintSampler::project(moveit::core::RobotState& state, unsigned int max_attempts)
-{
-  return sampleHelper(state, state, max_attempts, true);
 }
 
 bool IKConstraintSampler::validate(moveit::core::RobotState& state) const
