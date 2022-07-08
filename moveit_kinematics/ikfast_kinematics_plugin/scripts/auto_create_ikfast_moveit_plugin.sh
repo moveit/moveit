@@ -87,23 +87,26 @@ function cleanup {
 function run_quiet {
    # When running in quiet mode, save stdout as 3, then redirect stdout to $TMP_DIR/ikfast.log
    if [ "$QUIET" == "1" ] ; then
-      local STDOUT=3;
-      local STDERR=4;
-      exec 3>&1 1>$TMP_DIR/ifast.log
-      exec 4>&2 2>$TMP_DIR/ifast.log
+      local STDOUT=3
+      local STDERR=4
+      exec 3>&1 1>"$TMP_DIR/ikfast.log"
+      exec 4>&2 2>&1
    fi
 
    set +e
    "$@"
    ret=$?
    set -e
-   if [ $ret != 0 ] ; then
-      echo "$@\nfailed with exec code $ret:"
-      cat $TMP_DIR/ifast.log
-   fi
 
    # Restore stdout + stderr
    exec 1>&${STDOUT:-1}  # restore stdout
+   exec 2>&${STDERR:-2}  # restore stderr
+
+   if [ $ret != 0 ] ; then
+      echo "'$*' failed with exec code $ret:"
+      test "$QUIET" == "1" && cat "$TMP_DIR/ikfast.log"
+   fi
+
    return $ret
 }
 
