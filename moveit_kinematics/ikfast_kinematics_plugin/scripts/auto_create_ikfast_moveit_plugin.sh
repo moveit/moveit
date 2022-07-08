@@ -207,6 +207,11 @@ while true ; do
    filename=$(basename -- "$INPUT")
    extension=$(echo "${filename##*.}" | tr '[:upper:]' '[:lower:]')
    case "$extension" in
+      xacro)
+         URDF="$TMP_DIR/${filename%.*}.urdf"
+         xacro "$INPUT" > "$URDF"
+         INPUT="$URDF"
+         ;;
       urdf)  # create .dae from .urdf
          extract_robot_name "$INPUT"
          create_dae_file
