@@ -142,11 +142,11 @@ function extract_robot_name {
 }
 
 function create_dae_file {
-   echo "Converting urdf to Collada"
+   echo "Try converting urdf to Collada directly"
    if ! rosrun collada_urdf urdf_to_collada "$INPUT" "$DAE_FILE" 2> /dev/null ; then
       # When this failed, run docker
+      echo "Failed. Converting urdf to Collada (in docker)"
       build_docker_image
-      echo "Converting urdf to Collada"
       cp "$INPUT" "$TMP_DIR/robot.urdf"
       run_quiet docker run --rm --user $(id -u):$(id -g) -v $TMP_DIR:/input --workdir /input -e HOME=/input \
              fixed-openrave:latest rosrun collada_urdf urdf_to_collada robot.urdf robot.dae
