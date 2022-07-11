@@ -32,6 +32,7 @@ API changes in MoveIt releases
 - Moved the class `MoveItErrorCode` from both `moveit_ros_planning` and `moveit_ros_planning_interface` to `moveit_core`. The class now is in namespace `moveit::core`, access via `moveit::planning_interface` or `moveit_cpp::PlanningComponent` is deprecated.
 - End-effector markers in rviz are shown only if the eef's parent group is active _and_ the parent link is part of that group. Before, these conditions were _OR_-connected.
   You might need to define additional end-effectors.
+- Removed `ConstraintSampler::project()` as there was no real difference to `sample()`.
 
 ## ROS Melodic
 
