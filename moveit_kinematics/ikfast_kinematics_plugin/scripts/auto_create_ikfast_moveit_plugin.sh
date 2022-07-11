@@ -87,23 +87,26 @@ function cleanup {
 function run_quiet {
    # When running in quiet mode, save stdout as 3, then redirect stdout to $TMP_DIR/ikfast.log
    if [ "$QUIET" == "1" ] ; then
-      local STDOUT=3;
-      local STDERR=4;
-      exec 3>&1 1>$TMP_DIR/ifast.log
-      exec 4>&2 2>$TMP_DIR/ifast.log
+      local STDOUT=3
+      local STDERR=4
+      exec 3>&1 1>"$TMP_DIR/ikfast.log"
+      exec 4>&2 2>&1
    fi
 
    set +e
    "$@"
    ret=$?
    set -e
-   if [ $ret != 0 ] ; then
-      echo "$@\nfailed with exec code $ret:"
-      cat $TMP_DIR/ifast.log
-   fi
 
    # Restore stdout + stderr
    exec 1>&${STDOUT:-1}  # restore stdout
+   exec 2>&${STDERR:-2}  # restore stderr
+
+   if [ $ret != 0 ] ; then
+      echo "'$*' failed with exec code $ret:"
+      test "$QUIET" == "1" && cat "$TMP_DIR/ikfast.log"
+   fi
+
    return $ret
 }
 
@@ -139,11 +142,11 @@ function extract_robot_name {
 }
 
 function create_dae_file {
-   echo "Converting urdf to Collada"
+   echo "Try converting urdf to Collada directly"
    if ! rosrun collada_urdf urdf_to_collada "$INPUT" "$DAE_FILE" 2> /dev/null ; then
       # When this failed, run docker
+      echo "Failed. Converting urdf to Collada (in docker)"
       build_docker_image
-      echo "Converting urdf to Collada"
       cp "$INPUT" "$TMP_DIR/robot.urdf"
       run_quiet docker run --rm --user $(id -u):$(id -g) -v $TMP_DIR:/input --workdir /input -e HOME=/input \
              fixed-openrave:latest rosrun collada_urdf urdf_to_collada robot.urdf robot.dae
@@ -207,6 +210,11 @@ while true ; do
    filename=$(basename -- "$INPUT")
    extension=$(echo "${filename##*.}" | tr '[:upper:]' '[:lower:]')
    case "$extension" in
+      xacro)
+         URDF="$TMP_DIR/${filename%.*}.urdf"
+         xacro "$INPUT" > "$URDF"
+         INPUT="$URDF"
+         ;;
       urdf)  # create .dae from .urdf
          extract_robot_name "$INPUT"
          create_dae_file

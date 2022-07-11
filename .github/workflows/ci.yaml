@@ -120,7 +120,6 @@ jobs:
       - id: ici
         name: Run industrial_ci
         uses: ros-industrial/industrial_ci@master
-        env: ${{ matrix.env }}
 
       - name: Upload test artifacts (on failure)
         uses: actions/upload-artifact@v2
