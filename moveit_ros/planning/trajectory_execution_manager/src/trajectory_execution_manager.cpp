@@ -77,6 +77,7 @@ private:
     owner_->setExecutionVelocityScaling(config.execution_velocity_scaling);
     owner_->setAllowedStartTolerance(config.allowed_start_tolerance);
     owner_->setWaitForTrajectoryCompletion(config.wait_for_trajectory_completion);
+    owner_->setcontinuousExecutionThreadRate(config.continuous_execution_thread_rate);
   }
 
   TrajectoryExecutionManager* owner_;
@@ -214,6 +215,11 @@ void TrajectoryExecutionManager::setAllowedStartTolerance(double tolerance)
 void TrajectoryExecutionManager::setWaitForTrajectoryCompletion(bool flag)
 {
   wait_for_trajectory_completion_ = flag;
+}
+
+void TrajectoryExecutionManager::setcontinuousExecutionThreadRate(int rate)
+{
+  continuous_execution_thread_rate_ = rate;
 }
 
 bool TrajectoryExecutionManager::isManagingControllers() const
@@ -416,7 +422,7 @@ void TrajectoryExecutionManager::continuousExecutionThread()
   std::deque<std::pair<TrajectoryExecutionContext*, ros::Time>> backlog;
   int expiration_time = 60; // seconds (after this time, the trajectory is discarded)  TODO (cambel): Make this less surprising
 
-  ros::Rate r(10);
+  ros::Rate r(continuous_execution_thread_rate_);
   while (run_continuous_execution_thread_)
   {
     ROS_DEBUG_NAMED(LOGNAME, "===========Loop top-most entry================");
@@ -429,7 +435,8 @@ void TrajectoryExecutionManager::continuousExecutionThread()
         ROS_DEBUG_NAMED(LOGNAME, "Updating list in top-most loop");
         ROS_DEBUG_STREAM_NAMED(LOGNAME, "active_contexts_map size: " << active_contexts_map.size());
         updateActiveHandlesAndContexts(used_handles, active_contexts_map);
-        r.sleep();  // Waiting like this instead of waitForExecution so the queue keeps being checked for new entries
+        // Waiting like this instead of waitForExecution so the queue keeps being checked for new entries
+        r.sleep();
       }
       boost::unique_lock<boost::mutex> ulock(continuous_execution_thread_mutex_);
       while (continuous_execution_queue_.empty() && active_contexts_map.empty() && backlog.empty() && run_continuous_execution_thread_ && !stop_continuous_execution_)

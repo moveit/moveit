@@ -253,6 +253,9 @@ public:
   /// Enable or disable waiting for trajectory completion
   void setWaitForTrajectoryCompletion(bool flag);
 
+  /// Rate at which new/pending trajectories are processed on the continuous execution threat
+  void setcontinuousExecutionThreadRate(int rate);
+
 private:
   struct ControllerInformation
   {
@@ -374,6 +377,7 @@ private:
 
   bool stop_continuous_execution_;
   bool run_continuous_execution_thread_;
+  int continuous_execution_thread_rate_;
   std::vector<TrajectoryExecutionContext*> trajectories_;
   std::deque<TrajectoryExecutionContext*> continuous_execution_queue_;
 
