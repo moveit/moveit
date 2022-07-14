@@ -315,46 +315,48 @@ bool TrajectoryExecutionManager::push(const moveit_msgs::RobotTrajectory& trajec
 }
 
 bool TrajectoryExecutionManager::pushAndExecuteSimultaneous(const moveit_msgs::RobotTrajectory& trajectory,
-                                                            const std::string& controller,
+                                                            const std::string& controller, const int& expiration_time,
                                                             const ExecutionCompleteCallback& callback)
 {
   if (controller.empty())
-    return pushAndExecuteSimultaneous(trajectory, std::vector<std::string>(), callback);
+    return pushAndExecuteSimultaneous(trajectory, std::vector<std::string>(), expiration_time, callback);
   else
-    return pushAndExecuteSimultaneous(trajectory, std::vector<std::string>(1, controller), callback);
+    return pushAndExecuteSimultaneous(trajectory, std::vector<std::string>(1, controller), expiration_time, callback);
 }
 
 bool TrajectoryExecutionManager::pushAndExecuteSimultaneous(const trajectory_msgs::JointTrajectory& trajectory,
-                                                            const std::string& controller,
+                                                            const std::string& controller, const int& expiration_time,
                                                             const ExecutionCompleteCallback& callback)
 {
   if (controller.empty())
-    return pushAndExecuteSimultaneous(trajectory, std::vector<std::string>(), callback);
+    return pushAndExecuteSimultaneous(trajectory, std::vector<std::string>(), expiration_time, callback);
   else
-    return pushAndExecuteSimultaneous(trajectory, std::vector<std::string>(1, controller), callback);
+    return pushAndExecuteSimultaneous(trajectory, std::vector<std::string>(1, controller), expiration_time, callback);
 }
 
 bool TrajectoryExecutionManager::pushAndExecuteSimultaneous(const sensor_msgs::JointState& state,
-                                                            const std::string& controller,
+                                                            const std::string& controller, const int& expiration_time,
                                                             const ExecutionCompleteCallback& callback)
 {
   if (controller.empty())
-    return pushAndExecuteSimultaneous(state, std::vector<std::string>(), callback);
+    return pushAndExecuteSimultaneous(state, std::vector<std::string>(), expiration_time, callback);
   else
-    return pushAndExecuteSimultaneous(state, std::vector<std::string>(1, controller), callback);
+    return pushAndExecuteSimultaneous(state, std::vector<std::string>(1, controller), expiration_time, callback);
 }
 
 bool TrajectoryExecutionManager::pushAndExecuteSimultaneous(const trajectory_msgs::JointTrajectory& trajectory,
                                                             const std::vector<std::string>& controllers,
+                                                            const int& expiration_time,
                                                             const ExecutionCompleteCallback& callback)
 {
   moveit_msgs::RobotTrajectory traj;
   traj.joint_trajectory = trajectory;
-  return pushAndExecuteSimultaneous(traj, controllers, callback);
+  return pushAndExecuteSimultaneous(traj, controllers, expiration_time, callback);
 }
 
 bool TrajectoryExecutionManager::pushAndExecuteSimultaneous(const sensor_msgs::JointState& state,
                                                             const std::vector<std::string>& controllers,
+                                                            const int& expiration_time,
                                                             const ExecutionCompleteCallback& callback)
 {
   moveit_msgs::RobotTrajectory traj;
@@ -365,15 +367,16 @@ bool TrajectoryExecutionManager::pushAndExecuteSimultaneous(const sensor_msgs::J
   traj.joint_trajectory.points[0].velocities = state.velocity;
   traj.joint_trajectory.points[0].effort = state.effort;
   traj.joint_trajectory.points[0].time_from_start = ros::Duration(0, 0);
-  return pushAndExecuteSimultaneous(traj, controllers, callback);
+  return pushAndExecuteSimultaneous(traj, controllers, expiration_time, callback);
 }
 
 bool TrajectoryExecutionManager::pushAndExecuteSimultaneous(const moveit_msgs::RobotTrajectory& trajectory,
                                                             const std::vector<std::string>& controllers,
+                                                            const int& expiration_time,
                                                             const ExecutionCompleteCallback& callback)
 {
   TrajectoryExecutionContext* context = new TrajectoryExecutionContext();
-  if (configure(*context, trajectory, controllers))
+  if (configure(*context, trajectory, controllers, expiration_time))
   {
     context->execution_complete_callback = callback;
     {
@@ -426,8 +429,6 @@ void TrajectoryExecutionManager::continuousExecutionThread()
   std::map<TrajectoryExecutionContext*, std::set<moveit_controller_manager::MoveItControllerHandlePtr>>
       active_contexts_map;  // The list of trajectories currently being executed, and their controller handles
   std::deque<std::pair<TrajectoryExecutionContext*, ros::Time>> backlog;
-  int expiration_time =
-      60;  // seconds (after this time, the trajectory is discarded)  TODO (cambel): Make this less surprising
 
   ros::Rate r(continuous_execution_thread_rate_);
   while (run_continuous_execution_thread_)
@@ -495,7 +496,7 @@ void TrajectoryExecutionManager::continuousExecutionThread()
             current_context->trajectory_parts_[0].joint_trajectory.points.back().time_from_start;
 
         // Remove backlog items that have expired (to avoid deadlocks)
-        if (created_at + ros::Duration(expiration_time) < ros::Time::now())
+        if (created_at + ros::Duration(current_context->expiration_time) < ros::Time::now())
         {
           ROS_WARN_STREAM_NAMED(
               LOGNAME, "Backlog item with duration "
@@ -1135,9 +1136,10 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
 
 bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
                                            const moveit_msgs::RobotTrajectory& trajectory,
-                                           const std::vector<std::string>& controllers)
+                                           const std::vector<std::string>& controllers, const int& expiration_time)
 {
   context.trajectory_ = trajectory;
+  context.expiration_time = expiration_time;
   if (trajectory.multi_dof_joint_trajectory.points.empty() && trajectory.joint_trajectory.points.empty())
   {
     // empty trajectories don't need to configure anything
