@@ -77,7 +77,7 @@ private:
     owner_->setExecutionVelocityScaling(config.execution_velocity_scaling);
     owner_->setAllowedStartTolerance(config.allowed_start_tolerance);
     owner_->setWaitForTrajectoryCompletion(config.wait_for_trajectory_completion);
-    owner_->setcontinuousExecutionThreadRate(config.continuous_execution_thread_rate);
+    owner_->setContinuousExecutionThreadRate(config.continuous_execution_thread_rate);
   }
 
   TrajectoryExecutionManager* owner_;
@@ -225,7 +225,7 @@ void TrajectoryExecutionManager::setWaitForTrajectoryCompletion(bool flag)
   wait_for_trajectory_completion_ = flag;
 }
 
-void TrajectoryExecutionManager::setcontinuousExecutionThreadRate(int rate)
+void TrajectoryExecutionManager::setContinuousExecutionThreadRate(int rate)
 {
   continuous_execution_thread_rate_ = rate;
 }
@@ -284,7 +284,7 @@ bool TrajectoryExecutionManager::push(const moveit_msgs::RobotTrajectory& trajec
   if (!execution_complete_)
   {
     ROS_ERROR_NAMED(LOGNAME, "Cannot push a new trajectory in blocking mode while another is being executed (use "
-                             "pushAndExecuteSimultaneous instead)");
+                             "pushAndExecuteSimultaneously instead)");
     return false;
   }
 
@@ -314,50 +314,50 @@ bool TrajectoryExecutionManager::push(const moveit_msgs::RobotTrajectory& trajec
   return false;
 }
 
-bool TrajectoryExecutionManager::pushAndExecuteSimultaneous(const moveit_msgs::RobotTrajectory& trajectory,
-                                                            const std::string& controller, const int& expiration_time,
-                                                            const ExecutionCompleteCallback& callback)
+bool TrajectoryExecutionManager::pushAndExecuteSimultaneously(const moveit_msgs::RobotTrajectory& trajectory,
+                                                              const std::string& controller, const int& expiration_time,
+                                                              const ExecutionCompleteCallback& callback)
 {
   if (controller.empty())
-    return pushAndExecuteSimultaneous(trajectory, std::vector<std::string>(), expiration_time, callback);
+    return pushAndExecuteSimultaneously(trajectory, std::vector<std::string>(), expiration_time, callback);
   else
-    return pushAndExecuteSimultaneous(trajectory, std::vector<std::string>(1, controller), expiration_time, callback);
+    return pushAndExecuteSimultaneously(trajectory, std::vector<std::string>(1, controller), expiration_time, callback);
 }
 
-bool TrajectoryExecutionManager::pushAndExecuteSimultaneous(const trajectory_msgs::JointTrajectory& trajectory,
-                                                            const std::string& controller, const int& expiration_time,
-                                                            const ExecutionCompleteCallback& callback)
+bool TrajectoryExecutionManager::pushAndExecuteSimultaneously(const trajectory_msgs::JointTrajectory& trajectory,
+                                                              const std::string& controller, const int& expiration_time,
+                                                              const ExecutionCompleteCallback& callback)
 {
   if (controller.empty())
-    return pushAndExecuteSimultaneous(trajectory, std::vector<std::string>(), expiration_time, callback);
+    return pushAndExecuteSimultaneously(trajectory, std::vector<std::string>(), expiration_time, callback);
   else
-    return pushAndExecuteSimultaneous(trajectory, std::vector<std::string>(1, controller), expiration_time, callback);
+    return pushAndExecuteSimultaneously(trajectory, std::vector<std::string>(1, controller), expiration_time, callback);
 }
 
-bool TrajectoryExecutionManager::pushAndExecuteSimultaneous(const sensor_msgs::JointState& state,
-                                                            const std::string& controller, const int& expiration_time,
-                                                            const ExecutionCompleteCallback& callback)
+bool TrajectoryExecutionManager::pushAndExecuteSimultaneously(const sensor_msgs::JointState& state,
+                                                              const std::string& controller, const int& expiration_time,
+                                                              const ExecutionCompleteCallback& callback)
 {
   if (controller.empty())
-    return pushAndExecuteSimultaneous(state, std::vector<std::string>(), expiration_time, callback);
+    return pushAndExecuteSimultaneously(state, std::vector<std::string>(), expiration_time, callback);
   else
-    return pushAndExecuteSimultaneous(state, std::vector<std::string>(1, controller), expiration_time, callback);
+    return pushAndExecuteSimultaneously(state, std::vector<std::string>(1, controller), expiration_time, callback);
 }
 
-bool TrajectoryExecutionManager::pushAndExecuteSimultaneous(const trajectory_msgs::JointTrajectory& trajectory,
-                                                            const std::vector<std::string>& controllers,
-                                                            const int& expiration_time,
-                                                            const ExecutionCompleteCallback& callback)
+bool TrajectoryExecutionManager::pushAndExecuteSimultaneously(const trajectory_msgs::JointTrajectory& trajectory,
+                                                              const std::vector<std::string>& controllers,
+                                                              const int& expiration_time,
+                                                              const ExecutionCompleteCallback& callback)
 {
   moveit_msgs::RobotTrajectory traj;
   traj.joint_trajectory = trajectory;
-  return pushAndExecuteSimultaneous(traj, controllers, expiration_time, callback);
+  return pushAndExecuteSimultaneously(traj, controllers, expiration_time, callback);
 }
 
-bool TrajectoryExecutionManager::pushAndExecuteSimultaneous(const sensor_msgs::JointState& state,
-                                                            const std::vector<std::string>& controllers,
-                                                            const int& expiration_time,
-                                                            const ExecutionCompleteCallback& callback)
+bool TrajectoryExecutionManager::pushAndExecuteSimultaneously(const sensor_msgs::JointState& state,
+                                                              const std::vector<std::string>& controllers,
+                                                              const int& expiration_time,
+                                                              const ExecutionCompleteCallback& callback)
 {
   moveit_msgs::RobotTrajectory traj;
   traj.joint_trajectory.header = state.header;
@@ -367,13 +367,13 @@ bool TrajectoryExecutionManager::pushAndExecuteSimultaneous(const sensor_msgs::J
   traj.joint_trajectory.points[0].velocities = state.velocity;
   traj.joint_trajectory.points[0].effort = state.effort;
   traj.joint_trajectory.points[0].time_from_start = ros::Duration(0, 0);
-  return pushAndExecuteSimultaneous(traj, controllers, expiration_time, callback);
+  return pushAndExecuteSimultaneously(traj, controllers, expiration_time, callback);
 }
 
-bool TrajectoryExecutionManager::pushAndExecuteSimultaneous(const moveit_msgs::RobotTrajectory& trajectory,
-                                                            const std::vector<std::string>& controllers,
-                                                            const int& expiration_time,
-                                                            const ExecutionCompleteCallback& callback)
+bool TrajectoryExecutionManager::pushAndExecuteSimultaneously(const moveit_msgs::RobotTrajectory& trajectory,
+                                                              const std::vector<std::string>& controllers,
+                                                              const int& expiration_time,
+                                                              const ExecutionCompleteCallback& callback)
 {
   std::shared_ptr<TrajectoryExecutionContext> context = std::make_shared<TrajectoryExecutionContext>();
   if (configure(*context, trajectory, controllers, expiration_time))
@@ -579,9 +579,9 @@ void TrajectoryExecutionManager::continuousExecutionThread()
       if (!areControllersActive(context->controllers_))
       {
         ROS_ERROR_NAMED(LOGNAME, "Not all needed controllers are active. Cannot push and execute. You can try "
-                                 "calling ensureActiveControllers() before pushAndExecuteSimultaneous()");
+                                 "calling ensureActiveControllers() before pushAndExecuteSimultaneously()");
         ROS_ERROR_NAMED(LOGNAME, "Not all needed controllers are active. Cannot push and execute. You can try "
-                                 "calling ensureActiveControllers() before pushAndExecuteSimultaneous()");
+                                 "calling ensureActiveControllers() before pushAndExecuteSimultaneously()");
         last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
         ROS_INFO_NAMED(LOGNAME, "Calling completed callback");
         if (!context->execution_complete_callback.empty())

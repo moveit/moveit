@@ -186,26 +186,26 @@ public:
   /// controller is specified, a default is used. This call is non-blocking.
   /// Optionally specify an expiration time for the trajectory, from reception to execution (default 60 secs).
   /// Optionally specify callback that is called when the execution of the trajectory is completed.
-  bool pushAndExecuteSimultaneous(const moveit_msgs::RobotTrajectory& trajectory, const std::string& controller = "",
-                                  const int& expiration_time = 60,
-                                  const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
+  bool pushAndExecuteSimultaneously(const moveit_msgs::RobotTrajectory& trajectory, const std::string& controller = "",
+                                    const int& expiration_time = 60,
+                                    const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
 
   /// Add a trajectory for immediate execution. Optionally specify a controller to use for the trajectory. If no
   /// controller is specified, a default is used. This call is non-blocking.
   /// Optionally specify an expiration time for the trajectory, from reception to execution (default 60 secs).
   /// Optionally specify callback that is called when the execution of the trajectory is completed.
-  bool pushAndExecuteSimultaneous(const trajectory_msgs::JointTrajectory& trajectory,
-                                  const std::string& controller = "", const int& expiration_time = 60,
-                                  const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
+  bool pushAndExecuteSimultaneously(const trajectory_msgs::JointTrajectory& trajectory,
+                                    const std::string& controller = "", const int& expiration_time = 60,
+                                    const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
 
   /// Add a trajectory that consists of a single state for immediate execution. Optionally specify a controller to use
   /// for the trajectory.
   /// If no controller is specified, a default is used. This call is non-blocking.
   /// Optionally specify an expiration time for the trajectory, from reception to execution (default 60 secs).
   /// Optionally specify callback that is called when the execution of the trajectory is completed.
-  bool pushAndExecuteSimultaneous(const sensor_msgs::JointState& state, const std::string& controller = "",
-                                  const int& expiration_time = 60,
-                                  const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
+  bool pushAndExecuteSimultaneously(const sensor_msgs::JointState& state, const std::string& controller = "",
+                                    const int& expiration_time = 60,
+                                    const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
 
   /// Add a trajectory for immediate execution. Optionally specify a set of controllers to consider using for the
   /// trajectory. Multiple controllers can be used simultaneously
@@ -214,9 +214,9 @@ public:
   /// If no controller is specified, a default is used. This call is non-blocking.
   /// Optionally specify an expiration time for the trajectory, from reception to execution (default 60 secs).
   /// Optionally specify callback that is called when the execution of the trajectory is completed.
-  bool pushAndExecuteSimultaneous(const trajectory_msgs::JointTrajectory& trajectory,
-                                  const std::vector<std::string>& controllers, const int& expiration_time = 60,
-                                  const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
+  bool pushAndExecuteSimultaneously(const trajectory_msgs::JointTrajectory& trajectory,
+                                    const std::vector<std::string>& controllers, const int& expiration_time = 60,
+                                    const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
 
   /// Add a trajectory for immediate execution. Optionally specify a set of controllers to consider using for the
   /// trajectory. Multiple controllers can be used simultaneously
@@ -225,9 +225,9 @@ public:
   /// If no controller is specified, a default is used. This call is non-blocking.
   /// Optionally specify an expiration time for the trajectory, from reception to execution (default 60 secs).
   /// Optionally specify callback that is called when the execution of the trajectory is completed.
-  bool pushAndExecuteSimultaneous(const moveit_msgs::RobotTrajectory& trajectory,
-                                  const std::vector<std::string>& controllers, const int& expiration_time = 60,
-                                  const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
+  bool pushAndExecuteSimultaneously(const moveit_msgs::RobotTrajectory& trajectory,
+                                    const std::vector<std::string>& controllers, const int& expiration_time = 60,
+                                    const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
 
   /// Add a trajectory that consists of a single state for immediate execution. Optionally specify a set of controllers
   /// to consider using for the trajectory.
@@ -236,19 +236,19 @@ public:
   /// is given to the already loaded ones. If no controller is specified, a default is used. This call is non-blocking.
   /// Optionally specify an expiration time for the trajectory, from reception to execution (default 60 secs).
   /// Optionally specify callback that is called when the execution of the trajectory is completed.
-  bool pushAndExecuteSimultaneous(const sensor_msgs::JointState& state, const std::vector<std::string>& controllers,
-                                  const int& expiration_time = 60,
-                                  const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
+  bool pushAndExecuteSimultaneously(const sensor_msgs::JointState& state, const std::vector<std::string>& controllers,
+                                    const int& expiration_time = 60,
+                                    const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
 
   /// Wait until the execution is complete. This only works for executions started by execute().  If you call this after
-  /// pushAndExecuteSimultaneous(), it will immediately stop execution.
+  /// pushAndExecuteSimultaneously(), it will immediately stop execution.
   moveit_controller_manager::ExecutionStatus waitForExecution();
 
   /// Get the state that the robot is expected to be at, given current time, after execute() has been called. The return
   /// value is a pair of two index values:
   /// first = the index of the trajectory to be executed (in the order pushToBlockingQueue() was called), second = the
   /// index of the point within that trajectory. Values of -1 are returned when there is no trajectory being executed,
-  /// or if the trajectory was passed using pushAndExecuteSimultaneous().
+  /// or if the trajectory was passed using pushAndExecuteSimultaneously().
   std::pair<int, int> getCurrentExpectedTrajectoryIndex() const;
 
   /// Return the controller status for the last attempted execution
@@ -282,8 +282,8 @@ public:
   /// Enable or disable waiting for trajectory completion
   void setWaitForTrajectoryCompletion(bool flag);
 
-  /// Rate at which new/pending trajectories are processed on the continuous execution threat
-  void setcontinuousExecutionThreadRate(int rate);
+  /// Rate at which new/pending trajectories are processed on the continuous execution thread
+  void setContinuousExecutionThreadRate(int rate);
 
 private:
   struct ControllerInformation
@@ -393,7 +393,7 @@ private:
   // TrajectoryContext at a time.
   std::unique_ptr<boost::thread> blocking_execution_thread_;
 
-  // Thread used to execute trajectories using pushAndExecuteSimultaneous(). This executes multiple TrajectoryContexts at the same time.
+  // Thread used to execute trajectories using pushAndExecuteSimultaneously(). This executes multiple TrajectoryContexts at the same time.
   std::unique_ptr<boost::thread> continuous_execution_thread_;
 
   boost::mutex execution_state_mutex_;

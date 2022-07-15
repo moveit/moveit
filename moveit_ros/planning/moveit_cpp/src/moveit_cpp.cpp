@@ -274,7 +274,7 @@ bool MoveItCpp::execute(const std::string& group_name, const robot_trajectory::R
     trajectory_execution_manager_->execute();
     return trajectory_execution_manager_->waitForExecution();
   }
-  trajectory_execution_manager_->pushAndExecuteSimultaneous(robot_trajectory_msg);
+  trajectory_execution_manager_->pushAndExecuteSimultaneously(robot_trajectory_msg);
   return true;
 }
 
