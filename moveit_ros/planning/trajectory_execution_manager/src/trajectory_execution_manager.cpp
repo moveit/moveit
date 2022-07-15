@@ -452,7 +452,8 @@ void TrajectoryExecutionManager::continuousExecutionThread()
       {
         TrajectoryExecutionContext* context = continuous_execution_queue_.front();
         ROS_DEBUG_STREAM_NAMED(LOGNAME, "Calling completed callback to abort");
-        context->execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
+        if (!context->execution_complete_callback.empty())
+          context->execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
         continuous_execution_queue_.pop_front();
         delete context;
       }
@@ -473,8 +474,12 @@ void TrajectoryExecutionManager::continuousExecutionThread()
         // Remove backlog items that have expired (to avoid deadlocks)
         if (created_at + ros::Duration(expiration_time) < ros::Time::now())
         {
-          ROS_WARN_STREAM_NAMED(LOGNAME, "Backlog item with duration " << current_context->trajectory_parts_[0].joint_trajectory.points.back().time_from_start << " has expired (older than 1 minute). Assuming malfunction, removing from backlog.");
-          current_context->execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
+          ROS_WARN_STREAM_NAMED(
+              LOGNAME, "Backlog item with duration "
+                           << current_context->trajectory_parts_[0].joint_trajectory.points.back().time_from_start
+                           << " has expired (older than 1 minute). Assuming malfunction, removing from backlog.");
+          if (!current_context->execution_complete_callback.empty())
+            current_context->execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
           it = backlog.erase(it);
           continue;
         }
@@ -504,9 +509,11 @@ void TrajectoryExecutionManager::continuousExecutionThread()
           }
           else if (it == backlog.begin() && active_contexts_map.empty())
           {
-            ROS_ERROR_STREAM_NAMED(name_, "Trajectory is in a deadlock, aborting");
-            // Since there is not active trajectory being executed but this Top priority backlog-trajectory is not executable, abort it.
-            current_context->execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
+            ROS_ERROR_STREAM_NAMED(LOGNAME, "Trajectory is in a deadlock, aborting");
+            // Since there is not active trajectory being executed but this Top priority backlog-trajectory is not
+            // executable, abort it.
+            if (!current_context->execution_complete_callback.empty())
+              current_context->execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
             it = backlog.erase(it);
           }
           else
@@ -545,7 +552,8 @@ void TrajectoryExecutionManager::continuousExecutionThread()
                                 "calling ensureActiveControllers() before pushAndExecuteSimultaneous()");
         last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
         ROS_INFO_NAMED(LOGNAME, "Calling completed callback");
-        context->execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
+        if (!context->execution_complete_callback.empty())
+          context->execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
         delete context;
         continue;
       }
@@ -1896,7 +1904,8 @@ void TrajectoryExecutionManager::updateActiveHandlesAndContexts(std::set<moveit_
     if (combined_status == moveit_controller_manager::ExecutionStatus::SUCCEEDED ||
         combined_status == moveit_controller_manager::ExecutionStatus::ABORTED)
     {
-      context->execution_complete_callback(combined_status);
+      if (!context->execution_complete_callback.empty())
+        context->execution_complete_callback(combined_status);
       it = active_contexts_map.erase(it);
       // TODO(cambel): remove used_handles here, lock handles until a context is fully completed
     }else{
@@ -2125,7 +2134,8 @@ bool TrajectoryExecutionManager::validateAndExecuteContext(TrajectoryExecutionCo
   if (!validate(context))
   {
     ROS_ERROR_NAMED(LOGNAME, "Trajectory became invalid before execution, abort.");
-    context.execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
+    if (!context.execution_complete_callback.empty())
+      context.execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
     return true;
   }
 
