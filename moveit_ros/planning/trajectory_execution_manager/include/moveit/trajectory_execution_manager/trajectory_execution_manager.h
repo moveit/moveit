@@ -168,7 +168,7 @@ public:
   bool push(const moveit_msgs::RobotTrajectory& trajectory, const std::vector<std::string>& controllers);
 
   /// Get the trajectories to be executed
-  const std::vector<TrajectoryExecutionContext*>& getTrajectories() const;
+  const std::vector<std::shared_ptr<TrajectoryExecutionContext>>& getTrajectories() const;
 
   /// Start the execution of pushed trajectories; this does not wait for completion, but calls a callback when done.
   void execute(const ExecutionCompleteCallback& callback = ExecutionCompleteCallback(), bool auto_clear = true);
@@ -346,8 +346,8 @@ private:
   // Removes controllers/handles and trajectory contexts that have finished or aborted execution
   void updateActiveHandlesAndContexts(
       std::set<moveit_controller_manager::MoveItControllerHandlePtr>& used_handles,
-      std::map<TrajectoryExecutionContext*, std::set<moveit_controller_manager::MoveItControllerHandlePtr>>&
-          active_contexts_map);
+      std::map<std::shared_ptr<TrajectoryExecutionContext>,
+               std::set<moveit_controller_manager::MoveItControllerHandlePtr>>& active_contexts_map);
 
   bool checkCollisionBetweenTrajectories(const moveit_msgs::RobotTrajectory& new_trajectory,
                                          const moveit_msgs::RobotTrajectory& active_trajectory);
@@ -355,13 +355,13 @@ private:
   // Check for collisions/controller issues, then send the trajectory for execution
   bool validateAndExecuteContext(
       TrajectoryExecutionContext& context, std::set<moveit_controller_manager::MoveItControllerHandlePtr>& used_handles,
-      std::map<TrajectoryExecutionContext*, std::set<moveit_controller_manager::MoveItControllerHandlePtr>>&
-          active_contexts_map);
+      std::map<std::shared_ptr<TrajectoryExecutionContext>,
+               std::set<moveit_controller_manager::MoveItControllerHandlePtr>>& active_contexts_map);
 
   bool checkContextForCollisions(
       TrajectoryExecutionContext& context,
-      std::map<TrajectoryExecutionContext*, std::set<moveit_controller_manager::MoveItControllerHandlePtr>>&
-          active_contexts_map);
+      std::map<std::shared_ptr<TrajectoryExecutionContext>,
+               std::set<moveit_controller_manager::MoveItControllerHandlePtr>>& active_contexts_map);
 
   void getContextHandles(TrajectoryExecutionContext& context,
                          std::vector<moveit_controller_manager::MoveItControllerHandlePtr>& handles);
@@ -415,8 +415,8 @@ private:
   bool stop_continuous_execution_;
   bool run_continuous_execution_thread_;
   int continuous_execution_thread_rate_;
-  std::vector<TrajectoryExecutionContext*> trajectories_;
-  std::deque<TrajectoryExecutionContext*> continuous_execution_queue_;
+  std::vector<std::shared_ptr<TrajectoryExecutionContext>> trajectories_;
+  std::deque<std::shared_ptr<TrajectoryExecutionContext>> continuous_execution_queue_;
 
   std::unique_ptr<pluginlib::ClassLoader<moveit_controller_manager::MoveItControllerManager>> controller_manager_loader_;
   moveit_controller_manager::MoveItControllerManagerPtr controller_manager_;
