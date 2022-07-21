@@ -351,14 +351,14 @@ private:
                                          const moveit_msgs::RobotTrajectory& active_trajectory);
 
   // Check for collisions/controller issues, then send the trajectory for execution
-  bool validateAndExecuteContext(TrajectoryExecutionContext& context,
+  bool validateAndExecuteContext(const TrajectoryExecutionContext& context,
                                  std::set<moveit_controller_manager::MoveItControllerHandlePtr>& used_handles,
                                  std::vector<std::shared_ptr<TrajectoryExecutionContext>>& active_contexts);
 
-  bool checkContextForCollisions(TrajectoryExecutionContext& context,
-                                 std::vector<std::shared_ptr<TrajectoryExecutionContext>>& active_contexts);
+  bool checkContextForCollisions(const TrajectoryExecutionContext& context,
+                                 const std::vector<std::shared_ptr<TrajectoryExecutionContext>>& active_contexts);
 
-  void getContextHandles(TrajectoryExecutionContext& context,
+  void getContextHandles(const TrajectoryExecutionContext& context,
                          std::set<moveit_controller_manager::MoveItControllerHandlePtr>& handles);
 
   /**
@@ -367,9 +367,9 @@ private:
    * @param context2 The second trajectory context
    * @return true if there is any common controller handle, false otherwise
    */
-  bool hasCommonHandles(TrajectoryExecutionContext& context1, TrajectoryExecutionContext& context2);
+  bool hasCommonHandles(const TrajectoryExecutionContext& context1, const TrajectoryExecutionContext& context2);
 
-  bool checkCollisionsWithCurrentState(moveit_msgs::RobotTrajectory& trajectory);
+  bool checkCollisionsWithCurrentState(const moveit_msgs::RobotTrajectory& trajectory);
 
   // Name of this class for logging
   const std::string LOGNAME = "trajectory_execution_manager";

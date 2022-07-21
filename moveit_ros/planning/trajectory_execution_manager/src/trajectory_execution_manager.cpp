@@ -2007,7 +2007,8 @@ bool TrajectoryExecutionManager::checkCollisionBetweenTrajectories(const moveit_
 }
 
 bool TrajectoryExecutionManager::checkContextForCollisions(
-    TrajectoryExecutionContext& context, std::vector<std::shared_ptr<TrajectoryExecutionContext>>& active_contexts)
+    const TrajectoryExecutionContext& context,
+    const std::vector<std::shared_ptr<TrajectoryExecutionContext>>& active_contexts)
 {
   // 2. Check that new trajectory does not collide with other active trajectories
 
@@ -2041,7 +2042,7 @@ bool TrajectoryExecutionManager::checkContextForCollisions(
   return true;
 }
 
-bool TrajectoryExecutionManager::checkCollisionsWithCurrentState(moveit_msgs::RobotTrajectory& trajectory)
+bool TrajectoryExecutionManager::checkCollisionsWithCurrentState(const moveit_msgs::RobotTrajectory& trajectory)
 {
   moveit::core::RobotStatePtr current_state;
   if (!csm_->waitForCurrentState(ros::Time::now()) || !(current_state = csm_->getCurrentState()))
@@ -2067,7 +2068,7 @@ bool TrajectoryExecutionManager::checkCollisionsWithCurrentState(moveit_msgs::Ro
 }
 
 void TrajectoryExecutionManager::getContextHandles(
-    TrajectoryExecutionContext& context, std::set<moveit_controller_manager::MoveItControllerHandlePtr>& handles)
+    const TrajectoryExecutionContext& context, std::set<moveit_controller_manager::MoveItControllerHandlePtr>& handles)
 {
   for (std::size_t i = 0; i < context.controllers_.size(); ++i)
   {
@@ -2092,7 +2093,8 @@ void TrajectoryExecutionManager::getContextHandles(
 }
 
 bool TrajectoryExecutionManager::validateAndExecuteContext(
-    TrajectoryExecutionContext& context, std::set<moveit_controller_manager::MoveItControllerHandlePtr>& used_handles,
+    const TrajectoryExecutionContext& context,
+    std::set<moveit_controller_manager::MoveItControllerHandlePtr>& used_handles,
     std::vector<std::shared_ptr<TrajectoryExecutionContext>>& active_contexts)
 {
   ROS_DEBUG_NAMED(LOGNAME, "Start validateAndExecuteContext");
@@ -2210,8 +2212,8 @@ bool TrajectoryExecutionManager::validateAndExecuteContext(
   return true;
 }
 
-bool TrajectoryExecutionManager::hasCommonHandles(TrajectoryExecutionContext& context1,
-                                                  TrajectoryExecutionContext& context2)
+bool TrajectoryExecutionManager::hasCommonHandles(const TrajectoryExecutionContext& context1,
+                                                  const TrajectoryExecutionContext& context2)
 {
   std::set<moveit_controller_manager::MoveItControllerHandlePtr> ctx1_handles;
   std::set<moveit_controller_manager::MoveItControllerHandlePtr> ctx2_handles;
