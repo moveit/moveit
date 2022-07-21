@@ -344,27 +344,22 @@ private:
   void loadControllerParams();
 
   // Removes controllers/handles and trajectory contexts that have finished or aborted execution
-  void updateActiveHandlesAndContexts(
-      std::set<moveit_controller_manager::MoveItControllerHandlePtr>& used_handles,
-      std::map<std::shared_ptr<TrajectoryExecutionContext>,
-               std::set<moveit_controller_manager::MoveItControllerHandlePtr>>& active_contexts_map);
+  void updateActiveHandlesAndContexts(std::set<moveit_controller_manager::MoveItControllerHandlePtr>& used_handles,
+                                      std::vector<std::shared_ptr<TrajectoryExecutionContext>>& active_contexts);
 
   bool checkCollisionBetweenTrajectories(const moveit_msgs::RobotTrajectory& new_trajectory,
                                          const moveit_msgs::RobotTrajectory& active_trajectory);
 
   // Check for collisions/controller issues, then send the trajectory for execution
-  bool validateAndExecuteContext(
-      TrajectoryExecutionContext& context, std::set<moveit_controller_manager::MoveItControllerHandlePtr>& used_handles,
-      std::map<std::shared_ptr<TrajectoryExecutionContext>,
-               std::set<moveit_controller_manager::MoveItControllerHandlePtr>>& active_contexts_map);
+  bool validateAndExecuteContext(TrajectoryExecutionContext& context,
+                                 std::set<moveit_controller_manager::MoveItControllerHandlePtr>& used_handles,
+                                 std::vector<std::shared_ptr<TrajectoryExecutionContext>>& active_contexts);
 
-  bool checkContextForCollisions(
-      TrajectoryExecutionContext& context,
-      std::map<std::shared_ptr<TrajectoryExecutionContext>,
-               std::set<moveit_controller_manager::MoveItControllerHandlePtr>>& active_contexts_map);
+  bool checkContextForCollisions(TrajectoryExecutionContext& context,
+                                 std::vector<std::shared_ptr<TrajectoryExecutionContext>>& active_contexts);
 
   void getContextHandles(TrajectoryExecutionContext& context,
-                         std::vector<moveit_controller_manager::MoveItControllerHandlePtr>& handles);
+                         std::set<moveit_controller_manager::MoveItControllerHandlePtr>& handles);
 
   /**
    * @brief Validate whether two trajectory context require a common controller handle
