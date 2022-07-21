@@ -112,7 +112,6 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(
 
 TrajectoryExecutionManager::~TrajectoryExecutionManager()
 {
-  run_continuous_execution_thread_ = false;
   stopExecution(true);
   delete reconfigure_impl_;
 }
@@ -1262,8 +1261,15 @@ void TrajectoryExecutionManager::stopExecutionInternal()
 
 void TrajectoryExecutionManager::stopExecution(bool auto_clear)
 {
+  // wait for the execution thread to finish
   stop_continuous_execution_ = true;
+  run_continuous_execution_thread_ = false;
   continuous_execution_condition_.notify_all();
+
+  if (continuous_execution_thread_)
+  {
+    continuous_execution_thread_->join();
+  }
 
   if (!execution_complete_)
   {
