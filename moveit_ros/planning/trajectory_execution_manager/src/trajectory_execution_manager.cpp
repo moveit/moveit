@@ -1957,6 +1957,9 @@ void TrajectoryExecutionManager::updateActiveHandlesAndContexts(
         context->execution_complete_callback(combined_status);
       it = active_contexts.erase(it);
 
+      // Remove controller handles from used_handles list
+      for (const auto& handle : context_handles)
+        used_handles.erase(handle);
     }
     else
     {
@@ -1964,17 +1967,6 @@ void TrajectoryExecutionManager::updateActiveHandlesAndContexts(
     }
   }
 
-  // Remove controller handles from list if they are not executing a trajectory
-  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Cleaning used_handles");
-  for (std::set<moveit_controller_manager::MoveItControllerHandlePtr>::iterator uit = used_handles.begin();
-       uit != used_handles.end();)
-    if ((*uit)->getLastExecutionStatus() != moveit_controller_manager::ExecutionStatus::RUNNING)
-    {
-      std::map<moveit_controller_manager::MoveItControllerHandlePtr, moveit_msgs::RobotTrajectory>::iterator it;
-      uit = used_handles.erase(uit);
-    }
-    else
-      ++uit;
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Done updateActiveHandlesAndContexts");
 }
 
