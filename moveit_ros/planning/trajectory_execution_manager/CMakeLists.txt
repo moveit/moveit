@@ -12,6 +12,14 @@ install(TARGETS ${MOVEIT_LIB_NAME}
 install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 
 if(CATKIN_ENABLE_TESTING)
+    find_package(moveit_resources_dual_panda_moveit_config REQUIRED)
+    find_package(rostest REQUIRED)
+
+    add_rostest_gtest(test_simultaneous_execution_manager
+                      test/test_simultaneous_execution_manager.test
+                      test/test_simultaneous_execution_manager.cpp)
+    target_link_libraries(test_simultaneous_execution_manager moveit_cpp ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES})
+
 
 ## This needs further cleanup before it can run
 # add_library(test_controller_manager_plugin test/test_moveit_controller_manager_plugin.cpp)
