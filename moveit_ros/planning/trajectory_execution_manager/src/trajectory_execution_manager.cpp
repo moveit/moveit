@@ -493,14 +493,14 @@ void TrajectoryExecutionManager::continuousExecutionThread()
 
         const auto& time_from_start =
             current_context->trajectory_parts_[0].joint_trajectory.points.back().time_from_start;
+        const auto& group_name = current_context->trajectory_.group_name;
 
         // Remove backlog items that have expired (to avoid deadlocks)
         if (created_at + ros::Duration(current_context->expiration_time) < ros::Time::now())
         {
-          ROS_WARN_STREAM_NAMED(
-              LOGNAME, "Backlog item with duration "
-                           << time_from_start
-                           << " has expired (older than 1 minute). Assuming malfunction, removing from backlog.");
+          ROS_WARN_STREAM_NAMED(LOGNAME, "Backlog: " << group_name << " item with duration " << time_from_start
+                                                     << " has expired (older than 1 minute). Assuming malfunction, "
+                                                        "removing from backlog.");
           if (!current_context->execution_complete_callback.empty())
             current_context->execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
           it = backlog.erase(it);
@@ -509,15 +509,18 @@ void TrajectoryExecutionManager::continuousExecutionThread()
 
         // Validate that the handles used in this context are not already in earlier (= higher priority) backlogged trajectories
         bool controllers_not_used_earlier_in_backlog = true;
-        ROS_DEBUG_STREAM_NAMED(LOGNAME, "Backlog evaluation of item: " << time_from_start);
+        ROS_DEBUG_STREAM_NAMED(LOGNAME,
+                               "Backlog evaluation of item: " << group_name << " with duration " << time_from_start);
         for (auto it2 = backlog.begin(); it2 != it; ++it2)
         {
           std::shared_ptr<TrajectoryExecutionContext> priority_context =
               it2->first;  // Previous context in the backlog (earlier ones have priority)
-          ROS_DEBUG_STREAM_NAMED(LOGNAME, "Backlog comparing item with duration: " << time_from_start);
+          ROS_DEBUG_STREAM_NAMED(LOGNAME,
+                                 "Backlog comparing item: " << group_name << " with duration " << time_from_start);
           ROS_DEBUG_STREAM_NAMED(
-              LOGNAME, "vs item with duration: "
-                           << priority_context->trajectory_parts_[0].joint_trajectory.points.back().time_from_start);
+              LOGNAME,
+              "vs item: " << priority_context->trajectory_.group_name << " with duration "
+                          << priority_context->trajectory_parts_[0].joint_trajectory.points.back().time_from_start);
           if (hasCommonHandles(*current_context, *priority_context))
           {
             controllers_not_used_earlier_in_backlog = false;
@@ -527,12 +530,12 @@ void TrajectoryExecutionManager::continuousExecutionThread()
         }
         if (controllers_not_used_earlier_in_backlog)
         {
-          ROS_DEBUG_STREAM_NAMED(LOGNAME, "Backlog item with duration "
-                                              << time_from_start << " will be checked and pushed to controller.");
+          ROS_DEBUG_STREAM_NAMED(LOGNAME, "Backlog item: " << group_name << " with duration " << time_from_start
+                                                           << " will be checked and pushed to controller.");
           if (validateAndExecuteContext(*current_context, used_handles, active_contexts))
           {
-            ROS_DEBUG_STREAM_NAMED(LOGNAME,
-                                   "Backlog item with duration " << time_from_start << " has been executed correctly.");
+            ROS_DEBUG_STREAM_NAMED(LOGNAME, "Backlog item: " << group_name << " with duration " << time_from_start
+                                                             << " has been executed correctly.");
             it = backlog.erase(it);
           }
           else if (it == backlog.begin() && active_contexts.empty())
@@ -546,8 +549,8 @@ void TrajectoryExecutionManager::continuousExecutionThread()
           }
           else
           {
-            ROS_DEBUG_STREAM_NAMED(LOGNAME,
-                                   "Backlog item with duration " << time_from_start << " is still not executable");
+            ROS_DEBUG_STREAM_NAMED(LOGNAME, "Backlog item: " << group_name << " with duration " << time_from_start
+                                                             << " is still not executable");
             it++;
           }
         }
@@ -569,10 +572,14 @@ void TrajectoryExecutionManager::continuousExecutionThread()
           continuous_execution_condition_.notify_all();
       }
 
+      // For debug messages only
+      const auto& time_from_start = context->trajectory_parts_[0].joint_trajectory.points.back().time_from_start;
+      const auto& group_name = context->trajectory_.group_name;
+
       ROS_DEBUG_NAMED(LOGNAME, "==========");
-      ROS_DEBUG_STREAM_NAMED(LOGNAME, "Popped element with duration "
-                                          << context->trajectory_parts_[0].joint_trajectory.points.back().time_from_start
-                                          << " from queue. Remaining length: " << continuous_execution_queue_.size());
+      ROS_DEBUG_STREAM_NAMED(LOGNAME, "Popped item: " << group_name << " with duration " << time_from_start
+                                                      << " from queue. Remaining length: "
+                                                      << continuous_execution_queue_.size());
 
       // First make sure desired controllers are active
       if (!areControllersActive(context->controllers_))
@@ -595,10 +602,8 @@ void TrajectoryExecutionManager::continuousExecutionThread()
       for (auto backlog_context : backlog)
         if (hasCommonHandles(*backlog_context.first, *context))
         {
-          ROS_DEBUG_STREAM_NAMED(LOGNAME,
-                                 "Request with duration "
-                                     << context->trajectory_parts_[0].joint_trajectory.points.back().time_from_start);
-          ROS_DEBUG_STREAM_NAMED(LOGNAME, "has handles blocked by backlog items. push_back to backlog");
+          ROS_DEBUG_STREAM_NAMED(LOGNAME, "Request: " << group_name << " with duration " << time_from_start
+                                                      << " has handles blocked by backlog items. push_back to backlog");
           backlog.push_back(
               std::pair<std::shared_ptr<TrajectoryExecutionContext>, ros::Time>(context, ros::Time::now()));
           controllers_not_used_in_backlog = false;
@@ -607,9 +612,8 @@ void TrajectoryExecutionManager::continuousExecutionThread()
 
       if (controllers_not_used_in_backlog && !validateAndExecuteContext(*context, used_handles, active_contexts))
       {
-        ROS_DEBUG_STREAM_NAMED(
-            LOGNAME, "Request: " << context->trajectory_parts_[0].joint_trajectory.points.back().time_from_start
-                                 << " not executable, pushing it into backlog");
+        ROS_DEBUG_STREAM_NAMED(LOGNAME, "Request: " << group_name << " with duration " << time_from_start
+                                                    << " not executable, pushing it into backlog");
         backlog.push_back(std::pair<std::shared_ptr<TrajectoryExecutionContext>, ros::Time>(context, ros::Time::now()));
       }
     }
