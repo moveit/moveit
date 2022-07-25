@@ -989,6 +989,11 @@ void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback& callba
 void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback& callback,
                                          const PathSegmentCompleteCallback& part_callback, bool auto_clear)
 {
+  // skip execution if no trajectory have been pushed
+  // it crashes otherwise
+  if (trajectories_.empty())
+    return;
+
   stopExecution(false);
 
   // check whether first trajectory starts at current robot state
