@@ -33,6 +33,7 @@ API changes in MoveIt releases
 - End-effector markers in rviz are shown only if the eef's parent group is active _and_ the parent link is part of that group. Before, these conditions were _OR_-connected.
   You might need to define additional end-effectors.
 - Removed `ConstraintSampler::project()` as there was no real difference to `sample()`.
+- Removed `TrajectoryExecutionManager::pushAndExecute()` and the code associated to it. The code was unused and broken.
 
 ## ROS Melodic
 
