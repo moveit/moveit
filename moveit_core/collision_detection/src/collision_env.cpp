@@ -325,17 +325,17 @@ void CollisionEnv::setWorld(const WorldPtr& world)
 void CollisionEnv::checkCollision(const CollisionRequest& req, CollisionResult& res,
                                   const moveit::core::RobotState& state) const
 {
-  checkSelfCollision(req, res, state);
+  checkRobotCollision(req, res, state);
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
-    checkRobotCollision(req, res, state);
+    checkSelfCollision(req, res, state);
 }
 
 void CollisionEnv::checkCollision(const CollisionRequest& req, CollisionResult& res,
                                   const moveit::core::RobotState& state, const AllowedCollisionMatrix& acm) const
 {
-  checkSelfCollision(req, res, state, acm);
+  checkRobotCollision(req, res, state, acm);
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
-    checkRobotCollision(req, res, state, acm);
+    checkSelfCollision(req, res, state, acm);
 }
 
 }  // end of namespace collision_detection
