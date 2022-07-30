@@ -297,7 +297,8 @@ void CollisionEnvFCL::checkCollisionHelper(const CollisionRequest& req, Collisio
   allocSelfCollisionBroadPhase(state, manager);
   CollisionData cd(&req, &res, acm);
   cd.enableGroup(getRobotModel());
-  manager.manager_->collide(&cd, &collisionCallback);
+  manager_->collide(manager.manager_.get(), &cd, &collisionCallback);
+
   if (req.distance)
   {
     DistanceRequest dreq;
@@ -307,14 +308,13 @@ void CollisionEnvFCL::checkCollisionHelper(const CollisionRequest& req, Collisio
     dreq.acm = acm;
     dreq.enableGroup(getRobotModel());
     DistanceData drd(&dreq, &dres);
-    manager_->distance(&drd, &distanceCallback);
+    manager_->distance(manager.manager_.get(), &drd, &distanceCallback);
     res.distance = dres.minimum_distance.distance;
   }
 
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
   {
-    manager_->collide(manager.manager_.get(), &cd, &collisionCallback);
-
+    manager.manager_->collide(&cd, &collisionCallback);
     if (req.distance)
     {
       DistanceRequest dreq;
@@ -324,7 +324,7 @@ void CollisionEnvFCL::checkCollisionHelper(const CollisionRequest& req, Collisio
       dreq.acm = acm;
       dreq.enableGroup(getRobotModel());
       DistanceData drd(&dreq, &dres);
-      manager_->distance(manager.manager_.get(), &drd, &distanceCallback);
+      manager_->distance(&drd, &distanceCallback);
       res.distance = dres.minimum_distance.distance;
     }
   }
