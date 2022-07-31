@@ -55,7 +55,7 @@ class MoveItCppTest : public ::testing::Test
 public:
   void SetUp() override
   {
-    nh_ = ros::NodeHandle("/test_execution_manager");
+    nh_ = ros::NodeHandle();
     moveit_cpp_ptr = std::make_shared<MoveItCpp>(nh_);
     trajectory_execution_manager_ptr = moveit_cpp_ptr->getTrajectoryExecutionManager();
 
@@ -82,8 +82,7 @@ protected:
 
 TEST_F(MoveItCppTest, EnsureActiveControllersForJointsTest)
 {
-  ASSERT_TRUE(
-      trajectory_execution_manager_ptr->ensureActiveControllersForJoints(std::vector<std::string>(1, "panda_joint1")));
+  ASSERT_TRUE(trajectory_execution_manager_ptr->ensureActiveControllersForJoints({ "panda_joint1" }));
 }
 
 TEST_F(MoveItCppTest, ensureActiveControllerTest)
@@ -96,7 +95,7 @@ TEST_F(MoveItCppTest, ExecuteEmptySetOfTrajectoriesTest)
   // execute with empty set of trajectories
   trajectory_execution_manager_ptr->execute();
   auto last_execution_status = trajectory_execution_manager_ptr->waitForExecution();
-  ASSERT_TRUE(last_execution_status == moveit_controller_manager::ExecutionStatus::SUCCEEDED);
+  ASSERT_EQ(last_execution_status, moveit_controller_manager::ExecutionStatus::SUCCEEDED);
 }
 
 TEST_F(MoveItCppTest, PushExecuteAndWaitTest)
@@ -106,7 +105,7 @@ TEST_F(MoveItCppTest, PushExecuteAndWaitTest)
   traj1.multi_dof_joint_trajectory = traj2.multi_dof_joint_trajectory;
   ASSERT_TRUE(trajectory_execution_manager_ptr->push(traj1));
   auto last_execution_status = trajectory_execution_manager_ptr->executeAndWait();
-  ASSERT_TRUE(last_execution_status == moveit_controller_manager::ExecutionStatus::SUCCEEDED);
+  ASSERT_EQ(last_execution_status, moveit_controller_manager::ExecutionStatus::SUCCEEDED);
 }
 
 }  // namespace moveit_cpp
@@ -115,9 +114,6 @@ int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "test_execution_manager");
-
-  ros::AsyncSpinner spinner(4);
-  spinner.start();
 
   int result = RUN_ALL_TESTS();
 
