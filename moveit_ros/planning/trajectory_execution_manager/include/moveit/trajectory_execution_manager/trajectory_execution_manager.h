@@ -208,6 +208,9 @@ public:
   /// Enable or disable waiting for trajectory completion
   void setWaitForTrajectoryCompletion(bool flag);
 
+  /// Enable or disable continuous execution of trajetories
+  void setAllowContinuousExecution(bool flag);
+
 private:
   struct ControllerInformation
   {
@@ -311,6 +314,7 @@ private:
 
   double allowed_start_tolerance_;  // joint tolerance for validate(): radians for revolute joints
   double execution_velocity_scaling_;
+  bool allow_continuous_execution_;
   bool wait_for_trajectory_completion_;
 };
 }  // namespace trajectory_execution_manager

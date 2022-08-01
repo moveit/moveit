@@ -76,6 +76,7 @@ private:
     owner_->setExecutionVelocityScaling(config.execution_velocity_scaling);
     owner_->setAllowedStartTolerance(config.allowed_start_tolerance);
     owner_->setWaitForTrajectoryCompletion(config.wait_for_trajectory_completion);
+    owner_->setAllowContinuousExecution(config.allow_continuous_execution);
   }
 
   TrajectoryExecutionManager* owner_;
@@ -116,6 +117,7 @@ void TrajectoryExecutionManager::initialize()
   execution_duration_monitoring_ = true;
   execution_velocity_scaling_ = 1.0;
   allowed_start_tolerance_ = 0.01;
+  allow_continuous_execution_ = false;
 
   allowed_execution_duration_scaling_ = DEFAULT_CONTROLLER_GOAL_DURATION_SCALING;
   allowed_goal_duration_margin_ = DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN;
@@ -210,6 +212,13 @@ void TrajectoryExecutionManager::setAllowedStartTolerance(double tolerance)
 void TrajectoryExecutionManager::setWaitForTrajectoryCompletion(bool flag)
 {
   wait_for_trajectory_completion_ = flag;
+}
+
+void TrajectoryExecutionManager::setAllowContinuousExecution(bool flag)
+{
+  allow_continuous_execution_ = flag;
+  // Stop any active trajectories and clear pending ones
+  stopExecution(true);
 }
 
 bool TrajectoryExecutionManager::isManagingControllers() const
