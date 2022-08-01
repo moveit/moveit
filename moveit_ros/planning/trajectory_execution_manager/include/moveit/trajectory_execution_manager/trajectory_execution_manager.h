@@ -38,6 +38,7 @@
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/robot_model/robot_model.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <sensor_msgs/JointState.h>
@@ -82,11 +83,12 @@ public:
 
   /// Load the controller manager plugin, start listening for events on a topic.
   TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& robot_model,
-                             const planning_scene_monitor::CurrentStateMonitorPtr& csm);
+                             const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
   /// Load the controller manager plugin, start listening for events on a topic.
   TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& robot_model,
-                             const planning_scene_monitor::CurrentStateMonitorPtr& csm, bool manage_controllers);
+                             const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
+                             bool manage_controllers);
 
   /// Destructor. Cancels all running trajectories (if any)
   ~TrajectoryExecutionManager();
@@ -269,6 +271,7 @@ private:
   void loadControllerParams();
 
   moveit::core::RobotModelConstPtr robot_model_;
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   planning_scene_monitor::CurrentStateMonitorPtr csm_;
   ros::NodeHandle node_handle_;
   ros::NodeHandle root_node_handle_;

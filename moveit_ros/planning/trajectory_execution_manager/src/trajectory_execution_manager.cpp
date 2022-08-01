@@ -83,9 +83,13 @@ private:
   dynamic_reconfigure::Server<TrajectoryExecutionDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
 
-TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& robot_model,
-                                                       const planning_scene_monitor::CurrentStateMonitorPtr& csm)
-  : robot_model_(robot_model), csm_(csm), node_handle_("~")
+TrajectoryExecutionManager::TrajectoryExecutionManager(
+    const moveit::core::RobotModelConstPtr& robot_model,
+    const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
+  : robot_model_(robot_model)
+  , csm_(planning_scene_monitor_->getStateMonitor())
+  , planning_scene_monitor_(planning_scene_monitor)
+  , node_handle_("~")
 {
   if (!node_handle_.getParam("moveit_manage_controllers", manage_controllers_))
     manage_controllers_ = false;
@@ -93,10 +97,14 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::Robot
   initialize();
 }
 
-TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& robot_model,
-                                                       const planning_scene_monitor::CurrentStateMonitorPtr& csm,
-                                                       bool manage_controllers)
-  : robot_model_(robot_model), csm_(csm), node_handle_("~"), manage_controllers_(manage_controllers)
+TrajectoryExecutionManager::TrajectoryExecutionManager(
+    const moveit::core::RobotModelConstPtr& robot_model,
+    const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor, bool manage_controllers)
+  : robot_model_(robot_model)
+  , csm_(planning_scene_monitor_->getStateMonitor())
+  , planning_scene_monitor_(planning_scene_monitor)
+  , node_handle_("~")
+  , manage_controllers_(manage_controllers)
 {
   initialize();
 }
