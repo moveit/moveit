@@ -151,7 +151,7 @@ public:
   bool push(const moveit_msgs::RobotTrajectory& trajectory, const std::vector<std::string>& controllers);
 
   /// Get the trajectories to be executed
-  const std::vector<TrajectoryExecutionContext*>& getTrajectories() const;
+  const std::vector<std::shared_ptr<TrajectoryExecutionContext>>& getTrajectories() const;
 
   /// Start the execution of pushed trajectories; this does not wait for completion, but calls a callback when done.
   void execute(const ExecutionCompleteCallback& callback = ExecutionCompleteCallback(), bool auto_clear = true);
@@ -293,9 +293,9 @@ private:
   mutable boost::mutex time_index_mutex_;
   bool execution_complete_;
 
-  std::vector<TrajectoryExecutionContext*> trajectories_;
+  std::vector<std::shared_ptr<TrajectoryExecutionContext>> trajectories_;
 
-  std::unique_ptr<pluginlib::ClassLoader<moveit_controller_manager::MoveItControllerManager> > controller_manager_loader_;
+  std::unique_ptr<pluginlib::ClassLoader<moveit_controller_manager::MoveItControllerManager>> controller_manager_loader_;
   moveit_controller_manager::MoveItControllerManagerPtr controller_manager_;
 
   bool verbose_;

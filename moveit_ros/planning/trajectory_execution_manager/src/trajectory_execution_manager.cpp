@@ -278,7 +278,7 @@ bool TrajectoryExecutionManager::push(const moveit_msgs::RobotTrajectory& trajec
     return false;
   }
 
-  TrajectoryExecutionContext* context = new TrajectoryExecutionContext();
+  std::shared_ptr<TrajectoryExecutionContext> context = std::make_shared<TrajectoryExecutionContext>();
   if (configure(*context, trajectory, controllers))
   {
     if (verbose_)
@@ -292,12 +292,12 @@ bool TrajectoryExecutionManager::push(const moveit_msgs::RobotTrajectory& trajec
         ss << trajectory_part << std::endl;
       ROS_INFO_NAMED(LOGNAME, "%s", ss.str().c_str());
     }
-    trajectories_.push_back(context);
+    trajectories_.push_back(std::move(context));
     return true;
   }
   else
   {
-    delete context;
+    context.reset();
     last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
   }
 
@@ -1040,8 +1040,8 @@ void TrajectoryExecutionManager::clear()
 {
   if (execution_complete_)
   {
-    for (TrajectoryExecutionContext* trajectory : trajectories_)
-      delete trajectory;
+    for (auto trajectory : trajectories_)
+      trajectory.reset();
     trajectories_.clear();
   }
   else
@@ -1387,7 +1387,7 @@ std::pair<int, int> TrajectoryExecutionManager::getCurrentExpectedTrajectoryInde
   return std::make_pair((int)current_context_, pos);
 }
 
-const std::vector<TrajectoryExecutionManager::TrajectoryExecutionContext*>&
+const std::vector<std::shared_ptr<TrajectoryExecutionManager::TrajectoryExecutionContext>>&
 TrajectoryExecutionManager::getTrajectories() const
 {
   return trajectories_;
