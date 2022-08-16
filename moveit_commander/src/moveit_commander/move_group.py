@@ -213,10 +213,6 @@ class MoveGroupCommander(object):
         if isinstance(arg1, JointState):
             if arg2 is not None or arg3 is not None:
                 raise MoveItCommanderException("Too many arguments specified")
-            if len(arg1.name) != len(arg1.position):
-                raise MoveItCommanderException(
-                    "Expected the same number of names and positions"
-                )
             if not self._g.set_joint_value_target_from_joint_state_message(
                 conversions.msg_to_string(arg1)
             ):
