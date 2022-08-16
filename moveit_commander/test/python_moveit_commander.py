@@ -117,15 +117,12 @@ class PythonMoveitCommanderTest(unittest.TestCase):
         )
         self.check_target_setting([0.5] + [0.3] * (n - 1), "joint_1", 0.5)
 
-        # check using JointState argument
+        js_target = JointState(name=self.JOINT_NAMES, position=[0.1] * n)
+        self.check_target_setting([0.1] * n, js_target)
         # name and position should have the same size, or raise exception
         with self.assertRaises(MoveItCommanderException):
-            self.group.set_joint_value_target(
-                JointState(name=self.JOINT_NAMES, position=[] * n)
-            )
-        self.check_target_setting(
-            [0.1] * n, JointState(name=self.JOINT_NAMES, position=[0.1] * n)
-        )
+            js_target.position = []
+            self.check_target_setting(None, js_target)
 
     def plan(self, target):
         self.group.set_joint_value_target(target)
