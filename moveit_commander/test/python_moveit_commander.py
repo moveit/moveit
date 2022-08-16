@@ -112,6 +112,11 @@ class PythonMoveitCommanderTest(unittest.TestCase):
             [0.3] * n, {name: 0.3 for name in self.group.get_active_joints()}
         )
         self.check_target_setting([0.5] + [0.3] * (n - 1), "joint_1", 0.5)
+        js = JointState()
+        js.name = self.JOINT_NAMES
+        self.check_target_setting([0.1] * n, js)
+        js.position = [0.1] * n
+        self.check_target_setting([0.1] * n, js)
 
     def plan(self, target):
         self.group.set_joint_value_target(target)
