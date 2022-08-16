@@ -119,8 +119,12 @@ class PythonMoveitCommanderTest(unittest.TestCase):
         self.check_target_setting([0.1] * n, js)
 
         # alternative formulation of the two above tests
-        self.check_target_setting([0.1] * n, JointState(self.JOINT_NAMES, [] * n, [] * n, [] * n))
-        self.check_target_setting([0.1] * n, JointState(self.JOINT_NAMES, [0.1] * n, [] * n, [] * n))
+        self.check_target_setting(
+            [0.1] * n, JointState(self.JOINT_NAMES, [] * n, [] * n, [] * n)
+        )
+        self.check_target_setting(
+            [0.1] * n, JointState(self.JOINT_NAMES, [0.1] * n, [] * n, [] * n)
+        )
 
     def plan(self, target):
         self.group.set_joint_value_target(target)
