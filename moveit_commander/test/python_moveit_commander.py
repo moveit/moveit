@@ -45,7 +45,11 @@ import os
 from moveit_msgs.msg import RobotState
 from sensor_msgs.msg import JointState
 
-from moveit_commander import RobotCommander, PlanningSceneInterface
+from moveit_commander import (
+    RobotCommander,
+    PlanningSceneInterface,
+    MoveItCommanderException,
+)
 
 
 class PythonMoveitCommanderTest(unittest.TestCase):
@@ -112,6 +116,13 @@ class PythonMoveitCommanderTest(unittest.TestCase):
             [0.3] * n, {name: 0.3 for name in self.group.get_active_joints()}
         )
         self.check_target_setting([0.5] + [0.3] * (n - 1), "joint_1", 0.5)
+
+        js_target = JointState(name=self.JOINT_NAMES, position=[0.1] * n)
+        self.check_target_setting([0.1] * n, js_target)
+        # name and position should have the same size, or raise exception
+        with self.assertRaises(MoveItCommanderException):
+            js_target.position = []
+            self.check_target_setting(None, js_target)
 
     def plan(self, target):
         self.group.set_joint_value_target(target)
