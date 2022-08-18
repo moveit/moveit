@@ -37,18 +37,19 @@
 #pragma once
 
 #include <moveit/macros/class_forward.h>
-#include <moveit/robot_model/robot_model.h>
+#include <moveit/controller_manager/controller_manager.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
-#include <moveit_msgs/RobotTrajectory.h>
+#include <moveit/robot_model/robot_model.h>
 #include <sensor_msgs/JointState.h>
+#include <moveit_msgs/RobotTrajectory.h>
 #include <std_msgs/String.h>
 #include <ros/ros.h>
-#include <moveit/controller_manager/controller_manager.h>
-#include <boost/thread.hpp>
 #include <pluginlib/class_loader.hpp>
 
+#include <condition_variable>
 #include <memory>
+#include <thread>
 
 namespace trajectory_execution_manager
 {
@@ -64,11 +65,11 @@ public:
 
   /// Definition of the function signature that is called when the execution of all the pushed trajectories completes.
   /// The status of the overall execution is passed as argument
-  typedef boost::function<void(const moveit_controller_manager::ExecutionStatus&)> ExecutionCompleteCallback;
+  using ExecutionCompleteCallback = std::function<void(const moveit_controller_manager::ExecutionStatus&)>;
 
   /// Definition of the function signature that is called when the execution of a pushed trajectory completes
   /// successfully.
-  using PathSegmentCompleteCallback = boost::function<void(std::size_t)>;
+  using PathSegmentCompleteCallback = std::function<void(std::size_t)>;
 
   /// Data structure that represents information necessary to execute a trajectory
   struct TrajectoryExecutionContext
@@ -281,19 +282,19 @@ private:
   bool manage_controllers_;
 
   // thread used to execute trajectories using the execute() command
-  std::unique_ptr<boost::thread> execution_thread_;
+  std::unique_ptr<std::thread> execution_thread_;
 
-  boost::mutex execution_state_mutex_;
-  boost::mutex execution_thread_mutex_;
+  std::mutex execution_state_mutex_;
+  std::mutex execution_thread_mutex_;
 
   // this condition is used to notify the completion of execution for given trajectories
-  boost::condition_variable execution_complete_condition_;
+  std::condition_variable execution_complete_condition_;
 
   moveit_controller_manager::ExecutionStatus last_execution_status_;
   std::vector<moveit_controller_manager::MoveItControllerHandlePtr> active_handles_;
   int current_context_;
   std::vector<ros::Time> time_index_;  // used to find current expected trajectory location
-  mutable boost::mutex time_index_mutex_;
+  mutable std::mutex time_index_mutex_;
   bool execution_complete_;
 
   std::vector<std::shared_ptr<TrajectoryExecutionContext>> trajectories_;
