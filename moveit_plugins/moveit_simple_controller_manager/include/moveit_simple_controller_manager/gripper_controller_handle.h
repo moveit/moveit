@@ -59,7 +59,7 @@ public:
   {
   }
 
-  bool sendTrajectory(const moveit_msgs::RobotTrajectory& trajectory) override
+  bool sendTrajectory(const moveit_msgs::RobotTrajectory& trajectory, const ExecutionCompleteCallback& callback) override
   {
     ROS_DEBUG_STREAM_NAMED("GripperController", "Received new trajectory for " << name_);
 
@@ -138,7 +138,7 @@ public:
         goal.command.max_effort = max_effort_;
       }
     }
-
+    execution_complete_callback_ = callback;
     controller_action_client_->sendGoal(
         goal, [this](const auto& state, const auto& result) { controllerDoneCallback(state, result); },
         [this] { controllerActiveCallback(); }, [this](const auto& feedback) { controllerFeedbackCallback(feedback); });

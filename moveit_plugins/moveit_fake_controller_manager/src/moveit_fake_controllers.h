@@ -68,7 +68,7 @@ public:
   LastPointController(const std::string& name, const std::vector<std::string>& joints, const ros::Publisher& pub);
   ~LastPointController() override;
 
-  bool sendTrajectory(const moveit_msgs::RobotTrajectory& t) override;
+  bool sendTrajectory(const moveit_msgs::RobotTrajectory& t, const ExecutionCompleteCallback& cb) override;
   bool cancelExecution() override;
   bool waitForExecution(const ros::Duration& /*timeout*/) override;
 };
@@ -79,7 +79,7 @@ public:
   ThreadedController(const std::string& name, const std::vector<std::string>& joints, const ros::Publisher& pub);
   ~ThreadedController() override;
 
-  bool sendTrajectory(const moveit_msgs::RobotTrajectory& t) override;
+  bool sendTrajectory(const moveit_msgs::RobotTrajectory& t, const ExecutionCompleteCallback& cb) override;
   bool cancelExecution() override;
   bool waitForExecution(const ros::Duration& /*timeout*/) override;
   moveit_controller_manager::ExecutionStatus getLastExecutionStatus() override;
@@ -91,7 +91,7 @@ protected:
   }
 
 private:
-  virtual void execTrajectory(const moveit_msgs::RobotTrajectory& t) = 0;
+  virtual void execTrajectory(const moveit_msgs::RobotTrajectory& t, const ExecutionCompleteCallback& cb) = 0;
   virtual void cancelTrajectory();
 
 private:
@@ -107,7 +107,7 @@ public:
   ~ViaPointController() override;
 
 protected:
-  void execTrajectory(const moveit_msgs::RobotTrajectory& t) override;
+  void execTrajectory(const moveit_msgs::RobotTrajectory& t, const ExecutionCompleteCallback& cb) override;
 };
 
 class InterpolatingController : public ThreadedController
@@ -117,7 +117,7 @@ public:
   ~InterpolatingController() override;
 
 protected:
-  void execTrajectory(const moveit_msgs::RobotTrajectory& t) override;
+  void execTrajectory(const moveit_msgs::RobotTrajectory& t, const ExecutionCompleteCallback& cb) override;
 
 private:
   ros::WallRate rate_;
