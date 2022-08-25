@@ -126,7 +126,7 @@ bool ThreadedController::sendTrajectory(const moveit_msgs::RobotTrajectory& t, c
   cancelTrajectory();  // cancel any previous fake motion
   cancel_ = false;
   status_ = moveit_controller_manager::ExecutionStatus::PREEMPTED;
-  thread_ = boost::thread([this, t, &cb] { execTrajectory(t, cb); });
+  thread_ = boost::thread([this, t, cb] { execTrajectory(t, cb); });
   return true;
 }
 
