@@ -112,10 +112,9 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(
 TrajectoryExecutionManager::~TrajectoryExecutionManager()
 {
   stopExecution(true);
-  stop_execution_ = true;
+  run_event_manager_ = false;
+  event_manager_condition_.notify_all();
   event_manager_thread_->join();
-  event_manager_thread_.reset();
-  stop_execution_ = false;
   delete reconfigure_impl_;
 }
 
@@ -190,14 +189,14 @@ void TrajectoryExecutionManager::initialize()
   event_topic_subscriber_ =
       root_node_handle_.subscribe(EXECUTION_EVENT_TOPIC, 100, &TrajectoryExecutionManager::receiveEvent, this);
 
+  event_manager_thread_ = std::make_unique<std::thread>(&TrajectoryExecutionManager::runEventManager, this);
+
   reconfigure_impl_ = new DynamicReconfigureImpl(this);
 
   if (manage_controllers_)
     ROS_INFO_NAMED(LOGNAME, "Trajectory execution is managing controllers");
   else
     ROS_INFO_NAMED(LOGNAME, "Trajectory execution is not managing controllers");
-
-  event_manager_thread_ = std::make_unique<std::thread>(&TrajectoryExecutionManager::runEventManager, this);
 }
 
 void TrajectoryExecutionManager::enableExecutionDurationMonitoring(bool flag)
@@ -253,7 +252,7 @@ void TrajectoryExecutionManager::runEventManager()
   while (run_event_manager_)  // run_event_manager
   {
     std::unique_lock<std::mutex> ulock(event_manager_mutex_, std::try_to_lock);
-    while (events_queue.empty() && run_event_manager_ && !stop_execution_)
+    while (events_queue_.empty() && run_event_manager_ && !stop_execution_)
       event_manager_condition_.wait(ulock);
 
     // If stop-flag is set, break out
@@ -270,8 +269,8 @@ void TrajectoryExecutionManager::runEventManager()
       {
         for (auto& context : active_requests_.front())
         {
-          if (context->execution_complete_callback)
-            context->execution_complete_callback(moveit_controller_manager::ExecutionStatus::ABORTED);
+          if (context->execution_complete_callback_)
+            context->execution_complete_callback_(moveit_controller_manager::ExecutionStatus::ABORTED);
         }
         active_requests_.pop_front();
       }
@@ -279,43 +278,42 @@ void TrajectoryExecutionManager::runEventManager()
     }
 
     // Process events
-    while (!events_queue.empty())
+    while (!events_queue_.empty())
     {
       std::shared_ptr<TrajectoryExecutionEvent> current_event = nullptr;
       {
         std::lock_guard<std::mutex> slock(events_queue_mutex_);
-        current_event = std::move(events_queue.front());
-        events_queue.pop_front();
+        current_event = std::move(events_queue_.front());
+        events_queue_.pop_front();
       }
 
       moveit_controller_manager::ExecutionStatus last_execution_status;
-      ROS_INFO_STREAM_NAMED(LOGNAME, "Context group name: " << current_event->context->trajectory_.group_name);
       std::set<moveit_controller_manager::MoveItControllerHandlePtr> required_handles;
-      getContextHandles(*current_event->context, required_handles);
+      getContextHandles(*current_event->context_, required_handles);
 
-      switch (current_event->type)
+      switch (current_event->type_)
       {
-        case EventType::NEW_REQUEST:
+        case EventType::EXECUTION_COMPLETED:
         {
-          ROS_INFO_NAMED(LOGNAME, "Event NEW_REQUEST");
-          last_execution_status = executeTrajectory(*current_event->context);
-          break;
-        }
-        case EventType::EXECUTION_FINISHED:
-        {
-          ROS_INFO_NAMED(LOGNAME, "Event EXECUTION_FINISHED");
-          current_event->context->execution_duration_timer.stop();
-
-          last_execution_status = current_event->last_execution_status;
+          ROS_INFO_NAMED(LOGNAME, "Event EXECUTION_COMPLETED");
+          current_event->context_->execution_duration_timer_.stop();
+          current_event->context_->active_controllers_count_ -= 1;
+          last_execution_status = current_event->execution_status_;
           if (last_execution_status == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
-            waitForRobotToStop(*current_event->context);
+            waitForRobotToStop(*current_event->context_);
           else
-            ROS_ERROR_STREAM_NAMED(LOGNAME, "Abort execution: " << last_execution_status);
+          {
+            // Cancel execution of all controllers related to this trajectory
+            ROS_ERROR_STREAM_NAMED(LOGNAME, "Abort execution: " << last_execution_status.asString());
+            for (auto handle : required_handles)
+              handle->cancelExecution();
+          }
+
           break;
         }
-        case EventType::EXECUTION_MONITOR_TIMER_FINISHED:
+        case EventType::EXECUTION_TIMEOUT:
         {
-          ROS_INFO_NAMED(LOGNAME, "Event EXECUTION_MONITOR_TIMER_FINISHED");
+          ROS_INFO_NAMED(LOGNAME, "Event EXECUTION_TIMEOUT");
           last_execution_status = moveit_controller_manager::ExecutionStatus::TIMED_OUT;
           for (auto handle : required_handles)
             handle->cancelExecution();
@@ -326,11 +324,17 @@ void TrajectoryExecutionManager::runEventManager()
           break;
       }
 
-      if (last_execution_status != moveit_controller_manager::ExecutionStatus::RUNNING)
+      // Clear handles and active trajectories when there are no active controllers for a context
+      // debug
+      ROS_INFO_NAMED(LOGNAME, "%d remaining active controllers for group name: %s",
+                     current_event->context_->active_controllers_count_,
+                     current_event->context_->trajectory_.group_name.c_str());
+      if (current_event->context_->active_controllers_count_ == 0)
       {
-        // Clear handles and active trajectories
-        if (current_event->context->execution_complete_callback)
-          current_event->context->execution_complete_callback(last_execution_status);
+        ROS_INFO_STREAM_NAMED(LOGNAME,
+                              "Clearing context with group name: " << current_event->context_->trajectory_.group_name);
+        if (current_event->context_->execution_complete_callback_)
+          current_event->context_->execution_complete_callback_(last_execution_status);
 
         used_handles_mutex_.lock();
         for (const auto& handle : required_handles)
@@ -339,7 +343,7 @@ void TrajectoryExecutionManager::runEventManager()
 
         active_trajectories_mutex_.lock();
         active_trajectories_.erase(
-            std::find(active_trajectories_.begin(), active_trajectories_.end(), current_event->context));
+            std::find(active_trajectories_.begin(), active_trajectories_.end(), current_event->context_));
         active_trajectories_mutex_.unlock();
       }
     }
@@ -400,10 +404,11 @@ bool TrajectoryExecutionManager::push(const moveit_msgs::RobotTrajectory& trajec
     return false;
   }
 
+  bool pushed_successfully = true;
   std::shared_ptr<TrajectoryExecutionContext> context = std::make_shared<TrajectoryExecutionContext>();
   if (configure(*context, trajectory, controllers))
   {
-    context->execution_complete_callback = callback;
+    context->execution_complete_callback_ = callback;
     if (verbose_)
     {
       std::stringstream ss;
@@ -417,13 +422,9 @@ bool TrajectoryExecutionManager::push(const moveit_msgs::RobotTrajectory& trajec
     }
     if (allow_continuous_execution_)
     {
-      ROS_INFO_NAMED(LOGNAME, "Pushing new event: NEW_REQUEST");
-      std::shared_ptr<TrajectoryExecutionEvent> event = std::make_shared<TrajectoryExecutionEvent>();
-      event->type = EventType::NEW_REQUEST;
-      event->context = std::move(context);
-      std::lock_guard<std::mutex> slock(events_queue_mutex_);
-      events_queue.push_back(event);
-      event_manager_condition_.notify_all();
+      moveit_controller_manager::ExecutionStatus result = executeTrajectory(*context);
+      if (result != moveit_controller_manager::ExecutionStatus::RUNNING)
+        pushed_successfully = false;
     }
     else
     {
@@ -431,7 +432,12 @@ bool TrajectoryExecutionManager::push(const moveit_msgs::RobotTrajectory& trajec
     }
   }
   else
+    pushed_successfully = false;
+
+  if (!pushed_successfully)
   {
+    if (callback)
+      callback(moveit_controller_manager::ExecutionStatus::ABORTED);
     context.reset();
     last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
     return false;
@@ -1087,6 +1093,8 @@ void TrajectoryExecutionManager::stopExecution(bool auto_clear)
 {
   stop_execution_ = true;
 
+  event_manager_condition_.notify_all();
+
   if (!execution_complete_)
   {
     execution_state_mutex_.lock();
@@ -1196,7 +1204,7 @@ void TrajectoryExecutionManager::clear()
 }
 
 moveit_controller_manager::ExecutionStatus
-TrajectoryExecutionManager::executeTrajectory(TrajectoryExecutionContext& context)
+TrajectoryExecutionManager::executeTrajectory(const TrajectoryExecutionContext& context)
 {
   ROS_INFO_NAMED(LOGNAME, "Execute non-blocking thread");
 
@@ -1256,15 +1264,13 @@ TrajectoryExecutionManager::executeTrajectory(TrajectoryExecutionContext& contex
     active_trajectories_mutex_.unlock();
 
     // 2. Execute trajectories
-    auto callback = [this, context_ptr](const moveit_controller_manager::ExecutionStatus& last_execution_status) {
-      ROS_INFO_STREAM_NAMED(LOGNAME, "Execution completed with status: " << last_execution_status);
-      std::shared_ptr<TrajectoryExecutionEvent> event = std::make_shared<TrajectoryExecutionEvent>();
-      event->type = EventType::EXECUTION_FINISHED;
-      event->context = context_ptr;
-      event->last_execution_status = last_execution_status;
+    context_ptr->active_controllers_count_ = context.trajectory_parts_.size();
+    auto callback = [this, context_ptr](const moveit_controller_manager::ExecutionStatus& execution_status) {
+      ROS_INFO_STREAM_NAMED(LOGNAME, "Execution completed with status: " << execution_status.asString());
+      TrajectoryExecutionEvent event = { EventType::EXECUTION_COMPLETED, context_ptr, execution_status };
       std::lock_guard<std::mutex> slock(events_queue_mutex_);
-      events_queue.push_back(event);
-      event_manager_condition_.notify_all();
+      events_queue_.push_back(std::make_shared<TrajectoryExecutionEvent>(event));
+      event_manager_condition_.notify_one();
     };
 
     // Push trajectory to all controllers simultaneously (each part goes to one controller)
@@ -1317,7 +1323,6 @@ TrajectoryExecutionManager::executeTrajectory(TrajectoryExecutionContext& contex
 
   // 3. Monitor duration of the trajectory
   createExecutionDurationTimer(context_ptr);
-  context.execution_duration_timer.start();
 
   return moveit_controller_manager::ExecutionStatus::RUNNING;
 }
@@ -1980,19 +1985,16 @@ void TrajectoryExecutionManager::createExecutionDurationTimer(std::shared_ptr<Tr
         std::max(d * current_scaling + ros::Duration(current_margin), expected_trajectory_duration);
   }
 
-  auto callback = [this, &context](const ros::TimerEvent& timer_event) {
-    ROS_WARN_STREAM_NAMED(LOGNAME, "Execution timeout after: " << timer_event.profile.last_duration);
+  auto callback = [this, &context](__attribute__((unused)) const ros::TimerEvent& timer_event) {
     ROS_WARN_STREAM_NAMED(LOGNAME, "Timeout group name " << context->trajectory_.group_name);
-
-    std::shared_ptr<TrajectoryExecutionEvent> event = std::make_shared<TrajectoryExecutionEvent>();
-    event->type = EventType::EXECUTION_MONITOR_TIMER_FINISHED;
-    event->context = context;
+    TrajectoryExecutionEvent event = { EventType::EXECUTION_TIMEOUT, context,
+                                       moveit_controller_manager::ExecutionStatus::RUNNING };
     std::lock_guard<std::mutex> slock(events_queue_mutex_);
-    events_queue.push_back(event);
+    events_queue_.push_back(std::make_shared<TrajectoryExecutionEvent>(event));
     event_manager_condition_.notify_all();
   };
 
-  context->execution_duration_timer =
-      node_handle_.createTimer(ros::Duration(expected_trajectory_duration), callback, true, false);
+  context->execution_duration_timer_ =
+      node_handle_.createTimer(ros::Duration(expected_trajectory_duration), callback, true);
 }
 }  // namespace trajectory_execution_manager

@@ -78,11 +78,11 @@ public:
     /** \brief New trajectory(s) has been pushed */
     NEW_REQUEST = 0,
 
-    /** \brief The execution of a trajectory has finished */
-    EXECUTION_FINISHED = 1,
+    /** \brief The execution of a trajectory has been completed, regardless of status */
+    EXECUTION_COMPLETED = 1,
 
     /** \brief The monitor trajectory execution timer  */
-    EXECUTION_MONITOR_TIMER_FINISHED = 2,
+    EXECUTION_TIMEOUT = 2,
 
   };
 
@@ -100,23 +100,25 @@ public:
     moveit_msgs::RobotTrajectory trajectory_;
 
     // Callback to inform the outcome of trajectories sent for execution with the continuous execution thread
-    ExecutionCompleteCallback execution_complete_callback;
+    ExecutionCompleteCallback execution_complete_callback_;
 
     // Timer to monitor the expected execution duration
-    ros::Timer execution_duration_timer;
+    ros::Timer execution_duration_timer_;
+
+    unsigned int active_controllers_count_;
   };
 
   /// Data structure that represents information necessary to process an event
   struct TrajectoryExecutionEvent
   {
     /// type of event
-    EventType type;
+    EventType type_;
 
     // The trajectories associated to this event
-    std::shared_ptr<TrajectoryExecutionContext> context;
+    std::shared_ptr<TrajectoryExecutionContext> context_;
 
     // Execution status of trajectories associated to this event
-    moveit_controller_manager::ExecutionStatus last_execution_status;
+    moveit_controller_manager::ExecutionStatus execution_status_;
   };
 
   /// Load the controller manager plugin, start listening for events on a topic.
@@ -305,7 +307,7 @@ private:
                          const std::vector<std::string>& available_controllers,
                          std::vector<std::string>& selected_controllers);
   void runEventManager();
-  moveit_controller_manager::ExecutionStatus executeTrajectory(TrajectoryExecutionContext& context);
+  moveit_controller_manager::ExecutionStatus executeTrajectory(const TrajectoryExecutionContext& context);
   void executeThread(const ExecutionCompleteCallback& callback, const PathSegmentCompleteCallback& part_callback,
                      bool auto_clear);
   bool executePart(std::size_t part_index);
@@ -345,7 +347,7 @@ private:
   std::mutex execution_state_mutex_;
   std::mutex execution_thread_mutex_;
 
-  std::deque<std::shared_ptr<TrajectoryExecutionEvent>> events_queue;
+  std::deque<std::shared_ptr<TrajectoryExecutionEvent>> events_queue_;
   std::mutex events_queue_mutex_;
 
   std::condition_variable event_manager_condition_;
