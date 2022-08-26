@@ -15,7 +15,7 @@
 repos:
   # Standard hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.4.0
+    rev: v4.3.0
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
@@ -28,9 +28,11 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/psf/black
-    rev: 20.8b1
+    rev: 22.6.0
     hooks:
       - id: black
+        # https://github.com/psf/black/issues/406#issuecomment-1101449515
+        args: [ "--skip-string-normalization" ]
 
   - repo: https://github.com/Lucas-C/pre-commit-hooks-markup
     rev: v1.0.1
