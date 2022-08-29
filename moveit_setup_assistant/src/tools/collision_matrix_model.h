@@ -67,8 +67,6 @@ public Q_SLOTS:
 
 private:
   bool disabledByDefault(const std::string& link1, const std::string& link2) const;
-  std::vector<srdf::Model::CollisionPair>::iterator find(std::vector<srdf::Model::CollisionPair>& pairs,
-                                                         const std::string& link1, const std::string& link2) const;
 
 private:
   srdf::SRDFWriterPtr srdf;

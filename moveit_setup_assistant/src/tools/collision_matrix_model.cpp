@@ -76,17 +76,27 @@ int CollisionMatrixModel::columnCount(const QModelIndex& /*parent*/) const
   return visual_to_index.size();
 }
 
-std::vector<srdf::Model::CollisionPair>::iterator
-CollisionMatrixModel::find(std::vector<srdf::Model::CollisionPair>& pairs, const std::string& link1,
-                           const std::string& link2) const
+struct PairMatcher
 {
-  const auto p = link1 < link2 ? std::make_pair(link1, link2) : std::make_pair(link2, link1);
-  for (auto it = pairs.begin(), end = pairs.end(); it != end; ++it)
+  PairMatcher(const std::string& link1, const std::string& link2)
+    : search(link1 < link2 ? std::make_pair(std::cref(link1), std::cref(link2)) :
+                             std::make_pair(std::cref(link2), std::cref(link1)))
   {
-    if ((it->link1_ == p.first && it->link2_ == p.second) || (it->link2_ == p.first && it->link1_ == p.second))
-      return it;
   }
-  return pairs.end();
+
+  bool operator()(const srdf::Model::CollisionPair& pair) const
+  {
+    return (pair.link1_ == search.first && pair.link2_ == search.second) ||
+           (pair.link2_ == search.first && pair.link1_ == search.second);
+  }
+
+  std::pair<const std::string&, const std::string&> search;
+};
+
+template <typename Container>
+auto find(Container& pairs, const std::string& link1, const std::string& link2)
+{
+  return std::find_if(pairs.begin(), pairs.end(), PairMatcher(link1, link2));
 }
 
 bool CollisionMatrixModel::disabledByDefault(const std::string& link1, const std::string& link2) const
@@ -143,34 +153,66 @@ QVariant CollisionMatrixModel::data(const QModelIndex& index, int role) const
 
 bool CollisionMatrixModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
-#if 0
-  if (role == Qt::CheckStateRole)
+  if (role != Qt::CheckStateRole)
+    return false;
+
+  bool new_value = (value.toInt() == Qt::Checked);
+  srdf::Model::CollisionPair p{ std_names[visual_to_index[index.row()]], std_names[visual_to_index[index.column()]],
+                                std::string() };
+  if (p.link1_ > p.link2_)
+    std::swap(p.link1_, p.link2_);
+
+  auto enabled = find(srdf->enabled_collision_pairs_, p.link1_, p.link2_);
+  auto disabled = find(srdf->disabled_collision_pairs_, p.link1_, p.link2_);
+  bool changed = true;
+  if (disabledByDefault(p.link1_, p.link2_))
   {
-    moveit_setup_assistant::LinkPairMap::iterator item = this->item(index);
-    if (item == pairs.end())
-      return false;
+    assert(disabled == srdf->disabled_collision_pairs_.end());
+    auto& pairs = srdf->enabled_collision_pairs_;
+    if (new_value)
+    {
+      if (enabled != pairs.end())  // delete all matching pairs, starting with enabled
+        pairs.erase(std::remove_if(enabled, pairs.end(), PairMatcher(p.link1_, p.link2_)), pairs.end());
+      else
+        changed = false;
+    }
+    else
+    {
+      p.reason_ = moveit_setup_assistant::disabledReasonToString(moveit_setup_assistant::NOT_DISABLED);
+      if (enabled == pairs.end())
+        srdf->enabled_collision_pairs_.push_back(p);
+      else
+        changed = false;
+    }
+  }
+  else
+  {
+    assert(enabled == srdf->enabled_collision_pairs_.end());
+    auto& pairs = srdf->disabled_collision_pairs_;
+    if (new_value)
+    {
+      p.reason_ = moveit_setup_assistant::disabledReasonToString(moveit_setup_assistant::USER);
+      if (disabled == pairs.end())
+        pairs.push_back(p);
+      else
+        changed = false;
+    }
+    else
+    {
+      if (disabled != pairs.end())  // delete all matching pairs, starting with disabled
+        pairs.erase(std::remove_if(disabled, pairs.end(), PairMatcher(p.link1_, p.link2_)), pairs.end());
+      else
+        changed = false;
+    }
+  }
 
-    bool new_value = (value.toInt() == Qt::Checked);
-    if (item->second.disable_check == new_value)
-      return true;
-
-    item->second.disable_check = new_value;
-
-    // Handle USER Reasons: 1) pair is disabled by user
-    if (item->second.disable_check && item->second.reason == moveit_setup_assistant::NOT_DISABLED)
-      item->second.reason = moveit_setup_assistant::USER;
-
-    // Handle USER Reasons: 2) pair was disabled by user and now is enabled (not checked)
-    else if (!item->second.disable_check && item->second.reason == moveit_setup_assistant::USER)
-      item->second.reason = moveit_setup_assistant::NOT_DISABLED;
-
+  if (changed)
+  {
     QModelIndex mirror = this->index(index.column(), index.row());
     Q_EMIT dataChanged(index, index);
     Q_EMIT dataChanged(mirror, mirror);
-    return true;
   }
-#endif
-  return false;  // reject all other changes
+  return changed;
 }
 
 void CollisionMatrixModel::setEnabled(const QItemSelection& selection, bool value)
