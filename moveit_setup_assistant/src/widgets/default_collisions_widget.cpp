@@ -226,11 +226,11 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, const MoveItCo
   radio_btn = new QRadioButton("linear view");
   bottom_layout->addWidget(radio_btn);
   view_mode_buttons_->addButton(radio_btn, LINEAR_MODE);
-  radio_btn->setChecked(true);
 
   radio_btn = new QRadioButton("matrix view");
   bottom_layout->addWidget(radio_btn);
   view_mode_buttons_->addButton(radio_btn, MATRIX_MODE);
+  radio_btn->setChecked(true);
   connect(view_mode_buttons_, SIGNAL(buttonClicked(int)), this, SLOT(loadCollisionTable()));
 
   // Revert Button
