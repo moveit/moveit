@@ -217,6 +217,11 @@ private:
    */
   void showSections(QHeaderView* header, const QList<int>& logicalIndexes);
   /**
+   * \brief Enable/Disable selected sections by default
+   */
+  void setDefaults(bool enabled);
+
+  /**
    * \brief Toggle enabled status of selection
    */
   void toggleSelection(QItemSelection selection);

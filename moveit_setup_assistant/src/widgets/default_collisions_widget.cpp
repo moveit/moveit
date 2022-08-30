@@ -34,6 +34,7 @@
 
 /* Author: Dave Coleman */
 
+#include <algorithm>
 #include <QAction>
 #include <QApplication>
 #include <QButtonGroup>
@@ -202,6 +203,12 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, const MoveItCo
   action = new QAction(tr("Hide others"), this);
   header_actions_ << action;
   connect(action, SIGNAL(triggered()), this, SLOT(hideOtherSections()));
+  action = new QAction(tr("Disable by default"), this);
+  header_actions_ << action;
+  connect(action, &QAction::triggered, this, [this] { setDefaults(true); });
+  action = new QAction(tr("Enable by default"), this);
+  header_actions_ << action;
+  connect(action, &QAction::triggered, this, [this] { setDefaults(false); });
 
   // Bottom Area ----------------------------------------
 
@@ -571,6 +578,7 @@ void DefaultCollisionsWidget::showSections()
   }
   showSections(header, list);
 }
+
 void DefaultCollisionsWidget::showSections(QHeaderView* header, const QList<int>& logicalIndexes)
 {
   if (logicalIndexes.size() < 2)
@@ -580,6 +588,66 @@ void DefaultCollisionsWidget::showSections(QHeaderView* header, const QList<int>
   {
     for (int index = logicalIndexes[prev], index_end = logicalIndexes[next]; index <= index_end; ++index)
       header->setSectionHidden(index, false);
+  }
+}
+
+void DefaultCollisionsWidget::setDefaults(bool disabled)
+{
+  QList<int> list;
+  auto m = collision_table_->model();
+
+  if (clicked_headers_ == Qt::Horizontal)
+  {
+    for (const QModelIndex& index : selection_model_->selectedColumns())
+      list << index.column();
+  }
+  else if (clicked_headers_ == Qt::Vertical)
+  {
+    for (const QModelIndex& index : selection_model_->selectedRows())
+      list << index.row();
+  }
+
+  for (auto index : list)
+  {
+    bool changed = false;
+    if (disabled)
+    {
+      const auto& name = m->headerData(index, Qt::Horizontal, Qt::DisplayRole).toString().toStdString();
+      // add name to no_default_collision_links_ (if not yet in there)
+      auto& links = wip_srdf_->no_default_collision_links_;
+      if (std::find(links.begin(), links.end(), name) == links.end())
+      {
+        links.push_back(name);
+        changed = true;
+      }
+      // remove-erase disabled pairs that are redundant now
+      auto& pairs = wip_srdf_->disabled_collision_pairs_;
+      auto last = std::remove_if(pairs.begin(), pairs.end(),
+                                 [&name](const auto& p) { return p.link1_ == name || p.link2_ == name; });
+      changed |= last != pairs.end();
+      pairs.erase(last, pairs.end());
+    }
+    else
+    {
+      const auto& name = m->headerData(index, Qt::Horizontal, Qt::DisplayRole).toString().toStdString();
+      // remove-erase name from no_default_collision_links_
+      auto& links = wip_srdf_->no_default_collision_links_;
+      {
+        auto last = std::remove(links.begin(), links.end(), name);
+        changed |= last != links.end();
+        links.erase(last, links.end());
+      }
+
+      // remove explicitly enabled pairs
+      auto& pairs = wip_srdf_->enabled_collision_pairs_;
+      auto last = std::remove_if(pairs.begin(), pairs.end(), [&name, &links](const auto& p) {
+        return (p.link1_ == name && std::find(links.begin(), links.end(), p.link2_) == links.end()) ||
+               (p.link2_ == name && std::find(links.begin(), links.end(), p.link1_) == links.end());
+      });
+      pairs.erase(last, pairs.end());
+    }
+    if (changed)
+      btn_revert_->setEnabled(true);
   }
 }
 
