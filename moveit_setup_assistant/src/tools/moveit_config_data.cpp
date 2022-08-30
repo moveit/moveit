@@ -1328,7 +1328,7 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
     for (YAML::const_iterator group_it = doc.begin(); group_it != doc.end(); ++group_it)
     {
       const std::string& group_name = group_it->first.as<std::string>();
-      const YAML::Node& group = group_it->second;
+      const YAML::Node group = group_it->second;
 
       // Create new meta data
       GroupMetaData meta_data;
@@ -1339,7 +1339,7 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
       parse(group, "kinematics_solver_timeout", meta_data.kinematics_solver_timeout_, DEFAULT_KIN_SOLVER_TIMEOUT);
 
       // Assign meta data to vector
-      group_meta_data_[group_name] = meta_data;
+      group_meta_data_[group_name] = std::move(meta_data);
     }
   }
   catch (YAML::ParserException& e)  // Catch errors
