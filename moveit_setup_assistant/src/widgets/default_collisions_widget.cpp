@@ -338,6 +338,7 @@ void DefaultCollisionsWidget::loadCollisionTable()
   {
     CollisionLinearModel* linear_model = new CollisionLinearModel(matrix_model);
     SortFilterProxyModel* sorted_model = new SortFilterProxyModel();
+    sorted_model->setShowAll(collision_checkbox_->checkState() == Qt::Checked);
     model = sorted_model;
     sorted_model->setSourceModel(linear_model);
     // ensure deletion of underlying models with model
