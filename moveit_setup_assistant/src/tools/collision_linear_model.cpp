@@ -127,14 +127,15 @@ QVariant CollisionLinearModel::data(const QModelIndex& index, int role) const
 
 bool CollisionLinearModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
-  QModelIndex src_index = this->mapToSource(index);
-
   if (role == Qt::CheckStateRole)
   {
-    sourceModel()->setData(src_index, value, role);
-    int r = index.row();
-    Q_EMIT dataChanged(this->index(r, 2), this->index(r, 3));  // reason changed too
-    return true;
+    QModelIndex src_index = this->mapToSource(index);
+    if (sourceModel()->setData(src_index, value, role))
+    {
+      int r = index.row();
+      Q_EMIT dataChanged(this->index(r, 2), this->index(r, 3));  // reason changed too
+      return true;
+    }
   }
   return false;  // reject all other changes
 }
