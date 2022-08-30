@@ -207,29 +207,23 @@ private:
    */
   void disableControls(bool disable);
 
-  /**
-   * \brief Allow toggling of all checkboxes in selection by filtering <space> keypresses
-   */
+  /** Allow toggling of all checkboxes in selection by filtering <space> keypresses */
   bool eventFilter(QObject* object, QEvent* event) override;
 
-  /**
-   * \brief Show header's sections in logicalIndexes and everything in between
-   */
+  /** Return list of selected sections */
+  QList<int> selectedSections(QHeaderView*& header) const;
+
+  /** Show header's sections in logicalIndexes and everything in between */
   void showSections(QHeaderView* header, const QList<int>& logicalIndexes);
-  /**
-   * \brief Enable/Disable selected sections by default
-   */
+
+  /** Enable/Disable selected sections by default */
   void setDefaults(bool enabled);
 
-  /**
-   * \brief Toggle enabled status of selection
-   */
+  /** Toggle enabled status of selection */
   void toggleSelection(QItemSelection selection);
 };
 
-/**
- * \brief QThread to monitor progress of a boost::thread
- */
+/** QThread to monitor progress of a boost::thread */
 class MonitorThread : public QThread
 {
   Q_OBJECT

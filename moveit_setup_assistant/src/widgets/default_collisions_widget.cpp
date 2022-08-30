@@ -471,38 +471,9 @@ void DefaultCollisionsWidget::showHeaderContextMenu(const QPoint& p)
   clicked_section_ = -1;
 }
 
-void DefaultCollisionsWidget::hideSections()
+QList<int> DefaultCollisionsWidget::selectedSections(QHeaderView*& header) const
 {
   QList<int> list;
-  QHeaderView* header = nullptr;
-  if (clicked_headers_ == Qt::Horizontal)
-  {
-    for (const QModelIndex& index : selection_model_->selectedColumns())
-      list << index.column();
-    header = collision_table_->horizontalHeader();
-  }
-  else if (clicked_headers_ == Qt::Vertical)
-  {
-    for (const QModelIndex& index : selection_model_->selectedRows())
-      list << index.row();
-    header = collision_table_->verticalHeader();
-  }
-
-  // if somewhere else than the selection was clicked, hide only this row/column
-  if (!list.contains(clicked_section_))
-  {
-    list.clear();
-    list << clicked_section_;
-  }
-
-  for (auto index : list)
-    header->setSectionHidden(index, true);
-}
-
-void DefaultCollisionsWidget::hideOtherSections()
-{
-  QList<int> list;
-  QHeaderView* header = nullptr;
   if (clicked_headers_ == Qt::Horizontal)
   {
     header = collision_table_->horizontalHeader();
@@ -517,65 +488,47 @@ void DefaultCollisionsWidget::hideOtherSections()
       if (!header->isSectionHidden(index.row()))
         list << index.row();
   }
-
-  // if somewhere else than the selection was clicked, hide only this row/column
+  // if somewhere else than the selection was clicked, only consider this row/column
   if (!list.contains(clicked_section_))
-  {
-    list.clear();
-    list << clicked_section_;
-  }
+    return { clicked_section_ };
 
-  // first hide all sections
-  for (std::size_t index = 0, end = header->count(); index != end; ++index)
-    header->setSectionHidden(index, true);
+  return list;
+}
 
-  // and subsequently show selected ones
+void DefaultCollisionsWidget::hideSections()
+{
+  QHeaderView* header;
+  auto list = selectedSections(header);
+
   for (auto index : list)
-    header->setSectionHidden(index, false);
+    header->setSectionHidden(index, true);
+}
+
+void DefaultCollisionsWidget::hideOtherSections()
+{
+  QHeaderView* header;
+  auto selected = selectedSections(header);
+
+  for (std::size_t index = 0, end = header->count(); index != end; ++index)
+    if (!selected.contains(index))
+      header->setSectionHidden(index, true);
 }
 
 void DefaultCollisionsWidget::showSections()
 {
-  QList<int> list;
   if (clicked_section_ < 0)  // show all
   {
-    if (clicked_headers_.testFlag(Qt::Horizontal))
-    {
-      // show all columns
-      list.clear();
-      list << 0 << model_->columnCount() - 1;
-      showSections(collision_table_->horizontalHeader(), list);
-    }
+    if (clicked_headers_.testFlag(Qt::Horizontal))  // show all columns
+      showSections(collision_table_->horizontalHeader(), { 0, model_->columnCount() - 1 });
 
     if (clicked_headers_.testFlag(Qt::Vertical))  // show all rows
-    {
-      list.clear();
-      list << 0 << model_->rowCount() - 1;
-      showSections(collision_table_->verticalHeader(), list);
-    }
+      showSections(collision_table_->verticalHeader(), { 0, model_->rowCount() - 1 });
+
     return;
   }
 
-  QHeaderView* header = nullptr;
-  if (clicked_headers_ == Qt::Horizontal)
-  {
-    for (const QModelIndex& index : selection_model_->selectedColumns())
-      list << index.column();
-    header = collision_table_->horizontalHeader();
-  }
-  else if (clicked_headers_ == Qt::Vertical)
-  {
-    for (const QModelIndex& index : selection_model_->selectedRows())
-      list << index.row();
-    header = collision_table_->verticalHeader();
-  }
-
-  // if somewhere else than the selection was clicked, hide only this row/column
-  if (!list.contains(clicked_section_))
-  {
-    list.clear();
-    list << clicked_section_;
-  }
+  QHeaderView* header;
+  QList<int> list = selectedSections(header);
   showSections(header, list);
 }
 
@@ -593,19 +546,9 @@ void DefaultCollisionsWidget::showSections(QHeaderView* header, const QList<int>
 
 void DefaultCollisionsWidget::setDefaults(bool disabled)
 {
-  QList<int> list;
+  QHeaderView* header;
+  QList<int> list = selectedSections(header);
   auto m = collision_table_->model();
-
-  if (clicked_headers_ == Qt::Horizontal)
-  {
-    for (const QModelIndex& index : selection_model_->selectedColumns())
-      list << index.column();
-  }
-  else if (clicked_headers_ == Qt::Vertical)
-  {
-    for (const QModelIndex& index : selection_model_->selectedRows())
-      list << index.row();
-  }
 
   for (auto index : list)
   {
