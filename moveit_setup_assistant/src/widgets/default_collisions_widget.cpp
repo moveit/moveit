@@ -397,6 +397,7 @@ void DefaultCollisionsWidget::loadCollisionTable()
     collision_checkbox_->show();
     horizontal_header->setVisible(true);
     vertical_header->setVisible(true);
+    horizontal_header->setSectionResizeMode(QHeaderView::Stretch);
 
     vertical_header->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(vertical_header, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showHeaderContextMenu(QPoint)));
