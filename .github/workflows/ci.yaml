@@ -18,7 +18,7 @@ jobs:
         env:
           - IMAGE: melodic-ci
             CCOV: true
-          - IMAGE: melodic-ci-shadow-fixed
+          - IMAGE: melodic-ci-testing
             IKFAST_TEST: true
             CATKIN_LINT: true
             CLANG_TIDY: pedantic
