@@ -239,6 +239,8 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   res.trajectory_.resize(1);
   res.trajectory_[0] = result;
+  res.description_.resize(1);
+  res.description_[0] = "plan";
 
   ROS_DEBUG_NAMED("chomp_planner", "Bottom took %f sec to create", (ros::WallTime::now() - create_time).toSec());
   ROS_DEBUG_NAMED("chomp_planner", "Serviced planning request in %f wall-seconds",
