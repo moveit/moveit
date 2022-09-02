@@ -126,7 +126,12 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     trajectory.fillInCubicInterpolation();
   else if (params.trajectory_initialization_method_.compare("fillTrajectory") == 0)
   {
-    if (!(trajectory.fillInFromTrajectory(*res.trajectory_[0])))
+    if (res.trajectory_.empty())
+    {
+      ROS_ERROR_STREAM_NAMED("chomp_planner", "No input trajectory specified");
+      return false;
+    }
+    else if (!(trajectory.fillInFromTrajectory(*res.trajectory_[0])))
     {
       ROS_ERROR_STREAM_NAMED("chomp_planner", "Input trajectory has less than 2 points, "
                                               "trajectory must contain at least start and goal state");
