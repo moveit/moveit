@@ -46,6 +46,7 @@
 #include <moveit/robot_state/robot_state.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
+#include <condition_variable>
 
 namespace moveit_cpp
 {
@@ -176,6 +177,8 @@ private:
 
   // Execution
   trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;
+  std::mutex execution_complete_mutex_;
+  std::condition_variable execution_complete_condition_;
 
   /** \brief Reset all member variables */
   void clearContents();

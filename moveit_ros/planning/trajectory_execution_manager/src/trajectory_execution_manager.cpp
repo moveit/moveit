@@ -1193,8 +1193,9 @@ void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback& callba
   execution_complete_ = false;
   if (!validateTrajectories(*meta_context) || !executeTrajectory(meta_context, 0))
   {
+    last_execution_status_ = moveit_controller_manager::ExecutionStatus::FAILED;
     if (callback)
-      callback(moveit_controller_manager::ExecutionStatus::ABORTED);
+      callback(last_execution_status_);
     execution_complete_ = true;
   }
 

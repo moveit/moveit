@@ -238,22 +238,37 @@ bool MoveItCpp::execute(const std::string& group_name, const robot_trajectory::R
   // Execute trajectory
   moveit_msgs::RobotTrajectory robot_trajectory_msg;
   robot_trajectory->getRobotTrajectoryMsg(robot_trajectory_msg);
+  moveit_controller_manager::ExecutionStatus execution_status;
 
-  // Update execution mode which triggers a stopExecution()
-  if (!blocking != trajectory_execution_manager_->getAllowContinuousExecution())
+  auto callback = trajectory_execution_manager::TrajectoryExecutionManager::ExecutionCompleteCallback();
+
+  if (trajectory_execution_manager_->getAllowSimultaneousExecution())
   {
-    ROS_INFO_STREAM_NAMED(LOGNAME, "Updating execution mode, allow continous execution: " << !blocking);
-    trajectory_execution_manager_->setAllowContinuousExecution(!blocking);
+    callback = [this,
+                &execution_status](__attribute__((unused)) const moveit_controller_manager::ExecutionStatus status) {
+      execution_complete_condition_.notify_all();
+      execution_status = status;
+    };
   }
 
-  if (!trajectory_execution_manager_->push(robot_trajectory_msg))
+  if (!trajectory_execution_manager_->push(robot_trajectory_msg, "", callback))
     return false;
 
   if (blocking)
   {
-    trajectory_execution_manager_->execute();
-    return trajectory_execution_manager_->waitForExecution();
+    if (trajectory_execution_manager_->getAllowSimultaneousExecution())
+    {  // wait for callback to return
+      std::unique_lock<std::mutex> ulock(execution_complete_mutex_);
+      execution_complete_condition_.wait(ulock);
+      return execution_status;
+    }
+    else
+    {
+      trajectory_execution_manager_->execute();
+      return trajectory_execution_manager_->waitForExecution();
+    }
   }
+
   return true;
 }
 
