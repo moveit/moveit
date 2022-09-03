@@ -19,7 +19,7 @@ jobs:
           - IMAGE: noetic-ci
             CCOV: true
             BUILDER: catkin_tools_devel
-          - IMAGE: noetic-ci-shadow-fixed
+          - IMAGE: noetic-ci-testing
             IKFAST_TEST: true
             CATKIN_LINT: true
             CLANG_TIDY: pedantic
