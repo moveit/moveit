@@ -395,7 +395,7 @@ bool StartScreenWidget::loadExistingFiles()
   QApplication::processEvents();
 
   // Load the SRDF
-  if (!loadSRDFFile(config_data_->srdf_path_))
+  if (!loadSRDFFile(config_data_->srdf_path_, config_data_->xacro_args_))
     return false;  // error occured
 
   // Progress Indicator
@@ -546,9 +546,7 @@ bool StartScreenWidget::loadNewFiles()
 // ******************************************************************************************
 bool StartScreenWidget::loadURDFFile(const std::string& urdf_file_path, const std::string& xacro_args)
 {
-  const std::vector<std::string> vec_xacro_args = { xacro_args };
-
-  if (!rdf_loader::RDFLoader::loadXmlFileToString(config_data_->urdf_string_, urdf_file_path, vec_xacro_args))
+  if (!rdf_loader::RDFLoader::loadXmlFileToString(config_data_->urdf_string_, urdf_file_path, { xacro_args }))
   {
     QMessageBox::warning(this, "Error Loading Files",
                          QString("URDF/COLLADA file not found: ").append(urdf_file_path.c_str()));
@@ -592,12 +590,10 @@ bool StartScreenWidget::loadURDFFile(const std::string& urdf_file_path, const st
 // ******************************************************************************************
 // Load SRDF File to Parameter Server
 // ******************************************************************************************
-bool StartScreenWidget::loadSRDFFile(const std::string& srdf_file_path)
+bool StartScreenWidget::loadSRDFFile(const std::string& srdf_file_path, const std::string& xacro_args)
 {
-  const std::vector<std::string> xacro_args;
-
   std::string srdf_string;
-  if (!rdf_loader::RDFLoader::loadXmlFileToString(srdf_string, srdf_file_path, xacro_args))
+  if (!rdf_loader::RDFLoader::loadXmlFileToString(srdf_string, srdf_file_path, { xacro_args }))
   {
     QMessageBox::warning(this, "Error Loading Files", QString("SRDF file not found: ").append(srdf_file_path.c_str()));
     return false;
