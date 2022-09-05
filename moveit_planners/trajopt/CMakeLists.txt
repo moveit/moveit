@@ -10,8 +10,9 @@ find_package(catkin REQUIRED
       pluginlib
       roscpp
       rosparam_shortcuts
-      trajopt
 )
+find_package(trajopt REQUIRED)
+
 moveit_build_options()
 
 catkin_package(
@@ -49,6 +50,7 @@ target_link_libraries(
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
+  trajopt::trajopt
 )
 
 set_target_properties(
