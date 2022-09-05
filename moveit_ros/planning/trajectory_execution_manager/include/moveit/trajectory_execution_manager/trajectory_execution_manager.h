@@ -110,7 +110,7 @@ public:
   };
 
   /// Data structure that represents information necessary to execute an interdependent set of trajectories
-  struct MetaTrajectoryExecutionContext
+  struct SequentialTrajectoryExecutionContext
   {
     /// Set of interdependent trajectories
     std::vector<std::shared_ptr<TrajectoryExecutionContext>> contexts_;
@@ -124,13 +124,13 @@ public:
     /// Counter of trajectories pending for execution
     int remaining_trajectories_count_;
 
-    MetaTrajectoryExecutionContext()
+    SequentialTrajectoryExecutionContext()
     {
     }
 
-    MetaTrajectoryExecutionContext(const std::vector<std::shared_ptr<TrajectoryExecutionContext>> trajectories,
-                                   const ExecutionCompleteCallback callback,
-                                   const PathSegmentCompleteCallback part_callback)
+    SequentialTrajectoryExecutionContext(const std::vector<std::shared_ptr<TrajectoryExecutionContext>> trajectories,
+                                         const ExecutionCompleteCallback callback,
+                                         const PathSegmentCompleteCallback part_callback)
       : contexts_(trajectories)
       , execution_complete_callback_(callback)
       , path_segment_complete_callback_(part_callback)
@@ -146,7 +146,8 @@ public:
     EventType type_;
 
     // Pair of meta context and currently active context
-    std::pair<std::weak_ptr<MetaTrajectoryExecutionContext>, std::weak_ptr<TrajectoryExecutionContext>> context_pair;
+    std::pair<std::weak_ptr<SequentialTrajectoryExecutionContext>, std::weak_ptr<TrajectoryExecutionContext>>
+        context_pair;
 
     // Execution status of trajectories associated to this event
     moveit_controller_manager::ExecutionStatus execution_status_;
@@ -298,11 +299,11 @@ public:
   /// Enable or disable waiting for trajectory completion
   void setWaitForTrajectoryCompletion(bool flag);
 
-  /// Enable or disable continuous execution of trajetories
-  void setAllowContinuousExecution(bool flag);
+  /// Enable or disable simultaneous execution of trajetories
+  void setAllowSimultaneousExecution(bool flag);
 
-  /// Get continous execution mode
-  bool getAllowContinuousExecution() const;
+  /// Get simultaneous execution of trajetories
+  bool getAllowSimultaneousExecution() const;
 
 private:
   struct ControllerInformation
@@ -350,8 +351,8 @@ private:
                          const std::vector<std::string>& available_controllers,
                          std::vector<std::string>& selected_controllers);
   void runEventManager();
-  bool validateTrajectories(const MetaTrajectoryExecutionContext& meta_context);
-  bool executeTrajectory(const std::shared_ptr<MetaTrajectoryExecutionContext> meta_context, const std::size_t index);
+  bool validateTrajectories(const SequentialTrajectoryExecutionContext& meta_context);
+  bool executeTrajectory(const std::shared_ptr<SequentialTrajectoryExecutionContext> meta_context,
                          const std::size_t index);
   bool waitForRobotToStop(const TrajectoryExecutionContext& context, double wait_time = 1.0);
 
@@ -368,7 +369,7 @@ private:
   bool checkCollisionsWithActiveTrajectories(const TrajectoryExecutionContext& context);
   bool checkCollisionsWithCurrentState(const moveit_msgs::RobotTrajectory& trajectory);
   void createExecutionDurationTimer(
-      const std::pair<std::weak_ptr<MetaTrajectoryExecutionContext>, std::weak_ptr<TrajectoryExecutionContext>>
+      const std::pair<std::weak_ptr<SequentialTrajectoryExecutionContext>, std::weak_ptr<TrajectoryExecutionContext>>
           context_pair);
 
   moveit::core::RobotModelConstPtr robot_model_;
@@ -394,9 +395,10 @@ private:
   bool run_event_manager_;
   bool stop_execution_;
   bool auto_clear_;
+  bool execution_complete_;
 
-  std::set<moveit_controller_manager::MoveItControllerHandlePtr> used_handles_;
-  std::mutex used_handles_mutex_;
+  std::set<moveit_controller_manager::MoveItControllerHandlePtr> active_handles_;
+  std::mutex active_handles_mutex_;
 
   // this condition is used to notify the completion of execution for given trajectories
   std::condition_variable execution_complete_condition_;
@@ -405,8 +407,8 @@ private:
 
   std::vector<std::shared_ptr<TrajectoryExecutionContext>> trajectories_;
 
-  std::vector<std::shared_ptr<MetaTrajectoryExecutionContext>> active_meta_contexts_;
-  mutable std::mutex active_meta_contexts_mutex_;
+  std::vector<std::shared_ptr<SequentialTrajectoryExecutionContext>> active_trajectory_sequences_;
+  mutable std::mutex active_trajectory_sequences_mutex_;
 
   std::unique_ptr<pluginlib::ClassLoader<moveit_controller_manager::MoveItControllerManager>> controller_manager_loader_;
   moveit_controller_manager::MoveItControllerManagerPtr controller_manager_;
@@ -427,7 +429,7 @@ private:
 
   double allowed_start_tolerance_;  // joint tolerance for validate(): radians for revolute joints
   double execution_velocity_scaling_;
-  bool allow_continuous_execution_;
+  bool allow_simultaneous_execution_;
   bool wait_for_trajectory_completion_;
 };
 }  // namespace trajectory_execution_manager
