@@ -403,6 +403,9 @@ private:
   // this condition is used to notify the completion of execution for given trajectories
   std::condition_variable execution_complete_condition_;
 
+  std::mutex cancel_execution_mutex_;
+  std::condition_variable cancel_execution_condition_;
+
   moveit_controller_manager::ExecutionStatus last_execution_status_;
 
   std::vector<std::shared_ptr<TrajectoryExecutionContext>> trajectories_;

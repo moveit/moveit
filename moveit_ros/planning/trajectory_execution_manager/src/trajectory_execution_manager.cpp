@@ -287,7 +287,7 @@ void TrajectoryExecutionManager::runEventManager()
       last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
 
       // notify whoever is waiting for the event of trajectory completion
-      execution_complete_condition_.notify_all();
+      cancel_execution_condition_.notify_all();
     }
 
     // Process events
@@ -1152,12 +1152,13 @@ moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::executeAn
 void TrajectoryExecutionManager::stopExecution(bool auto_clear)
 {
   // We mark stop_execution_ as true and wait for the runEventManager threat to cancel all active trajectories
+  ROS_INFO_NAMED(LOGNAME, "StopExecution()");
   if (!execution_complete_)
   {
     stop_execution_ = true;
     event_manager_condition_.notify_all();
-    std::unique_lock<std::mutex> ulock(execution_state_mutex_);
-    execution_complete_condition_.wait(ulock);
+    std::unique_lock<std::mutex> ulock(cancel_execution_mutex_);
+    cancel_execution_condition_.wait(ulock);
 
     execution_state_mutex_.lock();
     execution_complete_ = true;
