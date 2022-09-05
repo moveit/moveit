@@ -344,9 +344,8 @@ void TrajectoryExecutionManager::runEventManager()
           break;
       }
 
-      // debug
-      ROS_INFO_NAMED(LOGNAME, "%d remaining active controllers for group name: %s",
-                     context_ptr->active_controllers_count_, context_ptr->trajectory_.group_name.c_str());
+      ROS_DEBUG_NAMED(LOGNAME, "%d remaining active controllers for group name: %s",
+                      context_ptr->active_controllers_count_, context_ptr->trajectory_.group_name.c_str());
 
       if (context_ptr->active_controllers_count_ == 0)
       {
@@ -492,16 +491,12 @@ bool TrajectoryExecutionManager::push(const std::vector<moveit_msgs::RobotTrajec
           ss << trajectory_part << std::endl;
         ROS_INFO_NAMED(LOGNAME, "%s", ss.str().c_str());
       }
-      if (allow_simultaneous_execution_)
-        trajectory_sequence->contexts_.push_back(std::move(context));
-      else
-        trajectories_.push_back(std::move(context));
+      trajectory_sequence->contexts_.push_back(std::move(context));
     }
     else
     {
       if (callback)
         callback(moveit_controller_manager::ExecutionStatus::ABORTED);
-      trajectories_.clear();  // TODO (cambel) remove only added trajectories
       last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
       return false;
     }
@@ -1307,7 +1302,8 @@ bool TrajectoryExecutionManager::executeTrajectory(
     return false;
 
   auto& context_ptr = trajectory_sequence->contexts_[index];
-  ROS_INFO_STREAM_NAMED(LOGNAME, "Non-blocking Execute Trajectory: " << context_ptr->trajectory_.group_name);
+  ROS_DEBUG_NAMED(LOGNAME, "Non-blocking Execute Trajectory with group name %s ",
+                  context_ptr->trajectory_.group_name.c_str());
 
   std::set<moveit_controller_manager::MoveItControllerHandlePtr> required_handles;
 
