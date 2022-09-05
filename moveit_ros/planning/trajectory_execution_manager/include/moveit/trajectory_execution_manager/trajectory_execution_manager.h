@@ -104,6 +104,9 @@ public:
 
     // Counter of remaining active trajectory parts
     int active_controllers_count_;
+
+    // Used to find current expected trajectory location
+    std::vector<ros::Time> time_index_;
   };
 
   /// Data structure that represents information necessary to execute an interdependent set of trajectories
@@ -115,8 +118,25 @@ public:
     // Callback to inform the outcome of trajectories sent for execution with the continuous execution thread
     ExecutionCompleteCallback execution_complete_callback_;
 
+    // Callback to inform
+    PathSegmentCompleteCallback path_segment_complete_callback_;
+
     /// Counter of trajectories pending for execution
     int remaining_trajectories_count_;
+
+    MetaTrajectoryExecutionContext()
+    {
+    }
+
+    MetaTrajectoryExecutionContext(const std::vector<std::shared_ptr<TrajectoryExecutionContext>> trajectories,
+                                   const ExecutionCompleteCallback callback,
+                                   const PathSegmentCompleteCallback part_callback)
+      : contexts_(trajectories)
+      , execution_complete_callback_(callback)
+      , path_segment_complete_callback_(part_callback)
+      , remaining_trajectories_count_(contexts_.size())
+    {
+    }
   };
 
   /// Data structure that represents information necessary to process an event
@@ -281,6 +301,9 @@ public:
   /// Enable or disable continuous execution of trajetories
   void setAllowContinuousExecution(bool flag);
 
+  /// Get continous execution mode
+  bool getAllowContinuousExecution() const;
+
 private:
   struct ControllerInformation
   {
@@ -328,13 +351,9 @@ private:
                          std::vector<std::string>& selected_controllers);
   void runEventManager();
   bool validateTrajectories(const MetaTrajectoryExecutionContext& meta_context);
-  bool executeTrajectory(const std::shared_ptr<MetaTrajectoryExecutionContext> meta_context, const int index);
-  void executeThread(const ExecutionCompleteCallback& callback, const PathSegmentCompleteCallback& part_callback,
-                     bool auto_clear);
-  bool executePart(std::size_t part_index);
+  bool executeTrajectory(const std::shared_ptr<MetaTrajectoryExecutionContext> meta_context, const std::size_t index);
+                         const std::size_t index);
   bool waitForRobotToStop(const TrajectoryExecutionContext& context, double wait_time = 1.0);
-
-  void stopExecutionInternal();
 
   void receiveEvent(const std_msgs::StringConstPtr& event);
 
@@ -363,10 +382,7 @@ private:
   bool manage_controllers_;
 
   // thread used to execute trajectories using the execute() command
-  std::unique_ptr<std::thread> execution_thread_;
-
   std::mutex execution_state_mutex_;
-  std::mutex execution_thread_mutex_;
 
   std::deque<std::shared_ptr<TrajectoryExecutionEvent>> events_queue_;
   std::mutex events_queue_mutex_;
@@ -377,6 +393,7 @@ private:
 
   bool run_event_manager_;
   bool stop_execution_;
+  bool auto_clear_;
 
   std::set<moveit_controller_manager::MoveItControllerHandlePtr> used_handles_;
   std::mutex used_handles_mutex_;
@@ -385,17 +402,11 @@ private:
   std::condition_variable execution_complete_condition_;
 
   moveit_controller_manager::ExecutionStatus last_execution_status_;
-  std::vector<moveit_controller_manager::MoveItControllerHandlePtr> active_handles_;
-
-  int current_context_;
-  std::vector<ros::Time> time_index_;  // used to find current expected trajectory location
-  mutable std::mutex time_index_mutex_;
-  bool execution_complete_;
 
   std::vector<std::shared_ptr<TrajectoryExecutionContext>> trajectories_;
 
   std::vector<std::shared_ptr<MetaTrajectoryExecutionContext>> active_meta_contexts_;
-  std::mutex active_meta_contexts_mutex_;
+  mutable std::mutex active_meta_contexts_mutex_;
 
   std::unique_ptr<pluginlib::ClassLoader<moveit_controller_manager::MoveItControllerManager>> controller_manager_loader_;
   moveit_controller_manager::MoveItControllerManagerPtr controller_manager_;

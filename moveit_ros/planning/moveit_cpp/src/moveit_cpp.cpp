@@ -239,7 +239,16 @@ bool MoveItCpp::execute(const std::string& group_name, const robot_trajectory::R
   moveit_msgs::RobotTrajectory robot_trajectory_msg;
   robot_trajectory->getRobotTrajectoryMsg(robot_trajectory_msg);
 
-  trajectory_execution_manager_->push(robot_trajectory_msg);
+  // Update execution mode which triggers a stopExecution()
+  if (!blocking != trajectory_execution_manager_->getAllowContinuousExecution())
+  {
+    ROS_INFO_STREAM_NAMED(LOGNAME, "Updating execution mode, allow continous execution: " << !blocking);
+    trajectory_execution_manager_->setAllowContinuousExecution(!blocking);
+  }
+
+  if (!trajectory_execution_manager_->push(robot_trajectory_msg))
+    return false;
+
   if (blocking)
   {
     trajectory_execution_manager_->execute();
