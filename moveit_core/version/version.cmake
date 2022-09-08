@@ -1,11 +1,24 @@
+# Retrieve (active) branch name
 execute_process(
 	COMMAND git rev-parse --abbrev-ref HEAD
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-	OUTPUT_VARIABLE MOVEIT_GIT_BRANCH
+	OUTPUT_VARIABLE MOVEIT_GIT_NAME
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 	ERROR_QUIET
 )
 
+if("${MOVEIT_GIT_NAME}" STREQUAL "HEAD")
+	# Retrieve any associated name (tag or branch)
+	execute_process(
+		COMMAND git describe --contains --all HEAD
+		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+		OUTPUT_VARIABLE MOVEIT_GIT_NAME
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		ERROR_QUIET
+	)
+endif()
+
+# Retrieve (short) commit hash
 execute_process(
 	COMMAND git rev-parse --short HEAD
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
