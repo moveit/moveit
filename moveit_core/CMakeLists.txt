@@ -200,39 +200,6 @@ include_directories(SYSTEM ${catkin_INCLUDE_DIRS}
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${VERSION_FILE_PATH})
 
-# Generate and install version.h
-string(REGEX REPLACE "^([0-9]+)\\..*" "\\1" MOVEIT_VERSION_MAJOR "${${PROJECT_NAME}_VERSION}")
-string(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" MOVEIT_VERSION_MINOR "${${PROJECT_NAME}_VERSION}")
-string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" MOVEIT_VERSION_PATCH "${${PROJECT_NAME}_VERSION}")
-set(MOVEIT_VERSION_EXTRA "Alpha")
-set(MOVEIT_VERSION "${MOVEIT_VERSION_MAJOR}.${MOVEIT_VERSION_MINOR}.${MOVEIT_VERSION_PATCH}-${MOVEIT_VERSION_EXTRA}")
-
-if(EXISTS "${CMAKE_SOURCE_DIR}/../.git")
-  execute_process(
-    COMMAND git rev-parse --abbrev-ref HEAD
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    OUTPUT_VARIABLE MOVEIT_GIT_BRANCH
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-
-  execute_process(
-    COMMAND git rev-parse HEAD
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    OUTPUT_VARIABLE MOVEIT_GIT_COMMIT_HASH
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-  message(STATUS "Git current branch: ${MOVEIT_GIT_BRANCH}")
-  message(STATUS "Git commit hash: ${MOVEIT_GIT_COMMIT_HASH}")
-else(EXISTS "${CMAKE_SOURCE_DIR}/../.git")
-  set(MOVEIT_GIT_BRANCH "")
-  set(MOVEIT_GIT_COMMIT_HASH "")
-endif(EXISTS "${CMAKE_SOURCE_DIR}/../.git")
-
-message(STATUS " *** Building MoveIt ${MOVEIT_VERSION} ***")
-configure_file("version/version.h.in" "${VERSION_FILE_PATH}/moveit/version.h")
-#catkin_lint: ignore_once external_file
-install(FILES "${VERSION_FILE_PATH}/moveit/version.h" DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
-
 add_subdirectory(version)
 add_subdirectory(macros)
 add_subdirectory(backtrace)
