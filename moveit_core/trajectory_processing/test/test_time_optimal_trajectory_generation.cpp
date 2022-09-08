@@ -38,8 +38,10 @@
 
 #include <gtest/gtest.h>
 #include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
+#include <moveit/utils/robot_model_test_utils.h>
 
 using trajectory_processing::Path;
+using trajectory_processing::TimeOptimalTrajectoryGeneration;
 using trajectory_processing::Trajectory;
 
 TEST(time_optimal_trajectory_generation, test1)
@@ -225,6 +227,125 @@ TEST(time_optimal_trajectory_generation, testLargeAccel)
     for (std::size_t i = 0; i < 6; ++i)
       EXPECT_NEAR(acceleration(i), 0.0, 100.0) << "Invalid acceleration at position " << sample_count << "\n";
   }
+}
+
+TEST(time_optimal_trajectory_generation, testPluginAPI)
+{
+  constexpr auto robot_name{ "panda" };
+  constexpr auto group_name{ "panda_arm" };
+
+  auto robot_model = moveit::core::loadTestingRobotModel(robot_name);
+  ASSERT_TRUE((bool)robot_model) << "Failed to load robot model" << robot_name;
+  auto group = robot_model->getJointModelGroup(group_name);
+  ASSERT_TRUE((bool)group) << "Failed to load joint model group " << group_name;
+  moveit::core::RobotState waypoint_state(robot_model);
+  waypoint_state.setToDefaultValues();
+
+  robot_trajectory::RobotTrajectory trajectory(robot_model, group);
+  waypoint_state.setJointGroupPositions(group, std::vector<double>{ -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+  waypoint_state.setJointGroupPositions(group, std::vector<double>{ -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+  waypoint_state.setJointGroupPositions(group, std::vector<double>{ 0.0, -3.5, 1.4, -1.2, -1.0, -0.2, 0.0 });
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+  waypoint_state.setJointGroupPositions(group, std::vector<double>{ -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+  waypoint_state.setJointGroupPositions(group, std::vector<double>{ 0.0, -3.5, 1.4, -1.2, -1.0, -0.2, 0.0 });
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+  waypoint_state.setJointGroupPositions(group, std::vector<double>{ -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+
+  // Number TOTG iterations
+  constexpr size_t totg_iterations = 10;
+
+  // Test computing the dynamics repeatedly with the same totg instance
+  moveit_msgs::RobotTrajectory first_trajectory_msg_start, first_trajectory_msg_end;
+  {
+    robot_trajectory::RobotTrajectory test_trajectory(trajectory, true /* deep copy */);
+
+    // Test if the trajectory was copied correctly
+    ASSERT_EQ(test_trajectory.getDuration(), trajectory.getDuration());
+    moveit::core::JointBoundsVector test_bounds = test_trajectory.getRobotModel()->getActiveJointModelsBounds();
+    moveit::core::JointBoundsVector original_bounds = trajectory.getRobotModel()->getActiveJointModelsBounds();
+    ASSERT_EQ(test_bounds.size(), original_bounds.size());
+    for (size_t bound_idx = 0; bound_idx < test_bounds.at(0)->size(); ++bound_idx)
+    {
+      ASSERT_EQ(test_bounds.at(0)->at(bound_idx).max_velocity_, original_bounds.at(0)->at(bound_idx).max_velocity_);
+      ASSERT_EQ(test_bounds.at(0)->at(bound_idx).min_velocity_, original_bounds.at(0)->at(bound_idx).min_velocity_);
+      ASSERT_EQ(test_bounds.at(0)->at(bound_idx).velocity_bounded_,
+                original_bounds.at(0)->at(bound_idx).velocity_bounded_);
+
+      ASSERT_EQ(test_bounds.at(0)->at(bound_idx).max_acceleration_,
+                original_bounds.at(0)->at(bound_idx).max_acceleration_);
+      ASSERT_EQ(test_bounds.at(0)->at(bound_idx).min_acceleration_,
+                original_bounds.at(0)->at(bound_idx).min_acceleration_);
+      ASSERT_EQ(test_bounds.at(0)->at(bound_idx).acceleration_bounded_,
+                original_bounds.at(0)->at(bound_idx).acceleration_bounded_);
+    }
+    ASSERT_EQ(test_trajectory.getWayPointDurationFromPrevious(1), trajectory.getWayPointDurationFromPrevious(1));
+
+    TimeOptimalTrajectoryGeneration totg;
+    ASSERT_TRUE(totg.computeTimeStamps(test_trajectory)) << "Failed to compute time stamps";
+
+    test_trajectory.getRobotTrajectoryMsg(first_trajectory_msg_start);
+
+    // Iteratively recompute timestamps with same totg instance
+    for (size_t i = 0; i < totg_iterations; ++i)
+    {
+      bool totg_success = totg.computeTimeStamps(test_trajectory);
+      EXPECT_TRUE(totg_success) << "Failed to compute time stamps with a same TOTG instance in iteration " << i;
+    }
+
+    test_trajectory.getRobotTrajectoryMsg(first_trajectory_msg_end);
+  }
+
+  // Test computing the dynamics repeatedly with one TOTG instance per call
+  moveit_msgs::RobotTrajectory second_trajectory_msg_start, second_trajectory_msg_end;
+  {
+    robot_trajectory::RobotTrajectory test_trajectory(trajectory, true /* deep copy */);
+
+    {
+      TimeOptimalTrajectoryGeneration totg;
+      ASSERT_TRUE(totg.computeTimeStamps(test_trajectory)) << "Failed to compute time stamps";
+    }
+
+    test_trajectory.getRobotTrajectoryMsg(second_trajectory_msg_start);
+
+    // Iteratively recompute timestamps with new totg instances
+    for (size_t i = 0; i < totg_iterations; ++i)
+    {
+      TimeOptimalTrajectoryGeneration totg;
+      bool totg_success = totg.computeTimeStamps(test_trajectory);
+      EXPECT_TRUE(totg_success) << "Failed to compute time stamps with a new TOTG instance in iteration " << i;
+    }
+
+    test_trajectory.getRobotTrajectoryMsg(second_trajectory_msg_end);
+  }
+
+  // Make sure trajectories produce equal waypoints independent of TOTG instances
+  ASSERT_EQ(first_trajectory_msg_start, second_trajectory_msg_start);
+  ASSERT_EQ(first_trajectory_msg_end, second_trajectory_msg_end);
+
+  // Iterate on the original trajectory again
+  moveit_msgs::RobotTrajectory third_trajectory_msg_end;
+
+  {
+    TimeOptimalTrajectoryGeneration totg;
+    ASSERT_TRUE(totg.computeTimeStamps(trajectory)) << "Failed to compute time stamps";
+  }
+
+  for (size_t i = 0; i < totg_iterations; ++i)
+  {
+    TimeOptimalTrajectoryGeneration totg;
+    bool totg_success = totg.computeTimeStamps(trajectory);
+    ASSERT_TRUE(totg_success) << "Failed to compute timestamps on a new TOTG instance in iteration " << i;
+  }
+
+  // Compare with previous work
+  trajectory.getRobotTrajectoryMsg(third_trajectory_msg_end);
+
+  // Make sure trajectories produce equal waypoints independent of TOTG instances
+  ASSERT_EQ(first_trajectory_msg_end, third_trajectory_msg_end);
 }
 
 int main(int argc, char** argv)

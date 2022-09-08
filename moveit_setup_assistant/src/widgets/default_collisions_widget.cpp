@@ -235,7 +235,7 @@ void DefaultCollisionsWidget::startGeneratingCollisionTable()
   btn_revert_->setEnabled(true);  // allow to interrupt and revert
 
   // create a MonitorThread running generateCollisionTable() in a worker thread and monitoring the progress
-  worker_ = new MonitorThread(boost::bind(&DefaultCollisionsWidget::generateCollisionTable, this, _1), progress_bar_);
+  worker_ = new MonitorThread([this](unsigned int* progress) { generateCollisionTable(progress); }, progress_bar_);
   connect(worker_, SIGNAL(finished()), this, SLOT(finishGeneratingCollisionTable()));
   worker_->start();  // start after having finished() signal connected
 }
@@ -676,12 +676,12 @@ void DefaultCollisionsWidget::checkedFilterChanged()
 void DefaultCollisionsWidget::linkPairsToSRDF()
 {
   // reset the data in the SRDF Writer class
-  config_data_->srdf_->disabled_collisions_.clear();
+  config_data_->srdf_->disabled_collision_pairs_.clear();
 
   // Create temp disabled collision
-  srdf::Model::DisabledCollision dc;
+  srdf::Model::CollisionPair dc;
 
-  // copy the data in this class's LinkPairMap datastructure to srdf::Model::DisabledCollision format
+  // copy the data in this class's LinkPairMap datastructure to srdf::Model::CollisionPair format
   for (moveit_setup_assistant::LinkPairMap::const_iterator pair_it = link_pairs_.begin(); pair_it != link_pairs_.end();
        ++pair_it)
   {
@@ -691,7 +691,7 @@ void DefaultCollisionsWidget::linkPairsToSRDF()
       dc.link1_ = pair_it->first.first;
       dc.link2_ = pair_it->first.second;
       dc.reason_ = moveit_setup_assistant::disabledReasonToString(pair_it->second.reason);
-      config_data_->srdf_->disabled_collisions_.push_back(dc);
+      config_data_->srdf_->disabled_collision_pairs_.push_back(dc);
     }
   }
 
@@ -718,7 +718,7 @@ void DefaultCollisionsWidget::linkPairsFromSRDF()
   std::pair<std::string, std::string> link_pair;
 
   // Loop through all disabled collisions in SRDF and update the comprehensive list that has already been created
-  for (const auto& disabled_collision : config_data_->srdf_->disabled_collisions_)
+  for (const auto& disabled_collision : config_data_->srdf_->disabled_collision_pairs_)
   {
     // Set the link names
     link_pair.first = disabled_collision.link1_;
@@ -820,7 +820,7 @@ moveit_setup_assistant::MonitorThread::MonitorThread(const boost::function<void(
   : progress_(0), canceled_(false)
 {
   // start worker thread
-  worker_ = boost::thread(boost::bind(f, &progress_));
+  worker_ = boost::thread([f, progress_ptr = &progress_] { f(progress_ptr); });
   // connect progress bar for updates
   if (progress_bar)
     connect(this, SIGNAL(progress(int)), progress_bar, SLOT(setValue(int)));

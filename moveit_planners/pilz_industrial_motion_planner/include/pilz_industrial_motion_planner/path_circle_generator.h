@@ -39,6 +39,8 @@
 #include <kdl/rotational_interpolation_sa.hpp>
 #include <kdl/utilities/error.h>
 
+#include <memory>
+
 namespace pilz_industrial_motion_planner
 {
 /**

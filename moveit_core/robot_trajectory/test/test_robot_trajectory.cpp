@@ -115,6 +115,14 @@ protected:
     std::vector<double> trajectory_first_state_after_update;
     trajectory_first_waypoint_after_update->copyJointGroupPositions(arm_jmg_name_, trajectory_first_state_after_update);
     EXPECT_EQ(trajectory_first_state[0], trajectory_first_state_after_update[0]);
+
+    // Modify the first waypoint duration
+    double trajectory_first_duration_before_update = trajectory->getWayPointDurationFromPrevious(0);
+    double new_duration = trajectory_first_duration_before_update + 0.1;
+    trajectory->setWayPointDurationFromPrevious(0, new_duration);
+
+    // Check that the trajectory's first duration was updated
+    EXPECT_EQ(trajectory->getWayPointDurationFromPrevious(0), new_duration);
   }
 
   void modifyFirstWaypointAndCheckTrajectory(robot_trajectory::RobotTrajectoryPtr& trajectory)
@@ -212,7 +220,7 @@ TEST_F(RobotTrajectoryTestFixture, RobotTrajectoryShallowCopy)
   trajectory_copy_first_waypoint_after_update.copyJointGroupPositions(arm_jmg_name_,
                                                                       trajectory_copy_first_state_after_update);
 
-  // Check that we updated the value correctly in the trajectory
+  // Check that we updated the joint position correctly in the trajectory
   EXPECT_EQ(trajectory_first_state_after_update[0], trajectory_copy_first_state_after_update[0]);
 }
 
@@ -238,8 +246,10 @@ TEST_F(RobotTrajectoryTestFixture, RobotTrajectoryDeepCopy)
   trajectory_copy_first_waypoint_after_update.copyJointGroupPositions(arm_jmg_name_,
                                                                       trajectory_copy_first_state_after_update);
 
-  // Check that we updated the value correctly in the trajectory
+  // Check that joint positions changed in the original trajectory but not the deep copy
   EXPECT_NE(trajectory_first_state_after_update[0], trajectory_copy_first_state_after_update[0]);
+  // Check that the first waypoint duration changed in the original trajectory but not the deep copy
+  EXPECT_NE(trajectory->getWayPointDurationFromPrevious(0), trajectory_copy->getWayPointDurationFromPrevious(0));
 }
 
 int main(int argc, char** argv)

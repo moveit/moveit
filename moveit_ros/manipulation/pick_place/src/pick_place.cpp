@@ -51,8 +51,8 @@ const double PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION = 7.0;  // sec
 PickPlacePlanBase::PickPlacePlanBase(const PickPlaceConstPtr& pick_place, const std::string& name)
   : pick_place_(pick_place), pipeline_(name, 4), last_plan_time_(0.0), done_(false)
 {
-  pipeline_.setSolutionCallback(boost::bind(&PickPlacePlanBase::foundSolution, this));
-  pipeline_.setEmptyQueueCallback(boost::bind(&PickPlacePlanBase::emptyQueue, this));
+  pipeline_.setSolutionCallback([this] { foundSolution(); });
+  pipeline_.setEmptyQueueCallback([this] { emptyQueue(); });
 }
 
 PickPlacePlanBase::~PickPlacePlanBase() = default;

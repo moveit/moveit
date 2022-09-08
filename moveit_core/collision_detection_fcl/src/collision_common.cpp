@@ -49,6 +49,7 @@
 
 #include <boost/thread/mutex.hpp>
 #include <memory>
+#include <type_traits>
 
 namespace collision_detection
 {
@@ -407,7 +408,7 @@ struct FCLShapeCache
   unsigned int clean_count_;
 };
 
-bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& min_dist)
+bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& /*min_dist*/)
 {
   DistanceData* cdata = reinterpret_cast<DistanceData*>(data);
 
@@ -494,9 +495,9 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
 
   double dist_threshold = cdata->req->distance_threshold;
 
-  const std::pair<const std::string&, const std::string&> pc = cd1->getID() < cd2->getID() ?
-                                                                   std::make_pair(cd1->getID(), cd2->getID()) :
-                                                                   std::make_pair(cd2->getID(), cd1->getID());
+  const std::pair<const std::string&, const std::string&> pc =
+      cd1->getID() < cd2->getID() ? std::make_pair(std::cref(cd1->getID()), std::cref(cd2->getID())) :
+                                    std::make_pair(std::cref(cd2->getID()), std::cref(cd1->getID()));
 
   DistanceMap::iterator it = cdata->res->distances.find(pc);
 
@@ -685,24 +686,6 @@ FCLShapeCache& GetShapeCache()
   return cache;
 }
 
-template <typename T1, typename T2>
-struct IfSameType
-{
-  enum
-  {
-    value = 0
-  };
-};
-
-template <typename T>
-struct IfSameType<T, T>
-{
-  enum
-  {
-    value = 1
-  };
-};
-
 /** \brief Templated helper function creating new collision geometry out of general object using an arbitrary bounding
  *  volume (BV).
  *
@@ -743,7 +726,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
   // attached objects could have previously been World::Object; we try to move them
   // from their old cache to the new one, if possible. the code is not pretty, but should help
   // when we attach/detach objects that are in the world
-  if (IfSameType<T, moveit::core::AttachedBody>::value == 1)
+  if (std::is_same<T, moveit::core::AttachedBody>::value)
   {
     // get the cache that corresponds to objects; maybe this attached object used to be a world object
     FCLShapeCache& othercache = GetShapeCache<BV, World::Object>();
@@ -776,7 +759,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
       // world objects could have previously been attached objects; we try to move them
       // from their old cache to the new one, if possible. the code is not pretty, but should help
       // when we attach/detach objects that are in the world
-      if (IfSameType<T, World::Object>::value == 1)
+      if (std::is_same<T, World::Object>::value)
   {
     // get the cache that corresponds to objects; maybe this attached object used to be a world object
     FCLShapeCache& othercache = GetShapeCache<BV, moveit::core::AttachedBody>();

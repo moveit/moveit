@@ -68,7 +68,7 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
   , trajectory_slider_dock_panel_(nullptr)
 {
   trajectory_topic_property_ =
-      new rviz::RosTopicProperty("Trajectory Topic", "/move_group/display_planned_path",
+      new rviz::RosTopicProperty("Trajectory Topic", "move_group/display_planned_path",
                                  ros::message_traits::datatype<moveit_msgs::DisplayTrajectory>(),
                                  "The topic on which the moveit_msgs::DisplayTrajectory messages are received", widget,
                                  SLOT(changedTrajectoryTopic()), this);
@@ -101,6 +101,11 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
   state_display_time_property_->addOptionStd("0.05s");
   state_display_time_property_->addOptionStd("0.1s");
   state_display_time_property_->addOptionStd("0.5s");
+
+  use_sim_time_property_ = new rviz::BoolProperty("Use Sim Time", false,
+                                                  "Indicates whether simulation time or wall-time is "
+                                                  "used for state display timing.",
+                                                  widget, nullptr, this);
 
   loop_display_property_ = new rviz::BoolProperty("Loop Animation", false,
                                                   "Indicates whether the last received path "
@@ -390,7 +395,7 @@ void TrajectoryVisualization::dropTrajectory()
   drop_displaying_trajectory_ = true;
 }
 
-void TrajectoryVisualization::update(float wall_dt, float /*ros_dt*/)
+void TrajectoryVisualization::update(float wall_dt, float sim_dt)
 {
   if (drop_displaying_trajectory_)
   {
@@ -440,7 +445,14 @@ void TrajectoryVisualization::update(float wall_dt, float /*ros_dt*/)
   {
     int previous_state = current_state_;
     int waypoint_count = displaying_trajectory_message_->getWayPointCount();
-    current_state_time_ += wall_dt;
+    if (use_sim_time_property_->getBool())
+    {
+      current_state_time_ += sim_dt;
+    }
+    else
+    {
+      current_state_time_ += wall_dt;
+    }
     float tm = getStateDisplayTime();
 
     if (trajectory_slider_panel_ && trajectory_slider_panel_->isVisible() && trajectory_slider_panel_->isPaused())
@@ -603,6 +615,12 @@ void TrajectoryVisualization::trajectorySliderPanelVisibilityChange(bool enable)
     trajectory_slider_panel_->onEnable();
   else
     trajectory_slider_panel_->onDisable();
+}
+
+void TrajectoryVisualization::clearRobotModel()
+{
+  robot_model_.reset();
+  robot_state_.reset();
 }
 
 }  // namespace moveit_rviz_plugin

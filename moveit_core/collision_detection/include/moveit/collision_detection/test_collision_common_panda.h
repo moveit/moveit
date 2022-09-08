@@ -78,15 +78,7 @@ protected:
     robot_model_ = moveit::core::loadTestingRobotModel("panda");
     robot_model_ok_ = static_cast<bool>(robot_model_);
 
-    acm_ = std::make_shared<collision_detection::AllowedCollisionMatrix>();
-    // Use default collision operations in the SRDF to setup the acm
-    const std::vector<std::string>& collision_links = robot_model_->getLinkModelNamesWithCollisionGeometry();
-    acm_->setEntry(collision_links, collision_links, false);
-
-    // allow collisions for pairs that have been disabled
-    const std::vector<srdf::Model::DisabledCollision>& dc = robot_model_->getSRDF()->getDisabledCollisionPairs();
-    for (const srdf::Model::DisabledCollision& it : dc)
-      acm_->setEntry(it.link1_, it.link2_, true);
+    acm_ = std::make_shared<collision_detection::AllowedCollisionMatrix>(*robot_model_->getSRDF());
 
     cenv_ = value_->allocateEnv(robot_model_);
 
@@ -153,7 +145,7 @@ TYPED_TEST_P(CollisionDetectorPandaTest, RobotWorldCollision_1)
 
   Eigen::Isometry3d pos1 = Eigen::Isometry3d::Identity();
   pos1.translation().z() = 0.3;
-  this->cenv_->getWorld()->addToObject("box", shape_ptr, pos1);
+  this->cenv_->getWorld()->addToObject("box", pos1, shape_ptr, Eigen::Isometry3d::Identity());
 
   this->cenv_->checkSelfCollision(req, res, *this->robot_state_, *this->acm_);
   ASSERT_FALSE(res.collision);
@@ -186,7 +178,8 @@ TYPED_TEST_P(CollisionDetectorPandaTest, RobotWorldCollision_2)
 
   Eigen::Isometry3d pos1 = Eigen::Isometry3d::Identity();
   pos1.translation().z() = 0.3;
-  this->cenv_->getWorld()->addToObject("box", shape_ptr, pos1);
+  this->cenv_->getWorld()->addToObject("box", pos1, shape_ptr, Eigen::Isometry3d::Identity());
+
   this->cenv_->checkRobotCollision(req, res, *this->robot_state_, *this->acm_);
   ASSERT_TRUE(res.collision);
   ASSERT_GE(res.contact_count, 3u);
@@ -213,7 +206,7 @@ TYPED_TEST_P(CollisionDetectorPandaTest, PaddingTest)
   pos.translation().x() = 0.43;
   pos.translation().y() = 0;
   pos.translation().z() = 0.55;
-  this->cenv_->getWorld()->addToObject("box", shape_ptr, pos);
+  this->cenv_->getWorld()->addToObject("box", pos, shape_ptr, Eigen::Isometry3d::Identity());
 
   this->cenv_->setLinkPadding("panda_hand", 0.08);
   this->cenv_->checkRobotCollision(req, res, *this->robot_state_, *this->acm_);
@@ -250,7 +243,7 @@ TYPED_TEST_P(CollisionDetectorPandaTest, DistanceWorld)
   pos.translation().x() = 0.43;
   pos.translation().y() = 0;
   pos.translation().z() = 0.55;
-  this->cenv_->getWorld()->addToObject("box", shape_ptr, pos);
+  this->cenv_->getWorld()->addToObject("box", pos, shape_ptr, Eigen::Isometry3d::Identity());
 
   this->cenv_->setLinkPadding("panda_hand", 0.0);
   this->cenv_->checkRobotCollision(req, res, *this->robot_state_, *this->acm_);
@@ -287,9 +280,9 @@ TYPED_TEST_P(DistanceCheckPandaTest, DistanceSingle)
     rng.quaternion(quat);
     pose.linear() = Eigen::Quaterniond(quat[0], quat[1], quat[2], quat[3]).toRotationMatrix();
 
-    this->cenv_->getWorld()->addToObject("collection", shape, pose);
+    this->cenv_->getWorld()->addToObject("collection", Eigen::Isometry3d::Identity(), shape, pose);
     this->cenv_->getWorld()->removeObject("object");
-    this->cenv_->getWorld()->addToObject("object", shape, pose);
+    this->cenv_->getWorld()->addToObject("object", pose, shape, Eigen::Isometry3d::Identity());
 
     this->cenv_->distanceRobot(req, res, *this->robot_state_);
     auto& distances1 = res.distances[std::pair<std::string, std::string>("collection", "panda_hand")];

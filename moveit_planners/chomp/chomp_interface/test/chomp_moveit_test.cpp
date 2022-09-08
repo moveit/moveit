@@ -58,9 +58,9 @@ TEST_F(CHOMPMoveitTest, jointSpaceGoodGoal)
   move_group_.setStartState(*(move_group_.getCurrentState()));
   move_group_.setJointValueTarget(std::vector<double>({ 1.0, 1.0 }));
 
-  moveit::planning_interface::MoveItErrorCode error_code = move_group_.plan(my_plan_);
+  moveit::core::MoveItErrorCode error_code = move_group_.plan(my_plan_);
   EXPECT_GT(my_plan_.trajectory_.joint_trajectory.points.size(), 0u);
-  EXPECT_EQ(error_code.val, moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  EXPECT_EQ(error_code.val, moveit::core::MoveItErrorCode::SUCCESS);
 }
 
 TEST_F(CHOMPMoveitTest, jointSpaceBadGoal)
@@ -69,8 +69,8 @@ TEST_F(CHOMPMoveitTest, jointSpaceBadGoal)
   // joint2 is limited to [-PI/2, PI/2]
   move_group_.setJointValueTarget(std::vector<double>({ 100.0, 2 * M_PI / 3.0 }));
 
-  moveit::planning_interface::MoveItErrorCode error_code = move_group_.plan(my_plan_);
-  EXPECT_EQ(error_code.val, moveit::planning_interface::MoveItErrorCode::INVALID_ROBOT_STATE);
+  moveit::core::MoveItErrorCode error_code = move_group_.plan(my_plan_);
+  EXPECT_EQ(error_code.val, moveit::core::MoveItErrorCode::INVALID_ROBOT_STATE);
 }
 
 TEST_F(CHOMPMoveitTest, cartesianGoal)
@@ -83,17 +83,17 @@ TEST_F(CHOMPMoveitTest, cartesianGoal)
   target_pose1.position.z = 10000.;
   move_group_.setPoseTarget(target_pose1);
 
-  moveit::planning_interface::MoveItErrorCode error_code = move_group_.plan(my_plan_);
+  moveit::core::MoveItErrorCode error_code = move_group_.plan(my_plan_);
   // CHOMP doesn't support Cartesian-space goals at the moment
-  EXPECT_EQ(error_code.val, moveit::planning_interface::MoveItErrorCode::INVALID_GOAL_CONSTRAINTS);
+  EXPECT_EQ(error_code.val, moveit::core::MoveItErrorCode::INVALID_GOAL_CONSTRAINTS);
 }
 
 TEST_F(CHOMPMoveitTest, noStartState)
 {
   move_group_.setJointValueTarget(std::vector<double>({ 0.2, 0.2 }));
 
-  moveit::planning_interface::MoveItErrorCode error_code = move_group_.plan(my_plan_);
-  EXPECT_EQ(error_code.val, moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  moveit::core::MoveItErrorCode error_code = move_group_.plan(my_plan_);
+  EXPECT_EQ(error_code.val, moveit::core::MoveItErrorCode::SUCCESS);
 }
 
 TEST_F(CHOMPMoveitTest, collisionAtEndOfPath)
@@ -101,8 +101,8 @@ TEST_F(CHOMPMoveitTest, collisionAtEndOfPath)
   move_group_.setStartState(*(move_group_.getCurrentState()));
   move_group_.setJointValueTarget(std::vector<double>({ M_PI / 2.0, 0 }));
 
-  moveit::planning_interface::MoveItErrorCode error_code = move_group_.plan(my_plan_);
-  EXPECT_EQ(error_code.val, moveit::planning_interface::MoveItErrorCode::INVALID_MOTION_PLAN);
+  moveit::core::MoveItErrorCode error_code = move_group_.plan(my_plan_);
+  EXPECT_EQ(error_code.val, moveit::core::MoveItErrorCode::INVALID_MOTION_PLAN);
 }
 
 int main(int argc, char** argv)

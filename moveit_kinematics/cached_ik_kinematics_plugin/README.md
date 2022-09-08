@@ -58,7 +58,7 @@ The Cached IK Kinematics Plugin is implemented as a wrapper around classed deriv
 
     #include "cached_ik_kinematics_plugin.h"
     #include <moveit/kdl_kinematics_plugin/kdl_kinematics_plugin.h>
-    #include <pluginlib/class_list_macros.h>
+    #include <pluginlib/class_list_macros.hpp>
     PLUGINLIB_EXPORT_CLASS(cached_ik_kinematics_plugin::CachedIKKinematicsPlugin<kdl_kinematics_plugin::KDLKinematicsPlugin>, kinematics::KinematicsBase);
 
 In the catkin `package.xml` file for your plugin, you add these lines just before `</package>`:

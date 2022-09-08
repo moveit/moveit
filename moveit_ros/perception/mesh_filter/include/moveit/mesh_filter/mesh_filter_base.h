@@ -210,7 +210,7 @@ protected:
    * \param[in] handle the handle of the mesh that is predetermined and passed
    * \param[in] cmesh the mesh to be added to the corresponding handle
    */
-  void addMeshHelper(MeshHandle handle, const shapes::Mesh* cmesh);
+  void addMeshHelper(MeshHandle handle, const shapes::Mesh& cmesh);
 
   /**
    * \brief used within a Job to allow the main thread removing meshes

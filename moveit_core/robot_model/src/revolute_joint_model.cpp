@@ -88,7 +88,7 @@ void RevoluteJointModel::setContinuous(bool flag)
   computeVariableBoundsMsg();
 }
 
-double RevoluteJointModel::getMaximumExtent(const Bounds& other_bounds) const
+double RevoluteJointModel::getMaximumExtent(const Bounds& /*other_bounds*/) const
 {
   return variable_bounds_[0].max_position_ - variable_bounds_[0].min_position_;
 }

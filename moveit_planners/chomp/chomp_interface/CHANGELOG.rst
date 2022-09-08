@@ -2,6 +2,33 @@
 Changelog for package chomp_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.9 (2022-03-06)
+------------------
+
+1.1.8 (2022-01-30)
+------------------
+* MSA: Add STOMP + OMPL-CHOMP configs (`#2955 <https://github.com/ros-planning/moveit/issues/2955>`_)
+
+  - Add stomp planner to MSA
+  - Add OMPL-CHOMP planner to MSA
+  - Remove obsolete CHOMP parameters
+  - Update CHOMP config parameters to match code defaults
+  - Create CHOMP config via template (instead of code)
+* Contributors: Rick Staa
+
+1.1.7 (2021-12-31)
+------------------
+* Move ``MoveItErrorCode`` class to ``moveit_core`` (`#3009 <https://github.com/ros-planning/moveit/issues/3009>`_)
+* Contributors: Jafar Abdi
+
+1.1.6 (2021-11-06)
+------------------
+* Use test_environment.launch in unittests (`#2949 <https://github.com/ros-planning/moveit/issues/2949>`_)
+* Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``
+* clang-tidy: modernize-make-shared, modernize-make-unique (`#2762 <https://github.com/ros-planning/moveit/issues/2762>`_)
+* CHOMP: Rename param 'clearence' to 'clearance' (`#2702 <https://github.com/ros-planning/moveit/issues/2702>`_, `#2707 <https://github.com/ros-planning/moveit/issues/2707>`_)
+* Contributors: Martin Günther, Michael Görner, Robert Haschke, pvanlaar
+
 1.1.5 (2021-05-23)
 ------------------
 

@@ -1,10 +1,5 @@
 set(MOVEIT_LIB_NAME moveit_collision_distance_field)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  # clang is picky about new virtual functions hiding existing ones
-  add_compile_options(-Wno-overloaded-virtual)
-endif()
-
 add_library(${MOVEIT_LIB_NAME}
   src/collision_distance_field_types.cpp
   src/collision_common_distance_field.cpp

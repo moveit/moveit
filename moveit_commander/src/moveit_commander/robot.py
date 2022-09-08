@@ -32,7 +32,8 @@
 #
 # Author: Ioan Sucan
 
-from moveit_commander import MoveGroupCommander, MoveItCommanderException
+from moveit_commander import MoveGroupCommander
+from .exception import MoveItCommanderException
 from moveit_ros_planning_interface import _moveit_robot_interface
 from moveit_msgs.msg import RobotState
 from visualization_msgs.msg import MarkerArray
@@ -191,7 +192,7 @@ class RobotCommander(object):
         return mrkr
 
     def get_root_link(self):
-        """Get the name of the root link of the robot model """
+        """Get the name of the root link of the robot model"""
         return self._r.get_robot_root_link()
 
     def get_active_joint_names(self, group=None):
@@ -240,7 +241,7 @@ class RobotCommander(object):
         return self._r.get_group_names()
 
     def get_current_state(self):
-        """ Get a RobotState message describing the current state of the robot"""
+        """Get a RobotState message describing the current state of the robot"""
         s = RobotState()
         s.deserialize(self._r.get_current_state())
         return s

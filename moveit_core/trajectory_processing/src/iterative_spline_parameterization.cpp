@@ -47,13 +47,9 @@ static void fit_cubic_spline(const int n, const double dt[], const double x[], d
 static void adjust_two_positions(const int n, const double dt[], double x[], double x1[], double x2[],
                                  const double x2_i, const double x2_f);
 static void init_times(const int n, double dt[], const double x[], const double max_velocity, const double min_velocity);
-static int fit_spline_and_adjust_times(const int n, double dt[], const double x[], double x1[], double x2[],
-                                       const double max_velocity, const double min_velocity,
-                                       const double max_acceleration, const double min_acceleration,
-                                       const double tfactor);
-static double global_adjustment_factor(const int n, double dt[], const double x[], double x1[], double x2[],
-                                       const double max_velocity, const double min_velocity,
-                                       const double max_acceleration, const double min_acceleration);
+static double global_adjustment_factor(const int n, double x1[], double x2[], const double max_velocity,
+                                       const double min_velocity, const double max_acceleration,
+                                       const double min_acceleration);
 
 // The path of a single joint: positions, velocities, and accelerations
 struct SingleJointTrajectory
@@ -475,6 +471,7 @@ static void init_times(const int n, double dt[], const double x[], const double 
   }
 }
 
+#if 0  // unused function
 /*
   Fit a spline, then check each interval to see if bounds are met.
   If all bounds met (no time adjustments made), return 0.
@@ -532,19 +529,18 @@ static int fit_spline_and_adjust_times(const int n, double dt[], const double x[
 
   return ret;
 }
+#endif
 
 // return global expansion multiplicative factor required
 // to force within bounds.
 // Assumes that the spline is already fit
 // (fit_cubic_spline must have been called before this).
-static double global_adjustment_factor(const int n, double dt[], const double x[], double x1[], double x2[],
-                                       const double max_velocity, const double min_velocity,
-                                       const double max_acceleration, const double min_acceleration)
+static double global_adjustment_factor(const int n, double x1[], double x2[], const double max_velocity,
+                                       const double min_velocity, const double max_acceleration,
+                                       const double min_acceleration)
 {
   int i;
   double tfactor2 = 1.00;
-
-  // fit_cubic_spline(n, dt, x, x1, x2);
 
   for (i = 0; i < n; i++)
   {
@@ -581,9 +577,8 @@ void globalAdjustment(std::vector<SingleJointTrajectory>& t2, int num_joints, co
   for (int j = 0; j < num_joints; j++)
   {
     double tfactor;
-    tfactor = global_adjustment_factor(num_points, &time_diff[0], &t2[j].positions_[0], &t2[j].velocities_[0],
-                                       &t2[j].accelerations_[0], t2[j].max_velocity_, t2[j].min_velocity_,
-                                       t2[j].max_acceleration_, t2[j].min_acceleration_);
+    tfactor = global_adjustment_factor(num_points, &t2[j].velocities_[0], &t2[j].accelerations_[0], t2[j].max_velocity_,
+                                       t2[j].min_velocity_, t2[j].max_acceleration_, t2[j].min_acceleration_);
     if (tfactor > gtfactor)
       gtfactor = tfactor;
   }

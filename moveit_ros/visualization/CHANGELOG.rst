@@ -2,6 +2,48 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.9 (2022-03-06)
+------------------
+* Add PS3 dual shock model to moveit joy (`#3025 <https://github.com/ros-planning/moveit/issues/3025>`_)
+* Add option to use simulation time for rviz trajectory display (`#3055 <https://github.com/ros-planning/moveit/issues/3055>`_)
+* Contributors: Job van Dieten, Martin Oehler
+
+1.1.8 (2022-01-30)
+------------------
+
+1.1.7 (2021-12-31)
+------------------
+* Move ``MoveItErrorCode`` class to ``moveit_core`` (`#3009 <https://github.com/ros-planning/moveit/issues/3009>`_)
+* ``RobotState::attachBody``: Migrate to ``unique_ptr`` argument (`#3011 <https://github.com/ros-planning/moveit/issues/3011>`_)
+* Fix "ClassLoader: SEVERE WARNING" on reset of MPD (`#2925 <https://github.com/ros-planning/moveit/issues/2925>`_)
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* Various fixes to MotionPlanning display (`#2944 <https://github.com/ros-planning/moveit/issues/2944>`_)
+
+  * Avoid flickering of the progress bar
+  * Joints widget: avoid flickering of the nullspace slider
+* Modernize: std::make_shared
+* Contributors: Jafar Abdi, JafarAbdi, Jochen Sprickerhof, Robert Haschke, pvanlaar
+
+1.1.6 (2021-11-06)
+------------------
+* Re-initialize params, subscribers, and topics when the ``MoveGroupNS`` has changed (`#2922 <https://github.com/ros-planning/moveit/issues/2922>`_)
+* Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``
+* Do not save/restore warehouse parameters (`#2865 <https://github.com/ros-planning/moveit/issues/2865>`_) but use the ROS parameters only
+* PSD: Correctly update robot's base pose (`#2876 <https://github.com/ros-planning/moveit/issues/2876>`_)
+* Fix Python2: convert keys() into list (`#2862 <https://github.com/ros-planning/moveit/issues/2862>`_)
+* MP panel: fix order of input widgets for shape size (`#2847 <https://github.com/ros-planning/moveit/issues/2847>`_)
+* Use relative topic name in trajectory visualization to allow namespacing (`#2835 <https://github.com/ros-planning/moveit/issues/2835>`_)
+* MotionPlanningFrame: Gracefully handle undefined parent widget, e.g. for use via ``librviz.so`` (`#2833 <https://github.com/ros-planning/moveit/issues/2833>`_)
+* Introduce a reference frame for collision objects (`#2037 <https://github.com/ros-planning/moveit/issues/2037>`_)
+* clang-tidy: modernize-make-shared, modernize-make-unique (`#2762 <https://github.com/ros-planning/moveit/issues/2762>`_)
+* Support arbitrary real-time factors in trajectory visualization (`#2745 <https://github.com/ros-planning/moveit/issues/2745>`_)
+
+  Replaced special value ``REALTIME`` to accept arbitrary real-time factors in the format ``<number>x``, e.g. ``3x``.
+* Joints tab: Fix handling of mimic + passive joints (`#2744 <https://github.com/ros-planning/moveit/issues/2744>`_)
+* Fix ``TrajectoryPanel``: Keep "Pause/Play" button in correct state (`#2737 <https://github.com/ros-planning/moveit/issues/2737>`_)
+* Fixed error: ``moveit_joy: RuntimeError: dictionary changed size during iteration`` (`#2625 <https://github.com/ros-planning/moveit/issues/2625>`_, `#2628 <https://github.com/ros-planning/moveit/issues/2628>`_)
+* Contributors: Felix von Drigalski, Michael Görner, Rick Staa, Robert Haschke, Yuri Rocha, lorepieri8, pvanlaar
+
 1.1.5 (2021-05-23)
 ------------------
 

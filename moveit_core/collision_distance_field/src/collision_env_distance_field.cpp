@@ -42,7 +42,7 @@
 #include <moveit/collision_distance_field/collision_common_distance_field.h>
 #include <moveit/distance_field/propagation_distance_field.h>
 #include <moveit/collision_distance_field/collision_detector_allocator_distance_field.h>
-#include <boost/bind.hpp>
+#include <functional>
 #include <memory>
 #include <utility>
 
@@ -58,7 +58,7 @@ CollisionEnvDistanceField::CollisionEnvDistanceField(
     const moveit::core::RobotModelConstPtr& robot_model,
     const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions, double size_x, double size_y,
     double size_z, const Eigen::Vector3d& origin, bool use_signed_distance_field, double resolution,
-    double collision_tolerance, double max_propogation_distance, double padding, double scale)
+    double collision_tolerance, double max_propogation_distance, double /*padding*/, double /*scale*/)
   : CollisionEnv(robot_model)
 {
   initialize(link_body_decompositions, Eigen::Vector3d(size_x, size_y, size_z), origin, use_signed_distance_field,
@@ -69,7 +69,8 @@ CollisionEnvDistanceField::CollisionEnvDistanceField(
   distance_field_cache_entry_world_ = generateDistanceFieldCacheEntryWorld();
 
   // request notifications about changes to world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionEnvDistanceField::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(
+      [this](const World::ObjectConstPtr& object, World::Action action) { return notifyObjectChange(object, action); });
 }
 
 CollisionEnvDistanceField::CollisionEnvDistanceField(
@@ -85,7 +86,8 @@ CollisionEnvDistanceField::CollisionEnvDistanceField(
   distance_field_cache_entry_world_ = generateDistanceFieldCacheEntryWorld();
 
   // request notifications about changes to world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionEnvDistanceField::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(
+      [this](const World::ObjectConstPtr& object, World::Action action) { return notifyObjectChange(object, action); });
 
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
@@ -108,7 +110,8 @@ CollisionEnvDistanceField::CollisionEnvDistanceField(const CollisionEnvDistanceF
   planning_scene_ = std::make_shared<planning_scene::PlanningScene>(robot_model_);
 
   // request notifications about changes to world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionEnvDistanceField::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(
+      [this](const World::ObjectConstPtr& object, World::Action action) { return notifyObjectChange(object, action); });
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
 
@@ -955,8 +958,8 @@ DistanceFieldCacheEntryPtr CollisionEnvDistanceField::generateDistanceFieldCache
       for (collision_detection::PosedBodyPointDecompositionVectorPtr& non_group_attached_body_decomposition :
            non_group_attached_body_decompositions)
       {
-        all_points.insert(all_points.end(), non_group_attached_body_decomposition->getCollisionPoints().begin(),
-                          non_group_attached_body_decomposition->getCollisionPoints().end());
+        const EigenSTL::vector_Vector3d collision_points = non_group_attached_body_decomposition->getCollisionPoints();
+        all_points.insert(all_points.end(), collision_points.begin(), collision_points.end());
       }
 
       dfce->distance_field_->addPointsToField(all_points);
@@ -1085,7 +1088,8 @@ void CollisionEnvDistanceField::addLinkBodyDecompositions(
 }
 
 PosedBodySphereDecompositionPtr
-CollisionEnvDistanceField::getPosedLinkBodySphereDecomposition(const moveit::core::LinkModel* ls, unsigned int ind) const
+CollisionEnvDistanceField::getPosedLinkBodySphereDecomposition(const moveit::core::LinkModel* /*ls*/,
+                                                               unsigned int ind) const
 {
   PosedBodySphereDecompositionPtr ret;
   ret = std::make_shared<PosedBodySphereDecomposition>(link_body_decomposition_vector_.at(ind));
@@ -1509,22 +1513,22 @@ void CollisionEnvDistanceField::checkRobotCollision(const CollisionRequest& req,
   // checkRobotCollisionHelper(req, res, robot, state, &acm);
 }
 
-void CollisionEnvDistanceField::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                                    const moveit::core::RobotState& state1,
-                                                    const moveit::core::RobotState& state2,
-                                                    const AllowedCollisionMatrix& acm) const
+void CollisionEnvDistanceField::checkRobotCollision(const CollisionRequest& /*req*/, CollisionResult& /*res*/,
+                                                    const moveit::core::RobotState& /*state1*/,
+                                                    const moveit::core::RobotState& /*state2*/,
+                                                    const AllowedCollisionMatrix& /*acm*/) const
 {
   ROS_ERROR_NAMED("collision_detection.distance", "Continuous collision checking not implemented");
 }
 
-void CollisionEnvDistanceField::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                                    const moveit::core::RobotState& state1,
-                                                    const moveit::core::RobotState& state2) const
+void CollisionEnvDistanceField::checkRobotCollision(const CollisionRequest& /*req*/, CollisionResult& /*res*/,
+                                                    const moveit::core::RobotState& /*state1*/,
+                                                    const moveit::core::RobotState& /*state2*/) const
 {
   ROS_ERROR_NAMED("collision_detection.distance", "Continuous collision checking not implemented");
 }
 
-void CollisionEnvDistanceField::getCollisionGradients(const CollisionRequest& req, CollisionResult& res,
+void CollisionEnvDistanceField::getCollisionGradients(const CollisionRequest& req, CollisionResult& /*res*/,
                                                       const moveit::core::RobotState& state,
                                                       const AllowedCollisionMatrix* acm,
                                                       GroupStateRepresentationPtr& gsr) const
@@ -1704,33 +1708,33 @@ void CollisionEnvDistanceField::setWorld(const WorldPtr& world)
   CollisionEnv::setWorld(world);
 
   // request notifications about changes to new world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionEnvDistanceField::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(
+      [this](const World::ObjectConstPtr& object, World::Action action) { return notifyObjectChange(object, action); });
 
   // get notifications any objects already in the new world
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
 
-void CollisionEnvDistanceField::notifyObjectChange(CollisionEnvDistanceField* self, const ObjectConstPtr& obj,
-                                                   World::Action action)
+void CollisionEnvDistanceField::notifyObjectChange(const ObjectConstPtr& obj, World::Action action)
 {
   ros::WallTime n = ros::WallTime::now();
 
   EigenSTL::vector_Vector3d add_points;
   EigenSTL::vector_Vector3d subtract_points;
-  self->updateDistanceObject(obj->id_, self->distance_field_cache_entry_world_, add_points, subtract_points);
+  updateDistanceObject(obj->id_, distance_field_cache_entry_world_, add_points, subtract_points);
 
   if (action == World::DESTROY)
   {
-    self->distance_field_cache_entry_world_->distance_field_->removePointsFromField(subtract_points);
+    distance_field_cache_entry_world_->distance_field_->removePointsFromField(subtract_points);
   }
   else if (action & (World::MOVE_SHAPE | World::REMOVE_SHAPE))
   {
-    self->distance_field_cache_entry_world_->distance_field_->removePointsFromField(subtract_points);
-    self->distance_field_cache_entry_world_->distance_field_->addPointsToField(add_points);
+    distance_field_cache_entry_world_->distance_field_->removePointsFromField(subtract_points);
+    distance_field_cache_entry_world_->distance_field_->addPointsToField(add_points);
   }
   else
   {
-    self->distance_field_cache_entry_world_->distance_field_->addPointsToField(add_points);
+    distance_field_cache_entry_world_->distance_field_->addPointsToField(add_points);
   }
 
   ROS_DEBUG_NAMED("collision_distance_field", "Modifying object %s took %lf s", obj->id_.c_str(),
@@ -1771,8 +1775,8 @@ void CollisionEnvDistanceField::updateDistanceObject(const std::string& id, Dist
       else
       {
         BodyDecompositionConstPtr bd = getBodyDecompositionCacheEntry(shape, resolution_);
-
-        shape_points.push_back(std::make_shared<PosedBodyPointDecomposition>(bd, object->shape_poses_[i]));
+        shape_points.push_back(
+            std::make_shared<PosedBodyPointDecomposition>(bd, getWorld()->getGlobalShapeTransform(id, i)));
       }
 
       add_points.insert(add_points.end(), shape_points.back()->getCollisionPoints().begin(),

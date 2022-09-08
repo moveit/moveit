@@ -38,9 +38,9 @@
 #include <iostream>
 #include <cstring>
 
-int main(int argc, char** argv)
+int main(int /*argc*/, char** /*argv*/)
 {
-  std::cout << MOVEIT_VERSION;
+  std::cout << MOVEIT_VERSION_STR;
   if (strlen(MOVEIT_GIT_COMMIT_HASH))
   {
     std::cout << ", git commit: " << MOVEIT_GIT_COMMIT_HASH;

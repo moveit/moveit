@@ -90,7 +90,7 @@ int JointModel::getLocalVariableIndex(const std::string& variable) const
   return it->second;
 }
 
-bool JointModel::harmonizePosition(double* values, const Bounds& other_bounds) const
+bool JointModel::harmonizePosition(double* /*values*/, const Bounds& /*other_bounds*/) const
 {
   return false;
 }

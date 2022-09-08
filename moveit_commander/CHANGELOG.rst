@@ -2,6 +2,24 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.9 (2022-03-06)
+------------------
+* Fix move_group_commander.go(tuple(...)) (`#3066 <https://github.com/ros-planning/moveit/issues/3066>`_)
+* Contributors: Hongzhuo Liang, Michael Görner
+
+1.1.8 (2022-01-30)
+------------------
+
+1.1.7 (2021-12-31)
+------------------
+
+1.1.6 (2021-11-06)
+------------------
+* Use relative imports (`#2912 <https://github.com/ros-planning/moveit/issues/2912>`_)
+* Fix trajectory constraints (`#2429 <https://github.com/ros-planning/moveit/issues/2429>`_)
+* Fix ``get_planning_pipeline_id`` in Python MGI (`#2753 <https://github.com/ros-planning/moveit/issues/2753>`_)
+* Contributors: Felix von Drigalski, Kevin Chang, Michael Görner, Robert Haschke
+
 1.1.5 (2021-05-23)
 ------------------
 * Allow selecting planning pipeline in MotionSequenceAction (`#2657 <https://github.com/ros-planning/moveit/issues/2657>`_)

@@ -203,25 +203,6 @@ TEST_F(JointLimitsContainerTest, FirstPositionEmpty)
   EXPECT_EQ(-1, limits.min_position);
 }
 
-/**
- * @brief Check position limits
- */
-TEST_F(JointLimitsContainerTest, CheckVerifyPositionLimits)
-{
-  // positive check: inside limits
-  std::vector<std::string> joint_names{ "joint1", "joint2" };
-  std::vector<double> joint_positions{ 0.5, 0.5 };
-  EXPECT_TRUE(container_.verifyPositionLimits(joint_names, joint_positions));
-
-  // outside limit2
-  joint_positions[1] = 7;
-  EXPECT_FALSE(container_.verifyPositionLimits(joint_names, joint_positions));
-
-  // invalid size
-  std::vector<double> joint_positions1{ 0. };
-  EXPECT_THROW(container_.verifyPositionLimits(joint_names, joint_positions1), std::out_of_range);
-}
-
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);

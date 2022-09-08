@@ -147,7 +147,7 @@
           <item>
            <widget class="QLineEdit" name="database_host">
             <property name="text">
-             <string>127.0.0.1</string>
+             <string></string>
             </property>
            </widget>
           </item>
@@ -164,7 +164,7 @@
              <number>65535</number>
             </property>
             <property name="value">
-             <number>33829</number>
+             <number>0</number>
             </property>
            </widget>
           </item>
@@ -1026,7 +1026,7 @@ This is usually achieved by random seeding, which can flip the robot configurati
                </widget>
               </item>
               <item>
-               <widget class="QDoubleSpinBox" name="shape_size_z_spin_box">
+               <widget class="QDoubleSpinBox" name="shape_size_y_spin_box">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -1051,7 +1051,7 @@ This is usually achieved by random seeding, which can flip the robot configurati
                </widget>
               </item>
               <item>
-               <widget class="QDoubleSpinBox" name="shape_size_y_spin_box">
+               <widget class="QDoubleSpinBox" name="shape_size_z_spin_box">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -1496,7 +1496,7 @@ This is usually achieved by random seeding, which can flip the robot configurati
                </size>
               </property>
               <property name="toolTip">
-               <string>Export scene geometry to a .scene file (only geometry information is preserved)</string>
+               <string>Export scene geometry to a .scene file (only world object information is preserved)</string>
               </property>
               <property name="text">
                <string>&amp;Export</string>
@@ -1518,7 +1518,7 @@ This is usually achieved by random seeding, which can flip the robot configurati
                </size>
               </property>
               <property name="toolTip">
-               <string>Import scene geometry from a .scene file (only geometry information is preserved)</string>
+               <string>Import scene geometry from a .scene file (only world object information is preserved)</string>
               </property>
               <property name="text">
                <string>&amp;Import</string>
@@ -2042,81 +2042,11 @@ This is usually achieved by random seeding, which can flip the robot configurati
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>5</height>
-      </size>
-     </property>
      <property name="maximumSize">
       <size>
        <width>16777215</width>
        <height>5</height>
       </size>
-     </property>
-     <property name="palette">
-      <palette>
-       <active>
-        <colorrole role="Highlight">
-         <brush brushstyle="SolidPattern">
-          <color alpha="255">
-           <red>255</red>
-           <green>255</green>
-           <blue>255</blue>
-          </color>
-         </brush>
-        </colorrole>
-        <colorrole role="HighlightedText">
-         <brush brushstyle="SolidPattern">
-          <color alpha="255">
-           <red>255</red>
-           <green>0</green>
-           <blue>0</blue>
-          </color>
-         </brush>
-        </colorrole>
-       </active>
-       <inactive>
-        <colorrole role="Highlight">
-         <brush brushstyle="SolidPattern">
-          <color alpha="255">
-           <red>255</red>
-           <green>255</green>
-           <blue>255</blue>
-          </color>
-         </brush>
-        </colorrole>
-        <colorrole role="HighlightedText">
-         <brush brushstyle="SolidPattern">
-          <color alpha="255">
-           <red>255</red>
-           <green>0</green>
-           <blue>0</blue>
-          </color>
-         </brush>
-        </colorrole>
-       </inactive>
-       <disabled>
-        <colorrole role="Highlight">
-         <brush brushstyle="SolidPattern">
-          <color alpha="255">
-           <red>240</red>
-           <green>240</green>
-           <blue>240</blue>
-          </color>
-         </brush>
-        </colorrole>
-        <colorrole role="HighlightedText">
-         <brush brushstyle="SolidPattern">
-          <color alpha="255">
-           <red>255</red>
-           <green>0</green>
-           <blue>0</blue>
-          </color>
-         </brush>
-        </colorrole>
-       </disabled>
-      </palette>
      </property>
      <property name="whatsThis">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Progress of background jobs&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>

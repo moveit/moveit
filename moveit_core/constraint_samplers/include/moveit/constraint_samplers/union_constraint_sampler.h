@@ -116,7 +116,7 @@ public:
    *
    * @return Always true
    */
-  bool configure(const moveit_msgs::Constraints& constr) override
+  bool configure(const moveit_msgs::Constraints& /*constr*/) override
   {
     return true;
   }
@@ -128,7 +128,7 @@ public:
    *
    * @return Always true
    */
-  virtual bool canService(const moveit_msgs::Constraints& constr) const
+  virtual bool canService(const moveit_msgs::Constraints& /*constr*/) const
   {
     return true;
   }
@@ -150,8 +150,6 @@ public:
    */
   bool sample(moveit::core::RobotState& state, const moveit::core::RobotState& reference_state,
               unsigned int max_attempts) override;
-
-  bool project(moveit::core::RobotState& state, unsigned int max_attempts) override;
 
   /**
    * \brief Get the name of the constraint sampler, for debugging purposes

@@ -6,3 +6,7 @@
     local-name: geometric_shapes
     uri: https://github.com/ros-planning/geometric_shapes.git
     version: noetic-devel
+- git:
+    local-name: srdfdom
+    uri: https://github.com/ros-planning/srdfdom
+    version: noetic-devel

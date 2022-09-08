@@ -123,7 +123,7 @@ bool samplePossibleGoalStates(const ManipulationPlanPtr& plan, const moveit::cor
 // object
 bool executeAttachObject(const ManipulationPlanSharedDataConstPtr& shared_plan_data,
                          const trajectory_msgs::JointTrajectory& detach_posture,
-                         const plan_execution::ExecutableMotionPlan* motion_plan)
+                         const plan_execution::ExecutableMotionPlan& motion_plan)
 {
   if (shared_plan_data->diff_attached_object_.object.id.empty())
   {
@@ -135,14 +135,14 @@ bool executeAttachObject(const ManipulationPlanSharedDataConstPtr& shared_plan_d
                                   "object to end effector)");
   bool ok = false;
   {
-    planning_scene_monitor::LockedPlanningSceneRW ps(motion_plan->planning_scene_monitor_);
+    planning_scene_monitor::LockedPlanningSceneRW ps(motion_plan.planning_scene_monitor_);
     moveit_msgs::AttachedCollisionObject msg = shared_plan_data->diff_attached_object_;
     // remember the configuration of the gripper before the grasp;
     // this configuration will be set again when releasing the object
     msg.detach_posture = detach_posture;
     ok = ps->processAttachedCollisionObjectMsg(msg);
   }
-  motion_plan->planning_scene_monitor_->triggerSceneUpdateEvent(
+  motion_plan.planning_scene_monitor_->triggerSceneUpdateEvent(
       (planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType)(
           planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY +
           planning_scene_monitor::PlanningSceneMonitor::UPDATE_STATE));
@@ -181,7 +181,9 @@ void addGripperTrajectory(const ManipulationPlanPtr& plan,
     plan_execution::ExecutableTrajectory et(ee_closed_traj, name);
 
     // Add a callback to attach the object to the EE after closing the gripper
-    et.effect_on_success_ = boost::bind(&executeAttachObject, plan->shared_data_, plan->approach_posture_, _1);
+    et.effect_on_success_ = [plan](const plan_execution::ExecutableMotionPlan* motion_plan) {
+      return executeAttachObject(plan->shared_data_, plan->approach_posture_, *motion_plan);
+    };
     et.allowed_collision_matrix_ = collision_matrix;
     plan->trajectories_.push_back(et);
   }
@@ -225,8 +227,13 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
 
   // state validity checking during the approach must ensure that the gripper posture is that for pre-grasping
   moveit::core::GroupStateValidityCallbackFn approach_valid_callback =
-      boost::bind(&isStateCollisionFree, planning_scene_.get(), collision_matrix_.get(), verbose_,
-                  &plan->approach_posture_, _1, _2, _3);
+      [scene = planning_scene_.get(), acm = collision_matrix_.get(), verbose = this->verbose_,
+       approach_posture = &plan->approach_posture_](moveit::core::RobotState* robot_state,
+                                                    const moveit::core::JointModelGroup* joint_group,
+                                                    const double* joint_group_variable_values) {
+        return isStateCollisionFree(scene, acm, verbose, approach_posture, robot_state, joint_group,
+                                    joint_group_variable_values);
+      };
   plan->goal_sampler_->setVerbose(verbose_);
   std::size_t attempted_possible_goal_states = 0;
   do  // continously sample possible goal states
@@ -276,8 +283,13 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
           // state validity checking during the retreat after the grasp must ensure the gripper posture is that of the
           // actual grasp
           moveit::core::GroupStateValidityCallbackFn retreat_valid_callback =
-              boost::bind(&isStateCollisionFree, planning_scene_after_approach.get(), collision_matrix_.get(), verbose_,
-                          &plan->retreat_posture_, _1, _2, _3);
+              [scene = planning_scene_after_approach.get(), acm = collision_matrix_.get(), verbose = verbose_,
+               retreat_posture = &plan->retreat_posture_](moveit::core::RobotState* robot_state,
+                                                          const moveit::core::JointModelGroup* joint_group,
+                                                          const double* joint_group_variable_values) {
+                return isStateCollisionFree(scene, acm, verbose, retreat_posture, robot_state, joint_group,
+                                            joint_group_variable_values);
+              };
 
           // try to compute a straight line path that moves from the goal in a desired direction
           moveit::core::RobotStatePtr last_retreat_state(

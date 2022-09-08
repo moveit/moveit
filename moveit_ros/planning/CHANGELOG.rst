@@ -2,6 +2,40 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.9 (2022-03-06)
+------------------
+
+1.1.8 (2022-01-30)
+------------------
+* Fix deprecation warning in moveit_cpp (`#3019 <https://github.com/ros-planning/moveit/issues/3019>`_)
+* Contributors: Jeroen
+
+1.1.7 (2021-12-31)
+------------------
+* Move ``MoveItErrorCode`` class to ``moveit_core`` (`#3009 <https://github.com/ros-planning/moveit/issues/3009>`_)
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* ``MoveitCpp``: Added ability to set path constraints for ``PlanningComponent`` (`#2959 <https://github.com/ros-planning/moveit/issues/2959>`_)
+* ``RDFLoader``: clear buffer before reading content (`#2963 <https://github.com/ros-planning/moveit/issues/2963>`_)
+* Reset markers on ``display_contacts`` topic for a new planning attempt (`#2944 <https://github.com/ros-planning/moveit/issues/2944>`_)
+* Contributors: Colin Kohler, Jafar Abdi, Jochen Sprickerhof, Rick Staa, Robert Haschke
+
+1.1.6 (2021-11-06)
+------------------
+* Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``
+* Split ``CollisionPluginLoader`` (`#2834 <https://github.com/ros-planning/moveit/issues/2834>`_)
+
+  To avoid circular dependencies, but enable reuse of the ``CollisionPluginLoader``, the non-ROS part was moved into ``moveit_core/moveit_collision_detection.so``
+  and the ROS part (reading the plugin name from the parameter server) into ``moveit_ros_planning/moveit_collision_plugin_loader.so`` (as before).
+* Introduce a reference frame for collision objects (`#2037 <https://github.com/ros-planning/moveit/issues/2037>`_)
+* Fix RDFLoader: uninitialized member (`#2806 <https://github.com/ros-planning/moveit/issues/2806>`_)
+* Add missing dependencies to generated dynamic_reconfigure headers (`#2772 <https://github.com/ros-planning/moveit/issues/2772>`_)
+* clang-tidy: modernize-make-shared, modernize-make-unique (`#2762 <https://github.com/ros-planning/moveit/issues/2762>`_)
+* PSM: Read padding parameters from correct namespace (`#2706 <https://github.com/ros-planning/moveit/issues/2706>`_)
+* Load ``max_safe_path_cost`` into namespace ``sense_for_plan`` (`#2703 <https://github.com/ros-planning/moveit/issues/2703>`_)
+* Fix order of member initialization (`#2687 <https://github.com/ros-planning/moveit/issues/2687>`_)
+* Move ``OccMapTree`` to ``moveit_core/collision_detection`` (`#2684 <https://github.com/ros-planning/moveit/issues/2684>`_)
+* Contributors: Felix von Drigalski, Martin Günther, Mathias Lüdtke, Michael Görner, Robert Haschke, Simon Schmeisser, Tyler Weaver, pvanlaar, werner291
+
 1.1.5 (2021-05-23)
 ------------------
 * Revert "Lock the octomap/octree while collision checking (`#2683 <https://github.com/ros-planning/moveit/issues/2683>`_)

@@ -36,6 +36,7 @@
 
 #include <eigen3/Eigen/Eigen>
 #include <kdl/rotational_interpolation_sa.hpp>
+#include <moveit/planning_scene/planning_scene.h>
 
 #include "pilz_industrial_motion_planner/trajectory_generator.h"
 #include "pilz_industrial_motion_planner/velocity_profile_atrap.h"
@@ -67,13 +68,16 @@ public:
    * @param planner_limits: limits in joint and Cartesian spaces
    */
   TrajectoryGeneratorLIN(const robot_model::RobotModelConstPtr& robot_model,
-                         const pilz_industrial_motion_planner::LimitsContainer& planner_limits);
+                         const pilz_industrial_motion_planner::LimitsContainer& planner_limits,
+                         const std::string& group_name);
 
 private:
-  void extractMotionPlanInfo(const planning_interface::MotionPlanRequest& req, MotionPlanInfo& info) const final;
+  void extractMotionPlanInfo(const planning_scene::PlanningSceneConstPtr& scene,
+                             const planning_interface::MotionPlanRequest& req, MotionPlanInfo& info) const final;
 
-  void plan(const planning_interface::MotionPlanRequest& req, const MotionPlanInfo& plan_info,
-            const double& sampling_time, trajectory_msgs::JointTrajectory& joint_trajectory) override;
+  void plan(const planning_scene::PlanningSceneConstPtr& scene, const planning_interface::MotionPlanRequest& req,
+            const MotionPlanInfo& plan_info, const double& sampling_time,
+            trajectory_msgs::JointTrajectory& joint_trajectory) override;
 
   /**
    * @brief construct a KDL::Path object for a Cartesian straight line
