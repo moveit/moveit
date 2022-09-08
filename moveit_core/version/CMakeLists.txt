@@ -1,7 +1,7 @@
 # Generate and install version.h
 
 if(NOT "$ENV{USER}" STREQUAL "buildfarm") # Don't define version postfix on buildfarm
-	set(MOVEIT_VERSION_EXTRA "alpha" CACHE STRING "version string postfix")
+	set(MOVEIT_VERSION_EXTRA "devel" CACHE STRING "version string postfix")
 endif()
 
 message(STATUS " *** Building MoveIt ${${PROJECT_NAME}_VERSION} ${MOVEIT_VERSION_EXTRA} ***")
