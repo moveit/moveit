@@ -1,18 +1,11 @@
 # Generate and install version.h
 
-if(NOT "$ENV{USER}" STREQUAL "buildfarm") # Don't define version postfix on buildfarm
-	set(MOVEIT_VERSION_EXTRA "devel" CACHE STRING "version string postfix")
-endif()
-
-message(STATUS " *** Building MoveIt ${${PROJECT_NAME}_VERSION} ${MOVEIT_VERSION_EXTRA} ***")
-
 # https://stackoverflow.com/questions/13920072/how-to-always-run-command-when-building-regardless-of-any-dependency
 add_custom_command(
 	OUTPUT ${VERSION_FILE_PATH}/moveit/version.h always_rebuild
 	COMMAND ${CMAKE_COMMAND}
 	-DVERSION_FILE_PATH="${VERSION_FILE_PATH}"
 	-DMOVEIT_VERSION="${${PROJECT_NAME}_VERSION}"
-	-DMOVEIT_VERSION_EXTRA="${MOVEIT_VERSION_EXTRA}"
 	-P ${CMAKE_CURRENT_SOURCE_DIR}/version.cmake
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
