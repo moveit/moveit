@@ -403,7 +403,7 @@ bool StartScreenWidget::loadExistingFiles()
   QApplication::processEvents();
 
   // Load the allowed collision matrix
-  config_data_->loadAllowedCollisionMatrix();
+  config_data_->loadAllowedCollisionMatrix(*config_data_->srdf_);
 
   // Load kinematics yaml file if available --------------------------------------------------
   fs::path kinematics_yaml_path = config_data_->config_pkg_path_;

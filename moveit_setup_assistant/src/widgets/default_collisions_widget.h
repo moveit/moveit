@@ -58,6 +58,7 @@ class QVBoxLayout;
 #include <boost/thread/thread.hpp>
 #include <boost/function/function_fwd.hpp>
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
+#include <moveit/setup_assistant/tools/compute_default_collisions.h>
 #endif
 
 #include "setup_screen_widget.h"  // a base class for screens in the setup assistant
@@ -90,16 +91,6 @@ public:
    */
   DefaultCollisionsWidget(QWidget* parent, const MoveItConfigDataPtr& config_data);
   ~DefaultCollisionsWidget() override;
-
-  /**
-   * \brief Output Link Pairs to SRDF Format
-   */
-  void linkPairsToSRDF();
-
-  /**
-   * \brief Load Link Pairs from SRDF Format
-   */
-  void linkPairsFromSRDF();
 
 private Q_SLOTS:
 
@@ -194,11 +185,10 @@ private:
   // ******************************************************************************************
   MonitorThread* worker_;
 
-  /// main storage of link pair data
-  moveit_setup_assistant::LinkPairMap link_pairs_;
-
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
+  /// Working copy of SRDF config
+  srdf::SRDFWriterPtr wip_srdf_;
 
   // ******************************************************************************************
   // Private Functions
@@ -217,24 +207,23 @@ private:
    */
   void disableControls(bool disable);
 
-  /**
-   * \brief Allow toggling of all checkboxes in selection by filtering <space> keypresses
-   */
+  /** Allow toggling of all checkboxes in selection by filtering <space> keypresses */
   bool eventFilter(QObject* object, QEvent* event) override;
 
-  /**
-   * \brief Show header's sections in logicalIndexes and everything in between
-   */
+  /** Return list of selected sections */
+  QList<int> selectedSections(QHeaderView*& header) const;
+
+  /** Show header's sections in logicalIndexes and everything in between */
   void showSections(QHeaderView* header, const QList<int>& logicalIndexes);
-  /**
-   * \brief Toggle enabled status of selection
-   */
+
+  /** Enable/Disable selected sections by default */
+  void setDefaults(bool enabled);
+
+  /** Toggle enabled status of selection */
   void toggleSelection(QItemSelection selection);
 };
 
-/**
- * \brief QThread to monitor progress of a boost::thread
- */
+/** QThread to monitor progress of a boost::thread */
 class MonitorThread : public QThread
 {
   Q_OBJECT

@@ -139,18 +139,18 @@ planning_scene::PlanningScenePtr MoveItConfigData::getPlanningScene()
 // ******************************************************************************************
 // Load the allowed collision matrix from the SRDF's list of link pairs
 // ******************************************************************************************
-void MoveItConfigData::loadAllowedCollisionMatrix()
+void MoveItConfigData::loadAllowedCollisionMatrix(const srdf::SRDFWriter& srdf)
 {
   allowed_collision_matrix_.clear();
 
   // load collision defaults
-  for (const std::string& name : srdf_->no_default_collision_links_)
+  for (const std::string& name : srdf.no_default_collision_links_)
     allowed_collision_matrix_.setDefaultEntry(name, collision_detection::AllowedCollision::ALWAYS);
   // re-enable specific collision pairs
-  for (auto const& collision : srdf_->enabled_collision_pairs_)
+  for (auto const& collision : srdf.enabled_collision_pairs_)
     allowed_collision_matrix_.setEntry(collision.link1_, collision.link2_, false);
   // *finally* disable selected collision pairs
-  for (auto const& collision : srdf_->disabled_collision_pairs_)
+  for (auto const& collision : srdf.disabled_collision_pairs_)
     allowed_collision_matrix_.setEntry(collision.link1_, collision.link2_, true);
 }
 
@@ -1328,7 +1328,7 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
     for (YAML::const_iterator group_it = doc.begin(); group_it != doc.end(); ++group_it)
     {
       const std::string& group_name = group_it->first.as<std::string>();
-      const YAML::Node& group = group_it->second;
+      const YAML::Node group = group_it->second;
 
       // Create new meta data
       GroupMetaData meta_data;
@@ -1339,7 +1339,7 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
       parse(group, "kinematics_solver_timeout", meta_data.kinematics_solver_timeout_, DEFAULT_KIN_SOLVER_TIMEOUT);
 
       // Assign meta data to vector
-      group_meta_data_[group_name] = meta_data;
+      group_meta_data_[group_name] = std::move(meta_data);
     }
   }
   catch (YAML::ParserException& e)  // Catch errors
