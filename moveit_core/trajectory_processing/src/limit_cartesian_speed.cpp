@@ -36,7 +36,7 @@
 /* Authors: Benjamin Scholz, Thies Oelerich */
 
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
-#include <moveit/trajectory_processing/cartesian_speed.h>
+#include <moveit/trajectory_processing/limit_cartesian_speed.h>
 
 // Name of logger
 const char* LOGGER_NAME = "trajectory_processing.cartesian_speed";

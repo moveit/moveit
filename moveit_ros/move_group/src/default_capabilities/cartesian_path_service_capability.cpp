@@ -45,7 +45,7 @@
 #include <moveit/robot_state/cartesian_interpolator.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
-#include <moveit/trajectory_processing/cartesian_speed.h>
+#include <moveit/trajectory_processing/limit_cartesian_speed.h>
 
 namespace
 {

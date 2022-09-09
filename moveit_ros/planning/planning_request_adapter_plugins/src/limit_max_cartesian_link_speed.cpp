@@ -37,7 +37,7 @@
 /* Authors: Benjamin Scholz, Thies Oelerich, based off add_time_parameterization.cpp by Ioan Sucan */
 
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
-#include <moveit/trajectory_processing/cartesian_speed.h>
+#include <moveit/trajectory_processing/limit_cartesian_speed.h>
 #include <class_loader/class_loader.hpp>
 #include <ros/console.h>
 

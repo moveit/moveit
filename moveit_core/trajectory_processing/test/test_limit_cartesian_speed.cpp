@@ -43,7 +43,7 @@
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
-#include <moveit/trajectory_processing/cartesian_speed.h>
+#include <moveit/trajectory_processing/limit_cartesian_speed.h>
 #include <moveit/utils/robot_model_test_utils.h>
 
 // Static variables used in all tests
