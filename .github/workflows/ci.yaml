@@ -9,7 +9,6 @@ on:
   push:
     branches:
       - master
-      - "[kmn]*-devel"
 
 jobs:
   default:
@@ -19,14 +18,16 @@ jobs:
         env:
           - IMAGE: noetic-ci
             CCOV: true
-            BUILDER: .github/workflows/catkin_tools_devel.sh
-          - IMAGE: noetic-ci-shadow-fixed
+            BUILDER: catkin_tools_devel
+          - IMAGE: noetic-ci-testing
             IKFAST_TEST: true
             CATKIN_LINT: true
             CLANG_TIDY: pedantic
           - IMAGE: master-ci # ROS Melodic with all dependencies required for master
             CATKIN_LINT: true
     env:
+      CXXFLAGS: >-
+        -Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls
       CLANG_TIDY_ARGS: --fix --fix-errors --format-style=file
       DOCKER_IMAGE: moveit/moveit:${{ matrix.env.IMAGE }}
       UPSTREAM_WORKSPACE: .github/workflows/upstream.rosinstall
@@ -35,9 +36,15 @@ jobs:
       # Pull any updates to the upstream workspace (after restoring it from cache)
       AFTER_SETUP_UPSTREAM_WORKSPACE: vcs pull $BASEDIR/upstream_ws/src
       AFTER_SETUP_DOWNSTREAM_WORKSPACE: vcs pull $BASEDIR/downstream_ws/src
+      # Clear the ccache stats before and log the stats after the build
+      AFTER_SETUP_CCACHE: ccache --zero-stats --max-size=10.0G
+      AFTER_BUILD_TARGET_WORKSPACE: ccache --show-stats
+      AFTER_BUILD_DOWNSTREAM_WORKSPACE: ccache --show-stats
+      # Compile CCOV with Debug. Enable -Werror (except CLANG_TIDY=pedantic, which makes the clang-tidy step fail on warnings)
       TARGET_CMAKE_ARGS: >
         -DCMAKE_BUILD_TYPE=${{ matrix.env.CCOV && 'Debug' || 'Release'}}
-        -DCMAKE_CXX_FLAGS="${{ matrix.env.CLANG_TIDY != 'pedantic' && '-Werror ' || '' }}${{ matrix.env.CCOV && ' --coverage -O2 -fno-omit-frame-pointer'}}"
+        -DCMAKE_CXX_FLAGS="${{ matrix.env.CLANG_TIDY != 'pedantic' && '-Werror ' || '' }}$CXXFLAGS${{ matrix.env.CCOV && ' --coverage -O2 -fno-omit-frame-pointer'}}"
+      UPSTREAM_CMAKE_ARGS: "-DCMAKE_CXX_FLAGS=''"
       DOWNSTREAM_CMAKE_ARGS: -DCMAKE_CXX_FLAGS="-Wall -Wextra"
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       BASEDIR: ${{ github.workspace }}/.work
@@ -113,7 +120,6 @@ jobs:
       - id: ici
         name: Run industrial_ci
         uses: ros-industrial/industrial_ci@master
-        env: ${{ matrix.env }}
 
       - name: Upload test artifacts (on failure)
         uses: actions/upload-artifact@v2
@@ -123,26 +129,44 @@ jobs:
           path: ${{ env.BASEDIR }}/target_ws/**/test_results/**/*.xml
       - name: Generate codecov report
         uses: rhaschke/lcov-action@main
-        if: matrix.env.CCOV && steps.ici.outputs.target_test_results == '0'
+        if: always() && matrix.env.CCOV && steps.ici.outputs.target_test_results == '0'
         with:
           docker: $DOCKER_IMAGE
           workdir: ${{ env.BASEDIR }}/target_ws
           ignore: '"*/target_ws/build/*" "*/target_ws/install/*" "*/test/*"'
       - name: Upload codecov report
         uses: codecov/codecov-action@v2
-        if: matrix.env.CCOV && steps.ici.outputs.target_test_results == '0'
+        if: always() && matrix.env.CCOV && steps.ici.outputs.target_test_results == '0'
         with:
           files: ${{ env.BASEDIR }}/target_ws/coverage.info
       - name: Upload clang-tidy changes
         uses: rhaschke/upload-git-patch-action@main
-        if: matrix.env.CLANG_TIDY
+        if: always() && matrix.env.CLANG_TIDY
         with:
           name: clang-tidy
           path: ${{ env.BASEDIR }}/target_ws/src/$(basename $(pwd))
       - name: Prepare target_ws for cache
-        if: "!matrix.env.CCOV"
+        if: always() && !matrix.env.CCOV
         run: |
           du -sh ${{ env.BASEDIR }}/target_ws
           sudo find ${{ env.BASEDIR }}/target_ws -wholename '*/test_results/*' -delete
           sudo rm -rf ${{ env.BASEDIR }}/target_ws/src
           du -sh ${{ env.BASEDIR }}/target_ws
+
+  # Sync noetic-devel branch with master on successful build
+  sync-noetic-devel:
+    runs-on: ubuntu-latest
+    needs: default # only trigger on success of default build job
+    if: github.event_name == 'push' && github.repository_owner == 'ros-planning' && github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Fast-forward noetic-devel to sync with master
+        run: |
+          # Configure push user+url
+          git config --global user.name 'GHA sync bot'
+          git config --global user.email 'rhaschke@users.noreply.github.com'
+          git remote set-url origin https://x-access-token:${{ secrets.GH_PAGES_TOKEN }}@github.com/${{ github.repository }}
+          # Extend shallow copy from actions/checkout to connect noetic-devel..master
+          git fetch --depth=1 origin noetic-devel
+          git fetch --depth=200 origin master
+          git push origin master:noetic-devel

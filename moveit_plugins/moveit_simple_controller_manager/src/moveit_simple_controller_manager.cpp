@@ -94,7 +94,10 @@ public:
         ActionBasedControllerHandleBasePtr new_handle;
         if (type == "GripperCommand")
         {
-          new_handle = std::make_shared<GripperControllerHandle>(name, action_ns);
+          const double max_effort =
+              controller_list[i].hasMember("max_effort") ? double(controller_list[i]["max_effort"]) : 0.0;
+
+          new_handle = std::make_shared<GripperControllerHandle>(name, action_ns, max_effort);
           if (static_cast<GripperControllerHandle*>(new_handle.get())->isConnected())
           {
             if (controller_list[i].hasMember("parallel"))

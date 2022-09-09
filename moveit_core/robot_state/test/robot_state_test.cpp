@@ -170,10 +170,8 @@ TEST(LoadingAndFK, SimpleRobot)
 
   state.setVariableAcceleration("base_joint/x", 0.0);
 
-  // making sure that values get copied
-  moveit::core::RobotState* new_state = new moveit::core::RobotState(state);
+  const auto new_state = std::make_unique<moveit::core::RobotState>(state);  // making sure that values get copied
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("base_link").translation(), Eigen::Vector3d(10, 8, 0));
-  delete new_state;
 
   std::vector<double> jv(state.getVariableCount(), 0.0);
   jv[state.getRobotModel()->getVariableIndex("base_joint/x")] = 5.0;
@@ -364,7 +362,7 @@ protected:
         "</robot>";
 
     urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDF(MODEL2);
-    srdf::ModelSharedPtr srdf_model(new srdf::Model());
+    srdf::ModelSharedPtr srdf_model = std::make_shared<srdf::Model>();
     srdf_model->initString(*urdf_model, SMODEL2);
     robot_model_ = std::make_shared<moveit::core::RobotModel>(urdf_model, srdf_model);
   }
@@ -692,7 +690,7 @@ TEST_F(OneRobot, rigidlyConnectedParent)
   EXPECT_EQ(state.getRigidlyConnectedParentLinkModel("link_b"), link_a);
 
   // attach "object" with "subframe" to link_b
-  state.attachBody(new moveit::core::AttachedBody(
+  state.attachBody(std::make_unique<moveit::core::AttachedBody>(
       link_b, "object", Eigen::Isometry3d::Identity(), std::vector<shapes::ShapeConstPtr>{},
       EigenSTL::vector_Isometry3d{}, std::set<std::string>{}, trajectory_msgs::JointTrajectory{},
       moveit::core::FixedTransformsMap{ { "subframe", Eigen::Isometry3d::Identity() } }));

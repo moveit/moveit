@@ -151,8 +151,6 @@ public:
   bool sample(moveit::core::RobotState& state, const moveit::core::RobotState& reference_state,
               unsigned int max_attempts) override;
 
-  bool project(moveit::core::RobotState& state, unsigned int max_attempts) override;
-
   /**
    * \brief Get the name of the constraint sampler, for debugging purposes
    * should be in CamelCase format.

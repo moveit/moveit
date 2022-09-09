@@ -147,7 +147,7 @@ private:
 
   void planningSceneUpdatedCallback(const planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
   void doneWithTrajectoryExecution(const moveit_controller_manager::ExecutionStatus& status);
-  void successfulTrajectorySegmentExecution(const ExecutableMotionPlan* plan, std::size_t index);
+  void successfulTrajectorySegmentExecution(const ExecutableMotionPlan& plan, std::size_t index);
 
   ros::NodeHandle node_handle_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;

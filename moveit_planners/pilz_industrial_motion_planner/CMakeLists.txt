@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(pilz_industrial_motion_planner)
 
-## Add support for C++14, supported in ROS Melodic and newer
-add_definitions(-std=c++14)
-
 find_package(catkin REQUIRED COMPONENTS
   joint_limits_interface
   moveit_core

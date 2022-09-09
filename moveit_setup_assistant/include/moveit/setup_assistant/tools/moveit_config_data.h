@@ -37,11 +37,10 @@
 #pragma once
 
 #include <moveit/macros/class_forward.h>
-#include <moveit/planning_scene/planning_scene.h>                     // for getting kinematic model
-#include <moveit/setup_assistant/tools/compute_default_collisions.h>  // for LinkPairMap
-#include <yaml-cpp/yaml.h>                                            // outputing yaml config files
-#include <urdf/model.h>                                               // to share throughout app
-#include <srdfdom/srdf_writer.h>                                      // for writing srdf data
+#include <moveit/planning_scene/planning_scene.h>  // for getting kinematic model
+#include <yaml-cpp/yaml.h>                         // outputing yaml config files
+#include <urdf/model.h>                            // to share throughout app
+#include <srdfdom/srdf_writer.h>                   // for writing srdf data
 
 #include <utility>
 
@@ -76,9 +75,9 @@ struct GroupMetaData
 };
 
 /**
- * ROS Controllers settings which may be set in the config files
+ * Controllers settings which may be set in the config files
  */
-struct ROSControlConfig
+struct ControllerConfig
 {
   std::string name_;                 // controller name
   std::string type_;                 // controller type
@@ -155,15 +154,15 @@ public:
   {
     comment_ = std::move(comment);
   };
-  std::string getName()
+  const std::string& getName() const
   {
     return name_;
   };
-  std::string getValue()
+  const std::string& getValue() const
   {
     return value_;
   };
-  std::string getComment()
+  const std::string& getComment() const
   {
     return comment_;
   };
@@ -199,8 +198,9 @@ public:
     POSES = 1 << 6,
     END_EFFECTORS = 1 << 7,
     PASSIVE_JOINTS = 1 << 8,
-    AUTHOR_INFO = 1 << 9,
-    SENSORS_CONFIG = 1 << 10,
+    SIMULATION = 1 << 9,
+    AUTHOR_INFO = 1 << 10,
+    SENSORS_CONFIG = 1 << 11,
     SRDF = COLLISIONS | VIRTUAL_JOINTS | GROUPS | GROUP_CONTENTS | POSES | END_EFFECTORS | PASSIVE_JOINTS
   };
   unsigned long changes;  // bitfield of changes (composed of InformationFields)
@@ -230,6 +230,13 @@ public:
 
   /// URDF robot model string
   std::string urdf_string_;
+
+  /// Gazebo URDF robot model string
+  // NOTE: Created when the robot urdf is not compatible with Gazebo.
+  std::string gazebo_urdf_string_;
+
+  /// Whether a new Gazebo URDF is created
+  bool save_gazebo_urdf_;
 
   // ******************************************************************************************
   // SRDF Data
@@ -300,27 +307,21 @@ public:
   srdf::Model::Group* findGroupByName(const std::string& name);
 
   /// Load the allowed collision matrix from the SRDF's list of link pairs
-  void loadAllowedCollisionMatrix();
+  void loadAllowedCollisionMatrix(const srdf::SRDFWriter& srdf);
 
   // ******************************************************************************************
   // Public Functions for outputting configuration and setting files
   // ******************************************************************************************
-  std::vector<OMPLPlannerDescription> getOMPLPlanners();
+  std::vector<OMPLPlannerDescription> getOMPLPlanners() const;
+  std::map<std::string, double> getInitialJoints() const;
   bool outputSetupAssistantFile(const std::string& file_path);
+  bool outputGazeboURDFFile(const std::string& file_path);
   bool outputOMPLPlanningYAML(const std::string& file_path);
-  bool outputCHOMPPlanningYAML(const std::string& file_path);
+  bool outputSTOMPPlanningYAML(const std::string& file_path);
   bool outputKinematicsYAML(const std::string& file_path);
   bool outputJointLimitsYAML(const std::string& file_path);
   bool outputFakeControllersYAML(const std::string& file_path);
-
-  /**
-   * Helper function for writing follow joint trajectory ROS controllers to ros_controllers.yaml
-   * @param YAML Emitter - yaml emitter used to write the config to the ROS controllers yaml file
-   * @param vector<ROSControlConfig> - a copy of ROS controllers config which will be modified in the function
-   */
-  void outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
-                                       std::vector<ROSControlConfig>& ros_controllers_config_output);
-
+  bool outputSimpleControllersYAML(const std::string& file_path);
   bool outputROSControllersYAML(const std::string& file_path);
   bool output3DSensorPluginYAML(const std::string& file_path);
 
@@ -329,20 +330,6 @@ public:
    * \return controller type
    */
   std::string getJointHardwareInterface(const std::string& joint_name);
-
-  /**
-   * \brief Parses the existing urdf and constructs a string from it with the elements required by gazebo simulator
-   * added
-   * \return gazebo compatible urdf or empty if error encountered
-   */
-  std::string getGazeboCompatibleURDF();
-
-  /**
-   * \brief Set list of collision link pairs in SRDF; sorted; with optional filter
-   * \param link_pairs list of collision link pairs
-   * \param skip_mask mask of shifted moveit_setup_assistant::DisabledReason values that will be skipped
-   */
-  void setCollisionLinkPairs(const moveit_setup_assistant::LinkPairMap& link_pairs, size_t skip_mask = 0);
 
   /**
    * \brief Decide the best two joints to be used for the projection evaluator
@@ -395,9 +382,9 @@ public:
 
   /**
    * \brief Add a Follow Joint Trajectory action Controller for each Planning Group
-   * \return true if controllers were added to the ros_controllers_config_ data structure
+   * \return true if controllers were added to the controller_configs_ data structure
    */
-  bool addDefaultControllers();
+  bool addDefaultControllers(const std::string& controller_type = "effort_controllers/JointTrajectoryController");
 
   /**
    * Set package path; try to resolve path from package name if directory does not exist
@@ -437,14 +424,10 @@ public:
    */
   bool inputSetupAssistantYAML(const std::string& file_path);
 
-  /**
-   * Input sensors_3d file - contains 3d sensors config data
-   *
-   * @param default_file_path path to sensors_3d yaml file which contains default parameter values
-   * @param file_path path to sensors_3d yaml file in the config package
-   * @return true if the file was read correctly
-   */
-  bool input3DSensorsYAML(const std::string& default_file_path, const std::string& file_path = "");
+  /// Load perception sensor config (sensors_3d.yaml) into internal data structure
+  void input3DSensorsYAML(const std::string& file_path);
+  /// Load perception sensor config
+  static std::vector<std::map<std::string, GenericParameter>> load3DSensorsYAML(const std::string& file_path);
 
   /**
    * Helper Function for joining a file path and a file name, or two file paths, etc,
@@ -457,33 +440,36 @@ public:
   std::string appendPaths(const std::string& path1, const std::string& path2);
 
   /**
-   * \brief Adds a ROS controller to ros_controllers_config_ vector
-   * \param new_controller a new ROS Controller to add
+   * \brief Adds a controller to controller_configs_ vector
+   * \param new_controller a new Controller to add
    * \return true if inserted correctly
    */
-  bool addROSController(const ROSControlConfig& new_controller);
+  bool addController(const ControllerConfig& new_controller);
 
   /**
-   * \brief Gets ros_controllers_config_ vector
-   * \return pointer to ros_controllers_config_
+   * \brief Gets controller_configs_ vector
+   * \return pointer to controller_configs_
    */
-  std::vector<ROSControlConfig>& getROSControllers();
+  std::vector<ControllerConfig>& getControllers()
+  {
+    return controller_configs_;
+  }
 
   /**
-   * Find the associated ROS controller by name
+   * Find the associated controller by name
    *
-   * @param controller_name - name of ROS controller to find in datastructure
+   * @param controller_name - name of controller to find in datastructure
    * @return pointer to data in datastructure
    */
-  ROSControlConfig* findROSControllerByName(const std::string& controller_name);
+  ControllerConfig* findControllerByName(const std::string& controller_name);
 
   /**
-   * Delete ROS controller by name
+   * Delete controller by name
    *
-   * @param controller_name - name of ROS controller to delete
+   * @param controller_name - name of controller to delete
    * @return true if deleted, false if not found
    */
-  bool deleteROSController(const std::string& controller_name);
+  bool deleteController(const std::string& controller_name);
 
   /**
    * \brief Used for adding a sensor plugin configuation prameter to the sensor plugin configuration parameter list
@@ -499,7 +485,10 @@ public:
   /**
    * \brief Used for adding a sensor plugin configuation parameter to the sensor plugin configuration parameter list
    */
-  std::vector<std::map<std::string, GenericParameter> > getSensorPluginConfig();
+  const std::vector<std::map<std::string, GenericParameter>>& getSensorPluginConfig() const
+  {
+    return sensors_plugin_config_parameter_list_;
+  }
 
   /**
    * \brief Helper function to get the default start pose for moveit_sim_hw_interface
@@ -526,13 +515,13 @@ private:
   // ******************************************************************************************
 
   /// Sensor plugin configuration parameter list, each sensor plugin type is a map
-  std::vector<std::map<std::string, GenericParameter> > sensors_plugin_config_parameter_list_;
+  std::vector<std::map<std::string, GenericParameter>> sensors_plugin_config_parameter_list_;
 
   /// Shared kinematic model
   moveit::core::RobotModelPtr robot_model_;
 
-  /// ROS Controllers config data
-  std::vector<ROSControlConfig> ros_controllers_config_;
+  /// Controllers config data
+  std::vector<ControllerConfig> controller_configs_;
 
   /// Shared planning scene
   planning_scene::PlanningScenePtr planning_scene_;

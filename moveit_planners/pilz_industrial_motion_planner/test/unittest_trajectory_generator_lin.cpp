@@ -142,7 +142,7 @@ void TrajectoryGeneratorLINTest::SetUp()
   planner_limits_.setCartesianLimits(cart_limits);
 
   // initialize the LIN trajectory generator
-  lin_ = std::make_unique<TrajectoryGeneratorLIN>(robot_model_, planner_limits_);
+  lin_ = std::make_unique<TrajectoryGeneratorLIN>(robot_model_, planner_limits_, planning_group_);
   ASSERT_NE(nullptr, lin_) << "Failed to create LIN trajectory generator.";
 }
 
@@ -394,7 +394,7 @@ TEST_P(TrajectoryGeneratorLINTest, CtorNoLimits)
 {
   pilz_industrial_motion_planner::LimitsContainer planner_limits;
 
-  EXPECT_THROW(pilz_industrial_motion_planner::TrajectoryGeneratorLIN(robot_model_, planner_limits),
+  EXPECT_THROW(pilz_industrial_motion_planner::TrajectoryGeneratorLIN(robot_model_, planner_limits, planning_group_),
                pilz_industrial_motion_planner::TrajectoryGeneratorInvalidLimitsException);
 }
 

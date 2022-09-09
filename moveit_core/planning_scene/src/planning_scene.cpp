@@ -151,15 +151,7 @@ void PlanningScene::initialize()
   robot_state_->setToDefaultValues();
   robot_state_->update();
 
-  acm_ = std::make_shared<collision_detection::AllowedCollisionMatrix>();
-  // Use default collision operations in the SRDF to setup the acm
-  const std::vector<std::string>& collision_links = robot_model_->getLinkModelNamesWithCollisionGeometry();
-  acm_->setEntry(collision_links, collision_links, false);
-
-  // allow collisions for pairs that have been disabled
-  const std::vector<srdf::Model::DisabledCollision>& dc = getRobotModel()->getSRDF()->getDisabledCollisionPairs();
-  for (const srdf::Model::DisabledCollision& it : dc)
-    acm_->setEntry(it.link1_, it.link2_, true);
+  acm_ = std::make_shared<collision_detection::AllowedCollisionMatrix>(*getRobotModel()->getSRDF());
 
   setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorFCL::create());
 }
@@ -539,12 +531,14 @@ void PlanningScene::getCollidingPairs(collision_detection::CollisionResult::Cont
 
 void PlanningScene::getCollidingPairs(collision_detection::CollisionResult::ContactMap& contacts,
                                       const moveit::core::RobotState& robot_state,
-                                      const collision_detection::AllowedCollisionMatrix& acm) const
+                                      const collision_detection::AllowedCollisionMatrix& acm,
+                                      const std::string& group_name) const
 {
   collision_detection::CollisionRequest req;
   req.contacts = true;
   req.max_contacts = getRobotModel()->getLinkModelsWithCollisionGeometry().size() + 1;
   req.max_contacts_per_pair = 1;
+  req.group_name = group_name;
   collision_detection::CollisionResult res;
   checkCollision(req, res, robot_state, acm);
   res.contacts.swap(contacts);
@@ -656,10 +650,8 @@ void PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_ms
   if (robot_state_)
     moveit::core::robotStateToRobotStateMsg(*robot_state_, scene_msg.robot_state);
   else
-  {
     scene_msg.robot_state = moveit_msgs::RobotState();
-    scene_msg.robot_state.is_diff = true;
-  }
+  scene_msg.robot_state.is_diff = true;
 
   if (acm_)
     acm_->getMessage(scene_msg.allowed_collision_matrix);
@@ -717,6 +709,20 @@ void PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_ms
     if (do_omap)
       getOctomapMsg(scene_msg.world.octomap);
   }
+
+  // Ensure all detached collision objects actually get removed when applying the diff
+  // Because RobotState doesn't handle diffs (yet), we explicitly declare attached objects
+  // as removed, if they show up as "normal" collision objects but were attached in parent
+  for (const auto& collision_object : scene_msg.world.collision_objects)
+  {
+    if (parent_ && parent_->getCurrentState().hasAttachedBody(collision_object.id))
+    {
+      moveit_msgs::AttachedCollisionObject aco;
+      aco.object.id = collision_object.id;
+      aco.object.operation = moveit_msgs::CollisionObject::REMOVE;
+      scene_msg.robot_state.attached_collision_objects.push_back(aco);
+    }
+  }
 }
 
 namespace
@@ -760,12 +766,12 @@ private:
 bool PlanningScene::getCollisionObjectMsg(moveit_msgs::CollisionObject& collision_obj, const std::string& ns) const
 {
   collision_detection::CollisionEnv::ObjectConstPtr obj = world_->getObject(ns);
+  if (!obj)
+    return false;
   collision_obj.header.frame_id = getPlanningFrame();
   collision_obj.pose = tf2::toMsg(obj->pose_);
   collision_obj.id = ns;
   collision_obj.operation = moveit_msgs::CollisionObject::ADD;
-  if (!obj)
-    return false;
   ShapeVisitorAddToCollisionObject sv(&collision_obj);
   for (std::size_t j = 0; j < obj->shapes_.size(); ++j)
   {
@@ -1007,7 +1013,23 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Isomet
     ROS_ERROR_NAMED(LOGNAME, "Bad input stream when loading scene geometry");
     return false;
   }
+  // Read scene name
   std::getline(in, name_);
+
+  // Identify scene format version for backwards compatibility of parser
+  auto pos = in.tellg();  // remember current stream position
+  std::string line;
+  do
+  {
+    std::getline(in, line);
+  } while (in.good() && !in.eof() && (line.empty() || line[0] != '*'));  // read * marker
+  std::getline(in, line);                                                // next line determines format
+  boost::algorithm::trim(line);
+  // new format: line specifies position of object, with spaces as delimiter -> spaces indicate new format
+  // old format: line specifies number of shapes
+  bool uses_new_scene_format = line.find(' ') != std::string::npos;
+  in.seekg(pos);
+
   Eigen::Isometry3d pose;  // Transient
   do
   {
@@ -1029,8 +1051,9 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Isomet
       }
       boost::algorithm::trim(object_id);
 
-      // Read in object pose
-      if (!readPoseFromText(in, pose))
+      // Read in object pose (added in the new scene format)
+      pose.setIdentity();
+      if (uses_new_scene_format && !readPoseFromText(in, pose))
       {
         ROS_ERROR_NAMED(LOGNAME, "Failed to read object pose from scene file");
         return false;
@@ -1075,22 +1098,25 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Isomet
         }
       }
 
-      // Read in subframes
-      moveit::core::FixedTransformsMap subframes;
-      unsigned int subframe_count;
-      in >> subframe_count;
-      for (std::size_t i = 0; i < subframe_count && in.good() && !in.eof(); ++i)
+      // Read in subframes (added in the new scene format)
+      if (uses_new_scene_format)
       {
-        std::string subframe_name;
-        in >> subframe_name;
-        if (!readPoseFromText(in, pose))
+        moveit::core::FixedTransformsMap subframes;
+        unsigned int subframe_count;
+        in >> subframe_count;
+        for (std::size_t i = 0; i < subframe_count && in.good() && !in.eof(); ++i)
         {
-          ROS_ERROR_NAMED(LOGNAME, "Failed to read subframe pose from scene file");
-          return false;
+          std::string subframe_name;
+          in >> subframe_name;
+          if (!readPoseFromText(in, pose))
+          {
+            ROS_ERROR_NAMED(LOGNAME, "Failed to read subframe pose from scene file");
+            return false;
+          }
+          subframes[subframe_name] = pose;
         }
-        subframes[subframe_name] = pose;
+        world_->setSubframesOfObject(object_id, subframes);
       }
-      world_->setSubframesOfObject(object_id, subframes);
     }
     else if (marker == ".")
     {

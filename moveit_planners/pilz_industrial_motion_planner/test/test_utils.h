@@ -89,7 +89,7 @@ inline std::string getJointName(size_t joint_number, const std::string& joint_pr
  */
 pilz_industrial_motion_planner::JointLimitsContainer createFakeLimits(const std::vector<std::string>& joint_names);
 
-inline std::string demangel(char const* name)
+inline std::string demangle(char const* name)
 {
   return boost::core::demangle(name);
 }

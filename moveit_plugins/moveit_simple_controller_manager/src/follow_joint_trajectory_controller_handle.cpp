@@ -63,9 +63,8 @@ bool FollowJointTrajectoryControllerHandle::sendTrajectory(const moveit_msgs::Ro
   control_msgs::FollowJointTrajectoryGoal goal = goal_template_;
   goal.trajectory = trajectory.joint_trajectory;
   controller_action_client_->sendGoal(
-      goal, boost::bind(&FollowJointTrajectoryControllerHandle::controllerDoneCallback, this, _1, _2),
-      boost::bind(&FollowJointTrajectoryControllerHandle::controllerActiveCallback, this),
-      boost::bind(&FollowJointTrajectoryControllerHandle::controllerFeedbackCallback, this, _1));
+      goal, [this](const auto& state, const auto& result) { controllerDoneCallback(state, result); },
+      [this] { controllerActiveCallback(); }, [this](const auto& feedback) { controllerFeedbackCallback(feedback); });
   done_ = false;
   last_exec_ = moveit_controller_manager::ExecutionStatus::RUNNING;
   return true;

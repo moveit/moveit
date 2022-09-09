@@ -223,7 +223,7 @@ private:
    *     - The start state velocity is below
    * TrajectoryGenerator::VELOCITY_TOLERANCE
    */
-  void checkStartState(const moveit_msgs::RobotState& start_state) const;
+  void checkStartState(const moveit_msgs::RobotState& start_state, const std::string& group) const;
 
   void checkGoalConstraints(const moveit_msgs::MotionPlanRequest::_goal_constraints_type& goal_constraints,
                             const std::vector<std::string>& expected_joint_names, const std::string& group_name) const;
@@ -235,6 +235,11 @@ private:
   void checkCartesianGoalConstraint(const moveit_msgs::Constraints& constraint, const std::string& group_name) const;
 
 private:
+  /**
+   * @return joint state message including only active joints in group
+   */
+  sensor_msgs::JointState filterGroupValues(const sensor_msgs::JointState& robot_state, const std::string& group) const;
+
   /**
    * @return True if scaling factor is valid, otherwise false.
    */

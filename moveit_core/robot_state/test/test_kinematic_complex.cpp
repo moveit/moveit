@@ -243,9 +243,9 @@ TEST_F(LoadPlanningModelsPr2, FullTest)
   std::set<std::string> touch_links;
 
   trajectory_msgs::JointTrajectory empty_state;
-  moveit::core::AttachedBody* attached_body = new moveit::core::AttachedBody(
-      robot_model->getLinkModel("r_gripper_palm_link"), "box", identity, shapes, poses, touch_links, empty_state);
-  ks.attachBody(attached_body);
+
+  ks.attachBody(std::make_unique<moveit::core::AttachedBody>(robot_model->getLinkModel("r_gripper_palm_link"), "box",
+                                                             identity, shapes, poses, touch_links, empty_state));
 
   std::vector<const moveit::core::AttachedBody*> attached_bodies_1;
   ks.getAttachedBodies(attached_bodies_1);
@@ -286,14 +286,12 @@ TEST_F(LoadPlanningModelsPr2, ObjectPoseAndSubframes)
   subframes["frame1"] = Eigen::Isometry3d(Eigen::Translation3d(0, 0, 1));
 
   trajectory_msgs::JointTrajectory empty_state;
-  moveit::core::AttachedBody* attached_body_a =
-      new moveit::core::AttachedBody(robot_model->getLinkModel("r_gripper_palm_link"), "boxA", pose_a, shapes, poses,
-                                     touch_links, empty_state, subframes);
-  moveit::core::AttachedBody* attached_body_b =
-      new moveit::core::AttachedBody(robot_model->getLinkModel("r_gripper_palm_link"), "boxB", pose_b, shapes, poses,
-                                     touch_links, empty_state, subframes);
-  ks.attachBody(attached_body_a);
-  ks.attachBody(attached_body_b);
+  ks.attachBody(std::make_unique<moveit::core::AttachedBody>(robot_model->getLinkModel("r_gripper_palm_link"), "boxA",
+                                                             pose_a, shapes, poses, touch_links, empty_state,
+                                                             subframes));
+  ks.attachBody(std::make_unique<moveit::core::AttachedBody>(robot_model->getLinkModel("r_gripper_palm_link"), "boxB",
+                                                             pose_b, shapes, poses, touch_links, empty_state,
+                                                             subframes));
 
   // Check position of shape in each body
   Eigen::Isometry3d p;

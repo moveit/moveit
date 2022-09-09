@@ -1,9 +1,14 @@
 macro(moveit_build_options)
-  if(NOT "${CMAKE_CXX_STANDARD}")
-    set(CMAKE_CXX_STANDARD 14)
+  # for Bionic
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9")
+    if(NOT "${CMAKE_CXX_STANDARD}")
+      set(CMAKE_CXX_STANDARD 14)
+    endif()
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_CXX_EXTENSIONS OFF)
   endif()
-  set(CMAKE_CXX_STANDARD_REQUIRED ON)
-  set(CMAKE_CXX_EXTENSIONS OFF)
+
+  find_package(backward_ros QUIET)
 
   if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
     message("${PROJECT_NAME}: You did not request a specific build type: Choosing 'Release' for maximum performance")

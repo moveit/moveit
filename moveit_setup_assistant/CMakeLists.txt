@@ -69,7 +69,7 @@ set(HEADERS
   src/widgets/virtual_joints_widget.h
   src/widgets/passive_joints_widget.h
   src/widgets/perception_widget.h
-  src/widgets/ros_controllers_widget.h
+  src/widgets/controllers_widget.h
   src/widgets/controller_edit_widget.h
   src/widgets/configuration_files_widget.h
   src/widgets/setup_screen_widget.h
@@ -81,9 +81,11 @@ set(HEADERS
 add_library(${PROJECT_NAME}_tools
   src/tools/compute_default_collisions.cpp
   src/tools/moveit_config_data.cpp
+  src/tools/xml_manipulation.cpp
   src/tools/collision_linear_model.cpp
   src/tools/collision_matrix_model.cpp
   src/tools/rotated_header_view.cpp
+  src/tools/xml_syntax_highlighter.cpp
 )
 set_target_properties(${PROJECT_NAME}_tools PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(${PROJECT_NAME}_tools
@@ -107,7 +109,7 @@ add_library(${PROJECT_NAME}_widgets
   src/widgets/passive_joints_widget.cpp
   src/widgets/perception_widget.cpp
   src/widgets/configuration_files_widget.cpp
-  src/widgets/ros_controllers_widget.cpp
+  src/widgets/controllers_widget.cpp
   src/widgets/controller_edit_widget.cpp
   src/widgets/navigation_widget.cpp
   src/widgets/header_widget.cpp

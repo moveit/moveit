@@ -44,7 +44,6 @@ from __future__ import print_function
 from lxml import etree
 import shlex
 import sys
-import io
 
 
 def doRound(values, decimal_places):
@@ -82,19 +81,8 @@ if __name__ == "__main__":
     print("\nCollada Number Rounder")
     print("Rounding numbers to", decimal_places, "decimal places\n")
 
-    # Read string from file
-    f = open(input_file, "r")
-    xml = f.read()
-
-    # Parse XML
-    # doc = etree.fromstring(xml)
-    # print(doc.tag)
-    # doc = etree.parse(io.BytesIO(xml))
-    # element=doc.xpath('//ns:asset',namespaces={'ns','http://www.collada.org/2008/03/COLLADASchema'})
-    # print(element)
-
     namespace = "http://www.collada.org/2008/03/COLLADASchema"
-    dom = etree.parse(io.BytesIO(xml))
+    dom = etree.parse(input_file)
 
     # find elements of particular name
     elements = dom.xpath("//ns:translate", namespaces={"ns": namespace})
@@ -122,6 +110,5 @@ if __name__ == "__main__":
         elements[i].text = doRound(elements[i].text, decimal_places)
 
     # save changes
-    f = open(output_file, "w")
-    f.write(etree.tostring(dom))
-    f.close()
+    with open(output_file, "wb") as f:
+        dom.write(f, encoding="utf-8")

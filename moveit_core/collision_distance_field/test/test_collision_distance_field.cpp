@@ -299,10 +299,9 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester)
   poses.push_back(identity);
   std::set<std::string> touch_links;
   trajectory_msgs::JointTrajectory empty_state;
-  moveit::core::AttachedBody* attached_body = new moveit::core::AttachedBody(
-      robot_state.getLinkModel("r_gripper_palm_link"), "box", identity, shapes, poses, touch_links, empty_state);
 
-  robot_state.attachBody(attached_body);
+  robot_state.attachBody(std::make_unique<moveit::core::AttachedBody>(
+      robot_state.getLinkModel("r_gripper_palm_link"), "box", identity, shapes, poses, touch_links, empty_state));
 
   res = collision_detection::CollisionResult();
   cenv_->checkSelfCollision(req, res, robot_state, *acm_);
@@ -314,9 +313,8 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester)
   touch_links.insert("r_gripper_palm_link");
   shapes[0] = std::make_shared<shapes::Box>(.1, .1, .1);
 
-  moveit::core::AttachedBody* attached_body_1 = new moveit::core::AttachedBody(
-      robot_state.getLinkModel("r_gripper_palm_link"), "box", identity, shapes, poses, touch_links, empty_state);
-  robot_state.attachBody(attached_body_1);
+  robot_state.attachBody(std::make_unique<moveit::core::AttachedBody>(
+      robot_state.getLinkModel("r_gripper_palm_link"), "box", identity, shapes, poses, touch_links, empty_state));
 
   res = collision_detection::CollisionResult();
   cenv_->checkSelfCollision(req, res, robot_state, *acm_);

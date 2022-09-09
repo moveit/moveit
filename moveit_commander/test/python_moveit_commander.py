@@ -43,12 +43,25 @@ import rostest
 import os
 
 from moveit_msgs.msg import RobotState
+from sensor_msgs.msg import JointState
 
-from moveit_commander import RobotCommander, PlanningSceneInterface
+from moveit_commander import (
+    RobotCommander,
+    PlanningSceneInterface,
+    MoveItCommanderException,
+)
 
 
 class PythonMoveitCommanderTest(unittest.TestCase):
     PLANNING_GROUP = "manipulator"
+    JOINT_NAMES = [
+        "joint_1",
+        "joint_2",
+        "joint_3",
+        "joint_4",
+        "joint_5",
+        "joint_6",
+    ]
 
     @classmethod
     def setUpClass(self):
@@ -67,14 +80,7 @@ class PythonMoveitCommanderTest(unittest.TestCase):
     def test_enforce_bounds(self):
         in_msg = RobotState()
         in_msg.joint_state.header.frame_id = "base_link"
-        in_msg.joint_state.name = [
-            "joint_1",
-            "joint_2",
-            "joint_3",
-            "joint_4",
-            "joint_5",
-            "joint_6",
-        ]
+        in_msg.joint_state.name = self.JOINT_NAMES
         in_msg.joint_state.position = [0] * 6
         in_msg.joint_state.position[0] = 1000
 
@@ -87,14 +93,7 @@ class PythonMoveitCommanderTest(unittest.TestCase):
         expected_state = RobotState()
         expected_state.joint_state.header.frame_id = "base_link"
         expected_state.multi_dof_joint_state.header.frame_id = "base_link"
-        expected_state.joint_state.name = [
-            "joint_1",
-            "joint_2",
-            "joint_3",
-            "joint_4",
-            "joint_5",
-            "joint_6",
-        ]
+        expected_state.joint_state.name = self.JOINT_NAMES
         expected_state.joint_state.position = [0] * 6
         self.assertEqual(self.group.get_current_state(), expected_state)
 
@@ -118,6 +117,13 @@ class PythonMoveitCommanderTest(unittest.TestCase):
         )
         self.check_target_setting([0.5] + [0.3] * (n - 1), "joint_1", 0.5)
 
+        js_target = JointState(name=self.JOINT_NAMES, position=[0.1] * n)
+        self.check_target_setting([0.1] * n, js_target)
+        # name and position should have the same size, or raise exception
+        with self.assertRaises(MoveItCommanderException):
+            js_target.position = []
+            self.check_target_setting(None, js_target)
+
     def plan(self, target):
         self.group.set_joint_value_target(target)
         return self.group.plan()
@@ -140,6 +146,25 @@ class PythonMoveitCommanderTest(unittest.TestCase):
         success3, plan3, time3, err3 = self.plan(current)
         self.assertTrue(success3)
         self.assertTrue(self.group.execute(plan3))
+
+    def test_gogogo(self):
+        current_joints = np.asarray(self.group.get_current_joint_values())
+
+        self.group.set_joint_value_target(current_joints)
+        self.assertTrue(self.group.go(True))
+
+        self.assertTrue(self.group.go(current_joints))
+        self.assertTrue(self.group.go(list(current_joints)))
+        self.assertTrue(self.group.go(tuple(current_joints)))
+        self.assertTrue(
+            self.group.go(JointState(name=self.JOINT_NAMES, position=current_joints))
+        )
+
+        self.group.remember_joint_values("current")
+        self.assertTrue(self.group.go("current"))
+
+        current_pose = self.group.get_current_pose()
+        self.assertTrue(self.group.go(current_pose))
 
     def test_planning_scene_interface(self):
         planning_scene = PlanningSceneInterface()

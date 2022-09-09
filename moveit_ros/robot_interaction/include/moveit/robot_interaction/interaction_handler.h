@@ -231,19 +231,19 @@ private:
 
   // Update RobotState using a generic interaction feedback message.
   // YOU MUST LOCK state_lock_ BEFORE CALLING THIS.
-  void updateStateGeneric(moveit::core::RobotState* state, const GenericInteraction* g,
-                          const visualization_msgs::InteractiveMarkerFeedbackConstPtr* feedback,
-                          StateChangeCallbackFn* callback);
+  void updateStateGeneric(moveit::core::RobotState& state, const GenericInteraction& g,
+                          const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback,
+                          StateChangeCallbackFn& callback);
 
   // Update RobotState for a new pose of an eef.
   // YOU MUST LOCK state_lock_ BEFORE CALLING THIS.
-  void updateStateEndEffector(moveit::core::RobotState* state, const EndEffectorInteraction* eef,
-                              const geometry_msgs::Pose* pose, StateChangeCallbackFn* callback);
+  void updateStateEndEffector(moveit::core::RobotState& state, const EndEffectorInteraction& eef,
+                              const geometry_msgs::Pose& pose, StateChangeCallbackFn& callback);
 
   // Update RobotState for a new joint position.
   // YOU MUST LOCK state_lock_ BEFORE CALLING THIS.
-  void updateStateJoint(moveit::core::RobotState* state, const JointInteraction* vj, const geometry_msgs::Pose* pose,
-                        StateChangeCallbackFn* callback);
+  void updateStateJoint(moveit::core::RobotState& state, const JointInteraction& vj, const geometry_msgs::Pose& pose,
+                        StateChangeCallbackFn& callback);
 
   // Set the error state for \e name.
   // Returns true if the error state for \e name changed.

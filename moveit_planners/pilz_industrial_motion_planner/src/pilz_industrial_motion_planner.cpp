@@ -44,9 +44,9 @@
 // Boost includes
 #include <boost/scoped_ptr.hpp>
 
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 
-#include <pluginlib/class_loader.h>
+#include <pluginlib/class_loader.hpp>
 
 namespace pilz_industrial_motion_planner
 {
@@ -127,7 +127,7 @@ CommandPlanner::getPlanningContext(const planning_scene::PlanningSceneConstPtr& 
   // Check that a loaded for this request exists
   if (!canServiceRequest(req))
   {
-    ROS_ERROR_STREAM("No ContextLoader for planner_id " << req.planner_id.c_str() << " found. Planning not possible.");
+    ROS_ERROR_STREAM("No ContextLoader for planner_id '" << req.planner_id.c_str() << "' found. Planning not possible.");
     return nullptr;
   }
 

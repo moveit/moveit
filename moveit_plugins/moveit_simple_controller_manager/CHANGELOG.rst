@@ -2,6 +2,25 @@
 Changelog for package moveit_simple_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.9 (2022-03-06)
+------------------
+
+1.1.8 (2022-01-30)
+------------------
+
+1.1.7 (2021-12-31)
+------------------
+* ``simple_controller_manager``: add ``max_effort`` parameter to ``GripperCommand`` action (`#2984 <https://github.com/ros-planning/moveit/issues/2984>`_)
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* Contributors: Jochen Sprickerhof, Rick Staa
+
+1.1.6 (2021-11-06)
+------------------
+* Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``
+* clang-tidy: modernize-make-shared, modernize-make-unique (`#2762 <https://github.com/ros-planning/moveit/issues/2762>`_)
+* Facilitate spotting of empty controller names, using quotes (`#2761 <https://github.com/ros-planning/moveit/issues/2761>`_)
+* Contributors: G.A. vd. Hoorn, Robert Haschke
+
 1.1.5 (2021-05-23)
 ------------------
 
