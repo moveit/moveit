@@ -51,24 +51,23 @@ bool limitMaxCartesianLinkSpeed(robot_trajectory::RobotTrajectory& trajectory, c
   if (!link_name.empty())
   {
     const moveit::core::RobotModel& model{ *trajectory.getRobotModel() };
+    bool found = false;
+    const auto* link = model.getLinkModel(link_name, &found);
 
-    if (!model.hasLinkModel(link_name))
-      ROS_ERROR_STREAM_NAMED(LOGGER_NAME, "Link model was not specified in the robot trajectory");
+    if (!found)
+      ROS_ERROR_STREAM_NAMED(LOGGER_NAME, "Unknown link model '" << link_name << "'");
     else
-      links.push_back(model.getLinkModel(link_name));
+      links.push_back(link);
   }
   // In case the link name is not given but the trajectory belongs to a group,
   // retrieve the end effectors from that joint model group
-  else if (trajectory.getGroup() != nullptr)
+  else if (trajectory.getGroup())
   {
-    std::vector<const moveit::core::LinkModel*> tips;
-    trajectory.getGroup()->getEndEffectorTips(tips);
-    if (tips.empty())
+    trajectory.getGroup()->getEndEffectorTips(links);
+    if (links.empty())
     {
-      ROS_ERROR_STREAM_NAMED(LOGGER_NAME, "No end effector tip defined for specified group, cannot limit Cartesian "
-                                          "speed without explicit link specification.");
+      ROS_ERROR_STREAM_NAMED(LOGGER_NAME, "No link(s) specified");
     }
-    links = tips;
   }
 
   // Call function for speed setting using the created link model
