@@ -582,6 +582,18 @@ class MoveGroupCommander(object):
                 "Expected value in the range from 0 to 1 for scaling factor"
             )
 
+    def limit_max_cartesian_link_speed(self, speed, link_name=""):
+        """Set the maximum Cartesian link speed. Only positive real values are allowed.
+        The unit is meter per second."""
+        if speed > 0.0:
+            self._g.limit_max_cartesian_link_speed(speed, link_name)
+        else:
+            raise MoveItCommanderException("Expected speed value to be greater than 0")
+
+    def clear_max_cartesian_link_speed(self):
+        """Clear the maximum cartesian link speed."""
+        self._g.clear_max_cartesian_link_speed()
+
     def go(self, joints=None, wait=True):
         """Set the target of the group and then move the group to the specified target"""
         if type(joints) is bool:
