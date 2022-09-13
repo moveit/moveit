@@ -2,6 +2,9 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.11 (2022-09-13)
+-------------------
+
 1.0.10 (2022-03-06)
 -------------------
 * Add Ptr definitions for TimeParameterization classes (`#3078 <https://github.com/ros-planning/moveit/issues/3078>`_)

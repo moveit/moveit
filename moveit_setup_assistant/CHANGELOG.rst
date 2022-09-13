@@ -2,6 +2,11 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.11 (2022-09-13)
+-------------------
+* Pass xacro_args to both, urdf and srdf loading (`#3200 <https://github.com/ros-planning/moveit/issues/3200>`_)
+* Contributors: Robert Haschke
+
 1.0.10 (2022-03-06)
 -------------------
 
