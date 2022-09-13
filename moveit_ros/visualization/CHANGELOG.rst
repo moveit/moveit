@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.10 (2022-09-13)
+-------------------
+* Fix rviz segfault when changing move group during execution (`#3123 <https://github.com/ros-planning/moveit/issues/3123>`_)
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Replace obsolete distutils.core with setuptools (`#3103 <https://github.com/ros-planning/moveit/issues/3103>`_)
+* Contributors: Michael Görner, Robert Haschke, bsygo
+
 1.1.9 (2022-03-06)
 ------------------
 * Add PS3 dual shock model to moveit joy (`#3025 <https://github.com/ros-planning/moveit/issues/3025>`_)

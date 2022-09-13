@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.10 (2022-09-13)
+-------------------
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Contributors: Michael Görner, Robert Haschke
+
 1.1.9 (2022-03-06)
 ------------------
 * Use GLEW::GLEW link target (`#3079 <https://github.com/ros-planning/moveit/issues/3079>`_)

@@ -2,6 +2,15 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.10 (2022-09-13)
+-------------------
+* Limit Cartesian speed for link(s) (`#2856 <https://github.com/ros-planning/moveit/issues/2856>`_)
+* trajectory execution manager: reactivate tests (`#3177 <https://github.com/ros-planning/moveit/issues/3177>`_)
+* Clean up TrajectoryExecutionManager API (`#3178 <https://github.com/ros-planning/moveit/issues/3178>`_)
+* MoveItCpp: Allow multiple pipelines (`#3131 <https://github.com/ros-planning/moveit/issues/3131>`_)
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Contributors: Jochen Sprickerhof, Michael Görner, Robert Haschke, cambel, v4hn
+
 1.1.9 (2022-03-06)
 ------------------
 

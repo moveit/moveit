@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.10 (2022-09-13)
+-------------------
+* Fix namespace of planning plugin for benchmarks examples (`#3128 <https://github.com/ros-planning/moveit/issues/3128>`_)
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Filter more invalid values in moveit_benchmark_statistics.py (`#3084 <https://github.com/ros-planning/moveit/issues/3084>`_)
+* Contributors: Hugal31, Michael Görner, Robert Haschke
+
 1.1.9 (2022-03-06)
 ------------------
 

@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.10 (2022-09-13)
+-------------------
+* Limit Cartesian speed for link(s) (`#2856 <https://github.com/ros-planning/moveit/issues/2856>`_)
+* Optionally enable dynamics monitoring in move_group node (`#3137 <https://github.com/ros-planning/moveit/issues/3137>`_)
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Contributors: Michael Görner
+
 1.1.9 (2022-03-06)
 ------------------
 * Fix missing include (`#3051 <https://github.com/ros-planning/moveit/issues/3051>`_)
@@ -48,7 +55,7 @@ Changelog for package moveit_ros_move_group
 ------------------
 * [fix] Let the max number of contacts be the amount of world objects + link models with geometry (`#2355 <https://github.com/ros-planning/moveit/issues/2355>`_)
 * [maint] Add comment to MOVEIT_CLASS_FORWARD (`#2315 <https://github.com/ros-planning/moveit/issues/2315>`_)
-* Contributors: Felix von Drigalski, Loy van Beek, Michael Görner, v4hn
+* Contributors: Felix von Drigalski, Loy van Beek, Michael Görner
 
 1.1.0 (2020-09-04)
 ------------------

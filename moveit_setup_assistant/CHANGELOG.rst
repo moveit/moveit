@@ -2,6 +2,19 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.10 (2022-09-13)
+-------------------
+* Limit Cartesian speed for link(s) (`#2856 <https://github.com/ros-planning/moveit/issues/2856>`_)
+* MSA templates: replace hard-coded package name
+* Extended ACM editing in MSA (`#3093 <https://github.com/ros-planning/moveit/issues/3093>`_)
+
+  * Allow disabling/enabling links by default
+  * Use matrix view by default
+* Optionally enable dynamics monitoring in move_group node (`#3137 <https://github.com/ros-planning/moveit/issues/3137>`_)
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Improve Gazebo-compatible URDF generation in MSA (`#3081 <https://github.com/ros-planning/moveit/issues/3081>`_)
+* Contributors: AM4283, Michael Görner, Robert Haschke, rickstaa
+
 1.1.9 (2022-03-06)
 ------------------
 * Fix collisions_updater's set comparison (`#3076 <https://github.com/ros-planning/moveit/issues/3076>`_)

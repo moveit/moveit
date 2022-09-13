@@ -2,6 +2,14 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.10 (2022-09-13)
+-------------------
+* Remove ConstraintSampler::project() (`#3170 <https://github.com/ros-planning/moveit/issues/3170>`_)
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Cleanup OMPL's PlanningContextManager's protected API
+* planning_context_manager: rename protected methods
+* Contributors: Michael Görner, Robert Haschke
+
 1.1.9 (2022-03-06)
 ------------------
 

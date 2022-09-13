@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.10 (2022-09-13)
+-------------------
+* Find end-effectors for empty parent_group (`#3108 <https://github.com/ros-planning/moveit/issues/3108>`_)
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Consider eef's parent group when creating eef markers (`#3095 <https://github.com/ros-planning/moveit/issues/3095>`_)
+* Contributors: Michael Görner, Robert Haschke
+
 1.1.9 (2022-03-06)
 ------------------
 

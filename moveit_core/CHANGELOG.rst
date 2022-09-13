@@ -2,6 +2,24 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.10 (2022-09-13)
+-------------------
+* Limit Cartesian speed for link(s) (`#2856 <https://github.com/ros-planning/moveit/issues/2856>`_)
+* Generalize computeCartesianPath() to consider a link_offset (`#3197 <https://github.com/ros-planning/moveit/issues/3197>`_)
+* Generate version.h with git branch and commit hash (`#2793 <https://github.com/ros-planning/moveit/issues/2793>`_)
+* robot_model_test_utils: Add loadIKPluginForGroup()
+* Remove ConstraintSampler::project() (`#3170 <https://github.com/ros-planning/moveit/issues/3170>`_)
+* Add dual arm test (`#3119 <https://github.com/ros-planning/moveit/issues/3119>`_)
+* Fix PlanarJointModel::satisfiesPositionBounds (`#3160 <https://github.com/ros-planning/moveit/issues/3160>`_)
+* Switch to hpp headers of pluginlib
+* Fix bug in applying planning scene diffs that have attached collision objects (`#3124 <https://github.com/ros-planning/moveit/issues/3124>`_)
+* Fix flaky constraint sampler test (`#3135 <https://github.com/ros-planning/moveit/issues/3135>`_)
+* Constraint samplers with seed (`#3112 <https://github.com/ros-planning/moveit/issues/3112>`_)
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Fix null pointer access to CollisionEnvObject in PlanningScene (`#3104 <https://github.com/ros-planning/moveit/issues/3104>`_)
+* ACM: Consider default entries when packing a ROS message (`#3096 <https://github.com/ros-planning/moveit/issues/3096>`_)
+* Contributors: Captain Yoshi, Jafar, Jochen Sprickerhof, Michael Görner, Robert Haschke, Rufus Wong, Tahsincan Köse, cambel
+
 1.1.9 (2022-03-06)
 ------------------
 * Add special case for sphere bodies in sphere decomposition (`#3056 <https://github.com/ros-planning/moveit/issues/3056>`_)

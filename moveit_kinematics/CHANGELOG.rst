@@ -2,6 +2,15 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.10 (2022-09-13)
+-------------------
+* Merge PR `#3172 <https://github.com/ros-planning/moveit/issues/3172>`_: Fix CI
+* Fix test_ikfast_plugins.sh
+* auto_create_ikfast_moveit_plugin.sh: allow xacro input
+* Switch to hpp headers of pluginlib
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Contributors: Jochen Sprickerhof, Michael Görner, Robert Haschke
+
 1.1.9 (2022-03-06)
 ------------------
 
