@@ -56,6 +56,16 @@
 #include <moveit_msgs/DisplayRobotState.h>
 #include <moveit/planning_scene/planning_scene.h>
 
+//new library
+#include <X11/Xlib.h>
+
+void getScreenResolution(int &width, int &height){
+  Display* disp = XOpenDisplay(NULL);
+  Screen*  scrn = DefaultScreenOfDisplay(disp);
+  width  = scrn->width;
+  height = scrn->height;
+}
+
 namespace moveit_setup_assistant
 {
 // ******************************************************************************************
@@ -517,8 +527,14 @@ void RobotPosesWidget::loadJointSliders(const QString& selected)
   }
 
   // Copy the width of column 2 and manually calculate height from number of joints
-  joint_list_widget_->resize(300, num_joints * 70);  // w, h
-
+  int width,height;
+  getScreenResolution(width,height);
+  if (width > 3839 && height > 2159){
+     joint_list_widget_->resize(600, num_joints * 140); //changes suggested in issue
+  }
+  else{
+    joint_list_widget_->resize(300, num_joints * 70);  // w, h
+  }
   // Update the robot model in Rviz with newly selected joint values
   publishJoints();
 
@@ -821,7 +837,14 @@ SliderWidget::SliderWidget(QWidget* parent, const moveit::core::JointModel* join
 
   // Joint Value Box ------------------------------------------------
   joint_value_ = new QLineEdit(this);
-  joint_value_->setMaximumWidth(62);
+  int width,height;
+  getScreenResolution(width,height);
+  if (width > 3839 && height > 2159){
+    joint_value_->setMaximumWidth(124); //change suggested in issue
+  }
+  else{
+    joint_value_->setMaximumWidth(62);
+  }
   joint_value_->setContentsMargins(0, 0, 0, 0);
   connect(joint_value_, SIGNAL(editingFinished()), this, SLOT(changeJointSlider()));
   row2->addWidget(joint_value_);
