@@ -42,6 +42,7 @@
 #include <QApplication>
 #include <QComboBox>
 #include <QDoubleValidator>
+#include <QFontMetrics>
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -245,8 +246,8 @@ QWidget* RobotPosesWidget::createEditWidget()
 
   // Create scroll area
   scroll_area_ = new QScrollArea(this);
-  // scroll_area_->setBackgroundRole(QPalette::Dark);
   scroll_area_->setWidget(joint_list_widget_);
+  scroll_area_->setWidgetResizable(true);
 
   column2_->addWidget(scroll_area_);
 
@@ -485,9 +486,7 @@ void RobotPosesWidget::loadJointSliders(const QString& selected)
   // Create layout again
   joint_list_layout_ = new QVBoxLayout();
   joint_list_widget_->setLayout(joint_list_layout_);
-  //  joint_list_widget_->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-  joint_list_widget_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-  joint_list_widget_->setMinimumSize(50, 50);  // w, h
+  joint_list_widget_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
   // Get list of associated joints
   const moveit::core::JointModelGroup* joint_model_group =
@@ -515,9 +514,6 @@ void RobotPosesWidget::loadJointSliders(const QString& selected)
 
     ++num_joints;
   }
-
-  // Copy the width of column 2 and manually calculate height from number of joints
-  joint_list_widget_->resize(300, num_joints * 70);  // w, h
 
   // Update the robot model in Rviz with newly selected joint values
   publishJoints();
@@ -819,9 +815,10 @@ SliderWidget::SliderWidget(QWidget* parent, const moveit::core::JointModel* join
   joint_slider_->setContentsMargins(0, 0, 0, 0);
   row2->addWidget(joint_slider_);
 
+  QFontMetrics m{ QFont() };
   // Joint Value Box ------------------------------------------------
   joint_value_ = new QLineEdit(this);
-  joint_value_->setMaximumWidth(62);
+  joint_value_->setMaximumWidth(m.boundingRect("0000.00000").width());
   joint_value_->setContentsMargins(0, 0, 0, 0);
   connect(joint_value_, SIGNAL(editingFinished()), this, SLOT(changeJointSlider()));
   row2->addWidget(joint_value_);
