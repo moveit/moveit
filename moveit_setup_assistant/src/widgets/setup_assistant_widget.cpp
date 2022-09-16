@@ -137,7 +137,7 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, const boost::program
 
   // Rviz View Right Pane ---------------------------------------------------
   rviz_container_ = new QWidget(this);
-  rviz_container_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  rviz_container_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   rviz_container_->hide();  // do not show until after the start screen
 
   // Split screen -----------------------------------------------------
