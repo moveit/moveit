@@ -6,6 +6,9 @@ name: pre-release
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read # to fetch code (actions/checkout)
+
 jobs:
   default:
     strategy:
