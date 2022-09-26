@@ -43,6 +43,7 @@
 
 namespace moveit_rviz_plugin
 {
+  
 JMGItemModel::JMGItemModel(const moveit::core::RobotState& robot_state, const std::string& group_name, QObject* parent)
   : QAbstractTableModel(parent), robot_state_(robot_state), jmg_(nullptr)
 {
@@ -380,7 +381,13 @@ void MotionPlanningFrameJointsWidget::jogNullspace(double value)
   model->getRobotState().harmonizePositions(model->getJointModelGroup());
   triggerUpdate(model);
 }
-
+void SetQStyleOptionProgressBar(QStyleOptionProgressBa& opt, const float min, const float max, double value)
+  {
+    opt.minimum = 0;
+    opt.maximum = 1000;
+    opt.progress = 1000. * (value - min) / (max - min);
+    opt.textVisible = true;
+  }
 void ProgressBarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
   // copied from QStyledItemDelegate::paint
@@ -416,12 +423,9 @@ void ProgressBarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
 
       QStyleOptionProgressBar opt;
       opt.rect = option.rect;
-      opt.minimum = 0;
-      opt.maximum = 1000;
-      opt.progress = 1000. * (value - min) / (max - min);
       opt.text = style_option.text;
       opt.textAlignment = style_option.displayAlignment;
-      opt.textVisible = true;
+      SetQStyleOptionProgressBar(opt, min, max, value);
       style->drawControl(QStyle::CE_ProgressBar, &opt, painter);
       return;
     }
@@ -499,14 +503,12 @@ void ProgressBarEditor::paintEvent(QPaintEvent* /*event*/)
   QPainter painter(this);
 
   QStyleOptionProgressBar opt;
+  
   opt.rect = rect();
   opt.palette = this->palette();
-  opt.minimum = 0;
-  opt.maximum = 1000;
-  opt.progress = 1000. * (value_ - min_) / (max_ - min_);
   opt.text = QLocale().toString(value_, 'f', digits_);
   opt.textAlignment = Qt::AlignRight;
-  opt.textVisible = true;
+  SetQStyleOptionProgressBar(opt, min_, max_, value_);
   style()->drawControl(QStyle::CE_ProgressBar, &opt, &painter);
 }
 
