@@ -381,6 +381,23 @@ void MotionPlanningFrameJointsWidget::jogNullspace(double value)
   triggerUpdate(model);
 }
 
+namespace
+{
+void paintProgressBar(QPainter* painter, QStyle* style, const QString& text, float value, float min, float max,
+                      const QRect& rect)
+{
+  QStyleOptionProgressBar opt;
+  opt.rect = rect;
+  opt.minimum = 0;
+  opt.maximum = 1000;
+  opt.progress = 1000. * (value - min) / (max - min);
+  opt.text = text;
+  opt.textAlignment = Qt::AlignCenter;
+  opt.textVisible = true;
+  style->drawControl(QStyle::CE_ProgressBar, &opt, painter);
+}
+}  // namespace
+
 void ProgressBarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
   // copied from QStyledItemDelegate::paint
@@ -413,16 +430,7 @@ void ProgressBarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
       QPointF bounds = vbounds.toPointF();
       const float min = bounds.x();
       const float max = bounds.y();
-
-      QStyleOptionProgressBar opt;
-      opt.rect = option.rect;
-      opt.minimum = 0;
-      opt.maximum = 1000;
-      opt.progress = 1000. * (value - min) / (max - min);
-      opt.text = style_option.text;
-      opt.textAlignment = style_option.displayAlignment;
-      opt.textVisible = true;
-      style->drawControl(QStyle::CE_ProgressBar, &opt, painter);
+      paintProgressBar(painter, style, style_option.text, value, min, max, style_option.rect);
       return;
     }
   }
@@ -448,7 +456,7 @@ QWidget* ProgressBarDelegate::createEditor(QWidget* parent, const QStyleOptionVi
         min *= 180. / M_PI;
         max *= 180. / M_PI;
       }
-      auto* editor = new ProgressBarEditor(parent, min, max, is_revolute ? 0 : 3);
+      auto* editor = new ProgressBarEditor(parent, is_revolute, min, max, is_revolute ? 0 : 3);
       connect(editor, &ProgressBarEditor::editingFinished, this, &ProgressBarDelegate::commitAndCloseEditor);
       connect(editor, &ProgressBarEditor::valueChanged, this, [=](float value) {
         const_cast<QAbstractItemModel*>(index.model())->setData(index, value, Qt::EditRole);
@@ -486,8 +494,8 @@ bool JointsWidgetEventFilter::eventFilter(QObject* /*target*/, QEvent* event)
   return false;
 }
 
-ProgressBarEditor::ProgressBarEditor(QWidget* parent, float min, float max, int digits)
-  : QWidget(parent), min_(min), max_(max), digits_(digits)
+ProgressBarEditor::ProgressBarEditor(QWidget* parent, bool is_revolute, float min, float max, int digits)
+  : QWidget(parent), is_revolute_(is_revolute), min_(min), max_(max), digits_(digits)
 {
   // if left mouse button is pressed, grab all future mouse events until button(s) released
   if (QApplication::mouseButtons() & Qt::LeftButton)
@@ -497,17 +505,9 @@ ProgressBarEditor::ProgressBarEditor(QWidget* parent, float min, float max, int 
 void ProgressBarEditor::paintEvent(QPaintEvent* /*event*/)
 {
   QPainter painter(this);
-
-  QStyleOptionProgressBar opt;
-  opt.rect = rect();
-  opt.palette = this->palette();
-  opt.minimum = 0;
-  opt.maximum = 1000;
-  opt.progress = 1000. * (value_ - min_) / (max_ - min_);
-  opt.text = QLocale().toString(value_, 'f', digits_);
-  opt.textAlignment = Qt::AlignRight;
-  opt.textVisible = true;
-  style()->drawControl(QStyle::CE_ProgressBar, &opt, &painter);
+  QString text = QLocale().toString(value_, 'f', digits_);
+  text.append(is_revolute_ ? "°" : "m");
+  paintProgressBar(&painter, style(), text, value_, min_, max_, rect());
 }
 
 void ProgressBarEditor::mousePressEvent(QMouseEvent* event)

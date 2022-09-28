@@ -188,7 +188,7 @@ class ProgressBarEditor : public QWidget
 
 public:
   /// Create a progressbar-like slider for editing values in range mix..max
-  ProgressBarEditor(QWidget* parent = nullptr, float min = -1.0, float max = 0.0, int digits = 0);
+  ProgressBarEditor(QWidget* parent, bool is_revolute, float min, float max, int digits);
 
   void setValue(float value)
   {
@@ -210,6 +210,7 @@ protected:
   void mouseReleaseEvent(QMouseEvent* event) override;
 
 private:
+  bool is_revolute_;
   float value_;
   float min_;
   float max_;
