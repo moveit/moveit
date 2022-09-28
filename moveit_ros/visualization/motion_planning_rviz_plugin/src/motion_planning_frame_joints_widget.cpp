@@ -189,6 +189,8 @@ MotionPlanningFrameJointsWidget::MotionPlanningFrameJointsWidget(MotionPlanningD
   ui_->setupUi(this);
   // intercept mouse events delivered to joints_view_ to open editor on first mouse press
   ui_->joints_view_->viewport()->installEventFilter(new JointsWidgetEventFilter(ui_->joints_view_));
+  // intercept keyboard events delivered to joints_view_ to operate joints directly
+  ui_->joints_view_->installEventFilter(new JointsWidgetEventFilter(ui_->joints_view_));
   ui_->joints_view_->setItemDelegateForColumn(1, new ProgressBarDelegate(this));
   svd_.setThreshold(0.001);
 }
@@ -490,6 +492,35 @@ bool JointsWidgetEventFilter::eventFilter(QObject* /*target*/, QEvent* event)
       view->edit(index);
       return true;  // event handled
     }
+  }
+  else if (event->type() == QEvent::KeyPress)
+  {
+    QKeyEvent* key_event = static_cast<QKeyEvent*>(event);
+    if (key_event->key() != Qt::Key_Left && key_event->key() != Qt::Key_Right)
+      return false;  // only react to KeyLeft / KeyRight events
+
+    QAbstractItemView* view = qobject_cast<QAbstractItemView*>(parent());
+    QModelIndex index = view->currentIndex();
+    index = index.sibling(index.row(), 1);
+
+    if (key_event->type() == QEvent::KeyPress && key_event->modifiers() == Qt::NoModifier &&
+        index.flags() & Qt::ItemIsEditable)
+    {
+      if (!key_event->isAutoRepeat())  // first key press: initialize delta_ from joint type and direction
+      {
+        delta_ = key_event->key() == Qt::Key_Left ? -0.1f : 0.1f;
+        if (index.data(ProgressBarDelegate::JointTypeRole).toInt() == moveit::core::JointModel::PRISMATIC)
+          delta_ *= 0.01;
+      }
+      else  // increase delta in a multiplicative fashion when holding down the key
+      {
+        delta_ *= 1.1;
+      }
+    }
+
+    float current = index.data(Qt::EditRole).toFloat();
+    view->model()->setData(index, current + delta_, Qt::EditRole);
+    return true;
   }
   return false;
 }

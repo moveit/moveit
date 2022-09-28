@@ -108,6 +108,7 @@ private:
 class JointsWidgetEventFilter : public QObject
 {
   Q_OBJECT
+  float delta_ = 0.0f;  // speed of joint value changes from keyboard interaction
 
 public:
   JointsWidgetEventFilter(QAbstractItemView* view);
