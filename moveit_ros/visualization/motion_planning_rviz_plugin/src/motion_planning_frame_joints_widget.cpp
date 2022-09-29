@@ -39,6 +39,7 @@
 
 #include "ui_motion_planning_rviz_plugin_frame_joints.h"
 #include <QPainter>
+#include <QDoubleSpinBox>
 #include <QSlider>
 #include <QMouseEvent>
 
@@ -446,6 +447,11 @@ QWidget* ProgressBarDelegate::createEditor(QWidget* parent, const QStyleOptionVi
 
 {
   auto editor = QStyledItemDelegate::createEditor(parent, option, index);
+  if (auto spinbox = qobject_cast<QDoubleSpinBox*>(editor))
+  {
+    bool is_revolute = (index.data(ProgressBarDelegate::JointTypeRole).toInt() == moveit::core::JointModel::REVOLUTE);
+    spinbox->setSuffix(is_revolute ? "°" : "m");
+  }
   return editor;
 }
 
