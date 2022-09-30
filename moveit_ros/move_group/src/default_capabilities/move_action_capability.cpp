@@ -103,23 +103,6 @@ void MoveGroupMoveAction::executeMoveCallbackPlanAndExecute(const moveit_msgs::M
   ROS_INFO_NAMED(getName(), "Combined planning and execution request received for MoveGroup action. "
                             "Forwarding to planning and execution pipeline.");
 
-  if (moveit::core::isEmpty(goal->planning_options.planning_scene_diff))
-  {
-    planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
-    const moveit::core::RobotState& current_state = lscene->getCurrentState();
-
-    // check to see if the desired constraints are already met
-    for (std::size_t i = 0; i < goal->request.goal_constraints.size(); ++i)
-      if (lscene->isStateConstrained(current_state,
-                                     kinematic_constraints::mergeConstraints(goal->request.goal_constraints[i],
-                                                                             goal->request.path_constraints)))
-      {
-        ROS_INFO_NAMED(getName(), "Goal constraints are already satisfied. No need to plan or execute any motions");
-        action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-        return;
-      }
-  }
-
   plan_execution::PlanExecution::Options opt;
 
   const moveit_msgs::MotionPlanRequest& motion_plan_request =
