@@ -555,7 +555,7 @@ void generateInitialTrajectory(const ProblemInfo& pci, const std::vector<double>
     current_pos(joint_index) = current_joint_values[joint_index];
   }
 
-  InitInfo init_info = pci.init_info;
+  const InitInfo& init_info = pci.init_info;
 
   // initialize based on type specified
   if (init_info.type == InitInfo::STATIONARY)
