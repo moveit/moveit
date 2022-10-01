@@ -42,6 +42,7 @@ add_library(
   ${PROJECT_NAME}
   src/trajopt_interface.cpp
   src/problem_description.cpp
+  src/collision_terms.cpp
   src/kinematic_terms.cpp
   src/trajopt_planning_context.cpp
 )
