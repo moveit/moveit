@@ -166,7 +166,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
     return false;
   }
-  else if (!req.goal_constraints[0].orientation_constraints.empty() &&
+  else if (!req.goal_constraints[0].position_constraints.empty() &&
            req.goal_constraints[0].orientation_constraints.empty())
   {
     ROS_ERROR_STREAM_NAMED("trajopt_planner", "orientation constraint is not defined");
