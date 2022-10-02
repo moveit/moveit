@@ -3,7 +3,7 @@ TRAJOPT_IGNORE_WARNINGS_PUSH
 #include <boost/functional/hash.hpp>
 TRAJOPT_IGNORE_WARNINGS_POP
 
-#include <trajopt/collision_terms.h>
+#include <trajopt_interface/collision_terms.h>
 //#include <trajopt/basic_types.h>
 #include <trajopt/utils.hpp>
 #include <trajopt_sco/expr_ops.hpp>
@@ -220,7 +220,7 @@ void CollisionEvaluator::GetCollisionsCached(const DblVec& x, trajopt::ContactRe
 
 SingleTimestepCollisionEvaluator::SingleTimestepCollisionEvaluator(planning_scene::PlanningSceneConstPtr& planning_scene,
                                                                    std::string planning_group,
-                                                                   SafetyMarginDataConstPtr safety_margin_data,
+                                                                   util::SafetyMarginData::ConstPtr safety_margin_data,
                                                                    const sco::VarVector& vars)
   : CollisionEvaluator(planning_scene, planning_group, safety_margin_data), m_vars(vars)
 {
@@ -382,7 +382,8 @@ void SingleTimestepCollisionEvaluator::CalcDistExpressions(const DblVec& x, sco:
 ////////////////////////////////////////
 
 CastCollisionEvaluator::CastCollisionEvaluator(planning_scene::PlanningSceneConstPtr planning_scene,
-                                               std::string planning_group, SafetyMarginDataConstPtr safety_margin_data,
+                                               std::string planning_group,
+                                               util::SafetyMarginData::ConstPtr safety_margin_data,
                                                const sco::VarVector& vars0, const sco::VarVector& vars1)
   : CollisionEvaluator(planning_scene, planning_group, safety_margin_data), m_vars0(vars0), m_vars1(vars1)
 {
@@ -474,7 +475,10 @@ void CastCollisionEvaluator::CalcCollisions(const DblVec& x, trajopt::ContactRes
     for (size_t k = 0; k < contact_vector.size(); ++k)
     {
       // convert Contact from MoveIt to ContactResult in tesseract:
-      Eigen::Vector3d moveit_cc_nearest_points[2] = contact_vector[k].nearest_points;
+      Eigen::Vector3d moveit_cc_nearest_points[2];
+      moveit_cc_nearest_points[0] = contact_vector[k].nearest_points[0];
+      moveit_cc_nearest_points[1] = contact_vector[k].nearest_points[1];
+      ;
       double moveit_cc_time = 0.5;
       trajopt::ContinouseCollisionType moviet_cc_type = trajopt::ContinouseCollisionType::CCType_Between;
 
@@ -500,23 +504,23 @@ void CastCollisionEvaluator::CalcDists(const DblVec& x, DblVec& dists)
 //////////////////////////////////////////
 
 CollisionCost::CollisionCost(planning_scene::PlanningSceneConstPtr& planning_scene, std::string planning_group,
-                             SafetyMarginDataConstPtr safety_margin_data, const sco::VarVector& vars)
+                             util::SafetyMarginData::ConstPtr safety_margin_data, const sco::VarVector& vars)
   : Cost("collision")
   , m_calc(new SingleTimestepCollisionEvaluator(planning_scene, planning_group, safety_margin_data, vars))
 {
 }
 
 CollisionCost::CollisionCost(planning_scene::PlanningSceneConstPtr& planning_scene, std::string planning_group,
-                             SafetyMarginDataConstPtr safety_margin_data, const sco::VarVector& vars0,
+                             util::SafetyMarginData::ConstPtr safety_margin_data, const sco::VarVector& vars0,
                              const sco::VarVector& vars1)
   : Cost("cast_collision")
   , m_calc(new CastCollisionEvaluator(planning_scene, planning_group, safety_margin_data, vars0, vars1))
 {
 }
 
-sco::ConvexObjectivePtr CollisionCost::convex(const sco::DblVec& x, sco::Model* model)
+sco::ConvexObjective::Ptr CollisionCost::convex(const sco::DblVec& x, sco::Model* model)
 {
-  sco::ConvexObjectivePtr out(new sco::ConvexObjective(model));
+  sco::ConvexObjective::Ptr out(new sco::ConvexObjective(model));
   sco::AffExprVector exprs;
   m_calc->CalcDistExpressions(x, exprs);
 
@@ -554,7 +558,8 @@ double CollisionCost::value(const sco::DblVec& x)
 // ALMOST EXACTLY COPIED FROM CollisionCost
 
 CollisionConstraint::CollisionConstraint(planning_scene::PlanningSceneConstPtr planning_scene,
-                                         std::string planning_group, SafetyMarginDataConstPtr safety_margin_data,
+                                         std::string planning_group,
+                                         util::SafetyMarginData::ConstPtr safety_margin_data,
                                          const sco::VarVector& vars)
   : m_calc(new SingleTimestepCollisionEvaluator(planning_scene, planning_group, safety_margin_data, vars))
 {
@@ -562,16 +567,17 @@ CollisionConstraint::CollisionConstraint(planning_scene::PlanningSceneConstPtr p
 }
 
 CollisionConstraint::CollisionConstraint(planning_scene::PlanningSceneConstPtr planning_scene,
-                                         std::string planning_group, SafetyMarginDataConstPtr safety_margin_data,
+                                         std::string planning_group,
+                                         util::SafetyMarginData::ConstPtr safety_margin_data,
                                          const sco::VarVector& vars0, const sco::VarVector& vars1)
   : m_calc(new CastCollisionEvaluator(planning_scene, planning_group, safety_margin_data, vars0, vars1))
 {
   name_ = "collision";
 }
 
-sco::ConvexConstraintsPtr CollisionConstraint::convex(const sco::DblVec& x, sco::Model* model)
+sco::ConvexConstraints::Ptr CollisionConstraint::convex(const sco::DblVec& x, sco::Model* model)
 {
-  sco::ConvexConstraintsPtr out(new sco::ConvexConstraints(model));
+  sco::ConvexConstraints::Ptr out(new sco::ConvexConstraints(model));
   sco::AffExprVector exprs;
   m_calc->CalcDistExpressions(x, exprs);
 
