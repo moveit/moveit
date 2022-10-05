@@ -55,7 +55,7 @@ public:
 
   bool initialize(const moveit::core::RobotModelConstPtr& model, const std::string& ns) override
   {
-    ROS_INFO(" ======================================= initialize gets called");
+    ROS_INFO_STREAM(" ======================================= initialize gets called, ns: " << ns);
 
     if (!ns.empty())
       nh_ = ros::NodeHandle(ns);
@@ -66,7 +66,7 @@ public:
       ROS_INFO(" ======================================= group name: %s, robot model: %s", gpName.c_str(),
                model->getName().c_str());
       planning_contexts_[gpName] =
-          TrajOptPlanningContextPtr(new TrajOptPlanningContext("trajopt_planning_context", gpName, model));
+          TrajOptPlanningContextPtr(new TrajOptPlanningContext("trajopt_planning_context", gpName, model, nh_));
     }
 
     return true;

@@ -53,6 +53,8 @@
 #include <Eigen/Geometry>
 #include <unordered_map>
 
+#include <trajopt_utils/eigen_conversions.hpp>
+
 #include "trajopt_interface/trajopt_interface.h"
 #include "trajopt_interface/problem_description.h"
 
@@ -166,7 +168,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
     return false;
   }
-  else if (!req.goal_constraints[0].orientation_constraints.empty() &&
+  else if (!req.goal_constraints[0].position_constraints.empty() &&
            req.goal_constraints[0].orientation_constraints.empty())
   {
     ROS_ERROR_STREAM_NAMED("trajopt_planner", "orientation constraint is not defined");
@@ -188,6 +190,9 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     }
     joint_pos_term->targets = joint_goal_constraints;
     problem_info.cnt_infos.push_back(joint_pos_term);
+
+    // needed to initialize trajectory
+    problem_info.init_info.data = util::toVectorXd(joint_goal_constraints);
   }
 
   ROS_INFO(" ======================================= Constraints from request start_state");
