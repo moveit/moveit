@@ -18,10 +18,10 @@ TRAJOPT_IGNORE_WARNINGS_POP
 #include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
 #include <moveit/collision_detection/world.h>
 
-namespace trajopt
+namespace trajopt_interface
 {
 // converts a vector of contacts to a vector of distances
-void CollisionsToDistances(const trajopt::ContactResultVector& dist_results, DblVec& dists)
+void CollisionsToDistances(const trajopt_interface::ContactResultVector& dist_results, DblVec& dists)
 {
   dists.clear();
   dists.reserve(dist_results.size());
@@ -39,7 +39,7 @@ void CollisionsToDistances(const trajopt::ContactResultVector& dist_results, Dbl
 // at the nearest point. Also it calculates the jac of the second-link-in-contact at the nearest point
 // However, if the collision type is set to CCType_Between, then the cc_nearest_point is used only for the
 // second link's jacobian calculations.
-void CollisionsToDistanceExpressions(const trajopt::ContactResultVector& dist_results,
+void CollisionsToDistanceExpressions(const trajopt_interface::ContactResultVector& dist_results,
                                      planning_scene::PlanningSceneConstPtr planning_scene, std::string planning_group,
                                      const sco::VarVector& vars, const DblVec& x, sco::AffExprVector& exprs,
                                      bool isTimestep1)
@@ -75,11 +75,11 @@ void CollisionsToDistanceExpressions(const trajopt::ContactResultVector& dist_re
   {
     // => for each ContactResult in the total ContactResultVector that contains all the contacts of each pair and all
     // the pairs const tesseract::ContactResult& res = dist_results[i];
-    const trajopt::ContactResult& res = dist_results[i];
+    const trajopt_interface::ContactResult& res = dist_results[i];
 
     // cc_type is a member of ContactResult in tesseract and by defualt (in clear() function) is set
     // to cc_type = ContinouseCollisionType::CCType_None; I do the same here:
-    trajopt::ContinouseCollisionType cc_type = ContinouseCollisionType::CCType_None;
+    ContinouseCollisionType cc_type = ContinouseCollisionType::CCType_None;
 
     // ContactResult in the original trajopt has two bodies and a distance
     // In MoveIt, we have Contact (corresponding to ContactResult in tesseract) type
@@ -151,12 +151,12 @@ void CollisionsToDistanceExpressions(const trajopt::ContactResultVector& dist_re
       const moveit::core::LinkModel* link_1 = robot_state.getLinkModel(res.link_names[1]);
 
       // how do I calculate cc_nearest_points, Contact in MoveIt does not have such a thing
-      bool succeed =
-          robot_state.getJacobian(joint_model_group, link_1,
-                                  (isTimestep1 && (cc_type == trajopt::ContinouseCollisionType::CCType_Between)) ?
-                                      res.cc_nearest_points[1] :
-                                      res.nearest_points[1],
-                                  jac);
+      bool succeed = robot_state.getJacobian(joint_model_group, link_1,
+                                             (isTimestep1 &&
+                                              (cc_type == trajopt_interface::ContinouseCollisionType::CCType_Between)) ?
+                                                 res.cc_nearest_points[1] :
+                                                 res.nearest_points[1],
+                                             jac);
 
       dist_grad_b = res.normal.transpose() * jac.topRows(3);
       sco::exprInc(dist, sco::varDot(dist_grad_b, vars));
@@ -172,7 +172,7 @@ void CollisionsToDistanceExpressions(const trajopt::ContactResultVector& dist_re
 }
 
 // This function creates affine expression
-void CollisionsToDistanceExpressions(const trajopt::ContactResultVector& dist_results,
+void CollisionsToDistanceExpressions(const trajopt_interface::ContactResultVector& dist_results,
                                      planning_scene::PlanningSceneConstPtr planning_scene, std::string planning_group,
                                      const sco::VarVector& vars0, const sco::VarVector& vars1, const DblVec& x,
                                      sco::AffExprVector& exprs)
@@ -200,10 +200,10 @@ inline size_t hash(const DblVec& x)
   return boost::hash_range(x.begin(), x.end());
 }
 
-void CollisionEvaluator::GetCollisionsCached(const DblVec& x, trajopt::ContactResultVector& dist_results)
+void CollisionEvaluator::GetCollisionsCached(const DblVec& x, trajopt_interface::ContactResultVector& dist_results)
 {
   size_t key = hash(sco::getDblVec(x, GetVars()));
-  trajopt::ContactResultVector* it = m_cache.get(key);
+  trajopt_interface::ContactResultVector* it = m_cache.get(key);
 
   if (it != nullptr)
   {
@@ -231,7 +231,8 @@ SingleTimestepCollisionEvaluator::SingleTimestepCollisionEvaluator(planning_scen
 }
 
 // So, each pair has a vector of contacts, and this functions puts all of these vectors of all pairs to one big vector called dist_results
-void SingleTimestepCollisionEvaluator::CalcCollisions(const DblVec& x, trajopt::ContactResultVector& dist_results)
+void SingleTimestepCollisionEvaluator::CalcCollisions(const DblVec& x,
+                                                      trajopt_interface::ContactResultVector& dist_results)
 {
   // tesseract::ContactResultMap contacts;
   // tesseract::EnvStatePtr state = env_->getState(manip_->getJointNames(), sco::getVec(x, m_vars));
@@ -355,7 +356,8 @@ void SingleTimestepCollisionEvaluator::CalcCollisions(const DblVec& x, trajopt::
       moveit_cc_nearest_points[0].setZero();
       moveit_cc_nearest_points[1].setZero();
       double moveit_cc_time = -1;
-      trajopt::ContinouseCollisionType moviet_cc_type = trajopt::ContinouseCollisionType::CCType_None;
+      trajopt_interface::ContinouseCollisionType moviet_cc_type =
+          trajopt_interface::ContinouseCollisionType::CCType_None;
 
       ContactResult contact_result(contact_vector[k], moveit_cc_nearest_points, moveit_cc_time, moviet_cc_type);
       dist_results.push_back(contact_result);
@@ -366,14 +368,14 @@ void SingleTimestepCollisionEvaluator::CalcCollisions(const DblVec& x, trajopt::
 // so, given a set of joint values called x, this function converts the vector of contacts to the vector of distances
 void SingleTimestepCollisionEvaluator::CalcDists(const DblVec& x, DblVec& dists)
 {
-  trajopt::ContactResultVector dist_results;
+  trajopt_interface::ContactResultVector dist_results;
   GetCollisionsCached(x, dist_results);
   CollisionsToDistances(dist_results, dists);
 }
 
 void SingleTimestepCollisionEvaluator::CalcDistExpressions(const DblVec& x, sco::AffExprVector& exprs)
 {
-  trajopt::ContactResultVector dist_results;
+  trajopt_interface::ContactResultVector dist_results;
   GetCollisionsCached(x, dist_results);
   CollisionsToDistanceExpressions(dist_results, planning_scene_, planning_group_, m_vars, x, exprs, false);
   LOG_DEBUG("%ld distance expressions\n", exprs.size());
@@ -395,7 +397,7 @@ CastCollisionEvaluator::CastCollisionEvaluator(planning_scene::PlanningSceneCons
 
 // similar to CalcCollisions from SingleTimestepCollisionEvaluator except we need two states because it is the
 // swept volume?
-void CastCollisionEvaluator::CalcCollisions(const DblVec& x, trajopt::ContactResultVector& dist_results)
+void CastCollisionEvaluator::CalcCollisions(const DblVec& x, trajopt_interface::ContactResultVector& dist_results)
 {
   // tesseract::ContactResultMap contacts;
   // tesseract::EnvStatePtr state0 = env_->getState(manip_->getJointNames(), sco::getVec(x, m_vars0));
@@ -480,7 +482,8 @@ void CastCollisionEvaluator::CalcCollisions(const DblVec& x, trajopt::ContactRes
       moveit_cc_nearest_points[1] = contact_vector[k].nearest_points[1];
       ;
       double moveit_cc_time = 0.5;
-      trajopt::ContinouseCollisionType moviet_cc_type = trajopt::ContinouseCollisionType::CCType_Between;
+      trajopt_interface::ContinouseCollisionType moviet_cc_type =
+          trajopt_interface::ContinouseCollisionType::CCType_Between;
 
       ContactResult contact_result(contact_vector[k], moveit_cc_nearest_points, moveit_cc_time, moviet_cc_type);
       dist_results.push_back(contact_result);
@@ -490,13 +493,13 @@ void CastCollisionEvaluator::CalcCollisions(const DblVec& x, trajopt::ContactRes
 
 void CastCollisionEvaluator::CalcDistExpressions(const DblVec& x, sco::AffExprVector& exprs)
 {
-  trajopt::ContactResultVector dist_results;
+  trajopt_interface::ContactResultVector dist_results;
   GetCollisionsCached(x, dist_results);
   CollisionsToDistanceExpressions(dist_results, planning_scene_, planning_group_, m_vars0, m_vars1, x, exprs);
 }
 void CastCollisionEvaluator::CalcDists(const DblVec& x, DblVec& dists)
 {
-  trajopt::ContactResultVector dist_results;
+  trajopt_interface::ContactResultVector dist_results;
   GetCollisionsCached(x, dist_results);
   CollisionsToDistances(dist_results, dists);
 }
@@ -524,7 +527,7 @@ sco::ConvexObjective::Ptr CollisionCost::convex(const sco::DblVec& x, sco::Model
   sco::AffExprVector exprs;
   m_calc->CalcDistExpressions(x, exprs);
 
-  trajopt::ContactResultVector dist_results;
+  trajopt_interface::ContactResultVector dist_results;
   m_calc->GetCollisionsCached(x, dist_results);
   for (std::size_t i = 0; i < exprs.size(); ++i)
   {
@@ -542,7 +545,7 @@ double CollisionCost::value(const sco::DblVec& x)
   DblVec dists;
   m_calc->CalcDists(x, dists);
 
-  trajopt::ContactResultVector dist_results;
+  trajopt_interface::ContactResultVector dist_results;
   m_calc->GetCollisionsCached(x, dist_results);
   double out = 0;
   for (std::size_t i = 0; i < dists.size(); ++i)
@@ -581,7 +584,7 @@ sco::ConvexConstraints::Ptr CollisionConstraint::convex(const sco::DblVec& x, sc
   sco::AffExprVector exprs;
   m_calc->CalcDistExpressions(x, exprs);
 
-  trajopt::ContactResultVector dist_results;
+  trajopt_interface::ContactResultVector dist_results;
   m_calc->GetCollisionsCached(x, dist_results);
   for (std::size_t i = 0; i < exprs.size(); ++i)
   {
@@ -599,7 +602,7 @@ DblVec CollisionConstraint::value(const sco::DblVec& x)
   DblVec dists;
   m_calc->CalcDists(x, dists);
 
-  trajopt::ContactResultVector dist_results;
+  trajopt_interface::ContactResultVector dist_results;
   m_calc->GetCollisionsCached(x, dist_results);
   DblVec out(dists.size());
   for (std::size_t i = 0; i < dists.size(); ++i)
@@ -611,4 +614,4 @@ DblVec CollisionConstraint::value(const sco::DblVec& x)
   }
   return out;
 }
-}  // namespace trajopt
+}  // namespace trajopt_interface

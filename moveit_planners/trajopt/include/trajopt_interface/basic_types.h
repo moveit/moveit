@@ -37,7 +37,7 @@
 #include <moveit/collision_detection/collision_common.h>
 //#include <moveit/planning_scene/planning_scene.h>
 
-namespace trajopt
+namespace trajopt_interface
 {
 template <typename T>
 using AlignedVector = std::vector<T, Eigen::aligned_allocator<T>>;
@@ -376,4 +376,4 @@ typedef std::shared_ptr<ObjectColorMap> ObjectColorMapPtr;
 typedef std::shared_ptr<const ObjectColorMap> ObjectColorMapConstPtr;
 typedef AlignedUnorderedMap<std::string, AttachedBodyInfo> AttachedBodyInfoMap;
 typedef std::unordered_map<std::string, AttachableObjectConstPtr> AttachableObjectConstPtrMap;
-}  // namespace trajopt
+}  // namespace trajopt_interface

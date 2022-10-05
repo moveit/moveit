@@ -11,10 +11,12 @@
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection/world.h>
 
-namespace trajopt
+namespace trajopt_interface
 {
 // template <typename T>
 // using AlignedVector = std::vector<T, Eigen::aligned_allocator<T>>;
+
+using trajopt::DblVec;
 
 struct CollisionEvaluator
 {
@@ -42,8 +44,8 @@ struct CollisionEvaluator
   virtual void CalcDistExpressions(const DblVec& x, sco::AffExprVector& exprs) = 0;
   virtual void CalcDists(const DblVec& x, DblVec& exprs) = 0;
   // calculate the collision in planning scene
-  virtual void CalcCollisions(const DblVec& x, ContactResultVector& dist_results) = 0;
-  void GetCollisionsCached(const DblVec& x, ContactResultVector& dist_results);
+  virtual void CalcCollisions(const DblVec& x, trajopt_interface::ContactResultVector& dist_results) = 0;
+  void GetCollisionsCached(const DblVec& x, trajopt_interface::ContactResultVector& dist_results);
   // virtual void Plot(const tesseract::BasicPlottingPtr plotter, const DblVec& x) = 0;
   virtual sco::VarVector GetVars() = 0;
 
@@ -60,7 +62,7 @@ struct CollisionEvaluator
   // CalcDists():
   // Value(): calls CalcDists()
 
-  Cache<size_t, trajopt::ContactResultVector, 10> m_cache;
+  Cache<size_t, ContactResultVector, 10> m_cache;
   // this calss is not dependent to any  tesseract stuff, I just need to figure out ContactResulVector that is passed to it
   // I do not understand what it is doing exactly though
   // it is creating a buffer of ContactResultVector
@@ -181,4 +183,4 @@ public:
 private:
   CollisionEvaluatorPtr m_calc;
 };
-}  // namespace trajopt
+}  // namespace trajopt_interface
