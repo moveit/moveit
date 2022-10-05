@@ -108,6 +108,9 @@ private:
 class JointsWidgetEventFilter : public QObject
 {
   Q_OBJECT
+  QModelIndex active_;               // joint index being operated on
+  float jmin_, jmax_, pmin_, pmax_;  // joint and pixel min/max values
+  float delta_ = 0.0f;               // speed of joint value changes from keyboard interaction
 
 public:
   JointsWidgetEventFilter(QAbstractItemView* view);
@@ -175,45 +178,6 @@ public:
 
   void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
   QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
-
-private Q_SLOTS:
-  void commitAndCloseEditor();
-};
-
-/// Number editor via progress bar dragging
-class ProgressBarEditor : public QWidget
-{
-  Q_OBJECT
-  Q_PROPERTY(float value READ value WRITE setValue NOTIFY valueChanged USER true)
-
-public:
-  /// Create a progressbar-like slider for editing values in range mix..max
-  ProgressBarEditor(QWidget* parent = nullptr, float min = -1.0, float max = 0.0, int digits = 0);
-
-  void setValue(float value)
-  {
-    value_ = value;
-  }
-  float value() const
-  {
-    return value_;
-  }
-
-Q_SIGNALS:
-  void valueChanged(float value);
-  void editingFinished();
-
-protected:
-  void paintEvent(QPaintEvent* event) override;
-  void mousePressEvent(QMouseEvent* event) override;
-  void mouseMoveEvent(QMouseEvent* event) override;
-  void mouseReleaseEvent(QMouseEvent* event) override;
-
-private:
-  float value_;
-  float min_;
-  float max_;
-  int digits_;  ///< number of decimal digits for formatting of the value
 };
 
 /// Slider that jumps back to zero

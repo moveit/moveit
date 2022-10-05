@@ -39,7 +39,9 @@
 
 #include "ui_motion_planning_rviz_plugin_frame_joints.h"
 #include <QPainter>
+#include <QDoubleSpinBox>
 #include <QSlider>
+#include <QMouseEvent>
 
 namespace moveit_rviz_plugin
 {
@@ -187,8 +189,10 @@ MotionPlanningFrameJointsWidget::MotionPlanningFrameJointsWidget(MotionPlanningD
   : QWidget(parent), ui_(new Ui::MotionPlanningFrameJointsUI()), planning_display_(display)
 {
   ui_->setupUi(this);
-  // intercept mouse events delivered to joints_view_ to open editor on first mouse press
+  // intercept mouse events delivered to joints_view_ to operate "sliders"
   ui_->joints_view_->viewport()->installEventFilter(new JointsWidgetEventFilter(ui_->joints_view_));
+  // intercept keyboard events delivered to joints_view_ to operate joints directly
+  ui_->joints_view_->installEventFilter(new JointsWidgetEventFilter(ui_->joints_view_));
   ui_->joints_view_->setItemDelegateForColumn(1, new ProgressBarDelegate(this));
   svd_.setThreshold(0.001);
 }
@@ -381,6 +385,23 @@ void MotionPlanningFrameJointsWidget::jogNullspace(double value)
   triggerUpdate(model);
 }
 
+namespace
+{
+void paintProgressBar(QPainter* painter, QStyle* style, const QString& text, float value, float min, float max,
+                      const QRect& rect)
+{
+  QStyleOptionProgressBar opt;
+  opt.rect = rect;
+  opt.minimum = 0;
+  opt.maximum = 1000;
+  opt.progress = 1000. * (value - min) / (max - min);
+  opt.text = text;
+  opt.textAlignment = Qt::AlignCenter;
+  opt.textVisible = true;
+  style->drawControl(QStyle::CE_ProgressBar, &opt, painter);
+}
+}  // namespace
+
 void ProgressBarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
   // copied from QStyledItemDelegate::paint
@@ -413,16 +434,7 @@ void ProgressBarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
       QPointF bounds = vbounds.toPointF();
       const float min = bounds.x();
       const float max = bounds.y();
-
-      QStyleOptionProgressBar opt;
-      opt.rect = option.rect;
-      opt.minimum = 0;
-      opt.maximum = 1000;
-      opt.progress = 1000. * (value - min) / (max - min);
-      opt.text = style_option.text;
-      opt.textAlignment = style_option.displayAlignment;
-      opt.textVisible = true;
-      style->drawControl(QStyle::CE_ProgressBar, &opt, painter);
+      paintProgressBar(painter, style, style_option.text, value, min, max, style_option.rect);
       return;
     }
   }
@@ -434,36 +446,13 @@ QWidget* ProgressBarDelegate::createEditor(QWidget* parent, const QStyleOptionVi
                                            const QModelIndex& index) const
 
 {
-  if (index.column() == 1)
+  auto editor = QStyledItemDelegate::createEditor(parent, option, index);
+  if (auto spinbox = qobject_cast<QDoubleSpinBox*>(editor))
   {
-    QVariant vbounds = index.data(VariableBoundsRole);
-    if (vbounds.isValid())
-    {
-      QPointF bounds = vbounds.toPointF();
-      float min = bounds.x();
-      float max = bounds.y();
-      bool is_revolute = (index.data(JointTypeRole).toInt() == moveit::core::JointModel::REVOLUTE);
-      if (is_revolute)
-      {
-        min *= 180. / M_PI;
-        max *= 180. / M_PI;
-      }
-      auto* editor = new ProgressBarEditor(parent, min, max, is_revolute ? 0 : 3);
-      connect(editor, &ProgressBarEditor::editingFinished, this, &ProgressBarDelegate::commitAndCloseEditor);
-      connect(editor, &ProgressBarEditor::valueChanged, this, [=](float value) {
-        const_cast<QAbstractItemModel*>(index.model())->setData(index, value, Qt::EditRole);
-      });
-      return editor;
-    }
+    bool is_revolute = (index.data(ProgressBarDelegate::JointTypeRole).toInt() == moveit::core::JointModel::REVOLUTE);
+    spinbox->setSuffix(is_revolute ? "°" : "m");
   }
-  return QStyledItemDelegate::createEditor(parent, option, index);
-}
-
-void ProgressBarDelegate::commitAndCloseEditor()
-{
-  ProgressBarEditor* editor = qobject_cast<ProgressBarEditor*>(sender());
-  commitData(editor);
-  closeEditor(editor);
+  return editor;
 }
 
 JointsWidgetEventFilter::JointsWidgetEventFilter(QAbstractItemView* view) : QObject(view)
@@ -472,69 +461,80 @@ JointsWidgetEventFilter::JointsWidgetEventFilter(QAbstractItemView* view) : QObj
 
 bool JointsWidgetEventFilter::eventFilter(QObject* /*target*/, QEvent* event)
 {
-  if (event->type() == QEvent::MouseButtonPress)
+  if ((event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseMove) &&
+      static_cast<QMouseEvent*>(event)->buttons() & Qt::LeftButton)
   {
     QAbstractItemView* view = qobject_cast<QAbstractItemView*>(parent());
-    QModelIndex index = view->indexAt(static_cast<QMouseEvent*>(event)->pos());
-    if (index.flags() & Qt::ItemIsEditable)  // mouse event on any editable slider?
-    {
+    if (event->type() == QEvent::MouseButtonPress)
+    {  // start dragging the "slider"
+      QModelIndex index = view->indexAt(static_cast<QMouseEvent*>(event)->pos());
+      QVariant vbounds = index.data(ProgressBarDelegate::VariableBoundsRole);
       view->setCurrentIndex(index);
-      view->edit(index);
-      return true;  // event handled
+      if (!index.isValid() || !(index.flags() & Qt::ItemIsEditable))
+        return false;
+      if (!vbounds.isValid())
+      {
+        view->edit(index);
+        return false;
+      }
+
+      active_ = index;
+      const QRect& rect = view->visualRect(active_);
+      pmin_ = rect.x();
+      pmax_ = rect.x() + rect.width();
+      if (vbounds.isValid())
+      {
+        QPointF bounds = vbounds.toPointF();
+        jmin_ = bounds.x();
+        jmax_ = bounds.y();
+      }
+      bool is_revolute = (index.data(ProgressBarDelegate::JointTypeRole).toInt() == moveit::core::JointModel::REVOLUTE);
+      if (is_revolute)
+      {
+        jmin_ *= 180. / M_PI;
+        jmax_ *= 180. / M_PI;
+      }
     }
+    else if (!active_.isValid())
+      return false;
+
+    float v = jmin_ + (static_cast<QMouseEvent*>(event)->x() - pmin_) * (jmax_ - jmin_) / (pmax_ - pmin_);
+    view->model()->setData(active_, v, Qt::EditRole);
+    return true;  // event handled
+  }
+  else if (event->type() == QEvent::MouseButtonRelease && static_cast<QMouseEvent*>(event)->button() == Qt::LeftButton)
+    active_ = QModelIndex();
+
+  else if (event->type() == QEvent::KeyPress)
+  {
+    QKeyEvent* key_event = static_cast<QKeyEvent*>(event);
+    if (key_event->key() != Qt::Key_Left && key_event->key() != Qt::Key_Right)
+      return false;  // only react to KeyLeft / KeyRight events
+
+    QAbstractItemView* view = qobject_cast<QAbstractItemView*>(parent());
+    QModelIndex index = view->currentIndex();
+    index = index.sibling(index.row(), 1);
+
+    if (key_event->type() == QEvent::KeyPress && key_event->modifiers() == Qt::NoModifier &&
+        index.flags() & Qt::ItemIsEditable)
+    {
+      if (!key_event->isAutoRepeat())  // first key press: initialize delta_ from joint type and direction
+      {
+        delta_ = key_event->key() == Qt::Key_Left ? -0.1f : 0.1f;
+        if (index.data(ProgressBarDelegate::JointTypeRole).toInt() == moveit::core::JointModel::PRISMATIC)
+          delta_ *= 0.01;
+      }
+      else  // increase delta in a multiplicative fashion when holding down the key
+      {
+        delta_ *= 1.1;
+      }
+    }
+
+    float current = index.data(Qt::EditRole).toFloat();
+    view->model()->setData(index, current + delta_, Qt::EditRole);
+    return true;
   }
   return false;
-}
-
-ProgressBarEditor::ProgressBarEditor(QWidget* parent, float min, float max, int digits)
-  : QWidget(parent), min_(min), max_(max), digits_(digits)
-{
-  // if left mouse button is pressed, grab all future mouse events until button(s) released
-  if (QApplication::mouseButtons() & Qt::LeftButton)
-    this->grabMouse();
-}
-
-void ProgressBarEditor::paintEvent(QPaintEvent* /*event*/)
-{
-  QPainter painter(this);
-
-  QStyleOptionProgressBar opt;
-  opt.rect = rect();
-  opt.palette = this->palette();
-  opt.minimum = 0;
-  opt.maximum = 1000;
-  opt.progress = 1000. * (value_ - min_) / (max_ - min_);
-  opt.text = QLocale().toString(value_, 'f', digits_);
-  opt.textAlignment = Qt::AlignRight;
-  opt.textVisible = true;
-  style()->drawControl(QStyle::CE_ProgressBar, &opt, &painter);
-}
-
-void ProgressBarEditor::mousePressEvent(QMouseEvent* event)
-{
-  if (event->button() == Qt::LeftButton)
-    mouseMoveEvent(event);
-}
-
-void ProgressBarEditor::mouseMoveEvent(QMouseEvent* event)
-{
-  float v = std::min(max_, std::max(min_, min_ + event->x() * (max_ - min_) / width()));
-  if (value_ != v)
-  {
-    value_ = v;
-    valueChanged(v);
-    update();
-  }
-  event->accept();
-}
-
-void ProgressBarEditor::mouseReleaseEvent(QMouseEvent* event)
-{
-  if (event->button() == Qt::LeftButton)
-  {
-    event->accept();
-    editingFinished();
-  }
 }
 
 JogSlider::JogSlider(QWidget* parent) : QSlider(parent)
