@@ -1,32 +1,36 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="paused" default="false"/>
-  <arg name="gazebo_gui" default="true"/>
-  <arg name="initial_joint_positions" doc="Initial joint configuration of the robot"
-       default="[GAZEBO_INITIAL_JOINTS]"/>
+  <!-- Gazebo world file -->
+  <arg name="world_name" default="worlds/empty.world"/>
 
-  <!-- startup simulated world -->
-  <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" default="worlds/empty.world"/>
-    <arg name="paused" value="true"/>
-    <arg name="gui" value="$(arg gazebo_gui)"/>
-  </include>
+  <!-- Robot spawn pose -->
+  <arg name="x" default="0"/>
+  <arg name="y" default="0"/>
+  <arg name="z" default="0"/>
+  <arg name="R" default="0"/>
+  <arg name="P" default="0"/>
+  <arg name="Y" default="0"/>
 
-  <!-- send robot urdf to param server -->
-  <param name="robot_description" [GAZEBO_URDF_LOAD_ATTRIBUTE] />
+  <!-- Start Gazebo paused by default -->
+  <arg name="paused" default="true"/>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch" pass_all_args="true"/>
 
-  <!-- unpause only after loading robot model -->
-  <arg name="unpause" value="$(eval '' if arg('paused') else '-unpause')" />
-  <!-- push robot_description to factory and spawn robot in gazebo at the origin, change x,y,z arguments to spawn in a different position -->
-  <arg name="world_pose" value="-x 0 -y 0 -z 0" />
-  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot $(arg unpause) $(arg world_pose) $(arg initial_joint_positions)"
-    respawn="false" output="screen" />
+  <!-- Set robot urdf on the parameter server -->
+  <param name="robot_description" [GAZEBO_URDF_LOAD_ATTRIBUTE]/>
+
+  <!-- Push robot_description to factory, spawn robot in Gazebo and unpause if started paused -->
+  <arg name="unpause" value="$(eval '-unpause' if arg('paused') else '')"/>
+  <arg name="world_pose" doc="Robot spawn pose argument" default="-x $(arg x) -y $(arg y) -z $(arg z) -R $(arg R) -P $(arg P) -Y $(arg Y)"/>
+  <arg name="initial_joint_positions" doc="Initial joint configuration of the robot argument" default="[GAZEBO_INITIAL_JOINTS]"/>
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot $(arg unpause) $(arg world_pose) $(arg initial_joint_positions)" output="screen"/>
 
   <!-- Load joint controller parameters for Gazebo -->
-  <rosparam file="$(find [GENERATED_PACKAGE_NAME])/config/gazebo_controllers.yaml" />
+  <rosparam file="$(find [GENERATED_PACKAGE_NAME])/config/gazebo_controllers.yaml"/>
+
   <!-- Spawn Gazebo ROS controllers -->
-  <node name="gazebo_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller" />
+  <node name="gazebo_controller_spawner" pkg="controller_manager" type="spawner" output="screen" args="joint_state_controller"/>
+
   <!-- Load ROS controllers -->
   <include file="$(dirname)/ros_controllers.launch"/>
-
 </launch>
+
