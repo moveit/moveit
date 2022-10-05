@@ -1281,7 +1281,7 @@ void ConfigurationFilesWidget::loadTemplateStrings()
   {
     const srdf::Model::VirtualJoint& vj = config_data_->srdf_->virtual_joints_[i];
     vjb << "  <node pkg=\"tf2_ros\" type=\"static_transform_publisher\" name=\"virtual_joint_broadcaster_" << i
-        << "\" args=\"0 0 0 0 0 0 " << vj.parent_frame_ << " " << vj.child_link_ << "\" />" << std::endl;
+        << "\" args=\"0 0 0 0 0 0 " << vj.parent_frame_ << " " << vj.child_link_ << "\" />";
   }
   addTemplateString("[VIRTUAL_JOINT_BROADCASTER]", vjb.str());
 

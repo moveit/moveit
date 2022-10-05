@@ -26,6 +26,8 @@
   <!-- If needed, broadcast static tf for robot root -->
 [VIRTUAL_JOINT_BROADCASTER]
 
+  <!-- Given the published joint states, publish tf for the robot links -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 
   <group if="$(eval arg('moveit_controller_manager') == 'fake')">
     <!-- We do not have a real robot connected, so publish fake joint states via a joint_state_publisher
@@ -38,9 +40,6 @@
     <node name="joint_state_publisher" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" if="$(arg use_gui)">
       <rosparam param="source_list">[move_group/fake_controller_joint_states]</rosparam>
     </node>
-
-    <!-- Given the published joint states, publish tf for the robot links -->
-    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
   </group>
 
   <!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
