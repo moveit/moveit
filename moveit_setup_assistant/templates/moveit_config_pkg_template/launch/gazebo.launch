@@ -29,4 +29,7 @@
   <!-- Load ROS controllers -->
   <include file="$(dirname)/ros_controllers.launch"/>
 
+  <!-- Given the published joint states, publish tf for the robot links -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+
 </launch>
