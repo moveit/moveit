@@ -25,8 +25,6 @@
 
   <!-- If needed, broadcast static tf for robot root -->
 [VIRTUAL_JOINT_BROADCASTER]
-
-
   <group if="$(eval arg('moveit_controller_manager') == 'fake')">
     <!-- We do not have a real robot connected, so publish fake joint states via a joint_state_publisher
          MoveIt's fake controller's joint states are considered via the 'source_list' parameter -->
