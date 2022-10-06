@@ -37,7 +37,7 @@
 #pragma once
 
 #include <moveit/robot_trajectory/robot_trajectory.h>
-#include <moveit_msgs/MoveItErrorCodes.h>
+#include <moveit/utils/moveit_error_code.h>
 #include <moveit_msgs/MotionPlanResponse.h>
 #include <moveit_msgs/MotionPlanDetailedResponse.h>
 
@@ -53,7 +53,14 @@ struct MotionPlanResponse
 
   robot_trajectory::RobotTrajectoryPtr trajectory_;
   double planning_time_;
-  moveit_msgs::MoveItErrorCodes error_code_;
+  moveit::core::MoveItErrorCode error_code_;
+  moveit_msgs::RobotState start_state_;
+
+  // Enable checking of query success or failure, for example if(response) ...
+  explicit operator bool() const
+  {
+    return bool(error_code_);
+  }
 };
 
 struct MotionPlanDetailedResponse
@@ -63,7 +70,14 @@ struct MotionPlanDetailedResponse
   std::vector<robot_trajectory::RobotTrajectoryPtr> trajectory_;
   std::vector<std::string> description_;
   std::vector<double> processing_time_;
-  moveit_msgs::MoveItErrorCodes error_code_;
+  moveit::core::MoveItErrorCode error_code_;
+  moveit_msgs::RobotState start_state_;
+
+  // Enable checking of query success or failure, for example if(response) ...
+  explicit operator bool() const
+  {
+    return bool(error_code_);
+  }
 };
 
 }  // namespace planning_interface

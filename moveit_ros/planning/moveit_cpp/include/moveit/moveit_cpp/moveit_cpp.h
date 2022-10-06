@@ -161,6 +161,9 @@ public:
   bool execute(const std::string& group_name, const robot_trajectory::RobotTrajectoryPtr& robot_trajectory,
                bool blocking = true);
 
+  /** \brief Utility to terminate all active planning pipelines */
+  bool terminatePlanningPipeline(std::string const& pipeline_name);
+
 protected:
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
