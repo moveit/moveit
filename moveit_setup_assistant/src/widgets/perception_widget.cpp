@@ -59,7 +59,6 @@ PerceptionWidget::PerceptionWidget(QWidget* parent, const MoveItConfigDataPtr& c
   layout->setAlignment(Qt::AlignTop);
 
   // Top Header Area ------------------------------------------------
-
   HeaderWidget* header =
       new HeaderWidget("Setup 3D Perception Sensors",
                        "Configure your 3D sensors to work with MoveIt "
@@ -71,8 +70,28 @@ PerceptionWidget::PerceptionWidget(QWidget* parent, const MoveItConfigDataPtr& c
   layout->addWidget(header);
 
   // Add spacing
-  QSpacerItem* blank_space = new QSpacerItem(1, 8);
-  layout->addSpacerItem(blank_space);
+  layout->addSpacerItem(new QSpacerItem(1, 8));
+
+  // Octomap group -------------------------------------------
+  octomap_group_ = new QGroupBox("Octomap");
+  QFormLayout* octomap_layout = new QFormLayout();
+  octomap_group_->setLayout(octomap_layout);
+  layout->addWidget(octomap_group_);
+
+  // Frame
+  octomap_frame_field_ = new QLineEdit(this);
+  octomap_layout->addRow("Frame:", octomap_frame_field_);
+
+  // Resolution
+  octomap_resolution_field_ = new QLineEdit(this);
+  octomap_layout->addRow("Resolution:", octomap_resolution_field_);
+
+  // Max Range
+  octomap_max_range_field_ = new QLineEdit(this);
+  octomap_layout->addRow("Max Range:", octomap_max_range_field_);
+
+  // Add spacing
+  layout->addSpacerItem(new QSpacerItem(1, 16));
 
   // Plugin type combo box
   QLabel* plugin_field_title = new QLabel(this);
@@ -81,113 +100,87 @@ PerceptionWidget::PerceptionWidget(QWidget* parent, const MoveItConfigDataPtr& c
 
   sensor_plugin_field_ = new QComboBox(this);
   sensor_plugin_field_->setEditable(false);
-  sensor_plugin_field_->setMaximumWidth(600);
   connect(sensor_plugin_field_, SIGNAL(currentIndexChanged(int)), this, SLOT(sensorPluginChanged(int)));
   layout->addWidget(sensor_plugin_field_);
 
   // Point Cloud group -------------------------------------------
   point_cloud_group_ = new QGroupBox("Point Cloud");
-
   QFormLayout* point_cloud_form_layout = new QFormLayout();
-  point_cloud_form_layout->setContentsMargins(0, 15, 0, 15);
+  point_cloud_group_->setLayout(point_cloud_form_layout);
+  layout->addWidget(point_cloud_group_);
 
   // Point Cloud Topic
   point_cloud_topic_field_ = new QLineEdit(this);
-  point_cloud_topic_field_->setMaximumWidth(400);
   point_cloud_form_layout->addRow("Point Cloud Topic:", point_cloud_topic_field_);
 
   // Max Range
   max_range_field_ = new QLineEdit(this);
-  max_range_field_->setMaximumWidth(400);
   point_cloud_form_layout->addRow("Max Range:", max_range_field_);
 
   // Point Subsample
   point_subsample_field_ = new QLineEdit(this);
-  point_subsample_field_->setMaximumWidth(400);
   point_cloud_form_layout->addRow("Point Subsample:", point_subsample_field_);
 
   // Padding Offset
   padding_offset_field_ = new QLineEdit(this);
-  padding_offset_field_->setMaximumWidth(400);
   point_cloud_form_layout->addRow("Padding Offset:", padding_offset_field_);
 
   // Padding Scale
   padding_scale_field_ = new QLineEdit(this);
-  padding_scale_field_->setMaximumWidth(400);
   point_cloud_form_layout->addRow("Padding Scale:", padding_scale_field_);
 
   // Filtered Cloud Topic
   filtered_cloud_topic_field_ = new QLineEdit(this);
-  filtered_cloud_topic_field_->setMaximumWidth(400);
   point_cloud_form_layout->addRow("Filtered Cloud Topic:", filtered_cloud_topic_field_);
 
   // Max Update Rate
   max_update_rate_field_ = new QLineEdit(this);
-  max_update_rate_field_->setMaximumWidth(400);
   point_cloud_form_layout->addRow("Max Update Rate:", max_update_rate_field_);
-
-  // Piont Cloud form layout
-  point_cloud_group_->setLayout(point_cloud_form_layout);
-  layout->addWidget(point_cloud_group_);
 
   // Depth map group --------------------------------------------
   depth_map_group_ = new QGroupBox("Depth Map");
-
-  // Depth Map form layout
   QFormLayout* depth_map_form_layout = new QFormLayout();
-  depth_map_form_layout->setContentsMargins(0, 15, 0, 15);
+  depth_map_group_->setLayout(depth_map_form_layout);
+  layout->addWidget(depth_map_group_);
 
   // Image Topic
   image_topic_field_ = new QLineEdit(this);
-  image_topic_field_->setMaximumWidth(400);
   depth_map_form_layout->addRow("Image Topic:", image_topic_field_);
 
   // Queue Size
   queue_size_field_ = new QLineEdit(this);
-  queue_size_field_->setMaximumWidth(400);
   depth_map_form_layout->addRow("Queue Size:", queue_size_field_);
 
   // Near Clipping Plane Distance
   near_clipping_field_ = new QLineEdit(this);
-  near_clipping_field_->setMaximumWidth(400);
   depth_map_form_layout->addRow("Near Clipping Plane Distance:", near_clipping_field_);
 
   // Far Clipping Plane Distance
   far_clipping_field_ = new QLineEdit(this);
-  far_clipping_field_->setMaximumWidth(400);
   depth_map_form_layout->addRow("Far Clipping Plane Distance:", far_clipping_field_);
 
   // Shadow Threshold
   shadow_threshold_field_ = new QLineEdit(this);
-  shadow_threshold_field_->setMaximumWidth(400);
   depth_map_form_layout->addRow("Shadow Threshold:", shadow_threshold_field_);
 
   // Padding Offset
   depth_padding_offset_field_ = new QLineEdit(this);
-  depth_padding_offset_field_->setMaximumWidth(400);
   depth_map_form_layout->addRow("Padding Offset:", depth_padding_offset_field_);
 
   // Padding Scale
   depth_padding_scale_field_ = new QLineEdit(this);
-  depth_padding_scale_field_->setMaximumWidth(400);
   depth_map_form_layout->addRow("Padding Scale:", depth_padding_scale_field_);
 
   // Filtered Cloud Topic
   depth_filtered_cloud_topic_field_ = new QLineEdit(this);
-  depth_filtered_cloud_topic_field_->setMaximumWidth(400);
   depth_map_form_layout->addRow("Filtered Cloud Topic:", depth_filtered_cloud_topic_field_);
 
   // Filtered Cloud Topic
   depth_max_update_rate_field_ = new QLineEdit(this);
-  depth_max_update_rate_field_->setMaximumWidth(400);
   depth_map_form_layout->addRow("Max Update Rate:", depth_max_update_rate_field_);
 
-  depth_map_group_->setLayout(depth_map_form_layout);
-  layout->addWidget(depth_map_group_);
-
-  layout->setAlignment(Qt::AlignTop);
-
   // Finish Layout --------------------------------------------------
+  layout->setAlignment(Qt::AlignTop);
   this->setLayout(layout);
 }
 
@@ -204,6 +197,17 @@ void PerceptionWidget::focusGiven()
 // ******************************************************************************************
 bool PerceptionWidget::focusLost()
 {
+  // Clear the sensors_plugin_config data structure
+  config_data_->clearSensorPluginConfig();
+
+  // Save the octomap configuration to sensors_plugin_config data structure
+  config_data_->addGenericParameterToSensorPluginConfig("octomap_frame",
+                                                        octomap_frame_field_->text().trimmed().toStdString(), 0);
+  config_data_->addGenericParameterToSensorPluginConfig("octomap_resolution",
+                                                        octomap_resolution_field_->text().trimmed().toStdString(), 0);
+  config_data_->addGenericParameterToSensorPluginConfig("max_range",
+                                                        octomap_max_range_field_->text().trimmed().toStdString(), 0);
+
   // Save the sensor plugin configuration to sensors_plugin_config data structure
   if (sensor_plugin_field_->currentIndex() == 1)
   {
@@ -223,8 +227,6 @@ bool PerceptionWidget::focusLost()
                                                           max_update_rate_field_->text().trimmed().toStdString());
     config_data_->addGenericParameterToSensorPluginConfig("filtered_cloud_topic",
                                                           filtered_cloud_topic_field_->text().trimmed().toStdString());
-
-    config_data_->changes |= MoveItConfigData::SENSORS_CONFIG;
   }
   else if (sensor_plugin_field_->currentIndex() == 2)
   {
@@ -249,15 +251,8 @@ bool PerceptionWidget::focusLost()
         "filtered_cloud_topic", depth_filtered_cloud_topic_field_->text().trimmed().toStdString());
     config_data_->addGenericParameterToSensorPluginConfig("max_update_rate",
                                                           depth_max_update_rate_field_->text().trimmed().toStdString());
-
-    config_data_->changes |= MoveItConfigData::SENSORS_CONFIG;
   }
-  else
-  {
-    // Clear the sensors_plugin_config data structure
-    config_data_->clearSensorPluginConfig();
-    config_data_->changes ^= MoveItConfigData::SENSORS_CONFIG;
-  }
+  config_data_->changes |= MoveItConfigData::SENSORS_CONFIG;
   return true;
 }
 
@@ -309,7 +304,13 @@ uint PerceptionWidget::loadConfigIntoWidgets(std::map<std::string, GenericParame
     depth_max_update_rate_field_->setText(QString(sensor_plugin_config["max_update_rate"].getValue().c_str()));
     return 2;
   }
-  return 0;
+  else
+  {
+    octomap_frame_field_->setText(QString(sensor_plugin_config["octomap_frame"].getValue().c_str()));
+    octomap_resolution_field_->setText(QString(sensor_plugin_config["octomap_resolution"].getValue().c_str()));
+    octomap_max_range_field_->setText(QString(sensor_plugin_config["max_range"].getValue().c_str()));
+    return 0;
+  }
 }
 
 void PerceptionWidget::loadSensorPluginsComboBox()
@@ -331,6 +332,7 @@ void PerceptionWidget::loadSensorPluginsComboBox()
   // Load values from default config
   auto default_config = MoveItConfigData::load3DSensorsYAML(
       config_data_->setup_assistant_path_ + "/templates/moveit_config_pkg_template/config/sensors_3d.yaml");
+
   for (const auto& sensor_plugin_config : default_config)
     loadConfigIntoWidgets(sensor_plugin_config);
 

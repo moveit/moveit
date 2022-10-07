@@ -1,6 +1,9 @@
 # This YAML configuration file holds the default values used for configuring 3D sensors.
 # The name of this file shouldn't be changed, or else the Setup Assistant won't detect it.
 # Values may not be ideal defaults, original source unclear.
+max_range: 5.0
+octomap_frame: world
+octomap_resolution: 0.025
 sensors:
   - sensor_plugin: occupancy_map_monitor/PointCloudOctomapUpdater
     point_cloud_topic: /head_mount_kinect/depth_registered/points
