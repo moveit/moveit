@@ -19,7 +19,7 @@
   <run_depend>moveit_ros_move_group</run_depend>
   <run_depend>moveit_fake_controller_manager</run_depend>
   <run_depend>moveit_kinematics</run_depend>
-  <run_depend>moveit_planners_ompl</run_depend>
+  <run_depend>moveit_planners</run_depend>
   <run_depend>moveit_ros_visualization</run_depend>
   <run_depend>moveit_setup_assistant</run_depend>
   <run_depend>moveit_simple_controller_manager</run_depend>
