@@ -77,6 +77,7 @@ private:
     owner_->setAllowedStartTolerance(config.allowed_start_tolerance);
     owner_->setWaitForTrajectoryCompletion(config.wait_for_trajectory_completion);
     owner_->setAllowSimultaneousExecution(config.allow_simultaneous_execution);
+    owner_->setAllowCollisionChecking(config.allow_collision_checking);
   }
 
   TrajectoryExecutionManager* owner_;
@@ -238,6 +239,11 @@ void TrajectoryExecutionManager::setAllowSimultaneousExecution(bool flag)
 bool TrajectoryExecutionManager::getAllowSimultaneousExecution() const
 {
   return allow_simultaneous_execution_;
+}
+
+void TrajectoryExecutionManager::setAllowCollisionChecking(bool flag)
+{
+  allow_collision_checking_ = flag;
 }
 
 bool TrajectoryExecutionManager::isManagingControllers() const
@@ -1285,13 +1291,14 @@ bool TrajectoryExecutionManager::validateTrajectories(const SequentialTrajectory
   // 1.4. Collision checks
   // 1.4.1. Check collisions between new trajectory and currently active trajectories
   // 1.4.2. Check collisions between new trajectory and current state of the planning scene
-  for (auto context_ptr : trajectory_sequence.contexts_)
-    if ((!active_trajectory_sequences_.empty() && !checkCollisionsWithActiveTrajectories(*context_ptr)) ||
-        !checkCollisionsWithCurrentState(context_ptr->trajectory_))
-    {
-      ROS_ERROR_NAMED(LOGNAME, "Abort execution: Trajectory in collision");
-      return false;
-    }
+  if (allow_collision_checking_)
+    for (auto context_ptr : trajectory_sequence.contexts_)
+      if ((!active_trajectory_sequences_.empty() && !checkCollisionsWithActiveTrajectories(*context_ptr)) ||
+          !checkCollisionsWithCurrentState(context_ptr->trajectory_))
+      {
+        ROS_ERROR_NAMED(LOGNAME, "Abort execution: Trajectory in collision");
+        return false;
+      }
 
   return true;
 }
@@ -1312,7 +1319,7 @@ bool TrajectoryExecutionManager::executeTrajectory(
     getContextHandles(*context_ptr, required_handles);
 
     // Check collisions between new trajectory and current state of the planning scene
-    if (!checkCollisionsWithCurrentState(context_ptr->trajectory_))
+    if (allow_collision_checking_ && !checkCollisionsWithCurrentState(context_ptr->trajectory_))
     {
       ROS_ERROR_NAMED(LOGNAME, "Abort execution: Trajectory in collision with current state of the planning scene");
       return false;

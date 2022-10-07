@@ -305,6 +305,9 @@ public:
   /// Get simultaneous execution of trajetories
   bool getAllowSimultaneousExecution() const;
 
+  /// Enable or disable collision checking right before execution
+  void setAllowCollisionChecking(bool flag);
+
 private:
   struct ControllerInformation
   {
@@ -433,6 +436,7 @@ private:
   double allowed_start_tolerance_;  // joint tolerance for validate(): radians for revolute joints
   double execution_velocity_scaling_;
   bool allow_simultaneous_execution_;
+  bool allow_collision_checking_;
   bool wait_for_trajectory_completion_;
 };
 }  // namespace trajectory_execution_manager
