@@ -161,6 +161,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: default # only trigger on success of default build job
     if: github.event_name == 'push' && github.repository_owner == 'ros-planning' && github.ref == 'refs/heads/master'
+    permissions:
+      contents: write # allow pushing
     steps:
       - uses: actions/checkout@v2
       - name: Fast-forward noetic-devel to sync with master
