@@ -57,10 +57,16 @@ public:
     if (!ns.empty())
       nh = ros::NodeHandle(ns);
 
+    planning_interface::PlannerConfigurationMap pconfig;
     for (const std::string& group : model->getJointModelGroupNames())
     {
       planning_contexts_[group] = std::make_shared<CHOMPPlanningContext>("chomp_planning_context", group, model, nh);
+      const planning_interface::PlannerConfigurationSettings planner_config_settings{
+        group, group, std::map<std::string, std::string>()
+      };
+      pconfig[planner_config_settings.name] = planner_config_settings;
     }
+    setPlannerConfigurations(pconfig);
     return true;
   }
 
@@ -113,6 +119,12 @@ public:
     algs.resize(1);
     algs[0] = "CHOMP";
   }
+
+  void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pcs) override
+  {
+    config_settings_ = pcs;
+  }
+
 
 protected:
   std::map<std::string, CHOMPPlanningContextPtr> planning_contexts_;
