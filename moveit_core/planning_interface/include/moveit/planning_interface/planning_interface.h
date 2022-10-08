@@ -191,7 +191,7 @@ public:
   virtual bool canServiceRequest(const MotionPlanRequest& req) const = 0;
 
   /// \brief Specify the settings to be used for specific algorithms
-  virtual void setPlannerConfigurations(const PlannerConfigurationMap& pcs);
+  virtual void setPlannerConfigurations(const PlannerConfigurationMap& pcs) = 0;
 
   /// \brief Get the settings for a specific algorithm
   const PlannerConfigurationMap& getPlannerConfigurations() const

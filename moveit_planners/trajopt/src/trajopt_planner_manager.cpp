@@ -61,14 +61,20 @@ public:
       nh_ = ros::NodeHandle(ns);
     std::string trajopt_ns = ns.empty() ? "trajopt" : ns + "/trajopt";
 
+    planning_interface::PlannerConfigurationMap pconfig;
     for (const std::string& gpName : model->getJointModelGroupNames())
     {
       ROS_INFO(" ======================================= group name: %s, robot model: %s", gpName.c_str(),
                model->getName().c_str());
       planning_contexts_[gpName] =
           TrajOptPlanningContextPtr(new TrajOptPlanningContext("trajopt_planning_context", gpName, model, nh_));
+      const planning_interface::PlannerConfigurationSettings planner_config_settings{
+        gpName, gpName, std::map<std::string, std::string>()
+      };
+      pconfig[planner_config_settings.name] = planner_config_settings;
     }
 
+    setPlannerConfigurations(pconfig);
     return true;
   }
 
@@ -126,6 +132,16 @@ public:
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
 
     return context;
+  }
+
+
+  /**
+   * @brief Specify the settings to be used for an algorithms
+   * @param pcs Map of planner configurations
+   */
+  void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pcs) override
+    {
+    config_settings_ = pcs;
   }
 
 private:
