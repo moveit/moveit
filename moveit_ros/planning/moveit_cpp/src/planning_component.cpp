@@ -289,7 +289,8 @@ planning_interface::MotionPlanResponse PlanningComponent::plan(const MultiPipeli
   }
 
   // Return best solution determined by user defined callback (Default: Shortest path)
-  return solution_selection_callback(planning_solutions.getSolutions());
+  last_plan_solution_ = solution_selection_callback(planning_solutions.getSolutions());
+  return last_plan_solution_;
 }
 
 planning_interface::MotionPlanResponse PlanningComponent::plan()
