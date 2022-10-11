@@ -125,7 +125,6 @@ public:
     config_settings_ = pcs;
   }
 
-
 protected:
   std::map<std::string, CHOMPPlanningContextPtr> planning_contexts_;
 };

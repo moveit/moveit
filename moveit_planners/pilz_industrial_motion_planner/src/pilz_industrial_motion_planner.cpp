@@ -99,7 +99,7 @@ bool CommandPlanner::initialize(const moveit::core::RobotModelConstPtr& model, c
     registerContextLoader(loader_pointer);
   }
 
-    // Specify for which joint model groups this planner is usable
+  // Specify for which joint model groups this planner is usable
   planning_interface::PlannerConfigurationMap pconfig;
 
   for (const auto& group : model_->getJointModelGroupNames())
