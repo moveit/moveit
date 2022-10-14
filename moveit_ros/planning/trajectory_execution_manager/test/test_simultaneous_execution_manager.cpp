@@ -105,8 +105,8 @@ TEST_F(MoveItCppTest, SimpleSimulatenousExecutionTest)
 TEST_F(MoveItCppTest, WaitForSingleTrajectory)
 {
   moveit_cpp_ptr->getTrajectoryExecutionManager()->stopExecution(true);
-  std::vector<double> p1_target_joints1{ 1.057, -0.323, 0.805, -2.857, 0.424, 2.557, 1.468 };
-  std::vector<double> p2_target_joints1{ 2.049, 0.046, 2.419, -2.660, -0.053, 2.624, -1.666 };
+  std::vector<double> p1_target_joints1{ 0, 0, 0, -1.5707, 0, 1.8, 0 };
+  std::vector<double> p2_target_joints1{ 0, 0, 0, -1.5707, 0, 1.8, 0 };
 
   moveit_msgs::RobotTrajectory panda_1_robot_trajectory_msg =
       plan(panda_1_planning_component_ptr, panda_1_joint_names, p1_target_joints1);
@@ -159,6 +159,23 @@ TEST_F(MoveItCppTest, RejectInvalidTrajectory)
   ASSERT_TRUE(moveit_cpp_ptr->getTrajectoryExecutionManager()->waitForExecution());
   // TODO: trajectory in collision
   //
+}
+
+TEST_F(MoveItCppTest, CancelTrajectory)
+{
+  moveit_cpp_ptr->getTrajectoryExecutionManager()->stopExecution(true);
+  // controller being used
+  std::vector<double> p1_target_joints1{ 0, 0, 0, -1.5707, 0, 1.8, 0 };
+
+  moveit_msgs::RobotTrajectory panda_1_robot_trajectory_msg =
+      plan(panda_1_planning_component_ptr, panda_1_joint_names, p1_target_joints1);
+
+  auto trajectory_id = moveit_cpp_ptr->getTrajectoryExecutionManager()->push(panda_1_robot_trajectory_msg);
+  ASSERT_TRUE(trajectory_id);
+  moveit_cpp_ptr->getTrajectoryExecutionManager()->stopExecution(trajectory_id);
+  moveit_cpp_ptr->getTrajectoryExecutionManager()->waitForExecution();
+  ASSERT_EQ(moveit_cpp_ptr->getTrajectoryExecutionManager()->getLastExecutionStatus(),
+            moveit_controller_manager::ExecutionStatus::ABORTED);
 }
 
 }  // namespace moveit_cpp

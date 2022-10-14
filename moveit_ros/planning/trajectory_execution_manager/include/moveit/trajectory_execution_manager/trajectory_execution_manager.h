@@ -84,6 +84,35 @@ public:
     /** \brief The monitor trajectory execution timer  */
     EXECUTION_TIMEOUT = 2,
 
+    /** \brief Cancellation requested by user  */
+    EXECUTION_CANCELLATION_REQUEST = 3,
+
+  };
+
+  /// Data structure that represents an unique identifier for each trajectory execution through `push()` when
+  /// simultaneous execution is ON. In blocking-mode, use stopExecution() to cancel everything.
+  struct TrajectoryID
+  {
+    TrajectoryID() : id_(0)
+    {
+    }
+
+    TrajectoryID(unsigned long id) : id_(id)
+    {
+    }
+
+    explicit operator bool() const
+    {
+      return id_ > 0;
+    }
+
+    bool operator==(const TrajectoryID& tid)
+    {
+      return id_ == tid.id_;
+    }
+
+  private:
+    unsigned long id_;
   };
 
   /// Data structure that represents information necessary to execute a trajectory
@@ -109,7 +138,9 @@ public:
     std::vector<ros::Time> time_index_;
   };
 
-  /// Data structure that represents information necessary to execute an interdependent set of trajectories
+  /// Data structure that represents information necessary to execute an interdependent sequence of trajectories. For a
+  /// sequence of trajectories the necessary controllers for all the trajectories in the sequence are blocked until the
+  /// sequence is completed.
   struct SequentialTrajectoryExecutionContext
   {
     /// Set of interdependent trajectories
@@ -123,6 +154,8 @@ public:
 
     /// Counter of trajectories pending for execution
     int remaining_trajectories_count_;
+
+    TrajectoryExecutionManager::TrajectoryID id_;
 
     SequentialTrajectoryExecutionContext()
     {
@@ -205,14 +238,16 @@ public:
   /// Add a trajectory for future execution. Optionally specify a controller to use for the trajectory. If no controller
   /// is specified, a default is used.
   /// Optionally specify callback that is called when the execution of the trajectory is completed.
-  bool push(const moveit_msgs::RobotTrajectory& trajectory, const std::string& controller = "",
-            const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
+  /// Returns a trajectory id that can be used to cancel this specific trajectory
+  TrajectoryID push(const moveit_msgs::RobotTrajectory& trajectory, const std::string& controller = "",
+                    const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
 
   /// Add a trajectory for future execution. Optionally specify a controller to use for the trajectory. If no controller
   /// is specified, a default is used.
   /// Optionally specify callback that is called when the execution of the trajectory is completed.
-  bool push(const trajectory_msgs::JointTrajectory& trajectory, const std::string& controller = "",
-            const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
+  /// Returns a trajectory id that can be used to cancel this specific trajectory
+  TrajectoryID push(const trajectory_msgs::JointTrajectory& trajectory, const std::string& controller = "",
+                    const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
 
   /// Add a trajectory for future execution. Optionally specify a set of controllers to consider using for the
   /// trajectory. Multiple controllers can be used simultaneously
@@ -220,8 +255,9 @@ public:
   /// already loaded ones.
   /// If no controller is specified, a default is used.
   /// Optionally specify callback that is called when the execution of the trajectory is completed.
-  bool push(const trajectory_msgs::JointTrajectory& trajectory, const std::vector<std::string>& controllers,
-            const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
+  /// Returns a trajectory id that can be used to cancel this specific trajectory
+  TrajectoryID push(const trajectory_msgs::JointTrajectory& trajectory, const std::vector<std::string>& controllers,
+                    const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
 
   /// Add a trajectory for future execution. Optionally specify a set of controllers to consider using for the
   /// trajectory. Multiple controllers can be used simultaneously
@@ -229,8 +265,9 @@ public:
   /// already loaded ones.
   /// If no controller is specified, a default is used.
   /// Optionally specify callback that is called when the execution of the trajectory is completed.
-  bool push(const moveit_msgs::RobotTrajectory& trajectory, const std::vector<std::string>& controllers,
-            const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
+  /// Returns a trajectory id that can be used to cancel this specific trajectory
+  TrajectoryID push(const moveit_msgs::RobotTrajectory& trajectory, const std::vector<std::string>& controllers,
+                    const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
 
   /// Add a set of trajectories for future execution. Optionally specify a set of controllers to consider using for the
   /// trajectory. Multiple controllers can be used simultaneously
@@ -238,8 +275,11 @@ public:
   /// already loaded ones.
   /// If no controller is specified, a default is used.
   /// Optionally specify callback that is called when the execution of the trajectory is completed.
-  bool push(const std::vector<moveit_msgs::RobotTrajectory>& trajectories, const std::vector<std::string>& controllers,
-            const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
+  /// Returns a trajectory id that can be used to cancel this specific set of trajectories
+  TrajectoryID push(const std::vector<moveit_msgs::RobotTrajectory>& trajectories,
+                    const std::vector<std::vector<std::string>>& controllers,
+                    const ExecutionCompleteCallback& callback = ExecutionCompleteCallback(),
+                    const PathSegmentCompleteCallback& part_callback = PathSegmentCompleteCallback());
 
   /// Get the trajectories to be executed
   const std::vector<std::shared_ptr<TrajectoryExecutionContext>>& getTrajectories() const;
@@ -273,6 +313,9 @@ public:
 
   /// Stop whatever executions are active, if any
   void stopExecution(bool auto_clear = true);
+
+  /// Stop executions of a given trajectory, if active
+  void stopExecution(const TrajectoryID trajectory_id);
 
   /// Clear the trajectories to execute
   void clear();
@@ -353,8 +396,12 @@ private:
   bool selectControllers(const std::set<std::string>& actuated_joints,
                          const std::vector<std::string>& available_controllers,
                          std::vector<std::string>& selected_controllers);
+  // Loop through events to simultaneously execute trajectories and sequences of trajectories
   void runEventManager();
+  // Validate that sequences of trajectories are ready for execution; trajectory matches current robot state,
+  // controllers are available, and optionally check collision with active trajectories and the current planning scene
   bool validateTrajectories(const SequentialTrajectoryExecutionContext& meta_context);
+  // Send trajectory to be executed in the corresponding controller(s)
   bool executeTrajectory(const std::shared_ptr<SequentialTrajectoryExecutionContext> meta_context,
                          const std::size_t index);
   bool waitForRobotToStop(const TrajectoryExecutionContext& context, double wait_time = 1.0);
@@ -374,6 +421,8 @@ private:
   void createExecutionDurationTimer(
       const std::pair<std::weak_ptr<SequentialTrajectoryExecutionContext>, std::weak_ptr<TrajectoryExecutionContext>>
           context_pair);
+
+  TrajectoryID generateTrajectoryID();
 
   moveit::core::RobotModelConstPtr robot_model_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
@@ -438,5 +487,8 @@ private:
   bool enable_simultaneous_execution_;
   bool enable_collision_checking_;
   bool wait_for_trajectory_completion_;
+
+  std::mutex id_count_mutex_;
+  unsigned int id_count_ = 1;
 };
 }  // namespace trajectory_execution_manager
