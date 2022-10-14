@@ -47,6 +47,7 @@ bool FollowJointTrajectoryControllerHandle::sendTrajectory(const moveit_msgs::Ro
                                                            const ExecutionCompleteCallback& callback)
 {
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "new trajectory to " << name_);
+  execution_complete_callback_ = callback;
 
   if (!controller_action_client_)
     return false;
@@ -61,7 +62,6 @@ bool FollowJointTrajectoryControllerHandle::sendTrajectory(const moveit_msgs::Ro
   else
     ROS_DEBUG_STREAM_NAMED(LOGNAME, "sending continuation for the currently executed trajectory to " << name_);
 
-  execution_complete_callback_ = callback;
   control_msgs::FollowJointTrajectoryGoal goal = goal_template_;
   goal.trajectory = trajectory.joint_trajectory;
   controller_action_client_->sendGoal(

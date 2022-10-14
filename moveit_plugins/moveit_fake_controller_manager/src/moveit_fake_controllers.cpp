@@ -76,7 +76,11 @@ bool LastPointController::sendTrajectory(const moveit_msgs::RobotTrajectory& t, 
 {
   ROS_INFO("Fake execution of trajectory");
   if (t.joint_trajectory.points.empty())
+  {
+    if (cb)
+      cb(moveit_controller_manager::ExecutionStatus::ABORTED);
     return true;
+  }
 
   sensor_msgs::JointState js;
   const trajectory_msgs::JointTrajectoryPoint& last = t.joint_trajectory.points.back();
@@ -225,7 +229,12 @@ void InterpolatingController::execTrajectory(const moveit_msgs::RobotTrajectory&
 {
   ROS_INFO_STREAM("Fake execution of trajectory: " << t.group_name);
   if (t.joint_trajectory.points.empty())
+  {
+    ROS_DEBUG_STREAM("No points to be executed, assuming success: " << t.group_name);
+    if (cb)
+      cb(moveit_controller_manager::ExecutionStatus::SUCCEEDED);
     return;
+  }
 
   sensor_msgs::JointState js;
   js.header = t.joint_trajectory.header;
