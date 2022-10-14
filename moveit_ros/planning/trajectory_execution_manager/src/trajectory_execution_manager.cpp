@@ -261,9 +261,11 @@ void TrajectoryExecutionManager::runEventManager()
   ROS_INFO_NAMED(LOGNAME, "Starting trajectory execution event manager");
   while (run_event_manager_)  // run_event_manager
   {
-    std::unique_lock<std::mutex> ulock(event_manager_mutex_, std::try_to_lock);
-    while (events_queue_.empty() && run_event_manager_ && !stop_execution_)
-      event_manager_condition_.wait(ulock);
+    {
+      std::unique_lock<std::mutex> ulock(event_manager_mutex_);
+      while (events_queue_.empty() && run_event_manager_ && !stop_execution_)
+        event_manager_condition_.wait(ulock);
+    }
 
     // If stop-flag is set, break out
     if (stop_execution_ || !run_event_manager_)
@@ -288,11 +290,16 @@ void TrajectoryExecutionManager::runEventManager()
       }
       active_trajectory_sequences_.clear();
 
-      stop_execution_ = false;
-
       last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
 
       // notify whoever is waiting for the event of trajectory completion
+      execution_state_mutex_.lock();
+      execution_complete_ = true;
+      execution_state_mutex_.unlock();
+      execution_complete_condition_.notify_all();
+
+      stop_execution_ = false;
+      // notify whoever is waiting for the event of trajectory cancelation
       cancel_execution_condition_.notify_all();
     }
 
@@ -1268,7 +1275,7 @@ bool TrajectoryExecutionManager::validateTrajectories(const SequentialTrajectory
   for (auto context_ptr : trajectory_sequence.contexts_)
     getContextHandles(*context_ptr, required_handles);
 
-  active_handles_mutex_.lock();
+  std::lock_guard<std::mutex> slock(active_handles_mutex_);
   for (std::size_t i = 0; i < required_handles.size(); ++i)
   {
     std::set<moveit_controller_manager::MoveItControllerHandlePtr>::iterator uit = active_handles_.begin();
@@ -1286,7 +1293,6 @@ bool TrajectoryExecutionManager::validateTrajectories(const SequentialTrajectory
       else
         ++uit;
   }
-  active_handles_mutex_.unlock();
 
   // 1.4. Collision checks
   // 1.4.1. Check collisions between new trajectory and currently active trajectories
@@ -1813,8 +1819,9 @@ void TrajectoryExecutionManager::createExecutionDurationTimer(
     ROS_WARN_STREAM_NAMED(LOGNAME, "Timeout group name " << context_pair.second.lock()->trajectory_.group_name);
     TrajectoryExecutionEvent event = { EventType::EXECUTION_TIMEOUT, context_pair,
                                        moveit_controller_manager::ExecutionStatus::RUNNING };
-    std::lock_guard<std::mutex> slock(events_queue_mutex_);
+    events_queue_mutex_.lock();
     events_queue_.push_back(std::make_shared<TrajectoryExecutionEvent>(event));
+    events_queue_mutex_.unlock();
     event_manager_condition_.notify_all();
   };
 
