@@ -35,6 +35,8 @@ API changes in MoveIt releases
   You might need to define additional end-effectors.
 - Removed `ConstraintSampler::project()` as there was no real difference to `sample()`.
 - Removed `TrajectoryExecutionManager::pushAndExecute()` and the code associated to it. The code was unused and broken.
+- Added a simultaneous execution feature to the `TrajectoryExecutionManager` that can be enabled through a dynamic reconfigure flag. `enable_simultaneous_execution` to enable simulaneous execution of trajectories. Additionally, the new flag `enable_collision_checking` enables collision checking right before execution of trajectories. Both flags are set to True by default.
+- Change the `SimpleActionServer` in `execute_trajectory_action_capability` and `move_action_capability` to a "general" `ActionServer`. The new action server admits setting several goals simultaneously. The feature is dependent on the `trajectory_execution_manager`'s `enable_simultaneous_execution` flag. If set to False, just a single goal must accepted at a time. New goals would preempt any current goal, cancelling any planning or active trajectory, then the new goal would be accepted.
 
 ## ROS Melodic
 
