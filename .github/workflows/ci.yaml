@@ -40,6 +40,7 @@ jobs:
       TARGET_WORKSPACE: $TARGET_REPO_PATH github:ros-planning/moveit_resources#master
       DOWNSTREAM_WORKSPACE: .github/workflows/downstream.rosinstall
       # Pull any updates to the upstream workspace (after restoring it from cache)
+      WORKAROUND: git config --global user.name 'GHA sync bot' && git config --global user.email 'rhaschke@users.noreply.github.com'
       AFTER_SETUP_UPSTREAM_WORKSPACE: vcs pull $BASEDIR/upstream_ws/src
       AFTER_SETUP_DOWNSTREAM_WORKSPACE: vcs pull $BASEDIR/downstream_ws/src
       # Clear the ccache stats before and log the stats after the build
