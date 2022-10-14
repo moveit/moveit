@@ -34,9 +34,6 @@
     <param name="joint_state_publisher/zeros/panda_2_joint4" value="-1.5707" type="double"/>
     <param name="joint_state_publisher/zeros/panda_2_joint6" value="1.8" type="double"/>
 
-    <param name="test_simultaneous_execution_manager/trajectory_execution/allow_simultaneous_execution" value="true"/>
-    <param name="test_simultaneous_execution_manager/trajectory_execution/allow_collision_checking" value="true"/>
-
     <test pkg="moveit_ros_planning"
           type="test_simultaneous_execution_manager"
           test-name="test_simultaneous_execution_manager"
