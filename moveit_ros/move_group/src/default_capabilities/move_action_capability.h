@@ -37,36 +37,52 @@
 #pragma once
 
 #include <moveit/move_group/move_group_capability.h>
-#include <actionlib/server/simple_action_server.h>
+#include <actionlib/server/action_server.h>
 #include <moveit_msgs/MoveGroupAction.h>
+#include <condition_variable>
+#include <map>
 #include <memory>
+#include <mutex>
+#include <thread>
+#include <chrono>
 
+typedef actionlib::ActionServer<moveit_msgs::MoveGroupAction> MoveGroupActionServer;
 namespace move_group
 {
 class MoveGroupMoveAction : public MoveGroupCapability
 {
 public:
   MoveGroupMoveAction();
+  ~MoveGroupMoveAction();
 
   void initialize() override;
 
 private:
-  void executeMoveCallback(const moveit_msgs::MoveGroupGoalConstPtr& goal);
-  void executeMoveCallbackPlanAndExecute(const moveit_msgs::MoveGroupGoalConstPtr& goal,
-                                         moveit_msgs::MoveGroupResult& action_res);
-  void executeMoveCallbackPlanOnly(const moveit_msgs::MoveGroupGoalConstPtr& goal,
-                                   moveit_msgs::MoveGroupResult& action_res);
-  void startMoveExecutionCallback();
-  void startMoveLookCallback();
-  void preemptMoveCallback();
-  void setMoveState(MoveGroupState state);
-  bool planUsingPlanningPipeline(const planning_interface::MotionPlanRequest& req,
-                                 plan_execution::ExecutableMotionPlan& plan);
+  bool isActive(const MoveGroupActionServer::GoalHandle& goal_handle);
+  void cancelGoal(MoveGroupActionServer::GoalHandle& goal_handle, const std::string response);
+  void goalCallback(MoveGroupActionServer::GoalHandle goal_handle);
+  void cancelCallback(MoveGroupActionServer::GoalHandle goal_handle);
+  void clearInactiveGoals();
 
-  std::unique_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction> > move_action_server_;
+  void executeMoveCallback(MoveGroupActionServer::GoalHandle goal_handle);
+  void executeMoveCallbackPlanAndExecute(MoveGroupActionServer::GoalHandle& goal_handle,
+                                         moveit_msgs::MoveGroupResult& action_res);
+  void executeMoveCallbackPlanOnly(MoveGroupActionServer::GoalHandle& goal_handle,
+                                   moveit_msgs::MoveGroupResult& action_res);
+  void startMoveExecutionCallback(MoveGroupActionServer::GoalHandle& goal_handle);
+  void startMoveLookCallback(MoveGroupActionServer::GoalHandle& goal_handle);
+  void setMoveState(MoveGroupState state, MoveGroupActionServer::GoalHandle& goal_handle);
+  bool planUsingPlanningPipeline(const planning_interface::MotionPlanRequest& req,
+                                 plan_execution::ExecutableMotionPlan& plan,
+                                 MoveGroupActionServer::GoalHandle& goal_handle);
+
+  std::unique_ptr<MoveGroupActionServer> move_action_server_;
   moveit_msgs::MoveGroupFeedback move_feedback_;
 
+  MoveGroupActionServer::GoalHandle current_goal_;
+  std::vector<std::pair<MoveGroupActionServer::GoalHandle, std::unique_ptr<std::thread>>> active_goals_;
+  std::mutex active_goals_mutex_;
+
   MoveGroupState move_state_;
-  bool preempt_requested_;
 };
 }  // namespace move_group
