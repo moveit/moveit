@@ -6,8 +6,7 @@
 
     <rosparam ns="planning_pipelines" param="pipeline_names">["ompl"]</rosparam>
 
-    <param name="test_execution_manager/trajectory_execution/allow_simultaneous_execution" value="false"/>
-    <param name="test_execution_manager/trajectory_execution/allow_collision_checking" value="false"/>
+    <param name="test_execution_manager/trajectory_execution/enable_simultaneous_execution" value="false"/>
 
     <test pkg="moveit_ros_planning" type="test_execution_manager" test-name="test_execution_manager" time-limit="300" args="" />
 </launch>

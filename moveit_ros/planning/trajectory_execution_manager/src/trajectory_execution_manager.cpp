@@ -76,8 +76,8 @@ private:
     owner_->setExecutionVelocityScaling(config.execution_velocity_scaling);
     owner_->setAllowedStartTolerance(config.allowed_start_tolerance);
     owner_->setWaitForTrajectoryCompletion(config.wait_for_trajectory_completion);
-    owner_->setAllowSimultaneousExecution(config.allow_simultaneous_execution);
-    owner_->setAllowCollisionChecking(config.allow_collision_checking);
+    owner_->setEnableSimultaneousExecution(config.enable_simultaneous_execution);
+    owner_->setAllowCollisionChecking(config.enable_collision_checking);
   }
 
   TrajectoryExecutionManager* owner_;
@@ -128,7 +128,7 @@ void TrajectoryExecutionManager::initialize()
   execution_duration_monitoring_ = true;
   execution_velocity_scaling_ = 1.0;
   allowed_start_tolerance_ = 0.01;
-  allow_simultaneous_execution_ = false;
+  enable_simultaneous_execution_ = false;
   stop_execution_ = false;
   run_event_manager_ = true;
 
@@ -229,21 +229,21 @@ void TrajectoryExecutionManager::setWaitForTrajectoryCompletion(bool flag)
   wait_for_trajectory_completion_ = flag;
 }
 
-void TrajectoryExecutionManager::setAllowSimultaneousExecution(bool flag)
+void TrajectoryExecutionManager::setEnableSimultaneousExecution(bool flag)
 {
-  allow_simultaneous_execution_ = flag;
+  enable_simultaneous_execution_ = flag;
   // Stop any active trajectories and clear pending ones
   stopExecution(true);
 }
 
-bool TrajectoryExecutionManager::getAllowSimultaneousExecution() const
+bool TrajectoryExecutionManager::getEnableSimultaneousExecution() const
 {
-  return allow_simultaneous_execution_;
+  return enable_simultaneous_execution_;
 }
 
 void TrajectoryExecutionManager::setAllowCollisionChecking(bool flag)
 {
-  allow_collision_checking_ = flag;
+  enable_collision_checking_ = flag;
 }
 
 bool TrajectoryExecutionManager::isManagingControllers() const
@@ -470,7 +470,7 @@ bool TrajectoryExecutionManager::push(const std::vector<moveit_msgs::RobotTrajec
                                       const ExecutionCompleteCallback& callback)
 {
   ROS_DEBUG_NAMED(LOGNAME, "Pushing new trajectory with group name: %s", trajectories[0].group_name.c_str());
-  if (!execution_complete_ && !allow_simultaneous_execution_)
+  if (!execution_complete_ && !enable_simultaneous_execution_)
   {
     ROS_ERROR_NAMED(LOGNAME, "Blocking mode: Cannot push a new trajectory while another is being executed");
     if (callback)
@@ -508,7 +508,7 @@ bool TrajectoryExecutionManager::push(const std::vector<moveit_msgs::RobotTrajec
     }
   }
 
-  if (allow_simultaneous_execution_)
+  if (enable_simultaneous_execution_)
   {
     trajectory_sequence->execution_complete_callback_ = callback;
     trajectory_sequence->remaining_trajectories_count_ = trajectories.size();
@@ -1185,7 +1185,7 @@ void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback& callba
 void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback& callback,
                                          const PathSegmentCompleteCallback& part_callback, bool auto_clear)
 {
-  if (allow_simultaneous_execution_)
+  if (enable_simultaneous_execution_)
   {
     ROS_WARN_NAMED(LOGNAME, "In continuous execution mode push()ed trajectories are started automatically. Ignoring "
                             "call to execute().");
@@ -1464,7 +1464,7 @@ bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionCon
 std::pair<int, int> TrajectoryExecutionManager::getCurrentExpectedTrajectoryIndex() const
 {
   std::lock_guard<std::mutex> slock(active_trajectory_sequences_mutex_);
-  if (allow_simultaneous_execution_ || active_trajectory_sequences_.size() > 1)
+  if (enable_simultaneous_execution_ || active_trajectory_sequences_.size() > 1)
   {
     ROS_ERROR_NAMED(LOGNAME,
                     "During continuous execution mode, call to getCurrentExpectedTrajectoryIndex() are not allowed");
