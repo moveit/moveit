@@ -86,7 +86,6 @@ protected:
 
 TEST_F(MoveItCppTest, SimpleSimulatenousExecutionTest)
 {
-  moveit_cpp_ptr->getTrajectoryExecutionManager()->stopExecution(true);
   std::vector<double> p1_target_joints1{ 1.057, -0.323, 0.805, -2.857, 0.424, 2.557, 1.468 };
   std::vector<double> p2_target_joints1{ 2.049, 0.046, 2.419, -2.660, -0.053, 2.624, -1.666 };
 
@@ -104,7 +103,6 @@ TEST_F(MoveItCppTest, SimpleSimulatenousExecutionTest)
 
 TEST_F(MoveItCppTest, WaitForSingleTrajectory)
 {
-  moveit_cpp_ptr->getTrajectoryExecutionManager()->stopExecution(true);
   std::vector<double> p1_target_joints1{ 0, 0, 0, -1.5707, 0, 1.8, 0 };
   std::vector<double> p2_target_joints1{ 0, 0, 0, -1.5707, 0, 1.8, 0 };
 
@@ -135,9 +133,26 @@ TEST_F(MoveItCppTest, WaitForSingleTrajectory)
   ASSERT_TRUE(moveit_cpp_ptr->getTrajectoryExecutionManager()->waitForExecution());
 }
 
+TEST_F(MoveItCppTest, RejectTrajectoryInCollision)
+{
+  // controller being used
+  std::vector<double> p1_target_joints1{ 1.057, -0.323, 0.805, -2.857, 0.424, 2.557, 1.468 };
+  std::vector<double> p2_target_joints1{ 1.986, -0.416, 2.567, -2.089, 0.344, 2.414, -1.922 };
+
+  moveit_msgs::RobotTrajectory panda_1_robot_trajectory_msg =
+      plan(panda_1_planning_component_ptr, panda_1_joint_names, p1_target_joints1);
+  moveit_msgs::RobotTrajectory panda_2_robot_trajectory_msg =
+      plan(panda_2_planning_component_ptr, panda_2_joint_names, p2_target_joints1);
+
+  ASSERT_TRUE(moveit_cpp_ptr->getTrajectoryExecutionManager()->push(panda_1_robot_trajectory_msg));
+  // Rejected because the trajectory is in collision course with panda1's trajectory
+  ASSERT_FALSE(moveit_cpp_ptr->getTrajectoryExecutionManager()->push(panda_2_robot_trajectory_msg));
+
+  moveit_cpp_ptr->getTrajectoryExecutionManager()->stopExecution(true);
+}
+
 TEST_F(MoveItCppTest, RejectInvalidTrajectory)
 {
-  moveit_cpp_ptr->getTrajectoryExecutionManager()->stopExecution(true);
   // controller being used
   std::vector<double> p1_target_joints1{ 1.057, -0.323, 0.805, -2.857, 0.424, 2.557, 1.468 };
   std::vector<double> p2_target_joints1{ 2.049, 0.046, 2.419, -2.660, -0.053, 2.624, -1.666 };
@@ -156,9 +171,7 @@ TEST_F(MoveItCppTest, RejectInvalidTrajectory)
   // Rejected because group `panda 1` is still being used or the current state does not match the initial state of this trajectory
   ASSERT_FALSE(moveit_cpp_ptr->getTrajectoryExecutionManager()->push(panda_1_robot_trajectory_msg2));
 
-  ASSERT_TRUE(moveit_cpp_ptr->getTrajectoryExecutionManager()->waitForExecution());
-  // TODO: trajectory in collision
-  //
+  moveit_cpp_ptr->getTrajectoryExecutionManager()->stopExecution(true);
 }
 
 TEST_F(MoveItCppTest, CancelTrajectory)
