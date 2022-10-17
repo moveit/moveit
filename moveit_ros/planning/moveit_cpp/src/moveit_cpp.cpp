@@ -242,10 +242,17 @@ bool MoveItCpp::execute(const std::string& group_name, const robot_trajectory::R
 
   auto callback = trajectory_execution_manager::TrajectoryExecutionManager::ExecutionCompleteCallback();
 
+  static int trajectory_id = 0;
+  trajectory_id++;
+
   if (trajectory_execution_manager_->getEnableSimultaneousExecution())
   {
     callback = [this,
                 &execution_status](__attribute__((unused)) const moveit_controller_manager::ExecutionStatus status) {
+      {
+        std::unique_lock<std::mutex> ulock(execution_complete_mutex_);
+        std::remove(active_trajectories_.begin(), active_trajectories_.end(), trajectory_id);
+      }
       execution_complete_condition_.notify_all();
       execution_status = status;
     };
@@ -254,12 +261,20 @@ bool MoveItCpp::execute(const std::string& group_name, const robot_trajectory::R
   if (!trajectory_execution_manager_->push(robot_trajectory_msg, "", callback))
     return false;
 
+  {
+    std::unique_lock<std::mutex> ulock(execution_complete_mutex_);
+    active_trajectories_.push_back(trajectory_id);
+  }
+
   if (blocking)
   {
     if (trajectory_execution_manager_->getEnableSimultaneousExecution())
-    {  // wait for callback to return
+    {  // wait for callback to return or for the trajectory to stop being active
       std::unique_lock<std::mutex> ulock(execution_complete_mutex_);
-      execution_complete_condition_.wait(ulock);
+      execution_complete_condition_.wait(ulock, [this]() {
+        return std::find(active_trajectories_.begin(), active_trajectories_.end(), trajectory_id) ==
+               active_trajectories_.end();
+      });
       return execution_status;
     }
     else
