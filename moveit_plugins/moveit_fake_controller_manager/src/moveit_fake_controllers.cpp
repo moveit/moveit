@@ -164,7 +164,7 @@ ViaPointController::~ViaPointController() = default;
 
 void ViaPointController::execTrajectory(const moveit_msgs::RobotTrajectory& t, const ExecutionCompleteCallback& cb)
 {
-  ROS_INFO("Fake execution of trajectory");
+  ROS_INFO("Fake execution of trajectory for '%s'", t.group_name.c_str());
   sensor_msgs::JointState js;
   js.header = t.joint_trajectory.header;
   js.name = t.joint_trajectory.joint_names;
@@ -193,7 +193,7 @@ void ViaPointController::execTrajectory(const moveit_msgs::RobotTrajectory& t, c
                                    moveit_controller_manager::ExecutionStatus::SUCCEEDED;
   if (cb)
     cb(last_status);
-  ROS_DEBUG("Fake execution of trajectory: done");
+  ROS_DEBUG("Fake execution of trajectory done for '%s'", t.group_name.c_str());
 }
 
 InterpolatingController::InterpolatingController(const std::string& name, const std::vector<std::string>& joints,
@@ -227,10 +227,10 @@ void interpolate(sensor_msgs::JointState& js, const trajectory_msgs::JointTrajec
 
 void InterpolatingController::execTrajectory(const moveit_msgs::RobotTrajectory& t, const ExecutionCompleteCallback& cb)
 {
-  ROS_INFO_STREAM("Fake execution of trajectory: " << t.group_name);
+  ROS_INFO("Fake execution of trajectory for '%s'", t.group_name.c_str());
   if (t.joint_trajectory.points.empty())
   {
-    ROS_DEBUG_STREAM("No points to be executed, assuming success: " << t.group_name);
+    ROS_DEBUG("No points to be executed, assuming success for '%s'", t.group_name.c_str());
     if (cb)
       cb(moveit_controller_manager::ExecutionStatus::SUCCEEDED);
     return;
@@ -285,7 +285,7 @@ void InterpolatingController::execTrajectory(const moveit_msgs::RobotTrajectory&
   pub_.publish(js);
   if (cb)
     cb(moveit_controller_manager::ExecutionStatus::SUCCEEDED);
-  ROS_DEBUG("Fake execution of trajectory: done");
+  ROS_DEBUG("Fake execution of trajectory done for '%s'", t.group_name.c_str());
 }
 
 }  // end namespace moveit_fake_controller_manager

@@ -125,7 +125,8 @@ public:
    *
    * The controller is expected to execute the trajectory, but this function call should not block.
    * Blocking is achievable by calling waitForExecution().
-   * Return false when the controller cannot accept the trajectory. */
+   * Return false when the controller cannot accept the trajectory.
+   * The callback will be called in case of success, failure, or prevented collision. */
   virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory& trajectory,
                               const ExecutionCompleteCallback& callback) = 0;
   bool sendTrajectory(const moveit_msgs::RobotTrajectory& trajectory)

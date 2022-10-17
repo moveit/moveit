@@ -132,8 +132,8 @@ void MoveGroupExecuteTrajectoryAction::goalCallback(ExecuteTrajectoryActionServe
     {
       // Stop current execution and then cancel current goal
       context_->trajectory_execution_manager_->stopExecution(true);
-      const std::string response =
-          "This goal was canceled because another goal was received by the MoveIt action server";
+      const std::string response = "The current trajectory was canceled because another goal was received by the "
+                                   "MoveIt move_group_execute_trajectory action server";
       cancelGoal(current_goal_, response);
     }
 
@@ -180,7 +180,6 @@ void MoveGroupExecuteTrajectoryAction::executePath(ExecuteTrajectoryActionServer
   }
   else
   {
-    ROS_ERROR_NAMED(getName(), "Failed to pushed trajectory");
     sendGoalResponse(goal_handle, moveit_controller_manager::ExecutionStatus::ABORTED);
   }
 }
