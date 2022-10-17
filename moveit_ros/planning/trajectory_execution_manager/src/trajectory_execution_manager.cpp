@@ -1220,6 +1220,7 @@ void TrajectoryExecutionManager::stopExecution(bool auto_clear)
 
 void TrajectoryExecutionManager::stopExecution(const TrajectoryID trajectory_id)
 {
+  std::lock_guard<std::mutex> slock(active_trajectory_sequences_mutex_);
   for (auto& trajectory_sequence : active_trajectory_sequences_)
     if (trajectory_sequence->id_ == trajectory_id)
     {
