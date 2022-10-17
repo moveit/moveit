@@ -54,11 +54,9 @@ MoveGroupExecuteTrajectoryAction::~MoveGroupExecuteTrajectoryAction()
   auto it = active_goals_.begin();
   while (it != active_goals_.end())
   {
-    auto& goal_handle = it->first;
-    auto& goal_thread = it->second;
-    cancelGoal(goal_handle, "");
-    if (goal_thread->joinable())
-      goal_thread->join();
+    cancelGoal(it->goal_handle_, "");
+    if (it->thread_.joinable())
+      it->thread_.join();
     it++;
   }
   active_goals_.clear();
@@ -80,12 +78,10 @@ void MoveGroupExecuteTrajectoryAction::clearInactiveGoals()
   auto it = active_goals_.begin();
   while (it != active_goals_.end())
   {
-    auto& goal_handle = it->first;
-    auto& goal_thread = it->second;
-    if (!isActive(goal_handle))
+    if (!isActive(it->goal_handle_))
     {
-      if (goal_thread->joinable())
-        goal_thread->join();
+      if (it->thread_.joinable())
+        it->thread_.join();
       it = active_goals_.erase(it);
     }
     else
@@ -127,8 +123,7 @@ void MoveGroupExecuteTrajectoryAction::goalCallback(ExecuteTrajectoryActionServe
 
   if (context_->trajectory_execution_manager_->getEnableSimultaneousExecution())
   {
-    active_goals_.push_back(std::make_pair(
-        goal_handle, std::make_unique<std::thread>([this, goal_handle]() { executePath(goal_handle); })));
+    active_goals_.push_back(ActiveGoal(goal_handle, std::thread([this, goal_handle]() { executePath(goal_handle); })));
   }
   else
   {
@@ -143,9 +138,7 @@ void MoveGroupExecuteTrajectoryAction::goalCallback(ExecuteTrajectoryActionServe
     }
 
     current_goal_ = goal_handle;
-
-    active_goals_.push_back(std::make_pair(
-        goal_handle, std::make_unique<std::thread>([this, goal_handle]() { executePath(goal_handle); })));
+    active_goals_.push_back(ActiveGoal(goal_handle, std::thread([this, goal_handle]() { executePath(goal_handle); })));
   }
 }
 
@@ -153,7 +146,11 @@ void MoveGroupExecuteTrajectoryAction::cancelCallback(ExecuteTrajectoryActionSer
 {
   ROS_DEBUG_STREAM_NAMED(getName(),
                          "Cancel goal requested (ExecuteTrajectoryActionServer): " << goal_handle.getGoalID());
-  context_->trajectory_execution_manager_->stopExecution(true);  // TODO: fix
+
+  auto it = std::find(active_goals_.begin(), active_goals_.end(), ActiveGoal(goal_handle));
+  if (it != active_goals_.end())
+    context_->trajectory_execution_manager_->stopExecution(it->trajectory_id_);
+
   const std::string response = "This goal was canceled by the user";
   cancelGoal(goal_handle, response);
 }
