@@ -260,6 +260,7 @@ planning_interface::MotionPlanResponse PlanningComponent::plan(const MultiPipeli
         auto plan_solution = planning_interface::MotionPlanResponse();
         plan_solution.error_code_ = moveit::core::MoveItErrorCode::FAILURE;
       }
+      plan_solution.planner_id_ = plan_request_parameter.planner_id;
       planning_solutions.pushBack(plan_solution);
 
       if (stopping_criterion_callback != nullptr)

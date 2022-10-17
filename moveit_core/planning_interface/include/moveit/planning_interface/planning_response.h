@@ -55,6 +55,7 @@ struct MotionPlanResponse
   double planning_time_;
   moveit::core::MoveItErrorCode error_code_;
   moveit_msgs::RobotState start_state_;
+  std::string planner_id_;
 
   // Enable checking of query success or failure, for example if(response) ...
   explicit operator bool() const
@@ -72,6 +73,7 @@ struct MotionPlanDetailedResponse
   std::vector<double> processing_time_;
   moveit::core::MoveItErrorCode error_code_;
   moveit_msgs::RobotState start_state_;
+  std::string planner_id_;
 
   // Enable checking of query success or failure, for example if(response) ...
   explicit operator bool() const

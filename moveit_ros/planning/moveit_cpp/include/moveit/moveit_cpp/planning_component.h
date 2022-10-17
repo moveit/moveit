@@ -76,7 +76,7 @@ public:
     }
 
     /// \brief Get solutions
-    std::vector<planning_interface::MotionPlanResponse> const& getSolutions()
+    std::vector<planning_interface::MotionPlanResponse> const& getSolutions() const
     {
       return solutions_;
     }
