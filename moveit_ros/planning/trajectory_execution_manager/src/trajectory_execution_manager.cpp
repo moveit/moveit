@@ -1356,6 +1356,8 @@ bool TrajectoryExecutionManager::executeTrajectory(
   if (stop_execution_)
     return false;
 
+  std::lock_guard<std::mutex> slock(execution_state_mutex_);
+
   auto& context_ptr = trajectory_sequence->contexts_[index];
   ROS_DEBUG_NAMED(LOGNAME, "Non-blocking Execute Trajectory with group name %s ",
                   context_ptr->trajectory_.group_name.c_str());
@@ -1373,8 +1375,8 @@ bool TrajectoryExecutionManager::executeTrajectory(
     // 1. Check collisions between new trajectory and currently active trajectories (NOT including the future segments
     // in this trajectory sequence)
     // 2. Check collisions between new trajectory and current state of the planning scene
-    if (enable_collision_checking_ && !checkCollisionsWithActiveTrajectories(*context_ptr) &&
-        !checkCollisionsWithCurrentState(context_ptr->trajectory_))
+    if (enable_collision_checking_ && (!checkCollisionsWithActiveTrajectories(*context_ptr) ||
+                                       !checkCollisionsWithCurrentState(context_ptr->trajectory_)))
     {
       ROS_ERROR_NAMED(LOGNAME, "Abort execution: Trajectory in collision");
       return false;
@@ -1392,10 +1394,13 @@ bool TrajectoryExecutionManager::executeTrajectory(
       ROS_DEBUG_STREAM_NAMED(LOGNAME, "Execution completed with status: " << execution_status.asString() << " : "
                                                                           << context->trajectory_.group_name);
       TrajectoryExecutionEvent event = { EventType::EXECUTION_COMPLETED, context_pair, execution_status };
-      std::lock_guard<std::mutex> slock(events_queue_mutex_);
+      std::lock_guard<std::mutex> lock(events_queue_mutex_);
       events_queue_.push_back(std::make_shared<TrajectoryExecutionEvent>(event));
       event_manager_condition_.notify_all();
     };
+
+    if (stop_execution_)
+      return false;
 
     // Push trajectory to all controllers simultaneously (each part goes to one controller)
     for (std::size_t i = 0; i < context_ptr->trajectory_parts_.size(); ++i)
@@ -1442,18 +1447,14 @@ bool TrajectoryExecutionManager::executeTrajectory(
 
     if (index == 0)
     {
-      active_handles_mutex_.lock();
+      std::unique_lock<std::mutex> ulock(active_handles_mutex_);
       active_handles_.insert(required_handles.begin(), required_handles.end());
-      active_handles_mutex_.unlock();
 
-      active_trajectory_sequences_mutex_.lock();
+      std::unique_lock<std::mutex> ulock2(active_trajectory_sequences_mutex_);
       active_trajectory_sequences_.push_back(trajectory_sequence);
-      active_trajectory_sequences_mutex_.unlock();
     }
 
-    execution_state_mutex_.lock();
     execution_complete_ = false;
-    execution_state_mutex_.unlock();
   }
 
   return true;
