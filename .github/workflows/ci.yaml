@@ -78,36 +78,39 @@ jobs:
           # free up a lot of stuff from /usr/local
           sudo rm -rf /usr/local
           df -h
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Cache upstream workspace
-        uses: pat-s/always-upload-cache@v2.1.5
+        uses: rhaschke/cache@main
         with:
           path: ${{ env.BASEDIR }}/upstream_ws
           key: ${{ env.CACHE_PREFIX }}-${{ github.run_id }}
           restore-keys: ${{ env.CACHE_PREFIX }}
         env:
+          GHA_CACHE_SAVE: always
           CACHE_PREFIX: upstream_ws-${{ matrix.env.IMAGE }}-${{ hashFiles('.github/workflows/upstream.rosinstall', '.github/workflows/ci.yaml') }}
       - name: Cache downstream workspace
-        uses: pat-s/always-upload-cache@v2.1.5
+        uses: rhaschke/cache@main
         with:
           path: ${{ env.BASEDIR }}/downstream_ws
           key: ${{ env.CACHE_PREFIX }}-${{ github.run_id }}
           restore-keys: ${{ env.CACHE_PREFIX }}
         env:
+          GHA_CACHE_SAVE: always
           CACHE_PREFIX: downstream_ws-${{ matrix.env.IMAGE }}-${{ hashFiles('.github/workflows/downstream.rosinstall', '.github/workflows/ci.yaml') }}
       # The target directory cache doesn't include the source directory because
       # that comes from the checkout.  See "prepare target_ws for cache" task below
       - name: Cache target workspace
         if: "!matrix.env.CCOV"
-        uses: pat-s/always-upload-cache@v2.1.5
+        uses: rhaschke/cache@main
         with:
           path: ${{ env.BASEDIR }}/target_ws
           key: ${{ env.CACHE_PREFIX }}-${{ github.run_id }}
           restore-keys: ${{ env.CACHE_PREFIX }}
         env:
+          GHA_CACHE_SAVE: always
           CACHE_PREFIX: target_ws${{ matrix.env.CCOV && '-ccov' || '' }}-${{ matrix.env.IMAGE }}-${{ hashFiles('**/CMakeLists.txt', '**/package.xml', '.github/workflows/ci.yaml') }}
       - name: Cache ccache
-        uses: pat-s/always-upload-cache@v2.1.5
+        uses: rhaschke/cache@main
         with:
           path: ${{ env.CCACHE_DIR }}
           key: ${{ env.CACHE_PREFIX }}-${{ github.sha }}-${{ github.run_id }}
@@ -115,6 +118,7 @@ jobs:
             ${{ env.CACHE_PREFIX }}-${{ github.sha }}
             ${{ env.CACHE_PREFIX }}
         env:
+          GHA_CACHE_SAVE: always
           CACHE_PREFIX: ccache-${{ matrix.env.IMAGE }}${{ matrix.env.CCOV && '-ccov' || '' }}
 
       - name: Generate ikfast packages
@@ -123,9 +127,10 @@ jobs:
       - id: ici
         name: Run industrial_ci
         uses: ros-industrial/industrial_ci@master
+        env: ${{ matrix.env }}
 
       - name: Upload test artifacts (on failure)
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure() && (steps.ici.outputs.run_target_test || steps.ici.outputs.target_test_results)
         with:
           name: test-results-${{ matrix.env.IMAGE }}
@@ -138,7 +143,7 @@ jobs:
           workdir: ${{ env.BASEDIR }}/target_ws
           ignore: '"*/target_ws/build/*" "*/target_ws/install/*" "*/test/*"'
       - name: Upload codecov report
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         if: always() && matrix.env.CCOV && steps.ici.outputs.target_test_results == '0'
         with:
           files: ${{ env.BASEDIR }}/target_ws/coverage.info
@@ -164,7 +169,7 @@ jobs:
     permissions:
       contents: write # allow pushing
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Fast-forward noetic-devel to sync with master
         run: |
           # Configure push user+url
