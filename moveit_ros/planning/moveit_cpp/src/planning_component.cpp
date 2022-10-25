@@ -292,7 +292,7 @@ bool PlanningComponent::execute(bool blocking)
 {
   if (!last_plan_solution_)
   {
-    ROS_ERROR_NAMED(LOGNAME, "There is no successfull plan to execute");
+    ROS_ERROR_NAMED(LOGNAME, "There is no successful plan to execute");
     return false;
   }
 
