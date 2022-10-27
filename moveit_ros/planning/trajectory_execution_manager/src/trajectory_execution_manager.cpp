@@ -327,7 +327,7 @@ void TrajectoryExecutionManager::runEventManager()
       {
         case EventType::EXECUTION_COMPLETED:
         {
-          ROS_INFO_NAMED(LOGNAME, "Event EXECUTION_COMPLETED");
+          ROS_DEBUG_NAMED(LOGNAME, "Event EXECUTION_COMPLETED");
           context_ptr->execution_duration_timer_.stop();
           context_ptr->active_controllers_count_ -= 1;
           execution_status = current_event->execution_status_;
@@ -346,7 +346,7 @@ void TrajectoryExecutionManager::runEventManager()
         case EventType::EXECUTION_TIMEOUT:
         {
           // Just cancel other controller handles required by this trajectory
-          ROS_INFO_NAMED(LOGNAME, "Event EXECUTION_TIMEOUT");
+          ROS_DEBUG_NAMED(LOGNAME, "Event EXECUTION_TIMEOUT");
           execution_status = moveit_controller_manager::ExecutionStatus::TIMED_OUT;
           for (auto handle : required_handles)
             handle->cancelExecution();
@@ -354,7 +354,7 @@ void TrajectoryExecutionManager::runEventManager()
         }
         case EventType::EXECUTION_CANCELLATION_REQUEST:
         {
-          ROS_INFO_NAMED(LOGNAME, "Event EXECUTION_CANCELLATION_REQUEST");
+          ROS_DEBUG_NAMED(LOGNAME, "Event EXECUTION_CANCELLATION_REQUEST");
           context_ptr->execution_duration_timer_.stop();
           context_ptr->active_controllers_count_ -= 1;
           execution_status = moveit_controller_manager::ExecutionStatus::ABORTED;
@@ -1199,7 +1199,6 @@ moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::executeAn
 void TrajectoryExecutionManager::stopExecution(bool auto_clear)
 {
   // We mark stop_execution_ as true and wait for the runEventManager threat to cancel all active trajectories
-  ROS_INFO_NAMED(LOGNAME, "StopExecution()");
   if (!execution_complete_)
   {
     stop_execution_ = true;
@@ -1524,8 +1523,8 @@ std::pair<int, int> TrajectoryExecutionManager::getCurrentExpectedTrajectoryInde
   std::lock_guard<std::mutex> slock(active_trajectory_sequences_mutex_);
   if (enable_simultaneous_execution_ || active_trajectory_sequences_.size() > 1)
   {
-    ROS_ERROR_NAMED(LOGNAME,
-                    "During continuous execution mode, call to getCurrentExpectedTrajectoryIndex() are not allowed");
+    ROS_ERROR_NAMED(LOGNAME, "During continuous execution mode, call to getCurrentExpectedTrajectoryIndex() are not "
+                             "allowed. Returning (-1,-1)");
     // TODO (cambel) : raise an error instead of returning?
     return std::make_pair(-1, -1);
   }

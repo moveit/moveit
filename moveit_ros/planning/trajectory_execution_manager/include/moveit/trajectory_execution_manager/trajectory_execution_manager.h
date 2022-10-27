@@ -38,7 +38,6 @@
 
 #include <moveit/controller_manager/controller_manager.h>
 #include <moveit/macros/class_forward.h>
-#include <moveit/controller_manager/controller_manager.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
 #include <moveit/robot_model/robot_model.h>
@@ -75,9 +74,6 @@ public:
 
   enum EventType
   {
-    /** \brief New trajectory(s) has been pushed */
-    NEW_REQUEST = 0,
-
     /** \brief The execution of a trajectory has been completed, regardless of status */
     EXECUTION_COMPLETED = 1,
 
@@ -155,6 +151,7 @@ public:
     /// Counter of trajectories pending for execution
     int remaining_trajectories_count_;
 
+    /// Identifier for this sequential trajectory
     TrajectoryExecutionManager::TrajectoryID id_;
 
     SequentialTrajectoryExecutionContext()
@@ -400,9 +397,9 @@ private:
   void runEventManager();
   // Validate that sequences of trajectories are ready for execution; trajectory matches current robot state,
   // controllers are available, and optionally check collision with active trajectories and the current planning scene
-  bool validateTrajectories(const SequentialTrajectoryExecutionContext& meta_context);
+  bool validateTrajectories(const SequentialTrajectoryExecutionContext& trajectory_sequence);
   // Send trajectory to be executed in the corresponding controller(s)
-  bool executeTrajectory(const std::shared_ptr<SequentialTrajectoryExecutionContext> meta_context,
+  bool executeTrajectory(const std::shared_ptr<SequentialTrajectoryExecutionContext> trajectory_sequence,
                          const std::size_t index);
   bool waitForRobotToStop(const TrajectoryExecutionContext& context, double wait_time = 1.0);
 

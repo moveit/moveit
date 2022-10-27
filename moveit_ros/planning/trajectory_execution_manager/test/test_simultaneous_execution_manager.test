@@ -8,18 +8,10 @@
     <!-- Load the robot specific controller manager; this sets the moveit_controller_manager ROS parameter -->
     <include ns="test_simultaneous_execution_manager" file="$(find moveit_resources_dual_panda_moveit_config)/launch/fake_moveit_controller_manager.launch.xml" />
 
-    <!-- Trajectory execution  -->
-    <!-- <include ns="test_simultaneous_execution_manager" file="$(find moveit_resources_dual_panda_moveit_config)/launch/trajectory_execution.launch.xml">
-      <arg name="moveit_controller_manager" value="fake"/>
-    </include> -->
-
     <!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
     <include file="$(find moveit_resources_dual_panda_moveit_config)/launch/planning_context.launch">
       <arg name="load_robot_description" value="true"/>
     </include>
-
-    <!-- If needed, broadcast static tf for robot root -->
-    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="virtual_joint_broadcaster_1" args="0 0 0 0 0 0 world panda_link0" /> -->
 
     <!-- Send fake joint values -->
     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
