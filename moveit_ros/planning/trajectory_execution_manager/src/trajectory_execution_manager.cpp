@@ -1446,6 +1446,9 @@ bool TrajectoryExecutionManager::executeTrajectory(
 
     if (index == 0)
     {
+      // Get all the controller handles that the entired sequence will required and lock them
+      for (auto ctx : trajectory_sequence->contexts_)
+        getContextHandles(*ctx, required_handles);
       std::unique_lock<std::mutex> ulock(active_handles_mutex_);
       active_handles_.insert(required_handles.begin(), required_handles.end());
 
