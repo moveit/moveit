@@ -191,6 +191,11 @@ void TrajectoryExecutionManager::initialize()
 
   event_manager_thread_ = std::make_unique<std::thread>(&TrajectoryExecutionManager::runEventManager, this);
 
+  // we want to be notified when new information is available
+  planning_scene_monitor_->addUpdateCallback([this](planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType type) {
+    planningSceneUpdatedCallback(type);
+  });
+
   reconfigure_impl_ = new DynamicReconfigureImpl(this);
 
   if (manage_controllers_)
@@ -313,12 +318,39 @@ void TrajectoryExecutionManager::runEventManager()
         events_queue_.pop_front();
       }
 
+      std::set<moveit_controller_manager::MoveItControllerHandlePtr> required_handles;
+
+      if (current_event->type_ == EventType::PLANNING_SCENE_CHANGE && enable_collision_checking_)
+      {
+        // Check collisions of all active trajectories with the updated planning scene
+        std::lock_guard<std::mutex> slock(active_trajectory_sequences_mutex_);
+        for (const auto& active_trajectory_sequence : active_trajectory_sequences_)
+        {
+          // Check collisions of only the active segment of a sequence and future segments
+          std::size_t active_index =
+              active_trajectory_sequence->contexts_.size() - active_trajectory_sequence->remaining_trajectories_count_;
+          for (std::size_t i = active_index; i < active_trajectory_sequence->contexts_.size(); i++)
+          {
+            const auto& active_context = active_trajectory_sequence->contexts_[i];
+            if (!checkCollisionsWithCurrentState(active_context->trajectory_))
+            {
+              ROS_ERROR_NAMED(LOGNAME, "Active trajectory in collision with updated planning scene. Aborting.");
+              active_context->execution_duration_timer_.stop();
+              getContextHandles(*active_context, required_handles);
+              for (auto handle : required_handles)
+                handle->cancelExecution();
+              required_handles.clear();
+              break;
+            }
+          }
+        }
+      }
+
       // Check that the context is still available
       if (current_event->context_pair.first.expired())
         continue;
 
       moveit_controller_manager::ExecutionStatus execution_status;
-      std::set<moveit_controller_manager::MoveItControllerHandlePtr> required_handles;
       auto context_ptr = current_event->context_pair.second.lock();
       ROS_INFO_STREAM_NAMED(LOGNAME, "Event's group name: " << context_ptr->trajectory_.group_name);
       getContextHandles(*context_ptr, required_handles);
@@ -1777,21 +1809,26 @@ bool TrajectoryExecutionManager::checkCollisionsWithActiveTrajectories(const Tra
   // TODO (cambel): need improvement. Check only pending trajectories
   std::lock_guard<std::mutex> slock(active_trajectory_sequences_mutex_);
   for (const auto& active_trajectory_sequence : active_trajectory_sequences_)
-    for (const auto& currently_running_context : active_trajectory_sequence->contexts_)
+  {
+    // Check collisions of only the active segment of a sequence and future segments
+    std::size_t active_index =
+        active_trajectory_sequence->contexts_.size() - active_trajectory_sequence->remaining_trajectories_count_;
+    for (std::size_t i = active_index; i < active_trajectory_sequence->contexts_.size(); i++)
     {
-      if (!checkCollisionBetweenTrajectories(context.trajectory_, currently_running_context->trajectory_))
+      const auto& active_context = active_trajectory_sequence->contexts_[i];
+      if (!checkCollisionBetweenTrajectories(context.trajectory_, active_context->trajectory_))
       {
         ROS_DEBUG_STREAM_NAMED(
             LOGNAME,
             "Collision found between incoming trajectory with (group_name, duration): "
                 << context.trajectory_.group_name << ", "
                 << context.trajectory_parts_[0].joint_trajectory.points.back().time_from_start
-                << " and active trajectory with (group_name, duration): "
-                << currently_running_context->trajectory_.group_name << ", "
-                << currently_running_context->trajectory_parts_[0].joint_trajectory.points.back().time_from_start);
+                << " and active trajectory with (group_name, duration): " << active_context->trajectory_.group_name
+                << ", " << active_context->trajectory_parts_[0].joint_trajectory.points.back().time_from_start);
         return false;
       }
     }
+  }
   return true;
 }
 
@@ -1888,4 +1925,20 @@ TrajectoryExecutionManager::TrajectoryExecutionManager::TrajectoryID TrajectoryE
   id_count_++;
   return TrajectoryID(id_count_);
 }
+
+void TrajectoryExecutionManager::planningSceneUpdatedCallback(
+    const planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
+{
+  if (update_type & (planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY |
+                     planning_scene_monitor::PlanningSceneMonitor::UPDATE_TRANSFORMS))
+  {
+    TrajectoryExecutionEvent event;
+    event.type_ = EventType::PLANNING_SCENE_CHANGE;
+    events_queue_mutex_.lock();
+    events_queue_.push_back(std::make_shared<TrajectoryExecutionEvent>(event));
+    events_queue_mutex_.unlock();
+    event_manager_condition_.notify_all();
+  }
+}
+
 }  // namespace trajectory_execution_manager

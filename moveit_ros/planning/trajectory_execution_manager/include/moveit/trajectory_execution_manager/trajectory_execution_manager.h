@@ -75,14 +75,16 @@ public:
   enum EventType
   {
     /** \brief The execution of a trajectory has been completed, regardless of status */
-    EXECUTION_COMPLETED = 1,
+    EXECUTION_COMPLETED = 0,
 
     /** \brief The monitor trajectory execution timer  */
-    EXECUTION_TIMEOUT = 2,
+    EXECUTION_TIMEOUT = 1,
 
     /** \brief Cancellation requested by user  */
-    EXECUTION_CANCELLATION_REQUEST = 3,
+    EXECUTION_CANCELLATION_REQUEST = 2,
 
+    /** \brief Planning scene changed  */
+    PLANNING_SCENE_CHANGE = 3
   };
 
   /// Data structure that represents an unique identifier for each trajectory execution through `push()` when
@@ -420,6 +422,8 @@ private:
           context_pair);
 
   TrajectoryID generateTrajectoryID();
+
+  void planningSceneUpdatedCallback(const planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
 
   moveit::core::RobotModelConstPtr robot_model_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
