@@ -268,7 +268,7 @@ planning_interface::MotionPlanResponse PlanningComponent::plan(const MultiPipeli
         if (stopping_criterion_callback(planning_solutions, parameters))
         {
           // Terminate planning pipelines
-          ROS_ERROR_STREAM_NAMED(LOGNAME,
+          ROS_INFO_STREAM_NAMED(LOGNAME,
                                  "Stopping criterion met: Terminating planning pipelines that are still active");
           for (auto const& plan_request_parameter : parameters.multi_plan_request_parameters)
           {
