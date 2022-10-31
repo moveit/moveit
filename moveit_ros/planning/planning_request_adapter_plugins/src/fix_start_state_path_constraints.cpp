@@ -59,9 +59,11 @@ public:
     return "Fix Start State Path Constraints";
   }
 
-  bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
-                    std::vector<std::size_t>& added_path_index) const override
+  moveit::core::MoveItErrorCode adaptAndPlan(const PlannerFn& planner,
+                                             const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                             const planning_interface::MotionPlanRequest& req,
+                                             planning_interface::MotionPlanResponse& res,
+                                             std::vector<std::size_t>& added_path_index) const override
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
 
@@ -86,20 +88,21 @@ public:
       // index information from that call
       std::vector<std::size_t> added_path_index_temp;
       added_path_index_temp.swap(added_path_index);
-      bool solved1 = planner(planning_scene, req2, res2);
+      moveit::core::MoveItErrorCode solved1 = planner(planning_scene, req2, res2);
       added_path_index_temp.swap(added_path_index);
 
-      if (solved1)
+      moveit::core::MoveItErrorCode solved2(moveit_msgs::MoveItErrorCodes::FAILURE);
+      if (bool(solved1))
       {
         planning_interface::MotionPlanRequest req3 = req;
-        ROS_INFO("Planned to path constraints. Resuming original planning request.");
+        ROS_INFO("The start state was modified to match path constraints. Now resuming the original planning request.");
 
         // extract the last state of the computed motion plan and set it as the new start state
         moveit::core::robotStateToRobotStateMsg(res2.trajectory_->getLastWayPoint(), req3.start_state);
-        bool solved2 = planner(planning_scene, req3, res);
+        solved2 = planner(planning_scene, req3, res);
         res.planning_time_ += res2.planning_time_;
 
-        if (solved2)
+        if (bool(solved2))
         {
           // since we add a prefix, we need to correct any existing index positions
           for (std::size_t& added_index : added_path_index)
@@ -112,24 +115,19 @@ public:
           // we need to append the solution paths.
           res2.trajectory_->append(*res.trajectory_, 0.0);
           res2.trajectory_->swap(*res.trajectory_);
-          return true;
+          return moveit_msgs::MoveItErrorCodes::SUCCESS;
         }
-        else
-          return false;
       }
-      else
+      if (!bool(solved1) || !bool(solved2))
       {
-        ROS_WARN("Unable to plan to path constraints. Running usual motion plan.");
-        bool result = planner(planning_scene, req, res);
-        res.planning_time_ += res2.planning_time_;
-        return result;
+        ROS_WARN("Unable to meet path constraints at the start.");
+        moveit::core::MoveItErrorCode moveit_code(moveit_msgs::MoveItErrorCodes::START_STATE_VIOLATES_PATH_CONSTRAINTS);
+        res.error_code_.val = moveit_msgs::MoveItErrorCodes::START_STATE_VIOLATES_PATH_CONSTRAINTS;
+        return moveit_code;
       }
     }
-    else
-    {
-      ROS_DEBUG("Path constraints are OK. Running usual motion plan.");
-      return planner(planning_scene, req, res);
-    }
+    ROS_DEBUG("Path constraints are OK. Continuing without `fix_start_state_path_constraints`.");
+    return planner(planning_scene, req, res);
   }
 };
 }  // namespace default_planner_request_adapters
