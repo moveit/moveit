@@ -713,8 +713,8 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
 
 bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::MotionPlanDetailedResponse& res)
 {
-  moveit_msgs::MoveItErrorCodes moveit_result = solve(request_.allowed_planning_time, request_.num_planning_attempts);
-  if (moveit_result.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+  res.error_code_ = solve(request_.allowed_planning_time, request_.num_planning_attempts);
+  if (res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
   {
     res.trajectory_.reserve(3);
 
@@ -750,7 +750,6 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
 
     ROS_DEBUG_NAMED(LOGNAME, "%s: Returning successful solution with %lu states", getName().c_str(),
                     getOMPLSimpleSetup()->getSolutionPath().getStateCount());
-    res.error_code_.val = moveit_result.val;
     return true;
   }
   else
@@ -778,7 +777,7 @@ const moveit_msgs::MoveItErrorCodes ompl_interface::ModelBasedPlanningContext::s
     last_plan_time_ = ompl_simple_setup_->getLastPlanComputationTime();
     unregisterTerminationCondition();
     // fill the result status code
-    result.val = logPlannerStatus(ompl_simple_setup_);
+    result.val = errorCode(ompl_simple_setup_->getLastPlannerStatus());
   }
   else
   {
@@ -796,10 +795,7 @@ const moveit_msgs::MoveItErrorCodes ompl_interface::ModelBasedPlanningContext::s
 
       ob::PlannerTerminationCondition ptc = constructPlannerTerminationCondition(timeout, start);
       registerTerminationCondition(ptc);
-      if (ompl_parallel_plan_.solve(ptc, 1, count, hybridize_) == ompl::base::PlannerStatus::EXACT_SOLUTION)
-      {
-        result.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-      }
+      result.val = errorCode(ompl_parallel_plan_.solve(ptc, 1, count, hybridize_));
       last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
       unregisterTerminationCondition();
     }
@@ -861,11 +857,10 @@ void ompl_interface::ModelBasedPlanningContext::unregisterTerminationCondition()
   ptc_ = nullptr;
 }
 
-int32_t ompl_interface::ModelBasedPlanningContext::logPlannerStatus(og::SimpleSetupPtr ompl_simple_setup)
+int32_t ompl_interface::ModelBasedPlanningContext::errorCode(const ompl::base::PlannerStatus& status)
 {
   auto result = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
-  ompl::base::PlannerStatus ompl_status = ompl_simple_setup->getLastPlannerStatus();
-  switch (ompl::base::PlannerStatus::StatusType(ompl_status))
+  switch (ompl::base::PlannerStatus::StatusType(status))
   {
     case ompl::base::PlannerStatus::UNKNOWN:
       ROS_WARN_NAMED(LOGNAME, "Motion planning failed for an unknown reason");
