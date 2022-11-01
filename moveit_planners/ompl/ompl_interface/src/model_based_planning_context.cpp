@@ -883,8 +883,8 @@ int32_t ompl_interface::ModelBasedPlanningContext::errorCode(const ompl::base::P
       result = moveit_msgs::MoveItErrorCodes::TIMED_OUT;
       break;
     case ompl::base::PlannerStatus::APPROXIMATE_SOLUTION:
-      ROS_WARN_NAMED(LOGNAME, "Solution is approximate");
-      result = moveit_msgs::MoveItErrorCodes::SUCCESS;
+      ROS_WARN_NAMED(LOGNAME, "Solution is approximate. This usually indicates a failure.");
+      result = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
       break;
     case ompl::base::PlannerStatus::EXACT_SOLUTION:
       result = moveit_msgs::MoveItErrorCodes::SUCCESS;
