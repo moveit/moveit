@@ -121,9 +121,8 @@ public:
       if (!bool(solved1) || !bool(solved2))
       {
         ROS_WARN("Unable to meet path constraints at the start.");
-        moveit::core::MoveItErrorCode moveit_code(moveit_msgs::MoveItErrorCodes::START_STATE_VIOLATES_PATH_CONSTRAINTS);
         res.error_code_.val = moveit_msgs::MoveItErrorCodes::START_STATE_VIOLATES_PATH_CONSTRAINTS;
-        return moveit_code;
+        return moveit::core::MoveItErrorCode(res.error_code_.val);
       }
     }
     ROS_DEBUG("Path constraints are OK. Continuing without `fix_start_state_path_constraints`.");
