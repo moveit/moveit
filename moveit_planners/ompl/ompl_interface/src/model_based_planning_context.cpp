@@ -801,7 +801,7 @@ const moveit_msgs::MoveItErrorCodes ompl_interface::ModelBasedPlanningContext::s
       ob::PlannerTerminationCondition ptc = constructPlannerTerminationCondition(timeout, start);
       registerTerminationCondition(ptc);
       int n = count / max_planning_threads_;
-      result.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+      bool res = true;
       for (int i = 0; i < n && !ptc(); ++i)
       {
         ompl_parallel_plan_.clearPlanners();
@@ -812,10 +812,7 @@ const moveit_msgs::MoveItErrorCodes ompl_interface::ModelBasedPlanningContext::s
           for (unsigned int i = 0; i < max_planning_threads_; ++i)
             ompl_parallel_plan_.addPlanner(ompl::tools::SelfConfig::getDefaultPlanner(ompl_simple_setup_->getGoal()));
         bool r = ompl_parallel_plan_.solve(ptc, 1, count, hybridize_) == ompl::base::PlannerStatus::EXACT_SOLUTION;
-        // Was this latest call successful too?
-        result.val = (result.val == moveit_msgs::MoveItErrorCodes::SUCCESS && r) ?
-                         moveit_msgs::MoveItErrorCodes::SUCCESS :
-                         moveit_msgs::MoveItErrorCodes::FAILURE;
+        res = res && r;
       }
       n = count % max_planning_threads_;
       if (n && !ptc())
@@ -828,13 +825,11 @@ const moveit_msgs::MoveItErrorCodes ompl_interface::ModelBasedPlanningContext::s
           for (int i = 0; i < n; ++i)
             ompl_parallel_plan_.addPlanner(ompl::tools::SelfConfig::getDefaultPlanner(ompl_simple_setup_->getGoal()));
         bool r = ompl_parallel_plan_.solve(ptc, 1, count, hybridize_) == ompl::base::PlannerStatus::EXACT_SOLUTION;
-        // Was this latest call successful too?
-        result.val = (result.val == moveit_msgs::MoveItErrorCodes::SUCCESS && r) ?
-                         moveit_msgs::MoveItErrorCodes::SUCCESS :
-                         moveit_msgs::MoveItErrorCodes::FAILURE;
+        res = res && r;
       }
       last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
       unregisterTerminationCondition();
+      result.val = res ? moveit_msgs::MoveItErrorCodes::SUCCESS : moveit_msgs::MoveItErrorCodes::FAILURE;
     }
   }
 
