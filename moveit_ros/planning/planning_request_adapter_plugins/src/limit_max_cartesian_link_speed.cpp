@@ -59,27 +59,25 @@ public:
     return "Limiting Max Cartesian Speed";
   }
 
-  moveit::core::MoveItErrorCode adaptAndPlan(const PlannerFn& planner,
-                                             const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                             const planning_interface::MotionPlanRequest& req,
-                                             planning_interface::MotionPlanResponse& res,
-                                             std::vector<std::size_t>& /*added_path_index*/) const override
+  bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
+                    const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
+                    std::vector<std::size_t>& /*added_path_index*/) const override
   {
-    moveit::core::MoveItErrorCode moveit_code = planner(planning_scene, req, res);
-    if (bool(moveit_code) && res.trajectory_)
+    bool result = planner(planning_scene, req, res);
+    if (result && res.trajectory_)
     {
       if (req.max_cartesian_speed <= 0.0)
-        return moveit_code;
+        return result;
       ROS_DEBUG("'%s' below '%f' [m/s] for link '%s'", getDescription().c_str(), req.max_cartesian_speed,
                 req.cartesian_speed_limited_link.c_str());
       if (!trajectory_processing::limitMaxCartesianLinkSpeed(*res.trajectory_, req.max_cartesian_speed,
                                                              req.cartesian_speed_limited_link))
       {
         ROS_ERROR("Limiting Cartesian speed for the solution path failed.");
-        moveit_code = moveit_msgs::MoveItErrorCodes::FAILURE;
+        result = false;
       }
     }
-    return moveit_code;
+    return result;
   }
 };
 }  // namespace default_planner_request_adapters

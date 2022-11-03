@@ -174,18 +174,14 @@ public:
     return "CHOMP Optimizer";
   }
 
-  moveit::core::MoveItErrorCode adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& ps,
-                                             const planning_interface::MotionPlanRequest& req,
-                                             planning_interface::MotionPlanResponse& res,
-                                             std::vector<std::size_t>& /*added_path_index*/) const override
+  bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& ps,
+                    const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
+                    std::vector<std::size_t>& /*added_path_index*/) const override
   {
     // following call to planner() calls the OMPL planner and stores the trajectory inside the MotionPlanResponse res
     // variable which is then used by CHOMP for optimization of the computed trajectory
-    moveit::core::MoveItErrorCode moveit_code = planner(ps, req, res);
-    if (!bool(moveit_code))
-    {
-      return moveit_code;
-    }
+    if (!planner(ps, req, res))
+      return false;
 
     // create a hybrid collision detector to set the collision checker as hybrid
     collision_detection::CollisionDetectorAllocatorPtr hybrid_cd(
@@ -206,15 +202,10 @@ public:
     {
       res.trajectory_ = res_detailed.trajectory_[0];
       res.planning_time_ += res_detailed.processing_time_[0];
-      moveit_code = moveit::core::MoveItErrorCode::FAILURE;
-    }
-    else
-    {
-      moveit_code = moveit::core::MoveItErrorCode::SUCCESS;
     }
     res.error_code_ = res_detailed.error_code_;
 
-    return moveit_code;
+    return planning_success;
   }
 
 private:

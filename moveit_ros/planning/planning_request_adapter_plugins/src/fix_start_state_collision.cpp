@@ -92,11 +92,9 @@ public:
     return "Fix Start State In Collision";
   }
 
-  moveit::core::MoveItErrorCode adaptAndPlan(const PlannerFn& planner,
-                                             const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                             const planning_interface::MotionPlanRequest& req,
-                                             planning_interface::MotionPlanResponse& res,
-                                             std::vector<std::size_t>& added_path_index) const override
+  bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
+                    const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
+                    std::vector<std::size_t>& added_path_index) const override
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
 
@@ -154,8 +152,8 @@ public:
       {
         planning_interface::MotionPlanRequest req2 = req;
         moveit::core::robotStateToRobotStateMsg(start_state, req2.start_state);
-        moveit::core::MoveItErrorCode moveit_code = planner(planning_scene, req2, res);
-        if (bool(moveit_code) && !res.trajectory_->empty())
+        bool solved = planner(planning_scene, req2, res);
+        if (solved && !res.trajectory_->empty())
         {
           // heuristically decide a duration offset for the trajectory (induced by the additional point added as a
           // prefix to the computed trajectory)
@@ -167,15 +165,14 @@ public:
             added_index++;
           added_path_index.push_back(0);
         }
-        return moveit_code;
+        return solved;
       }
       else
       {
         ROS_WARN("Unable to find a valid state nearby the start state (using jiggle fraction of %lf and %u sampling "
-                 "attempts).",
+                 "attempts). Passing the original planning request to the planner.",
                  jiggle_fraction_, sampling_attempts_);
-        res.error_code_.val = moveit_msgs::MoveItErrorCodes::START_STATE_IN_COLLISION;
-        return moveit::core::MoveItErrorCode(moveit_msgs::MoveItErrorCodes::START_STATE_IN_COLLISION);
+        return planner(planning_scene, req, res);
       }
     }
     else

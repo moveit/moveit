@@ -77,11 +77,9 @@ public:
     return "Fix Start State Bounds";
   }
 
-  moveit::core::MoveItErrorCode adaptAndPlan(const PlannerFn& planner,
-                                             const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                             const planning_interface::MotionPlanRequest& req,
-                                             planning_interface::MotionPlanResponse& res,
-                                             std::vector<std::size_t>& added_path_index) const override
+  bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
+                    const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
+                    std::vector<std::size_t>& added_path_index) const override
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
 
@@ -178,18 +176,16 @@ public:
       }
     }
 
-    moveit::core::MoveItErrorCode moveit_code;
+    bool solved;
     // if we made any changes, use them
     if (change_req)
     {
       planning_interface::MotionPlanRequest req2 = req;
       moveit::core::robotStateToRobotStateMsg(start_state, req2.start_state);
-      moveit_code = planner(planning_scene, req2, res);
+      solved = planner(planning_scene, req2, res);
     }
     else
-    {
-      moveit_code = planner(planning_scene, req, res);
-    }
+      solved = planner(planning_scene, req, res);
 
     // re-add the prefix state, if it was constructed
     if (prefix_state && res.trajectory_ && !res.trajectory_->empty())
@@ -205,7 +201,7 @@ public:
       added_path_index.push_back(0);
     }
 
-    return moveit_code;
+    return solved;
   }
 
 private:
