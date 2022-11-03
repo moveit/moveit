@@ -755,7 +755,6 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
   else
   {
     ROS_INFO_NAMED(LOGNAME, "Unable to solve the planning problem");
-    res.error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
   }
 }
