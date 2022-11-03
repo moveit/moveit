@@ -799,11 +799,10 @@ const moveit_msgs::MoveItErrorCodes ompl_interface::ModelBasedPlanningContext::s
     else
     {
       int n = count / max_planning_threads_;
-      bool res = true;
-      for (int i = 0; i < n && !ptc(); ++i)
-        res = res && plan_parallel(max_planning_threads_) == moveit_msgs::MoveItErrorCodes::SUCCESS;
-      res = res && plan_parallel(count % max_planning_threads_) == moveit_msgs::MoveItErrorCodes::SUCCESS;
-      result.val = res ? moveit_msgs::MoveItErrorCodes::SUCCESS : moveit_msgs::MoveItErrorCodes::FAILURE;
+      for (int i = 0; i < n && result.val != moveit_msgs::MoveItErrorCodes::SUCCESS && !ptc(); ++i)
+        result.val = plan_parallel(max_planning_threads_);
+      if (result.val != moveit_msgs::MoveItErrorCodes::SUCCESS && !ptc())
+        result.val = plan_parallel(count % max_planning_threads_);
     }
     last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
   }
