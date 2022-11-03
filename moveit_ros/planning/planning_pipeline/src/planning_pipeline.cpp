@@ -235,7 +235,8 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   {
     if (adapter_chain_)
     {
-      solved = adapter_chain_->adaptAndPlan(planner_instance_, planning_scene, req, res, adapter_added_state_index);
+      solved =
+          bool(adapter_chain_->adaptAndPlan(planner_instance_, planning_scene, req, res, adapter_added_state_index));
       if (!adapter_added_state_index.empty())
       {
         std::stringstream ss;

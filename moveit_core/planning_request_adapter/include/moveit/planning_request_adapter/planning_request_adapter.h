@@ -39,6 +39,7 @@
 #include <moveit/macros/class_forward.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
+#include <moveit/utils/moveit_error_code.h>
 #include <boost/function.hpp>
 
 /** \brief Generic interface to adapting motion planning requests */
@@ -49,9 +50,9 @@ MOVEIT_CLASS_FORWARD(PlanningRequestAdapter);  // Defines PlanningRequestAdapter
 class PlanningRequestAdapter
 {
 public:
-  using PlannerFn =
-      boost::function<bool(const planning_scene::PlanningSceneConstPtr&, const planning_interface::MotionPlanRequest&,
-                           planning_interface::MotionPlanResponse&)>;
+  using PlannerFn = boost::function<moveit::core::MoveItErrorCode(const planning_scene::PlanningSceneConstPtr&,
+                                                                  const planning_interface::MotionPlanRequest&,
+                                                                  planning_interface::MotionPlanResponse&)>;
 
   PlanningRequestAdapter()
   {
@@ -71,25 +72,27 @@ public:
     return "";
   }
 
-  bool adaptAndPlan(const planning_interface::PlannerManagerPtr& planner,
-                    const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const planning_interface::MotionPlanRequest& req,
-                    planning_interface::MotionPlanResponse& res) const;
+  moveit::core::MoveItErrorCode adaptAndPlan(const planning_interface::PlannerManagerPtr& planner,
+                                             const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                             const planning_interface::MotionPlanRequest& req,
+                                             planning_interface::MotionPlanResponse& res) const;
 
-  bool adaptAndPlan(const planning_interface::PlannerManagerPtr& planner,
-                    const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
-                    std::vector<std::size_t>& added_path_index) const;
+  moveit::core::MoveItErrorCode adaptAndPlan(const planning_interface::PlannerManagerPtr& planner,
+                                             const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                             const planning_interface::MotionPlanRequest& req,
+                                             planning_interface::MotionPlanResponse& res,
+                                             std::vector<std::size_t>& added_path_index) const;
 
   /** \brief Adapt the planning request if needed, call the planner
       function \e planner and update the planning response if
       needed. If the response is changed, the index values of the
       states added without planning are added to \e
       added_path_index */
-  virtual bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
-                            const planning_interface::MotionPlanRequest& req,
-                            planning_interface::MotionPlanResponse& res,
-                            std::vector<std::size_t>& added_path_index) const = 0;
+  virtual moveit::core::MoveItErrorCode adaptAndPlan(const PlannerFn& planner,
+                                                     const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                     const planning_interface::MotionPlanRequest& req,
+                                                     planning_interface::MotionPlanResponse& res,
+                                                     std::vector<std::size_t>& added_path_index) const = 0;
 };
 
 /// Apply a sequence of adapters to a motion plan
@@ -105,15 +108,16 @@ public:
     adapters_.push_back(adapter);
   }
 
-  bool adaptAndPlan(const planning_interface::PlannerManagerPtr& planner,
-                    const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const planning_interface::MotionPlanRequest& req,
-                    planning_interface::MotionPlanResponse& res) const;
+  moveit::core::MoveItErrorCode adaptAndPlan(const planning_interface::PlannerManagerPtr& planner,
+                                             const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                             const planning_interface::MotionPlanRequest& req,
+                                             planning_interface::MotionPlanResponse& res) const;
 
-  bool adaptAndPlan(const planning_interface::PlannerManagerPtr& planner,
-                    const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
-                    std::vector<std::size_t>& added_path_index) const;
+  moveit::core::MoveItErrorCode adaptAndPlan(const planning_interface::PlannerManagerPtr& planner,
+                                             const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                             const planning_interface::MotionPlanRequest& req,
+                                             planning_interface::MotionPlanResponse& res,
+                                             std::vector<std::size_t>& added_path_index) const;
 
 private:
   std::vector<PlanningRequestAdapterConstPtr> adapters_;
