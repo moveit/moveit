@@ -2,8 +2,9 @@ set(MOVEIT_LIB_NAME moveit_utils)
 
 add_library(${MOVEIT_LIB_NAME}
   src/lexical_casts.cpp
-  src/xmlrpc_casts.cpp
   src/message_checks.cpp
+  src/moveit_error_code.cpp
+  src/xmlrpc_casts.cpp
 )
 add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
