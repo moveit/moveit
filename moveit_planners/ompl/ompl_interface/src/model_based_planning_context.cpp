@@ -678,14 +678,12 @@ void ompl_interface::ModelBasedPlanningContext::postSolve()
   int v = ompl_simple_setup_->getSpaceInformation()->getMotionValidator()->getValidMotionCount();
   int iv = ompl_simple_setup_->getSpaceInformation()->getMotionValidator()->getInvalidMotionCount();
   ROS_DEBUG_NAMED(LOGNAME, "There were %d valid motions and %d invalid motions.", v, iv);
-
-  if (ompl_simple_setup_->getProblemDefinition()->hasApproximateSolution())
-    ROS_WARN_NAMED(LOGNAME, "Computed solution is approximate");
 }
 
 bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::MotionPlanResponse& res)
 {
-  if (solve(request_.allowed_planning_time, request_.num_planning_attempts))
+  res.error_code_ = solve(request_.allowed_planning_time, request_.num_planning_attempts);
+  if (res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
   {
     double ptime = getLastPlanTime();
     if (simplify_solutions_)
@@ -709,14 +707,14 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
   else
   {
     ROS_INFO_NAMED(LOGNAME, "Unable to solve the planning problem");
-    res.error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
   }
 }
 
 bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::MotionPlanDetailedResponse& res)
 {
-  if (solve(request_.allowed_planning_time, request_.num_planning_attempts))
+  res.error_code_ = solve(request_.allowed_planning_time, request_.num_planning_attempts);
+  if (res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
   {
     res.trajectory_.reserve(3);
 
@@ -750,7 +748,6 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
       getSolutionPath(*res.trajectory_.back());
     }
 
-    // fill the response
     ROS_DEBUG_NAMED(LOGNAME, "%s: Returning successful solution with %lu states", getName().c_str(),
                     getOMPLSimpleSetup()->getSolutionPath().getStateCount());
     return true;
@@ -758,24 +755,24 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
   else
   {
     ROS_INFO_NAMED(LOGNAME, "Unable to solve the planning problem");
-    res.error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
   }
 }
 
-bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned int count)
+const moveit_msgs::MoveItErrorCodes ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned int count)
 {
   moveit::tools::Profiler::ScopedBlock sblock("PlanningContext:Solve");
   ompl::time::point start = ompl::time::now();
   preSolve();
 
-  bool result = false;
+  moveit_msgs::MoveItErrorCodes result;
+  result.val = moveit_msgs::MoveItErrorCodes::FAILURE;
   if (count <= 1 || multi_query_planning_enabled_)  // multi-query planners should always run in single instances
   {
     ROS_DEBUG_NAMED(LOGNAME, "%s: Solving the planning problem once...", name_.c_str());
     ob::PlannerTerminationCondition ptc = constructPlannerTerminationCondition(timeout, start);
     registerTerminationCondition(ptc);
-    result = ompl_simple_setup_->solve(ptc) == ompl::base::PlannerStatus::EXACT_SOLUTION;
+    result.val = errorCode(ompl_simple_setup_->solve(ptc));
     last_plan_time_ = ompl_simple_setup_->getLastPlanComputationTime();
     unregisterTerminationCondition();
   }
@@ -795,7 +792,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
 
       ob::PlannerTerminationCondition ptc = constructPlannerTerminationCondition(timeout, start);
       registerTerminationCondition(ptc);
-      result = ompl_parallel_plan_.solve(ptc, 1, count, hybridize_) == ompl::base::PlannerStatus::EXACT_SOLUTION;
+      result.val = errorCode(ompl_parallel_plan_.solve(ptc, 1, count, hybridize_));
       last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
       unregisterTerminationCondition();
     }
@@ -804,7 +801,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
       ob::PlannerTerminationCondition ptc = constructPlannerTerminationCondition(timeout, start);
       registerTerminationCondition(ptc);
       int n = count / max_planning_threads_;
-      result = true;
+      bool res = true;
       for (int i = 0; i < n && !ptc(); ++i)
       {
         ompl_parallel_plan_.clearPlanners();
@@ -815,7 +812,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
           for (unsigned int i = 0; i < max_planning_threads_; ++i)
             ompl_parallel_plan_.addPlanner(ompl::tools::SelfConfig::getDefaultPlanner(ompl_simple_setup_->getGoal()));
         bool r = ompl_parallel_plan_.solve(ptc, 1, count, hybridize_) == ompl::base::PlannerStatus::EXACT_SOLUTION;
-        result = result && r;
+        res = res && r;
       }
       n = count % max_planning_threads_;
       if (n && !ptc())
@@ -828,15 +825,15 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
           for (int i = 0; i < n; ++i)
             ompl_parallel_plan_.addPlanner(ompl::tools::SelfConfig::getDefaultPlanner(ompl_simple_setup_->getGoal()));
         bool r = ompl_parallel_plan_.solve(ptc, 1, count, hybridize_) == ompl::base::PlannerStatus::EXACT_SOLUTION;
-        result = result && r;
+        res = res && r;
       }
       last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
       unregisterTerminationCondition();
+      result.val = res ? moveit_msgs::MoveItErrorCodes::SUCCESS : moveit_msgs::MoveItErrorCodes::FAILURE;
     }
   }
 
   postSolve();
-
   return result;
 }
 
@@ -850,6 +847,54 @@ void ompl_interface::ModelBasedPlanningContext::unregisterTerminationCondition()
 {
   std::unique_lock<std::mutex> slock(ptc_lock_);
   ptc_ = nullptr;
+}
+
+int32_t ompl_interface::ModelBasedPlanningContext::errorCode(const ompl::base::PlannerStatus& status)
+{
+  auto result = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+  switch (ompl::base::PlannerStatus::StatusType(status))
+  {
+    case ompl::base::PlannerStatus::UNKNOWN:
+      ROS_WARN_NAMED(LOGNAME, "Motion planning failed for an unknown reason");
+      result = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+      break;
+    case ompl::base::PlannerStatus::INVALID_START:
+      ROS_WARN_NAMED(LOGNAME, "Invalid start state");
+      result = moveit_msgs::MoveItErrorCodes::START_STATE_INVALID;
+      break;
+    case ompl::base::PlannerStatus::INVALID_GOAL:
+      ROS_WARN_NAMED(LOGNAME, "Invalid goal state");
+      result = moveit_msgs::MoveItErrorCodes::GOAL_STATE_INVALID;
+      break;
+    case ompl::base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE:
+      ROS_WARN_NAMED(LOGNAME, "Unrecognized goal type");
+      result = moveit_msgs::MoveItErrorCodes::UNRECOGNIZED_GOAL_TYPE;
+      break;
+    case ompl::base::PlannerStatus::TIMEOUT:
+      ROS_WARN_NAMED(LOGNAME, "Timed out");
+      result = moveit_msgs::MoveItErrorCodes::TIMED_OUT;
+      break;
+    case ompl::base::PlannerStatus::APPROXIMATE_SOLUTION:
+      ROS_WARN_NAMED(LOGNAME, "Solution is approximate. This usually indicates a failure.");
+      result = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+      break;
+    case ompl::base::PlannerStatus::EXACT_SOLUTION:
+      result = moveit_msgs::MoveItErrorCodes::SUCCESS;
+      break;
+    case ompl::base::PlannerStatus::CRASH:
+      ROS_WARN_NAMED(LOGNAME, "OMPL crashed!");
+      result = moveit_msgs::MoveItErrorCodes::CRASH;
+      break;
+    case ompl::base::PlannerStatus::ABORT:
+      ROS_WARN_NAMED(LOGNAME, "OMPL was aborted");
+      result = moveit_msgs::MoveItErrorCodes::ABORT;
+      break;
+    default:
+      // This should never happen
+      ROS_WARN_NAMED(LOGNAME, "Unexpected PlannerStatus code from OMPL.");
+      result = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+  }
+  return result;
 }
 
 bool ompl_interface::ModelBasedPlanningContext::terminate()
