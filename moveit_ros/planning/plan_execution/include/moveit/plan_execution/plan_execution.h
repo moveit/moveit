@@ -139,8 +139,6 @@ public:
 
   void stop();
 
-  std::string getErrorCodeString(const moveit_msgs::MoveItErrorCodes& error_code);
-
 private:
   void planAndExecuteHelper(ExecutableMotionPlan& plan, const Options& opt);
   bool isRemainingPathValid(const ExecutableMotionPlan& plan, const std::pair<int, int>& path_segment);

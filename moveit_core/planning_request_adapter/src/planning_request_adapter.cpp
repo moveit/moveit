@@ -34,6 +34,7 @@
 
 /* Author: Ioan Sucan */
 
+#include <moveit/utils/moveit_error_code.h>
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
 #include <functional>
 #include <algorithm>
@@ -61,7 +62,10 @@ bool callAdapter(const PlanningRequestAdapter& adapter, const PlanningRequestAda
 {
   try
   {
-    return adapter.adaptAndPlan(planner, planning_scene, req, res, added_path_index);
+    bool result = adapter.adaptAndPlan(planner, planning_scene, req, res, added_path_index);
+    ROS_DEBUG_STREAM_NAMED("planning_request_adapter", adapter.getDescription()
+                                                           << ": " << moveit::core::MoveItErrorCode(res.error_code_));
+    return result;
   }
   catch (std::exception& ex)
   {
