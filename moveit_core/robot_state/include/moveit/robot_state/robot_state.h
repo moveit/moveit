@@ -1977,6 +1977,9 @@ private:
   random_numbers::RandomNumberGenerator* rng_;
 };
 
+/** Check that both RobotStates have the same set of attached objects */
+bool haveSameAttachedObjects(const RobotState& left, const RobotState& right, const std::string& logprefix = "");
+
 /** \brief Operator overload for printing variable bounds to a stream */
 std::ostream& operator<<(std::ostream& out, const RobotState& s);
 }  // namespace core

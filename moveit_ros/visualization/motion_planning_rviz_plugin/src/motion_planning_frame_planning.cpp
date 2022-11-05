@@ -181,7 +181,11 @@ void MotionPlanningFrame::computePlanButtonClicked()
 
   if (success)
   {
-    ui_->execute_button->setEnabled(true);
+    moveit::core::RobotState start_state(planning_display_->getRobotModel());
+    moveit::core::RobotState current_state(planning_display_->getPlanningSceneRO()->getCurrentState());
+    moveit::core::robotStateMsgToRobotState(current_plan_->start_state_, start_state, true);
+    if (moveit::core::haveSameAttachedObjects(start_state, current_state))
+      ui_->execute_button->setEnabled(true);
     ui_->result_label->setText(QString("Time: ").append(QString::number(current_plan_->planning_time_, 'f', 3)));
   }
   else
