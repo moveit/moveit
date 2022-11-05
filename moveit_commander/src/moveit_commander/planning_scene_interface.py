@@ -64,23 +64,24 @@ class PlanningSceneInterface(object):
     See wrap_python_planning_scene_interface.cpp for the wrapped methods.
     """
 
-    def __init__(self, ns="", synchronous=False, service_timeout=5.0):
+    def __init__(self, ns="", synchronous=True, service_timeout=5.0):
         self._psi = _moveit_planning_scene_interface.PlanningSceneInterface(ns)
-
-        self._pub_co = rospy.Publisher(
-            ns_join(ns, "collision_object"), CollisionObject, queue_size=100
-        )
-        self._pub_aco = rospy.Publisher(
-            ns_join(ns, "attached_collision_object"),
-            AttachedCollisionObject,
-            queue_size=100,
-        )
         self.__synchronous = synchronous
+
         if self.__synchronous:
             self._apply_planning_scene_diff = rospy.ServiceProxy(
                 ns_join(ns, "apply_planning_scene"), ApplyPlanningScene
             )
             self._apply_planning_scene_diff.wait_for_service(service_timeout)
+        else:
+            self._pub_co = rospy.Publisher(
+                ns_join(ns, "collision_object"), CollisionObject, queue_size=100
+            )
+            self._pub_aco = rospy.Publisher(
+                ns_join(ns, "attached_collision_object"),
+                AttachedCollisionObject,
+                queue_size=100,
+            )
 
     def __submit(self, collision_object, attach=False):
         if self.__synchronous:
