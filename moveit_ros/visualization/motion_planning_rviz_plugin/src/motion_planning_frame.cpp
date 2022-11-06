@@ -500,6 +500,7 @@ void MotionPlanningFrame::addSceneObject()
   populateCollisionObjectsList();
 
   // Automatically select the inserted object so that its IM is displayed
+  ui_->collision_objects_list->clearSelection();
   setItemSelectionInList(shape_name, true, ui_->collision_objects_list);
 
   planning_display_->queueRenderSceneGeometry();
