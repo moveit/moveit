@@ -146,7 +146,7 @@ void MotionPlanningFrame::clearScene()
     ps->getPlanningSceneMsg(msg);
     planning_scene_publisher_.publish(msg);
     setLocalSceneEdited(false);
-    planning_display_->addMainLoopJob([this] { populateCollisionObjectsList(); });
+    populateCollisionObjectsList();  // update list + internal vars
     planning_display_->queueRenderSceneGeometry();
   }
 }
@@ -215,22 +215,22 @@ void MotionPlanningFrame::sceneScaleEndChange()
 
 void MotionPlanningFrame::removeSceneObject()
 {
-  QList<QListWidgetItem*> sel = ui_->collision_objects_list->selectedItems();
-  if (sel.empty())
+  QList<QListWidgetItem*> selection = ui_->collision_objects_list->selectedItems();
+  if (selection.empty())
     return;
-  planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
-  if (ps)
+
+  if (planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW())
   {
-    for (int i = 0; i < sel.count(); ++i)
-      if (sel[i]->checkState() == Qt::Unchecked)
-        ps->getWorldNonConst()->removeObject(sel[i]->text().toStdString());
+    for (QListWidgetItem* item : selection)
+      if (item->checkState() == Qt::Unchecked)
+        ps->getWorldNonConst()->removeObject(item->text().toStdString());
       else
-        ps->getCurrentStateNonConst().clearAttachedBody(sel[i]->text().toStdString());
-    scene_marker_.reset();
-    setLocalSceneEdited();
-    planning_display_->addMainLoopJob([this] { populateCollisionObjectsList(); });
-    planning_display_->queueRenderSceneGeometry();
+        ps->getCurrentStateNonConst().clearAttachedBody(item->text().toStdString());
   }
+  scene_marker_.reset();
+  setLocalSceneEdited();
+  populateCollisionObjectsList();
+  planning_display_->queueRenderSceneGeometry();
 }
 
 static QString decideStatusText(const collision_detection::CollisionEnv::ObjectConstPtr& obj)

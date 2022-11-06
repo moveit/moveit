@@ -497,12 +497,10 @@ void MotionPlanningFrame::addSceneObject()
   }
   setLocalSceneEdited();
 
-  planning_display_->addMainLoopJob([this] { populateCollisionObjectsList(); });
+  populateCollisionObjectsList();
 
   // Automatically select the inserted object so that its IM is displayed
-  planning_display_->addMainLoopJob([this, shape_name, list_widget = ui_->collision_objects_list] {
-    setItemSelectionInList(shape_name, true, list_widget);
-  });
+  setItemSelectionInList(shape_name, true, ui_->collision_objects_list);
 
   planning_display_->queueRenderSceneGeometry();
 }
