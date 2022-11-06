@@ -142,10 +142,8 @@ void MotionPlanningFrame::clearScene()
   {
     ps->getWorldNonConst()->clearObjects();
     ps->getCurrentStateNonConst().clearAttachedBodies();
-    moveit_msgs::PlanningScene msg;
-    ps->getPlanningSceneMsg(msg);
-    planning_scene_publisher_.publish(msg);
-    setLocalSceneEdited(false);
+    setLocalSceneEdited(true);
+    planning_display_->updateQueryStates(ps->getCurrentState());
     populateCollisionObjectsList();  // update list + internal vars
     planning_display_->queueRenderSceneGeometry();
   }
