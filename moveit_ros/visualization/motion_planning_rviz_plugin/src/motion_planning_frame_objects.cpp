@@ -219,11 +219,18 @@ void MotionPlanningFrame::removeSceneObject()
 
   if (planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW())
   {
+    bool removed_attached = false;
     for (QListWidgetItem* item : selection)
       if (item->checkState() == Qt::Unchecked)
         ps->getWorldNonConst()->removeObject(item->text().toStdString());
       else
+      {
         ps->getCurrentStateNonConst().clearAttachedBody(item->text().toStdString());
+        removed_attached = true;
+      }
+
+    if (removed_attached)
+      planning_display_->updateQueryStates(ps->getCurrentState());
   }
   scene_marker_.reset();
   setLocalSceneEdited();
