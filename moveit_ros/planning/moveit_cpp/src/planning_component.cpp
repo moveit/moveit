@@ -113,14 +113,14 @@ bool PlanningComponent::setTrajectoryConstraints(const moveit_msgs::TrajectoryCo
 }
 
 planning_interface::MotionPlanResponse PlanningComponent::plan(const PlanRequestParameters& parameters,
-                                                               const bool update_last_solution)
+                                                               const bool store_solution)
 {
   auto plan_solution = planning_interface::MotionPlanResponse();
   if (!joint_model_group_)
   {
     ROS_ERROR_NAMED(LOGNAME, "Failed to retrieve joint model group for name '%s'.", group_name_.c_str());
     plan_solution.error_code_ = moveit::core::MoveItErrorCode::INVALID_GROUP_NAME;
-    if (update_last_solution)
+    if (store_solution)
     {
       last_plan_solution_ = plan_solution;
     }
@@ -161,7 +161,7 @@ planning_interface::MotionPlanResponse PlanningComponent::plan(const PlanRequest
   {
     ROS_ERROR_NAMED(LOGNAME, "No goal constraints set for planning request");
     plan_solution.error_code_ = moveit::core::MoveItErrorCode::INVALID_GOAL_CONSTRAINTS;
-    if (update_last_solution)
+    if (store_solution)
     {
       last_plan_solution_ = plan_solution;
     }
@@ -181,7 +181,7 @@ planning_interface::MotionPlanResponse PlanningComponent::plan(const PlanRequest
   {
     ROS_ERROR_NAMED(LOGNAME, "No planning pipeline available for name '%s'", parameters.planning_pipeline.c_str());
     plan_solution.error_code_ = moveit::core::MoveItErrorCode::FAILURE;
-    if (update_last_solution)
+    if (store_solution)
     {
       last_plan_solution_ = plan_solution;
     }
@@ -194,7 +194,7 @@ planning_interface::MotionPlanResponse PlanningComponent::plan(const PlanRequest
   if (res.error_code_.val != res.error_code_.SUCCESS)
   {
     ROS_ERROR("Could not compute plan successfully");
-    if (update_last_solution)
+    if (store_solution)
     {
       last_plan_solution_ = plan_solution;
     }
@@ -217,7 +217,7 @@ planning_interface::MotionPlanResponse PlanningComponent::plan(const PlanRequest
   //  }
   //}
 
-  if (update_last_solution)
+  if (store_solution)
   {
     last_plan_solution_ = plan_solution;
   }
@@ -257,7 +257,6 @@ planning_interface::MotionPlanResponse PlanningComponent::plan(const MultiPipeli
       {
         ROS_ERROR_STREAM_NAMED(LOGNAME, "Planning pipeline '" << plan_request_parameter.planning_pipeline.c_str()
                                                               << "' threw exception '" << e.what() << "'");
-        auto plan_solution = planning_interface::MotionPlanResponse();
         plan_solution.error_code_ = moveit::core::MoveItErrorCode::FAILURE;
       }
       plan_solution.planner_id_ = plan_request_parameter.planner_id;
