@@ -209,7 +209,7 @@ void planning_pipeline::PlanningPipeline::checkSolutionPaths(bool flag)
 
 bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                        const planning_interface::MotionPlanRequest& req,
-                                                       planning_interface::MotionPlanResponse& res)
+                                                       planning_interface::MotionPlanResponse& res) const
 {
   std::vector<std::size_t> dummy;
   return generatePlan(planning_scene, req, res, dummy);
@@ -218,7 +218,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
 bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                        const planning_interface::MotionPlanRequest& req,
                                                        planning_interface::MotionPlanResponse& res,
-                                                       std::vector<std::size_t>& adapter_added_state_index)
+                                                       std::vector<std::size_t>& adapter_added_state_index) const
 {
   // Set planning pipeline active
   active_ = true;

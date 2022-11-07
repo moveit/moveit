@@ -125,7 +125,8 @@ public:
       \param req The request for motion planning
       \param res The motion planning response */
   bool generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res);
+                    const planning_interface::MotionPlanRequest& req,
+                    planning_interface::MotionPlanResponse& res) const;
 
   /** \brief Call the motion planner plugin and the sequence of planning request adapters (if any).
       \param planning_scene The planning scene where motion planning is to be done
@@ -137,7 +138,7 @@ public:
      invalid in all situations. */
   bool generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
                     const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
-                    std::vector<std::size_t>& adapter_added_state_index);
+                    std::vector<std::size_t>& adapter_added_state_index) const;
 
   /** \brief Request termination, if a generatePlan() function is currently computing plans */
   void terminate() const;
@@ -176,7 +177,7 @@ private:
   void configure();
 
   // Flag that indicates whether or not the planning pipeline is currently solving a planning problem
-  std::atomic<bool> active_;
+  mutable std::atomic<bool> active_;
 
   // The NodeHandle to initialize the PlanningPipeline (parameters plugins) with
   ros::NodeHandle pipeline_nh_;
