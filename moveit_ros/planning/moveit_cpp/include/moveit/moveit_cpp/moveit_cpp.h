@@ -161,7 +161,7 @@ public:
   bool execute(const std::string& group_name, const robot_trajectory::RobotTrajectoryPtr& robot_trajectory,
                bool blocking = true);
 
-  /** \brief Utility to terminate a planning pipelines */
+  /** \brief Utility to terminate a given planning pipeline */
   bool terminatePlanningPipeline(std::string const& pipeline_name);
 
 protected:
