@@ -224,9 +224,10 @@ planning_interface::MotionPlanResponse PlanningComponent::plan(const PlanRequest
   return plan_solution;
 }
 
-planning_interface::MotionPlanResponse PlanningComponent::plan(const MultiPipelinePlanRequestParameters& parameters,
-                                                               SolutionCallbackFunction solution_selection_callback,
-                                                               StoppingCriterionFunction stopping_criterion_callback)
+planning_interface::MotionPlanResponse
+PlanningComponent::plan(const MultiPipelinePlanRequestParameters& parameters,
+                        const SolutionCallbackFunction& solution_selection_callback,
+                        const StoppingCriterionFunction& stopping_criterion_callback)
 {
   // Create solutions container
   PlanningComponent::PlanSolutions planning_solutions{ parameters.multi_plan_request_parameters.size() };

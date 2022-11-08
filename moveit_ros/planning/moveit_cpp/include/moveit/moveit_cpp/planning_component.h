@@ -70,7 +70,7 @@ public:
     /// TODO(sjahr): Refactor this method to an insert method similar to
     /// https://github.com/ompl/ompl/blob/main/src/ompl/base/src/ProblemDefinition.cpp#L54-L161. This way, it is
     /// possible to create a sorted container e.g. according to a user specified criteria
-    void pushBack(planning_interface::MotionPlanResponse plan_solution)
+    void pushBack(const planning_interface::MotionPlanResponse& plan_solution)
     {
       std::lock_guard<std::mutex> lock_guard(solutions_mutex_);
       solutions_.push_back(plan_solution);
@@ -215,8 +215,8 @@ public:
    * provided PlanRequestParameters. */
   planning_interface::MotionPlanResponse
   plan(const MultiPipelinePlanRequestParameters& parameters,
-       SolutionCallbackFunction solution_selection_callback = &getShortestSolution,
-       StoppingCriterionFunction stopping_criterion_callback = nullptr);
+       const SolutionCallbackFunction& solution_selection_callback = &getShortestSolution,
+       const StoppingCriterionFunction& stopping_criterion_callback = StoppingCriterionFunction());
 
   /** \brief Execute the latest computed solution trajectory computed by plan(). By default this function terminates
    * after the execution is complete. The execution can be run in background by setting blocking to false. */
