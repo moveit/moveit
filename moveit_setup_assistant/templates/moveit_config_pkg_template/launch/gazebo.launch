@@ -1,35 +1,33 @@
 <?xml version="1.0"?>
 <launch>
-
   <!-- Gazebo specific options -->
   <arg name="paused" default="false"/>
   <arg name="gazebo_gui" default="true"/>
-  <arg name="world_name" doc="Gazebo world file" default="worlds/empty.world"/>
-  <arg name="world_pose" doc="Robot spawn pose argument" default="-x 0 -y 0 -z 0 -R 0 -P 0 -Y 0"/>
-  <arg name="initial_joint_positions" doc="Initial joint configuration of the robot argument" default="[GAZEBO_INITIAL_JOINTS]"/>
+  <arg name="world_name" doc="Gazebo world to load" default="worlds/empty.world"/>
+  <arg name="world_pose" doc="Pose to spawn the robot at" default="-x 0 -y 0 -z 0 -R 0 -P 0 -Y 0"/>
+  <arg name="initial_joint_positions" doc="Initial joint configuration of the robot"
+       default="[GAZEBO_INITIAL_JOINTS]"/>
 
   <!-- Start Gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch" pass_all_args="true">
+    <!-- Start in paused mode to allow controllers pickup the initial pose -->
     <arg name="paused" value="true"/>
   </include>
 
   <!-- Set robot urdf on the parameter server -->
   <param name="robot_description" [GAZEBO_URDF_LOAD_ATTRIBUTE] />
 
-  <!-- Unpause only after loading robot model argument -->
-  <arg name="unpause" value="$(eval '' if arg('paused') else '-unpause')"/>
+  <!-- Unpause the simulation after loading the robot model -->
+  <arg name="unpause" value="$(eval '' if arg('paused') else '-unpause')" />
+  <!-- Spawn the robot in Gazebo -->
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot $(arg unpause) $(arg world_pose) $(arg initial_joint_positions)"
+    respawn="false" output="screen" />
 
-  <!-- Push robot_description to factory and spawn robot in Gazebo -->
-  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot $(arg unpause) $(arg world_pose) $(arg initial_joint_positions)" output="screen" />
-
-  <!-- Load joint controller parameters for Gazebo -->
+  <!-- Load controller parameters onto parameter server -->
   <rosparam file="$(find [GENERATED_PACKAGE_NAME])/config/gazebo_controllers.yaml" />
-
-  <!-- Spawn Gazebo ROS controllers -->
-  <node name="gazebo_controller_spawner" pkg="controller_manager" type="spawner" output="screen" args="joint_state_controller" />
-
-  <!-- Load ROS controllers -->
   <include file="$(dirname)/ros_controllers.launch"/>
+  <!-- Spawn Gazebo ROS controllers -->
+  <node name="gazebo_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller" />
 
   <!-- Given the published joint states, publish tf for the robot links -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />

@@ -1,17 +1,15 @@
 <?xml version="1.0"?>
 <launch>
+  <arg name="pipeline" default="ompl" doc="Planning pipeline to use with MoveIt"/>
 
   <!-- Gazebo specific options -->
-  <arg name="paused" default="false"/>
-  <arg name="gazebo_gui" default="true"/>
-  <arg name="world_name" default="worlds/empty.world"/>
-  <arg name="world_pose" default="-x 0 -y 0 -z 0 -R 0 -P 0 -Y 0"/>
-
-  <!-- Specify the planning pipeline -->
-  <arg name="pipeline" default="ompl"/>
+  <arg name="gazebo_gui" default="true" doc="Start Gazebo GUI"/>
+  <arg name="paused" default="false" doc="Start Gazebo in paused mode"/>
+  <arg name="world_name" default="worlds/empty.world" doc="Gazebo world to load"/>
+  <arg name="world_pose" default="-x 0 -y 0 -z 0 -R 0 -P 0 -Y 0" doc="Pose to spawn the robot at"/>
 
   <!-- Launch the Gazebo simulator and spawn the robot -->
-  <include file="$(dirname)/gazebo.launch" pass_all_args="true" />
+  <include file="$(dirname)/gazebo.launch" pass_all_args="true"/>
 
   <!-- Launch MoveIt -->
   <include file="$(dirname)/demo.launch" pass_all_args="true">
@@ -19,5 +17,4 @@
     <arg name="load_robot_description" value="false" />
     <arg name="moveit_controller_manager" value="ros_control" />
   </include>
-
 </launch>
