@@ -180,12 +180,6 @@ void CommandPlanner::registerContextLoader(
                                              "] is already registered");
   }
 }
-
-void CommandPlanner::setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pcs)
-{
-  config_settings_ = pcs;
-}
-
 }  // namespace pilz_industrial_motion_planner
 
 PLUGINLIB_EXPORT_CLASS(pilz_industrial_motion_planner::CommandPlanner, planning_interface::PlannerManager)

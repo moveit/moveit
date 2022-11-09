@@ -120,11 +120,6 @@ public:
     algs[0] = "CHOMP";
   }
 
-  void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pcs) override
-  {
-    config_settings_ = pcs;
-  }
-
 protected:
   std::map<std::string, CHOMPPlanningContextPtr> planning_contexts_;
 };

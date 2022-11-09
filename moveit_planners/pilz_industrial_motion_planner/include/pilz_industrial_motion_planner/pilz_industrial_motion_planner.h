@@ -114,12 +114,6 @@ public:
    */
   void registerContextLoader(const pilz_industrial_motion_planner::PlanningContextLoaderPtr& planning_context_loader);
 
-  /**
-   * @brief Specify the settings to be used for an algorithms
-   * @param pcs Map of planner configurations
-   */
-  void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pcs) override;
-
 private:
   /// Plugin loader
   std::unique_ptr<pluginlib::ClassLoader<PlanningContextLoader>> planner_context_loader;
