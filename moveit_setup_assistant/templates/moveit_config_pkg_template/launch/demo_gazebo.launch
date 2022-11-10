@@ -14,7 +14,8 @@
 
   <!-- Launch MoveIt -->
   <include file="$(dirname)/demo.launch" pass_all_args="true">
-    <arg name="load_robot_description" value="false" doc="robot_description is loaded by gazebo.launch, to enable Gazebo features"/>
+    <!-- robot_description is loaded by gazebo.launch, to enable Gazebo features -->
+    <arg name="load_robot_description" value="false" />
     <arg name="moveit_controller_manager" value="ros_control" />
   </include>
 </launch>

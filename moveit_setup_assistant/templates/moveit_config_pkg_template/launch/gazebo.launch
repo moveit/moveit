@@ -7,9 +7,9 @@
   <arg name="world_pose" default="-x 0 -y 0 -z 0 -R 0 -P 0 -Y 0" doc="Pose to spawn the robot at"/>
   <arg name="initial_joint_positions" default="[GAZEBO_INITIAL_JOINTS]" doc="Initial joint configuration of the robot"/>
 
-  <!-- Start Gazebo -->
+  <!-- Start Gazebo paused to allow the controllers to pickup the initial pose -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch" pass_all_args="true">
-    <arg name="paused" value="true" doc="to allow the controllers pickup the initial pose"/>
+    <arg name="paused" value="true"/>
   </include>
 
   <!-- Set the robot urdf on the parameter server -->
