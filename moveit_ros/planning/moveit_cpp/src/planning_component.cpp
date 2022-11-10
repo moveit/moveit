@@ -202,7 +202,7 @@ planning_interface::MotionPlanResponse PlanningComponent::plan(const PlanRequest
   }
   plan_solution.trajectory_ = res.trajectory_;
   plan_solution.planning_time_ = res.planning_time_;
-  plan_solution.start_state_ = req.start_state;
+  plan_solution.start_state = req.start_state;
   plan_solution.error_code_ = res.error_code_.val;
   // TODO(henningkayser): Visualize trajectory
   // std::vector<const moveit::core::LinkModel*> eef_links;
@@ -260,7 +260,7 @@ PlanningComponent::plan(const MultiPipelinePlanRequestParameters& parameters,
                                                               << "' threw exception '" << e.what() << "'");
         plan_solution.error_code_ = moveit::core::MoveItErrorCode::FAILURE;
       }
-      plan_solution.planner_id_ = plan_request_parameter.planner_id;
+      plan_solution.planner_id = plan_request_parameter.planner_id;
       planning_solutions.pushBack(plan_solution);
 
       if (stopping_criterion_callback != nullptr)

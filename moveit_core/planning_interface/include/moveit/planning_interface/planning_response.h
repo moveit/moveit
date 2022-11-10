@@ -45,40 +45,101 @@ namespace planning_interface
 {
 struct MotionPlanResponse
 {
-  MotionPlanResponse() : planning_time_(0.0)
+  MotionPlanResponse() : trajectory_(trajectory), planning_time_(planning_time), error_code_(error_code)
+  {
+  }
+
+  MotionPlanResponse(const MotionPlanResponse& response)
+    : trajectory(response.trajectory)
+    , planning_time(response.planning_time)
+    , error_code(response.error_code)
+    , start_state(response.start_state)
+    , planner_id(response.planner_id)
+    , trajectory_(trajectory)
+    , planning_time_(planning_time)
+    , error_code_(error_code)
   {
   }
 
   void getMessage(moveit_msgs::MotionPlanResponse& msg) const;
 
-  robot_trajectory::RobotTrajectoryPtr trajectory_;
-  double planning_time_;
-  moveit::core::MoveItErrorCode error_code_;
-  moveit_msgs::RobotState start_state_;
-  std::string planner_id_;
+  robot_trajectory::RobotTrajectoryPtr trajectory;
+  double planning_time;
+  moveit::core::MoveItErrorCode error_code;
+  moveit_msgs::RobotState start_state;
+  std::string planner_id;
+
+  [[deprecated("Use trajectory instead.")]] robot_trajectory::RobotTrajectoryPtr& trajectory_;
+  [[deprecated("Use planning_time instead.")]] double& planning_time_;
+  [[deprecated("Use error_code instead.")]] moveit::core::MoveItErrorCode& error_code_;
+
+  MotionPlanResponse& operator=(const MotionPlanResponse& response)
+  {
+    trajectory = response.trajectory;
+    planning_time = response.planning_time;
+    error_code = response.error_code;
+    start_state = response.start_state;
+    planner_id = response.planner_id;
+    return *this;
+  }
 
   // Enable checking of query success or failure, for example if(response) ...
   explicit operator bool() const
   {
-    return bool(error_code_);
+    return bool(error_code);
   }
 };
 
 struct MotionPlanDetailedResponse
 {
+  MotionPlanDetailedResponse()
+    : trajectory_(trajectory), description_(description), processing_time_(processing_time), error_code_(error_code)
+  {
+  }
+
+  MotionPlanDetailedResponse(const MotionPlanDetailedResponse& detailed_response)
+    : trajectory(detailed_response.trajectory)
+    , description(detailed_response.description)
+    , processing_time(detailed_response.processing_time)
+    , error_code(detailed_response.error_code)
+    , start_state(detailed_response.start_state)
+    , planner_id(detailed_response.planner_id)
+    , trajectory_(trajectory)
+    , description_(description)
+    , processing_time_(processing_time)
+    , error_code_(error_code)
+  {
+  }
+
   void getMessage(moveit_msgs::MotionPlanDetailedResponse& msg) const;
 
-  std::vector<robot_trajectory::RobotTrajectoryPtr> trajectory_;
-  std::vector<std::string> description_;
-  std::vector<double> processing_time_;
-  moveit::core::MoveItErrorCode error_code_;
-  moveit_msgs::RobotState start_state_;
-  std::string planner_id_;
+  std::vector<robot_trajectory::RobotTrajectoryPtr> trajectory;
+  std::vector<std::string> description;
+  std::vector<double> processing_time;
+  moveit::core::MoveItErrorCode error_code;
+  moveit_msgs::RobotState start_state;
+  std::string planner_id;
+
+  [[deprecated("Use trajectory instead.")]] std::vector<robot_trajectory::RobotTrajectoryPtr>& trajectory_;
+  [[deprecated("Use description instead.")]] std::vector<std::string>& description_;
+  [[deprecated("Use processing_time instead.")]] std::vector<double>& processing_time_;
+  [[deprecated("Use error_code instead.")]] moveit::core::MoveItErrorCode& error_code_;
+
+  MotionPlanDetailedResponse& operator=(const MotionPlanDetailedResponse& detailed_response)
+  {
+    trajectory = detailed_response.trajectory;
+    description = detailed_response.description;
+    processing_time = detailed_response.processing_time;
+    error_code = detailed_response.error_code;
+    start_state = detailed_response.start_state;
+    planner_id = detailed_response.planner_id;
+    return *this;
+  }
 
   // Enable checking of query success or failure, for example if(response) ...
   explicit operator bool() const
   {
-    return bool(error_code_);
+    return bool(error_code);
   }
 };
 
