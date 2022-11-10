@@ -172,7 +172,6 @@ private:
 
   // Planning
   std::map<std::string, planning_pipeline::PlanningPipelinePtr> planning_pipelines_;
-  std::map<std::string, std::set<std::string>> groups_pipelines_map_;
   std::map<std::string, std::set<std::string>> groups_algorithms_map_;
 
   // Execution
