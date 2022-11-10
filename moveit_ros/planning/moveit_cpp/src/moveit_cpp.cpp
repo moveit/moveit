@@ -216,19 +216,6 @@ const std::map<std::string, planning_pipeline::PlanningPipelinePtr>& MoveItCpp::
   return planning_pipelines_;
 }
 
-std::set<std::string> MoveItCpp::getPlanningPipelineNames(const std::string& group_name) const
-{
-  if (group_name.empty() || groups_pipelines_map_.count(group_name) == 0)
-  {
-    ROS_ERROR_NAMED(LOGNAME,
-                    "No planning pipelines loaded for group '%s'. Check planning pipeline and controller setup.",
-                    group_name.c_str());
-    return {};  // empty
-  }
-
-  return groups_pipelines_map_.at(group_name);
-}
-
 const planning_scene_monitor::PlanningSceneMonitorPtr& MoveItCpp::getPlanningSceneMonitor() const
 {
   return planning_scene_monitor_;

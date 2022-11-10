@@ -142,10 +142,6 @@ public:
   /** \brief Get all loaded planning pipeline instances mapped to their reference names */
   const std::map<std::string, planning_pipeline::PlanningPipelinePtr>& getPlanningPipelines() const;
 
-  /** \brief Get the names of all loaded planning pipelines. Specify group_name to filter the results by planning group
-   */
-  std::set<std::string> getPlanningPipelineNames(const std::string& group_name = "") const;
-
   /** \brief Get the stored instance of the planning scene monitor */
   const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor() const;
   planning_scene_monitor::PlanningSceneMonitorPtr getPlanningSceneMonitorNonConst();

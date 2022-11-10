@@ -234,7 +234,6 @@ private:
   const moveit::core::JointModelGroup* joint_model_group_;
 
   // Planning
-  std::set<std::string> planning_pipeline_names_;
   // The start state used in the planning motion request
   moveit::core::RobotStatePtr considered_start_state_;
   std::vector<moveit_msgs::Constraints> current_goal_constraints_;
