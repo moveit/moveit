@@ -45,48 +45,47 @@ namespace planning_interface
 {
 struct MotionPlanResponse
 {
-  MotionPlanResponse() : trajectory_(trajectory), planning_time_(planning_time), error_code_(error_code)
+  robot_trajectory::RobotTrajectoryPtr trajectory_;
+  double planning_time_;
+  moveit::core::MoveItErrorCode error_code_;
+  moveit_msgs::RobotState start_state_;
+  std::string planner_id_;
+
+  [[deprecated("Use trajectory_ instead.")]] const robot_trajectory::RobotTrajectoryPtr& trajectory;
+  [[deprecated("Use planning_time_ instead.")]] const double& planning_time;
+  [[deprecated("Use error_code_ instead.")]] const moveit::core::MoveItErrorCode& error_code;
+  [[deprecated("Use start_state_ instead.")]] const moveit_msgs::RobotState& start_state;
+
+  MotionPlanResponse()
+    : planning_time_(0.0)
+    , trajectory(trajectory_)
+    , planning_time(planning_time_)
+    , error_code(error_code_)
+    , start_state(start_state_)
   {
   }
 
-  MotionPlanResponse(const MotionPlanResponse& response)
-    : trajectory(response.trajectory)
-    , planning_time(response.planning_time)
-    , error_code(response.error_code)
-    , start_state(response.start_state)
-    , planner_id(response.planner_id)
-    , trajectory_(trajectory)
-    , planning_time_(planning_time)
-    , error_code_(error_code)
+  MotionPlanResponse(const MotionPlanResponse& response) : MotionPlanResponse()
   {
+    *this = response;
+  }
+
+  MotionPlanResponse& operator=(const MotionPlanResponse& response)
+  {
+    trajectory_ = response.trajectory_;
+    planning_time_ = response.planning_time_;
+    error_code_ = response.error_code_;
+    start_state_ = response.start_state_;
+    planner_id_ = response.planner_id_;
+    return *this;
   }
 
   void getMessage(moveit_msgs::MotionPlanResponse& msg) const;
 
-  robot_trajectory::RobotTrajectoryPtr trajectory;
-  double planning_time;
-  moveit::core::MoveItErrorCode error_code;
-  moveit_msgs::RobotState start_state;
-  std::string planner_id;
-
-  [[deprecated("Use trajectory instead.")]] robot_trajectory::RobotTrajectoryPtr& trajectory_;
-  [[deprecated("Use planning_time instead.")]] double& planning_time_;
-  [[deprecated("Use error_code instead.")]] moveit::core::MoveItErrorCode& error_code_;
-
-  MotionPlanResponse& operator=(const MotionPlanResponse& response)
-  {
-    trajectory = response.trajectory;
-    planning_time = response.planning_time;
-    error_code = response.error_code;
-    start_state = response.start_state;
-    planner_id = response.planner_id;
-    return *this;
-  }
-
   // Enable checking of query success or failure, for example if(response) ...
   explicit operator bool() const
   {
-    return bool(error_code);
+    return bool(error_code_);
   }
 };
 
