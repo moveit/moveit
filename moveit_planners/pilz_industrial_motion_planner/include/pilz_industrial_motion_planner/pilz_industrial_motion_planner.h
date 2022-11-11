@@ -114,6 +114,7 @@ public:
    */
   void registerContextLoader(const pilz_industrial_motion_planner::PlanningContextLoaderPtr& planning_context_loader);
 
+
   /**
    * @brief Specify the settings to be used for an algorithms
    * @param pcs Map of planner configurations
