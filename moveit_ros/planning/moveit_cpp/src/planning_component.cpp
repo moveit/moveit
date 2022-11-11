@@ -41,6 +41,7 @@
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_state/conversions.h>
+#include <thread>
 
 namespace moveit_cpp
 {
@@ -56,7 +57,6 @@ PlanningComponent::PlanningComponent(const std::string& group_name, const MoveIt
     ROS_FATAL_STREAM_NAMED(LOGNAME, error);
     throw std::runtime_error(error);
   }
-  planning_pipeline_names_ = moveit_cpp_->getPlanningPipelineNames(group_name);
   plan_request_parameters_.load(nh_);
   ROS_DEBUG_STREAM_NAMED(
       LOGNAME, "Plan request parameters loaded with --"
@@ -105,14 +105,25 @@ bool PlanningComponent::setPathConstraints(const moveit_msgs::Constraints& path_
   return true;
 }
 
-PlanningComponent::PlanSolution PlanningComponent::plan(const PlanRequestParameters& parameters)
+bool PlanningComponent::setTrajectoryConstraints(const moveit_msgs::TrajectoryConstraints& trajectory_constraints)
 {
-  last_plan_solution_ = std::make_shared<PlanSolution>();
+  current_trajectory_constraints_ = trajectory_constraints;
+  return true;
+}
+
+planning_interface::MotionPlanResponse PlanningComponent::plan(const PlanRequestParameters& parameters,
+                                                               const bool store_solution)
+{
+  auto plan_solution = planning_interface::MotionPlanResponse();
   if (!joint_model_group_)
   {
     ROS_ERROR_NAMED(LOGNAME, "Failed to retrieve joint model group for name '%s'.", group_name_.c_str());
-    last_plan_solution_->error_code = moveit::core::MoveItErrorCode::INVALID_GROUP_NAME;
-    return *last_plan_solution_;
+    plan_solution.error_code_ = moveit::core::MoveItErrorCode::INVALID_GROUP_NAME;
+    if (store_solution)
+    {
+      last_plan_solution_ = plan_solution;
+    }
+    return plan_solution;
   }
 
   // Clone current planning scene
@@ -148,33 +159,51 @@ PlanningComponent::PlanSolution PlanningComponent::plan(const PlanRequestParamet
   if (current_goal_constraints_.empty())
   {
     ROS_ERROR_NAMED(LOGNAME, "No goal constraints set for planning request");
-    last_plan_solution_->error_code = moveit::core::MoveItErrorCode::INVALID_GOAL_CONSTRAINTS;
-    return *last_plan_solution_;
+    plan_solution.error_code_ = moveit::core::MoveItErrorCode::INVALID_GOAL_CONSTRAINTS;
+    if (store_solution)
+    {
+      last_plan_solution_ = plan_solution;
+    }
+    return plan_solution;
   }
   req.goal_constraints = current_goal_constraints_;
 
   // Set path constraints
   req.path_constraints = current_path_constraints_;
 
+  // Set trajectory constraints
+  req.trajectory_constraints = current_trajectory_constraints_;
+
   // Run planning attempt
   ::planning_interface::MotionPlanResponse res;
-  if (planning_pipeline_names_.find(parameters.planning_pipeline) == planning_pipeline_names_.end())
+  const auto& pipelines = moveit_cpp_->getPlanningPipelines();
+  auto it = pipelines.find(parameters.planning_pipeline);
+  if (it == pipelines.end())
   {
     ROS_ERROR_NAMED(LOGNAME, "No planning pipeline available for name '%s'", parameters.planning_pipeline.c_str());
-    last_plan_solution_->error_code = moveit::core::MoveItErrorCode::FAILURE;
-    return *last_plan_solution_;
+    plan_solution.error_code_ = moveit::core::MoveItErrorCode::FAILURE;
+    if (store_solution)
+    {
+      last_plan_solution_ = plan_solution;
+    }
+    return plan_solution;
   }
-  const planning_pipeline::PlanningPipelinePtr pipeline =
-      moveit_cpp_->getPlanningPipelines().at(parameters.planning_pipeline);
+  const planning_pipeline::PlanningPipelinePtr pipeline = it->second;
   pipeline->generatePlan(planning_scene, req, res);
-  last_plan_solution_->error_code = res.error_code_.val;
+  plan_solution.error_code_ = res.error_code_;
   if (res.error_code_.val != res.error_code_.SUCCESS)
   {
     ROS_ERROR("Could not compute plan successfully");
-    return *last_plan_solution_;
+    if (store_solution)
+    {
+      last_plan_solution_ = plan_solution;
+    }
+    return plan_solution;
   }
-  last_plan_solution_->start_state = req.start_state;
-  last_plan_solution_->trajectory = res.trajectory_;
+  plan_solution.trajectory_ = res.trajectory_;
+  plan_solution.planning_time_ = res.planning_time_;
+  plan_solution.start_state_ = req.start_state;
+  plan_solution.error_code_ = res.error_code_.val;
   // TODO(henningkayser): Visualize trajectory
   // std::vector<const moveit::core::LinkModel*> eef_links;
   // if (joint_model_group->getEndEffectorTips(eef_links))
@@ -187,10 +216,85 @@ PlanningComponent::PlanSolution PlanningComponent::plan(const PlanRequestParamet
   //    visual_tools_->publishRobotState(last_solution_trajectory_->getLastWayPoint(), rviz_visual_tools::TRANSLUCENT);
   //  }
   //}
-  return *last_plan_solution_;
+
+  if (store_solution)
+  {
+    last_plan_solution_ = plan_solution;
+  }
+  return plan_solution;
 }
 
-PlanningComponent::PlanSolution PlanningComponent::plan()
+planning_interface::MotionPlanResponse
+PlanningComponent::plan(const MultiPipelinePlanRequestParameters& parameters,
+                        const SolutionCallbackFunction& solution_selection_callback,
+                        const StoppingCriterionFunction& stopping_criterion_callback)
+{
+  // Create solutions container
+  PlanningComponent::PlanSolutions planning_solutions{ parameters.multi_plan_request_parameters.size() };
+  std::vector<std::thread> planning_threads;
+  planning_threads.reserve(parameters.multi_plan_request_parameters.size());
+
+  // Print a warning if more parallel planning problems than available concurrent threads are defined. If
+  // std::thread::hardware_concurrency() is not defined, the command returns 0 so the check does not work
+  auto const hardware_concurrency = std::thread::hardware_concurrency();
+  if (parameters.multi_plan_request_parameters.size() > hardware_concurrency && hardware_concurrency != 0)
+  {
+    ROS_WARN_NAMED(
+        LOGNAME,
+        "More parallel planning problems defined ('%ld') than possible to solve concurrently with the hardware ('%d')",
+        parameters.multi_plan_request_parameters.size(), hardware_concurrency);
+  }
+
+  // Launch planning threads
+  for (auto const& plan_request_parameter : parameters.multi_plan_request_parameters)
+  {
+    auto planning_thread = std::thread([&]() {
+      auto plan_solution = planning_interface::MotionPlanResponse();
+      try
+      {
+        plan_solution = plan(plan_request_parameter, false);
+      }
+      catch (const std::exception& e)
+      {
+        ROS_ERROR_STREAM_NAMED(LOGNAME, "Planning pipeline '" << plan_request_parameter.planning_pipeline.c_str()
+                                                              << "' threw exception '" << e.what() << "'");
+        plan_solution.error_code_ = moveit::core::MoveItErrorCode::FAILURE;
+      }
+      plan_solution.planner_id_ = plan_request_parameter.planner_id;
+      planning_solutions.pushBack(plan_solution);
+
+      if (stopping_criterion_callback != nullptr)
+      {
+        if (stopping_criterion_callback(planning_solutions, parameters))
+        {
+          // Terminate planning pipelines
+          ROS_INFO_STREAM_NAMED(LOGNAME,
+                                "Stopping criterion met: Terminating planning pipelines that are still active");
+          for (auto const& plan_request_parameter : parameters.multi_plan_request_parameters)
+          {
+            moveit_cpp_->terminatePlanningPipeline(plan_request_parameter.planning_pipeline);
+          }
+        }
+      }
+    });
+    planning_threads.push_back(std::move(planning_thread));
+  }
+
+  // Wait for threads to finish
+  for (auto& planning_thread : planning_threads)
+  {
+    if (planning_thread.joinable())
+    {
+      planning_thread.join();
+    }
+  }
+
+  // Return best solution determined by user defined callback (Default: Shortest path)
+  last_plan_solution_ = solution_selection_callback(planning_solutions.getSolutions());
+  return last_plan_solution_;
+}
+
+planning_interface::MotionPlanResponse PlanningComponent::plan()
 {
   return plan(plan_request_parameters_);
 }
@@ -304,20 +408,52 @@ bool PlanningComponent::execute(bool blocking)
   //  ROS_ERROR("Failed to parameterize trajectory");
   //  return false;
   //}
-  return moveit_cpp_->execute(group_name_, last_plan_solution_->trajectory, blocking);
+  return moveit_cpp_->execute(group_name_, last_plan_solution_.trajectory_, blocking);
 }
 
-const PlanningComponent::PlanSolutionPtr PlanningComponent::getLastPlanSolution()
+planning_interface::MotionPlanResponse const& PlanningComponent::getLastMotionPlanResponse()
 {
   return last_plan_solution_;
+}
+
+planning_interface::MotionPlanResponse
+getShortestSolution(std::vector<planning_interface::MotionPlanResponse> const& solutions)
+{
+  // Find trajectory with minimal path
+  auto const shortest_trajectory = std::min_element(solutions.begin(), solutions.end(),
+                                                    [](planning_interface::MotionPlanResponse const& solution_a,
+                                                       planning_interface::MotionPlanResponse const& solution_b) {
+                                                      // If both solutions were successful, check which path is shorter
+                                                      if (solution_a && solution_b)
+                                                      {
+                                                        return robot_trajectory::path_length(*solution_a.trajectory_) <
+                                                               robot_trajectory::path_length(*solution_b.trajectory_);
+                                                      }
+                                                      // If only solution a is successful, return a
+                                                      else if (solution_a)
+                                                      {
+                                                        return true;
+                                                      }
+                                                      // Else return solution b, either because it is successful or not
+                                                      return false;
+                                                    });
+  if (shortest_trajectory->trajectory_ != nullptr)
+  {
+    ROS_INFO_NAMED(LOGNAME, "Chosen solution with shortest path length: '%f'",
+                   robot_trajectory::path_length(*shortest_trajectory->trajectory_));
+  }
+  else
+  {
+    ROS_INFO_STREAM_NAMED(LOGNAME, "Could not determine shortest path");
+  }
+  return *shortest_trajectory;
 }
 
 void PlanningComponent::clearContents()
 {
   considered_start_state_.reset();
-  last_plan_solution_.reset();
+  last_plan_solution_ = planning_interface::MotionPlanResponse();
   current_goal_constraints_.clear();
   moveit_cpp_.reset();
-  planning_pipeline_names_.clear();
 }
 }  // namespace moveit_cpp

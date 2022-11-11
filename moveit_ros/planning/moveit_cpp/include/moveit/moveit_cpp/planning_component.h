@@ -41,34 +41,50 @@
 #include <moveit/moveit_cpp/moveit_cpp.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <moveit/utils/moveit_error_code.h>
+#include <moveit/planning_interface/planning_response.h>
+#include <mutex>
 
 namespace moveit_cpp
 {
 MOVEIT_CLASS_FORWARD(PlanningComponent);  // Defines PlanningComponentPtr, ConstPtr, WeakPtr... etc
 
+/// \brief A function to choose the solution with the shortest path from a vector of solutions
+planning_interface::MotionPlanResponse
+getShortestSolution(std::vector<planning_interface::MotionPlanResponse> const& solutions);
+
 class PlanningComponent
 {
 public:
-  MOVEIT_STRUCT_FORWARD(PlanSolution);
-
   using MoveItErrorCode [[deprecated("Use moveit::core::MoveItErrorCode")]] = moveit::core::MoveItErrorCode;
 
-  /// The representation of a plan solution
-  struct PlanSolution
+  class PlanSolutions
   {
-    /// The full starting state used for planning
-    moveit_msgs::RobotState start_state;
-
-    /// The trajectory of the robot (may not contain joints that are the same as for the start_state_)
-    robot_trajectory::RobotTrajectoryPtr trajectory;
-
-    /// Reason why the plan failed
-    moveit::core::MoveItErrorCode error_code;
-
-    explicit operator bool() const
+  public:
+    /// \brief Constructor
+    PlanSolutions(const size_t expected_size = 0)
     {
-      return bool(error_code);
+      solutions_.reserve(expected_size);
     }
+
+    /// \brief Thread safe method to add PlanSolutions to this data structure
+    /// TODO(sjahr): Refactor this method to an insert method similar to
+    /// https://github.com/ompl/ompl/blob/main/src/ompl/base/src/ProblemDefinition.cpp#L54-L161. This way, it is
+    /// possible to create a sorted container e.g. according to a user specified criteria
+    void pushBack(const planning_interface::MotionPlanResponse& plan_solution)
+    {
+      std::lock_guard<std::mutex> lock_guard(solutions_mutex_);
+      solutions_.push_back(plan_solution);
+    }
+
+    /// \brief Get solutions
+    std::vector<planning_interface::MotionPlanResponse> const& getSolutions() const
+    {
+      return solutions_;
+    }
+
+  private:
+    std::vector<planning_interface::MotionPlanResponse> solutions_;
+    std::mutex solutions_mutex_;
   };
 
   /// Planner parameters provided with the MotionPlanRequest
@@ -81,9 +97,14 @@ public:
     double max_velocity_scaling_factor;
     double max_acceleration_scaling_factor;
 
-    void load(const ros::NodeHandle& nh)
+    void load(const ros::NodeHandle& nh, const std::string& param_namespace = "")
     {
       std::string ns = "plan_request_params/";
+      if (!param_namespace.empty())
+      {
+        ns = param_namespace + "/plan_request_params/";
+      }
+
       nh.param(ns + "planner_id", planner_id, std::string(""));
       nh.param(ns + "planning_pipeline", planning_pipeline, std::string(""));
       nh.param(ns + "planning_time", planning_time, 1.0);
@@ -92,6 +113,34 @@ public:
       nh.param(ns + "max_acceleration_scaling_factor", max_acceleration_scaling_factor, 1.0);
     }
   };
+
+  /// Planner parameters provided with the MotionPlanRequest
+  struct MultiPipelinePlanRequestParameters
+  {
+    MultiPipelinePlanRequestParameters(const ros::NodeHandle& nh,
+                                       const std::vector<std::string>& planning_pipeline_names)
+    {
+      multi_plan_request_parameters.reserve(planning_pipeline_names.size());
+
+      for (auto const& planning_pipeline_name : planning_pipeline_names)
+      {
+        PlanRequestParameters parameters;
+        parameters.load(nh, planning_pipeline_name);
+        multi_plan_request_parameters.push_back(parameters);
+      }
+    }
+    // Plan request parameters for the individual planning pipelines which run concurrently
+    std::vector<PlanRequestParameters> multi_plan_request_parameters;
+  };
+
+  /// \brief A solution callback function type for the parallel planning API of planning component
+  typedef std::function<planning_interface::MotionPlanResponse(
+      std::vector<planning_interface::MotionPlanResponse> const& solutions)>
+      SolutionCallbackFunction;
+  /// \brief A stopping criterion callback function for the parallel planning API of planning component
+  typedef std::function<bool(PlanSolutions const& solutions,
+                             MultiPipelinePlanRequestParameters const& plan_request_parameters)>
+      StoppingCriterionFunction;
 
   /** \brief Constructor */
   PlanningComponent(const std::string& group_name, const ros::NodeHandle& nh);
@@ -152,19 +201,29 @@ public:
   /** \brief Set the path constraints used for planning */
   bool setPathConstraints(const moveit_msgs::Constraints& path_constraints);
 
+  /** \brief Set the trajectory constraints generated from a moveit msg Constraints */
+  bool setTrajectoryConstraints(const moveit_msgs::TrajectoryConstraints& trajectory_constraints);
+
   /** \brief Run a plan from start or current state to fulfill the last goal constraints provided by setGoal() using
    * default parameters. */
-  PlanSolution plan();
+  planning_interface::MotionPlanResponse plan();
   /** \brief Run a plan from start or current state to fulfill the last goal constraints provided by setGoal() using the
    * provided PlanRequestParameters. */
-  PlanSolution plan(const PlanRequestParameters& parameters);
+  planning_interface::MotionPlanResponse plan(const PlanRequestParameters& parameters, const bool store_solution = true);
+
+  /** \brief Run a plan from start or current state to fulfill the last goal constraints provided by setGoal() using the
+   * provided PlanRequestParameters. */
+  planning_interface::MotionPlanResponse
+  plan(const MultiPipelinePlanRequestParameters& parameters,
+       const SolutionCallbackFunction& solution_selection_callback = &getShortestSolution,
+       const StoppingCriterionFunction& stopping_criterion_callback = StoppingCriterionFunction());
 
   /** \brief Execute the latest computed solution trajectory computed by plan(). By default this function terminates
    * after the execution is complete. The execution can be run in background by setting blocking to false. */
   bool execute(bool blocking = true);
 
   /** \brief Return the last plan solution*/
-  const PlanSolutionPtr getLastPlanSolution();
+  planning_interface::MotionPlanResponse const& getLastMotionPlanResponse();
 
 private:
   // Core properties and instances
@@ -175,15 +234,15 @@ private:
   const moveit::core::JointModelGroup* joint_model_group_;
 
   // Planning
-  std::set<std::string> planning_pipeline_names_;
   // The start state used in the planning motion request
   moveit::core::RobotStatePtr considered_start_state_;
   std::vector<moveit_msgs::Constraints> current_goal_constraints_;
+  moveit_msgs::TrajectoryConstraints current_trajectory_constraints_;
   moveit_msgs::Constraints current_path_constraints_;
   PlanRequestParameters plan_request_parameters_;
   moveit_msgs::WorkspaceParameters workspace_parameters_;
   bool workspace_parameters_set_ = false;
-  PlanSolutionPtr last_plan_solution_;
+  planning_interface::MotionPlanResponse last_plan_solution_;
 
   // common properties for goals
   // TODO(henningkayser): support goal tolerances

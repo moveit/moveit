@@ -159,23 +159,6 @@ bool MoveItCpp::loadPlanningPipelines(const PlanningPipelineOptions& options)
     return false;
   }
 
-  // Retrieve group/pipeline mapping for faster lookup
-  std::vector<std::string> group_names = robot_model_->getJointModelGroupNames();
-  for (const auto& pipeline_entry : planning_pipelines_)
-  {
-    for (const auto& group_name : group_names)
-    {
-      const auto& pipeline = pipeline_entry.second;
-      for (const auto& planner_configuration : pipeline->getPlannerManager()->getPlannerConfigurations())
-      {
-        if (planner_configuration.second.group == group_name)
-        {
-          groups_pipelines_map_[group_name].insert(pipeline_entry.first);
-        }
-      }
-    }
-  }
-
   return true;
 }
 
@@ -214,19 +197,6 @@ moveit::core::RobotStatePtr MoveItCpp::getCurrentState(double wait)
 const std::map<std::string, planning_pipeline::PlanningPipelinePtr>& MoveItCpp::getPlanningPipelines() const
 {
   return planning_pipelines_;
-}
-
-std::set<std::string> MoveItCpp::getPlanningPipelineNames(const std::string& group_name) const
-{
-  if (group_name.empty() || groups_pipelines_map_.count(group_name) == 0)
-  {
-    ROS_ERROR_NAMED(LOGNAME,
-                    "No planning pipelines loaded for group '%s'. Check planning pipeline and controller setup.",
-                    group_name.c_str());
-    return {};  // empty
-  }
-
-  return groups_pipelines_map_.at(group_name);
 }
 
 const planning_scene_monitor::PlanningSceneMonitorPtr& MoveItCpp::getPlanningSceneMonitor() const
@@ -277,6 +247,25 @@ bool MoveItCpp::execute(const std::string& group_name, const robot_trajectory::R
     return trajectory_execution_manager_->waitForExecution();
   }
   return true;
+}
+
+bool MoveItCpp::terminatePlanningPipeline(std::string const& pipeline_name)
+{
+  try
+  {
+    auto const& planning_pipeline = planning_pipelines_.at(pipeline_name);
+    if (planning_pipeline->isActive())
+    {
+      planning_pipeline->terminate();
+    }
+    return true;
+  }
+  catch (const std::out_of_range& oor)
+  {
+    ROS_ERROR_NAMED(LOGNAME, "Cannot terminate pipeline '%s' because no pipeline with that name exists",
+                    pipeline_name.c_str());
+    return false;
+  }
 }
 
 const std::shared_ptr<tf2_ros::Buffer>& MoveItCpp::getTFBuffer() const

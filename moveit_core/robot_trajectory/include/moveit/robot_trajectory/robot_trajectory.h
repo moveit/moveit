@@ -300,4 +300,12 @@ private:
   std::deque<moveit::core::RobotStatePtr> waypoints_;
   std::deque<double> duration_from_previous_;
 };
+
+/// \brief Calculate the path length of a given trajectory based on the
+/// accumulated robot state distances.
+/// The distance between two robot states is calculated based on the sum of
+/// active joint distances between the two states (L1 norm).
+/// \param[in] trajectory Given robot trajectory
+/// \return Length of the robot trajectory [rad]
+[[nodiscard]] double path_length(RobotTrajectory const& trajectory);
 }  // namespace robot_trajectory
