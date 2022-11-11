@@ -56,6 +56,8 @@ struct MotionPlanResponse
   [[deprecated("Use error_code_ instead.")]] const moveit::core::MoveItErrorCode& error_code;
   [[deprecated("Use start_state_ instead.")]] const moveit_msgs::RobotState& start_state;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   MotionPlanResponse()
     : planning_time_(0.0)
     , trajectory(trajectory_)
@@ -64,6 +66,7 @@ struct MotionPlanResponse
     , start_state(start_state_)
   {
   }
+#pragma GCC diagnostic pop
 
   MotionPlanResponse(const MotionPlanResponse& response) : MotionPlanResponse()
   {
