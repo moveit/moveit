@@ -455,6 +455,5 @@ void PlanningComponent::clearContents()
   last_plan_solution_ = planning_interface::MotionPlanResponse();
   current_goal_constraints_.clear();
   moveit_cpp_.reset();
-  planning_pipeline_names_.clear();
 }
 }  // namespace moveit_cpp
