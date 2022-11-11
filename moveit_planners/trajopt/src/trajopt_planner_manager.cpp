@@ -134,6 +134,15 @@ public:
     return context;
   }
 
+  /**
+   * @brief Specify the settings to be used for an algorithms
+   * @param pcs Map of planner configurations
+   */
+  void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pcs) override
+  {
+    config_settings_ = pcs;
+  }
+
 private:
   ros::NodeHandle nh_;
 
