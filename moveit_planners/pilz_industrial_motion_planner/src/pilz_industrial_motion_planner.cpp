@@ -99,19 +99,6 @@ bool CommandPlanner::initialize(const moveit::core::RobotModelConstPtr& model, c
     registerContextLoader(loader_pointer);
   }
 
-    // Specify for which joint model groups this planner is usable
-  planning_interface::PlannerConfigurationMap pconfig;
-
-  for (const auto& group : model_->getJointModelGroupNames())
-  {
-    const planning_interface::PlannerConfigurationSettings planner_config_settings{
-      group, group, std::map<std::string, std::string>()
-    };
-    pconfig[planner_config_settings.name] = planner_config_settings;
-  }
-
-  setPlannerConfigurations(pconfig);
-
   return true;
 }
 
@@ -179,11 +166,6 @@ void CommandPlanner::registerContextLoader(
     throw ContextLoaderRegistrationException("The command [" + planning_context_loader->getAlgorithm() +
                                              "] is already registered");
   }
-}
-
-void CommandPlanner::setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pcs)
-{
-  config_settings_ = pcs;
 }
 
 }  // namespace pilz_industrial_motion_planner
