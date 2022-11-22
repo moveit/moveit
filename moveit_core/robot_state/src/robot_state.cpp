@@ -1778,7 +1778,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Is
   if (constraint)
     ik_callback_fn = [this, jmg, constraint](const geometry_msgs::Pose& pose, const std::vector<double>& joints,
                                              moveit_msgs::MoveItErrorCodes& error_code) {
-      ikCallbackFnAdapter(this, jmg, constraint, pose, joints, error_code);
+      return ikCallbackFnAdapter(this, jmg, constraint, pose, joints, error_code);
     };
 
   // Bijection
