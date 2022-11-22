@@ -1515,10 +1515,15 @@ bool ikCallbackFnAdapter(RobotState* state, const JointModelGroup* group,
   for (std::size_t i = 0; i < bij.size(); ++i)
     solution[bij[i]] = ik_sol[i];
   if (constraint(state, group, &solution[0]))
+  {
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+    return true;
+  }
   else
+  {
     error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
-  return true;
+    return false;
+  }
 }
 }  // namespace
 
