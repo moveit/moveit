@@ -576,7 +576,7 @@ bool IKConstraintSampler::sampleHelper(moveit::core::RobotState& state, const mo
     adapted_ik_validity_callback = [this, state_ptr = &state](const geometry_msgs::Pose& /*unused*/,
                                                               const std::vector<double>& joints,
                                                               moveit_msgs::MoveItErrorCodes& error_code) {
-      return samplingIkCallbackFnAdapter(state_ptr, jmg_, group_state_validity_callback_, joints, error_code);
+      samplingIkCallbackFnAdapter(state_ptr, jmg_, group_state_validity_callback_, joints, error_code);
     };
 
   for (unsigned int a = 0; a < max_attempts; ++a)

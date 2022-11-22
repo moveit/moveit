@@ -1506,7 +1506,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const Eigen::Isometry3d& 
 
 namespace
 {
-bool ikCallbackFnAdapter(RobotState* state, const JointModelGroup* group,
+void ikCallbackFnAdapter(RobotState* state, const JointModelGroup* group,
                          const GroupStateValidityCallbackFn& constraint, const geometry_msgs::Pose& /*unused*/,
                          const std::vector<double>& ik_sol, moveit_msgs::MoveItErrorCodes& error_code)
 {
@@ -1518,7 +1518,6 @@ bool ikCallbackFnAdapter(RobotState* state, const JointModelGroup* group,
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
   else
     error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
-  return true;
 }
 }  // namespace
 
@@ -1778,7 +1777,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Is
   if (constraint)
     ik_callback_fn = [this, jmg, constraint](const geometry_msgs::Pose& pose, const std::vector<double>& joints,
                                              moveit_msgs::MoveItErrorCodes& error_code) {
-      return ikCallbackFnAdapter(this, jmg, constraint, pose, joints, error_code);
+      ikCallbackFnAdapter(this, jmg, constraint, pose, joints, error_code);
     };
 
   // Bijection
