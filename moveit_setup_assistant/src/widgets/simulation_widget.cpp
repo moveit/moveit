@@ -139,7 +139,6 @@ void SimulationWidget::focusGiven()
 
   // Add generated Gazebo URDF to config file if not empty
   bool have_changes = !text.empty();
-  config_data_->save_gazebo_urdf_ = have_changes;
 
   // GUI elements are visible only if there are URDF changes to display/edit
   simulation_text_->setVisible(have_changes);
@@ -165,7 +164,7 @@ void SimulationWidget::focusGiven()
 
 bool SimulationWidget::focusLost()
 {
-  if (!config_data_->save_gazebo_urdf_)
+  if (!(config_data_->changes & MoveItConfigData::SIMULATION))
     return true;  // saving is disabled anyway
 
   // validate XML
@@ -203,7 +202,6 @@ void SimulationWidget::overwriteURDF()
                              "Original robot description URDF was successfully overwritten.");
 
   // Remove Gazebo URDF file from list of to-be-written config files
-  config_data_->save_gazebo_urdf_ = false;
   config_data_->changes &= ~MoveItConfigData::SIMULATION;
 }
 

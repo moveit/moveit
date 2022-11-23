@@ -276,19 +276,16 @@ bool ConfigurationFilesWidget::loadGenFiles()
   config_data_->srdf_pkg_relative_path_ = file.rel_path_;
 
   // gazebo_<ROBOT>.urdf ---------------------------------------------------------------------------------------
-  if (config_data_->save_gazebo_urdf_)
-  {
-    file.file_name_ = "gazebo_" + config_data_->urdf_model_->getName() + ".urdf";
-    file.rel_path_ = config_data_->appendPaths(CONFIG_PATH, file.file_name_);
-    file.description_ =
-        "This <a href='https://wiki.ros.org/urdf'>URDF</a> file comprises your original robot description "
-        "augmented with tags required for use with Gazebo, i.e. defining inertia and transmission properties. "
-        "Checkout the <a href='http://gazebosim.org/tutorials/?tut=ros_urdf'>URDF Gazebo documentation</a> "
-        "for more infos.";
-    file.gen_func_ = [this](const std::string& output_path) { return config_data_->outputGazeboURDFFile(output_path); };
-    file.write_on_changes = MoveItConfigData::SIMULATION;
-    gen_files_.push_back(file);
-  }
+  file.file_name_ = "gazebo_" + config_data_->urdf_model_->getName() + ".urdf";
+  file.rel_path_ = config_data_->appendPaths(CONFIG_PATH, file.file_name_);
+  file.description_ =
+      "This <a href='https://wiki.ros.org/urdf'>URDF</a> file comprises your original robot description "
+      "augmented with tags required for use with Gazebo, i.e. defining inertia and transmission properties. "
+      "Checkout the <a href='http://gazebosim.org/tutorials/?tut=ros_urdf'>URDF Gazebo documentation</a> "
+      "for more infos.";
+  file.gen_func_ = [this](const std::string& output_path) { return config_data_->outputGazeboURDFFile(output_path); };
+  file.write_on_changes = MoveItConfigData::SIMULATION;
+  gen_files_.push_back(file);
 
   // ompl_planning.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "ompl_planning.yaml";
@@ -1257,7 +1254,7 @@ void ConfigurationFilesWidget::loadTemplateStrings()
     addTemplateString("[URDF_LOAD_ATTRIBUTE]", "textfile=\"" + urdf_location + "\"");
 
   // Pair 4
-  if (config_data_->save_gazebo_urdf_)
+  if (config_data_->changes & MoveItConfigData::SIMULATION)
   {
     std::string file_name = "gazebo_" + config_data_->urdf_model_->getName() + ".urdf";
     std::string rel_path = config_data_->appendPaths(CONFIG_PATH, file_name);
