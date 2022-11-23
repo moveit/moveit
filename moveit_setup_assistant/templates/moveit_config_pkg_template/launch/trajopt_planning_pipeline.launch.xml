@@ -1,11 +1,5 @@
 <launch>
 
-  <!-- define capabilites that are loaded on start (space seperated) -->
-  <arg name="capabilities" default=""/>
-
-  <!-- inhibit capabilites (space seperated) -->
-  <arg name="disable_capabilities" default=""/>
-
   <!-- The request adapters (plugins) used when planning with TrajOpt. ORDER MATTERS! -->
   <arg name="planning_adapters"
        default="default_planner_request_adapters/LimitMaxCartesianLinkSpeed
@@ -22,8 +16,6 @@
   <param name="request_adapters" value="$(arg planning_adapters)" />
   <param name="start_state_max_bounds_error" value="$(arg start_state_max_bounds_error)" />
   <param name="jiggle_fraction" value="$(arg jiggle_fraction)" />
-  <param name="capabilities" value="$(arg capabilities)" />
-  <param name="disable_capabilities" value="$(arg disable_capabilities)" />
 
   <rosparam command="load" file="$(find [GENERATED_PACKAGE_NAME])/config/trajopt_planning.yaml"/>
 

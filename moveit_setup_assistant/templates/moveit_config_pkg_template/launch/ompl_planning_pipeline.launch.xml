@@ -19,9 +19,6 @@
   <param name="start_state_max_bounds_error" value="$(arg start_state_max_bounds_error)" />
   <param name="jiggle_fraction" value="$(arg jiggle_fraction)" />
 
-  <!-- Add MoveGroup capabilities specific to this pipeline -->
-  <!-- <param name="capabilities" value="" /> -->
-
   <rosparam command="load" file="$(find [GENERATED_PACKAGE_NAME])/config/ompl_planning.yaml"/>
 
 </launch>
