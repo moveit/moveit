@@ -1506,7 +1506,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const Eigen::Isometry3d& 
 
 namespace
 {
-bool ikCallbackFnAdapter(RobotState* state, const JointModelGroup* group,
+void ikCallbackFnAdapter(RobotState* state, const JointModelGroup* group,
                          const GroupStateValidityCallbackFn& constraint, const geometry_msgs::Pose& /*unused*/,
                          const std::vector<double>& ik_sol, moveit_msgs::MoveItErrorCodes& error_code)
 {
@@ -1518,7 +1518,6 @@ bool ikCallbackFnAdapter(RobotState* state, const JointModelGroup* group,
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
   else
     error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
-  return true;
 }
 }  // namespace
 
@@ -1920,13 +1919,6 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
 
   // Convert Eigen poses to geometry_msg format
   std::vector<geometry_msgs::Pose> ik_queries(poses_in.size());
-  kinematics::KinematicsBase::IKCallbackFn ik_callback_fn;
-  if (constraint)
-    ik_callback_fn = [this, jmg, constraint](const geometry_msgs::Pose pose, const std::vector<double>& joints,
-                                             moveit_msgs::MoveItErrorCodes& error_code) {
-      ikCallbackFnAdapter(this, jmg, constraint, pose, joints, error_code);
-    };
-
   for (std::size_t i = 0; i < transformed_poses.size(); ++i)
   {
     Eigen::Quaterniond quat(transformed_poses[i].linear());
