@@ -884,6 +884,13 @@ void ConfigurationFilesWidget::changeCheckedState(QListWidgetItem* item)
 
   // Enable/disable file
   gen_files_[index].generate_ = generate;
+
+  // Update GAZEBO_URDF_LOAD_ATTRIBUTE to load URDF file from config folder or to regenerate by xacro
+  if (gen_files_[index].write_on_changes == MoveItConfigData::SIMULATION)
+  {
+    config_data_->save_gazebo_urdf_ = generate;
+    loadGenFiles();
+  }
 }
 
 // ******************************************************************************************
