@@ -1127,6 +1127,8 @@ bool ConfigurationFilesWidget::generatePackage()
     }
   }
 
+  loadTemplateStrings();
+
   // Begin to create files and folders ----------------------------------------------------------------------
   std::string absolute_path;
 
@@ -1143,9 +1145,6 @@ bool ConfigurationFilesWidget::generatePackage()
     // Create the absolute path
     absolute_path = config_data_->appendPaths(new_package_path, file->rel_path_);
     ROS_DEBUG_STREAM("Creating file " << absolute_path);
-
-    // Clear template strings in case export is run multiple times with changes in between
-    template_strings_.clear();
 
     // Run the generate function
     if (!file->gen_func_(absolute_path))
@@ -1237,6 +1236,9 @@ bool ConfigurationFilesWidget::noGroupsEmpty()
 // ******************************************************************************************
 void ConfigurationFilesWidget::loadTemplateStrings()
 {
+  // Clear strings (in case export is run multiple times)
+  template_strings_.clear();
+
   // Pair 1
   addTemplateString("[GENERATED_PACKAGE_NAME]", new_package_name_);
 
@@ -1355,12 +1357,6 @@ bool ConfigurationFilesWidget::addTemplateString(const std::string& key, const s
 // ******************************************************************************************
 bool ConfigurationFilesWidget::copyTemplate(const std::string& template_path, const std::string& output_path)
 {
-  // Check if template strings have been loaded yet
-  if (template_strings_.empty())
-  {
-    loadTemplateStrings();
-  }
-
   // Error check file
   if (!fs::is_regular_file(template_path))
   {
