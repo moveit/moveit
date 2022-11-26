@@ -171,7 +171,7 @@ bool SimulationWidget::focusLost()
   TiXmlDocument doc;
   auto urdf = simulation_text_->document()->toPlainText().toStdString();
   doc.Parse(urdf.c_str(), nullptr, TIXML_ENCODING_UTF8);
-  if (doc.Error())
+  if (!urdf.empty() && doc.Error())
   {
     QTextCursor cursor = simulation_text_->textCursor();
     cursor.movePosition(QTextCursor::Start);
