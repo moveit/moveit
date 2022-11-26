@@ -210,13 +210,12 @@ void SimulationWidget::overwriteURDF()
 
   if (!config_data_->outputGazeboURDFFile(config_data_->urdf_path_))
     QMessageBox::warning(this, "Gazebo URDF", tr("Failed to save to ").append(config_data_->urdf_path_.c_str()));
-  else  // Display success message
-    QMessageBox::information(this, "Overwriting Successfull",
-                             "Original robot description URDF was successfully overwritten.");
-
-  // Remove Gazebo URDF file from list of to-be-written config files
-  setDirty(false);
-  config_data_->gazebo_urdf_string_.clear();
+  else
+  {
+    // Remove Gazebo URDF file from list of to-be-written config files
+    setDirty(false);
+    config_data_->gazebo_urdf_string_.clear();
+  }
 }
 
 void SimulationWidget::openURDF()
