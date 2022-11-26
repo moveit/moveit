@@ -150,7 +150,7 @@ void SimulationWidget::focusGiven()
   // GUI elements are visible only if there are URDF changes to display/edit
   simulation_text_->setVisible(have_changes);
   btn_overwrite_->setVisible(have_changes);
-  btn_open_->setVisible(have_changes && !qgetenv("EDITOR").isEmpty());
+  btn_open_->setVisible(have_changes);
   copy_urdf_->setVisible(have_changes);
   no_changes_label_->setVisible(!have_changes);
 
@@ -214,7 +214,12 @@ void SimulationWidget::overwriteURDF()
 
 void SimulationWidget::openURDF()
 {
-  QProcess::startDetached(qgetenv("EDITOR"), { config_data_->urdf_path_.c_str() });
+  QString editor = qgetenv("EDITOR");
+  if (editor.isEmpty())
+    editor = "xdg-open";
+  auto command = QString("%1 %2").arg(editor, config_data_->urdf_path_.c_str());
+  if (!QProcess::startDetached(command))
+    QMessageBox::warning(this, "URDF Editor", tr("Failed to open editor: <pre>%1</pre>").arg(editor));
 }
 
 // ******************************************************************************************
