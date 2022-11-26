@@ -678,7 +678,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.gen_func_ = [this, template_path](const std::string& output_path) {
     return copyTemplate(template_path, output_path);
   };
-  file.write_on_changes = MoveItConfigData::SIMULATION;
+  file.write_on_changes = 0;
   gen_files_.push_back(file);
 
   // joystick_control.launch ------------------------------------------------------------------
