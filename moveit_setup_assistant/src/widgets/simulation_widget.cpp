@@ -114,6 +114,7 @@ SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& c
   // URDF text
   simulation_text_ = new QTextEdit(this);
   simulation_text_->setLineWrapMode(QTextEdit::NoWrap);
+  connect(simulation_text_, &QTextEdit::textChanged, this, [this]() { setDirty(); });
   layout->addWidget(simulation_text_);
   // Configure highlighter
   auto highlighter = new XmlSyntaxHighlighter(simulation_text_->document());
@@ -133,10 +134,19 @@ SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& c
   this->setLayout(layout);
 }
 
+void SimulationWidget::setDirty(bool dirty)
+{
+  if (dirty)
+    config_data_->changes |= MoveItConfigData::SIMULATION;
+  else
+    config_data_->changes &= ~MoveItConfigData::SIMULATION;
+  btn_overwrite_->setEnabled(dirty && !config_data_->urdf_from_xacro_);
+}
+
 void SimulationWidget::focusGiven()
 {
   if (!simulation_text_->document()->isEmpty())
-    return;  // nothing to do
+    return;  // don't change existing content
 
   simulation_text_->setVisible(true);
   std::string text = generateGazeboCompatibleURDF();
@@ -154,19 +164,15 @@ void SimulationWidget::focusGiven()
   copy_urdf_->setVisible(have_changes);
   no_changes_label_->setVisible(!have_changes);
 
-  // Disable overwrite button if URDF originates from xacro
-  btn_overwrite_->setDisabled(config_data_->urdf_from_xacro_);
+  // Explain why overwrite button is disabled
   QString tooltip;
-  if (btn_overwrite_->isEnabled())
-    tooltip = tr("Overwrite URDF in original location:\n").append(config_data_->urdf_path_.c_str());
-  else
+  if (config_data_->urdf_from_xacro_)
     tooltip = tr("Cannot overwrite original, <i>xacro-based</i> URDF");
+  else
+    tooltip = tr("Overwrite URDF in original location:<br><tt>%1</tt>").arg(config_data_->urdf_path_.c_str());
   btn_overwrite_->setToolTip(tooltip);
 
-  if (have_changes)
-    config_data_->changes |= MoveItConfigData::SIMULATION;
-  else
-    config_data_->changes &= ~MoveItConfigData::SIMULATION;
+  setDirty(have_changes);
 }
 
 bool SimulationWidget::focusLost()
@@ -209,7 +215,8 @@ void SimulationWidget::overwriteURDF()
                              "Original robot description URDF was successfully overwritten.");
 
   // Remove Gazebo URDF file from list of to-be-written config files
-  config_data_->changes &= ~MoveItConfigData::SIMULATION;
+  setDirty(false);
+  config_data_->gazebo_urdf_string_.clear();
 }
 
 void SimulationWidget::openURDF()
