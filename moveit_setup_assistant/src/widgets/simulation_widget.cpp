@@ -67,11 +67,18 @@ SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& c
 
   // Top Header Area ------------------------------------------------
 
-  HeaderWidget* header = new HeaderWidget("Simulate With Gazebo",
-                                          "The following tool will auto-generate the URDF changes needed "
-                                          "for Gazebo compatibility with ROSControl and MoveIt. The "
-                                          "needed changes are shown in green.",
-                                          this);
+  HeaderWidget* header = new HeaderWidget(
+      "Gazebo Simulation",
+      QString("For use in the Gazebo physics simulation, the URDF needs to define inertial properties "
+              "for all links as well as control interfaces for all joints. "
+              "The required changes to your URDF are <b>highlighted below in "
+              "<font color=\"darkgreen\">green</font></b>.<br>"
+              "You can accept these suggestions and overwrite your existing URDF, or manually "
+              "adapt your URDF opening your preferred editor. "
+              "By default, a new file comprising those changes will be written to <tt>config/gazebo_%1.urdf</tt>")
+          .arg(config_data_->urdf_model_->getName().c_str())
+          .toStdString(),
+      this);
   layout->addWidget(header);
   layout->addSpacerItem(new QSpacerItem(1, 8, QSizePolicy::Fixed, QSizePolicy::Fixed));
 
