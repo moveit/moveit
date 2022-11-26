@@ -210,16 +210,10 @@ bool MoveItConfigData::outputSetupAssistantFile(const std::string& file_path)
 }
 
 // ******************************************************************************************
-// Output Gazebo URDF file (or delete existing file if gazebo_urdf_string_ is empty)
+// Output Gazebo URDF file
 // ******************************************************************************************
 bool MoveItConfigData::outputGazeboURDFFile(const std::string& file_path)
 {
-  if (gazebo_urdf_string_.empty())
-  {
-    fs::remove(file_path.c_str());
-    return true;
-  }
-
   std::ofstream os(file_path.c_str(), std::ios_base::trunc);
   if (!os.good())
   {

@@ -1256,7 +1256,7 @@ void ConfigurationFilesWidget::loadTemplateStrings()
     addTemplateString("[URDF_LOAD_ATTRIBUTE]", "textfile=\"" + urdf_location + "\"");
 
   // Pair 4
-  if (config_data_->changes & MoveItConfigData::SIMULATION)
+  if (config_data_->changes & MoveItConfigData::SIMULATION && !config_data_->gazebo_urdf_string_.empty())
   {
     std::string file_name = "gazebo_" + config_data_->urdf_model_->getName() + ".urdf";
     std::string rel_path = config_data_->appendPaths(CONFIG_PATH, file_name);
