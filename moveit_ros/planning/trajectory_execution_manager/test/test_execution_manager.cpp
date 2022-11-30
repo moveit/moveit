@@ -108,6 +108,29 @@ TEST_F(MoveItCppTest, PushExecuteAndWaitTest)
   ASSERT_EQ(last_execution_status, moveit_controller_manager::ExecutionStatus::SUCCEEDED);
 }
 
+TEST_F(MoveItCppTest, RejectTooFarFromStart)
+{
+  moveit_msgs::RobotTrajectory traj = traj1;
+  traj.joint_trajectory.points[0].positions[0] = 0.3;
+
+  trajectory_execution_manager_ptr->setAllowedStartTolerance(0.01);
+  ASSERT_TRUE(trajectory_execution_manager_ptr->push(traj));
+  auto last_execution_status = trajectory_execution_manager_ptr->executeAndWait();
+  ASSERT_EQ(last_execution_status, moveit_controller_manager::ExecutionStatus::ABORTED);
+}
+
+TEST_F(MoveItCppTest, AcceptAllowedJointStartTolerance)
+{
+  moveit_msgs::RobotTrajectory traj = traj1;
+  traj.joint_trajectory.points[0].positions[0] = 0.3;
+
+  trajectory_execution_manager_ptr->setAllowedStartTolerance(0.01);
+  trajectory_execution_manager_ptr->setAllowedJointStartTolerance("panda_joint1", 0.5);
+  ASSERT_TRUE(trajectory_execution_manager_ptr->push(traj));
+  auto last_execution_status = trajectory_execution_manager_ptr->executeAndWait();
+  ASSERT_EQ(last_execution_status, moveit_controller_manager::ExecutionStatus::SUCCEEDED);
+}
+
 }  // namespace moveit_cpp
 
 int main(int argc, char** argv)
