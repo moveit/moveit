@@ -427,11 +427,6 @@ void MotionPlanningFrame::addSceneObject()
 {
   static const double MIN_VAL = 1e-6;
 
-  if (!planning_display_->getPlanningSceneMonitor())
-  {
-    return;
-  }
-
   // get size values
   double x_length = ui_->shape_size_x_spin_box->isEnabled() ? ui_->shape_size_x_spin_box->value() : MIN_VAL;
   double y_length = ui_->shape_size_y_spin_box->isEnabled() ? ui_->shape_size_y_spin_box->value() : MIN_VAL;
@@ -481,28 +476,25 @@ void MotionPlanningFrame::addSceneObject()
                            QString("The '%1' is not supported.").arg(ui_->shapes_combo_box->currentText()));
   }
 
-  // find available (initial) name of object
-  int idx = 0;
-  std::string shape_name = selected_shape + "_" + std::to_string(idx);
-  while (planning_display_->getPlanningSceneRO()->getWorld()->hasObject(shape_name))
+  std::string shape_name;
+  if (auto ps = planning_display_->getPlanningSceneRW())
   {
-    idx++;
-    shape_name = selected_shape + "_" + std::to_string(idx);
-  }
+    // find available (initial) name of object
+    int idx = 0;
+    do
+      shape_name = selected_shape + "_" + std::to_string(++idx);
+    while (ps->getWorld()->hasObject(shape_name));
 
-  // Actually add object to the plugin's PlanningScene
-  {
-    auto ps = planning_display_->getPlanningSceneRW();
+    // Actually add object to the plugin's PlanningScene
     ps->getWorldNonConst()->addToObject(shape_name, shape, Eigen::Isometry3d::Identity());
     populateCollisionObjectsList(&ps);
   }
   setLocalSceneEdited();
+  planning_display_->queueRenderSceneGeometry();
 
   // Automatically select the inserted object so that its IM is displayed
   ui_->collision_objects_list->clearSelection();
   setItemSelectionInList(shape_name, true, ui_->collision_objects_list);
-
-  planning_display_->queueRenderSceneGeometry();
 }
 
 shapes::ShapePtr MotionPlanningFrame::loadMeshResource(const std::string& url)
