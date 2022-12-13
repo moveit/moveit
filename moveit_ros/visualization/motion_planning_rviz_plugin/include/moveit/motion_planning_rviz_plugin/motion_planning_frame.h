@@ -253,7 +253,7 @@ private:
   void createSceneInteractiveMarker();
   void renameCollisionObject(QListWidgetItem* item);
   void attachDetachCollisionObject(QListWidgetItem* item);
-  void populateCollisionObjectsList();
+  void populateCollisionObjectsList(planning_scene_monitor::LockedPlanningSceneRO* pps = nullptr);
   void computeImportGeometryFromText(const std::string& path);
   void computeExportGeometryAsText(const std::string& path);
   visualization_msgs::InteractiveMarker

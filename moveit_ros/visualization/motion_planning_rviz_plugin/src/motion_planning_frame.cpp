@@ -492,12 +492,11 @@ void MotionPlanningFrame::addSceneObject()
 
   // Actually add object to the plugin's PlanningScene
   {
-    planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
+    auto ps = planning_display_->getPlanningSceneRW();
     ps->getWorldNonConst()->addToObject(shape_name, shape, Eigen::Isometry3d::Identity());
+    populateCollisionObjectsList(&ps);
   }
   setLocalSceneEdited();
-
-  populateCollisionObjectsList();
 
   // Automatically select the inserted object so that its IM is displayed
   ui_->collision_objects_list->clearSelection();

@@ -137,14 +137,13 @@ void MotionPlanningFrame::publishSceneIfNeeded()
 
 void MotionPlanningFrame::clearScene()
 {
-  planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
-  if (ps)
+  if (auto ps = planning_display_->getPlanningSceneRW())
   {
     ps->getWorldNonConst()->clearObjects();
     ps->getCurrentStateNonConst().clearAttachedBodies();
     setLocalSceneEdited(true);
     planning_display_->updateQueryStates(ps->getCurrentState());
-    populateCollisionObjectsList();  // update list + internal vars
+    populateCollisionObjectsList(&ps);  // update list + internal vars
     planning_display_->queueRenderSceneGeometry();
   }
 }
@@ -217,7 +216,7 @@ void MotionPlanningFrame::removeSceneObject()
   if (selection.empty())
     return;
 
-  if (planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW())
+  if (auto ps = planning_display_->getPlanningSceneRW())
   {
     bool removed_attached = false;
     for (QListWidgetItem* item : selection)
@@ -231,10 +230,11 @@ void MotionPlanningFrame::removeSceneObject()
 
     if (removed_attached)
       planning_display_->updateQueryStates(ps->getCurrentState());
+
+    populateCollisionObjectsList(&ps);
   }
   scene_marker_.reset();
   setLocalSceneEdited();
-  populateCollisionObjectsList();
   planning_display_->queueRenderSceneGeometry();
 }
 
@@ -318,10 +318,8 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
       bool update_scene_marker = false;
       Eigen::Isometry3d obj_pose;
       {
-        const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
-        const collision_detection::CollisionEnv::ObjectConstPtr& obj =
-            ps->getWorld()->getObject(sel[0]->text().toStdString());
-        if (obj)
+        const auto& ps = planning_display_->getPlanningSceneRO();
+        if (const auto& obj = ps->getWorld()->getObject(sel[0]->text().toStdString()))
         {
           ui_->object_status->setText(decideStatusText(obj));
 
@@ -478,7 +476,7 @@ void MotionPlanningFrame::copySelectedCollisionObject()
   if (sel.empty())
     return;
 
-  planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
+  auto ps = planning_display_->getPlanningSceneRW();
   if (!ps)
     return;
 
@@ -503,7 +501,7 @@ void MotionPlanningFrame::copySelectedCollisionObject()
     ROS_DEBUG("Copied collision object to '%s'", name.c_str());
   }
   setLocalSceneEdited();
-  planning_display_->addMainLoopJob([this] { populateCollisionObjectsList(); });
+  populateCollisionObjectsList(&ps);
 }
 
 void MotionPlanningFrame::computeSaveSceneButtonClicked()
@@ -932,13 +930,13 @@ void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem* item)
   planning_display_->queueRenderSceneGeometry();
 }
 
-void MotionPlanningFrame::populateCollisionObjectsList()
+void MotionPlanningFrame::populateCollisionObjectsList(planning_scene_monitor::LockedPlanningSceneRO* pps)
 {
   ui_->collision_objects_list->setUpdatesEnabled(false);
-  bool old_state = ui_->collision_objects_list->blockSignals(true);
   bool octomap_in_scene = false;
 
   {
+    QSignalBlocker block(ui_->collision_objects_list);
     QList<QListWidgetItem*> sel = ui_->collision_objects_list->selectedItems();
     std::set<std::string> to_select;
     for (QListWidgetItem* item : sel)
@@ -947,7 +945,7 @@ void MotionPlanningFrame::populateCollisionObjectsList()
     known_collision_objects_.clear();
     known_collision_objects_version_++;
 
-    planning_scene_monitor::LockedPlanningSceneRO ps = planning_display_->getPlanningSceneRO();
+    auto ps = pps ? *pps : planning_display_->getPlanningSceneRO();
     if (ps)
     {
       const std::vector<std::string>& collision_object_names = ps->getWorld()->getObjectIds();
@@ -990,9 +988,8 @@ void MotionPlanningFrame::populateCollisionObjectsList()
   }
 
   ui_->clear_octomap_button->setEnabled(octomap_in_scene);
-  ui_->collision_objects_list->blockSignals(old_state);
   ui_->collision_objects_list->setUpdatesEnabled(true);
-  selectedCollisionObjectChanged();
+  planning_display_->addMainLoopJob([this] { selectedCollisionObjectChanged(); });
 }
 
 void MotionPlanningFrame::exportGeometryAsTextButtonClicked()
@@ -1024,24 +1021,23 @@ void MotionPlanningFrame::computeExportGeometryAsText(const std::string& path)
 
 void MotionPlanningFrame::computeImportGeometryFromText(const std::string& path)
 {
-  planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
-  if (ps)
+  bool success = false;
+  if (auto ps = planning_display_->getPlanningSceneRW())
   {
     std::ifstream fin(path.c_str());
     if (ps->loadGeometryFromStream(fin))
     {
       ROS_INFO("Loaded scene geometry from '%s'", path.c_str());
-      planning_display_->addMainLoopJob([this] { populateCollisionObjectsList(); });
+      populateCollisionObjectsList(&ps);
       planning_display_->queueRenderSceneGeometry();
       setLocalSceneEdited();
-    }
-    else
-    {
-      QMessageBox::warning(nullptr, "Loading scene geometry",
-                           "Failed to load scene geometry.\n"
-                           "See console output for more details.");
+      success = true;
     }
   }
+  if (!success)
+    QMessageBox::warning(nullptr, "Loading scene geometry",
+                         "Failed to load scene geometry.\n"
+                         "See console output for more details.");
 }
 
 void MotionPlanningFrame::importGeometryFromTextButtonClicked()
