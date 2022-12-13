@@ -184,12 +184,12 @@ private Q_SLOTS:
   void sceneScaleEndChange();
   void shapesComboBoxChanged(const QString& text);
   void addSceneObject();
-  void removeSceneObject();
-  void selectedCollisionObjectChanged();
+  void removeSceneObjects();
+  void currentCollisionObjectChanged();
   void objectPoseValueChanged(double value);
   void collisionObjectChanged(QListWidgetItem* item);
   void imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback& feedback);
-  void copySelectedCollisionObject();
+  void copySelectedCollisionObjects();
   void exportGeometryAsTextButtonClicked();
   void importGeometryFromTextButtonClicked();
 

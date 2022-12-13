@@ -108,7 +108,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->scene_scale, SIGNAL(valueChanged(int)), this, SLOT(sceneScaleChanged(int)));
   connect(ui_->scene_scale, SIGNAL(sliderPressed()), this, SLOT(sceneScaleStartChange()));
   connect(ui_->scene_scale, SIGNAL(sliderReleased()), this, SLOT(sceneScaleEndChange()));
-  connect(ui_->remove_object_button, SIGNAL(clicked()), this, SLOT(removeSceneObject()));
+  connect(ui_->remove_object_button, SIGNAL(clicked()), this, SLOT(removeSceneObjects()));
   connect(ui_->object_x, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_y, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_z, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
@@ -116,7 +116,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->object_ry, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_rz, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->publish_current_scene_button, SIGNAL(clicked()), this, SLOT(publishScene()));
-  connect(ui_->collision_objects_list, SIGNAL(itemSelectionChanged()), this, SLOT(selectedCollisionObjectChanged()));
+  connect(ui_->collision_objects_list, SIGNAL(currentRowChanged(int)), this, SLOT(currentCollisionObjectChanged()));
   connect(ui_->collision_objects_list, SIGNAL(itemChanged(QListWidgetItem*)), this,
           SLOT(collisionObjectChanged(QListWidgetItem*)));
   connect(ui_->path_constraints_combo_box, SIGNAL(currentIndexChanged(int)), this,
@@ -173,7 +173,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->wsize_z, SIGNAL(valueChanged(double)), this, SIGNAL(configChanged()));
 
   QShortcut* copy_object_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), ui_->collision_objects_list);
-  connect(copy_object_shortcut, SIGNAL(activated()), this, SLOT(copySelectedCollisionObject()));
+  connect(copy_object_shortcut, SIGNAL(activated()), this, SLOT(copySelectedCollisionObjects()));
 
   ui_->reset_db_button->hide();
   ui_->background_job_progress->hide();
@@ -620,7 +620,7 @@ void MotionPlanningFrame::tabChanged(int index)
   if (scene_marker_ && ui_->tabWidget->tabText(index).toStdString() != TAB_OBJECTS)
     scene_marker_.reset();
   else if (ui_->tabWidget->tabText(index).toStdString() == TAB_OBJECTS)
-    selectedCollisionObjectChanged();
+    currentCollisionObjectChanged();
 }
 
 void MotionPlanningFrame::updateSceneMarkers(float wall_dt, float /*ros_dt*/)
