@@ -278,7 +278,7 @@ static QString decideStatusText(const moveit::core::AttachedBody* attached_body)
 
 void MotionPlanningFrame::currentCollisionObjectChanged()
 {
-  auto setValue = [](QDoubleSpinBox* w, float value) {
+  auto setValue = [](QDoubleSpinBox* w, float value) {  // NOLINT(readability-identifier-naming)
     QSignalBlocker block(w);
     w->setValue(value);
   };
