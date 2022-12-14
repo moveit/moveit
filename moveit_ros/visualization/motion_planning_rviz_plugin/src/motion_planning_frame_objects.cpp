@@ -189,15 +189,15 @@ void MotionPlanningFrame::sceneScaleChanged(int value)
 
 void MotionPlanningFrame::sceneScaleStartChange()
 {
-  QList<QListWidgetItem*> sel = ui_->collision_objects_list->selectedItems();
-  if (sel.empty())
+  auto current = ui_->collision_objects_list->currentItem();
+  if (!current)
     return;
-  if (planning_display_->getPlanningSceneMonitor() && sel[0]->checkState() == Qt::Unchecked)
+  if (planning_display_->getPlanningSceneMonitor() && current->checkState() == Qt::Unchecked)
   {
     planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
     if (ps)
     {
-      scaled_object_ = ps->getWorld()->getObject(sel[0]->text().toStdString());
+      scaled_object_ = ps->getWorld()->getObject(current->text().toStdString());
       scaled_object_subframes_ = scaled_object_->subframe_poses_;
       scaled_object_shape_poses_ = scaled_object_->shape_poses_;
     }
@@ -210,7 +210,7 @@ void MotionPlanningFrame::sceneScaleEndChange()
   ui_->scene_scale->setSliderPosition(100);
 }
 
-void MotionPlanningFrame::removeSceneObject()
+void MotionPlanningFrame::removeSceneObjects()
 {
   QList<QListWidgetItem*> selection = ui_->collision_objects_list->selectedItems();
   if (selection.empty())
@@ -276,35 +276,22 @@ static QString decideStatusText(const moveit::core::AttachedBody* attached_body)
   return status_text;
 }
 
-void MotionPlanningFrame::selectedCollisionObjectChanged()
+void MotionPlanningFrame::currentCollisionObjectChanged()
 {
-  QList<QListWidgetItem*> sel = ui_->collision_objects_list->selectedItems();
-  if (sel.empty())
+  auto setValue = [](QDoubleSpinBox* w, float value) {
+    QSignalBlocker block(w);
+    w->setValue(value);
+  };
+
+  auto current = ui_->collision_objects_list->currentItem();
+  if (!current)
   {
-    bool old_state = ui_->object_x->blockSignals(true);
-    ui_->object_x->setValue(0.0);
-    ui_->object_x->blockSignals(old_state);
-
-    old_state = ui_->object_y->blockSignals(true);
-    ui_->object_y->setValue(0.0);
-    ui_->object_y->blockSignals(old_state);
-
-    old_state = ui_->object_z->blockSignals(true);
-    ui_->object_z->setValue(0.0);
-    ui_->object_z->blockSignals(old_state);
-
-    old_state = ui_->object_rx->blockSignals(true);
-    ui_->object_rx->setValue(0.0);
-    ui_->object_rx->blockSignals(old_state);
-
-    old_state = ui_->object_ry->blockSignals(true);
-    ui_->object_ry->setValue(0.0);
-    ui_->object_ry->blockSignals(old_state);
-
-    old_state = ui_->object_rz->blockSignals(true);
-    ui_->object_rz->setValue(0.0);
-    ui_->object_rz->blockSignals(old_state);
-
+    setValue(ui_->object_x, 0.0);
+    setValue(ui_->object_y, 0.0);
+    setValue(ui_->object_z, 0.0);
+    setValue(ui_->object_rx, 0.0);
+    setValue(ui_->object_ry, 0.0);
+    setValue(ui_->object_rz, 0.0);
     ui_->object_status->setText("");
     scene_marker_.reset();
     ui_->pose_scale_group_box->setEnabled(false);
@@ -312,14 +299,14 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
   else if (planning_display_->getPlanningSceneMonitor())
   {
     // if this is a CollisionWorld element
-    if (sel[0]->checkState() == Qt::Unchecked)
+    if (current->checkState() == Qt::Unchecked)
     {
       ui_->pose_scale_group_box->setEnabled(true);
       bool update_scene_marker = false;
       Eigen::Isometry3d obj_pose;
       {
         const auto& ps = planning_display_->getPlanningSceneRO();
-        if (const auto& obj = ps->getWorld()->getObject(sel[0]->text().toStdString()))
+        if (const auto& obj = ps->getWorld()->getObject(current->text().toStdString()))
         {
           ui_->object_status->setText(decideStatusText(obj));
 
@@ -328,34 +315,16 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
             obj_pose = obj->pose_;  // valid isometry by contract
             Eigen::Vector3d xyz = obj_pose.linear().eulerAngles(0, 1, 2);
             update_scene_marker = true;  // do the marker update outside locked scope to avoid deadlock
-
-            bool old_state = ui_->object_x->blockSignals(true);
-            ui_->object_x->setValue(obj_pose.translation()[0]);
-            ui_->object_x->blockSignals(old_state);
-
-            old_state = ui_->object_y->blockSignals(true);
-            ui_->object_y->setValue(obj_pose.translation()[1]);
-            ui_->object_y->blockSignals(old_state);
-
-            old_state = ui_->object_z->blockSignals(true);
-            ui_->object_z->setValue(obj_pose.translation()[2]);
-            ui_->object_z->blockSignals(old_state);
-
-            old_state = ui_->object_rx->blockSignals(true);
-            ui_->object_rx->setValue(xyz[0]);
-            ui_->object_rx->blockSignals(old_state);
-
-            old_state = ui_->object_ry->blockSignals(true);
-            ui_->object_ry->setValue(xyz[1]);
-            ui_->object_ry->blockSignals(old_state);
-
-            old_state = ui_->object_rz->blockSignals(true);
-            ui_->object_rz->setValue(xyz[2]);
-            ui_->object_rz->blockSignals(old_state);
+            setValue(ui_->object_x, obj_pose.translation()[0]);
+            setValue(ui_->object_y, obj_pose.translation()[1]);
+            setValue(ui_->object_z, obj_pose.translation()[2]);
+            setValue(ui_->object_rx, xyz[0]);
+            setValue(ui_->object_ry, xyz[1]);
+            setValue(ui_->object_rz, xyz[2]);
           }
         }
         else
-          ui_->object_status->setText("ERROR: '" + sel[0]->text() + "' should be a collision object but it is not");
+          ui_->object_status->setText("ERROR: '" + current->text() + "' should be a collision object but it is not");
       }
       if (update_scene_marker && ui_->tabWidget->tabText(ui_->tabWidget->currentIndex()).toStdString() == TAB_OBJECTS)
       {
@@ -369,11 +338,11 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
       scene_marker_.reset();
       const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
       const moveit::core::AttachedBody* attached_body =
-          ps->getCurrentState().getAttachedBody(sel[0]->text().toStdString());
+          ps->getCurrentState().getAttachedBody(current->text().toStdString());
       if (attached_body)
         ui_->object_status->setText(decideStatusText(attached_body));
       else
-        ui_->object_status->setText("ERROR: '" + sel[0]->text() + "' should be an attached object but it is not");
+        ui_->object_status->setText("ERROR: '" + current->text() + "' should be an attached object but it is not");
     }
   }
 }
@@ -385,13 +354,12 @@ void MotionPlanningFrame::objectPoseValueChanged(double /* value */)
 
 void MotionPlanningFrame::updateCollisionObjectPose(bool update_marker_position)
 {
-  QList<QListWidgetItem*> sel = ui_->collision_objects_list->selectedItems();
-  if (sel.empty())
+  auto current = ui_->collision_objects_list->currentItem();
+  if (!current)
     return;
-  planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
-  if (ps)
+  if (auto ps = planning_display_->getPlanningSceneRW())
   {
-    collision_detection::CollisionEnv::ObjectConstPtr obj = ps->getWorld()->getObject(sel[0]->text().toStdString());
+    collision_detection::CollisionEnv::ObjectConstPtr obj = ps->getWorld()->getObject(current->text().toStdString());
     if (obj)
     {
       Eigen::Isometry3d p;
@@ -470,7 +438,7 @@ void MotionPlanningFrame::imProcessFeedback(visualization_msgs::InteractiveMarke
   updateCollisionObjectPose(false);
 }
 
-void MotionPlanningFrame::copySelectedCollisionObject()
+void MotionPlanningFrame::copySelectedCollisionObjects()
 {
   QList<QListWidgetItem*> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
@@ -781,8 +749,8 @@ MotionPlanningFrame::createObjectMarkerMsg(const collision_detection::CollisionE
 
 void MotionPlanningFrame::createSceneInteractiveMarker()
 {
-  QList<QListWidgetItem*> sel = ui_->collision_objects_list->selectedItems();
-  if (sel.empty())
+  auto current = ui_->collision_objects_list->currentItem();
+  if (!current)
     return;
 
   const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
@@ -790,7 +758,7 @@ void MotionPlanningFrame::createSceneInteractiveMarker()
     return;
 
   const collision_detection::CollisionEnv::ObjectConstPtr& obj =
-      ps->getWorld()->getObject(sel[0]->text().toStdString());
+      ps->getWorld()->getObject(current->text().toStdString());
   if (obj && obj->shapes_.size() == 1)
   {
     scene_marker_ = std::make_shared<rviz::InteractiveMarker>(planning_display_->getSceneNode(), context_);
@@ -924,7 +892,7 @@ void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem* item)
     rs = ps->getCurrentState();
   }
 
-  selectedCollisionObjectChanged();
+  currentCollisionObjectChanged();
   setLocalSceneEdited();
   planning_display_->updateQueryStates(rs);
   planning_display_->queueRenderSceneGeometry();
@@ -989,7 +957,7 @@ void MotionPlanningFrame::populateCollisionObjectsList(planning_scene_monitor::L
 
   ui_->clear_octomap_button->setEnabled(octomap_in_scene);
   ui_->collision_objects_list->setUpdatesEnabled(true);
-  planning_display_->addMainLoopJob([this] { selectedCollisionObjectChanged(); });
+  planning_display_->addMainLoopJob([this] { currentCollisionObjectChanged(); });
 }
 
 void MotionPlanningFrame::exportGeometryAsTextButtonClicked()
