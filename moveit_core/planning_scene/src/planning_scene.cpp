@@ -1058,12 +1058,13 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Isomet
         ROS_ERROR_NAMED(LOGNAME, "Failed to read object pose from scene file");
         return false;
       }
-      pose = offset * pose;  // Transform pose by input pose offset
-      world_->setObjectPose(object_id, pose);
+      Eigen::Isometry3d object_pose = offset * pose;  // Transform pose by input pose offset
 
       // Read in shapes
       unsigned int shape_count;
       in >> shape_count;
+      if (shape_count)  // If there are any shapes to be loaded, clear any existing object first
+        world_->removeObject(object_id);
       for (std::size_t i = 0; i < shape_count && in.good() && !in.eof(); ++i)
       {
         const auto shape = shapes::ShapeConstPtr(shapes::constructShapeFromText(in));
@@ -1097,6 +1098,9 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Isomet
           }
         }
       }
+
+      // Finally set object's pose once
+      world_->setObjectPose(object_id, object_pose);
 
       // Read in subframes (added in the new scene format)
       if (uses_new_scene_format)
