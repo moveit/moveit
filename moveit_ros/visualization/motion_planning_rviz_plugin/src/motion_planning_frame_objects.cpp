@@ -176,7 +176,8 @@ void MotionPlanningFrame::sceneScaleChanged(int value)
 
         ps->getWorldNonConst()->setSubframesOfObject(scaled_object_->id_, scaled_subframes);
         setLocalSceneEdited();
-        scene_marker_->processMessage(createObjectMarkerMsg(ps->getWorld()->getObject(scaled_object_->id_)));
+        if (scene_marker_)
+          scene_marker_->processMessage(createObjectMarkerMsg(ps->getWorld()->getObject(scaled_object_->id_)));
         planning_display_->queueRenderSceneGeometry();
       }
       else
