@@ -898,6 +898,16 @@ void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem* item)
   planning_display_->queueRenderSceneGeometry();
 }
 
+QListWidgetItem* MotionPlanningFrame::addCollisionObjectToList(const std::string& name, int row, bool attached)
+{
+  QListWidgetItem* item = new QListWidgetItem(QString::fromStdString(name), ui_->collision_objects_list, row);
+  item->setFlags(item->flags() | Qt::ItemIsEditable);
+  item->setToolTip(item->text());
+  item->setCheckState(attached ? Qt::Checked : Qt::Unchecked);
+  known_collision_objects_.push_back(std::make_pair(name, attached));
+  return item;
+}
+
 void MotionPlanningFrame::populateCollisionObjectsList(planning_scene_monitor::LockedPlanningSceneRO* pps)
 {
   ui_->collision_objects_list->setUpdatesEnabled(false);
@@ -916,41 +926,25 @@ void MotionPlanningFrame::populateCollisionObjectsList(planning_scene_monitor::L
     auto ps = pps ? *pps : planning_display_->getPlanningSceneRO();
     if (ps)
     {
-      const std::vector<std::string>& collision_object_names = ps->getWorld()->getObjectIds();
-      for (std::size_t i = 0; i < collision_object_names.size(); ++i)
+      for (const std::string& name : ps->getWorld()->getObjectIds())
       {
-        if (collision_object_names[i] == planning_scene::PlanningScene::OCTOMAP_NS)
+        if (name == planning_scene::PlanningScene::OCTOMAP_NS)
         {
           octomap_in_scene = true;
           continue;
         }
-
-        QListWidgetItem* item =
-            new QListWidgetItem(QString::fromStdString(collision_object_names[i]), ui_->collision_objects_list, (int)i);
-        item->setFlags(item->flags() | Qt::ItemIsEditable);
-        item->setToolTip(item->text());
-        item->setCheckState(Qt::Unchecked);
-        if (to_select.find(collision_object_names[i]) != to_select.end())
+        QListWidgetItem* item = addCollisionObjectToList(name, ui_->collision_objects_list->count(), false);
+        if (to_select.find(name) != to_select.end())
           item->setSelected(true);
-        ui_->collision_objects_list->addItem(item);
-        known_collision_objects_.push_back(std::make_pair(collision_object_names[i], false));
       }
 
-      const moveit::core::RobotState& cs = ps->getCurrentState();
       std::vector<const moveit::core::AttachedBody*> attached_bodies;
-      cs.getAttachedBodies(attached_bodies);
-      for (std::size_t i = 0; i < attached_bodies.size(); ++i)
+      ps->getCurrentState().getAttachedBodies(attached_bodies);
+      for (const auto& body : attached_bodies)
       {
-        QListWidgetItem* item =
-            new QListWidgetItem(QString::fromStdString(attached_bodies[i]->getName()), ui_->collision_objects_list,
-                                (int)(i + collision_object_names.size()));
-        item->setFlags(item->flags() | Qt::ItemIsEditable);
-        item->setToolTip(item->text());
-        item->setCheckState(Qt::Checked);
-        if (to_select.find(attached_bodies[i]->getName()) != to_select.end())
+        QListWidgetItem* item = addCollisionObjectToList(body->getName(), ui_->collision_objects_list->count(), true);
+        if (to_select.find(body->getName()) != to_select.end())
           item->setSelected(true);
-        ui_->collision_objects_list->addItem(item);
-        known_collision_objects_.push_back(std::make_pair(attached_bodies[i]->getName(), true));
       }
     }
   }
