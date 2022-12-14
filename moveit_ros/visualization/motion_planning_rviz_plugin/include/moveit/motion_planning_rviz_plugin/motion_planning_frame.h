@@ -320,9 +320,6 @@ private:
   void remoteUpdateCustomStartStateCallback(const moveit_msgs::RobotStateConstPtr& msg);
   void remoteUpdateCustomGoalStateCallback(const moveit_msgs::RobotStateConstPtr& msg);
 
-  /* Selects or unselects a item in a list by the item name */
-  void setItemSelectionInList(const std::string& item_name, bool selection, QListWidget* list);
-
   ros::NodeHandle nh_;  // node handle with the namespace of the connected move_group node
   ros::Publisher planning_scene_publisher_;
   ros::Publisher planning_scene_world_publisher_;

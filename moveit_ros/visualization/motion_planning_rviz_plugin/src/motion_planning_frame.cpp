@@ -232,13 +232,6 @@ void MotionPlanningFrame::approximateIKChanged(int state)
   planning_display_->useApproximateIK(state == Qt::Checked);
 }
 
-void MotionPlanningFrame::setItemSelectionInList(const std::string& item_name, bool selection, QListWidget* list)
-{
-  QList<QListWidgetItem*> found_items = list->findItems(QString(item_name.c_str()), Qt::MatchExactly);
-  for (QListWidgetItem* found_item : found_items)
-    found_item->setSelected(selection);
-}
-
 void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
 {
   // This is needed to prevent UI event (resuming the options) triggered
@@ -494,9 +487,10 @@ void MotionPlanningFrame::addSceneObject()
   // Finally add object name to GUI list
   auto item = addCollisionObjectToList(shape_name, ui_->collision_objects_list->count(), false);
 
-  // Automatically select the inserted object so that its IM is displayed
+  // Select it and make it current so that its IM is displayed
   ui_->collision_objects_list->clearSelection();
-  setItemSelectionInList(shape_name, true, ui_->collision_objects_list);
+  item->setSelected(true);
+  ui_->collision_objects_list->setCurrentItem(item);
 }
 
 shapes::ShapePtr MotionPlanningFrame::loadMeshResource(const std::string& url)
