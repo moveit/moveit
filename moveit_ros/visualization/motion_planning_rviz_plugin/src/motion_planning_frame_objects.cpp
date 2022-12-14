@@ -310,19 +310,15 @@ void MotionPlanningFrame::currentCollisionObjectChanged()
         if (const auto& obj = ps->getWorld()->getObject(current->text().toStdString()))
         {
           ui_->object_status->setText(decideStatusText(obj));
-
-          if (obj->shapes_.size() == 1)
-          {
-            obj_pose = obj->pose_;  // valid isometry by contract
-            Eigen::Vector3d xyz = obj_pose.linear().eulerAngles(0, 1, 2);
-            update_scene_marker = true;  // do the marker update outside locked scope to avoid deadlock
-            setValue(ui_->object_x, obj_pose.translation()[0]);
-            setValue(ui_->object_y, obj_pose.translation()[1]);
-            setValue(ui_->object_z, obj_pose.translation()[2]);
-            setValue(ui_->object_rx, xyz[0]);
-            setValue(ui_->object_ry, xyz[1]);
-            setValue(ui_->object_rz, xyz[2]);
-          }
+          obj_pose = obj->pose_;  // valid isometry by contract
+          Eigen::Vector3d xyz = obj_pose.linear().eulerAngles(0, 1, 2);
+          update_scene_marker = true;  // do the marker update outside locked scope to avoid deadlock
+          setValue(ui_->object_x, obj_pose.translation()[0]);
+          setValue(ui_->object_y, obj_pose.translation()[1]);
+          setValue(ui_->object_z, obj_pose.translation()[2]);
+          setValue(ui_->object_rx, xyz[0]);
+          setValue(ui_->object_ry, xyz[1]);
+          setValue(ui_->object_rz, xyz[2]);
         }
         else
           ui_->object_status->setText("ERROR: '" + current->text() + "' should be a collision object but it is not");
@@ -729,15 +725,13 @@ void MotionPlanningFrame::computeLoadQueryButtonClicked()
 visualization_msgs::InteractiveMarker
 MotionPlanningFrame::createObjectMarkerMsg(const collision_detection::CollisionEnv::ObjectConstPtr& obj)
 {
-  Eigen::Vector3d center;
-  double scale;
-  shapes::computeShapeBoundingSphere(obj->shapes_[0].get(), center, scale);
+  Eigen::Vector3d center = Eigen::Vector3d::Zero();
+  double scale = 0.2;
+
+  if (!obj->shapes_.empty())
+    shapes::computeShapeBoundingSphere(obj->shapes_[0].get(), center, scale);
   geometry_msgs::PoseStamped shape_pose = tf2::toMsg(
       tf2::Stamped<Eigen::Isometry3d>(obj->pose_, ros::Time(), planning_display_->getRobotModel()->getModelFrame()));
-  // TODO(felixvd): Consider where to place the object marker.
-  //                obj->pose*obj->shape_poses_[0] is backwards compatible, sits on the visible part of
-  //                the object, and is more difficult to implement now.
-  //                obj->pose is easier to implement and makes more sense.
   scale = (scale + center.cwiseAbs().maxCoeff()) * 2.0 * 1.2;  // add padding of 20% size
 
   // create an interactive marker msg for the given shape
@@ -758,9 +752,7 @@ void MotionPlanningFrame::createSceneInteractiveMarker()
   if (!ps)
     return;
 
-  const collision_detection::CollisionEnv::ObjectConstPtr& obj =
-      ps->getWorld()->getObject(current->text().toStdString());
-  if (obj && obj->shapes_.size() == 1)
+  if (const auto& obj = ps->getWorld()->getObject(current->text().toStdString()))
   {
     scene_marker_ = std::make_shared<rviz::InteractiveMarker>(planning_display_->getSceneNode(), context_);
     scene_marker_->processMessage(createObjectMarkerMsg(obj));
