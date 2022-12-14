@@ -990,9 +990,11 @@ void MotionPlanningFrame::computeImportGeometryFromText(const std::string& path)
     }
   }
   if (!success)
-    QMessageBox::warning(nullptr, "Loading scene geometry",
-                         "Failed to load scene geometry.\n"
-                         "See console output for more details.");
+    planning_display_->addMainLoopJob([] {
+      QMessageBox::warning(nullptr, "Loading scene geometry",
+                           "Failed to load scene geometry.\n"
+                           "See console output for more details.");
+    });
 }
 
 void MotionPlanningFrame::importGeometryFromTextButtonClicked()
