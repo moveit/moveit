@@ -108,7 +108,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->scene_scale, SIGNAL(valueChanged(int)), this, SLOT(sceneScaleChanged(int)));
   connect(ui_->scene_scale, SIGNAL(sliderPressed()), this, SLOT(sceneScaleStartChange()));
   connect(ui_->scene_scale, SIGNAL(sliderReleased()), this, SLOT(sceneScaleEndChange()));
-  connect(ui_->remove_object_button, SIGNAL(clicked()), this, SLOT(removeSceneObject()));
+  connect(ui_->remove_object_button, SIGNAL(clicked()), this, SLOT(removeSceneObjects()));
   connect(ui_->object_x, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_y, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_z, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
@@ -116,7 +116,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->object_ry, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_rz, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->publish_current_scene_button, SIGNAL(clicked()), this, SLOT(publishScene()));
-  connect(ui_->collision_objects_list, SIGNAL(itemSelectionChanged()), this, SLOT(selectedCollisionObjectChanged()));
+  connect(ui_->collision_objects_list, SIGNAL(currentRowChanged(int)), this, SLOT(currentCollisionObjectChanged()));
   connect(ui_->collision_objects_list, SIGNAL(itemChanged(QListWidgetItem*)), this,
           SLOT(collisionObjectChanged(QListWidgetItem*)));
   connect(ui_->path_constraints_combo_box, SIGNAL(currentIndexChanged(int)), this,
@@ -173,7 +173,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->wsize_z, SIGNAL(valueChanged(double)), this, SIGNAL(configChanged()));
 
   QShortcut* copy_object_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), ui_->collision_objects_list);
-  connect(copy_object_shortcut, SIGNAL(activated()), this, SLOT(copySelectedCollisionObject()));
+  connect(copy_object_shortcut, SIGNAL(activated()), this, SLOT(copySelectedCollisionObjects()));
 
   ui_->reset_db_button->hide();
   ui_->background_job_progress->hide();
@@ -230,13 +230,6 @@ MotionPlanningFrame::~MotionPlanningFrame()
 void MotionPlanningFrame::approximateIKChanged(int state)
 {
   planning_display_->useApproximateIK(state == Qt::Checked);
-}
-
-void MotionPlanningFrame::setItemSelectionInList(const std::string& item_name, bool selection, QListWidget* list)
-{
-  QList<QListWidgetItem*> found_items = list->findItems(QString(item_name.c_str()), Qt::MatchExactly);
-  for (QListWidgetItem* found_item : found_items)
-    found_item->setSelected(selection);
 }
 
 void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
@@ -427,11 +420,6 @@ void MotionPlanningFrame::addSceneObject()
 {
   static const double MIN_VAL = 1e-6;
 
-  if (!planning_display_->getPlanningSceneMonitor())
-  {
-    return;
-  }
-
   // get size values
   double x_length = ui_->shape_size_x_spin_box->isEnabled() ? ui_->shape_size_x_spin_box->value() : MIN_VAL;
   double y_length = ui_->shape_size_y_spin_box->isEnabled() ? ui_->shape_size_y_spin_box->value() : MIN_VAL;
@@ -481,30 +469,28 @@ void MotionPlanningFrame::addSceneObject()
                            QString("The '%1' is not supported.").arg(ui_->shapes_combo_box->currentText()));
   }
 
-  // find available (initial) name of object
-  int idx = 0;
-  std::string shape_name = selected_shape + "_" + std::to_string(idx);
-  while (planning_display_->getPlanningSceneRO()->getWorld()->hasObject(shape_name))
+  std::string shape_name;
+  if (auto ps = planning_display_->getPlanningSceneRW())
   {
-    idx++;
-    shape_name = selected_shape + "_" + std::to_string(idx);
-  }
+    // find available (initial) name of object
+    int idx = 0;
+    do
+      shape_name = selected_shape + "_" + std::to_string(++idx);
+    while (ps->getWorld()->hasObject(shape_name));
 
-  // Actually add object to the plugin's PlanningScene
-  {
-    planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
+    // Actually add object to the plugin's PlanningScene
     ps->getWorldNonConst()->addToObject(shape_name, shape, Eigen::Isometry3d::Identity());
   }
   setLocalSceneEdited();
-
-  planning_display_->addMainLoopJob([this] { populateCollisionObjectsList(); });
-
-  // Automatically select the inserted object so that its IM is displayed
-  planning_display_->addMainLoopJob([this, shape_name, list_widget = ui_->collision_objects_list] {
-    setItemSelectionInList(shape_name, true, list_widget);
-  });
-
   planning_display_->queueRenderSceneGeometry();
+
+  // Finally add object name to GUI list
+  auto item = addCollisionObjectToList(shape_name, ui_->collision_objects_list->count(), false);
+
+  // Select it and make it current so that its IM is displayed
+  ui_->collision_objects_list->clearSelection();
+  item->setSelected(true);
+  ui_->collision_objects_list->setCurrentItem(item);
 }
 
 shapes::ShapePtr MotionPlanningFrame::loadMeshResource(const std::string& url)
@@ -621,7 +607,7 @@ void MotionPlanningFrame::tabChanged(int index)
   if (scene_marker_ && ui_->tabWidget->tabText(index).toStdString() != TAB_OBJECTS)
     scene_marker_.reset();
   else if (ui_->tabWidget->tabText(index).toStdString() == TAB_OBJECTS)
-    selectedCollisionObjectChanged();
+    currentCollisionObjectChanged();
 }
 
 void MotionPlanningFrame::updateSceneMarkers(float wall_dt, float /*ros_dt*/)

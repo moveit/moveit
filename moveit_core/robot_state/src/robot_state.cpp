@@ -2292,5 +2292,54 @@ std::ostream& operator<<(std::ostream& out, const RobotState& s)
   return out;
 }
 
+bool haveSameAttachedObjects(const RobotState& left, const RobotState& right, const std::string& prefix)
+{
+  std::vector<const moveit::core::AttachedBody*> left_attached;
+  std::vector<const moveit::core::AttachedBody*> right_attached;
+  left.getAttachedBodies(left_attached);
+  right.getAttachedBodies(right_attached);
+  if (left_attached.size() != right_attached.size())
+  {
+    ROS_DEBUG_STREAM(prefix << "different number of objects");
+    return false;
+  }
+
+  for (const moveit::core::AttachedBody* left_object : left_attached)
+  {
+    auto it = std::find_if(right_attached.cbegin(), right_attached.cend(),
+                           [left_object](const moveit::core::AttachedBody* object) {
+                             return object->getName() == left_object->getName();
+                           });
+    if (it == right_attached.cend())
+    {
+      ROS_DEBUG_STREAM(prefix << "object missing: " << left_object->getName());
+      return false;
+    }
+    const moveit::core::AttachedBody* right_object = *it;
+    if (left_object->getAttachedLink() != right_object->getAttachedLink())
+    {
+      ROS_DEBUG_STREAM(prefix << "different attach links: " << left_object->getName() << " attached to "
+                              << left_object->getAttachedLinkName() << " / " << right_object->getAttachedLinkName());
+      return false;  // links not matching
+    }
+    if (left_object->getShapes().size() != right_object->getShapes().size())
+    {
+      ROS_DEBUG_STREAM(prefix << "different object shapes: " << left_object->getName());
+      return false;  // shapes not matching
+    }
+
+    auto left_it = left_object->getShapePosesInLinkFrame().cbegin();
+    auto left_end = left_object->getShapePosesInLinkFrame().cend();
+    auto right_it = right_object->getShapePosesInLinkFrame().cbegin();
+    for (; left_it != left_end; ++left_it, ++right_it)
+      if (!(left_it->matrix() - right_it->matrix()).isZero(1e-4))
+      {
+        ROS_DEBUG_STREAM(prefix << "different pose of attached object shape: " << left_object->getName());
+        return false;  // transforms do not match
+      }
+  }
+  return true;
+}
+
 }  // end of namespace core
 }  // end of namespace moveit

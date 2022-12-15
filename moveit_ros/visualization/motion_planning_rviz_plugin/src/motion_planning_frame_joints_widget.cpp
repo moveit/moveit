@@ -180,8 +180,7 @@ void JMGItemModel::updateRobotState(const moveit::core::RobotState& state)
 {
   if (robot_state_.getRobotModel() != state.getRobotModel())
     return;
-  robot_state_.setVariablePositions(state.getVariablePositions());
-
+  robot_state_ = state;
   dataChanged(index(0, 1), index(rowCount() - 1, 1));
 }
 

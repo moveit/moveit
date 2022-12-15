@@ -1235,15 +1235,17 @@ void MotionPlanningDisplay::updateStateExceptModified(moveit::core::RobotState& 
 void MotionPlanningDisplay::updateQueryStates(const moveit::core::RobotState& current_state)
 {
   std::string group = planning_group_property_->getStdString();
+  if (group.empty())
+    return;
 
-  if (query_start_state_ && query_start_state_property_->getBool() && !group.empty())
+  if (query_start_state_)
   {
     moveit::core::RobotState start = *getQueryStartState();
     updateStateExceptModified(start, current_state);
     setQueryStartState(start);
   }
 
-  if (query_goal_state_ && query_goal_state_property_->getBool() && !group.empty())
+  if (query_goal_state_)
   {
     moveit::core::RobotState goal = *getQueryGoalState();
     updateStateExceptModified(goal, current_state);

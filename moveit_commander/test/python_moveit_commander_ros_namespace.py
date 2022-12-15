@@ -47,7 +47,7 @@ from moveit_commander import PlanningSceneInterface
 
 class PythonMoveitCommanderRosNamespaceTest(unittest.TestCase):
     def test_namespace(self):
-        self.scene = PlanningSceneInterface()
+        self.scene = PlanningSceneInterface(synchronous=False)
         expected_resolved_co_name = "/test_ros_namespace/collision_object"
         expected_resolved_aco_name = "/test_ros_namespace/attached_collision_object"
         self.assertEqual(self.scene._pub_co.resolved_name, expected_resolved_co_name)

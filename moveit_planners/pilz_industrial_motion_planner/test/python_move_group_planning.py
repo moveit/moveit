@@ -39,76 +39,80 @@
 # and the environment
 
 import unittest
-import numpy as np
 import rospy
 import rostest
-import os
 
+from geometry_msgs.msg import PoseStamped, Point
 from moveit_msgs.msg import MoveItErrorCodes
-import moveit_commander
-
-from geometry_msgs.msg import PoseStamped
+from moveit_commander import MoveGroupCommander, PlanningSceneInterface
 
 
 class PythonMoveGroupPlanningTest(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         PLANNING_GROUP = "panda_arm"
-        self.group = moveit_commander.MoveGroupCommander(PLANNING_GROUP)
-        self.planning_scene_interface = moveit_commander.PlanningSceneInterface(
-            synchronous=True
-        )
+        self.group = MoveGroupCommander(PLANNING_GROUP)
+        self.planning_scene_interface = PlanningSceneInterface(synchronous=True)
+        self.tcp_link = self.group.get_end_effector_link()
+
+        # Plan a motion where the attached object 'box2' collides with the obstacle 'box1'
+        target_pose = self.group.get_current_pose(self.tcp_link)
+        target_pose.pose.position.y += 0.1
+        self.group.set_pose_target(target_pose)
 
     @classmethod
     def tearDown(self):
         pass
 
-    def test_planning_with_collision_objects(self):
+    @classmethod
+    def addObjects(self, coll_pos=(0.4, 0.1, 0.25), attached_pos=(0.0, 0.0, 0.15)):
         # Add obstacle to the world
         ps = PoseStamped()
         ps.header.frame_id = "world"
-        ps.pose.position.x = 0.4
-        ps.pose.position.y = 0.1
-        ps.pose.position.z = 0.25
+        ps.pose.position = Point(*coll_pos)
+        ps.pose.orientation.w = 1.0
         self.planning_scene_interface.add_box(
             name="box1", pose=ps, size=(0.1, 0.1, 0.5)
         )
 
         # Attach object to robot's TCP
-        ps2 = PoseStamped()
-        tcp_link = self.group.get_end_effector_link()
-        ps2.header.frame_id = tcp_link
-        ps2.pose.position.z = 0.15
+        ps = PoseStamped()
+        ps.header.frame_id = self.tcp_link
+        ps.pose.position = Point(*attached_pos)
+        ps.pose.orientation.w = 1.0
         self.planning_scene_interface.attach_box(
-            link=tcp_link,
+            link=self.tcp_link,
             name="box2",
-            pose=ps2,
+            pose=ps,
             size=(0.1, 0.1, 0.1),
             touch_links=["panda_rightfinger", "panda_leftfinger"],
         )
 
-        # Plan a motion where the attached object 'box2' collides with the obstacle 'box1'
-        target_pose = self.group.get_current_pose(tcp_link)
-        target_pose.pose.position.y += 0.1
-
-        # # Set planner to be Pilz's Linear Planner
-        # self.group.set_planning_pipeline_id("pilz_industrial_motion_planner")
-        # self.group.set_planner_id("LIN")
-        # self.group.set_pose_target(target_pose)
-        # success, plan, time, error_code = self.group.plan()
-
-        # # Planning should fail
-        # self.assertEqual(error_code.val, MoveItErrorCodes.INVALID_MOTION_PLAN)
-
-        # Set planner to be Pilz's Point-To-Point Planner
-        self.group.set_planning_pipeline_id("pilz_industrial_motion_planner")
-        self.group.set_planner_id("PTP")
-        self.group.set_pose_target(target_pose)
+    def plan(self, planner, pipeline="pilz_industrial_motion_planner"):
+        self.group.set_planning_pipeline_id(pipeline)
+        self.group.set_planner_id(planner)
         success, plan, time, error_code = self.group.plan()
+        return error_code.val
 
-        # Planning should fail
-        self.assertFalse(success)
-        self.assertEqual(error_code.val, MoveItErrorCodes.INVALID_MOTION_PLAN)
+    def testLINGoalStateCollision(self):
+        self.addObjects()
+        result = self.plan("LIN")
+        self.assertEqual(result, MoveItErrorCodes.INVALID_MOTION_PLAN)
+
+    def testPTPGoalStateCollision(self):
+        self.addObjects()
+        result = self.plan("PTP")
+        self.assertEqual(result, MoveItErrorCodes.INVALID_MOTION_PLAN)
+
+    def testPTPStartStateCollision(self):
+        self.addObjects(coll_pos=(0.0, 0.0, 0.25))
+        result = self.plan("PTP")
+        self.assertEqual(result, MoveItErrorCodes.INVALID_MOTION_PLAN)
+
+    def testPTPStartStateCollisionAttached(self):
+        self.addObjects(attached_pos=(-0.3, 0.3, 0.0))
+        result = self.plan("PTP")
+        self.assertEqual(result, MoveItErrorCodes.INVALID_MOTION_PLAN)
 
 
 if __name__ == "__main__":
