@@ -116,6 +116,21 @@ void RenderShapes::renderShape(Ogre::SceneNode* node, const shapes::Shape* s, co
       ogre_shape->setScale(Ogre::Vector3(d, z, d));
     }
     break;
+    case shapes::PLANE:
+    {
+      ogre_shape = new rviz::Shape(rviz::Shape::Cube, context_->getSceneManager(), node);
+      ogre_shape->setScale(Ogre::Vector3(10, 10, 0.001));  // model plane by thin box
+      alpha *= 0.5;                                        // and make it transparent
+      const auto* plane = static_cast<const shapes::Plane*>(s);
+      Eigen::Vector3d normal(plane->a, plane->b, plane->c);
+      double norm = normal.norm();
+      normal /= norm;
+      // adapt pose to match desired normal direction and position
+      Eigen::Quaterniond offset = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), normal);
+      orientation = orientation * Ogre::Quaternion(offset.w(), offset.x(), offset.y(), offset.z());
+      position += plane->d / norm * Ogre::Vector3(normal.x(), normal.y(), normal.z());
+    }
+    break;
     case shapes::MESH:
     {
       const shapes::Mesh* mesh = static_cast<const shapes::Mesh*>(s);
