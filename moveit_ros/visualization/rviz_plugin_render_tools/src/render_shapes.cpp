@@ -83,15 +83,6 @@ void RenderShapes::renderShape(Ogre::SceneNode* node, const shapes::Shape* s, co
   Eigen::Quaterniond q(p.linear());
   Ogre::Quaternion orientation(q.w(), q.x(), q.y(), q.z());
 
-  // we don't know how to render cones directly, but we can convert them to a mesh
-  if (s->type == shapes::CONE)
-  {
-    std::unique_ptr<shapes::Mesh> m(shapes::createMeshFromShape(static_cast<const shapes::Cone&>(*s)));
-    if (m)
-      renderShape(node, m.get(), p, octree_voxel_rendering, octree_color_mode, color, alpha);
-    return;
-  }
-
   switch (s->type)
   {
     case shapes::SPHERE:
@@ -115,6 +106,14 @@ void RenderShapes::renderShape(Ogre::SceneNode* node, const shapes::Shape* s, co
       double z = static_cast<const shapes::Cylinder*>(s)->length;
       ogre_shape->setScale(Ogre::Vector3(d, z, d));  // the shape has z as major axis, but the rendered cylinder has y
                                                      // as major axis (assuming z is upright);
+    }
+    break;
+    case shapes::CONE:
+    {
+      ogre_shape = new rviz::Shape(rviz::Shape::Cone, context_->getSceneManager(), node);
+      double d = 2.0 * static_cast<const shapes::Cone*>(s)->radius;
+      double z = static_cast<const shapes::Cone*>(s)->length;
+      ogre_shape->setScale(Ogre::Vector3(d, z, d));
     }
     break;
     case shapes::MESH:
@@ -174,7 +173,7 @@ void RenderShapes::renderShape(Ogre::SceneNode* node, const shapes::Shape* s, co
   {
     ogre_shape->setColor(color.r_, color.g_, color.b_, alpha);
 
-    if (s->type == shapes::CYLINDER)
+    if (s->type == shapes::CYLINDER || s->type == shapes::CONE)
     {
       // in geometric shapes, the z axis of the cylinder is its height;
       // for the rviz shape, the y axis is the height; we add a transform to fix this
