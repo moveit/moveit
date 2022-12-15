@@ -235,9 +235,6 @@ public:
   // NOTE: Created when the robot urdf is not compatible with Gazebo.
   std::string gazebo_urdf_string_;
 
-  /// Whether a new Gazebo URDF is created
-  bool save_gazebo_urdf_;
-
   // ******************************************************************************************
   // SRDF Data
   // ******************************************************************************************

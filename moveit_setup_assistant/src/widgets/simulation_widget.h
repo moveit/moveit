@@ -76,6 +76,8 @@ private Q_SLOTS:
   // Slot Event Functions
   // ******************************************************************************************
 
+  /// Mark document as changed
+  void setDirty(bool dirty = true);
   /// Overwrite original URDF with content of document
   void overwriteURDF();
   /// Open original URDF with system editor

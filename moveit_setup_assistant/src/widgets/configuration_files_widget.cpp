@@ -276,7 +276,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   config_data_->srdf_pkg_relative_path_ = file.rel_path_;
 
   // gazebo_<ROBOT>.urdf ---------------------------------------------------------------------------------------
-  if (config_data_->save_gazebo_urdf_)
+  if (!config_data_->gazebo_urdf_string_.empty())
   {
     file.file_name_ = "gazebo_" + config_data_->urdf_model_->getName() + ".urdf";
     file.rel_path_ = config_data_->appendPaths(CONFIG_PATH, file.file_name_);
@@ -681,7 +681,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.gen_func_ = [this, template_path](const std::string& output_path) {
     return copyTemplate(template_path, output_path);
   };
-  file.write_on_changes = MoveItConfigData::SIMULATION;
+  file.write_on_changes = 0;
   gen_files_.push_back(file);
 
   // joystick_control.launch ------------------------------------------------------------------
@@ -1130,6 +1130,8 @@ bool ConfigurationFilesWidget::generatePackage()
     }
   }
 
+  loadTemplateStrings();
+
   // Begin to create files and folders ----------------------------------------------------------------------
   std::string absolute_path;
 
@@ -1146,9 +1148,6 @@ bool ConfigurationFilesWidget::generatePackage()
     // Create the absolute path
     absolute_path = config_data_->appendPaths(new_package_path, file->rel_path_);
     ROS_DEBUG_STREAM("Creating file " << absolute_path);
-
-    // Clear template strings in case export is run multiple times with changes in between
-    template_strings_.clear();
 
     // Run the generate function
     if (!file->gen_func_(absolute_path))
@@ -1240,6 +1239,9 @@ bool ConfigurationFilesWidget::noGroupsEmpty()
 // ******************************************************************************************
 void ConfigurationFilesWidget::loadTemplateStrings()
 {
+  // Clear strings (in case export is run multiple times)
+  template_strings_.clear();
+
   // Pair 1
   addTemplateString("[GENERATED_PACKAGE_NAME]", new_package_name_);
 
@@ -1257,7 +1259,7 @@ void ConfigurationFilesWidget::loadTemplateStrings()
     addTemplateString("[URDF_LOAD_ATTRIBUTE]", "textfile=\"" + urdf_location + "\"");
 
   // Pair 4
-  if (config_data_->save_gazebo_urdf_)
+  if (config_data_->changes & MoveItConfigData::SIMULATION && !config_data_->gazebo_urdf_string_.empty())
   {
     std::string file_name = "gazebo_" + config_data_->urdf_model_->getName() + ".urdf";
     std::string rel_path = config_data_->appendPaths(CONFIG_PATH, file_name);
@@ -1358,12 +1360,6 @@ bool ConfigurationFilesWidget::addTemplateString(const std::string& key, const s
 // ******************************************************************************************
 bool ConfigurationFilesWidget::copyTemplate(const std::string& template_path, const std::string& output_path)
 {
-  // Check if template strings have been loaded yet
-  if (template_strings_.empty())
-  {
-    loadTemplateStrings();
-  }
-
   // Error check file
   if (!fs::is_regular_file(template_path))
   {

@@ -67,11 +67,18 @@ SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& c
 
   // Top Header Area ------------------------------------------------
 
-  HeaderWidget* header = new HeaderWidget("Simulate With Gazebo",
-                                          "The following tool will auto-generate the URDF changes needed "
-                                          "for Gazebo compatibility with ROSControl and MoveIt. The "
-                                          "needed changes are shown in green.",
-                                          this);
+  HeaderWidget* header = new HeaderWidget(
+      "Gazebo Simulation",
+      QString("For use in the Gazebo physics simulation, the URDF needs to define inertial properties "
+              "for all links as well as control interfaces for all joints. "
+              "The required changes to your URDF are <b>highlighted below in "
+              "<font color=\"darkgreen\">green</font></b>.<br>"
+              "You can accept these suggestions and overwrite your existing URDF, or manually "
+              "adapt your URDF opening your preferred editor. "
+              "By default, a new file comprising those changes will be written to <tt>config/gazebo_%1.urdf</tt>")
+          .arg(config_data_->urdf_model_->getName().c_str())
+          .toStdString(),
+      this);
   layout->addWidget(header);
   layout->addSpacerItem(new QSpacerItem(1, 8, QSizePolicy::Fixed, QSizePolicy::Fixed));
 
@@ -107,6 +114,7 @@ SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& c
   // URDF text
   simulation_text_ = new QTextEdit(this);
   simulation_text_->setLineWrapMode(QTextEdit::NoWrap);
+  connect(simulation_text_, &QTextEdit::textChanged, this, [this]() { setDirty(); });
   layout->addWidget(simulation_text_);
   // Configure highlighter
   auto highlighter = new XmlSyntaxHighlighter(simulation_text_->document());
@@ -126,10 +134,19 @@ SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& c
   this->setLayout(layout);
 }
 
+void SimulationWidget::setDirty(bool dirty)
+{
+  if (dirty)
+    config_data_->changes |= MoveItConfigData::SIMULATION;
+  else
+    config_data_->changes &= ~MoveItConfigData::SIMULATION;
+  btn_overwrite_->setEnabled(dirty && !config_data_->urdf_from_xacro_);
+}
+
 void SimulationWidget::focusGiven()
 {
   if (!simulation_text_->document()->isEmpty())
-    return;  // nothing to do
+    return;  // don't change existing content
 
   simulation_text_->setVisible(true);
   std::string text = generateGazeboCompatibleURDF();
@@ -139,40 +156,35 @@ void SimulationWidget::focusGiven()
 
   // Add generated Gazebo URDF to config file if not empty
   bool have_changes = !text.empty();
-  config_data_->save_gazebo_urdf_ = have_changes;
 
   // GUI elements are visible only if there are URDF changes to display/edit
   simulation_text_->setVisible(have_changes);
   btn_overwrite_->setVisible(have_changes);
-  btn_open_->setVisible(have_changes && !qgetenv("EDITOR").isEmpty());
+  btn_open_->setVisible(have_changes);
   copy_urdf_->setVisible(have_changes);
   no_changes_label_->setVisible(!have_changes);
 
-  // Disable overwrite button if URDF originates from xacro
-  btn_overwrite_->setDisabled(config_data_->urdf_from_xacro_);
+  // Explain why overwrite button is disabled
   QString tooltip;
-  if (btn_overwrite_->isEnabled())
-    tooltip = tr("Overwrite URDF in original location:\n").append(config_data_->urdf_path_.c_str());
-  else
+  if (config_data_->urdf_from_xacro_)
     tooltip = tr("Cannot overwrite original, <i>xacro-based</i> URDF");
+  else
+    tooltip = tr("Overwrite URDF in original location:<br><tt>%1</tt>").arg(config_data_->urdf_path_.c_str());
   btn_overwrite_->setToolTip(tooltip);
 
-  if (have_changes)
-    config_data_->changes |= MoveItConfigData::SIMULATION;
-  else
-    config_data_->changes &= ~MoveItConfigData::SIMULATION;
+  setDirty(have_changes);
 }
 
 bool SimulationWidget::focusLost()
 {
-  if (!config_data_->save_gazebo_urdf_)
+  if (!(config_data_->changes & MoveItConfigData::SIMULATION))
     return true;  // saving is disabled anyway
 
   // validate XML
   TiXmlDocument doc;
   auto urdf = simulation_text_->document()->toPlainText().toStdString();
   doc.Parse(urdf.c_str(), nullptr, TIXML_ENCODING_UTF8);
-  if (doc.Error())
+  if (!urdf.empty() && doc.Error())
   {
     QTextCursor cursor = simulation_text_->textCursor();
     cursor.movePosition(QTextCursor::Start);
@@ -198,18 +210,22 @@ void SimulationWidget::overwriteURDF()
 
   if (!config_data_->outputGazeboURDFFile(config_data_->urdf_path_))
     QMessageBox::warning(this, "Gazebo URDF", tr("Failed to save to ").append(config_data_->urdf_path_.c_str()));
-  else  // Display success message
-    QMessageBox::information(this, "Overwriting Successfull",
-                             "Original robot description URDF was successfully overwritten.");
-
-  // Remove Gazebo URDF file from list of to-be-written config files
-  config_data_->save_gazebo_urdf_ = false;
-  config_data_->changes &= ~MoveItConfigData::SIMULATION;
+  else
+  {
+    // Remove Gazebo URDF file from list of to-be-written config files
+    setDirty(false);
+    config_data_->gazebo_urdf_string_.clear();
+  }
 }
 
 void SimulationWidget::openURDF()
 {
-  QProcess::startDetached(qgetenv("EDITOR"), { config_data_->urdf_path_.c_str() });
+  QString editor = qgetenv("EDITOR");
+  if (editor.isEmpty())
+    editor = "xdg-open";
+  auto command = QString("%1 %2").arg(editor, config_data_->urdf_path_.c_str());
+  if (!QProcess::startDetached(command))
+    QMessageBox::warning(this, "URDF Editor", tr("Failed to open editor: <pre>%1</pre>").arg(editor));
 }
 
 // ******************************************************************************************

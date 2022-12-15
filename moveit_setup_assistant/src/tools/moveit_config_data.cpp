@@ -221,7 +221,7 @@ bool MoveItConfigData::outputGazeboURDFFile(const std::string& file_path)
     return false;
   }
 
-  os << gazebo_urdf_string_.c_str() << std::endl;
+  os << gazebo_urdf_string_ << std::endl;
   os.close();
 
   return true;
