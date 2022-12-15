@@ -107,6 +107,11 @@ class PlanningSceneInterface(object):
         co = self.__make_cylinder(name, pose, height, radius)
         self.__submit(co, attach=False)
 
+    def add_cone(self, name, pose, height, radius):
+        """Add a cylinder to the planning scene"""
+        co = self.__make_cone(name, pose, height, radius)
+        self.__submit(co, attach=False)
+
     def add_mesh(self, name, pose, filename, size=(1, 1, 1)):
         """Add a mesh to the planning scene"""
         co = self.__make_mesh(name, pose, filename, size)
@@ -348,6 +353,19 @@ class PlanningSceneInterface(object):
         cylinder.type = SolidPrimitive.CYLINDER
         cylinder.dimensions = [height, radius]
         co.primitives = [cylinder]
+        return co
+
+    @staticmethod
+    def __make_cone(name, pose, height, radius):
+        co = CollisionObject()
+        co.operation = CollisionObject.ADD
+        co.id = name
+        co.header = pose.header
+        co.pose = pose.pose
+        cone = SolidPrimitive()
+        cone.type = SolidPrimitive.CONE
+        cone.dimensions = [height, radius]
+        co.primitives = [cone]
         return co
 
     @staticmethod
