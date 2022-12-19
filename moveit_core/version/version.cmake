@@ -45,7 +45,7 @@ execute_process(
 string(REPLACE "\n" ";" GIT_TAGS "${GIT_TAGS}")
 list(FIND GIT_TAGS "${MOVEIT_VERSION}" _index)
 
-if(_index LESS 0) # MOVEIT_VERSION is not a tag at HEAD
+if(MOVEIT_GIT_COMMIT_HASH AND _index LESS 0) # MOVEIT_VERSION is not a tag at HEAD
 	# increase patch number
 	math(EXPR MOVEIT_VERSION_PATCH "${MOVEIT_VERSION_PATCH}+1")
 	set(MOVEIT_VERSION_EXTRA "-devel")
