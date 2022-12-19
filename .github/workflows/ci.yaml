@@ -158,7 +158,7 @@ jobs:
         run: |
           du -sh ${{ env.BASEDIR }}/target_ws
           sudo find ${{ env.BASEDIR }}/target_ws -wholename '*/test_results/*' -delete
-          sudo rm -rf ${{ env.BASEDIR }}/target_ws/src
+          sudo rm -rf ${{ env.BASEDIR }}/target_ws/src ${{ env.BASEDIR }}/target_ws/logs
           du -sh ${{ env.BASEDIR }}/target_ws
 
   # Sync noetic-devel branch with master on successful build
