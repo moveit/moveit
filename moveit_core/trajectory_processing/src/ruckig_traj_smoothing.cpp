@@ -152,18 +152,18 @@ bool RuckigSmoothing::applySmoothing(robot_trajectory::RobotTrajectory& trajecto
 
 std::optional<robot_trajectory::RobotTrajectory>
 RuckigSmoothing::runRuckigInBatches(const size_t num_waypoints, const robot_trajectory::RobotTrajectory& trajectory,
-                                    ruckig::InputParameter<ruckig::DynamicDOFs>& ruckig_input)
+                                    ruckig::InputParameter<ruckig::DynamicDOFs>& ruckig_input, size_t batch_size)
 {
-  // We take the batch size as the lesser of 0.1*num_waypoints or 100, to keep a balance between run time and
+  // We take the batch size as the lesser of 0.1*num_waypoints or batch_size, to keep a balance between run time and
   // time-optimality.
   // TODO(andyz): parameterize as MIN_BATCH_SIZE and BATCH_SCALING_FACTOR or something like that
-  const size_t waypoint_batch_size = [num_waypoints]() {
+  batch_size = [num_waypoints]() {
     const size_t temp_batch_size = std::min(size_t(0.1 * num_waypoints), size_t(100));
     // We need at least 2 waypoints
     return std::max(size_t(2), temp_batch_size);
   }();
   size_t batch_start_idx = 0;
-  size_t batch_end_idx = waypoint_batch_size - 1;
+  size_t batch_end_idx = batch_size - 1;
   const size_t full_traj_final_idx = num_waypoints - 1;
   // A deep copy is not needed since the waypoints are cleared immediately
   robot_trajectory::RobotTrajectory sub_trajectory =
@@ -205,8 +205,8 @@ RuckigSmoothing::runRuckigInBatches(const size_t num_waypoints, const robot_traj
                                           sub_trajectory.getWayPointDurationFromPrevious(waypoint_idx));
     }
 
-    batch_start_idx += waypoint_batch_size;
-    batch_end_idx += waypoint_batch_size;
+    batch_start_idx += batch_size;
+    batch_end_idx += batch_size;
   }
 
   return std::make_optional<robot_trajectory::RobotTrajectory>(output_trajectory, true /* deep copy */);

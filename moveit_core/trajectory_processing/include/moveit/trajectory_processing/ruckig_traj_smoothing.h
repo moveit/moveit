@@ -110,7 +110,7 @@ private:
    */
   static std::optional<robot_trajectory::RobotTrajectory>
   runRuckigInBatches(const size_t num_waypoints, const robot_trajectory::RobotTrajectory& trajectory,
-                     ruckig::InputParameter<ruckig::DynamicDOFs>& ruckig_input);
+                     ruckig::InputParameter<ruckig::DynamicDOFs>& ruckig_input, size_t batch_size = 100);
 
   /**
    * \brief A utility function to instantiate and run Ruckig for a series of waypoints.
