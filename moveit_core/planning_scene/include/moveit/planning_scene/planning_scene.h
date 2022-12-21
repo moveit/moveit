@@ -676,7 +676,84 @@ public:
 
   /**@}*/
 
-  /** \brief Save the geometry of the planning scene to a stream, as plain text */
+  /** \brief Save the geometry of the planning scene to a stream, as plain text
+
+   The .scene file format allows simple saving/loading of PlanningScene collisionn objects.
+   The file format is defined as follows:
+\verbatim
+  <FILE>:
+      <ID>  # scene id
+      <OBJECT_DESCRIPTION>*
+      . # single dot indicates end of file
+
+  <OBJECT_DESCRIPTION>:
+      * <ID>  # object id
+      <POSE>   # object pose
+      <NUMBER> # number of shapes in object
+      <SHAPE_DESCRIPTION>*
+      <NUMBER> # number of sub frames
+      <SUBFRAME_DESCRIPTION>*
+
+  <SHAPE_DESCRIPTION>:
+      <BOX> | <CONE> | <CYLINDER> | <SPHERE> | <PLANE> | <MESH>
+      <POSE>   # shape pose w.r.t. object's pose
+      <COLOR>  # common color for all shapes
+
+  <SUBFRAME_DESCRIPTION>:
+      <ID>  # sub frame id
+      <POSE>
+
+  <BOX>:
+      box
+      <FLOAT> <FLOAT> <FLOAT>  # box dimensions: x y z
+
+  <CONE>:
+      cone
+      <FLOAT> <FLOAT>  # radius height
+
+  <CYLINDER>:
+      cylinder
+      <FLOAT> <FLOAT>  # radius height
+
+  <SPHERE>:
+      sphere
+      <FLOAT>  # radius
+
+  <PLANE>:
+      plane
+      <FLOAT> <FLOAT> <FLOAT> <FLOAT>  # plane parameters: a b c d for a*x + b*y +c*z = d
+
+  <ID>: any text
+
+  <POSE>:
+      <FLOAT> <FLOAT> <FLOAT>  # position: x y z
+      <FLOAT> <FLOAT> <FLOAT> <FLOAT>  # quaternion: x y z w
+
+  <COLOR>:
+      <FLOAT> <FLOAT> <FLOAT> <FLOAT>  # R G B A
+\endverbatim
+
+   Here is an example:
+\verbatim
+My PlanningScene
+* object
+0 1.0 0
+0 0 0 1
+2
+box
+0.1 0.2 0.3
+0 1.0 0
+0 0 0 1
+1 0 0 0.5
+cylinder
+0.1 0.5
+0.5 0 0
+0 0 0 1
+0 0 1 0.5
+0
+.
+\endvarbatim
+  */
   void saveGeometryToStream(std::ostream& out) const;
 
   /** \brief Load the geometry of the planning scene from a stream */

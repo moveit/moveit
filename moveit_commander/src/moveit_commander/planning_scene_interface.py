@@ -107,6 +107,11 @@ class PlanningSceneInterface(object):
         co = self.__make_cylinder(name, pose, height, radius)
         self.__submit(co, attach=False)
 
+    def add_cone(self, name, pose, height, radius):
+        """Add a cylinder to the planning scene"""
+        co = self.__make_cone(name, pose, height, radius)
+        self.__submit(co, attach=False)
+
     def add_mesh(self, name, pose, filename, size=(1, 1, 1)):
         """Add a mesh to the planning scene"""
         co = self.__make_mesh(name, pose, filename, size)
@@ -263,17 +268,23 @@ class PlanningSceneInterface(object):
         return co
 
     @staticmethod
-    def __make_box(name, pose, size):
+    def __make_primitive(name, pose, type, shape_args):
         co = CollisionObject()
         co.operation = CollisionObject.ADD
         co.id = name
         co.header = pose.header
         co.pose = pose.pose
-        box = SolidPrimitive()
-        box.type = SolidPrimitive.BOX
-        box.dimensions = list(size)
-        co.primitives = [box]
+        shape = SolidPrimitive()
+        shape.type = type
+        shape.dimensions = list(shape_args)
+        co.primitives = [shape]
         return co
+
+    @staticmethod
+    def __make_box(name, pose, size):
+        return PlanningSceneInterface.__make_primitive(
+            name, pose, SolidPrimitive.BOX, size
+        )
 
     @staticmethod
     def __make_mesh(name, pose, filename, scale=(1, 1, 1)):
@@ -326,29 +337,21 @@ class PlanningSceneInterface(object):
 
     @staticmethod
     def __make_sphere(name, pose, radius):
-        co = CollisionObject()
-        co.operation = CollisionObject.ADD
-        co.id = name
-        co.header = pose.header
-        co.pose = pose.pose
-        sphere = SolidPrimitive()
-        sphere.type = SolidPrimitive.SPHERE
-        sphere.dimensions = [radius]
-        co.primitives = [sphere]
-        return co
+        return PlanningSceneInterface.__make_primitive(
+            name, pose, SolidPrimitive.SPHERE, [radius]
+        )
 
     @staticmethod
     def __make_cylinder(name, pose, height, radius):
-        co = CollisionObject()
-        co.operation = CollisionObject.ADD
-        co.id = name
-        co.header = pose.header
-        co.pose = pose.pose
-        cylinder = SolidPrimitive()
-        cylinder.type = SolidPrimitive.CYLINDER
-        cylinder.dimensions = [height, radius]
-        co.primitives = [cylinder]
-        return co
+        return PlanningSceneInterface.__make_primitive(
+            name, pose, SolidPrimitive.CYLINDER, [height, radius]
+        )
+
+    @staticmethod
+    def __make_cone(name, pose, height, radius):
+        return PlanningSceneInterface.__make_primitive(
+            name, pose, SolidPrimitive.CONE, [height, radius]
+        )
 
     @staticmethod
     def __make_planning_scene_diff_req(collision_object, attach=False):

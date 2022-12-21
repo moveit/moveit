@@ -69,6 +69,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   ui_->shapes_combo_box->addItem("Sphere", shapes::SPHERE);
   ui_->shapes_combo_box->addItem("Cylinder", shapes::CYLINDER);
   ui_->shapes_combo_box->addItem("Cone", shapes::CONE);
+  ui_->shapes_combo_box->addItem("Plane", shapes::PLANE);
   ui_->shapes_combo_box->addItem("Mesh from file", shapes::MESH);
   ui_->shapes_combo_box->addItem("Mesh from URL", shapes::MESH);
   setLocalSceneEdited(false);
@@ -446,6 +447,9 @@ void MotionPlanningFrame::addSceneObject()
       break;
     case shapes::CYLINDER:
       shape = std::make_shared<shapes::Cylinder>(0.5 * x_length, z_length);
+      break;
+    case shapes::PLANE:
+      shape = std::make_shared<shapes::Plane>(0., 0., 1., 0.);
       break;
     case shapes::MESH:
     {
