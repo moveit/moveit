@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2022-12-21)
+-------------------
+
 1.1.10 (2022-09-13)
 -------------------
 * Find end-effectors for empty parent_group (`#3108 <https://github.com/ros-planning/moveit/issues/3108>`_)

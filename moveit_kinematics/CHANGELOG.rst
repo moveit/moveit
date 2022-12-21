@@ -2,6 +2,11 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2022-12-21)
+-------------------
+* kinematics: add ``program_options`` as required boost component (`#3269 <https://github.com/ros-planning/moveit/issues/3269>`_)
+* Contributors: Jochen Sprickerhof
+
 1.1.10 (2022-09-13)
 -------------------
 * Merge PR `#3172 <https://github.com/ros-planning/moveit/issues/3172>`_: Fix CI

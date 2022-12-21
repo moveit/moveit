@@ -2,6 +2,26 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2022-12-21)
+-------------------
+* Merge PR `#3262 <https://github.com/ros-planning/moveit/issues/3262>`_: Short-circuit planning adapters
+
+  - Early return from failing planning adapters, namely FixStartStateCollision and FixStartStatePathConstraint
+  - Propagate the error code via `MotionPlanResponse::error_code\_`
+  - Add string translations for all error codes
+* Cleanup translation of MoveItErrorCode to string
+
+  - Move default code to moveit_core/utils
+  - Override defaults in existing getActionResultString()
+  - Provide translations for all error codes defined in moveit_msgs
+* Drop shortcut avoiding planning when all constraints are already met (`#3228 <https://github.com/ros-planning/moveit/issues/3228>`_)
+
+  When calling the PlanAndExcute action, there was a shortcut avoiding planning (and execution) when all goal constraints were already met.
+  However, this check also succeeded when there was an error, e.g. resolving link names.
+  As proper link resolution might require some planning request adapters to be executed, e.g. ResolveConstraintFrames, we should not skip planning.
+  Note, calling the ``PlanOnly`` action, didn't have this shortcut as well, resulting in inconsistent behavior.
+* Contributors: Robert Haschke
+
 1.1.10 (2022-09-13)
 -------------------
 * Limit Cartesian speed for link(s) (`#2856 <https://github.com/ros-planning/moveit/issues/2856>`_)

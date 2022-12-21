@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_warehouse
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2022-12-21)
+-------------------
+
 1.1.10 (2022-09-13)
 -------------------
 * Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)

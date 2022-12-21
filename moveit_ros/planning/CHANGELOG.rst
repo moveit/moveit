@@ -2,6 +2,23 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2022-12-21)
+-------------------
+* Backport ruckig trajectory_processing plugin (`#2902 <https://github.com/ros-planning/moveit/issues/2902>`_)
+* Allow planning with multiple pipelines in parallel with moveit_cpp (`#3244 <https://github.com/ros-planning/moveit/issues/3244>`_)
+* Merge PR `#3262 <https://github.com/ros-planning/moveit/issues/3262>`_: Short-circuit planning adapters
+
+  - Early return from failing planning adapters, namely FixStartStateCollision and FixStartStatePathConstraint
+  - Propagate the error code via `MotionPlanResponse::error_code\_`
+  - Add string translations for all error codes
+* Cleanup translation of MoveItErrorCode to string
+
+  - Move default code to moveit_core/utils
+  - Override defaults in existing getActionResultString()
+  - Provide translations for all error codes defined in moveit_msgs
+* Short-circuit planning request adapters
+* Contributors: Robert Haschke, Simon Schmeisser
+
 1.1.10 (2022-09-13)
 -------------------
 * Limit Cartesian speed for link(s) (`#2856 <https://github.com/ros-planning/moveit/issues/2856>`_)

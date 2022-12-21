@@ -2,6 +2,38 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2022-12-21)
+-------------------
+* Fix some consistency issues in PlanningScene handling (`#3298 <https://github.com/ros-planning/moveit/issues/3298>`_)
+
+  * Allow Plane collision-object creation from rviz
+  * Simplify Cone rendering
+  * Visualize PLANE shapes as a large, thin box
+* Merge fixes+improvements to ``PlanningScene`` editing in rviz: `#3263 <https://github.com/ros-planning/moveit/issues/3263>`_, `#3264 <https://github.com/ros-planning/moveit/issues/3264>`_, `#3296 <https://github.com/ros-planning/moveit/issues/3296>`_
+
+  * Fix error "QBackingStore::endPaint() called with active painter"
+  * Remove limitation to one-shape collision objects
+  * Fix segfault on object scaling: only update a _valid_ scene marker
+  * JointsWidget: Copy full RobotState on updates (attached collision objects were missing)
+  * Factor out ``addCollisionObjectToList()`` from ``populateCollisionObjectsList()``
+  * Simplify ``MotionPlanningFrame::addSceneObject``
+  * Directly call ``populateCollisionObjectsList()`` if possible
+
+    Calling was previously deferred into a main loop job, because most
+    callers already held a PlanningScene lock, thus causing recursive locking and a deadlock.
+    By simply passing the locked scene, these issues can be avoided.
+    As a fallback, the PlanningScene lock is still acquired in the function.
+  * ``updateQueryStates()`` after removal of attached objects
+  * Clear scene objects: only clear locally. To publish changes, one should explicitly click the "Publish" button.
+  * Scene Object List: allow extended selection mode
+  * always update query states - even if they are disabled for visualization
+  * only allow execution if start state is up-to-date
+* Merge PR `#3227 <https://github.com/ros-planning/moveit/issues/3227>`_: Improve MotionPlanning plugin's JointsWidget
+  * Add units to sliders in JointsWidget and to spinbox editor
+  * Avoid need for extra click to operate joint slider
+  * allow control of joints via keyboard
+* Contributors: Robert Haschke
+
 1.1.10 (2022-09-13)
 -------------------
 * Fix rviz segfault when changing move group during execution (`#3123 <https://github.com/ros-planning/moveit/issues/3123>`_)

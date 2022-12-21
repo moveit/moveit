@@ -2,6 +2,9 @@
 Changelog for package chomp_motion_planner
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2022-12-21)
+-------------------
+
 1.1.10 (2022-09-13)
 -------------------
 * Fix segfaults in CHOMP (`#3204 <https://github.com/ros-planning/moveit/issues/3204>`_)

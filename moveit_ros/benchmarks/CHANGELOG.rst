@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2022-12-21)
+-------------------
+
 1.1.10 (2022-09-13)
 -------------------
 * Fix namespace of planning plugin for benchmarks examples (`#3128 <https://github.com/ros-planning/moveit/issues/3128>`_)

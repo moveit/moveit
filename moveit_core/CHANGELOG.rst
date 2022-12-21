@@ -2,6 +2,29 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2022-12-21)
+-------------------
+* Fix some consistency issues in PlanningScene handling (`#3298 <https://github.com/ros-planning/moveit/issues/3298>`_)
+* Backport ruckig trajectory_processing plugin (`#2902 <https://github.com/ros-planning/moveit/issues/2902>`_)
+* version.h: automatically bump patch number for devel builds (`#3211 <https://github.com/ros-planning/moveit/issues/3211>`_)
+* Merge fixes+improvements to ``PlanningScene`` editing in rviz: `#3263 <https://github.com/ros-planning/moveit/issues/3263>`_, `#3264 <https://github.com/ros-planning/moveit/issues/3264>`_, `#3296 <https://github.com/ros-planning/moveit/issues/3296>`_
+* Fix loading of ``PlanningScene`` from ``.scene`` text file: Replace existing world objects
+* Drop return value from ``IKCallbackFn`` usage (`#3277 <https://github.com/ros-planning/moveit/issues/3277>`_)
+* Allow planning with multiple pipelines in parallel with ``moveit_cpp`` (`#3244 <https://github.com/ros-planning/moveit/issues/3244>`_)
+* MotionPlanningDisplay: only allow execution if start state is up-to-date
+* Merge PR `#3262 <https://github.com/ros-planning/moveit/issues/3262>`_: Short-circuit planning adapters
+
+  - Early return from failing planning adapters, namely ``FixStartStateCollision`` and ``FixStartStatePathConstraint``
+  - Propagate the error code via ``MotionPlanResponse::error_code_``
+  - Add string translations for all error codes
+* Cleanup translation of MoveItErrorCode to string
+
+  - Move default code to moveit_core/utils
+  - Override defaults in existing getActionResultString()
+  - Provide translations for all error codes defined in moveit_msgs
+* Add debug message in call stack of planning_request_adapters
+* Contributors: Robert Haschke, Simon Schmeisser
+
 1.1.10 (2022-09-13)
 -------------------
 * Limit Cartesian speed for link(s) (`#2856 <https://github.com/ros-planning/moveit/issues/2856>`_)

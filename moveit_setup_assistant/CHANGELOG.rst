@@ -2,6 +2,27 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2022-12-21)
+-------------------
+* MSA: Cleanup SimulationWidget (`#3281 <https://github.com/ros-planning/moveit/issues/3281>`_)
+
+  * Don't rewrite ``gazebo.launch`` after user changes
+  * Only offer to write ``gazebo\_*.urdf`` if content would be non-empty
+  * Clarify usage
+  * Graceful opening of editor
+  * Disable "overwrite" button if there are no changes
+  * If overwriting fails: ``write gazebo\_*.urdf`` as fallback
+* Remove capabilities declaration from pipeline configs (`#3274 <https://github.com/ros-planning/moveit/issues/3274>`_)
+
+  Capabilities are global to the ``move_group`` node and not specific to pipleline configs.
+  As the latter ones load their parameters into a namespace, e.g. ``/move_group/planning_pipelines/ompl/*``,
+  loading a capability as suggested by the comments, didn't have any effect.
+* Expose ``world_name`` and ``world_pose`` args in ``*gazebo.launch`` (`#3238 <https://github.com/ros-planning/moveit/issues/3238>`_)
+* run-depend on all default MoveIt planners
+* Start ``robot_state_publisher`` in ``gazebo.launch`` (`#3236 <https://github.com/ros-planning/moveit/issues/3236>`_)
+* Generalize sizing of joint list widgets (`#3219 <https://github.com/ros-planning/moveit/issues/3219>`_)
+* Contributors: Robert Haschke, Robert Kampf
+
 1.1.10 (2022-09-13)
 -------------------
 * Limit Cartesian speed for link(s) (`#2856 <https://github.com/ros-planning/moveit/issues/2856>`_)
