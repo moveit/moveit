@@ -295,7 +295,7 @@ bool RuckigSmoothing::runRuckig(robot_trajectory::RobotTrajectory& trajectory,
   ruckig::Result ruckig_result;
   double duration_extension_factor = 1;
   bool smoothing_complete = false;
-  while ((duration_extension_factor < MAX_DURATION_EXTENSION_FACTOR) && !smoothing_complete)
+  while ((duration_extension_factor <= MAX_DURATION_EXTENSION_FACTOR) && !smoothing_complete)
   {
     for (size_t waypoint_idx = 0; waypoint_idx < num_waypoints - 1; ++waypoint_idx)
     {
@@ -345,6 +345,12 @@ bool RuckigSmoothing::runRuckig(robot_trajectory::RobotTrajectory& trajectory,
         break;
       }
     }
+  }
+
+  if (duration_extension_factor > MAX_DURATION_EXTENSION_FACTOR)
+  {
+    ROS_ERROR_STREAM_NAMED(LOGNAME,
+                           "Ruckig extended the trajectory duration to its maximum and still did not find a solution");
   }
 
   if (ruckig_result != ruckig::Result::Finished)

@@ -29,6 +29,6 @@ if(CATKIN_ENABLE_TESTING)
   target_link_libraries(test_limit_cartesian_speed moveit_test_utils ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${MOVEIT_LIB_NAME})
 
   # These tests are flaky: https://github.com/ros-planning/moveit/actions/runs/3747836136/jobs/6366564878
-  #catkin_add_gtest(test_ruckig_traj_smoothing test/test_ruckig_traj_smoothing.cpp)
-  #target_link_libraries(test_ruckig_traj_smoothing ${MOVEIT_LIB_NAME} moveit_test_utils)
+  catkin_add_gtest(test_ruckig_traj_smoothing test/test_ruckig_traj_smoothing.cpp)
+  target_link_libraries(test_ruckig_traj_smoothing ${MOVEIT_LIB_NAME} moveit_test_utils)
 endif()
