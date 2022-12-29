@@ -34,11 +34,11 @@
 
 /* Author: Jens Petit */
 
-#include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
+#include <moveit/collision_detection_hpp_fcl/collision_detector_allocator_hpp_fcl.h>
 #include <moveit/collision_detection/test_collision_common_pr2.h>
 
-INSTANTIATE_TYPED_TEST_CASE_P(FCLCollisionCheck, CollisionDetectorTest,
-                              collision_detection::CollisionDetectorAllocatorFCL);
+INSTANTIATE_TYPED_TEST_CASE_P(HPPFCLCollisionCheck, CollisionDetectorTest,
+                              collision_detection::CollisionDetectorAllocatorHPPFCL);
 
 int main(int argc, char* argv[])
 {

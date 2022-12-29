@@ -36,12 +36,14 @@
 
 #pragma once
 
-#include <fcl/config.h>
+#include <hpp/fcl/config.hh>
 
 #define FCL_VERSION_CHECK(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
 #define MOVEIT_FCL_VERSION FCL_VERSION_CHECK(FCL_MAJOR_VERSION, FCL_MINOR_VERSION, FCL_PATCH_VERSION)
 
 #if (MOVEIT_FCL_VERSION < FCL_VERSION_CHECK(0, 6, 0))
+namespace hpp
+{
 namespace fcl
 {
 class CollisionGeometry;
@@ -96,4 +98,5 @@ using OBBRSSd = fcl::OBBRSS;
 class DynamicAABBTreeCollisionManager;
 using DynamicAABBTreeCollisionManagerd = fcl::DynamicAABBTreeCollisionManager;
 }  // namespace fcl
+}  // namespace hpp
 #endif

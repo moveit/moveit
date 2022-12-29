@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2018, Bryce Willey
+ *  Copyright (c) 2013, Willow Garage, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the copyright holder nor the names of its
+ *   * Neither the name of Willow Garage nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -32,18 +32,20 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Bryce Willey */
+/* Author: Acorn Pooley, Ioan Sucan */
 
-#include <moveit/collision_detection_fcl/collision_detector_fcl_plugin_loader.h>
-#include <pluginlib/class_list_macros.hpp>
+#pragma once
+
+#include <moveit/collision_detection/collision_detector_allocator.h>
+#include <moveit/collision_detection_hpp_fcl/collision_env_hpp_fcl.h>
 
 namespace collision_detection
 {
-bool CollisionDetectorFCLPluginLoader::initialize(const planning_scene::PlanningScenePtr& scene, bool exclusive) const
+/** \brief An allocator for HPP FCL collision detectors */
+class CollisionDetectorAllocatorHPPFCL
+  : public CollisionDetectorAllocatorTemplate<CollisionEnvHPPFCL, CollisionDetectorAllocatorHPPFCL>
 {
-  scene->setActiveCollisionDetector(CollisionDetectorAllocatorFCL::create(), exclusive);
-  return true;
-}
+public:
+  const std::string& getName() const override;
+};
 }  // namespace collision_detection
-
-PLUGINLIB_EXPORT_CLASS(collision_detection::CollisionDetectorFCLPluginLoader, collision_detection::CollisionPlugin)

@@ -1,8 +1,8 @@
-<library path="lib/libcollision_detector_fcl_plugin">
-  <class name="FCL" type="collision_detection::CollisionDetectorFCLPluginLoader"
+<library path="lib/libcollision_detector_hpp_fcl_plugin">
+  <class name="HPPFCL" type="collision_detection::CollisionDetectorHPPFCLPluginLoader"
   base_class_type="collision_detection::CollisionPlugin">
     <description>
-      FCL Collision Detector, default for MoveIt.
+      HPP FCL Collision Detector.
     </description>
   </class>
 </library>

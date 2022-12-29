@@ -34,23 +34,14 @@
 
 /* Author: Jens Petit */
 
-#include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
+#include <moveit/collision_detection_hpp_fcl/collision_detector_allocator_hpp_fcl.h>
 #include <moveit/collision_detection/test_collision_common_panda.h>
 
 INSTANTIATE_TYPED_TEST_CASE_P(FCLCollisionCheckPanda, CollisionDetectorPandaTest,
-                              collision_detection::CollisionDetectorAllocatorFCL);
+                              collision_detection::CollisionDetectorAllocatorHPPFCL);
 
-// FCL < 0.6 incorrectly reports distance results in the object coordinate frame.
-// See: https://github.com/flexible-collision-library/fcl/issues/171
-//  and https://github.com/flexible-collision-library/fcl/pull/288.
-// So only execute the full distance test suite on FCL >= 0.6.
-#if MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0)
 INSTANTIATE_TYPED_TEST_CASE_P(FCLDistanceCheckPanda, DistanceFullPandaTest,
-                              collision_detection::CollisionDetectorAllocatorFCL);
-#else
-INSTANTIATE_TYPED_TEST_CASE_P(FCLDistanceCheckPanda, DistanceCheckPandaTest,
-                              collision_detection::CollisionDetectorAllocatorFCL);
-#endif
+                              collision_detection::CollisionDetectorAllocatorHPPFCL);
 
 int main(int argc, char* argv[])
 {

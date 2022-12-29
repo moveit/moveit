@@ -39,18 +39,14 @@
 #include <moveit/collision_detection/world.h>
 #include <moveit/collision_detection/collision_env.h>
 #include <moveit/macros/class_forward.h>
-#include <moveit/collision_detection_fcl/fcl_compat.h>
+#include <moveit/collision_detection_hpp_fcl/fcl_compat.h>
 #include <geometric_shapes/check_isometry.h>
 
-#if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
-#include <fcl/broadphase/broadphase_collision_manager.h>
-#include <fcl/narrowphase/collision.h>
-#include <fcl/narrowphase/distance.h>
-#else
-#include <fcl/broadphase/broadphase.h>
-#include <fcl/collision.h>
-#include <fcl/distance.h>
-#endif
+#include <hpp/fcl/broadphase/broadphase_collision_manager.h>
+#include <hpp/fcl/narrowphase/narrowphase.h>
+#include <hpp/fcl/collision.h>
+#include <hpp/fcl/distance.h>
+#include <hpp/fcl/data_types.h>
 
 #include <memory>
 #include <set>
@@ -58,6 +54,8 @@
 namespace collision_detection
 {
 MOVEIT_STRUCT_FORWARD(CollisionGeometryData);
+
+using namespace hpp;
 
 /** \brief Wrapper around world, link and attached objects' geometry data. */
 struct CollisionGeometryData
@@ -197,6 +195,8 @@ struct DistanceData
 
 MOVEIT_STRUCT_FORWARD(FCLGeometry);
 
+using namespace hpp;
+
 /** \brief Bundles the \e CollisionGeometryData and FCL collision geometry representation into a single class. */
 struct FCLGeometry
 {
@@ -275,7 +275,11 @@ struct FCLManager
  *   \param o2 Second FCL collision object
  *   \data General pointer to arbitrary data which is used during the callback
  *   \return True terminates the collision check, false continues it to the next pair of objects */
-bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data);
+struct CollisionCallback : hpp::fcl::CollisionCallBackBase
+{
+  CollisionData* data;
+  virtual bool collide(hpp::fcl::CollisionObject* o1, hpp::fcl::CollisionObject* o2) override;
+};
 
 /** \brief Callback function used by the FCLManager used for each pair of collision objects to
  *   calculate collisions and distances.
@@ -284,7 +288,13 @@ bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, voi
  *   \param o2 Second FCL collision object
  *   \data General pointer to arbitrary data which is used during the callback
  *   \return True terminates the distance check, false continues it to the next pair of objects */
-bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& min_dist);
+// bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& min_dist);
+struct DistanceCallback : public hpp::fcl::DistanceCallBackBase
+{
+  DistanceData* data;
+
+  virtual bool distance(hpp::fcl::CollisionObject* o1, hpp::fcl::CollisionObject* o2, hpp::fcl::FCL_REAL& dist) override;
+};
 
 /** \brief Create new FCLGeometry object out of robot link model. */
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const moveit::core::LinkModel* link,
@@ -315,14 +325,14 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
 void cleanCollisionGeometryCache();
 
 /** \brief Transforms an Eigen Isometry3d to FCL coordinate transformation */
-inline void transform2fcl(const Eigen::Isometry3d& b, fcl::Transform3d& f)
+inline void transform2fcl(const Eigen::Isometry3d& b, hpp::fcl::Transform3d& f)
 {
   ASSERT_ISOMETRY(b);
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
   f = b.matrix();
 #else
   Eigen::Quaterniond q(b.linear());
-  f.setTranslation(fcl::Vector3d(b.translation().x(), b.translation().y(), b.translation().z()));
+  f.setTranslation(hpp::fcl::Vec3f(b.translation().x(), b.translation().y(), b.translation().z()));
   f.setQuatRotation(fcl::Quaternion3f(q.w(), q.x(), q.y(), q.z()));
 #endif
 }
@@ -336,7 +346,7 @@ inline fcl::Transform3d transform2fcl(const Eigen::Isometry3d& b)
 }
 
 /** \brief Transforms an FCL contact into a MoveIt contact point. */
-inline void fcl2contact(const fcl::Contactd& fc, Contact& c)
+inline void hppfcl2contact(const hpp::fcl::Contact& fc, Contact& c)
 {
   c.pos = Eigen::Vector3d(fc.pos[0], fc.pos[1], fc.pos[2]);
   c.normal = Eigen::Vector3d(fc.normal[0], fc.normal[1], fc.normal[2]);
@@ -349,16 +359,16 @@ inline void fcl2contact(const fcl::Contactd& fc, Contact& c)
   c.body_type_2 = cgd2->type;
 }
 
-/** \brief Transforms the FCL internal representation to the MoveIt \e CostSource data structure. */
-inline void fcl2costsource(const fcl::CostSourced& fcs, CostSource& cs)
+/** \brief Transforms the FCL internal representation from a Collision Geometry to the MoveIt \e CostSource data structure. */
+inline void hppfcl2costsource(const hpp::fcl::CollisionGeometry& fcs, CostSource& cs)
 {
-  cs.aabb_min[0] = fcs.aabb_min[0];
-  cs.aabb_min[1] = fcs.aabb_min[1];
-  cs.aabb_min[2] = fcs.aabb_min[2];
+  cs.aabb_min[0] = fcs.aabb_local.min_[0];
+  cs.aabb_min[1] = fcs.aabb_local.min_[1];
+  cs.aabb_min[2] = fcs.aabb_local.min_[2];
 
-  cs.aabb_max[0] = fcs.aabb_max[0];
-  cs.aabb_max[1] = fcs.aabb_max[1];
-  cs.aabb_max[2] = fcs.aabb_max[2];
+  cs.aabb_max[0] = fcs.aabb_local.max_[0];
+  cs.aabb_max[1] = fcs.aabb_local.max_[1];
+  cs.aabb_max[2] = fcs.aabb_local.max_[2];
 
   cs.cost = fcs.cost_density;
 }

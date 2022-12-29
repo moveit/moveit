@@ -37,32 +37,28 @@
 #pragma once
 
 #include <moveit/collision_detection/collision_env.h>
-#include <moveit/collision_detection_fcl/collision_common.h>
+#include <moveit/collision_detection_hpp_fcl/collision_common.h>
 
-#if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
-#include <fcl/broadphase/broadphase_collision_manager.h>
-#else
-#include <fcl/broadphase/broadphase.h>
-#endif
+#include <hpp/fcl/broadphase/broadphase_collision_manager.h>
 
 #include <memory>
 
 namespace collision_detection
 {
 /** \brief FCL implementation of the CollisionEnv */
-class CollisionEnvFCL : public CollisionEnv
+class CollisionEnvHPPFCL : public CollisionEnv
 {
 public:
-  CollisionEnvFCL() = delete;
+  CollisionEnvHPPFCL() = delete;
 
-  CollisionEnvFCL(const moveit::core::RobotModelConstPtr& model, double padding = 0.0, double scale = 1.0);
+  CollisionEnvHPPFCL(const moveit::core::RobotModelConstPtr& model, double padding = 0.0, double scale = 1.0);
 
-  CollisionEnvFCL(const moveit::core::RobotModelConstPtr& model, const WorldPtr& world, double padding = 0.0,
-                  double scale = 1.0);
+  CollisionEnvHPPFCL(const moveit::core::RobotModelConstPtr& model, const WorldPtr& world, double padding = 0.0,
+                     double scale = 1.0);
 
-  CollisionEnvFCL(const CollisionEnvFCL& other, const WorldPtr& world);
+  CollisionEnvHPPFCL(const CollisionEnvHPPFCL& other, const WorldPtr& world);
 
-  ~CollisionEnvFCL() override;
+  ~CollisionEnvHPPFCL() override;
 
   void checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
                           const moveit::core::RobotState& state) const override;

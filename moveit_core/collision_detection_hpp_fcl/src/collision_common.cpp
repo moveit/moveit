@@ -34,28 +34,30 @@
 
 /* Author: Ioan Sucan, Jia Pan */
 
-#include <moveit/collision_detection_fcl/collision_common.h>
+#include <moveit/collision_detection_hpp_fcl/collision_common.h>
 #include <geometric_shapes/shapes.h>
-#include <moveit/collision_detection_fcl/fcl_compat.h>
+#include <moveit/collision_detection_hpp_fcl/fcl_compat.h>
 
-#if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
-#include <fcl/geometry/bvh/BVH_model.h>
-#include <fcl/geometry/octree/octree.h>
-#else
-#include <fcl/BVH/BVH_model.h>
-#include <fcl/shape/geometric_shapes.h>
-#include <fcl/octree.h>
-#endif
+#include <hpp/fcl/BVH/BVH_model.h>
+#define HPP_FCL_HAS_OCTOMAP 1
+#define OCTOMAP_MAJOR_VERSION 1
+#define OCTOMAP_MINOR_VERSION 9
+#define OCTOMAP_PATCH_VERSION 8
+#include <hpp/fcl/data_types.h>
+#include <hpp/fcl/octree.h>
+#include <hpp/fcl/data_types.h>
 
 #include <boost/thread/mutex.hpp>
 #include <memory>
 #include <type_traits>
 
+using namespace hpp;
+
 namespace collision_detection
 {
-bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data)
+bool CollisionCallback::collide(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2)
 {
-  CollisionData* cdata = reinterpret_cast<CollisionData*>(data);
+  CollisionData* cdata = data;
   if (cdata->done_)
     return true;
   const CollisionGeometryData* cd1 = static_cast<const CollisionGeometryData*>(o1->collisionGeometry()->getUserData());
@@ -182,8 +184,10 @@ bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, voi
     bool enable_contact = true;
     fcl::CollisionResultd col_result;
     int num_contacts = fcl::collide(o1, o2,
-                                    fcl::CollisionRequestd(std::numeric_limits<size_t>::max(), enable_contact,
-                                                           num_max_cost_sources, enable_cost),
+                                    fcl::CollisionRequestd(enable_contact ? fcl::CollisionRequestFlag::CONTACT :
+                                                                            fcl::CollisionRequestFlag::NO_REQUEST,
+                                                           std::numeric_limits<size_t>::max() /*,
+num_max_cost_sources, enable_cost*/),
                                     col_result);
     if (num_contacts > 0)
     {
@@ -198,7 +202,7 @@ bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, voi
                                                           std::make_pair(cd2->getID(), cd1->getID());
       for (int i = 0; i < num_contacts; ++i)
       {
-        fcl2contact(col_result.getContact(i), c);
+        hppfcl2contact(col_result.getContact(i), c);
         // if the contact is  not allowed, we have a collision
         if (!dcf(c))
         {
@@ -228,13 +232,14 @@ bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, voi
 
     if (enable_cost)
     {
-      std::vector<fcl::CostSourced> cost_sources;
-      col_result.getCostSources(cost_sources);
-
+      std::vector<hpp::fcl::Contact> contacts;
+      col_result.getContacts(contacts);
       CostSource cs;
-      for (auto& cost_source : cost_sources)
+      for (const auto& contact : contacts)
       {
-        fcl2costsource(cost_source, cs);
+        hppfcl2costsource(*contact.o1, cs);
+        cdata->res_->cost_sources.insert(cs);
+        hppfcl2costsource(*contact.o2, cs);
         cdata->res_->cost_sources.insert(cs);
         while (cdata->res_->cost_sources.size() > cdata->req_->max_cost_sources)
           cdata->res_->cost_sources.erase(--cdata->res_->cost_sources.end());
@@ -251,10 +256,11 @@ bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, voi
       bool enable_contact = true;
 
       fcl::CollisionResultd col_result;
-      int num_contacts =
-          fcl::collide(o1, o2,
-                       fcl::CollisionRequestd(want_contact_count, enable_contact, num_max_cost_sources, enable_cost),
-                       col_result);
+      int num_contacts = fcl::collide(o1, o2,
+                                      fcl::CollisionRequestd(enable_contact ? fcl::CollisionRequestFlag::CONTACT :
+                                                                              fcl::CollisionRequestFlag::NO_REQUEST,
+                                                             want_contact_count),
+                                      col_result);
       if (num_contacts > 0)
       {
         int num_contacts_initial = num_contacts;
@@ -282,7 +288,7 @@ bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, voi
         for (int i = 0; i < num_contacts; ++i)
         {
           Contact c;
-          fcl2contact(col_result.getContact(i), c);
+          hppfcl2contact(col_result.getContact(i), c);
           cdata->res_->contacts[pc].push_back(c);
           cdata->res_->contact_count++;
         }
@@ -290,13 +296,14 @@ bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, voi
 
       if (enable_cost)
       {
-        std::vector<fcl::CostSourced> cost_sources;
-        col_result.getCostSources(cost_sources);
-
+        std::vector<hpp::fcl::Contact> contacts;
+        col_result.getContacts(contacts);
         CostSource cs;
-        for (auto& cost_source : cost_sources)
+        for (const auto& contact : contacts)
         {
-          fcl2costsource(cost_source, cs);
+          hppfcl2costsource(*contact.o1, cs);
+          cdata->res_->cost_sources.insert(cs);
+          hppfcl2costsource(*contact.o2, cs);
           cdata->res_->cost_sources.insert(cs);
           while (cdata->res_->cost_sources.size() > cdata->req_->max_cost_sources)
             cdata->res_->cost_sources.erase(--cdata->res_->cost_sources.end());
@@ -309,8 +316,11 @@ bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, voi
       std::size_t num_max_cost_sources = cdata->req_->max_cost_sources;
       bool enable_contact = false;
       fcl::CollisionResultd col_result;
-      int num_contacts = fcl::collide(
-          o1, o2, fcl::CollisionRequestd(1, enable_contact, num_max_cost_sources, enable_cost), col_result);
+      int num_contacts = fcl::collide(o1, o2,
+                                      fcl::CollisionRequestd(enable_contact ? fcl::CollisionRequestFlag::CONTACT :
+                                                                              fcl::CollisionRequestFlag::NO_REQUEST,
+                                                             1),
+                                      col_result);
       if (num_contacts > 0)
       {
         cdata->res_->collision = true;
@@ -325,13 +335,14 @@ bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, voi
 
       if (enable_cost)
       {
-        std::vector<fcl::CostSourced> cost_sources;
-        col_result.getCostSources(cost_sources);
-
+        std::vector<hpp::fcl::Contact> contacts;
+        col_result.getContacts(contacts);
         CostSource cs;
-        for (auto& cost_source : cost_sources)
+        for (const auto& contact : contacts)
         {
-          fcl2costsource(cost_source, cs);
+          hppfcl2costsource(*contact.o1, cs);
+          cdata->res_->cost_sources.insert(cs);
+          hppfcl2costsource(*contact.o2, cs);
           cdata->res_->cost_sources.insert(cs);
           while (cdata->res_->cost_sources.size() > cdata->req_->max_cost_sources)
             cdata->res_->cost_sources.erase(--cdata->res_->cost_sources.end());
@@ -408,9 +419,9 @@ struct FCLShapeCache
   unsigned int clean_count_;
 };
 
-bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& /*min_dist*/)
+bool DistanceCallback::distance(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, double& /*min_dist*/)
 {
-  DistanceData* cdata = reinterpret_cast<DistanceData*>(data);
+  DistanceData* cdata = data;
 
   const CollisionGeometryData* cd1 = static_cast<const CollisionGeometryData*>(o1->collisionGeometry()->getUserData());
   const CollisionGeometryData* cd2 = static_cast<const CollisionGeometryData*>(o2->collisionGeometry()->getUserData());
@@ -550,13 +561,9 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
     const CollisionGeometryData* res_cd1 = static_cast<const CollisionGeometryData*>(fcl_result.o1->getUserData());
     const CollisionGeometryData* res_cd2 = static_cast<const CollisionGeometryData*>(fcl_result.o2->getUserData());
 
-#if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
     dist_result.nearest_points[0] = fcl_result.nearest_points[0];
     dist_result.nearest_points[1] = fcl_result.nearest_points[1];
-#else
-    dist_result.nearest_points[0] = Eigen::Map<const Eigen::Vector3d>(fcl_result.nearest_points[0].data.vs);
-    dist_result.nearest_points[1] = Eigen::Map<const Eigen::Vector3d>(fcl_result.nearest_points[1].data.vs);
-#endif
+
     dist_result.link_names[0] = res_cd1->getID();
     dist_result.link_names[1] = res_cd2->getID();
     dist_result.body_types[0] = res_cd1->type;
@@ -595,21 +602,12 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
         const fcl::Contactd& contact = coll_res.getContact(max_index);
         dist_result.distance = -contact.penetration_depth;
 
-#if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
         dist_result.nearest_points[0] = contact.pos;
         dist_result.nearest_points[1] = contact.pos;
-#else
-        dist_result.nearest_points[0] = Eigen::Map<const Eigen::Vector3d>(contact.pos.data.vs);
-        dist_result.nearest_points[1] = Eigen::Map<const Eigen::Vector3d>(contact.pos.data.vs);
-#endif
 
         if (cdata->req->enable_nearest_points)
         {
-#if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
           Eigen::Vector3d normal(contact.normal);
-#else
-          Eigen::Vector3d normal(contact.normal.data.vs);
-#endif
 
           // Check order of o1/o2 again, we might need to flip the normal
           if (contact.o1 == o1->collisionGeometry().get())
@@ -837,9 +835,9 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
           tri_indices[i] =
               fcl::Triangle(mesh->triangles[3 * i], mesh->triangles[3 * i + 1], mesh->triangles[3 * i + 2]);
 
-        std::vector<fcl::Vector3d> points(mesh->vertex_count);
+        std::vector<hpp::fcl::Vec3f> points(mesh->vertex_count);
         for (unsigned int i = 0; i < mesh->vertex_count; ++i)
-          points[i] = fcl::Vector3d(mesh->vertices[3 * i], mesh->vertices[3 * i + 1], mesh->vertices[3 * i + 2]);
+          points[i] = hpp::fcl::Vec3f(mesh->vertices[3 * i], mesh->vertices[3 * i + 1], mesh->vertices[3 * i + 2]);
 
         g->beginModel();
         g->addSubModel(points, tri_indices);

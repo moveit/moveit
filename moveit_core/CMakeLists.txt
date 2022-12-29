@@ -50,6 +50,8 @@ else()
   endforeach()
 endif()
 
+find_package(hpp-fcl REQUIRED)
+
 find_package(octomap REQUIRED)
 
 find_package(ruckig REQUIRED)
@@ -104,6 +106,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     backtrace/include
     collision_detection/include
     collision_detection_fcl/include
+    collision_detection_hpp_fcl/include
     ${BULLET_INC}
     constraint_samplers/include
     controller_manager/include
@@ -142,6 +145,7 @@ catkin_package(
     moveit_planning_interface
     moveit_collision_detection
     moveit_collision_detection_fcl
+    moveit_collision_detection_hpp_fcl
     ${BULLET_LIB}
     moveit_kinematic_constraints
     moveit_planning_scene
@@ -176,6 +180,7 @@ catkin_package(
     Boost
     EIGEN3
     LIBFCL
+    hpp-fcl
     OCTOMAP
     ruckig
     urdfdom
@@ -220,6 +225,7 @@ add_subdirectory(robot_state)
 add_subdirectory(robot_trajectory)
 add_subdirectory(collision_detection)
 add_subdirectory(collision_detection_fcl)
+add_subdirectory(collision_detection_hpp_fcl)
 add_subdirectory(kinematic_constraints)
 add_subdirectory(planning_scene)
 add_subdirectory(constraint_samplers)
