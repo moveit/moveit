@@ -620,17 +620,12 @@ class MoveGroupCommander(object):
         """Return a tuple of the motion planning results such as
         (success flag : boolean, trajectory message : RobotTrajectory,
          planning time : float, error code : MoveitErrorCodes)"""
-        if type(joints) is JointState:
-            self.set_joint_value_target(joints)
-
+        if type(joints) is str:
+            self.set_joint_value_target(self.get_remembered_joint_values()[joints])
         elif type(joints) is Pose:
             self.set_pose_target(joints)
-
         elif joints is not None:
-            try:
-                self.set_joint_value_target(self.get_remembered_joint_values()[joints])
-            except MoveItCommanderException:
-                self.set_joint_value_target(joints)
+            self.set_joint_value_target(joints)
 
         (error_code_msg, trajectory_msg, planning_time) = self._g.plan()
 

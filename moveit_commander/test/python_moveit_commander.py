@@ -128,6 +128,12 @@ class PythonMoveitCommanderTest(unittest.TestCase):
         self.group.set_joint_value_target(target)
         return self.group.plan()
 
+    def test_plan(self):
+        state = JointState(name=self.JOINT_NAMES, position=[0, 0, 0, 0, 0, 0])
+        self.assertTrue(self.group.plan(state.position)[0])
+        self.assertTrue(self.group.plan("current")[0])
+        self.assertTrue(state, self.group.plan()[0])
+
     def test_validation(self):
         current = np.asarray(self.group.get_current_joint_values())
 
