@@ -55,8 +55,6 @@ namespace collision_detection
 {
 MOVEIT_STRUCT_FORWARD(CollisionGeometryData);
 
-using namespace hpp;
-
 /** \brief Wrapper around world, link and attached objects' geometry data. */
 struct CollisionGeometryData
 {
@@ -193,33 +191,31 @@ struct DistanceData
   bool done;
 };
 
-MOVEIT_STRUCT_FORWARD(FCLGeometry);
-
-using namespace hpp;
+MOVEIT_STRUCT_FORWARD(HPPFCLGeometry);
 
 /** \brief Bundles the \e CollisionGeometryData and FCL collision geometry representation into a single class. */
-struct FCLGeometry
+struct HPPFCLGeometry
 {
-  FCLGeometry()
+  HPPFCLGeometry()
   {
   }
 
   /** \brief Constructor for a robot link. */
-  FCLGeometry(fcl::CollisionGeometryd* collision_geometry, const moveit::core::LinkModel* link, int shape_index)
+  HPPFCLGeometry(hpp::fcl::CollisionGeometryd* collision_geometry, const moveit::core::LinkModel* link, int shape_index)
     : collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(link, shape_index))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
   /** \brief Constructor for an attached body. */
-  FCLGeometry(fcl::CollisionGeometryd* collision_geometry, const moveit::core::AttachedBody* ab, int shape_index)
+  HPPFCLGeometry(hpp::fcl::CollisionGeometryd* collision_geometry, const moveit::core::AttachedBody* ab, int shape_index)
     : collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(ab, shape_index))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
   /** \brief Constructor for a world object. */
-  FCLGeometry(fcl::CollisionGeometryd* collision_geometry, const World::Object* obj, int shape_index)
+  HPPFCLGeometry(hpp::fcl::CollisionGeometryd* collision_geometry, const World::Object* obj, int shape_index)
     : collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(obj, shape_index))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
@@ -238,34 +234,34 @@ struct FCLGeometry
   }
 
   /** \brief Pointer to FCL collision geometry. */
-  std::shared_ptr<fcl::CollisionGeometryd> collision_geometry_;
+  std::shared_ptr<hpp::fcl::CollisionGeometryd> collision_geometry_;
 
   /** \brief Pointer to the user-defined geometry data. */
   CollisionGeometryDataPtr collision_geometry_data_;
 };
 
-typedef std::shared_ptr<fcl::CollisionObjectd> FCLCollisionObjectPtr;
-typedef std::shared_ptr<const fcl::CollisionObjectd> FCLCollisionObjectConstPtr;
+typedef std::shared_ptr<hpp::fcl::CollisionObjectd> HPPFCLCollisionObjectPtr;
+typedef std::shared_ptr<const hpp::fcl::CollisionObjectd> HPPFCLCollisionObjectConstPtr;
 
 /** \brief A general high-level object which consists of multiple \e FCLCollisionObjects. It is the top level data
  *  structure which is used in the collision checking process. */
-struct FCLObject
+struct HPPFCLObject
 {
-  void registerTo(fcl::BroadPhaseCollisionManagerd* manager);
-  void unregisterFrom(fcl::BroadPhaseCollisionManagerd* manager);
+  void registerTo(hpp::fcl::BroadPhaseCollisionManagerd* manager);
+  void unregisterFrom(hpp::fcl::BroadPhaseCollisionManagerd* manager);
   void clear();
 
-  std::vector<FCLCollisionObjectPtr> collision_objects_;
+  std::vector<HPPFCLCollisionObjectPtr> collision_objects_;
 
   /** \brief Geometry data corresponding to \e collision_objects_. */
-  std::vector<FCLGeometryConstPtr> collision_geometry_;
+  std::vector<HPPFCLGeometryConstPtr> collision_geometry_;
 };
 
 /** \brief Bundles an \e FCLObject and a broadphase FCL collision manager. */
 struct FCLManager
 {
-  FCLObject object_;
-  std::shared_ptr<fcl::BroadPhaseCollisionManagerd> manager_;
+  HPPFCLObject object_;
+  std::shared_ptr<hpp::fcl::BroadPhaseCollisionManagerd> manager_;
 };
 
 /** \brief Callback function used by the FCLManager used for each pair of collision objects to
@@ -288,7 +284,7 @@ struct CollisionCallback : hpp::fcl::CollisionCallBackBase
  *   \param o2 Second FCL collision object
  *   \data General pointer to arbitrary data which is used during the callback
  *   \return True terminates the distance check, false continues it to the next pair of objects */
-// bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& min_dist);
+// bool distanceCallback(hpp::fcl::CollisionObjectd* o1, hpp::fcl::CollisionObjectd* o2, void* data, double& min_dist);
 struct DistanceCallback : public hpp::fcl::DistanceCallBackBase
 {
   DistanceData* data;
@@ -296,30 +292,30 @@ struct DistanceCallback : public hpp::fcl::DistanceCallBackBase
   virtual bool distance(hpp::fcl::CollisionObject* o1, hpp::fcl::CollisionObject* o2, hpp::fcl::FCL_REAL& dist) override;
 };
 
-/** \brief Create new FCLGeometry object out of robot link model. */
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const moveit::core::LinkModel* link,
-                                            int shape_index);
+/** \brief Create new HPPFCLGeometry object out of robot link model. */
+HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const moveit::core::LinkModel* link,
+                                               int shape_index);
 
-/** \brief Create new FCLGeometry object out of attached body. */
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const moveit::core::AttachedBody* ab,
-                                            int shape_index);
+/** \brief Create new HPPFCLGeometry object out of attached body. */
+HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const moveit::core::AttachedBody* ab,
+                                               int shape_index);
 
-/** \brief Create new FCLGeometry object out of a world object.
+/** \brief Create new HPPFCLGeometry object out of a world object.
  *
  *  A world object always consists only of a single shape, therefore we don't need the \e shape_index. */
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const World::Object* obj);
+HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const World::Object* obj);
 
-/** \brief Create new scaled and / or padded FCLGeometry object out of robot link model. */
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
-                                            const moveit::core::LinkModel* link, int shape_index);
+/** \brief Create new scaled and / or padded HPPFCLGeometry object out of robot link model. */
+HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
+                                               const moveit::core::LinkModel* link, int shape_index);
 
-/** \brief Create new scaled and / or padded FCLGeometry object out of an attached body. */
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
-                                            const moveit::core::AttachedBody* ab, int shape_index);
+/** \brief Create new scaled and / or padded HPPFCLGeometry object out of an attached body. */
+HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
+                                               const moveit::core::AttachedBody* ab, int shape_index);
 
-/** \brief Create new scaled and / or padded FCLGeometry object out of an world object. */
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
-                                            const World::Object* obj);
+/** \brief Create new scaled and / or padded HPPFCLGeometry object out of an world object. */
+HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
+                                               const World::Object* obj);
 
 /** \brief Increases the counter of the caches which can trigger the cleaning of expired entries from them. */
 void cleanCollisionGeometryCache();
@@ -333,14 +329,14 @@ inline void transform2fcl(const Eigen::Isometry3d& b, hpp::fcl::Transform3d& f)
 #else
   Eigen::Quaterniond q(b.linear());
   f.setTranslation(hpp::fcl::Vec3f(b.translation().x(), b.translation().y(), b.translation().z()));
-  f.setQuatRotation(fcl::Quaternion3f(q.w(), q.x(), q.y(), q.z()));
+  f.setQuatRotation(hpp::fcl::Quaternion3f(q.w(), q.x(), q.y(), q.z()));
 #endif
 }
 
 /** \brief Transforms an Eigen Isometry3d to FCL coordinate transformation */
-inline fcl::Transform3d transform2fcl(const Eigen::Isometry3d& b)
+inline hpp::fcl::Transform3d transform2fcl(const Eigen::Isometry3d& b)
 {
-  fcl::Transform3d t;
+  hpp::fcl::Transform3d t;
   transform2fcl(b, t);
   return t;
 }

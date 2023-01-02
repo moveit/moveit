@@ -51,11 +51,9 @@
 #include <memory>
 #include <type_traits>
 
-using namespace hpp;
-
 namespace collision_detection
 {
-bool CollisionCallback::collide(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2)
+bool CollisionCallback::collide(hpp::fcl::CollisionObjectd* o1, hpp::fcl::CollisionObjectd* o2)
 {
   CollisionData* cdata = data;
   if (cdata->done_)
@@ -182,13 +180,14 @@ bool CollisionCallback::collide(fcl::CollisionObjectd* o1, fcl::CollisionObjectd
     bool enable_cost = cdata->req_->cost;
     std::size_t num_max_cost_sources = cdata->req_->max_cost_sources;
     bool enable_contact = true;
-    fcl::CollisionResultd col_result;
-    int num_contacts = fcl::collide(o1, o2,
-                                    fcl::CollisionRequestd(enable_contact ? fcl::CollisionRequestFlag::CONTACT :
-                                                                            fcl::CollisionRequestFlag::NO_REQUEST,
-                                                           std::numeric_limits<size_t>::max() /*,
+    hpp::fcl::CollisionResultd col_result;
+    int num_contacts =
+        hpp::fcl::collide(o1, o2,
+                          hpp::fcl::CollisionRequestd(enable_contact ? hpp::fcl::CollisionRequestFlag::CONTACT :
+                                                                       hpp::fcl::CollisionRequestFlag::NO_REQUEST,
+                                                      std::numeric_limits<size_t>::max() /*,
 num_max_cost_sources, enable_cost*/),
-                                    col_result);
+                          col_result);
     if (num_contacts > 0)
     {
       if (cdata->req_->verbose)
@@ -255,12 +254,13 @@ num_max_cost_sources, enable_cost*/),
       std::size_t num_max_cost_sources = cdata->req_->max_cost_sources;
       bool enable_contact = true;
 
-      fcl::CollisionResultd col_result;
-      int num_contacts = fcl::collide(o1, o2,
-                                      fcl::CollisionRequestd(enable_contact ? fcl::CollisionRequestFlag::CONTACT :
-                                                                              fcl::CollisionRequestFlag::NO_REQUEST,
-                                                             want_contact_count),
-                                      col_result);
+      hpp::fcl::CollisionResultd col_result;
+      int num_contacts =
+          hpp::fcl::collide(o1, o2,
+                            hpp::fcl::CollisionRequestd(enable_contact ? hpp::fcl::CollisionRequestFlag::CONTACT :
+                                                                         hpp::fcl::CollisionRequestFlag::NO_REQUEST,
+                                                        want_contact_count),
+                            col_result);
       if (num_contacts > 0)
       {
         int num_contacts_initial = num_contacts;
@@ -315,12 +315,12 @@ num_max_cost_sources, enable_cost*/),
       bool enable_cost = cdata->req_->cost;
       std::size_t num_max_cost_sources = cdata->req_->max_cost_sources;
       bool enable_contact = false;
-      fcl::CollisionResultd col_result;
-      int num_contacts = fcl::collide(o1, o2,
-                                      fcl::CollisionRequestd(enable_contact ? fcl::CollisionRequestFlag::CONTACT :
-                                                                              fcl::CollisionRequestFlag::NO_REQUEST,
-                                                             1),
-                                      col_result);
+      hpp::fcl::CollisionResultd col_result;
+      int num_contacts = hpp::fcl::collide(
+          o1, o2,
+          hpp::fcl::CollisionRequestd(
+              enable_contact ? hpp::fcl::CollisionRequestFlag::CONTACT : hpp::fcl::CollisionRequestFlag::NO_REQUEST, 1),
+          col_result);
       if (num_contacts > 0)
       {
         cdata->res_->collision = true;
@@ -381,7 +381,7 @@ num_max_cost_sources, enable_cost*/),
 struct FCLShapeCache
 {
   using ShapeKey = shapes::ShapeConstWeakPtr;
-  using ShapeMap = std::map<ShapeKey, FCLGeometryConstPtr, std::owner_less<ShapeKey>>;
+  using ShapeMap = std::map<ShapeKey, HPPFCLGeometryConstPtr, std::owner_less<ShapeKey>>;
 
   FCLShapeCache() : clean_count_(0)
   {
@@ -412,14 +412,14 @@ struct FCLShapeCache
 
   static const unsigned int MAX_CLEAN_COUNT = 100;  // every this many uses of the cache, a cleaning operation is
                                                     // executed (this is only removal of expired entries)
-  /** \brief Map of weak pointers to the FCLGeometry. */
+  /** \brief Map of weak pointers to the HPPFCLGeometry. */
   ShapeMap map_;
 
   /** \brief Counts cache usage and triggers clearing of cache when \m MAX_CLEAN_COUNT is exceeded. */
   unsigned int clean_count_;
 };
 
-bool DistanceCallback::distance(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, double& /*min_dist*/)
+bool DistanceCallback::distance(hpp::fcl::CollisionObjectd* o1, hpp::fcl::CollisionObjectd* o2, double& /*min_dist*/)
 {
   DistanceData* cdata = data;
 
@@ -534,17 +534,18 @@ bool DistanceCallback::distance(fcl::CollisionObjectd* o1, fcl::CollisionObjectd
     }
   }
 
-  fcl::DistanceResultd fcl_result;
+  hpp::fcl::DistanceResultd fcl_result;
   fcl_result.min_distance = dist_threshold;
-  // fcl::distance segfaults when given an octree with a null root pointer (using FCL 0.6.1)
-  if ((o1->getObjectType() == fcl::OT_OCTREE &&
-       !std::static_pointer_cast<const fcl::OcTreed>(o1->collisionGeometry())->getRoot()) ||
-      (o2->getObjectType() == fcl::OT_OCTREE &&
-       !std::static_pointer_cast<const fcl::OcTreed>(o2->collisionGeometry())->getRoot()))
+  // hpp::fcl::distance segfaults when given an octree with a null root pointer (using FCL 0.6.1)
+  if ((o1->getObjectType() == hpp::fcl::OT_OCTREE &&
+       !std::static_pointer_cast<const hpp::fcl::OcTreed>(o1->collisionGeometry())->getRoot()) ||
+      (o2->getObjectType() == hpp::fcl::OT_OCTREE &&
+       !std::static_pointer_cast<const hpp::fcl::OcTreed>(o2->collisionGeometry())->getRoot()))
   {
     return false;
   }
-  double distance = fcl::distance(o1, o2, fcl::DistanceRequestd(cdata->req->enable_nearest_points), fcl_result);
+  double distance =
+      hpp::fcl::distance(o1, o2, hpp::fcl::DistanceRequestd(cdata->req->enable_nearest_points), fcl_result);
 
   // Check if either object is already in the map. If not add it or if present
   // check to see if the new distance is closer. If closer remove the existing
@@ -579,19 +580,19 @@ bool DistanceCallback::distance(fcl::CollisionObjectd* o1, fcl::CollisionObjectd
       dist_result.nearest_points[1].setZero();
       dist_result.normal.setZero();
 
-      fcl::CollisionRequestd coll_req;
-      thread_local fcl::CollisionResultd coll_res;
+      hpp::fcl::CollisionRequestd coll_req;
+      thread_local hpp::fcl::CollisionResultd coll_res;
       coll_res.clear();  // thread_local storage makes the variable persistent. Ensure that it is cleared!
       coll_req.enable_contact = true;
       coll_req.num_max_contacts = 200;
-      std::size_t contacts = fcl::collide(o1, o2, coll_req, coll_res);
+      std::size_t contacts = hpp::fcl::collide(o1, o2, coll_req, coll_res);
       if (contacts > 0)
       {
         double max_dist = 0;
         int max_index = 0;
         for (std::size_t i = 0; i < contacts; ++i)
         {
-          const fcl::Contactd& contact = coll_res.getContact(i);
+          const hpp::fcl::Contactd& contact = coll_res.getContact(i);
           if (contact.penetration_depth > max_dist)
           {
             max_dist = contact.penetration_depth;
@@ -599,7 +600,7 @@ bool DistanceCallback::distance(fcl::CollisionObjectd* o1, fcl::CollisionObjectd
           }
         }
 
-        const fcl::Contactd& contact = coll_res.getContact(max_index);
+        const hpp::fcl::Contactd& contact = coll_res.getContact(max_index);
         dist_result.distance = -contact.penetration_depth;
 
         dist_result.nearest_points[0] = contact.pos;
@@ -690,10 +691,10 @@ FCLShapeCache& GetShapeCache()
  *  It assigns a thread-local cache for each type of shape and minimizes memory usage and copying through utilizing the
  *  cache. */
 template <typename BV, typename T>
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const T* data, int shape_index)
+HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const T* data, int shape_index)
 {
   using ShapeKey = shapes::ShapeConstWeakPtr;
-  using ShapeMap = std::map<ShapeKey, FCLGeometryConstPtr, std::owner_less<ShapeKey>>;
+  using ShapeMap = std::map<ShapeKey, HPPFCLGeometryConstPtr, std::owner_less<ShapeKey>>;
 
   FCLShapeCache& cache = GetShapeCache<BV, T>();
 
@@ -711,7 +712,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
       }
       else if (cache_it->second.unique())
       {
-        const_cast<FCLGeometry*>(cache_it->second.get())->updateCollisionGeometryData(data, shape_index, false);
+        const_cast<HPPFCLGeometry*>(cache_it->second.get())->updateCollisionGeometryData(data, shape_index, false);
         //          ROS_DEBUG_NAMED("collision_detection.fcl", "Collision data structures for object %s retrieved from
         //          cache after updating
         //          the source
@@ -736,10 +737,10 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
       if (cache_it->second.unique())
       {
         // remove from old cache
-        FCLGeometryConstPtr obj_cache = cache_it->second;
+        HPPFCLGeometryConstPtr obj_cache = cache_it->second;
         othercache.map_.erase(cache_it);
         // update the CollisionGeometryData; nobody has a pointer to this, so we can safely modify it
-        const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, shape_index, true);
+        const_cast<HPPFCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, shape_index, true);
 
         //        ROS_DEBUG_NAMED("collision_detection.fcl", "Collision data structures for attached body %s retrieved
         //        from the cache for
@@ -769,11 +770,11 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
       if (cache_it->second.unique())
       {
         // remove from old cache
-        FCLGeometryConstPtr obj_cache = cache_it->second;
+        HPPFCLGeometryConstPtr obj_cache = cache_it->second;
         othercache.map_.erase(cache_it);
 
         // update the CollisionGeometryData; nobody has a pointer to this, so we can safely modify it
-        const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, shape_index, true);
+        const_cast<HPPFCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, shape_index, true);
 
         //          ROS_DEBUG_NAMED("collision_detection.fcl", "Collision data structures for world object %s retrieved
         //          from the cache for
@@ -789,51 +790,51 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
     }
   }
 
-  fcl::CollisionGeometryd* cg_g = nullptr;
+  hpp::fcl::CollisionGeometryd* cg_g = nullptr;
   // handle cases individually
   switch (shape->type)
   {
     case shapes::PLANE:
     {
       const shapes::Plane* p = static_cast<const shapes::Plane*>(shape.get());
-      cg_g = new fcl::Planed(p->a, p->b, p->c, p->d);
+      cg_g = new hpp::fcl::Planed(p->a, p->b, p->c, p->d);
     }
     break;
     case shapes::SPHERE:
     {
       const shapes::Sphere* s = static_cast<const shapes::Sphere*>(shape.get());
-      cg_g = new fcl::Sphered(s->radius);
+      cg_g = new hpp::fcl::Sphered(s->radius);
     }
     break;
     case shapes::BOX:
     {
       const shapes::Box* s = static_cast<const shapes::Box*>(shape.get());
       const double* size = s->size;
-      cg_g = new fcl::Boxd(size[0], size[1], size[2]);
+      cg_g = new hpp::fcl::Boxd(size[0], size[1], size[2]);
     }
     break;
     case shapes::CYLINDER:
     {
       const shapes::Cylinder* s = static_cast<const shapes::Cylinder*>(shape.get());
-      cg_g = new fcl::Cylinderd(s->radius, s->length);
+      cg_g = new hpp::fcl::Cylinderd(s->radius, s->length);
     }
     break;
     case shapes::CONE:
     {
       const shapes::Cone* s = static_cast<const shapes::Cone*>(shape.get());
-      cg_g = new fcl::Coned(s->radius, s->length);
+      cg_g = new hpp::fcl::Coned(s->radius, s->length);
     }
     break;
     case shapes::MESH:
     {
-      auto g = new fcl::BVHModel<BV>();
+      auto g = new hpp::fcl::BVHModel<BV>();
       const shapes::Mesh* mesh = static_cast<const shapes::Mesh*>(shape.get());
       if (mesh->vertex_count > 0 && mesh->triangle_count > 0)
       {
-        std::vector<fcl::Triangle> tri_indices(mesh->triangle_count);
+        std::vector<hpp::fcl::Triangle> tri_indices(mesh->triangle_count);
         for (unsigned int i = 0; i < mesh->triangle_count; ++i)
           tri_indices[i] =
-              fcl::Triangle(mesh->triangles[3 * i], mesh->triangles[3 * i + 1], mesh->triangles[3 * i + 2]);
+              hpp::fcl::Triangle(mesh->triangles[3 * i], mesh->triangles[3 * i + 1], mesh->triangles[3 * i + 2]);
 
         std::vector<hpp::fcl::Vec3f> points(mesh->vertex_count);
         for (unsigned int i = 0; i < mesh->vertex_count; ++i)
@@ -849,7 +850,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
     case shapes::OCTREE:
     {
       const shapes::OcTree* g = static_cast<const shapes::OcTree*>(shape.get());
-      cg_g = new fcl::OcTreed(g->octree);
+      cg_g = new hpp::fcl::OcTreed(g->octree);
     }
     break;
     default:
@@ -861,36 +862,36 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
   if (cg_g)
   {
     cg_g->computeLocalAABB();
-    FCLGeometryConstPtr res(new FCLGeometry(cg_g, data, shape_index));
+    HPPFCLGeometryConstPtr res(new HPPFCLGeometry(cg_g, data, shape_index));
     cache.map_[wptr] = res;
     cache.bumpUseCount();
     return res;
   }
-  return FCLGeometryConstPtr();
+  return HPPFCLGeometryConstPtr();
 }
 
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const moveit::core::LinkModel* link,
-                                            int shape_index)
+HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const moveit::core::LinkModel* link,
+                                               int shape_index)
 {
-  return createCollisionGeometry<fcl::OBBRSSd, moveit::core::LinkModel>(shape, link, shape_index);
+  return createCollisionGeometry<hpp::fcl::OBBRSSd, moveit::core::LinkModel>(shape, link, shape_index);
 }
 
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const moveit::core::AttachedBody* ab,
-                                            int shape_index)
+HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const moveit::core::AttachedBody* ab,
+                                               int shape_index)
 {
-  return createCollisionGeometry<fcl::OBBRSSd, moveit::core::AttachedBody>(shape, ab, shape_index);
+  return createCollisionGeometry<hpp::fcl::OBBRSSd, moveit::core::AttachedBody>(shape, ab, shape_index);
 }
 
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const World::Object* obj)
+HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const World::Object* obj)
 {
-  return createCollisionGeometry<fcl::OBBRSSd, World::Object>(shape, obj, 0);
+  return createCollisionGeometry<hpp::fcl::OBBRSSd, World::Object>(shape, obj, 0);
 }
 
 /** \brief Templated helper function creating new collision geometry out of general object using an arbitrary bounding
  *  volume (BV). This can include padding and scaling. */
 template <typename BV, typename T>
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
-                                            const T* data, int shape_index)
+HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
+                                               const T* data, int shape_index)
 {
   if (fabs(scale - 1.0) <= std::numeric_limits<double>::epsilon() &&
       fabs(padding) <= std::numeric_limits<double>::epsilon())
@@ -903,31 +904,31 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
   }
 }
 
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
-                                            const moveit::core::LinkModel* link, int shape_index)
+HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
+                                               const moveit::core::LinkModel* link, int shape_index)
 {
-  return createCollisionGeometry<fcl::OBBRSSd, moveit::core::LinkModel>(shape, scale, padding, link, shape_index);
+  return createCollisionGeometry<hpp::fcl::OBBRSSd, moveit::core::LinkModel>(shape, scale, padding, link, shape_index);
 }
 
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
-                                            const moveit::core::AttachedBody* ab, int shape_index)
+HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
+                                               const moveit::core::AttachedBody* ab, int shape_index)
 {
-  return createCollisionGeometry<fcl::OBBRSSd, moveit::core::AttachedBody>(shape, scale, padding, ab, shape_index);
+  return createCollisionGeometry<hpp::fcl::OBBRSSd, moveit::core::AttachedBody>(shape, scale, padding, ab, shape_index);
 }
 
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
-                                            const World::Object* obj)
+HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
+                                               const World::Object* obj)
 {
-  return createCollisionGeometry<fcl::OBBRSSd, World::Object>(shape, scale, padding, obj, 0);
+  return createCollisionGeometry<hpp::fcl::OBBRSSd, World::Object>(shape, scale, padding, obj, 0);
 }
 
 void cleanCollisionGeometryCache()
 {
-  FCLShapeCache& cache1 = GetShapeCache<fcl::OBBRSSd, World::Object>();
+  FCLShapeCache& cache1 = GetShapeCache<hpp::fcl::OBBRSSd, World::Object>();
   {
     cache1.bumpUseCount(true);
   }
-  FCLShapeCache& cache2 = GetShapeCache<fcl::OBBRSSd, moveit::core::AttachedBody>();
+  FCLShapeCache& cache2 = GetShapeCache<hpp::fcl::OBBRSSd, moveit::core::AttachedBody>();
   {
     cache2.bumpUseCount(true);
   }
@@ -941,22 +942,22 @@ void CollisionData::enableGroup(const moveit::core::RobotModelConstPtr& robot_mo
     active_components_only_ = nullptr;
 }
 
-void FCLObject::registerTo(fcl::BroadPhaseCollisionManagerd* manager)
+void HPPFCLObject::registerTo(hpp::fcl::BroadPhaseCollisionManagerd* manager)
 {
-  std::vector<fcl::CollisionObjectd*> collision_objects(collision_objects_.size());
+  std::vector<hpp::fcl::CollisionObjectd*> collision_objects(collision_objects_.size());
   for (std::size_t i = 0; i < collision_objects_.size(); ++i)
     collision_objects[i] = collision_objects_[i].get();
   if (!collision_objects.empty())
     manager->registerObjects(collision_objects);
 }
 
-void FCLObject::unregisterFrom(fcl::BroadPhaseCollisionManagerd* manager)
+void HPPFCLObject::unregisterFrom(hpp::fcl::BroadPhaseCollisionManagerd* manager)
 {
   for (auto& collision_object : collision_objects_)
     manager->unregisterObject(collision_object.get());
 }
 
-void FCLObject::clear()
+void HPPFCLObject::clear()
 {
   collision_objects_.clear();
   collision_geometry_.clear();

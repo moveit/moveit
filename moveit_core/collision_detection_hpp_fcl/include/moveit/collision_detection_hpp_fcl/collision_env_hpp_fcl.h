@@ -105,7 +105,7 @@ protected:
                                  const moveit::core::RobotState& state, const AllowedCollisionMatrix* acm) const;
 
   /** \brief Construct an FCL collision object from MoveIt's World::Object. */
-  void constructFCLObjectWorld(const World::Object* obj, FCLObject& fcl_obj) const;
+  void constructFCLObjectWorld(const World::Object* obj, HPPFCLObject& fcl_obj) const;
 
   /** \brief Updates the specified object in \m fcl_objs_ and in the manager from new data available in the World.
    *
@@ -120,31 +120,31 @@ protected:
    *
    *   \param state The current robot state
    *   \param fcl_obj The newly filled object */
-  void constructFCLObjectRobot(const moveit::core::RobotState& state, FCLObject& fcl_obj) const;
+  void constructFCLObjectRobot(const moveit::core::RobotState& state, HPPFCLObject& fcl_obj) const;
 
   /** \brief Prepares for the collision check through constructing an FCL collision object out of the current robot
    *   state and specifying a broadphase collision manager of FCL where the constructed object is registered to. */
   void allocSelfCollisionBroadPhase(const moveit::core::RobotState& state, FCLManager& manager) const;
 
-  /** \brief Converts all shapes which make up an atttached body into a vector of FCLGeometryConstPtr.
+  /** \brief Converts all shapes which make up an atttached body into a vector of HPPFCLGeometryConstPtr.
    *
    *   When they are converted, they can be added to the FCL representation of the robot for collision checking.
    *
    *   \param ab Pointer to the attached body
    *   \param geoms Output vector of geometries
    */
-  void getAttachedBodyObjects(const moveit::core::AttachedBody* ab, std::vector<FCLGeometryConstPtr>& geoms) const;
+  void getAttachedBodyObjects(const moveit::core::AttachedBody* ab, std::vector<HPPFCLGeometryConstPtr>& geoms) const;
 
   /** \brief Vector of shared pointers to the FCL geometry for the objects in fcl_objs_. */
-  std::vector<FCLGeometryConstPtr> robot_geoms_;
+  std::vector<HPPFCLGeometryConstPtr> robot_geoms_;
 
   /** \brief Vector of shared pointers to the FCL collision objects which make up the robot */
-  std::vector<FCLCollisionObjectConstPtr> robot_fcl_objs_;
+  std::vector<HPPFCLCollisionObjectConstPtr> robot_fcl_objs_;
 
   /// FCL collision manager which handles the collision checking process
-  std::unique_ptr<fcl::BroadPhaseCollisionManagerd> manager_;
+  std::unique_ptr<hpp::fcl::BroadPhaseCollisionManagerd> manager_;
 
-  std::map<std::string, FCLObject> fcl_objs_;
+  std::map<std::string, HPPFCLObject> fcl_objs_;
 
 private:
   /** \brief Callback function executed for each change to the world environment */
