@@ -201,21 +201,21 @@ struct HPPFCLGeometry
   }
 
   /** \brief Constructor for a robot link. */
-  HPPFCLGeometry(hpp::fcl::CollisionGeometryd* collision_geometry, const moveit::core::LinkModel* link, int shape_index)
+  HPPFCLGeometry(hpp::fcl::CollisionGeometry* collision_geometry, const moveit::core::LinkModel* link, int shape_index)
     : collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(link, shape_index))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
   /** \brief Constructor for an attached body. */
-  HPPFCLGeometry(hpp::fcl::CollisionGeometryd* collision_geometry, const moveit::core::AttachedBody* ab, int shape_index)
+  HPPFCLGeometry(hpp::fcl::CollisionGeometry* collision_geometry, const moveit::core::AttachedBody* ab, int shape_index)
     : collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(ab, shape_index))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
   /** \brief Constructor for a world object. */
-  HPPFCLGeometry(hpp::fcl::CollisionGeometryd* collision_geometry, const World::Object* obj, int shape_index)
+  HPPFCLGeometry(hpp::fcl::CollisionGeometry* collision_geometry, const World::Object* obj, int shape_index)
     : collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(obj, shape_index))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
@@ -234,21 +234,21 @@ struct HPPFCLGeometry
   }
 
   /** \brief Pointer to FCL collision geometry. */
-  std::shared_ptr<hpp::fcl::CollisionGeometryd> collision_geometry_;
+  std::shared_ptr<hpp::fcl::CollisionGeometry> collision_geometry_;
 
   /** \brief Pointer to the user-defined geometry data. */
   CollisionGeometryDataPtr collision_geometry_data_;
 };
 
-typedef std::shared_ptr<hpp::fcl::CollisionObjectd> HPPFCLCollisionObjectPtr;
-typedef std::shared_ptr<const hpp::fcl::CollisionObjectd> HPPFCLCollisionObjectConstPtr;
+typedef std::shared_ptr<hpp::fcl::CollisionObject> HPPFCLCollisionObjectPtr;
+typedef std::shared_ptr<const hpp::fcl::CollisionObject> HPPFCLCollisionObjectConstPtr;
 
 /** \brief A general high-level object which consists of multiple \e FCLCollisionObjects. It is the top level data
  *  structure which is used in the collision checking process. */
 struct HPPFCLObject
 {
-  void registerTo(hpp::fcl::BroadPhaseCollisionManagerd* manager);
-  void unregisterFrom(hpp::fcl::BroadPhaseCollisionManagerd* manager);
+  void registerTo(hpp::fcl::BroadPhaseCollisionManager* manager);
+  void unregisterFrom(hpp::fcl::BroadPhaseCollisionManager* manager);
   void clear();
 
   std::vector<HPPFCLCollisionObjectPtr> collision_objects_;
@@ -261,7 +261,7 @@ struct HPPFCLObject
 struct FCLManager
 {
   HPPFCLObject object_;
-  std::shared_ptr<hpp::fcl::BroadPhaseCollisionManagerd> manager_;
+  std::shared_ptr<hpp::fcl::BroadPhaseCollisionManager> manager_;
 };
 
 /** \brief Callback function used by the FCLManager used for each pair of collision objects to
@@ -293,50 +293,46 @@ struct DistanceCallback : public hpp::fcl::DistanceCallBackBase
 };
 
 /** \brief Create new HPPFCLGeometry object out of robot link model. */
-HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const moveit::core::LinkModel* link,
-                                               int shape_index);
+HPPFCLGeometryConstPtr createCollisionGeometryHppFcl(const shapes::ShapeConstPtr& shape,
+                                                     const moveit::core::LinkModel* link, int shape_index);
 
 /** \brief Create new HPPFCLGeometry object out of attached body. */
-HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const moveit::core::AttachedBody* ab,
-                                               int shape_index);
+HPPFCLGeometryConstPtr createCollisionGeometryHppFcl(const shapes::ShapeConstPtr& shape,
+                                                     const moveit::core::AttachedBody* ab, int shape_index);
 
 /** \brief Create new HPPFCLGeometry object out of a world object.
  *
  *  A world object always consists only of a single shape, therefore we don't need the \e shape_index. */
-HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const World::Object* obj);
+HPPFCLGeometryConstPtr createCollisionGeometryHppFcl(const shapes::ShapeConstPtr& shape, const World::Object* obj);
 
 /** \brief Create new scaled and / or padded HPPFCLGeometry object out of robot link model. */
-HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
-                                               const moveit::core::LinkModel* link, int shape_index);
+HPPFCLGeometryConstPtr createCollisionGeometryHppFcl(const shapes::ShapeConstPtr& shape, double scale, double padding,
+                                                     const moveit::core::LinkModel* link, int shape_index);
 
 /** \brief Create new scaled and / or padded HPPFCLGeometry object out of an attached body. */
-HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
-                                               const moveit::core::AttachedBody* ab, int shape_index);
+HPPFCLGeometryConstPtr createCollisionGeometryHppFcl(const shapes::ShapeConstPtr& shape, double scale, double padding,
+                                                     const moveit::core::AttachedBody* ab, int shape_index);
 
 /** \brief Create new scaled and / or padded HPPFCLGeometry object out of an world object. */
-HPPFCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
-                                               const World::Object* obj);
+HPPFCLGeometryConstPtr createCollisionGeometryHppFcl(const shapes::ShapeConstPtr& shape, double scale, double padding,
+                                                     const World::Object* obj);
 
 /** \brief Increases the counter of the caches which can trigger the cleaning of expired entries from them. */
 void cleanCollisionGeometryCache();
 
 /** \brief Transforms an Eigen Isometry3d to FCL coordinate transformation */
-inline void transform2fcl(const Eigen::Isometry3d& b, hpp::fcl::Transform3d& f)
+inline void transform2fcl(const Eigen::Isometry3d& b, hpp::fcl::Transform3f& f)
 {
   ASSERT_ISOMETRY(b);
-#if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
-  f = b.matrix();
-#else
   Eigen::Quaterniond q(b.linear());
   f.setTranslation(hpp::fcl::Vec3f(b.translation().x(), b.translation().y(), b.translation().z()));
   f.setQuatRotation(hpp::fcl::Quaternion3f(q.w(), q.x(), q.y(), q.z()));
-#endif
 }
 
 /** \brief Transforms an Eigen Isometry3d to FCL coordinate transformation */
-inline hpp::fcl::Transform3d transform2fcl(const Eigen::Isometry3d& b)
+inline hpp::fcl::Transform3f transform2fcl(const Eigen::Isometry3d& b)
 {
-  hpp::fcl::Transform3d t;
+  hpp::fcl::Transform3f t;
   transform2fcl(b, t);
   return t;
 }

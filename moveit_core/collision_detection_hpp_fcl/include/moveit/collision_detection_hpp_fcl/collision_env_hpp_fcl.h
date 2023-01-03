@@ -142,7 +142,7 @@ protected:
   std::vector<HPPFCLCollisionObjectConstPtr> robot_fcl_objs_;
 
   /// FCL collision manager which handles the collision checking process
-  std::unique_ptr<hpp::fcl::BroadPhaseCollisionManagerd> manager_;
+  std::unique_ptr<hpp::fcl::BroadPhaseCollisionManager> manager_;
 
   std::map<std::string, HPPFCLObject> fcl_objs_;
 

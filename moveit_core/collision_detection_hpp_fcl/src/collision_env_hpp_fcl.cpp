@@ -67,7 +67,7 @@ CollisionEnvHPPFCL::CollisionEnvHPPFCL(const moveit::core::RobotModelConstPtr& m
   for (auto link : links)
     for (std::size_t j = 0; j < link->getShapes().size(); ++j)
     {
-      HPPFCLGeometryConstPtr link_geometry = createCollisionGeometry(
+      HPPFCLGeometryConstPtr link_geometry = createCollisionGeometryHppFcl(
           link->getShapes()[j], getLinkScale(link->getName()), getLinkPadding(link->getName()), link, j);
       if (link_geometry)
       {
@@ -79,7 +79,7 @@ CollisionEnvHPPFCL::CollisionEnvHPPFCL(const moveit::core::RobotModelConstPtr& m
         // very expensive and should only be calculated once. To update the AABB, use the
         // collObj->setTransform and then call collObj->computeAABB() to transform the AABB.
         robot_fcl_objs_[index] =
-            HPPFCLCollisionObjectConstPtr(new hpp::fcl::CollisionObjectd(link_geometry->collision_geometry_));
+            HPPFCLCollisionObjectConstPtr(new hpp::fcl::CollisionObject(link_geometry->collision_geometry_));
       }
       else
         ROS_ERROR_NAMED(LOGNAME, "Unable to construct collision geometry for link '%s'", link->getName().c_str());
@@ -104,24 +104,25 @@ CollisionEnvHPPFCL::CollisionEnvHPPFCL(const moveit::core::RobotModelConstPtr& m
   for (auto link : links)
     for (std::size_t j = 0; j < link->getShapes().size(); ++j)
     {
-      HPPFCLGeometryConstPtr g = createCollisionGeometry(link->getShapes()[j], getLinkScale(link->getName()),
-                                                         getLinkPadding(link->getName()), link, j);
+      HPPFCLGeometryConstPtr g = createCollisionGeometryHppFcl(link->getShapes()[j], getLinkScale(link->getName()),
+                                                               getLinkPadding(link->getName()), link, j);
       if (g)
       {
         index = link->getFirstCollisionBodyTransformIndex() + j;
+        ROS_ERROR_STREAM("link i " << index << " j " << j);
         robot_geoms_[index] = g;
 
         // Need to store the FCL object so the AABB does not get recreated every time.
         // Every time this object is created, g->computeLocalAABB() is called  which is
         // very expensive and should only be calculated once. To update the AABB, use the
         // collObj->setTransform and then call collObj->computeAABB() to transform the AABB.
-        robot_fcl_objs_[index] = HPPFCLCollisionObjectConstPtr(new hpp::fcl::CollisionObjectd(g->collision_geometry_));
+        robot_fcl_objs_[index] = HPPFCLCollisionObjectConstPtr(new hpp::fcl::CollisionObject(g->collision_geometry_));
       }
       else
         ROS_ERROR_NAMED(LOGNAME, "Unable to construct collision geometry for link '%s'", link->getName().c_str());
     }
 
-  manager_ = std::make_unique<hpp::fcl::DynamicAABBTreeCollisionManagerd>();
+  manager_ = std::make_unique<hpp::fcl::DynamicAABBTreeCollisionManager>();
 
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(
@@ -140,7 +141,7 @@ CollisionEnvHPPFCL::CollisionEnvHPPFCL(const CollisionEnvHPPFCL& other, const Wo
   robot_geoms_ = other.robot_geoms_;
   robot_fcl_objs_ = other.robot_fcl_objs_;
 
-  manager_ = std::make_unique<hpp::fcl::DynamicAABBTreeCollisionManagerd>();
+  manager_ = std::make_unique<hpp::fcl::DynamicAABBTreeCollisionManager>();
 
   fcl_objs_ = other.fcl_objs_;
   for (auto& fcl_obj : fcl_objs_)
@@ -160,8 +161,8 @@ void CollisionEnvHPPFCL::getAttachedBodyObjects(const moveit::core::AttachedBody
   geoms.reserve(num_shapes);
   for (std::size_t i = 0; i < num_shapes; ++i)
   {
-    HPPFCLGeometryConstPtr co = createCollisionGeometry(shapes[i], getLinkScale(ab->getAttachedLinkName()),
-                                                        getLinkPadding(ab->getAttachedLinkName()), ab, i);
+    HPPFCLGeometryConstPtr co = createCollisionGeometryHppFcl(shapes[i], getLinkScale(ab->getAttachedLinkName()),
+                                                              getLinkPadding(ab->getAttachedLinkName()), ab, i);
     if (co)
       geoms.push_back(co);
   }
@@ -171,10 +172,10 @@ void CollisionEnvHPPFCL::constructFCLObjectWorld(const World::Object* obj, HPPFC
 {
   for (std::size_t i = 0; i < obj->shapes_.size(); ++i)
   {
-    HPPFCLGeometryConstPtr g = createCollisionGeometry(obj->shapes_[i], obj);
+    HPPFCLGeometryConstPtr g = createCollisionGeometryHppFcl(obj->shapes_[i], obj);
     if (g)
     {
-      auto co = new hpp::fcl::CollisionObjectd(g->collision_geometry_, transform2fcl(obj->global_shape_poses_[i]));
+      auto co = new hpp::fcl::CollisionObject(g->collision_geometry_, transform2fcl(obj->global_shape_poses_[i]));
       fcl_obj.collision_objects_.push_back(HPPFCLCollisionObjectPtr(co));
       fcl_obj.collision_geometry_.push_back(g);
     }
@@ -184,7 +185,7 @@ void CollisionEnvHPPFCL::constructFCLObjectWorld(const World::Object* obj, HPPFC
 void CollisionEnvHPPFCL::constructFCLObjectRobot(const moveit::core::RobotState& state, HPPFCLObject& fcl_obj) const
 {
   fcl_obj.collision_objects_.reserve(robot_geoms_.size());
-  hpp::fcl::Transform3d fcl_tf;
+  hpp::fcl::Transform3f fcl_tf;
 
   for (std::size_t i = 0; i < robot_geoms_.size(); ++i)
     if (robot_geoms_[i] && robot_geoms_[i]->collision_geometry_)
@@ -192,7 +193,7 @@ void CollisionEnvHPPFCL::constructFCLObjectRobot(const moveit::core::RobotState&
       transform2fcl(state.getCollisionBodyTransform(robot_geoms_[i]->collision_geometry_data_->ptr.link,
                                                     robot_geoms_[i]->collision_geometry_data_->shape_index),
                     fcl_tf);
-      auto coll_obj = new hpp::fcl::CollisionObjectd(*robot_fcl_objs_[i]);
+      auto coll_obj = new hpp::fcl::CollisionObject(*robot_fcl_objs_[i]);
       coll_obj->setTransform(fcl_tf);
       coll_obj->computeAABB();
       fcl_obj.collision_objects_.push_back(HPPFCLCollisionObjectPtr(coll_obj));
@@ -211,7 +212,7 @@ void CollisionEnvHPPFCL::constructFCLObjectRobot(const moveit::core::RobotState&
       {
         transform2fcl(ab_t[k], fcl_tf);
         fcl_obj.collision_objects_.push_back(
-            std::make_shared<hpp::fcl::CollisionObjectd>(objs[k]->collision_geometry_, fcl_tf));
+            std::make_shared<hpp::fcl::CollisionObject>(objs[k]->collision_geometry_, fcl_tf));
         // we copy the shared ptr to the CollisionGeometryData, as this is not stored by the class itself,
         // and would be destroyed when objs goes out of scope.
         fcl_obj.collision_geometry_.push_back(objs[k]);
@@ -221,7 +222,7 @@ void CollisionEnvHPPFCL::constructFCLObjectRobot(const moveit::core::RobotState&
 
 void CollisionEnvHPPFCL::allocSelfCollisionBroadPhase(const moveit::core::RobotState& state, FCLManager& manager) const
 {
-  manager.manager_ = std::make_unique<hpp::fcl::DynamicAABBTreeCollisionManagerd>();
+  manager.manager_ = std::make_unique<hpp::fcl::DynamicAABBTreeCollisionManager>();
 
   constructFCLObjectRobot(state, manager.object_);
   manager.object_.registerTo(manager.manager_.get());
@@ -438,14 +439,13 @@ void CollisionEnvHPPFCL::updatedPaddingOrScaling(const std::vector<std::string>&
     {
       for (std::size_t j = 0; j < lmodel->getShapes().size(); ++j)
       {
-        HPPFCLGeometryConstPtr g = createCollisionGeometry(lmodel->getShapes()[j], getLinkScale(lmodel->getName()),
-                                                           getLinkPadding(lmodel->getName()), lmodel, j);
+        HPPFCLGeometryConstPtr g = createCollisionGeometryHppFcl(
+            lmodel->getShapes()[j], getLinkScale(lmodel->getName()), getLinkPadding(lmodel->getName()), lmodel, j);
         if (g)
         {
           index = lmodel->getFirstCollisionBodyTransformIndex() + j;
           robot_geoms_[index] = g;
-          robot_fcl_objs_[index] =
-              HPPFCLCollisionObjectConstPtr(new hpp::fcl::CollisionObjectd(g->collision_geometry_));
+          robot_fcl_objs_[index] = HPPFCLCollisionObjectConstPtr(new hpp::fcl::CollisionObject(g->collision_geometry_));
         }
       }
     }
