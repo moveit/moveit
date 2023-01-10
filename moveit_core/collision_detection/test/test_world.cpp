@@ -39,9 +39,11 @@
 #include <geometric_shapes/shapes.h>
 #include <functional>
 
+using namespace collision_detection;
+
 TEST(World, AddRemoveShape)
 {
-  collision_detection::World world;
+  World world;
 
   // Create some shapes
   shapes::ShapePtr ball(new shapes::Sphere(1.0));
@@ -138,7 +140,7 @@ TEST(World, AddRemoveShape)
   EXPECT_EQ(3u, world.size());
 
   {
-    collision_detection::World::ObjectConstPtr obj = world.getObject("mix1");
+    World::ObjectConstPtr obj = world.getObject("mix1");
     EXPECT_EQ(2, obj.use_count());
 
     ASSERT_EQ(2u, obj->shapes_.size());
@@ -151,7 +153,7 @@ TEST(World, AddRemoveShape)
     move_ok = world.moveShapeInObject("mix1", ball, Eigen::Isometry3d(Eigen::Translation3d(0, 0, 5)));
     EXPECT_TRUE(move_ok);
 
-    collision_detection::World::ObjectConstPtr obj2 = world.getObject("mix1");
+    World::ObjectConstPtr obj2 = world.getObject("mix1");
     EXPECT_EQ(2, obj2.use_count());
     EXPECT_EQ(1, obj.use_count());
 
@@ -179,7 +181,7 @@ TEST(World, AddRemoveShape)
     EXPECT_TRUE(world.hasObject("ball2"));
 
     // ask for nonexistant object
-    collision_detection::World::ObjectConstPtr obj3 = world.getObject("abc");
+    World::ObjectConstPtr obj3 = world.getObject("abc");
     EXPECT_FALSE(obj3);
   }
 
@@ -205,8 +207,8 @@ TEST(World, AddRemoveShape)
 /* structure to hold copy of callback args */
 struct TestAction
 {
-  collision_detection::World::Object obj_;
-  collision_detection::World::Action action_;
+  World::Object obj_;
+  World::Action action_;
   int cnt_;
   TestAction() : obj_(""), cnt_(0)
   {
@@ -222,21 +224,22 @@ struct TestAction
 };
 
 /* notification callback */
-static void TrackChangesNotify(TestAction* ta, const collision_detection::World::ObjectConstPtr& obj,
-                               collision_detection::World::Action action)
+static void TrackChangesNotify(TestAction& ta, const World::ObjectConstPtr& obj, World::Action action)
 {
-  ta->obj_ = *obj;
-  ta->action_ = action;
-  ta->cnt_++;
+  ta.obj_ = *obj;
+  ta.action_ = action;
+  ta.cnt_++;
 }
 
 TEST(World, TrackChanges)
 {
-  collision_detection::World world;
+  World world;
 
   TestAction ta;
-  collision_detection::World::ObserverHandle observer_ta;
-  observer_ta = world.addObserver(std::bind(TrackChangesNotify, &ta, std::placeholders::_1, std::placeholders::_2));
+  World::ObserverHandle observer_ta;
+  observer_ta = world.addObserver([&ta](const World::ObjectConstPtr& object, World::Action action) {
+    return TrackChangesNotify(ta, object, action);
+  });
 
   // Create some shapes
   shapes::ShapePtr ball(new shapes::Sphere(1.0));
@@ -247,7 +250,7 @@ TEST(World, TrackChanges)
 
   EXPECT_EQ(1, ta.cnt_);
   EXPECT_EQ("obj1", ta.obj_.id_);
-  EXPECT_EQ(collision_detection::World::CREATE | collision_detection::World::ADD_SHAPE, ta.action_);
+  EXPECT_EQ(World::CREATE | World::ADD_SHAPE, ta.action_);
   ta.reset();
 
   bool move_ok = world.moveShapeInObject("obj1", ball, Eigen::Isometry3d(Eigen::Translation3d(0, 0, 1)));
@@ -255,40 +258,42 @@ TEST(World, TrackChanges)
 
   EXPECT_EQ(2, ta.cnt_);
   EXPECT_EQ("obj1", ta.obj_.id_);
-  EXPECT_EQ(collision_detection::World::MOVE_SHAPE, ta.action_);
+  EXPECT_EQ(World::MOVE_SHAPE, ta.action_);
   ta.reset();
 
   world.addToObject("obj1", box, Eigen::Isometry3d::Identity());
 
   EXPECT_EQ(3, ta.cnt_);
   EXPECT_EQ("obj1", ta.obj_.id_);
-  EXPECT_EQ(collision_detection::World::ADD_SHAPE, ta.action_);
+  EXPECT_EQ(World::ADD_SHAPE, ta.action_);
   ta.reset();
 
   TestAction ta2;
-  collision_detection::World::ObserverHandle observer_ta2;
-  observer_ta2 = world.addObserver(std::bind(TrackChangesNotify, &ta2, std::placeholders::_1, std::placeholders::_2));
+  World::ObserverHandle observer_ta2;
+  observer_ta2 = world.addObserver([&ta2](const World::ObjectConstPtr& object, World::Action action) {
+    return TrackChangesNotify(ta2, object, action);
+  });
 
   world.addToObject("obj2", cyl, Eigen::Isometry3d::Identity());
 
   EXPECT_EQ(4, ta.cnt_);
   EXPECT_EQ("obj2", ta.obj_.id_);
-  EXPECT_EQ(collision_detection::World::CREATE | collision_detection::World::ADD_SHAPE, ta.action_);
+  EXPECT_EQ(World::CREATE | World::ADD_SHAPE, ta.action_);
   ta.reset();
   EXPECT_EQ(1, ta2.cnt_);
   EXPECT_EQ("obj2", ta2.obj_.id_);
-  EXPECT_EQ(collision_detection::World::CREATE | collision_detection::World::ADD_SHAPE, ta2.action_);
+  EXPECT_EQ(World::CREATE | World::ADD_SHAPE, ta2.action_);
   ta2.reset();
 
   world.addToObject("obj3", box, Eigen::Isometry3d::Identity());
 
   EXPECT_EQ(5, ta.cnt_);
   EXPECT_EQ("obj3", ta.obj_.id_);
-  EXPECT_EQ(collision_detection::World::CREATE | collision_detection::World::ADD_SHAPE, ta.action_);
+  EXPECT_EQ(World::CREATE | World::ADD_SHAPE, ta.action_);
   ta.reset();
   EXPECT_EQ(2, ta2.cnt_);
   EXPECT_EQ("obj3", ta2.obj_.id_);
-  EXPECT_EQ(collision_detection::World::CREATE | collision_detection::World::ADD_SHAPE, ta2.action_);
+  EXPECT_EQ(World::CREATE | World::ADD_SHAPE, ta2.action_);
   ta2.reset();
 
   // remove nonexistent obj
@@ -304,23 +309,25 @@ TEST(World, TrackChanges)
   EXPECT_EQ(2, ta2.cnt_);
 
   TestAction ta3;
-  collision_detection::World::ObserverHandle observer_ta3;
-  observer_ta3 = world.addObserver(std::bind(TrackChangesNotify, &ta3, std::placeholders::_1, std::placeholders::_2));
+  World::ObserverHandle observer_ta3;
+  observer_ta3 = world.addObserver([&ta3](const World::ObjectConstPtr& object, World::Action action) {
+    return TrackChangesNotify(ta3, object, action);
+  });
 
   bool rm_good = world.removeShapeFromObject("obj2", cyl);
   EXPECT_TRUE(rm_good);
 
   EXPECT_EQ(6, ta.cnt_);
   EXPECT_EQ("obj2", ta.obj_.id_);
-  EXPECT_EQ(collision_detection::World::DESTROY, ta.action_);
+  EXPECT_EQ(World::DESTROY, ta.action_);
   ta.reset();
   EXPECT_EQ(3, ta2.cnt_);
   EXPECT_EQ("obj2", ta2.obj_.id_);
-  EXPECT_EQ(collision_detection::World::DESTROY, ta2.action_);
+  EXPECT_EQ(World::DESTROY, ta2.action_);
   ta2.reset();
   EXPECT_EQ(1, ta3.cnt_);
   EXPECT_EQ("obj2", ta3.obj_.id_);
-  EXPECT_EQ(collision_detection::World::DESTROY, ta3.action_);
+  EXPECT_EQ(World::DESTROY, ta3.action_);
   ta3.reset();
 
   world.removeObserver(observer_ta2);
@@ -330,25 +337,25 @@ TEST(World, TrackChanges)
 
   EXPECT_EQ(7, ta.cnt_);
   EXPECT_EQ("obj1", ta.obj_.id_);
-  EXPECT_EQ(collision_detection::World::REMOVE_SHAPE, ta.action_);
+  EXPECT_EQ(World::REMOVE_SHAPE, ta.action_);
   ta.reset();
   EXPECT_EQ(3, ta2.cnt_);
 
   EXPECT_EQ(2, ta3.cnt_);
   EXPECT_EQ("obj1", ta3.obj_.id_);
-  EXPECT_EQ(collision_detection::World::REMOVE_SHAPE, ta3.action_);
+  EXPECT_EQ(World::REMOVE_SHAPE, ta3.action_);
   ta3.reset();
 
   // remove all 2 objects (should make 2 DESTROY callbacks per ta)
   world.clearObjects();
 
   EXPECT_EQ(9, ta.cnt_);
-  EXPECT_EQ(collision_detection::World::DESTROY, ta.action_);
+  EXPECT_EQ(World::DESTROY, ta.action_);
   ta.reset();
   EXPECT_EQ(3, ta2.cnt_);
 
   EXPECT_EQ(4, ta3.cnt_);
-  EXPECT_EQ(collision_detection::World::DESTROY, ta3.action_);
+  EXPECT_EQ(World::DESTROY, ta3.action_);
   ta3.reset();
 
   world.removeObserver(observer_ta);
@@ -367,11 +374,13 @@ TEST(World, TrackChanges)
 
 TEST(World, ObjectPoseAndSubframes)
 {
-  collision_detection::World world;
+  World world;
 
   TestAction ta;
-  collision_detection::World::ObserverHandle observer_ta;
-  observer_ta = world.addObserver(std::bind(TrackChangesNotify, &ta, std::placeholders::_1, std::placeholders::_2));
+  World::ObserverHandle observer_ta;
+  observer_ta = world.addObserver([&ta](const World::ObjectConstPtr& object, World::Action action) {
+    return TrackChangesNotify(ta, object, action);
+  });
 
   // Create shapes
   shapes::ShapePtr ball(new shapes::Sphere(1.0));
@@ -383,7 +392,7 @@ TEST(World, ObjectPoseAndSubframes)
 
   EXPECT_EQ(1, ta.cnt_);
   EXPECT_EQ("mix1", ta.obj_.id_);
-  EXPECT_EQ(collision_detection::World::CREATE, ta.action_);
+  EXPECT_EQ(World::CREATE, ta.action_);
 
   // Move multi-shape objects, use object pose, use subframes
   world.addToObject("mix1", box, Eigen::Isometry3d::Identity());
@@ -424,7 +433,7 @@ TEST(World, ObjectPoseAndSubframes)
   EXPECT_TRUE(found_ok);
   EXPECT_EQ(1.0, pose(2, 3));  // z
 
-  collision_detection::World::ObjectConstPtr obj = world.getObject("mix1");
+  World::ObjectConstPtr obj = world.getObject("mix1");
   EXPECT_EQ(0.0, obj->shape_poses_[0](2, 3));  // Internal shape poses do *not* change
   EXPECT_EQ(2.0, obj->shape_poses_[1](2, 3));
 

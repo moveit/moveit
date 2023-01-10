@@ -140,10 +140,8 @@ public:
     }
 
     controller_action_client_->sendGoal(
-        goal,
-        std::bind(&GripperControllerHandle::controllerDoneCallback, this, std::placeholders::_1, std::placeholders::_2),
-        std::bind(&GripperControllerHandle::controllerActiveCallback, this),
-        std::bind(&GripperControllerHandle::controllerFeedbackCallback, this, std::placeholders::_1));
+        goal, [this](const auto& state, const auto& result) { controllerDoneCallback(state, result); },
+        [this] { controllerActiveCallback(); }, [this](const auto& feedback) { controllerFeedbackCallback(feedback); });
 
     done_ = false;
     last_exec_ = moveit_controller_manager::ExecutionStatus::RUNNING;

@@ -969,6 +969,9 @@ This is usually achieved by random seeding, which can flip the robot configurati
               <property name="editTriggers">
                <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
               </property>
+              <property name="selectionMode">
+               <enum>QAbstractItemView::ExtendedSelection</enum>
+              </property>
              </widget>
             </item>
            </layout>

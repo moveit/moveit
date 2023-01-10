@@ -2,6 +2,40 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2022-12-21)
+-------------------
+* Backport ruckig trajectory_processing plugin (`#2902 <https://github.com/ros-planning/moveit/issues/2902>`_)
+* Allow planning with multiple pipelines in parallel with moveit_cpp (`#3244 <https://github.com/ros-planning/moveit/issues/3244>`_)
+* Merge PR `#3262 <https://github.com/ros-planning/moveit/issues/3262>`_: Short-circuit planning adapters
+
+  - Early return from failing planning adapters, namely FixStartStateCollision and FixStartStatePathConstraint
+  - Propagate the error code via `MotionPlanResponse::error_code\_`
+  - Add string translations for all error codes
+* Cleanup translation of MoveItErrorCode to string
+
+  - Move default code to moveit_core/utils
+  - Override defaults in existing getActionResultString()
+  - Provide translations for all error codes defined in moveit_msgs
+* Short-circuit planning request adapters
+* Contributors: Robert Haschke, Simon Schmeisser
+
+1.1.10 (2022-09-13)
+-------------------
+* Limit Cartesian speed for link(s) (`#2856 <https://github.com/ros-planning/moveit/issues/2856>`_)
+* trajectory execution manager: reactivate tests (`#3177 <https://github.com/ros-planning/moveit/issues/3177>`_)
+* Clean up TrajectoryExecutionManager API (`#3178 <https://github.com/ros-planning/moveit/issues/3178>`_)
+* MoveItCpp: Allow multiple pipelines (`#3131 <https://github.com/ros-planning/moveit/issues/3131>`_)
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Contributors: Jochen Sprickerhof, Michael Görner, Robert Haschke, cambel, v4hn
+
+1.1.9 (2022-03-06)
+------------------
+
+1.1.8 (2022-01-30)
+------------------
+* Fix deprecation warning in moveit_cpp (`#3019 <https://github.com/ros-planning/moveit/issues/3019>`_)
+* Contributors: Jeroen
+
 1.1.7 (2021-12-31)
 ------------------
 * Move ``MoveItErrorCode`` class to ``moveit_core`` (`#3009 <https://github.com/ros-planning/moveit/issues/3009>`_)

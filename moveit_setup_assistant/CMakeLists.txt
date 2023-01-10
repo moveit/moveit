@@ -81,9 +81,11 @@ set(HEADERS
 add_library(${PROJECT_NAME}_tools
   src/tools/compute_default_collisions.cpp
   src/tools/moveit_config_data.cpp
+  src/tools/xml_manipulation.cpp
   src/tools/collision_linear_model.cpp
   src/tools/collision_matrix_model.cpp
   src/tools/rotated_header_view.cpp
+  src/tools/xml_syntax_highlighter.cpp
 )
 set_target_properties(${PROJECT_NAME}_tools PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(${PROJECT_NAME}_tools

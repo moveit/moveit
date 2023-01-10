@@ -37,7 +37,6 @@
 #include <moveit/ompl_interface/ompl_interface.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/kinematic_constraints/utils.h>
-#include <moveit/ompl_interface/detail/constrained_valid_state_sampler.h>
 #include <moveit/profiler/profiler.h>
 #include <moveit/utils/lexical_casts.h>
 #include <fstream>

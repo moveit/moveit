@@ -53,14 +53,14 @@ namespace moveit_rviz_plugin
 void MotionPlanningFrame::planButtonClicked()
 {
   publishSceneIfNeeded();
-  planning_display_->addBackgroundJob(std::bind(&MotionPlanningFrame::computePlanButtonClicked, this), "compute plan");
+  planning_display_->addBackgroundJob([this] { computePlanButtonClicked(); }, "compute plan");
 }
 
 void MotionPlanningFrame::executeButtonClicked()
 {
   ui_->execute_button->setEnabled(false);
   // execution is done in a separate thread, to not block other background jobs by blocking for synchronous execution
-  planning_display_->spawnBackgroundJob(std::bind(&MotionPlanningFrame::computeExecuteButtonClicked, this));
+  planning_display_->spawnBackgroundJob([this] { computeExecuteButtonClicked(); });
 }
 
 void MotionPlanningFrame::planAndExecuteButtonClicked()
@@ -69,13 +69,13 @@ void MotionPlanningFrame::planAndExecuteButtonClicked()
   ui_->plan_and_execute_button->setEnabled(false);
   ui_->execute_button->setEnabled(false);
   // execution is done in a separate thread, to not block other background jobs by blocking for synchronous execution
-  planning_display_->spawnBackgroundJob(std::bind(&MotionPlanningFrame::computePlanAndExecuteButtonClicked, this));
+  planning_display_->spawnBackgroundJob([this] { computePlanAndExecuteButtonClicked(); });
 }
 
 void MotionPlanningFrame::stopButtonClicked()
 {
   ui_->stop_button->setEnabled(false);  // avoid clicking again
-  planning_display_->addBackgroundJob(std::bind(&MotionPlanningFrame::computeStopButtonClicked, this), "stop");
+  planning_display_->addBackgroundJob([this] { computeStopButtonClicked(); }, "stop");
 }
 
 void MotionPlanningFrame::allowReplanningToggled(bool checked)
@@ -181,7 +181,11 @@ void MotionPlanningFrame::computePlanButtonClicked()
 
   if (success)
   {
-    ui_->execute_button->setEnabled(true);
+    moveit::core::RobotState start_state(planning_display_->getRobotModel());
+    moveit::core::RobotState current_state(planning_display_->getPlanningSceneRO()->getCurrentState());
+    moveit::core::robotStateMsgToRobotState(current_plan_->start_state_, start_state, true);
+    if (moveit::core::haveSameAttachedObjects(start_state, current_state))
+      ui_->execute_button->setEnabled(true);
     ui_->result_label->setText(QString("Time: ").append(QString::number(current_plan_->planning_time_, 'f', 3)));
   }
   else
@@ -206,13 +210,15 @@ void MotionPlanningFrame::computeExecuteButtonClicked()
 
 void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
 {
-  if (!move_group_)
+  // ensures the MoveGroupInterface is not destroyed while executing
+  moveit::planning_interface::MoveGroupInterfacePtr mgi(move_group_);
+  if (!mgi)
     return;
   configureForPlanning();
   planning_display_->rememberPreviousStartState();
   // move_group::move() on the server side, will always start from the current state
   // to suppress a warning, we pass an empty state (which encodes "start from current state")
-  move_group_->setStartStateToCurrentState();
+  mgi->setStartStateToCurrentState();
   ui_->stop_button->setEnabled(true);
   if (ui_->use_cartesian_path->isEnabled() && ui_->use_cartesian_path->checkState())
   {
@@ -221,7 +227,7 @@ void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
   }
   else
   {
-    bool success = move_group_->move() == moveit::core::MoveItErrorCode::SUCCESS;
+    bool success = mgi->move() == moveit::core::MoveItErrorCode::SUCCESS;
     onFinishedExecution(success);
   }
   ui_->plan_and_execute_button->setEnabled(true);
@@ -268,8 +274,7 @@ void MotionPlanningFrame::onNewPlanningSceneState()
 void MotionPlanningFrame::startStateTextChanged(const QString& start_state)
 {
   // use background job: fetching the current state might take up to a second
-  planning_display_->addBackgroundJob(std::bind(&MotionPlanningFrame::startStateTextChangedExec, this,
-                                                start_state.toStdString()),
+  planning_display_->addBackgroundJob([this, state = start_state.toStdString()] { startStateTextChangedExec(state); },
                                       "update start state");
 }
 
@@ -283,8 +288,8 @@ void MotionPlanningFrame::startStateTextChangedExec(const std::string& start_sta
 void MotionPlanningFrame::goalStateTextChanged(const QString& goal_state)
 {
   // use background job: fetching the current state might take up to a second
-  planning_display_->addBackgroundJob(
-      std::bind(&MotionPlanningFrame::goalStateTextChangedExec, this, goal_state.toStdString()), "update goal state");
+  planning_display_->addBackgroundJob([this, state = goal_state.toStdString()] { goalStateTextChangedExec(state); },
+                                      "update goal state");
 }
 
 void MotionPlanningFrame::goalStateTextChangedExec(const std::string& goal_state)

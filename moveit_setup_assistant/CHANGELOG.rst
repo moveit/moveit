@@ -2,6 +2,60 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2022-12-21)
+-------------------
+* MSA: Cleanup SimulationWidget (`#3281 <https://github.com/ros-planning/moveit/issues/3281>`_)
+
+  * Don't rewrite ``gazebo.launch`` after user changes
+  * Only offer to write ``gazebo\_*.urdf`` if content would be non-empty
+  * Clarify usage
+  * Graceful opening of editor
+  * Disable "overwrite" button if there are no changes
+  * If overwriting fails: ``write gazebo\_*.urdf`` as fallback
+* Remove capabilities declaration from pipeline configs (`#3274 <https://github.com/ros-planning/moveit/issues/3274>`_)
+
+  Capabilities are global to the ``move_group`` node and not specific to pipleline configs.
+  As the latter ones load their parameters into a namespace, e.g. ``/move_group/planning_pipelines/ompl/*``,
+  loading a capability as suggested by the comments, didn't have any effect.
+* Expose ``world_name`` and ``world_pose`` args in ``*gazebo.launch`` (`#3238 <https://github.com/ros-planning/moveit/issues/3238>`_)
+* run-depend on all default MoveIt planners
+* Start ``robot_state_publisher`` in ``gazebo.launch`` (`#3236 <https://github.com/ros-planning/moveit/issues/3236>`_)
+* Generalize sizing of joint list widgets (`#3219 <https://github.com/ros-planning/moveit/issues/3219>`_)
+* Contributors: Robert Haschke, Robert Kampf
+
+1.1.10 (2022-09-13)
+-------------------
+* Limit Cartesian speed for link(s) (`#2856 <https://github.com/ros-planning/moveit/issues/2856>`_)
+* MSA templates: replace hard-coded package name
+* Extended ACM editing in MSA (`#3093 <https://github.com/ros-planning/moveit/issues/3093>`_)
+
+  * Allow disabling/enabling links by default
+  * Use matrix view by default
+* Optionally enable dynamics monitoring in move_group node (`#3137 <https://github.com/ros-planning/moveit/issues/3137>`_)
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Improve Gazebo-compatible URDF generation in MSA (`#3081 <https://github.com/ros-planning/moveit/issues/3081>`_)
+* Contributors: AM4283, Michael Görner, Robert Haschke, rickstaa
+
+1.1.9 (2022-03-06)
+------------------
+* Fix collisions_updater's set comparison (`#3076 <https://github.com/ros-planning/moveit/issues/3076>`_)
+* MSA: boost::bind -> std::bind (`#3039 <https://github.com/ros-planning/moveit/issues/3039>`_)
+* Do not automatically load robot description in move_group.launch (`#3065 <https://github.com/ros-planning/moveit/issues/3065>`_)
+* Contributors: Jochen Sprickerhof, Loy van Beek, Michael Görner
+
+1.1.8 (2022-01-30)
+------------------
+* Implement ACM defaults as a fallback instead of an override (`#2938 <https://github.com/ros-planning/moveit/issues/2938>`_)
+* MSA: Add STOMP + OMPL-CHOMP configs (`#2955 <https://github.com/ros-planning/moveit/issues/2955>`_)
+
+  - Add stomp planner to MSA
+  - Add OMPL-CHOMP planner to MSA
+  - Remove obsolete CHOMP parameters
+  - Update CHOMP config parameters to match code defaults
+  - Create CHOMP config via template (instead of code)
+* Move MoveItConfigData::setCollisionLinkPairs to collisions_updater.cpp
+* Contributors: Rick Staa, Robert Haschke
+
 1.1.7 (2021-12-31)
 ------------------
 * Pass xacro_args to both, urdf and srdf loading (`#3013 <https://github.com/ros-planning/moveit/issues/3013>`_)

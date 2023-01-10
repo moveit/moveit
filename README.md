@@ -1,6 +1,6 @@
 <img src="https://moveit.ros.org/assets/logo/moveit_logo-black.png" alt="MoveIt Logo" width="200"/>
 
-**The MoveIt Motion Planning Framework**
+The [MoveIt Motion Planning Framework for ROS](http://moveit.ros.org). For the ROS 2 repository see [MoveIt 2](https://github.com/ros-planning/moveit2).
 
 *Easy-to-use open source robotics manipulation platform for developing commercial applications, prototyping designs, and benchmarking algorithms.*
 
@@ -14,7 +14,7 @@
 - We develop latest features on `master`.
 - The `*-devel` branches correspond to released and stable versions of MoveIt for specific distributions of ROS. `noetic-devel` is synced to `master` currently.
 - Bug fixes occasionally get backported to these released versions of MoveIt.
-- For MoveIt 2 development, see [moveit2](https://github.com/ros-planning/moveit2).
+- To facilitate compile-time switching, the patch version of `MOVEIT_VERSION` of a development branch will be incremented by 1 w.r.t. the package.xml's version number.
 
 ## MoveIt Status
 

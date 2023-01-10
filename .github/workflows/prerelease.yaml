@@ -6,6 +6,9 @@ name: pre-release
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read # to fetch code (actions/checkout)
+
 jobs:
   default:
     strategy:
@@ -32,6 +35,6 @@ jobs:
           # free up a lot of stuff from /usr/local
           sudo rm -rf /usr/local
           df -h
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: industrial_ci
         uses: ros-industrial/industrial_ci@master

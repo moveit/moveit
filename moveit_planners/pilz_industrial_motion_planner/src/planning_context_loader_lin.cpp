@@ -37,7 +37,7 @@
 #include "pilz_industrial_motion_planner/planning_context_base.h"
 #include "pilz_industrial_motion_planner/planning_context_lin.h"
 
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 
 pilz_industrial_motion_planner::PlanningContextLoaderLIN::PlanningContextLoaderLIN()
 {

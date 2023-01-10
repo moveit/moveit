@@ -883,13 +883,13 @@ void moveit_benchmarks::BenchmarkExecution::collectMetrics(RunData& rundata,
 
 namespace
 {
-bool isIKSolutionCollisionFree(const planning_scene::PlanningScene* scene, moveit::core::RobotState* state,
-                               const moveit::core::JointModelGroup* group, const double* ik_solution, bool* reachable)
+bool isIKSolutionCollisionFree(const planning_scene::PlanningScene& scene, moveit::core::RobotState& state,
+                               const moveit::core::JointModelGroup* group, const double* ik_solution, bool& reachable)
 {
-  state->setJointGroupPositions(group, ik_solution);
-  state->update();
-  *reachable = true;
-  if (scene->isStateColliding(*state, group->getName(), false))
+  state.setJointGroupPositions(group, ik_solution);
+  state.update();
+  reachable = true;
+  if (scene.isStateColliding(state, group->getName(), false))
     return false;
   else
     return true;
@@ -1276,11 +1276,13 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
     // Compute IK
     ROS_INFO_STREAM("Processing goal " << req.motion_plan_request.goal_constraints[0].name << " ...");
     ros::WallTime startTime = ros::WallTime::now();
-    success = robot_state.setFromIK(robot_state.getJointModelGroup(req.motion_plan_request.group_name), ik_pose,
-                                    req.motion_plan_request.num_planning_attempts,
-                                    req.motion_plan_request.allowed_planning_time,
-                                    std::bind(&isIKSolutionCollisionFree, planning_scene_.get(), std::placeholders::_1,
-                                              std::placeholders::_2, std::placeholders::_3, &reachable));
+    success = robot_state.setFromIK(
+        robot_state.getJointModelGroup(req.motion_plan_request.group_name), ik_pose,
+        req.motion_plan_request.num_planning_attempts, req.motion_plan_request.allowed_planning_time,
+        [&scene = *planning_scene, &reachable](moveit::core::RobotState* state,
+                                               const moveit::core::JointModelGroup* jmg, const double* ik_solution) {
+          return isIKSolutionCollisionFree(scene, *state, jmg, ik_solution, reachable);
+        });
     if (success)
     {
       ROS_INFO("  Success!");
@@ -1366,12 +1368,14 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
       ROS_INFO_STREAM("Processing trajectory waypoint "
                       << req.motion_plan_request.trajectory_constraints.constraints[tc].name << " ...");
       startTime = ros::WallTime::now();
-      success =
-          robot_state.setFromIK(robot_state.getJointModelGroup(req.motion_plan_request.group_name), ik_pose,
-                                req.motion_plan_request.num_planning_attempts,
-                                req.motion_plan_request.allowed_planning_time,
-                                std::bind(&isIKSolutionCollisionFree, planning_scene_.get(), std::placeholders::_1,
-                                          std::placeholders::_2, std::placeholders::_3, &reachable));
+      success = robot_state.setFromIK(
+          robot_state.getJointModelGroup(req.motion_plan_request.group_name), ik_pose,
+          req.motion_plan_request.num_planning_attempts, req.motion_plan_request.allowed_planning_time,
+          [&scene = *planning_scene, &reachable](moveit::core::RobotState* state,
+                                                 const moveit::core::JointModelGroup* jmg, const double* ik_solution) {
+            return isIKSolutionCollisionFree(scene, *state, jmg, ik_solution, reachable);
+          });
+
       double duration = (ros::WallTime::now() - startTime).toSec();
 
       if (success)

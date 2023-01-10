@@ -53,7 +53,7 @@ WorldDiff::WorldDiff()
 WorldDiff::WorldDiff(const WorldPtr& world) : world_(world)
 {
   observer_handle_ =
-      world->addObserver(std::bind(&WorldDiff::notify, this, std::placeholders::_1, std::placeholders::_2));
+      world->addObserver([this](const World::ObjectConstPtr& object, World::Action action) { notify(object, action); });
 }
 
 WorldDiff::WorldDiff(WorldDiff& other)
@@ -64,8 +64,8 @@ WorldDiff::WorldDiff(WorldDiff& other)
     changes_ = other.changes_;
 
     WorldWeakPtr(world).swap(world_);
-    observer_handle_ =
-        world->addObserver(std::bind(&WorldDiff::notify, this, std::placeholders::_1, std::placeholders::_2));
+    observer_handle_ = world->addObserver(
+        [this](const World::ObjectConstPtr& object, World::Action action) { notify(object, action); });
   }
 }
 
@@ -90,7 +90,7 @@ void WorldDiff::reset(const WorldPtr& world)
 
   WorldWeakPtr(world).swap(world_);
   observer_handle_ =
-      world->addObserver(std::bind(&WorldDiff::notify, this, std::placeholders::_1, std::placeholders::_2));
+      world->addObserver([this](const World::ObjectConstPtr& object, World::Action action) { notify(object, action); });
 }
 
 void WorldDiff::setWorld(const WorldPtr& world)
@@ -105,7 +105,7 @@ void WorldDiff::setWorld(const WorldPtr& world)
   WorldWeakPtr(world).swap(world_);
 
   observer_handle_ =
-      world->addObserver(std::bind(&WorldDiff::notify, this, std::placeholders::_1, std::placeholders::_2));
+      world->addObserver([this](const World::ObjectConstPtr& object, World::Action action) { notify(object, action); });
   world->notifyObserverAllObjects(observer_handle_, World::CREATE | World::ADD_SHAPE);
 }
 

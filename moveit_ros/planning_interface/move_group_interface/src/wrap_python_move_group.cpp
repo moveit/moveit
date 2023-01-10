@@ -432,6 +432,9 @@ PYBIND11_MODULE(pymoveit_move_group_interface, m)
            py::arg("max_velocity_scaling_factor"))
       .def("set_max_acceleration_scaling_factor", &MoveGroupInterfaceWrapper::setMaxAccelerationScalingFactor,
            py::arg("max_acceleration_scaling_factor"))
+      .def("limit_max_cartesian_link_speed", &MoveGroupInterfaceWrapper::limitMaxCartesianLinkSpeed,
+           py::arg("max_speed"), py::arg("link_name"))
+      .def("clear_max_cartesian_link_speed", &MoveGroupInterfaceWrapper::clearMaxCartesianLinkSpeed)
       .def("set_planner_id", &MoveGroupInterfaceWrapper::setPlannerId, py::arg("planner_id"))
       .def("get_planner_id", &MoveGroupInterfaceWrapper::getPlannerId)
       .def("set_planning_pipeline_id", &MoveGroupInterfaceWrapper::setPlanningPipelineId,

@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include <moveit/py_bindings_tools/ros_msg_typecasters.h>
+#include "ros_msg_typecasters.h"
 #include <geometry_msgs/PoseStamped.h>
 
 namespace pybind11

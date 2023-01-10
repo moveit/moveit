@@ -2,6 +2,46 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2022-12-21)
+-------------------
+* Merge PR `#3262 <https://github.com/ros-planning/moveit/issues/3262>`_: Short-circuit planning adapters
+
+  - Early return from failing planning adapters, namely FixStartStateCollision and FixStartStatePathConstraint
+  - Propagate the error code via `MotionPlanResponse::error_code\_`
+  - Add string translations for all error codes
+* Cleanup translation of MoveItErrorCode to string
+
+  - Move default code to moveit_core/utils
+  - Override defaults in existing getActionResultString()
+  - Provide translations for all error codes defined in moveit_msgs
+* Drop shortcut avoiding planning when all constraints are already met (`#3228 <https://github.com/ros-planning/moveit/issues/3228>`_)
+
+  When calling the PlanAndExcute action, there was a shortcut avoiding planning (and execution) when all goal constraints were already met.
+  However, this check also succeeded when there was an error, e.g. resolving link names.
+  As proper link resolution might require some planning request adapters to be executed, e.g. ResolveConstraintFrames, we should not skip planning.
+  Note, calling the ``PlanOnly`` action, didn't have this shortcut as well, resulting in inconsistent behavior.
+* Contributors: Robert Haschke
+
+1.1.10 (2022-09-13)
+-------------------
+* Limit Cartesian speed for link(s) (`#2856 <https://github.com/ros-planning/moveit/issues/2856>`_)
+* Optionally enable dynamics monitoring in move_group node (`#3137 <https://github.com/ros-planning/moveit/issues/3137>`_)
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Contributors: Michael Görner
+
+1.1.9 (2022-03-06)
+------------------
+* Fix missing include (`#3051 <https://github.com/ros-planning/moveit/issues/3051>`_)
+* Contributors: Tobias Fischer
+
+1.1.8 (2022-01-30)
+------------------
+* Improve loading of planning pipelines (`#3036 <https://github.com/ros-planning/moveit/issues/3036>`_)
+
+  Ensure that planning pipelines considered in `~/planning_pipelines/*` actually have a `planning_plugin` parameter defined.
+  Otherwise, issue an error message.
+* Contributors: Robert Haschke
+
 1.1.7 (2021-12-31)
 ------------------
 * Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
@@ -35,7 +75,7 @@ Changelog for package moveit_ros_move_group
 ------------------
 * [fix] Let the max number of contacts be the amount of world objects + link models with geometry (`#2355 <https://github.com/ros-planning/moveit/issues/2355>`_)
 * [maint] Add comment to MOVEIT_CLASS_FORWARD (`#2315 <https://github.com/ros-planning/moveit/issues/2315>`_)
-* Contributors: Felix von Drigalski, Loy van Beek, Michael Görner, v4hn
+* Contributors: Felix von Drigalski, Loy van Beek, Michael Görner
 
 1.1.0 (2020-09-04)
 ------------------

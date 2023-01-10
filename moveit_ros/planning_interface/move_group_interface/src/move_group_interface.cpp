@@ -130,6 +130,7 @@ public:
     goal_orientation_tolerance_ = 1e-3;  // ~0.1 deg
     allowed_planning_time_ = 5.0;
     num_planning_attempts_ = 1;
+    max_cartesian_speed_ = 0.0;
     node_handle_.param<double>("robot_description_planning/default_velocity_scaling_factor",
                                max_velocity_scaling_factor_, 0.1);
     node_handle_.param<double>("robot_description_planning/default_acceleration_scaling_factor",
@@ -415,6 +416,18 @@ public:
     {
       variable = target_value;
     }
+  }
+
+  void limitMaxCartesianLinkSpeed(const double max_speed, const std::string& link_name)
+  {
+    cartesian_speed_limited_link_ = link_name;
+    max_cartesian_speed_ = max_speed;
+  }
+
+  void clearMaxCartesianLinkSpeed()
+  {
+    cartesian_speed_limited_link_ = "";
+    max_cartesian_speed_ = 0.0;
   }
 
   moveit::core::RobotState& getTargetRobotState()
@@ -936,6 +949,8 @@ public:
     req.path_constraints = path_constraints;
     req.avoid_collisions = avoid_collisions;
     req.link_name = getEndEffectorLink();
+    req.cartesian_speed_limited_link = cartesian_speed_limited_link_;
+    req.max_cartesian_speed = max_cartesian_speed_;
 
     if (cartesian_path_service_.call(req, res))
     {
@@ -1062,6 +1077,8 @@ public:
     request.num_planning_attempts = num_planning_attempts_;
     request.max_velocity_scaling_factor = max_velocity_scaling_factor_;
     request.max_acceleration_scaling_factor = max_acceleration_scaling_factor_;
+    request.cartesian_speed_limited_link = cartesian_speed_limited_link_;
+    request.max_cartesian_speed = max_cartesian_speed_;
     request.allowed_planning_time = allowed_planning_time_;
     request.pipeline_id = planning_pipeline_id_;
     request.planner_id = planner_id_;
@@ -1246,8 +1263,8 @@ public:
     initializing_constraints_ = true;
     if (constraints_init_thread_)
       constraints_init_thread_->join();
-    constraints_init_thread_ = std::make_unique<boost::thread>(
-        std::bind(&MoveGroupInterfaceImpl::initializeConstraintsStorageThread, this, host, port));
+    constraints_init_thread_ =
+        std::make_unique<boost::thread>([this, host, port] { initializeConstraintsStorageThread(host, port); });
   }
 
   void setWorkspace(double minx, double miny, double minz, double maxx, double maxy, double maxz)
@@ -1301,6 +1318,8 @@ private:
   unsigned int num_planning_attempts_;
   double max_velocity_scaling_factor_;
   double max_acceleration_scaling_factor_;
+  std::string cartesian_speed_limited_link_;
+  double max_cartesian_speed_;
   double goal_joint_tolerance_;
   double goal_position_tolerance_;
   double goal_orientation_tolerance_;
@@ -1479,6 +1498,16 @@ void MoveGroupInterface::setMaxAccelerationScalingFactor(double max_acceleration
   impl_->setMaxAccelerationScalingFactor(max_acceleration_scaling_factor);
 }
 
+void MoveGroupInterface::limitMaxCartesianLinkSpeed(const double max_speed, const std::string& link_name)
+{
+  impl_->limitMaxCartesianLinkSpeed(max_speed, link_name);
+}
+
+void MoveGroupInterface::clearMaxCartesianLinkSpeed()
+{
+  impl_->clearMaxCartesianLinkSpeed();
+}
+
 moveit::core::MoveItErrorCode MoveGroupInterface::asyncMove()
 {
   return impl_->move(false);
@@ -1564,9 +1593,8 @@ double MoveGroupInterface::computeCartesianPath(const std::vector<geometry_msgs:
                                                 double jump_threshold, moveit_msgs::RobotTrajectory& trajectory,
                                                 bool avoid_collisions, moveit_msgs::MoveItErrorCodes* error_code)
 {
-  moveit_msgs::Constraints path_constraints_tmp;
-  return computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, path_constraints_tmp, avoid_collisions,
-                              error_code);
+  return computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, moveit_msgs::Constraints(),
+                              avoid_collisions, error_code);
 }
 
 double MoveGroupInterface::computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step,
@@ -1574,17 +1602,10 @@ double MoveGroupInterface::computeCartesianPath(const std::vector<geometry_msgs:
                                                 const moveit_msgs::Constraints& path_constraints, bool avoid_collisions,
                                                 moveit_msgs::MoveItErrorCodes* error_code)
 {
-  if (error_code)
-  {
-    return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, path_constraints,
-                                       avoid_collisions, *error_code);
-  }
-  else
-  {
-    moveit_msgs::MoveItErrorCodes error_code_tmp;
-    return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, path_constraints,
-                                       avoid_collisions, error_code_tmp);
-  }
+  moveit_msgs::MoveItErrorCodes err_tmp;
+  moveit_msgs::MoveItErrorCodes& err = error_code ? *error_code : err_tmp;
+  return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, path_constraints,
+                                     avoid_collisions, err);
 }
 
 void MoveGroupInterface::stop()
@@ -1712,6 +1733,11 @@ bool MoveGroupInterface::setJointValueTarget(const std::map<std::string, double>
 bool MoveGroupInterface::setJointValueTarget(const std::vector<std::string>& variable_names,
                                              const std::vector<double>& variable_values)
 {
+  if (variable_names.size() != variable_values.size())
+  {
+    ROS_ERROR_STREAM("sizes of name and position arrays do not match");
+    return false;
+  }
   const auto& allowed = impl_->getJointModelGroup()->getVariableNames();
   for (const auto& variable_name : variable_names)
   {

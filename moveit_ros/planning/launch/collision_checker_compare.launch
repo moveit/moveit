@@ -1,10 +1,9 @@
 <launch>
   <arg name="visualization" default="false" doc="turns on and off visualization with rviz"/>
 
-  <!-- send Panda urdf to parameter server -->
-  <param name="robot_description" textfile="$(find moveit_resources_panda_description)/urdf/panda.urdf" />
-
-  <include file="$(find moveit_resources_panda_moveit_config)/launch/planning_context.launch"/>
+  <include file="$(find moveit_resources_panda_moveit_config)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="true"/>
+  </include>
 
   <node name="compare_collision_checking_speed" pkg="moveit_ros_planning" type="moveit_compare_collision_checking_speed_fcl_bullet" respawn="false" output="screen">
     <rosparam command="load" file="$(find moveit_resources_panda_moveit_config)/config/kinematics.yaml"/>

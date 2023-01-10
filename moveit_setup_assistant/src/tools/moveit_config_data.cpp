@@ -35,6 +35,7 @@
 /* Author: Dave Coleman */
 
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
+
 // Reading/Writing Files
 #include <iostream>  // For writing yaml and launch files
 #include <fstream>
@@ -138,16 +139,19 @@ planning_scene::PlanningScenePtr MoveItConfigData::getPlanningScene()
 // ******************************************************************************************
 // Load the allowed collision matrix from the SRDF's list of link pairs
 // ******************************************************************************************
-void MoveItConfigData::loadAllowedCollisionMatrix()
+void MoveItConfigData::loadAllowedCollisionMatrix(const srdf::SRDFWriter& srdf)
 {
-  // Clear the allowed collision matrix
   allowed_collision_matrix_.clear();
 
-  // Update the allowed collision matrix, in case there has been a change
-  for (const auto& disabled_collision : srdf_->disabled_collisions_)
-  {
-    allowed_collision_matrix_.setEntry(disabled_collision.link1_, disabled_collision.link2_, true);
-  }
+  // load collision defaults
+  for (const std::string& name : srdf.no_default_collision_links_)
+    allowed_collision_matrix_.setDefaultEntry(name, collision_detection::AllowedCollision::ALWAYS);
+  // re-enable specific collision pairs
+  for (auto const& collision : srdf.enabled_collision_pairs_)
+    allowed_collision_matrix_.setEntry(collision.link1_, collision.link2_, false);
+  // *finally* disable selected collision pairs
+  for (auto const& collision : srdf.disabled_collision_pairs_)
+    allowed_collision_matrix_.setEntry(collision.link1_, collision.link2_, true);
 }
 
 // ******************************************************************************************
@@ -203,6 +207,24 @@ bool MoveItConfigData::outputSetupAssistantFile(const std::string& file_path)
   config_pkg_generated_timestamp_ = cur_time;
 
   return true;  // file created successfully
+}
+
+// ******************************************************************************************
+// Output Gazebo URDF file
+// ******************************************************************************************
+bool MoveItConfigData::outputGazeboURDFFile(const std::string& file_path)
+{
+  std::ofstream os(file_path.c_str(), std::ios_base::trunc);
+  if (!os.good())
+  {
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
+    return false;
+  }
+
+  os << gazebo_urdf_string_ << std::endl;
+  os.close();
+
+  return true;
 }
 
 // ******************************************************************************************
@@ -499,112 +521,6 @@ std::string MoveItConfigData::getJointHardwareInterface(const std::string& joint
   }
   // If the joint was not found in any controller return EffortJointInterface
   return "hardware_interface/EffortJointInterface";
-}
-
-// ******************************************************************************************
-// Writes a Gazebo compatible robot URDF to gazebo_compatible_urdf_string_
-// ******************************************************************************************
-std::string MoveItConfigData::getGazeboCompatibleURDF()
-{
-  bool new_urdf_needed = false;
-  TiXmlDocument urdf_document;
-
-  // Used to convert XmlDocument to std string
-  TiXmlPrinter printer;
-  urdf_document.Parse((const char*)urdf_string_.c_str(), nullptr, TIXML_ENCODING_UTF8);
-  try
-  {
-    for (TiXmlElement* doc_element = urdf_document.RootElement()->FirstChildElement(); doc_element != nullptr;
-         doc_element = doc_element->NextSiblingElement())
-    {
-      if (static_cast<std::string>(doc_element->Value()).find("link") != std::string::npos)
-      {
-        // Before adding inertial elements, make sure there is none and the link has collision element
-        if (doc_element->FirstChildElement("inertial") == nullptr &&
-            doc_element->FirstChildElement("collision") != nullptr)
-        {
-          new_urdf_needed = true;
-          TiXmlElement inertia_link("inertial");
-          TiXmlElement mass("mass");
-          TiXmlElement inertia_joint("inertia");
-
-          mass.SetAttribute("value", "0.1");
-
-          inertia_joint.SetAttribute("ixx", "0.03");
-          inertia_joint.SetAttribute("iyy", "0.03");
-          inertia_joint.SetAttribute("izz", "0.03");
-          inertia_joint.SetAttribute("ixy", "0.0");
-          inertia_joint.SetAttribute("ixz", "0.0");
-          inertia_joint.SetAttribute("iyz", "0.0");
-
-          inertia_link.InsertEndChild(mass);
-          inertia_link.InsertEndChild(inertia_joint);
-
-          doc_element->InsertEndChild(inertia_link);
-        }
-      }
-      else if (static_cast<std::string>(doc_element->Value()).find("joint") != std::string::npos)
-      {
-        // Before adding a transmission element, make sure there the joint is not fixed
-        if (static_cast<std::string>(doc_element->Attribute("type")) != "fixed")
-        {
-          new_urdf_needed = true;
-          std::string joint_name = static_cast<std::string>(doc_element->Attribute("name"));
-          TiXmlElement transmission("transmission");
-          TiXmlElement type("type");
-          TiXmlElement joint("joint");
-          TiXmlElement hardware_interface("hardwareInterface");
-          TiXmlElement actuator("actuator");
-          TiXmlElement mechanical_reduction("mechanicalReduction");
-
-          transmission.SetAttribute("name", std::string("trans_") + joint_name);
-          joint.SetAttribute("name", joint_name);
-          actuator.SetAttribute("name", joint_name + std::string("_motor"));
-
-          type.InsertEndChild(TiXmlText("transmission_interface/SimpleTransmission"));
-          transmission.InsertEndChild(type);
-
-          hardware_interface.InsertEndChild(TiXmlText(getJointHardwareInterface(joint_name).c_str()));
-          joint.InsertEndChild(hardware_interface);
-          transmission.InsertEndChild(joint);
-
-          mechanical_reduction.InsertEndChild(TiXmlText("1"));
-          actuator.InsertEndChild(hardware_interface);
-          actuator.InsertEndChild(mechanical_reduction);
-          transmission.InsertEndChild(actuator);
-
-          urdf_document.RootElement()->InsertEndChild(transmission);
-        }
-      }
-    }
-
-    // Add gazebo_ros_control plugin which reads the transmission tags
-    TiXmlElement gazebo("gazebo");
-    TiXmlElement plugin("plugin");
-    TiXmlElement robot_namespace("robotNamespace");
-
-    plugin.SetAttribute("name", "gazebo_ros_control");
-    plugin.SetAttribute("filename", "libgazebo_ros_control.so");
-    robot_namespace.InsertEndChild(TiXmlText(std::string("/")));
-
-    plugin.InsertEndChild(robot_namespace);
-    gazebo.InsertEndChild(plugin);
-
-    urdf_document.RootElement()->InsertEndChild(gazebo);
-  }
-  catch (YAML::ParserException& e)  // Catch errors
-  {
-    ROS_ERROR_STREAM_NAMED("moveit_config_data", e.what());
-    return std::string("");
-  }
-
-  if (new_urdf_needed)
-  {
-    urdf_document.Accept(&printer);
-    return std::string(printer.CStr());
-  }
-
-  return std::string("");
 }
 
 bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
@@ -1303,59 +1219,6 @@ bool MoveItConfigData::outputJointLimitsYAML(const std::string& file_path)
 }
 
 // ******************************************************************************************
-// Set list of collision link pairs in SRDF; sorted; with optional filter
-// ******************************************************************************************
-
-class SortableDisabledCollision
-{
-public:
-  SortableDisabledCollision(const srdf::Model::DisabledCollision& dc)
-    : dc_(dc), key_(dc.link1_ < dc.link2_ ? (dc.link1_ + "|" + dc.link2_) : (dc.link2_ + "|" + dc.link1_))
-  {
-  }
-  operator const srdf::Model::DisabledCollision &() const
-  {
-    return dc_;
-  }
-  bool operator<(const SortableDisabledCollision& other) const
-  {
-    return key_ < other.key_;
-  }
-
-private:
-  const srdf::Model::DisabledCollision dc_;
-  const std::string key_;
-};
-
-void MoveItConfigData::setCollisionLinkPairs(const moveit_setup_assistant::LinkPairMap& link_pairs, size_t skip_mask)
-{
-  // Create temp disabled collision
-  srdf::Model::DisabledCollision dc;
-
-  std::set<SortableDisabledCollision> disabled_collisions;
-  disabled_collisions.insert(srdf_->disabled_collisions_.begin(), srdf_->disabled_collisions_.end());
-
-  // copy the data in this class's LinkPairMap datastructure to srdf::Model::DisabledCollision format
-  for (const std::pair<const std::pair<std::string, std::string>, LinkPairData>& link_pair : link_pairs)
-  {
-    // Only copy those that are actually disabled
-    if (link_pair.second.disable_check)
-    {
-      if ((1 << link_pair.second.reason) & skip_mask)
-        continue;
-
-      dc.link1_ = link_pair.first.first;
-      dc.link2_ = link_pair.first.second;
-      dc.reason_ = moveit_setup_assistant::disabledReasonToString(link_pair.second.reason);
-
-      disabled_collisions.insert(SortableDisabledCollision(dc));
-    }
-  }
-
-  srdf_->disabled_collisions_.assign(disabled_collisions.begin(), disabled_collisions.end());
-}
-
-// ******************************************************************************************
 // Decide the best two joints to be used for the projection evaluator
 // ******************************************************************************************
 std::string MoveItConfigData::decideProjectionJoints(const std::string& planning_group)
@@ -1393,7 +1256,7 @@ template <typename T>
 bool parse(const YAML::Node& node, const std::string& key, T& storage, const T& default_value = T())
 {
   const YAML::Node& n = node[key];
-  bool valid = n;
+  bool valid = n.IsDefined();
   storage = valid ? n.as<T>() : default_value;
   return valid;
 }
@@ -1465,7 +1328,7 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
     for (YAML::const_iterator group_it = doc.begin(); group_it != doc.end(); ++group_it)
     {
       const std::string& group_name = group_it->first.as<std::string>();
-      const YAML::Node& group = group_it->second;
+      const YAML::Node group = group_it->second;
 
       // Create new meta data
       GroupMetaData meta_data;
@@ -1476,7 +1339,7 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
       parse(group, "kinematics_solver_timeout", meta_data.kinematics_solver_timeout_, DEFAULT_KIN_SOLVER_TIMEOUT);
 
       // Assign meta data to vector
-      group_meta_data_[group_name] = meta_data;
+      group_meta_data_[group_name] = std::move(meta_data);
     }
   }
   catch (YAML::ParserException& e)  // Catch errors

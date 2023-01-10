@@ -126,7 +126,12 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     trajectory.fillInCubicInterpolation();
   else if (params.trajectory_initialization_method_.compare("fillTrajectory") == 0)
   {
-    if (!(trajectory.fillInFromTrajectory(*res.trajectory_[0])))
+    if (res.trajectory_.empty())
+    {
+      ROS_ERROR_STREAM_NAMED("chomp_planner", "No input trajectory specified");
+      return false;
+    }
+    else if (!(trajectory.fillInFromTrajectory(*res.trajectory_[0])))
     {
       ROS_ERROR_STREAM_NAMED("chomp_planner", "Input trajectory has less than 2 points, "
                                               "trajectory must contain at least start and goal state");
@@ -239,6 +244,8 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   res.trajectory_.resize(1);
   res.trajectory_[0] = result;
+  res.description_.resize(1);
+  res.description_[0] = "plan";
 
   ROS_DEBUG_NAMED("chomp_planner", "Bottom took %f sec to create", (ros::WallTime::now() - create_time).toSec());
   ROS_DEBUG_NAMED("chomp_planner", "Serviced planning request in %f wall-seconds",

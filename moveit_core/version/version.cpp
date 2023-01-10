@@ -35,10 +35,18 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/version.h>
-#include <cstdio>
+#include <iostream>
+#include <cstring>
 
 int main(int /*argc*/, char** /*argv*/)
 {
-  printf("%s\n", MOVEIT_VERSION_STR);
+  std::cout << MOVEIT_VERSION_STR;
+  if (strlen(MOVEIT_GIT_COMMIT_HASH))
+  {
+    std::cout << ", git commit: " << MOVEIT_GIT_COMMIT_HASH;
+    if (strlen(MOVEIT_GIT_NAME))
+      std::cout << " (" << MOVEIT_GIT_NAME << ")";
+  }
+  std::cout << std::endl;
   return 0;
 }

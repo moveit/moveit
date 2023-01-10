@@ -2,6 +2,27 @@
 Changelog for package pilz_industrial_motion_planner
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2022-12-21)
+-------------------
+* Merge fixes+improvements to ``PlanningScene`` editing in rviz: `#3263 <https://github.com/ros-planning/moveit/issues/3263>`_, `#3264 <https://github.com/ros-planning/moveit/issues/3264>`_, `#3296 <https://github.com/ros-planning/moveit/issues/3296>`_
+* Contributors: Robert Haschke
+
+1.1.10 (2022-09-13)
+-------------------
+* Add missing header for std::unique_ptr (`#3180 <https://github.com/ros-planning/moveit/issues/3180>`_)
+* Switch to hpp headers of pluginlib
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Contributors: Jochen Sprickerhof, Michael Görner
+
+1.1.9 (2022-03-06)
+------------------
+
+1.1.8 (2022-01-30)
+------------------
+* Avoid downgrading default C++ standard (`#3043 <https://github.com/ros-planning/moveit/issues/3043>`_)
+* Resolve ambiguous function specification (`#3040 <https://github.com/ros-planning/moveit/issues/3040>`_)
+* Contributors: Jochen Sprickerhof
+
 1.1.7 (2021-12-31)
 ------------------
 * Pilz planner: improve reporting of invalid start joints (`#3000 <https://github.com/ros-planning/moveit/issues/3000>`_)

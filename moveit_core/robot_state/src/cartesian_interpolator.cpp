@@ -54,26 +54,21 @@ const std::string LOGNAME = "cartesian_interpolator";
 
 double CartesianInterpolator::computeCartesianPath(RobotState* start_state, const JointModelGroup* group,
                                                    std::vector<RobotStatePtr>& traj, const LinkModel* link,
-                                                   const Eigen::Vector3d& direction, bool global_reference_frame,
-                                                   double distance, const MaxEEFStep& max_step,
-                                                   const JumpThreshold& jump_threshold,
+                                                   const Eigen::Vector3d& translation, bool global_reference_frame,
+                                                   const MaxEEFStep& max_step, const JumpThreshold& jump_threshold,
                                                    const GroupStateValidityCallbackFn& validCallback,
                                                    const kinematics::KinematicsQueryOptions& options)
 {
-  // this is the Cartesian pose we start from, and have to move in the direction indicated
-  // getGlobalLinkTransform() returns a valid isometry by contract
-  const Eigen::Isometry3d& start_pose = start_state->getGlobalLinkTransform(link);
+  const double distance = translation.norm();
+  // The target pose is obtained by adding the translation vector to the link's current pose
+  Eigen::Isometry3d pose = start_state->getGlobalLinkTransform(link);
 
-  // the direction can be in the local reference frame (in which case we rotate it)
-  const Eigen::Vector3d rotated_direction = global_reference_frame ? direction : start_pose.linear() * direction;
-
-  // The target pose is built by applying a translation to the start pose for the desired direction and distance
-  Eigen::Isometry3d target_pose = start_pose;  // valid isometry
-  target_pose.translation() += rotated_direction * distance;
+  // the translation direction can be specified w.r.t. the local link frame (then rotate into global frame)
+  pose.translation() += global_reference_frame ? translation : pose.linear() * translation;
 
   // call computeCartesianPath for the computed target pose in the global reference frame
-  return (distance * computeCartesianPath(start_state, group, traj, link, target_pose, true, max_step, jump_threshold,
-                                          validCallback, options));
+  return distance * computeCartesianPath(start_state, group, traj, link, pose, true, max_step, jump_threshold,
+                                         validCallback, options);
 }
 
 double CartesianInterpolator::computeCartesianPath(RobotState* start_state, const JointModelGroup* group,
@@ -81,21 +76,24 @@ double CartesianInterpolator::computeCartesianPath(RobotState* start_state, cons
                                                    const Eigen::Isometry3d& target, bool global_reference_frame,
                                                    const MaxEEFStep& max_step, const JumpThreshold& jump_threshold,
                                                    const GroupStateValidityCallbackFn& validCallback,
-                                                   const kinematics::KinematicsQueryOptions& options)
+                                                   const kinematics::KinematicsQueryOptions& options,
+                                                   const Eigen::Isometry3d& link_offset)
 {
+  // check unsanitized inputs for non-isometry
+  ASSERT_ISOMETRY(target)
+  ASSERT_ISOMETRY(link_offset)
+
   const std::vector<const JointModel*>& cjnt = group->getContinuousJointModels();
   // make sure that continuous joints wrap
   for (const JointModel* joint : cjnt)
     start_state->enforceBounds(joint);
 
-  // this is the Cartesian pose we start from, and we move in the direction indicated
-  // getGlobalLinkTransform() returns a valid isometry by contract
-  Eigen::Isometry3d start_pose = start_state->getGlobalLinkTransform(link);  // valid isometry
-
-  ASSERT_ISOMETRY(target)  // unsanitized input, could contain a non-isometry
+  // Cartesian pose we start from
+  Eigen::Isometry3d start_pose = start_state->getGlobalLinkTransform(link) * link_offset;
+  Eigen::Isometry3d offset = link_offset.inverse();
 
   // the target can be in the local reference frame (in which case we rotate it)
-  Eigen::Isometry3d rotated_target = global_reference_frame ? target : start_pose * target;  // valid isometry
+  Eigen::Isometry3d rotated_target = global_reference_frame ? target : start_pose * target;
 
   Eigen::Quaterniond start_quaternion(start_pose.linear());
   Eigen::Quaterniond target_quaternion(rotated_target.linear());
@@ -161,7 +159,7 @@ double CartesianInterpolator::computeCartesianPath(RobotState* start_state, cons
 
     // Explicitly use a single IK attempt only: We want a smooth trajectory.
     // Random seeding (of additional attempts) would probably create IK jumps.
-    if (start_state->setFromIK(group, pose, link->getName(), consistency_limits, 0.0, validCallback, options))
+    if (start_state->setFromIK(group, pose * offset, link->getName(), consistency_limits, 0.0, validCallback, options))
       traj.push_back(std::make_shared<moveit::core::RobotState>(*start_state));
     else
       break;
@@ -174,13 +172,11 @@ double CartesianInterpolator::computeCartesianPath(RobotState* start_state, cons
   return last_valid_percentage;
 }
 
-double CartesianInterpolator::computeCartesianPath(RobotState* start_state, const JointModelGroup* group,
-                                                   std::vector<RobotStatePtr>& traj, const LinkModel* link,
-                                                   const EigenSTL::vector_Isometry3d& waypoints,
-                                                   bool global_reference_frame, const MaxEEFStep& max_step,
-                                                   const JumpThreshold& jump_threshold,
-                                                   const GroupStateValidityCallbackFn& validCallback,
-                                                   const kinematics::KinematicsQueryOptions& options)
+double CartesianInterpolator::computeCartesianPath(
+    RobotState* start_state, const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
+    const EigenSTL::vector_Isometry3d& waypoints, bool global_reference_frame, const MaxEEFStep& max_step,
+    const JumpThreshold& jump_threshold, const GroupStateValidityCallbackFn& validCallback,
+    const kinematics::KinematicsQueryOptions& options, const Eigen::Isometry3d& link_offset)
 {
   double percentage_solved = 0.0;
   for (std::size_t i = 0; i < waypoints.size(); ++i)
@@ -190,7 +186,7 @@ double CartesianInterpolator::computeCartesianPath(RobotState* start_state, cons
     std::vector<RobotStatePtr> waypoint_traj;
     double wp_percentage_solved =
         computeCartesianPath(start_state, group, waypoint_traj, link, waypoints[i], global_reference_frame, max_step,
-                             NO_JOINT_SPACE_JUMP_TEST, validCallback, options);
+                             NO_JOINT_SPACE_JUMP_TEST, validCallback, options, link_offset);
     if (fabs(wp_percentage_solved - 1.0) < std::numeric_limits<double>::epsilon())
     {
       percentage_solved = (double)(i + 1) / (double)waypoints.size();

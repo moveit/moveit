@@ -46,11 +46,9 @@ namespace core
 class MoveItErrorCode : public moveit_msgs::MoveItErrorCodes
 {
 public:
-  MoveItErrorCode()
-  {
-    val = 0;
-  }
-  MoveItErrorCode(int code)
+  static const char* toString(const moveit_msgs::MoveItErrorCodes& error_code);
+
+  MoveItErrorCode(int code = 0)
   {
     val = code;
   }
@@ -62,6 +60,10 @@ public:
   {
     return val == moveit_msgs::MoveItErrorCodes::SUCCESS;
   }
+  explicit operator std::string() const
+  {
+    return toString(*this);
+  }
   bool operator==(const int c) const
   {
     return val == c;
@@ -71,6 +73,8 @@ public:
     return val != c;
   }
 };
+
+std::ostream& operator<<(std::ostream& out, const MoveItErrorCode& e);
 
 }  // namespace core
 }  // namespace moveit

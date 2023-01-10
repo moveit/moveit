@@ -51,6 +51,8 @@ else()
 endif()
 
 find_package(octomap REQUIRED)
+find_package(ruckig REQUIRED)
+set(ruckig_LIBRARIES "ruckig::ruckig")
 find_package(urdfdom REQUIRED)
 find_package(urdfdom_headers REQUIRED)
 
@@ -168,6 +170,7 @@ catkin_package(
     EIGEN3
     LIBFCL
     OCTOMAP
+    ruckig
     urdfdom
     urdfdom_headers
     ${BULLET_ENABLE}
@@ -193,17 +196,6 @@ include_directories(SYSTEM ${catkin_INCLUDE_DIRS}
 #catkin_lint: ignore_once external_directory  (${VERSION_FILE_PATH})
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${VERSION_FILE_PATH})
-
-# Generate and install version.h
-string(REGEX REPLACE "^([0-9]+)\\..*" "\\1" MOVEIT_VERSION_MAJOR "${${PROJECT_NAME}_VERSION}")
-string(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" MOVEIT_VERSION_MINOR "${${PROJECT_NAME}_VERSION}")
-string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" MOVEIT_VERSION_PATCH "${${PROJECT_NAME}_VERSION}")
-set(MOVEIT_VERSION_EXTRA "Alpha")
-set(MOVEIT_VERSION "${MOVEIT_VERSION_MAJOR}.${MOVEIT_VERSION_MINOR}.${MOVEIT_VERSION_PATCH}-${MOVEIT_VERSION_EXTRA}")
-message(STATUS " *** Building MoveIt ${MOVEIT_VERSION} ***")
-configure_file("version/version.h.in" "${VERSION_FILE_PATH}/moveit/version.h")
-#catkin_lint: ignore_once external_file
-install(FILES "${VERSION_FILE_PATH}/moveit/version.h" DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
 
 add_subdirectory(version)
 add_subdirectory(macros)

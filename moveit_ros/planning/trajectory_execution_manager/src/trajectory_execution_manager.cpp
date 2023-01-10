@@ -41,6 +41,9 @@
 #include <dynamic_reconfigure/server.h>
 #include <tf2_eigen/tf2_eigen.h>
 
+// Name of this class for logging
+static const std::string LOGNAME = "trajectory_execution_manager";
+
 namespace trajectory_execution_manager
 {
 const std::string TrajectoryExecutionManager::EXECUTION_EVENT_TOPIC = "trajectory_execution_event";
@@ -60,12 +63,12 @@ public:
   DynamicReconfigureImpl(TrajectoryExecutionManager* owner)
     : owner_(owner), dynamic_reconfigure_server_(ros::NodeHandle("~/trajectory_execution"))
   {
-    dynamic_reconfigure_server_.setCallback(std::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this,
-                                                      std::placeholders::_1, std::placeholders::_2));
+    dynamic_reconfigure_server_.setCallback(
+        [this](const auto& config, uint32_t level) { dynamicReconfigureCallback(config, level); });
   }
 
 private:
-  void dynamicReconfigureCallback(TrajectoryExecutionDynamicReconfigureConfig& config, uint32_t /*level*/)
+  void dynamicReconfigureCallback(const TrajectoryExecutionDynamicReconfigureConfig& config, uint32_t /*level*/)
   {
     owner_->enableExecutionDurationMonitoring(config.execution_duration_monitoring);
     owner_->setAllowedExecutionDurationScaling(config.allowed_execution_duration_scaling);
@@ -99,7 +102,6 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::Robot
 
 TrajectoryExecutionManager::~TrajectoryExecutionManager()
 {
-  run_continuous_execution_thread_ = false;
   stopExecution(true);
   delete reconfigure_impl_;
 }
@@ -109,10 +111,8 @@ void TrajectoryExecutionManager::initialize()
   reconfigure_impl_ = nullptr;
   verbose_ = false;
   execution_complete_ = true;
-  stop_continuous_execution_ = false;
   current_context_ = -1;
   last_execution_status_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
-  run_continuous_execution_thread_ = true;
   execution_duration_monitoring_ = true;
   execution_velocity_scaling_ = 1.0;
   allowed_start_tolerance_ = 0.01;
@@ -132,7 +132,7 @@ void TrajectoryExecutionManager::initialize()
   }
   catch (pluginlib::PluginlibException& ex)
   {
-    ROS_FATAL_STREAM_NAMED(name_, "Exception while creating controller manager plugin loader: " << ex.what());
+    ROS_FATAL_STREAM_NAMED(LOGNAME, "Exception while creating controller manager plugin loader: " << ex.what());
     return;
   }
 
@@ -145,15 +145,15 @@ void TrajectoryExecutionManager::initialize()
       if (classes.size() == 1)
       {
         controller = classes[0];
-        ROS_WARN_NAMED(name_,
+        ROS_WARN_NAMED(LOGNAME,
                        "Parameter '~moveit_controller_manager' is not specified but only one "
                        "matching plugin was found: '%s'. Using that one.",
                        controller.c_str());
       }
       else
-        ROS_FATAL_NAMED(name_, "Parameter '~moveit_controller_manager' not specified. This is needed to "
-                               "identify the plugin to use for interacting with controllers. No paths can "
-                               "be executed.");
+        ROS_FATAL_NAMED(LOGNAME, "Parameter '~moveit_controller_manager' not specified. This is needed to "
+                                 "identify the plugin to use for interacting with controllers. No paths can "
+                                 "be executed.");
     }
 
     if (!controller.empty())
@@ -163,7 +163,7 @@ void TrajectoryExecutionManager::initialize()
       }
       catch (pluginlib::PluginlibException& ex)
       {
-        ROS_FATAL_STREAM_NAMED(name_,
+        ROS_FATAL_STREAM_NAMED(LOGNAME,
                                "Exception while loading controller manager '" << controller << "': " << ex.what());
       }
   }
@@ -177,9 +177,9 @@ void TrajectoryExecutionManager::initialize()
   reconfigure_impl_ = new DynamicReconfigureImpl(this);
 
   if (manage_controllers_)
-    ROS_INFO_NAMED(name_, "Trajectory execution is managing controllers");
+    ROS_INFO_NAMED(LOGNAME, "Trajectory execution is managing controllers");
   else
-    ROS_INFO_NAMED(name_, "Trajectory execution is not managing controllers");
+    ROS_INFO_NAMED(LOGNAME, "Trajectory execution is not managing controllers");
 }
 
 void TrajectoryExecutionManager::enableExecutionDurationMonitoring(bool flag)
@@ -227,12 +227,12 @@ void TrajectoryExecutionManager::processEvent(const std::string& event)
   if (event == "stop")
     stopExecution(true);
   else
-    ROS_WARN_STREAM_NAMED(name_, "Unknown event type: '" << event << "'");
+    ROS_WARN_STREAM_NAMED(LOGNAME, "Unknown event type: '" << event << "'");
 }
 
 void TrajectoryExecutionManager::receiveEvent(const std_msgs::StringConstPtr& event)
 {
-  ROS_INFO_STREAM_NAMED(name_, "Received event '" << event->data << "'");
+  ROS_INFO_STREAM_NAMED(LOGNAME, "Received event '" << event->data << "'");
   processEvent(event->data);
 }
 
@@ -265,7 +265,7 @@ bool TrajectoryExecutionManager::push(const moveit_msgs::RobotTrajectory& trajec
 {
   if (!execution_complete_)
   {
-    ROS_ERROR_NAMED(name_, "Cannot push a new trajectory while another is being executed");
+    ROS_ERROR_NAMED(LOGNAME, "Cannot push a new trajectory while another is being executed");
     return false;
   }
 
@@ -281,7 +281,7 @@ bool TrajectoryExecutionManager::push(const moveit_msgs::RobotTrajectory& trajec
       ss << "]:" << std::endl;
       for (const moveit_msgs::RobotTrajectory& trajectory_part : context->trajectory_parts_)
         ss << trajectory_part << std::endl;
-      ROS_INFO_NAMED(name_, "%s", ss.str().c_str());
+      ROS_INFO_NAMED(LOGNAME, "%s", ss.str().c_str());
     }
     trajectories_.push_back(context);
     return true;
@@ -293,223 +293,6 @@ bool TrajectoryExecutionManager::push(const moveit_msgs::RobotTrajectory& trajec
   }
 
   return false;
-}
-
-bool TrajectoryExecutionManager::pushAndExecute(const moveit_msgs::RobotTrajectory& trajectory,
-                                                const std::string& controller)
-{
-  if (controller.empty())
-    return pushAndExecute(trajectory, std::vector<std::string>());
-  else
-    return pushAndExecute(trajectory, std::vector<std::string>(1, controller));
-}
-
-bool TrajectoryExecutionManager::pushAndExecute(const trajectory_msgs::JointTrajectory& trajectory,
-                                                const std::string& controller)
-{
-  if (controller.empty())
-    return pushAndExecute(trajectory, std::vector<std::string>());
-  else
-    return pushAndExecute(trajectory, std::vector<std::string>(1, controller));
-}
-
-bool TrajectoryExecutionManager::pushAndExecute(const sensor_msgs::JointState& state, const std::string& controller)
-{
-  if (controller.empty())
-    return pushAndExecute(state, std::vector<std::string>());
-  else
-    return pushAndExecute(state, std::vector<std::string>(1, controller));
-}
-
-bool TrajectoryExecutionManager::pushAndExecute(const trajectory_msgs::JointTrajectory& trajectory,
-                                                const std::vector<std::string>& controllers)
-{
-  moveit_msgs::RobotTrajectory traj;
-  traj.joint_trajectory = trajectory;
-  return pushAndExecute(traj, controllers);
-}
-
-bool TrajectoryExecutionManager::pushAndExecute(const sensor_msgs::JointState& state,
-                                                const std::vector<std::string>& controllers)
-{
-  moveit_msgs::RobotTrajectory traj;
-  traj.joint_trajectory.header = state.header;
-  traj.joint_trajectory.joint_names = state.name;
-  traj.joint_trajectory.points.resize(1);
-  traj.joint_trajectory.points[0].positions = state.position;
-  traj.joint_trajectory.points[0].velocities = state.velocity;
-  traj.joint_trajectory.points[0].effort = state.effort;
-  traj.joint_trajectory.points[0].time_from_start = ros::Duration(0, 0);
-  return pushAndExecute(traj, controllers);
-}
-
-bool TrajectoryExecutionManager::pushAndExecute(const moveit_msgs::RobotTrajectory& trajectory,
-                                                const std::vector<std::string>& controllers)
-{
-  if (!execution_complete_)
-  {
-    ROS_ERROR_NAMED(name_, "Cannot push & execute a new trajectory while another is being executed");
-    return false;
-  }
-
-  TrajectoryExecutionContext* context = new TrajectoryExecutionContext();
-  if (configure(*context, trajectory, controllers))
-  {
-    {
-      boost::mutex::scoped_lock slock(continuous_execution_mutex_);
-      continuous_execution_queue_.push_back(context);
-      if (!continuous_execution_thread_)
-        continuous_execution_thread_ =
-            std::make_unique<boost::thread>(std::bind(&TrajectoryExecutionManager::continuousExecutionThread, this));
-    }
-    last_execution_status_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
-    continuous_execution_condition_.notify_all();
-    return true;
-  }
-  else
-  {
-    delete context;
-    last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
-    return false;
-  }
-}
-
-void TrajectoryExecutionManager::continuousExecutionThread()
-{
-  std::set<moveit_controller_manager::MoveItControllerHandlePtr> used_handles;
-  while (run_continuous_execution_thread_)
-  {
-    if (!stop_continuous_execution_)
-    {
-      boost::unique_lock<boost::mutex> ulock(continuous_execution_mutex_);
-      while (continuous_execution_queue_.empty() && run_continuous_execution_thread_ && !stop_continuous_execution_)
-        continuous_execution_condition_.wait(ulock);
-    }
-
-    if (stop_continuous_execution_ || !run_continuous_execution_thread_)
-    {
-      for (const moveit_controller_manager::MoveItControllerHandlePtr& used_handle : used_handles)
-        if (used_handle->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::RUNNING)
-          used_handle->cancelExecution();
-      used_handles.clear();
-      while (!continuous_execution_queue_.empty())
-      {
-        TrajectoryExecutionContext* context = continuous_execution_queue_.front();
-        continuous_execution_queue_.pop_front();
-        delete context;
-      }
-      stop_continuous_execution_ = false;
-      continue;
-    }
-
-    while (!continuous_execution_queue_.empty())
-    {
-      TrajectoryExecutionContext* context = nullptr;
-      {
-        boost::mutex::scoped_lock slock(continuous_execution_mutex_);
-        if (continuous_execution_queue_.empty())
-          break;
-        context = continuous_execution_queue_.front();
-        continuous_execution_queue_.pop_front();
-        if (continuous_execution_queue_.empty())
-          continuous_execution_condition_.notify_all();
-      }
-
-      // remove handles we no longer need
-      std::set<moveit_controller_manager::MoveItControllerHandlePtr>::iterator uit = used_handles.begin();
-      while (uit != used_handles.end())
-        if ((*uit)->getLastExecutionStatus() != moveit_controller_manager::ExecutionStatus::RUNNING)
-        {
-          std::set<moveit_controller_manager::MoveItControllerHandlePtr>::iterator to_erase = uit;
-          ++uit;
-          used_handles.erase(to_erase);
-        }
-        else
-          ++uit;
-
-      // now send stuff to controllers
-
-      // first make sure desired controllers are active
-      if (areControllersActive(context->controllers_))
-      {
-        // get the controller handles needed to execute the new trajectory
-        std::vector<moveit_controller_manager::MoveItControllerHandlePtr> handles(context->controllers_.size());
-        for (std::size_t i = 0; i < context->controllers_.size(); ++i)
-        {
-          moveit_controller_manager::MoveItControllerHandlePtr h;
-          try
-          {
-            h = controller_manager_->getControllerHandle(context->controllers_[i]);
-          }
-          catch (std::exception& ex)
-          {
-            ROS_ERROR_NAMED(name_, "%s caught when retrieving controller handle", ex.what());
-          }
-          if (!h)
-          {
-            last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
-            ROS_ERROR_NAMED(name_, "No controller handle for controller '%s'. Aborting.",
-                            context->controllers_[i].c_str());
-            handles.clear();
-            break;
-          }
-          handles[i] = h;
-        }
-
-        if (stop_continuous_execution_ || !run_continuous_execution_thread_)
-        {
-          delete context;
-          break;
-        }
-
-        // push all trajectories to all controllers simultaneously
-        if (!handles.empty())
-          for (std::size_t i = 0; i < context->trajectory_parts_.size(); ++i)
-          {
-            bool ok = false;
-            try
-            {
-              ok = handles[i]->sendTrajectory(context->trajectory_parts_[i]);
-            }
-            catch (std::exception& ex)
-            {
-              ROS_ERROR_NAMED(name_, "Caught %s when sending trajectory to controller", ex.what());
-            }
-            if (!ok)
-            {
-              for (std::size_t j = 0; j < i; ++j)
-                try
-                {
-                  handles[j]->cancelExecution();
-                }
-                catch (std::exception& ex)
-                {
-                  ROS_ERROR_NAMED(name_, "Caught %s when canceling execution", ex.what());
-                }
-              ROS_ERROR_NAMED(name_, "Failed to send trajectory part %zu of %zu to controller %s", i + 1,
-                              context->trajectory_parts_.size(), handles[i]->getName().c_str());
-              if (i > 0)
-                ROS_ERROR_NAMED(name_, "Cancelling previously sent trajectory parts");
-              last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
-              handles.clear();
-              break;
-            }
-          }
-        delete context;
-
-        // remember which handles we used
-        for (const moveit_controller_manager::MoveItControllerHandlePtr& handle : handles)
-          used_handles.insert(handle);
-      }
-      else
-      {
-        ROS_ERROR_NAMED(name_, "Not all needed controllers are active. Cannot push and execute. You can try "
-                               "calling ensureActiveControllers() before pushAndExecute()");
-        last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
-        delete context;
-      }
-    }
-  }
 }
 
 void TrajectoryExecutionManager::reloadControllerInformation()
@@ -553,7 +336,7 @@ void TrajectoryExecutionManager::updateControllerState(const std::string& contro
   if (it != known_controllers_.end())
     updateControllerState(it->second, age);
   else
-    ROS_ERROR_NAMED(name_, "Controller '%s' is not known.", controller.c_str());
+    ROS_ERROR_NAMED(LOGNAME, "Controller '%s' is not known.", controller.c_str());
 }
 
 void TrajectoryExecutionManager::updateControllerState(ControllerInformation& ci, const ros::Duration& age)
@@ -563,13 +346,13 @@ void TrajectoryExecutionManager::updateControllerState(ControllerInformation& ci
     if (controller_manager_)
     {
       if (verbose_)
-        ROS_INFO_NAMED(name_, "Updating information for controller '%s'.", ci.name_.c_str());
+        ROS_INFO_NAMED(LOGNAME, "Updating information for controller '%s'.", ci.name_.c_str());
       ci.state_ = controller_manager_->getControllerState(ci.name_);
       ci.last_update_ = ros::Time::now();
     }
   }
   else if (verbose_)
-    ROS_INFO_NAMED(name_, "Information for controller '%s' is assumed to be up to date.", ci.name_.c_str());
+    ROS_INFO_NAMED(LOGNAME, "Information for controller '%s' is assumed to be up to date.", ci.name_.c_str());
 }
 
 void TrajectoryExecutionManager::updateControllersState(const ros::Duration& age)
@@ -597,7 +380,7 @@ bool TrajectoryExecutionManager::checkControllerCombination(std::vector<std::str
       saj << actuated_joint << " ";
     for (const std::string& combined_joint : combined_joints)
       sac << combined_joint << " ";
-    ROS_INFO_NAMED(name_, "Checking if controllers [ %s] operating on joints [ %s] cover joints [ %s]",
+    ROS_INFO_NAMED(LOGNAME, "Checking if controllers [ %s] operating on joints [ %s] cover joints [ %s]",
                    ss.str().c_str(), sac.str().c_str(), saj.str().c_str());
   }
 
@@ -689,7 +472,7 @@ bool TrajectoryExecutionManager::findControllers(const std::set<std::string>& ac
       sac << available_controller << " ";
     for (const std::string& actuated_joint : actuated_joints)
       saj << actuated_joint << " ";
-    ROS_INFO_NAMED(name_, "Looking for %zu controllers among [ %s] that cover joints [ %s]. Found %zd options.",
+    ROS_INFO_NAMED(LOGNAME, "Looking for %zu controllers among [ %s] that cover joints [ %s]. Found %zd options.",
                    controller_count, sac.str().c_str(), saj.str().c_str(), selected_options.size());
   }
 
@@ -823,7 +606,7 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
     std::map<std::string, ControllerInformation>::iterator it = known_controllers_.find(controllers[i]);
     if (it == known_controllers_.end())
     {
-      ROS_ERROR_STREAM_NAMED(name_, "Controller " << controllers[i] << " not found.");
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "Controller " << controllers[i] << " not found.");
       return false;
     }
     std::vector<std::string> intersect_mdof;
@@ -833,7 +616,7 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
     std::set_intersection(it->second.joints_.begin(), it->second.joints_.end(), actuated_joints_single.begin(),
                           actuated_joints_single.end(), std::back_inserter(intersect_single));
     if (intersect_mdof.empty() && intersect_single.empty())
-      ROS_WARN_STREAM_NAMED(name_, "No joints to be distributed for controller " << controllers[i]);
+      ROS_WARN_STREAM_NAMED(LOGNAME, "No joints to be distributed for controller " << controllers[i]);
     {
       if (!intersect_mdof.empty())
       {
@@ -937,12 +720,12 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
   if (allowed_start_tolerance_ == 0)  // skip validation on this magic number
     return true;
 
-  ROS_DEBUG_NAMED(name_, "Validating trajectory with allowed_start_tolerance %g", allowed_start_tolerance_);
+  ROS_DEBUG_NAMED(LOGNAME, "Validating trajectory with allowed_start_tolerance %g", allowed_start_tolerance_);
 
   moveit::core::RobotStatePtr current_state;
   if (!csm_->waitForCurrentState(ros::Time::now()) || !(current_state = csm_->getCurrentState()))
   {
-    ROS_WARN_NAMED(name_, "Failed to validate trajectory: couldn't receive full current joint state within 1s");
+    ROS_WARN_NAMED(LOGNAME, "Failed to validate trajectory: couldn't receive full current joint state within 1s");
     return false;
   }
 
@@ -955,7 +738,7 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
       const std::vector<std::string>& joint_names = trajectory.joint_trajectory.joint_names;
       if (positions.size() != joint_names.size())
       {
-        ROS_ERROR_NAMED(name_, "Wrong trajectory: #joints: %zu != #positions: %zu", joint_names.size(),
+        ROS_ERROR_NAMED(LOGNAME, "Wrong trajectory: #joints: %zu != #positions: %zu", joint_names.size(),
                         positions.size());
         return false;
       }
@@ -965,7 +748,7 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
         const moveit::core::JointModel* jm = current_state->getJointModel(joint_names[i]);
         if (!jm)
         {
-          ROS_ERROR_STREAM_NAMED(name_, "Unknown joint in trajectory: " << joint_names[i]);
+          ROS_ERROR_STREAM_NAMED(LOGNAME, "Unknown joint in trajectory: " << joint_names[i]);
           return false;
         }
 
@@ -976,7 +759,7 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
         jm->enforcePositionBounds(&traj_position);
         if (jm->distance(&cur_position, &traj_position) > allowed_start_tolerance_)
         {
-          ROS_ERROR_NAMED(name_,
+          ROS_ERROR_NAMED(LOGNAME,
                           "\nInvalid Trajectory: start point deviates from current robot state more than %g"
                           "\njoint '%s': expected: %g, current: %g",
                           allowed_start_tolerance_, joint_names[i].c_str(), traj_position, cur_position);
@@ -992,7 +775,7 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
       const std::vector<std::string>& joint_names = trajectory.multi_dof_joint_trajectory.joint_names;
       if (transforms.size() != joint_names.size())
       {
-        ROS_ERROR_NAMED(name_, "Wrong trajectory: #joints: %zu != #transforms: %zu", joint_names.size(),
+        ROS_ERROR_NAMED(LOGNAME, "Wrong trajectory: #joints: %zu != #transforms: %zu", joint_names.size(),
                         transforms.size());
         return false;
       }
@@ -1002,7 +785,7 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
         const moveit::core::JointModel* jm = current_state->getJointModel(joint_names[i]);
         if (!jm)
         {
-          ROS_ERROR_STREAM_NAMED(name_, "Unknown joint in trajectory: " << joint_names[i]);
+          ROS_ERROR_STREAM_NAMED(LOGNAME, "Unknown joint in trajectory: " << joint_names[i]);
           return false;
         }
 
@@ -1018,10 +801,10 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
         rotation.fromRotationMatrix(cur_transform.linear().transpose() * start_transform.linear());
         if ((offset.array() > allowed_start_tolerance_).any() || rotation.angle() > allowed_start_tolerance_)
         {
-          ROS_ERROR_STREAM_NAMED(name_, "\nInvalid Trajectory: start point deviates from current robot state more than "
-                                            << allowed_start_tolerance_ << "\nmulti-dof joint '" << joint_names[i]
-                                            << "': pos delta: " << offset.transpose()
-                                            << " rot delta: " << rotation.angle());
+          ROS_ERROR_STREAM_NAMED(LOGNAME,
+                                 "\nInvalid Trajectory: start point deviates from current robot state more than "
+                                     << allowed_start_tolerance_ << "\nmulti-dof joint '" << joint_names[i]
+                                     << "': pos delta: " << offset.transpose() << " rot delta: " << rotation.angle());
           return false;
         }
       }
@@ -1054,7 +837,7 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
 
   if (actuated_joints.empty())
   {
-    ROS_WARN_NAMED(name_, "The trajectory to execute specifies no joints");
+    ROS_WARN_NAMED(LOGNAME, "The trajectory to execute specifies no joints");
     return false;
   }
 
@@ -1102,7 +885,7 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
       for (const std::string& controller : controllers)
         if (known_controllers_.find(controller) == known_controllers_.end())
         {
-          ROS_ERROR_NAMED(name_, "Controller '%s' is not known", controller.c_str());
+          ROS_ERROR_NAMED(LOGNAME, "Controller '%s' is not known", controller.c_str());
           return false;
         }
     if (selectControllers(actuated_joints, controllers, context.controllers_))
@@ -1114,7 +897,7 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
   std::stringstream ss;
   for (const std::string& actuated_joint : actuated_joints)
     ss << actuated_joint << " ";
-  ROS_ERROR_NAMED(name_, "Unable to identify any set of controllers that can actuate the specified joints: [ %s]",
+  ROS_ERROR_NAMED(LOGNAME, "Unable to identify any set of controllers that can actuate the specified joints: [ %s]",
                   ss.str().c_str());
 
   std::stringstream ss2;
@@ -1129,7 +912,7 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
       ss2 << "  " << *ji << std::endl;
     }
   }
-  ROS_ERROR_NAMED(name_, "Known controllers and their joints:\n%s", ss2.str().c_str());
+  ROS_ERROR_NAMED(LOGNAME, "Known controllers and their joints:\n%s", ss2.str().c_str());
   return false;
 }
 
@@ -1149,15 +932,12 @@ void TrajectoryExecutionManager::stopExecutionInternal()
     }
     catch (std::exception& ex)
     {
-      ROS_ERROR_NAMED(name_, "Caught %s when canceling execution.", ex.what());
+      ROS_ERROR_NAMED(LOGNAME, "Caught %s when canceling execution.", ex.what());
     }
 }
 
 void TrajectoryExecutionManager::stopExecution(bool auto_clear)
 {
-  stop_continuous_execution_ = true;
-  continuous_execution_condition_.notify_all();
-
   if (!execution_complete_)
   {
     execution_state_mutex_.lock();
@@ -1173,7 +953,7 @@ void TrajectoryExecutionManager::stopExecution(bool auto_clear)
       // we set the status here; executePart() will not set status when execution_complete_ is true ahead of time
       last_execution_status_ = moveit_controller_manager::ExecutionStatus::PREEMPTED;
       execution_state_mutex_.unlock();
-      ROS_INFO_NAMED(name_, "Stopped trajectory execution.");
+      ROS_INFO_NAMED(LOGNAME, "Stopped trajectory execution.");
 
       // wait for the execution thread to finish
       boost::mutex::scoped_lock lock(execution_thread_mutex_);
@@ -1209,6 +989,11 @@ void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback& callba
 void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback& callback,
                                          const PathSegmentCompleteCallback& part_callback, bool auto_clear)
 {
+  // skip execution if no trajectory have been pushed
+  // it crashes otherwise
+  if (trajectories_.empty())
+    return;
+
   stopExecution(false);
 
   // check whether first trajectory starts at current robot state
@@ -1235,11 +1020,6 @@ moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::waitForEx
     while (!execution_complete_)
       execution_complete_condition_.wait(ulock);
   }
-  {
-    boost::unique_lock<boost::mutex> ulock(continuous_execution_mutex_);
-    while (!continuous_execution_queue_.empty())
-      continuous_execution_condition_.wait(ulock);
-  }
 
   // this will join the thread for executing sequences of trajectories
   stopExecution(false);
@@ -1254,17 +1034,9 @@ void TrajectoryExecutionManager::clear()
     for (TrajectoryExecutionContext* trajectory : trajectories_)
       delete trajectory;
     trajectories_.clear();
-    {
-      boost::mutex::scoped_lock slock(continuous_execution_mutex_);
-      while (!continuous_execution_queue_.empty())
-      {
-        delete continuous_execution_queue_.front();
-        continuous_execution_queue_.pop_front();
-      }
-    }
   }
   else
-    ROS_ERROR_NAMED(name_, "Cannot push a new trajectory while another is being executed");
+    ROS_ERROR_NAMED(LOGNAME, "Cannot push a new trajectory while another is being executed");
 }
 
 void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback& callback,
@@ -1279,7 +1051,7 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback& 
     return;
   }
 
-  ROS_DEBUG_NAMED(name_, "Starting trajectory execution ...");
+  ROS_DEBUG_NAMED(LOGNAME, "Starting trajectory execution ...");
   // assume everything will be OK
   last_execution_status_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
 
@@ -1302,7 +1074,8 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback& 
   if (last_execution_status_ == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
     waitForRobotToStop(*trajectories_[i - 1]);
 
-  ROS_INFO_NAMED(name_, "Completed trajectory execution with status %s ...", last_execution_status_.asString().c_str());
+  ROS_INFO_NAMED(LOGNAME, "Completed trajectory execution with status %s ...",
+                 last_execution_status_.asString().c_str());
 
   // notify whoever is waiting for the event of trajectory completion
   execution_state_mutex_.lock();
@@ -1349,14 +1122,14 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
           }
           catch (std::exception& ex)
           {
-            ROS_ERROR_NAMED(name_, "Caught %s when retrieving controller handle", ex.what());
+            ROS_ERROR_NAMED(LOGNAME, "Caught %s when retrieving controller handle", ex.what());
           }
           if (!h)
           {
             active_handles_.clear();
             current_context_ = -1;
             last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
-            ROS_ERROR_NAMED(name_, "No controller handle for controller '%s'. Aborting.",
+            ROS_ERROR_NAMED(LOGNAME, "No controller handle for controller '%s'. Aborting.",
                             context.controllers_[i].c_str());
             return false;
           }
@@ -1372,7 +1145,7 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
           }
           catch (std::exception& ex)
           {
-            ROS_ERROR_NAMED(name_, "Caught %s when sending trajectory to controller", ex.what());
+            ROS_ERROR_NAMED(LOGNAME, "Caught %s when sending trajectory to controller", ex.what());
           }
           if (!ok)
           {
@@ -1383,12 +1156,12 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
               }
               catch (std::exception& ex)
               {
-                ROS_ERROR_NAMED(name_, "Caught %s when canceling execution", ex.what());
+                ROS_ERROR_NAMED(LOGNAME, "Caught %s when canceling execution", ex.what());
               }
-            ROS_ERROR_NAMED(name_, "Failed to send trajectory part %zu of %zu to controller %s", i + 1,
+            ROS_ERROR_NAMED(LOGNAME, "Failed to send trajectory part %zu of %zu to controller %s", i + 1,
                             context.trajectory_parts_.size(), active_handles_[i]->getName().c_str());
             if (i > 0)
-              ROS_ERROR_NAMED(name_, "Cancelling previously sent trajectory parts");
+              ROS_ERROR_NAMED(LOGNAME, "Cancelling previously sent trajectory parts");
             active_handles_.clear();
             current_context_ = -1;
             last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
@@ -1481,7 +1254,7 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
         if (!handle->waitForExecution(expected_trajectory_duration))
           if (!execution_complete_ && ros::Time::now() - current_time > expected_trajectory_duration)
           {
-            ROS_ERROR_NAMED(name_,
+            ROS_ERROR_NAMED(LOGNAME,
                             "Controller is taking too long to execute trajectory (the expected upper "
                             "bound for the trajectory execution was %lf seconds). Stopping trajectory.",
                             expected_trajectory_duration.toSec());
@@ -1506,8 +1279,8 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
       }
       else if (handle->getLastExecutionStatus() != moveit_controller_manager::ExecutionStatus::SUCCEEDED)
       {
-        ROS_WARN_STREAM_NAMED(name_, "Controller handle " << handle->getName() << " reports status "
-                                                          << handle->getLastExecutionStatus().asString());
+        ROS_WARN_STREAM_NAMED(LOGNAME, "Controller handle " << handle->getName() << " reports status "
+                                                            << handle->getLastExecutionStatus().asString());
         last_execution_status_ = handle->getLastExecutionStatus();
         result = false;
       }
@@ -1538,7 +1311,7 @@ bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionCon
   // skip waiting for convergence?
   if (allowed_start_tolerance_ == 0 || !wait_for_trajectory_completion_)
   {
-    ROS_DEBUG_NAMED(name_, "Not waiting for trajectory completion");
+    ROS_DEBUG_NAMED(LOGNAME, "Not waiting for trajectory completion");
     return true;
   }
 
@@ -1555,7 +1328,7 @@ bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionCon
   {
     if (!csm_->waitForCurrentState(ros::Time::now(), time_remaining) || !(cur_state = csm_->getCurrentState()))
     {
-      ROS_WARN_NAMED(name_, "Failed to receive current joint state");
+      ROS_WARN_NAMED(LOGNAME, "Failed to receive current joint state");
       return false;
     }
     cur_state->enforceBounds();
@@ -1670,12 +1443,12 @@ bool TrajectoryExecutionManager::ensureActiveControllers(const std::vector<std::
       std::map<std::string, ControllerInformation>::const_iterator it = known_controllers_.find(controller);
       if (it == known_controllers_.end())
       {
-        ROS_ERROR_STREAM_NAMED(name_, "Controller " << controller << " is not known");
+        ROS_ERROR_STREAM_NAMED(LOGNAME, "Controller " << controller << " is not known");
         return false;
       }
       if (!it->second.state_.active_)
       {
-        ROS_DEBUG_STREAM_NAMED(name_, "Need to activate " << controller);
+        ROS_DEBUG_STREAM_NAMED(LOGNAME, "Need to activate " << controller);
         controllers_to_activate.push_back(controller);
         joints_to_be_activated.insert(it->second.joints_.begin(), it->second.joints_.end());
         for (const std::string& overlapping_controller : it->second.overlapping_controllers_)
@@ -1689,7 +1462,7 @@ bool TrajectoryExecutionManager::ensureActiveControllers(const std::vector<std::
         }
       }
       else
-        ROS_DEBUG_STREAM_NAMED(name_, "Controller " << controller << " is already active");
+        ROS_DEBUG_STREAM_NAMED(LOGNAME, "Controller " << controller << " is already active");
     }
     std::set<std::string> diff;
     std::set_difference(joints_to_be_deactivated.begin(), joints_to_be_deactivated.end(),

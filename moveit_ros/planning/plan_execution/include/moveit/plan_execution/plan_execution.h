@@ -139,15 +139,13 @@ public:
 
   void stop();
 
-  std::string getErrorCodeString(const moveit_msgs::MoveItErrorCodes& error_code);
-
 private:
   void planAndExecuteHelper(ExecutableMotionPlan& plan, const Options& opt);
   bool isRemainingPathValid(const ExecutableMotionPlan& plan, const std::pair<int, int>& path_segment);
 
   void planningSceneUpdatedCallback(const planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
   void doneWithTrajectoryExecution(const moveit_controller_manager::ExecutionStatus& status);
-  void successfulTrajectorySegmentExecution(const ExecutableMotionPlan* plan, std::size_t index);
+  void successfulTrajectorySegmentExecution(const ExecutableMotionPlan& plan, std::size_t index);
 
   ros::NodeHandle node_handle_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;

@@ -8,17 +8,19 @@ on:
   pull_request:
   push:
 
+permissions:
+  contents: read # to fetch code (actions/checkout)
+
 jobs:
   pre-commit:
     name: pre-commit
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
       - name: Install clang-format-10
         run: sudo apt-get install clang-format-10
       - uses: rhaschke/install-catkin_lint-action@v1.0
-      - uses: pre-commit/action@v2.0.3
+      - uses: pre-commit/action@v3.0.0
         id: precommit
       - name: Upload pre-commit changes
         if: failure() && steps.precommit.outcome == 'failure'

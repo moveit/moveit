@@ -52,7 +52,7 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const moveit::core::RobotM
                                                       const ros::NodeHandle& pipeline_nh,
                                                       const std::string& planner_plugin_param_name,
                                                       const std::string& adapter_plugins_param_name)
-  : pipeline_nh_(pipeline_nh), private_nh_("~"), robot_model_(model)
+  : active_{ false }, pipeline_nh_(pipeline_nh), private_nh_("~"), robot_model_(model)
 {
   std::string planner;
   if (pipeline_nh_.getParam(planner_plugin_param_name, planner))
@@ -74,7 +74,8 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const moveit::core::RobotM
                                                       const ros::NodeHandle& pipeline_nh,
                                                       const std::string& planner_plugin_name,
                                                       const std::vector<std::string>& adapter_plugin_names)
-  : pipeline_nh_(pipeline_nh)
+  : active_{ false }
+  , pipeline_nh_(pipeline_nh)
   , private_nh_("~")
   , planner_plugin_name_(planner_plugin_name)
   , adapter_plugin_names_(adapter_plugin_names)
@@ -219,6 +220,9 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
                                                        planning_interface::MotionPlanResponse& res,
                                                        std::vector<std::size_t>& adapter_added_state_index) const
 {
+  // Set planning pipeline active
+  active_ = true;
+
   // broadcast the request we are about to work on, if needed
   if (publish_received_requests_)
     received_request_publisher_.publish(req);
@@ -227,6 +231,8 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   if (!planner_instance_)
   {
     ROS_ERROR("No planning plugin loaded. Cannot plan.");
+    // Set planning pipeline to inactive
+    active_ = false;
     return false;
   }
 
@@ -254,6 +260,8 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   catch (std::exception& ex)
   {
     ROS_ERROR("Exception caught: '%s'", ex.what());
+    // Set planning pipeline to inactive
+    active_ = false;
     return false;
   }
   bool valid = true;
@@ -369,7 +377,8 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
                "unusual. Are you using a move_group_interface and forgetting to call clearPoseTargets() or "
                "equivalent?");
   }
-
+  // Set planning pipeline to inactive
+  active_ = false;
   return solved && valid;
 }
 

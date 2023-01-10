@@ -62,9 +62,8 @@ void MoveGroupSequenceAction::initialize()
   // start the move action server
   ROS_INFO_STREAM("initialize move group sequence action");
   move_action_server_ = std::make_unique<actionlib::SimpleActionServer<moveit_msgs::MoveGroupSequenceAction>>(
-      root_node_handle_, "sequence_move_group",
-      std::bind(&MoveGroupSequenceAction::executeSequenceCallback, this, std::placeholders::_1), false);
-  move_action_server_->registerPreemptCallback(std::bind(&MoveGroupSequenceAction::preemptMoveCallback, this));
+      root_node_handle_, "sequence_move_group", [this](const auto& goal) { executeSequenceCallback(goal); }, false);
+  move_action_server_->registerPreemptCallback([this] { preemptMoveCallback(); });
   move_action_server_->start();
 
   command_list_manager_ = std::make_unique<pilz_industrial_motion_planner::CommandListManager>(
@@ -137,10 +136,11 @@ void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(
   opt.replan_ = goal->planning_options.replan;
   opt.replan_attempts_ = goal->planning_options.replan_attempts;
   opt.replan_delay_ = goal->planning_options.replan_delay;
-  opt.before_execution_callback_ = std::bind(&MoveGroupSequenceAction::startMoveExecutionCallback, this);
+  opt.before_execution_callback_ = [this] { startMoveExecutionCallback(); };
 
-  opt.plan_callback_ = std::bind(&MoveGroupSequenceAction::planUsingSequenceManager, this, boost::cref(goal->request),
-                                 std::placeholders::_1);
+  opt.plan_callback_ = [this, &request = goal->request](plan_execution::ExecutableMotionPlan& plan) {
+    return planUsingSequenceManager(request, plan);
+  };
 
   if (goal->planning_options.look_around && context_->plan_with_sensing_)
   {
@@ -311,5 +311,5 @@ void MoveGroupSequenceAction::setMoveState(move_group::MoveGroupState state)
 
 }  // namespace pilz_industrial_motion_planner
 
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 PLUGINLIB_EXPORT_CLASS(pilz_industrial_motion_planner::MoveGroupSequenceAction, move_group::MoveGroupCapability)

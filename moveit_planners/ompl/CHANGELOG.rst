@@ -2,6 +2,26 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2022-12-21)
+-------------------
+* Improve processing of multiple planning attempts: skip remaining planning attempts if solution was found (`#3261 <https://github.com/ros-planning/moveit/issues/3261>`_)
+* Convert OMPL status to ``MoveItErrorCode`` in the OMPL interface (`#3257 <https://github.com/ros-planning/moveit/issues/3257>`_)
+* Contributors: AndyZe, Robert Haschke
+
+1.1.10 (2022-09-13)
+-------------------
+* Remove ConstraintSampler::project() (`#3170 <https://github.com/ros-planning/moveit/issues/3170>`_)
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Cleanup OMPL's PlanningContextManager's protected API
+* planning_context_manager: rename protected methods
+* Contributors: Michael Görner, Robert Haschke
+
+1.1.9 (2022-03-06)
+------------------
+
+1.1.8 (2022-01-30)
+------------------
+
 1.1.7 (2021-12-31)
 ------------------
 * Use termination condition for simplification step (`#2981 <https://github.com/ros-planning/moveit/issues/2981>`_)

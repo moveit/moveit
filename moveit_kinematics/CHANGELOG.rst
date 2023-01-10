@@ -2,6 +2,26 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2022-12-21)
+-------------------
+* kinematics: add ``program_options`` as required boost component (`#3269 <https://github.com/ros-planning/moveit/issues/3269>`_)
+* Contributors: Jochen Sprickerhof
+
+1.1.10 (2022-09-13)
+-------------------
+* Merge PR `#3172 <https://github.com/ros-planning/moveit/issues/3172>`_: Fix CI
+* Fix test_ikfast_plugins.sh
+* auto_create_ikfast_moveit_plugin.sh: allow xacro input
+* Switch to hpp headers of pluginlib
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Contributors: Jochen Sprickerhof, Michael Görner, Robert Haschke
+
+1.1.9 (2022-03-06)
+------------------
+
+1.1.8 (2022-01-30)
+------------------
+
 1.1.7 (2021-12-31)
 ------------------
 * ``round_collada_numbers.py``: python 2/3 compatibility (`#2983 <https://github.com/ros-planning/moveit/issues/2983>`_)

@@ -69,6 +69,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   ui_->shapes_combo_box->addItem("Sphere", shapes::SPHERE);
   ui_->shapes_combo_box->addItem("Cylinder", shapes::CYLINDER);
   ui_->shapes_combo_box->addItem("Cone", shapes::CONE);
+  ui_->shapes_combo_box->addItem("Plane", shapes::PLANE);
   ui_->shapes_combo_box->addItem("Mesh from file", shapes::MESH);
   ui_->shapes_combo_box->addItem("Mesh from URL", shapes::MESH);
   setLocalSceneEdited(false);
@@ -108,7 +109,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->scene_scale, SIGNAL(valueChanged(int)), this, SLOT(sceneScaleChanged(int)));
   connect(ui_->scene_scale, SIGNAL(sliderPressed()), this, SLOT(sceneScaleStartChange()));
   connect(ui_->scene_scale, SIGNAL(sliderReleased()), this, SLOT(sceneScaleEndChange()));
-  connect(ui_->remove_object_button, SIGNAL(clicked()), this, SLOT(removeSceneObject()));
+  connect(ui_->remove_object_button, SIGNAL(clicked()), this, SLOT(removeSceneObjects()));
   connect(ui_->object_x, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_y, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_z, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
@@ -116,7 +117,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->object_ry, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_rz, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->publish_current_scene_button, SIGNAL(clicked()), this, SLOT(publishScene()));
-  connect(ui_->collision_objects_list, SIGNAL(itemSelectionChanged()), this, SLOT(selectedCollisionObjectChanged()));
+  connect(ui_->collision_objects_list, SIGNAL(currentRowChanged(int)), this, SLOT(currentCollisionObjectChanged()));
   connect(ui_->collision_objects_list, SIGNAL(itemChanged(QListWidgetItem*)), this,
           SLOT(collisionObjectChanged(QListWidgetItem*)));
   connect(ui_->path_constraints_combo_box, SIGNAL(currentIndexChanged(int)), this,
@@ -173,7 +174,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->wsize_z, SIGNAL(valueChanged(double)), this, SIGNAL(configChanged()));
 
   QShortcut* copy_object_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), ui_->collision_objects_list);
-  connect(copy_object_shortcut, SIGNAL(activated()), this, SLOT(copySelectedCollisionObject()));
+  connect(copy_object_shortcut, SIGNAL(activated()), this, SLOT(copySelectedCollisionObjects()));
 
   ui_->reset_db_button->hide();
   ui_->background_job_progress->hide();
@@ -213,7 +214,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
       semantic_world_.reset();
     if (semantic_world_)
     {
-      semantic_world_->addTableCallback(std::bind(&MotionPlanningFrame::updateTables, this));
+      semantic_world_->addTableCallback([this] { updateTables(); });
     }
   }
   catch (std::exception& ex)
@@ -230,13 +231,6 @@ MotionPlanningFrame::~MotionPlanningFrame()
 void MotionPlanningFrame::approximateIKChanged(int state)
 {
   planning_display_->useApproximateIK(state == Qt::Checked);
-}
-
-void MotionPlanningFrame::setItemSelectionInList(const std::string& item_name, bool selection, QListWidget* list)
-{
-  QList<QListWidgetItem*> found_items = list->findItems(QString(item_name.c_str()), Qt::MatchExactly);
-  for (QListWidgetItem* found_item : found_items)
-    found_item->setSelected(selection);
 }
 
 void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
@@ -336,13 +330,12 @@ void MotionPlanningFrame::changePlanningGroupHelper()
   if (!planning_display_->getPlanningSceneMonitor())
     return;
 
-  planning_display_->addMainLoopJob(std::bind(&MotionPlanningFrame::fillStateSelectionOptions, this));
+  planning_display_->addMainLoopJob([this] { fillStateSelectionOptions(); });
   planning_display_->addMainLoopJob([this]() { populateConstraintsList(std::vector<std::string>()); });
 
   const moveit::core::RobotModelConstPtr& robot_model = planning_display_->getRobotModel();
   std::string group = planning_display_->getCurrentPlanningGroup();
-  planning_display_->addMainLoopJob(
-      std::bind(&MotionPlanningParamWidget::setGroupName, ui_->planner_param_treeview, group));
+  planning_display_->addMainLoopJob([&view = *ui_->planner_param_treeview, group] { view.setGroupName(group); });
   planning_display_->addMainLoopJob(
       [=]() { ui_->planning_group_combo_box->setCurrentText(QString::fromStdString(group)); });
 
@@ -373,8 +366,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
     {
       ROS_ERROR("%s", ex.what());
     }
-    planning_display_->addMainLoopJob(
-        std::bind(&MotionPlanningParamWidget::setMoveGroup, ui_->planner_param_treeview, move_group_));
+    planning_display_->addMainLoopJob([&view = *ui_->planner_param_treeview, this] { view.setMoveGroup(move_group_); });
     if (move_group_)
     {
       move_group_->allowLooking(ui_->allow_looking->isChecked());
@@ -383,7 +375,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
       planning_display_->addMainLoopJob([=]() { ui_->use_cartesian_path->setEnabled(has_unique_endeffector); });
       std::vector<moveit_msgs::PlannerInterfaceDescription> desc;
       if (move_group_->getInterfaceDescriptions(desc))
-        planning_display_->addMainLoopJob(std::bind(&MotionPlanningFrame::populatePlannersList, this, desc));
+        planning_display_->addMainLoopJob([this, desc] { populatePlannersList(desc); });
       planning_display_->addBackgroundJob([this]() { populateConstraintsList(); }, "populateConstraintsList");
 
       if (first_time_)
@@ -398,8 +390,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
         // This ensures saved UI settings applied after planning_display_ is ready
         planning_display_->useApproximateIK(ui_->approximate_ik->isChecked());
         if (ui_->allow_external_program->isChecked())
-          planning_display_->addMainLoopJob(
-              std::bind(&MotionPlanningFrame::allowExternalProgramCommunication, this, true));
+          planning_display_->addMainLoopJob([this] { allowExternalProgramCommunication(true); });
       }
     }
   }
@@ -414,8 +405,7 @@ void MotionPlanningFrame::clearRobotModel()
 
 void MotionPlanningFrame::changePlanningGroup()
 {
-  planning_display_->addBackgroundJob(std::bind(&MotionPlanningFrame::changePlanningGroupHelper, this),
-                                      "Frame::changePlanningGroup");
+  planning_display_->addBackgroundJob([this] { changePlanningGroupHelper(); }, "Frame::changePlanningGroup");
   joints_tab_->changePlanningGroup(planning_display_->getCurrentPlanningGroup(),
                                    planning_display_->getQueryStartStateHandler(),
                                    planning_display_->getQueryGoalStateHandler());
@@ -424,17 +414,12 @@ void MotionPlanningFrame::changePlanningGroup()
 void MotionPlanningFrame::sceneUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
 {
   if (update_type & planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY)
-    planning_display_->addMainLoopJob(std::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
+    planning_display_->addMainLoopJob([this] { populateCollisionObjectsList(); });
 }
 
 void MotionPlanningFrame::addSceneObject()
 {
   static const double MIN_VAL = 1e-6;
-
-  if (!planning_display_->getPlanningSceneMonitor())
-  {
-    return;
-  }
 
   // get size values
   double x_length = ui_->shape_size_x_spin_box->isEnabled() ? ui_->shape_size_x_spin_box->value() : MIN_VAL;
@@ -463,6 +448,9 @@ void MotionPlanningFrame::addSceneObject()
     case shapes::CYLINDER:
       shape = std::make_shared<shapes::Cylinder>(0.5 * x_length, z_length);
       break;
+    case shapes::PLANE:
+      shape = std::make_shared<shapes::Plane>(0., 0., 1., 0.);
+      break;
     case shapes::MESH:
     {
       QUrl url;
@@ -485,29 +473,28 @@ void MotionPlanningFrame::addSceneObject()
                            QString("The '%1' is not supported.").arg(ui_->shapes_combo_box->currentText()));
   }
 
-  // find available (initial) name of object
-  int idx = 0;
-  std::string shape_name = selected_shape + "_" + std::to_string(idx);
-  while (planning_display_->getPlanningSceneRO()->getWorld()->hasObject(shape_name))
+  std::string shape_name;
+  if (auto ps = planning_display_->getPlanningSceneRW())
   {
-    idx++;
-    shape_name = selected_shape + "_" + std::to_string(idx);
-  }
+    // find available (initial) name of object
+    int idx = 0;
+    do
+      shape_name = selected_shape + "_" + std::to_string(++idx);
+    while (ps->getWorld()->hasObject(shape_name));
 
-  // Actually add object to the plugin's PlanningScene
-  {
-    planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
+    // Actually add object to the plugin's PlanningScene
     ps->getWorldNonConst()->addToObject(shape_name, shape, Eigen::Isometry3d::Identity());
   }
   setLocalSceneEdited();
-
-  planning_display_->addMainLoopJob(std::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
-
-  // Automatically select the inserted object so that its IM is displayed
-  planning_display_->addMainLoopJob(
-      std::bind(&MotionPlanningFrame::setItemSelectionInList, this, shape_name, true, ui_->collision_objects_list));
-
   planning_display_->queueRenderSceneGeometry();
+
+  // Finally add object name to GUI list
+  auto item = addCollisionObjectToList(shape_name, ui_->collision_objects_list->count(), false);
+
+  // Select it and make it current so that its IM is displayed
+  ui_->collision_objects_list->clearSelection();
+  item->setSelected(true);
+  ui_->collision_objects_list->setCurrentItem(item);
 }
 
 shapes::ShapePtr MotionPlanningFrame::loadMeshResource(const std::string& url)
@@ -624,7 +611,7 @@ void MotionPlanningFrame::tabChanged(int index)
   if (scene_marker_ && ui_->tabWidget->tabText(index).toStdString() != TAB_OBJECTS)
     scene_marker_.reset();
   else if (ui_->tabWidget->tabText(index).toStdString() == TAB_OBJECTS)
-    selectedCollisionObjectChanged();
+    currentCollisionObjectChanged();
 }
 
 void MotionPlanningFrame::updateSceneMarkers(float wall_dt, float /*ros_dt*/)

@@ -75,9 +75,9 @@ ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(ModelBasedStateSpaceS
   setTagSnapToSegment(0.95);
 
   /// expose parameters
-  params_.declareParam<double>("tag_snap_to_segment",
-                               std::bind(&ModelBasedStateSpace::setTagSnapToSegment, this, std::placeholders::_1),
-                               std::bind(&ModelBasedStateSpace::getTagSnapToSegment, this));
+  params_.declareParam<double>(
+      "tag_snap_to_segment", [this](double tag_snap_to_segment) { setTagSnapToSegment(tag_snap_to_segment); },
+      [this] { return getTagSnapToSegment(); });
 }
 
 ompl_interface::ModelBasedStateSpace::~ModelBasedStateSpace() = default;

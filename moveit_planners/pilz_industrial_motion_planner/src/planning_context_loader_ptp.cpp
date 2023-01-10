@@ -36,7 +36,7 @@
 #include "moveit/planning_scene/planning_scene.h"
 #include "pilz_industrial_motion_planner/planning_context_ptp.h"
 
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 
 pilz_industrial_motion_planner::PlanningContextLoaderPTP::PlanningContextLoaderPTP()
 {

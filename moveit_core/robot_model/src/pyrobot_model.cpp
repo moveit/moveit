@@ -66,31 +66,16 @@ void def_robot_model_bindings(py::module& m)
       .def("get_name", &RobotModel::getName)
       .def("get_model_frame", &RobotModel::getModelFrame)
       .def("get_joint_model_group_names", &RobotModel::getJointModelGroupNames)
-      .def("get_joint_model_group", &RobotModel::getJointModelGroup, py::return_value_policy::reference_internal,
-           py::arg("group"))
+      .def("get_joint_model_group", py::overload_cast<const std::string&>(&RobotModel::getJointModelGroup, py::const_),
+           py::return_value_policy::reference_internal, py::arg("group"))
       .def("get_link_model_names", &RobotModel::getLinkModelNames)
       .def("get_joint_model_names", &RobotModel::getJointModelNames)
       .def("get_active_joint_model_names", &RobotModel::getActiveJointModelNames)
 
-      .def("get_link_pose", &RobotInterfacePython::getLinkPose, py::arg("name"))
-      .def("get_planning_frame", &RobotInterfacePython::getPlanningFrame)
-      .def("get_current_state", &RobotInterfacePython::getCurrentState)
-      .def("get_current_variable_values", &RobotInterfacePython::getCurrentVariableValues)
-      .def("get_current_joint_values", &RobotInterfacePython::getCurrentJointValues, py::arg("name"))
-      .def("get_joint_values", &RobotInterfacePython::getJointValues, py::arg("group"), py::arg("named_state"))
-      .def("get_robot_root_link", &RobotInterfacePython::getRobotRootLink)
-      .def("has_group", &RobotInterfacePython::hasGroup, py::arg("group"))
-      .def("get_robot_name", &RobotInterfacePython::getRobotName)
-      .def("get_robot_markers", &RobotInterfacePython::getRobotMarkers)
-      .def("get_robot_markers", &RobotInterfacePython::getRobotMarkersPythonList, py::arg("links"))
-      .def("get_robot_markers", &RobotInterfacePython::getRobotMarkersFromMsg, py::arg("robot_state_msg"))
-      .def("get_robot_markers", &RobotInterfacePython::getRobotMarkersPythonDictList, py::arg("joint_values"),
-           py::arg("links"))
-      .def("get_robot_markers", &RobotInterfacePython::getRobotMarkersPythonDict, py::arg("joint_values"))
-      .def("get_group_markers", &RobotInterfacePython::getRobotMarkersGroup, py::arg("group"))
-      .def("get_group_markers", &RobotInterfacePython::getRobotMarkersGroupPythonDict, py::arg("group"),
-           py::arg("joint_values"))
-      .def("get_parent_group", &RobotInterfacePython::getEndEffectorParentGroup, py::arg("group"))
+      .def("get_planning_frame", &RobotModel::getModelFrame)
+      .def("get_robot_root_link", &RobotModel::getRootLinkName)
+      .def("has_group", &RobotModel::hasJointModelGroup, py::arg("group"))
+      .def("get_robot_name", &RobotModel::getName)
       // keep semicolon on next line
       ;
 }

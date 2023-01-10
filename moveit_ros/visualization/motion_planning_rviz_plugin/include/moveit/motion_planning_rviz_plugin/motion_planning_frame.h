@@ -184,12 +184,12 @@ private Q_SLOTS:
   void sceneScaleEndChange();
   void shapesComboBoxChanged(const QString& text);
   void addSceneObject();
-  void removeSceneObject();
-  void selectedCollisionObjectChanged();
+  void removeSceneObjects();
+  void currentCollisionObjectChanged();
   void objectPoseValueChanged(double value);
   void collisionObjectChanged(QListWidgetItem* item);
   void imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback& feedback);
-  void copySelectedCollisionObject();
+  void copySelectedCollisionObjects();
   void exportGeometryAsTextButtonClicked();
   void importGeometryFromTextButtonClicked();
 
@@ -253,7 +253,8 @@ private:
   void createSceneInteractiveMarker();
   void renameCollisionObject(QListWidgetItem* item);
   void attachDetachCollisionObject(QListWidgetItem* item);
-  void populateCollisionObjectsList();
+  QListWidgetItem* addCollisionObjectToList(const std::string& name, int row, bool attached);
+  void populateCollisionObjectsList(planning_scene_monitor::LockedPlanningSceneRO* pps = nullptr);
   void computeImportGeometryFromText(const std::string& path);
   void computeExportGeometryAsText(const std::string& path);
   visualization_msgs::InteractiveMarker
@@ -318,9 +319,6 @@ private:
   void remoteUpdateGoalStateCallback(const std_msgs::EmptyConstPtr& msg);
   void remoteUpdateCustomStartStateCallback(const moveit_msgs::RobotStateConstPtr& msg);
   void remoteUpdateCustomGoalStateCallback(const moveit_msgs::RobotStateConstPtr& msg);
-
-  /* Selects or unselects a item in a list by the item name */
-  void setItemSelectionInList(const std::string& item_name, bool selection, QListWidget* list);
 
   ros::NodeHandle nh_;  // node handle with the namespace of the connected move_group node
   ros::Publisher planning_scene_publisher_;

@@ -47,21 +47,21 @@
 const int TRIALS = 1000;
 const int THREADS = 2;
 
-bool runCollisionDetection(unsigned int /*id*/, unsigned int trials, const planning_scene::PlanningScene* scene,
-                           const moveit::core::RobotState* state)
+bool runCollisionDetection(unsigned int /*id*/, unsigned int trials, const planning_scene::PlanningScene& scene,
+                           const moveit::core::RobotState& state)
 {
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
   for (unsigned int i = 0; i < trials; ++i)
   {
     res.clear();
-    scene->checkCollision(req, res, *state);
+    scene.checkCollision(req, res, state);
   }
   return res.collision;
 }
 
-void runCollisionDetectionAssert(unsigned int id, unsigned int trials, const planning_scene::PlanningScene* scene,
-                                 const moveit::core::RobotState* state, bool expected_result)
+void runCollisionDetectionAssert(unsigned int id, unsigned int trials, const planning_scene::PlanningScene& scene,
+                                 const moveit::core::RobotState& state, bool expected_result)
 {
   ASSERT_EQ(expected_result, runCollisionDetection(id, trials, scene, state));
 }
@@ -101,8 +101,8 @@ TEST_P(CollisionDetectorTests, Threaded)
   const std::string plugin_name = GetParam();
   SCOPED_TRACE(plugin_name);
 
-  std::vector<moveit::core::RobotStatePtr> states;
-  std::vector<std::thread*> threads;
+  std::vector<moveit::core::RobotState> states;
+  std::vector<std::thread> threads;
   std::vector<bool> collisions;
 
   collision_detection::CollisionPluginCache loader;
@@ -117,23 +117,24 @@ TEST_P(CollisionDetectorTests, Threaded)
 
   for (unsigned int i = 0; i < THREADS; ++i)
   {
-    moveit::core::RobotState* state = new moveit::core::RobotState(planning_scene_->getRobotModel());
+    moveit::core::RobotState state{ planning_scene_->getRobotModel() };
     collision_detection::CollisionRequest req;
-    state->setToRandomPositions();
-    state->update();
-    states.push_back(moveit::core::RobotStatePtr(state));
-    collisions.push_back(runCollisionDetection(0, 1, planning_scene_.get(), state));
+    state.setToRandomPositions();
+    state.update();
+    collisions.push_back(runCollisionDetection(0, 1, *planning_scene_, state));
+    states.push_back(std::move(state));
   }
 
   for (unsigned int i = 0; i < THREADS; ++i)
-    threads.push_back(new std::thread(
-        std::bind(&runCollisionDetectionAssert, i, TRIALS, planning_scene_.get(), states[i].get(), collisions[i])));
+    threads.emplace_back(std::thread([i, &scene = *planning_scene_, &state = states[i], expected = collisions[i]] {
+      return runCollisionDetectionAssert(i, TRIALS, scene, state, expected);
+    }));
 
   for (unsigned int i = 0; i < states.size(); ++i)
   {
-    threads[i]->join();
-    delete threads[i];
+    threads[i].join();
   }
+  threads.clear();
 
   planning_scene_.reset();
 }

@@ -70,7 +70,7 @@ RobotInteraction::RobotInteraction(const moveit::core::RobotModelConstPtr& robot
 
   // spin a thread that will process feedback events
   run_processing_thread_ = true;
-  processing_thread_ = std::make_unique<boost::thread>(std::bind(&RobotInteraction::processingThread, this));
+  processing_thread_ = std::make_unique<boost::thread>([this] { processingThread(); });
 }
 
 RobotInteraction::~RobotInteraction()
@@ -283,7 +283,9 @@ void RobotInteraction::decideActiveEndEffectors(const std::string& group, Intera
   auto add_active_end_effectors_for_single_group = [&](const moveit::core::JointModelGroup* single_group) {
     bool found_eef{ false };
     for (const srdf::Model::EndEffector& eef : eefs)
-      if ((single_group->hasLinkModel(eef.parent_link_) || single_group->getName() == eef.parent_group_) &&
+    {
+      if (single_group->hasLinkModel(eef.parent_link_) &&
+          (eef.parent_group_.empty() || single_group->getName() == eef.parent_group_) &&
           single_group->canSetStateFromIK(eef.parent_link_))
       {
         // We found an end-effector whose parent is the group.
@@ -295,6 +297,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string& group, Intera
         active_eef_.push_back(ee);
         found_eef = true;
       }
+    }
 
     // No end effectors found. Use last link in group as the "end effector".
     if (!found_eef && !single_group->getLinkModelNames().empty())
@@ -536,8 +539,8 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr& handle
   for (const visualization_msgs::InteractiveMarker& im : ims)
   {
     int_marker_server_->insert(im);
-    int_marker_server_->setCallback(im.name, std::bind(&RobotInteraction::processInteractiveMarkerFeedback, this,
-                                                       std::placeholders::_1));
+    int_marker_server_->setCallback(im.name,
+                                    [this](const auto& feedback) { processInteractiveMarkerFeedback(feedback); });
 
     // Add menu handler to all markers that this interaction handler creates.
     if (std::shared_ptr<interactive_markers::MenuHandler> mh = handler->getMenuHandler())
@@ -567,8 +570,9 @@ void RobotInteraction::toggleMoveInteractiveMarkerTopic(bool enable)
         std::string topic_name = int_marker_move_topics_[i];
         std::string marker_name = int_marker_names_[i];
         int_marker_move_subscribers_.push_back(nh.subscribe<geometry_msgs::PoseStamped>(
-            topic_name, 1,
-            std::bind(&RobotInteraction::moveInteractiveMarker, this, marker_name, std::placeholders::_1)));
+            topic_name, 1, [this, marker_name](const geometry_msgs::PoseStampedConstPtr& pose) {
+              moveInteractiveMarker(marker_name, *pose);
+            }));
       }
     }
   }
@@ -670,20 +674,20 @@ bool RobotInteraction::showingMarkers(const InteractionHandlerPtr& handler)
   return true;
 }
 
-void RobotInteraction::moveInteractiveMarker(const std::string& name, const geometry_msgs::PoseStampedConstPtr& msg)
+void RobotInteraction::moveInteractiveMarker(const std::string& name, const geometry_msgs::PoseStamped& msg)
 {
   std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(name);
   if (it != shown_markers_.end())
   {
-    visualization_msgs::InteractiveMarkerFeedback::Ptr feedback(new visualization_msgs::InteractiveMarkerFeedback);
-    feedback->header = msg->header;
+    auto feedback = boost::make_shared<visualization_msgs::InteractiveMarkerFeedback>();
+    feedback->header = msg.header;
     feedback->marker_name = name;
-    feedback->pose = msg->pose;
+    feedback->pose = msg.pose;
     feedback->event_type = visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE;
     processInteractiveMarkerFeedback(feedback);
     {
       boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
-      int_marker_server_->setPose(name, msg->pose, msg->header);  // move the interactive marker
+      int_marker_server_->setPose(name, msg.pose, msg.header);  // move the interactive marker
       int_marker_server_->applyChanges();
     }
   }

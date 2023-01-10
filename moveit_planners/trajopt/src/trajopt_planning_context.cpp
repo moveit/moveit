@@ -13,11 +13,11 @@
 namespace trajopt_interface
 {
 TrajOptPlanningContext::TrajOptPlanningContext(const std::string& context_name, const std::string& group_name,
-                                               const moveit::core::RobotModelConstPtr& model)
+                                               const moveit::core::RobotModelConstPtr& model, const ros::NodeHandle& nh)
   : planning_interface::PlanningContext(context_name, group_name), robot_model_(model)
 {
   ROS_INFO(" ======================================= TrajOptPlanningContext is constructed");
-  trajopt_interface_ = TrajOptInterfacePtr(new TrajOptInterface());
+  trajopt_interface_ = TrajOptInterfacePtr(new TrajOptInterface(nh));
 }
 
 bool TrajOptPlanningContext::solve(planning_interface::MotionPlanDetailedResponse& res)
