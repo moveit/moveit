@@ -1,4 +1,4 @@
-<library path="lib/libcollision_detector_fcl_plugin">
+<library path="libcollision_detector_fcl_plugin">
   <class name="FCL" type="collision_detection::CollisionDetectorFCLPluginLoader"
   base_class_type="collision_detection::CollisionPlugin">
     <description>
