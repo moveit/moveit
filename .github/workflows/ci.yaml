@@ -13,6 +13,10 @@ on:
 permissions:
   contents: read # to fetch code (actions/checkout)
 
+concurrency: # cancel any previous workflow(s) from the same PR or branch/tag
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   default:
     strategy:
