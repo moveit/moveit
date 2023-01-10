@@ -29,8 +29,7 @@ jobs:
           - IMAGE: master-ci # ROS Melodic with all dependencies required for master
             CATKIN_LINT: true
     env:
-      CXXFLAGS: >-
-        -Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls
+      CXXFLAGS: -Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls
       CLANG_TIDY_ARGS: --fix --fix-errors --format-style=file
       DOCKER_IMAGE: moveit/moveit:${{ matrix.env.IMAGE }}
       UPSTREAM_WORKSPACE: .github/workflows/upstream.rosinstall
@@ -43,10 +42,10 @@ jobs:
       AFTER_SETUP_CCACHE: ccache --zero-stats --max-size=10.0G
       AFTER_BUILD_TARGET_WORKSPACE: ccache --show-stats
       AFTER_BUILD_DOWNSTREAM_WORKSPACE: ccache --show-stats
-      # Compile CCOV with Debug. Enable -Werror (except CLANG_TIDY=pedantic, which makes the clang-tidy step fail on warnings)
+      # Compile CCOV with Debug. Enable -Werror.
       TARGET_CMAKE_ARGS: >
         -DCMAKE_BUILD_TYPE=${{ matrix.env.CCOV && 'Debug' || 'Release'}}
-        -DCMAKE_CXX_FLAGS="${{ matrix.env.CLANG_TIDY != 'pedantic' && '-Werror ' || '' }}$CXXFLAGS${{ matrix.env.CCOV && ' --coverage -O2 -fno-omit-frame-pointer'}}"
+        -DCMAKE_CXX_FLAGS="-Werror $CXXFLAGS${{ matrix.env.CCOV && ' --coverage -O2 -fno-omit-frame-pointer'}}"
       UPSTREAM_CMAKE_ARGS: "-DCMAKE_CXX_FLAGS=''"
       DOWNSTREAM_CMAKE_ARGS: -DCMAKE_CXX_FLAGS="-Wall -Wextra"
       CCACHE_DIR: ${{ github.workspace }}/.ccache
