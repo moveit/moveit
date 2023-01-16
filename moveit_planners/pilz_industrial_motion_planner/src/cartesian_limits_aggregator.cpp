@@ -54,28 +54,28 @@ pilz_industrial_motion_planner::CartesianLimitsAggregator::getAggregatedLimits(c
 
   // translational velocity
   double max_trans_vel;
-  if (nh.getParam(param_prefix + PARAM_MAX_TRANS_VEL, max_trans_vel))
+  if (ros::param::get(param_prefix + PARAM_MAX_TRANS_VEL, max_trans_vel))
   {
     cartesian_limit.setMaxTranslationalVelocity(max_trans_vel);
   }
 
   // translational acceleration
   double max_trans_acc;
-  if (nh.getParam(param_prefix + PARAM_MAX_TRANS_ACC, max_trans_acc))
+  if (ros::param::get(param_prefix + PARAM_MAX_TRANS_ACC, max_trans_acc))
   {
     cartesian_limit.setMaxTranslationalAcceleration(max_trans_acc);
   }
 
   // translational deceleration
   double max_trans_dec;
-  if (nh.getParam(param_prefix + PARAM_MAX_TRANS_DEC, max_trans_dec))
+  if (ros::param::get(param_prefix + PARAM_MAX_TRANS_DEC, max_trans_dec))
   {
     cartesian_limit.setMaxTranslationalDeceleration(max_trans_dec);
   }
 
   // rotational velocity
   double max_rot_vel;
-  if (nh.getParam(param_prefix + PARAM_MAX_ROT_VEL, max_rot_vel))
+  if (ros::param::get(param_prefix + PARAM_MAX_ROT_VEL, max_rot_vel))
   {
     cartesian_limit.setMaxRotationalVelocity(max_rot_vel);
   }
