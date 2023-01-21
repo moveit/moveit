@@ -425,6 +425,15 @@ private:
 
   void planningSceneUpdatedCallback(const planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
 
+  void collisionCheckOnPlanningSceneUpdate();
+  void processTrajectorySegment(std::shared_ptr<SequentialTrajectoryExecutionContext>& trajectory_sequence_ptr,
+                                std::shared_ptr<TrajectoryExecutionContext>& context_ptr,
+                                const moveit_controller_manager::ExecutionStatus execution_status);
+  void abortExecution(std::shared_ptr<TrajectoryExecutionContext>& context_ptr);
+  void clearCompletedSequentialTrajectory(std::shared_ptr<SequentialTrajectoryExecutionContext>& trajectory_sequence_ptr,
+                                          std::shared_ptr<TrajectoryExecutionContext>& context_ptr,
+                                          const moveit_controller_manager::ExecutionStatus execution_status);
+
   moveit::core::RobotModelConstPtr robot_model_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   planning_scene_monitor::CurrentStateMonitorPtr csm_;

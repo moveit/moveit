@@ -318,50 +318,37 @@ void TrajectoryExecutionManager::runEventManager()
         events_queue_.pop_front();
       }
 
-      std::set<moveit_controller_manager::MoveItControllerHandlePtr> required_handles;
+      moveit_controller_manager::ExecutionStatus execution_status;
+      std::shared_ptr<trajectory_execution_manager::TrajectoryExecutionManager::TrajectoryExecutionContext> context_ptr;
+      std::shared_ptr<trajectory_execution_manager::TrajectoryExecutionManager::SequentialTrajectoryExecutionContext>
+          trajectory_sequence_ptr;
 
-      if (current_event->type_ == EventType::PLANNING_SCENE_CHANGE && enable_collision_checking_)
+      // Check that the context is still available
+      if (current_event->type_ != EventType::PLANNING_SCENE_CHANGE)
       {
-        // Check collisions of all active trajectories with the updated planning scene
-        std::lock_guard<std::mutex> slock(active_trajectory_sequences_mutex_);
-        for (const auto& active_trajectory_sequence : active_trajectory_sequences_)
+        if (current_event->context_pair.first.expired())
+          continue;
+        else
         {
-          // Check collisions of only the active segment of a sequence and future segments
-          std::size_t active_index =
-              active_trajectory_sequence->contexts_.size() - active_trajectory_sequence->remaining_trajectories_count_;
-          for (std::size_t i = active_index; i < active_trajectory_sequence->contexts_.size(); i++)
-          {
-            const auto& active_context = active_trajectory_sequence->contexts_[i];
-            if (!checkCollisionsWithCurrentState(active_context->trajectory_))
-            {
-              ROS_ERROR_NAMED(LOGNAME, "Active trajectory in collision with updated planning scene. Aborting.");
-              active_context->execution_duration_timer_.stop();
-              getContextHandles(*active_context, required_handles);
-              for (auto handle : required_handles)
-                handle->cancelExecution();
-              required_handles.clear();
-              break;
-            }
-          }
+          context_ptr = current_event->context_pair.second.lock();
+          trajectory_sequence_ptr = current_event->context_pair.first.lock();
         }
       }
 
-      // Check that the context is still available
-      if (current_event->context_pair.first.expired())
-        continue;
-
-      moveit_controller_manager::ExecutionStatus execution_status;
-      auto context_ptr = current_event->context_pair.second.lock();
-      ROS_INFO_STREAM_NAMED(LOGNAME, "Event's group name: " << context_ptr->trajectory_.group_name);
-      getContextHandles(*context_ptr, required_handles);
-
       switch (current_event->type_)
       {
+        case EventType::PLANNING_SCENE_CHANGE:
+        {
+          ROS_DEBUG_NAMED(LOGNAME, "Event PLANNING_SCENE_CHANGE");
+          collisionCheckOnPlanningSceneUpdate();
+          continue;  // Nothing else to do in this loop
+        }
         case EventType::EXECUTION_COMPLETED:
         {
           ROS_DEBUG_NAMED(LOGNAME, "Event EXECUTION_COMPLETED");
-          context_ptr->execution_duration_timer_.stop();
-          context_ptr->active_controllers_count_ -= 1;
+          context_ptr->execution_duration_timer_.stop();  // Stop timeout timer
+          context_ptr->active_controllers_count_ -= 1;    // Execution for this particular controller was completed
+
           execution_status = current_event->execution_status_;
           if (execution_status == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
             waitForRobotToStop(*context_ptr);
@@ -369,10 +356,9 @@ void TrajectoryExecutionManager::runEventManager()
           {
             // Cancel execution of all controllers related to this trajectory
             ROS_ERROR_STREAM_NAMED(LOGNAME, "Abort execution with status: " << execution_status.asString());
-            for (auto handle : required_handles)
-              handle->cancelExecution();
+            abortExecution(context_ptr);
           }
-
+          processTrajectorySegment(trajectory_sequence_ptr, context_ptr, execution_status);
           break;
         }
         case EventType::EXECUTION_TIMEOUT:
@@ -380,8 +366,8 @@ void TrajectoryExecutionManager::runEventManager()
           // Just cancel other controller handles required by this trajectory
           ROS_DEBUG_NAMED(LOGNAME, "Event EXECUTION_TIMEOUT");
           execution_status = moveit_controller_manager::ExecutionStatus::TIMED_OUT;
-          for (auto handle : required_handles)
-            handle->cancelExecution();
+          abortExecution(context_ptr);
+          processTrajectorySegment(trajectory_sequence_ptr, context_ptr, execution_status);
           break;
         }
         case EventType::EXECUTION_CANCELLATION_REQUEST:
@@ -391,76 +377,13 @@ void TrajectoryExecutionManager::runEventManager()
           context_ptr->active_controllers_count_ -= 1;
           execution_status = moveit_controller_manager::ExecutionStatus::ABORTED;
           // Cancel execution of all controllers related to this trajectory
-          for (auto handle : required_handles)
-            handle->cancelExecution();
+          abortExecution(context_ptr);
+          processTrajectorySegment(trajectory_sequence_ptr, context_ptr, execution_status);
           break;
         }
         default:
           ROS_ERROR_NAMED(LOGNAME, "Invalid event type");
           break;
-      }
-
-      ROS_DEBUG_NAMED(LOGNAME, "%d remaining active controllers for group name: %s",
-                      context_ptr->active_controllers_count_, context_ptr->trajectory_.group_name.c_str());
-
-      if (context_ptr->active_controllers_count_ == 0)
-      {
-        auto trajectory_sequence_ptr = current_event->context_pair.first.lock();
-
-        // Abort pending trajectories
-        if (execution_status != moveit_controller_manager::ExecutionStatus::SUCCEEDED)
-          trajectory_sequence_ptr->remaining_trajectories_count_ = 0;
-        else
-          trajectory_sequence_ptr->remaining_trajectories_count_ -= 1;
-
-        // Execute trajectory_sequence's remaining trajectories
-        if (trajectory_sequence_ptr->remaining_trajectories_count_ > 0)
-        {
-          std::size_t next_index =
-              trajectory_sequence_ptr->contexts_.size() - trajectory_sequence_ptr->remaining_trajectories_count_;
-
-          // Call part_callback for completed trajectory index
-          if (trajectory_sequence_ptr->path_segment_complete_callback_)
-            trajectory_sequence_ptr->path_segment_complete_callback_(next_index - 1);
-
-          executeTrajectory(trajectory_sequence_ptr, next_index);
-        }
-        else  // Clear handles and active trajectories when there are no remaining trajectories for a trajectory sequence
-        {
-          ROS_DEBUG_NAMED(LOGNAME, "Clearing context with group name: %s", context_ptr->trajectory_.group_name.c_str());
-
-          // Update last_execution_status only when whole sequences have been completed or aborted
-          last_execution_status_ = execution_status;
-
-          if (trajectory_sequence_ptr->execution_complete_callback_)
-            trajectory_sequence_ptr->execution_complete_callback_(execution_status);
-
-          // Get all handles for this trajectory sequence
-          for (auto ctx : trajectory_sequence_ptr->contexts_)
-            getContextHandles(*ctx, required_handles);
-
-          active_handles_mutex_.lock();
-          for (const auto& handle : required_handles)
-            active_handles_.erase(handle);
-          active_handles_mutex_.unlock();
-
-          active_trajectory_sequences_mutex_.lock();
-          active_trajectory_sequences_.erase(std::find(active_trajectory_sequences_.begin(),
-                                                       active_trajectory_sequences_.end(), trajectory_sequence_ptr));
-          active_trajectory_sequences_mutex_.unlock();
-
-          if (active_trajectory_sequences_.empty())
-          {
-            // notify whoever is waiting for the event of ALL trajectories completion
-            execution_state_mutex_.lock();
-            execution_complete_ = true;
-            execution_state_mutex_.unlock();
-            execution_complete_condition_.notify_all();
-
-            if (auto_clear_)
-              clear();
-          }
-        }
       }
     }
   }
@@ -1929,8 +1852,9 @@ TrajectoryExecutionManager::TrajectoryExecutionManager::TrajectoryID TrajectoryE
 void TrajectoryExecutionManager::planningSceneUpdatedCallback(
     const planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
 {
-  if (update_type & (planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY |
-                     planning_scene_monitor::PlanningSceneMonitor::UPDATE_TRANSFORMS))
+  // TODO: should we include this too? planning_scene_monitor::PlanningSceneMonitor::UPDATE_TRANSFORMS
+  // It seems to be trigger by the robot's movement too, so too many calls
+  if (update_type & (planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY))
   {
     TrajectoryExecutionEvent event;
     event.type_ = EventType::PLANNING_SCENE_CHANGE;
@@ -1938,6 +1862,130 @@ void TrajectoryExecutionManager::planningSceneUpdatedCallback(
     events_queue_.push_back(std::make_shared<TrajectoryExecutionEvent>(event));
     events_queue_mutex_.unlock();
     event_manager_condition_.notify_all();
+  }
+}
+
+void TrajectoryExecutionManager::collisionCheckOnPlanningSceneUpdate()
+{
+  if (!enable_collision_checking_)
+    return;
+
+  // Check collisions of all active trajectories with the updated planning scene
+  std::lock_guard<std::mutex> slock(active_trajectory_sequences_mutex_);
+  for (const auto& active_trajectory_sequence : active_trajectory_sequences_)
+  {
+    // Check collisions of only the active segment of a sequence and future segments
+    std::size_t active_index =
+        active_trajectory_sequence->contexts_.size() - active_trajectory_sequence->remaining_trajectories_count_;
+    for (std::size_t i = active_index; i < active_trajectory_sequence->contexts_.size(); i++)
+    {
+      const auto& active_context = active_trajectory_sequence->contexts_[i];
+      if (!checkCollisionsWithCurrentState(active_context->trajectory_))
+      {
+        ROS_ERROR_NAMED(LOGNAME, "Active trajectory in collision with updated planning scene. Aborting.");
+
+        // Abort trajectory
+        active_context->execution_duration_timer_.stop();
+        std::set<moveit_controller_manager::MoveItControllerHandlePtr> required_handles;
+        getContextHandles(*active_context, required_handles);
+        for (auto handle : required_handles)
+          handle->cancelExecution();
+        required_handles.clear();
+        break;
+      }
+    }
+  }
+}
+
+void TrajectoryExecutionManager::processTrajectorySegment(
+    std::shared_ptr<SequentialTrajectoryExecutionContext>& trajectory_sequence_ptr,
+    std::shared_ptr<TrajectoryExecutionContext>& context_ptr,
+    const moveit_controller_manager::ExecutionStatus execution_status)
+{
+  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Event's group name: " << context_ptr->trajectory_.group_name);
+
+  ROS_DEBUG_NAMED(LOGNAME, "%d remaining active controllers for group name: %s", context_ptr->active_controllers_count_,
+                  context_ptr->trajectory_.group_name.c_str());
+
+  // When all trajectory parts, for each controller, has been processed,
+  // then continue with the remaining segments or clear everything if any part was aborted
+  if (context_ptr->active_controllers_count_ == 0)
+  {
+    // In case of error, ignore remaining trajectories
+    if (execution_status != moveit_controller_manager::ExecutionStatus::SUCCEEDED)
+    {
+      clearCompletedSequentialTrajectory(trajectory_sequence_ptr, context_ptr, execution_status);
+      return;
+    }
+
+    trajectory_sequence_ptr->remaining_trajectories_count_ -= 1;
+
+    // Execute trajectory_sequence's remaining trajectories
+    if (trajectory_sequence_ptr->remaining_trajectories_count_ > 0)
+    {
+      std::size_t next_index =
+          trajectory_sequence_ptr->contexts_.size() - trajectory_sequence_ptr->remaining_trajectories_count_;
+
+      // Call part_callback for completed trajectory index
+      if (trajectory_sequence_ptr->path_segment_complete_callback_)
+        trajectory_sequence_ptr->path_segment_complete_callback_(next_index - 1);
+
+      executeTrajectory(trajectory_sequence_ptr, next_index);
+    }
+    else  // Clear handles and active trajectories when there are no remaining trajectories for a trajectory sequence
+    {
+      clearCompletedSequentialTrajectory(trajectory_sequence_ptr, context_ptr, execution_status);
+    }
+  }
+}
+
+void TrajectoryExecutionManager::abortExecution(std::shared_ptr<TrajectoryExecutionContext>& context_ptr)
+{
+  std::set<moveit_controller_manager::MoveItControllerHandlePtr> required_handles;
+  getContextHandles(*context_ptr, required_handles);
+  for (auto handle : required_handles)
+    handle->cancelExecution();
+}
+
+void TrajectoryExecutionManager::clearCompletedSequentialTrajectory(
+    std::shared_ptr<SequentialTrajectoryExecutionContext>& trajectory_sequence_ptr,
+    std::shared_ptr<TrajectoryExecutionContext>& context_ptr,
+    const moveit_controller_manager::ExecutionStatus execution_status)
+{
+  ROS_DEBUG_NAMED(LOGNAME, "Clearing context with group name: %s", context_ptr->trajectory_.group_name.c_str());
+
+  // Update last_execution_status only when whole sequences have been completed or aborted
+  last_execution_status_ = execution_status;
+
+  if (trajectory_sequence_ptr->execution_complete_callback_)
+    trajectory_sequence_ptr->execution_complete_callback_(execution_status);
+
+  // Get all handles for this trajectory sequence
+  std::set<moveit_controller_manager::MoveItControllerHandlePtr> required_handles;
+  for (auto ctx : trajectory_sequence_ptr->contexts_)
+    getContextHandles(*ctx, required_handles);
+
+  active_handles_mutex_.lock();
+  for (const auto& handle : required_handles)
+    active_handles_.erase(handle);
+  active_handles_mutex_.unlock();
+
+  active_trajectory_sequences_mutex_.lock();
+  active_trajectory_sequences_.erase(
+      std::find(active_trajectory_sequences_.begin(), active_trajectory_sequences_.end(), trajectory_sequence_ptr));
+  active_trajectory_sequences_mutex_.unlock();
+
+  // notify whoever is waiting for the event of ALL trajectories completion
+  if (active_trajectory_sequences_.empty())
+  {
+    ROS_DEBUG_NAMED(LOGNAME, "No active trajectories remaining");
+    execution_state_mutex_.lock();
+    execution_complete_ = true;
+    execution_state_mutex_.unlock();
+    execution_complete_condition_.notify_all();
+
+    if (auto_clear_)
+      clear();
   }
 }
 
