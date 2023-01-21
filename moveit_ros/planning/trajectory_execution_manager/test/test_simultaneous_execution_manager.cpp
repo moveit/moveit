@@ -60,7 +60,7 @@ public:
     planning_component->setGoal(target);
     auto plan = planning_component->plan();
 
-    auto robot_trajectory = planning_component->getLastPlanSolution()->trajectory;
+    auto robot_trajectory = planning_component->getLastMotionPlanResponse().trajectory_;
     moveit_msgs::RobotTrajectory robot_trajectory_msg;
     robot_trajectory->getRobotTrajectoryMsg(robot_trajectory_msg);
     return robot_trajectory_msg;
@@ -84,7 +84,7 @@ protected:
   std::vector<std::string> panda_2_joint_names;
 };
 
-TEST_F(MoveItCppTest, SimpleSimulatenousExecutionTest)
+TEST_F(MoveItCppTest, SimulatenousExecutionTests)
 {
   std::vector<double> p1_target_joints{ 1.057, -0.323, 0.805, -2.857, 0.424, 2.557, 1.468 };
   std::vector<double> p2_target_joints{ 2.049, 0.046, 2.419, -2.660, -0.053, 2.624, -1.666 };
@@ -100,17 +100,16 @@ TEST_F(MoveItCppTest, SimpleSimulatenousExecutionTest)
 
   // Wait for every execution to complete
   ASSERT_TRUE(moveit_cpp_ptr->getTrajectoryExecutionManager()->waitForExecution());
-}
 
-TEST_F(MoveItCppTest, WaitForSingleTrajectory)
-{
-  std::vector<double> p1_target_joints{ 0, 0, 0, -1.5707, 0, 1.8, 0 };
-  std::vector<double> p2_target_joints{ 0, 0, 0, -1.5707, 0, 1.8, 0 };
+  // ***************
+  // Wait for specific trajectory
+  // ***************
 
-  moveit_msgs::RobotTrajectory panda_1_robot_trajectory_msg =
-      plan(panda_1_planning_component_ptr, panda_1_joint_names, p1_target_joints);
-  moveit_msgs::RobotTrajectory panda_2_robot_trajectory_msg =
-      plan(panda_2_planning_component_ptr, panda_2_joint_names, p2_target_joints);
+  p1_target_joints = { 0, 0, 0, -1.5707, 0, 1.8, 0 };
+  p2_target_joints = { 0, 0, 0, -1.5707, 0, 1.8, 0 };
+
+  panda_1_robot_trajectory_msg = plan(panda_1_planning_component_ptr, panda_1_joint_names, p1_target_joints);
+  panda_2_robot_trajectory_msg = plan(panda_2_planning_component_ptr, panda_2_joint_names, p2_target_joints);
 
   ASSERT_TRUE(moveit_cpp_ptr->getTrajectoryExecutionManager()->push(panda_1_robot_trajectory_msg));
 
@@ -132,36 +131,34 @@ TEST_F(MoveItCppTest, WaitForSingleTrajectory)
 
   // Wait for every execution to complete
   ASSERT_TRUE(moveit_cpp_ptr->getTrajectoryExecutionManager()->waitForExecution());
-}
 
-TEST_F(MoveItCppTest, RejectTrajectoryInCollision)
-{
-  std::vector<double> p1_target_joints{ 1.057, -0.323, 0.805, -2.857, 0.424, 2.557, 1.468 };
-  std::vector<double> p2_target_joints{ 1.986, -0.416, 2.567, -2.089, 0.344, 2.414, -1.922 };
+  // ***************
+  // Reject trajectory in collision with active one
+  // ***************
 
-  moveit_msgs::RobotTrajectory panda_1_robot_trajectory_msg =
-      plan(panda_1_planning_component_ptr, panda_1_joint_names, p1_target_joints);
+  p1_target_joints = { 1.057, -0.323, 0.805, -2.857, 0.424, 2.557, 1.468 };
+  p2_target_joints = { 1.986, -0.416, 2.567, -2.089, 0.344, 2.414, -1.922 };
+
+  panda_1_robot_trajectory_msg = plan(panda_1_planning_component_ptr, panda_1_joint_names, p1_target_joints);
   // Planning will find a collision free trajectory for the current planning scene
-  moveit_msgs::RobotTrajectory panda_2_robot_trajectory_msg =
-      plan(panda_2_planning_component_ptr, panda_2_joint_names, p2_target_joints);
+  panda_2_robot_trajectory_msg = plan(panda_2_planning_component_ptr, panda_2_joint_names, p2_target_joints);
 
   ASSERT_TRUE(moveit_cpp_ptr->getTrajectoryExecutionManager()->push(panda_1_robot_trajectory_msg));
   // Rejected because the trajectory is in collision course with panda1's trajectory
   ASSERT_FALSE(moveit_cpp_ptr->getTrajectoryExecutionManager()->push(panda_2_robot_trajectory_msg));
 
   moveit_cpp_ptr->getTrajectoryExecutionManager()->stopExecution(true);
-}
 
-TEST_F(MoveItCppTest, RejectInvalidTrajectory)
-{
-  std::vector<double> p1_target_joints1{ 1.057, -0.323, 0.805, -2.857, 0.424, 2.557, 1.468 };
-  std::vector<double> p2_target_joints1{ 2.049, 0.046, 2.419, -2.660, -0.053, 2.624, -1.666 };
+  // ***************
+  // Reject invalid trajectory
+  // ***************
+
+  p1_target_joints = { 1.057, -0.323, 0.805, -2.857, 0.424, 2.557, 1.468 };
+  p2_target_joints = { 2.049, 0.046, 2.419, -2.660, -0.053, 2.624, -1.666 };
   std::vector<double> p1_target_joints2{ 0, 0, 0, -1.5707, 0, 1.8, 0 };
 
-  moveit_msgs::RobotTrajectory panda_1_robot_trajectory_msg =
-      plan(panda_1_planning_component_ptr, panda_1_joint_names, p1_target_joints1);
-  moveit_msgs::RobotTrajectory panda_2_robot_trajectory_msg =
-      plan(panda_2_planning_component_ptr, panda_2_joint_names, p2_target_joints1);
+  panda_1_robot_trajectory_msg = plan(panda_1_planning_component_ptr, panda_1_joint_names, p1_target_joints);
+  panda_2_robot_trajectory_msg = plan(panda_2_planning_component_ptr, panda_2_joint_names, p2_target_joints);
   moveit_msgs::RobotTrajectory panda_1_robot_trajectory_msg2 =
       plan(panda_1_planning_component_ptr, panda_1_joint_names, p1_target_joints2);
 
@@ -172,14 +169,14 @@ TEST_F(MoveItCppTest, RejectInvalidTrajectory)
   ASSERT_FALSE(moveit_cpp_ptr->getTrajectoryExecutionManager()->push(panda_1_robot_trajectory_msg2));
 
   moveit_cpp_ptr->getTrajectoryExecutionManager()->stopExecution(true);
-}
 
-TEST_F(MoveItCppTest, CancelTrajectory)
-{
-  std::vector<double> p1_target_joints{ 0, 0, 0, -1.5707, 0, 1.8, 0 };
+  // ***************
+  // Cancel specific trajectory
+  // ***************
 
-  moveit_msgs::RobotTrajectory panda_1_robot_trajectory_msg =
-      plan(panda_1_planning_component_ptr, panda_1_joint_names, p1_target_joints);
+  p1_target_joints = { 0, 0, 0, -1.5707, 0, 1.8, 0 };
+
+  panda_1_robot_trajectory_msg = plan(panda_1_planning_component_ptr, panda_1_joint_names, p1_target_joints);
 
   auto trajectory_id = moveit_cpp_ptr->getTrajectoryExecutionManager()->push(panda_1_robot_trajectory_msg);
   ASSERT_TRUE(trajectory_id);
