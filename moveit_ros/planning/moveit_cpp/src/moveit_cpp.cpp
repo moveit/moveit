@@ -240,6 +240,8 @@ bool MoveItCpp::execute(const std::string& group_name, const robot_trajectory::R
   robot_trajectory->getRobotTrajectoryMsg(robot_trajectory_msg);
   moveit_controller_manager::ExecutionStatus execution_status;
 
+  static std::mutex execution_complete_mutex_;
+  static std::condition_variable execution_complete_condition_;
   auto callback = trajectory_execution_manager::TrajectoryExecutionManager::ExecutionCompleteCallback();
 
   static int trajectory_id = 0;

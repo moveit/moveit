@@ -80,7 +80,7 @@ private:
     }
 
     ActiveGoal(ExecuteTrajectoryActionServer::GoalHandle gh, std::thread t)
-      : goal_handle_(gh), thread_(std::move(t)), trajectory_id_({ 0 })
+      : goal_handle_(gh), thread_(std::move(t)), trajectory_id_(0)
     {
     }
 

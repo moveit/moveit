@@ -177,8 +177,6 @@ private:
 
   // Execution
   trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;
-  std::mutex execution_complete_mutex_;
-  std::condition_variable execution_complete_condition_;
   std::vector<int> active_trajectories_;
 
   /** \brief Reset all member variables */
