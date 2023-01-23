@@ -51,8 +51,14 @@ else()
 endif()
 
 find_package(octomap REQUIRED)
+
 find_package(ruckig REQUIRED)
+# work around catkin_package not fetching the interface includes from the target
+# to forward to downstream dependencies. The includes do not need to be added
+# in include_directories below because the target is correctly imported here.
+get_target_property(ruckig_INCLUDE_DIRS ruckig::ruckig INTERFACE_INCLUDE_DIRECTORIES)
 set(ruckig_LIBRARIES "ruckig::ruckig")
+
 find_package(urdfdom REQUIRED)
 find_package(urdfdom_headers REQUIRED)
 
