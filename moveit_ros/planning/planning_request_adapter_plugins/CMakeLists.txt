@@ -16,8 +16,6 @@ set(SOURCE_FILES
 
 add_library(${MOVEIT_LIB_NAME} ${SOURCE_FILES})
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-#ruckig requires C++17
-set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES CXX_STANDARD 17)
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(moveit_list_request_adapter_plugins src/list.cpp)
