@@ -37,6 +37,7 @@
 
 #include <Eigen/Core>
 #include <list>
+#include <unordered_map>
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <ruckig/ruckig.hpp>
 
