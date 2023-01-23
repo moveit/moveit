@@ -205,12 +205,6 @@ public:
   /// Set joint-value tolerance for validating trajectory's start point against current robot state
   void setAllowedStartTolerance(double tolerance);
 
-  /// Set the start tolerance for a specific joint. Set to 0 to use the default value allowed_start_tolerance instead.
-  void setAllowedJointStartTolerance(std::string const& joint_name, double tolerance);
-
-  /// Set the start tolerance for a a set of  joint.
-  void setAllowedJointsStartTolerance(std::map<std::string, double> jointsStartTolerance);
-
   /// Enable or disable waiting for trajectory completion
   void setWaitForTrajectoryCompletion(bool flag);
 
@@ -272,12 +266,13 @@ private:
   void loadControllerParams();
 
   double getJointAllowedStartTolerance(std::string const& jointName) const;
-  void updateJointsAllowedStartToleranceEmpty();
+  void updateJointsAllowedStartTolerance();
 
   moveit::core::RobotModelConstPtr robot_model_;
   planning_scene_monitor::CurrentStateMonitorPtr csm_;
   ros::NodeHandle node_handle_;
   ros::NodeHandle root_node_handle_;
+  ros::NodeHandle trajectory_execution_node_handle_;
   ros::Subscriber event_topic_subscriber_;
 
   std::map<std::string, ControllerInformation> known_controllers_;
@@ -321,7 +316,6 @@ private:
   double allowed_start_tolerance_;  // joint tolerance for validate(): radians for revolute joints
   // joint tolerance per joint, overrides allowed_start_tolerance_.
   std::map<std::string, double> joints_allowed_start_tolerance_;
-  bool joints_allowed_start_tolerance_empty_;  // True if joints_allowed_start_tolerance_ is empty or contains only 0
   double execution_velocity_scaling_;
   bool wait_for_trajectory_completion_;
 };

@@ -34,8 +34,6 @@
 
 /* Author: Ioan Sucan */
 
-#include <algorithm>
-
 #include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_ros_planning/TrajectoryExecutionDynamicReconfigureConfig.h>
@@ -86,7 +84,7 @@ private:
 
 TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& robot_model,
                                                        const planning_scene_monitor::CurrentStateMonitorPtr& csm)
-  : robot_model_(robot_model), csm_(csm), node_handle_("~")
+  : robot_model_(robot_model), csm_(csm), node_handle_("~"), trajectory_execution_node_handle_("~/trajectory_execution")
 {
   if (!node_handle_.getParam("moveit_manage_controllers", manage_controllers_))
     manage_controllers_ = false;
@@ -97,7 +95,11 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::Robot
 TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& robot_model,
                                                        const planning_scene_monitor::CurrentStateMonitorPtr& csm,
                                                        bool manage_controllers)
-  : robot_model_(robot_model), csm_(csm), node_handle_("~"), manage_controllers_(manage_controllers)
+  : robot_model_(robot_model)
+  , csm_(csm)
+  , node_handle_("~")
+  , trajectory_execution_node_handle_("~/trajectory_execution")
+  , manage_controllers_(manage_controllers)
 {
   initialize();
 }
@@ -119,7 +121,6 @@ void TrajectoryExecutionManager::initialize()
   execution_velocity_scaling_ = 1.0;
   allowed_start_tolerance_ = 0.01;
   joints_allowed_start_tolerance_.clear();
-  joints_allowed_start_tolerance_empty_ = true;
 
   allowed_execution_duration_scaling_ = DEFAULT_CONTROLLER_GOAL_DURATION_SCALING;
   allowed_goal_duration_margin_ = DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN;
@@ -180,9 +181,7 @@ void TrajectoryExecutionManager::initialize()
 
   reconfigure_impl_ = new DynamicReconfigureImpl(this);
 
-  ros::NodeHandle private_node_handle("~/trajectory_execution");
-  private_node_handle.getParam("joints_allowed_start_tolerance", joints_allowed_start_tolerance_);
-  updateJointsAllowedStartToleranceEmpty();
+  updateJointsAllowedStartTolerance();
 
   if (manage_controllers_)
     ROS_INFO_NAMED(LOGNAME, "Trajectory execution is managing controllers");
@@ -213,18 +212,6 @@ void TrajectoryExecutionManager::setExecutionVelocityScaling(double scaling)
 void TrajectoryExecutionManager::setAllowedStartTolerance(double tolerance)
 {
   allowed_start_tolerance_ = tolerance;
-}
-
-void TrajectoryExecutionManager::setAllowedJointStartTolerance(std::string const& joint_name, double tolerance)
-{
-  joints_allowed_start_tolerance_[joint_name] = tolerance;
-  updateJointsAllowedStartToleranceEmpty();
-}
-
-void TrajectoryExecutionManager::setAllowedJointsStartTolerance(std::map<std::string, double> jointsStartTolerance)
-{
-  joints_allowed_start_tolerance_ = std::move(jointsStartTolerance);
-  updateJointsAllowedStartToleranceEmpty();
 }
 
 void TrajectoryExecutionManager::setWaitForTrajectoryCompletion(bool flag)
@@ -737,7 +724,7 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
 
 bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& context) const
 {
-  if (allowed_start_tolerance_ == 0 && joints_allowed_start_tolerance_empty_)  // skip validation on this magic number
+  if (allowed_start_tolerance_ == 0 && joints_allowed_start_tolerance_.empty())  // skip validation on this magic number
     return true;
 
   ROS_DEBUG_NAMED(LOGNAME, "Validating trajectory with allowed_start_tolerance %g", allowed_start_tolerance_);
@@ -1023,6 +1010,8 @@ void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback& callba
     return;
 
   stopExecution(false);
+
+  updateJointsAllowedStartTolerance();
 
   // check whether first trajectory starts at current robot state
   if (!trajectories_.empty() && !validate(*trajectories_.front()))
@@ -1337,7 +1326,7 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
 bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionContext& context, double wait_time)
 {
   // skip waiting for convergence?
-  if ((allowed_start_tolerance_ == 0 && joints_allowed_start_tolerance_empty_) || !wait_for_trajectory_completion_)
+  if ((allowed_start_tolerance_ == 0 && joints_allowed_start_tolerance_.empty()) || !wait_for_trajectory_completion_)
   {
     ROS_DEBUG_NAMED(LOGNAME, "Not waiting for trajectory completion");
     return true;
@@ -1586,11 +1575,17 @@ double TrajectoryExecutionManager::getJointAllowedStartTolerance(std::string con
              allowed_start_tolerance_;
 }
 
-void TrajectoryExecutionManager::updateJointsAllowedStartToleranceEmpty()
+void TrajectoryExecutionManager::updateJointsAllowedStartTolerance()
 {
-  joints_allowed_start_tolerance_empty_ =
-      std::all_of(joints_allowed_start_tolerance_.begin(), joints_allowed_start_tolerance_.end(),
-                  [](auto const& pair) { return pair.second <= 0; });
+  trajectory_execution_node_handle_.getParam("joints_allowed_start_tolerance", joints_allowed_start_tolerance_);
+
+  for (auto it = joints_allowed_start_tolerance_.begin(); it != joints_allowed_start_tolerance_.end();)
+  {
+    if (it->second <= 0)
+      it = joints_allowed_start_tolerance_.erase(it);
+    else
+      ++it;
+  }
 }
 
 }  // namespace trajectory_execution_manager
