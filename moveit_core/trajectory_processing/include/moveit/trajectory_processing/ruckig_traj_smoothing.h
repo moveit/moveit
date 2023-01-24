@@ -110,7 +110,7 @@ private:
    * \param[in, out] ruckig_input    Necessary input for Ruckig smoothing. Contains kinematic limits (vel, accel, jerk)
    */
   static std::optional<robot_trajectory::RobotTrajectory>
-  runRuckigInBatches(const size_t num_waypoints, const robot_trajectory::RobotTrajectory& trajectory,
+  runRuckigInBatches(const robot_trajectory::RobotTrajectory& trajectory,
                      ruckig::InputParameter<ruckig::DynamicDOFs>& ruckig_input, size_t batch_size = 100);
 
   /**

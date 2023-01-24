@@ -79,7 +79,7 @@ bool RuckigSmoothing::applySmoothing(robot_trajectory::RobotTrajectory& trajecto
     return false;
   }
 
-  auto ruckig_result = runRuckigInBatches(num_waypoints, trajectory, ruckig_input);
+  auto ruckig_result = runRuckigInBatches(trajectory, ruckig_input);
   if (ruckig_result.has_value())
   {
     trajectory = ruckig_result.value();
@@ -142,7 +142,7 @@ bool RuckigSmoothing::applySmoothing(robot_trajectory::RobotTrajectory& trajecto
     }
   }
 
-  auto ruckig_result = runRuckigInBatches(num_waypoints, trajectory, ruckig_input);
+  auto ruckig_result = runRuckigInBatches(trajectory, ruckig_input);
   if (ruckig_result.has_value())
   {
     trajectory = ruckig_result.value();
@@ -151,17 +151,17 @@ bool RuckigSmoothing::applySmoothing(robot_trajectory::RobotTrajectory& trajecto
 }
 
 std::optional<robot_trajectory::RobotTrajectory>
-RuckigSmoothing::runRuckigInBatches(const size_t num_waypoints, const robot_trajectory::RobotTrajectory& trajectory,
+RuckigSmoothing::runRuckigInBatches(const robot_trajectory::RobotTrajectory& trajectory,
                                     ruckig::InputParameter<ruckig::DynamicDOFs>& ruckig_input, size_t batch_size)
 {
-  // We take the batch size as the lesser of 0.1*num_waypoints or batch_size, to keep a balance between run time and
-  // time-optimality.
+  // We take the batch size as the lesser of 0.1*num_waypoints or batch_size,
+  // to keep a balance between run time and time-optimality.
   // TODO(andyz): parameterize as MIN_BATCH_SIZE and BATCH_SCALING_FACTOR or something like that
-  batch_size = [num_waypoints]() {
-    const size_t temp_batch_size = std::min(size_t(0.1 * num_waypoints), size_t(100));
-    // We need at least 2 waypoints
-    return std::max(size_t(2), temp_batch_size);
-  }();
+  const size_t num_waypoints = trajectory.getWayPointCount();
+  const size_t temp_batch_size = std::min(size_t(0.1 * num_waypoints), size_t(100));
+  // We need at least 2 waypoints
+  batch_size = std::max(size_t(2), temp_batch_size);
+
   size_t batch_start_idx = 0;
   size_t batch_end_idx = batch_size - 1;
   const size_t full_traj_final_idx = num_waypoints - 1;
