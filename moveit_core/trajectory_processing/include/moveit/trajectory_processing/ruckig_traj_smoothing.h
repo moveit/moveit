@@ -90,8 +90,8 @@ private:
    * \brief Initialize Ruckig position/vel/accel. This initializes ruckig_input and ruckig_output to the same values
    * \param first_waypoint  The Ruckig input/output parameters are initialized to the values at this waypoint
    * \param joint_group     The MoveIt JointModelGroup of interest
-   * \param[out] rucking_input   Input parameters to Ruckig. Initialized here.
-   * \param[out] ruckig_output   Output from the Ruckig algorithm. Initialized here.
+   * \param[out] ruckig_input   Input parameters to Ruckig. Initialized here.
+   * \param[out] ruckig_output  Output from the Ruckig algorithm. Initialized here.
    */
   static void initializeRuckigState(const moveit::core::RobotState& first_waypoint,
                                     const moveit::core::JointModelGroup* joint_group,
@@ -108,6 +108,7 @@ private:
    * There is a trade-off between time-optimality of the output trajectory and runtime of the smoothing algorithm.
    * \param[in, out] trajectory      Trajectory to smooth.
    * \param[in, out] ruckig_input    Necessary input for Ruckig smoothing. Contains kinematic limits (vel, accel, jerk)
+   * \param[in]      batch_size      Minimum number of waypoints to include within a batch
    */
   static std::optional<robot_trajectory::RobotTrajectory>
   runRuckigInBatches(const size_t num_waypoints, const robot_trajectory::RobotTrajectory& trajectory,

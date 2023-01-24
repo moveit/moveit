@@ -188,7 +188,7 @@ public:
    * The returned transform is guaranteed to be a valid isometry. */
   const Eigen::Isometry3d& getGlobalSubframeTransform(const std::string& frame_name, bool* found = nullptr) const;
 
-  /** \brief Check whether a subframe of given @frame_name is present in this object.
+  /** \brief Check whether a subframe of given \param frame_name is present in this object.
    *
    * The frame_name needs to have the object's name prepended (e.g. "screwdriver/tip" returns true if the object's
    * name is "screwdriver"). */

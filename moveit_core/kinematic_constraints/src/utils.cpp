@@ -528,10 +528,8 @@ bool constructConstraints(XmlRpc::XmlRpcValue& params, moveit_msgs::Constraints&
   constraints.name = static_cast<std::string>(params["name"]);
   return collectConstraints(params["constraints"], constraints);
 }
-}  // namespace kinematic_constraints
 
-bool kinematic_constraints::resolveConstraintFrames(const moveit::core::RobotState& state,
-                                                    moveit_msgs::Constraints& constraints)
+bool resolveConstraintFrames(const moveit::core::RobotState& state, moveit_msgs::Constraints& constraints)
 {
   for (auto& c : constraints.position_constraints)
   {
@@ -577,3 +575,4 @@ bool kinematic_constraints::resolveConstraintFrames(const moveit::core::RobotSta
   }
   return true;
 }
+}  // namespace kinematic_constraints

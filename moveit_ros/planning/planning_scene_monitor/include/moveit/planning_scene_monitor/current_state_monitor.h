@@ -48,15 +48,14 @@ namespace planning_scene_monitor
 {
 using JointStateUpdateCallback = boost::function<void(const sensor_msgs::JointStateConstPtr&)>;
 
-/** @class CurrentStateMonitor
-    @brief Monitors the joint_states topic and tf to maintain the current state of the robot. */
+/** Monitors the joint_states topic and tf to maintain the current state of the robot. */
 class CurrentStateMonitor
 {
   using TFConnection = boost::signals2::connection;
 
 public:
   /**
-   * @brief Constructor.
+   * @brief Constructor
    * @param robot_model The current kinematic model to build on
    * @param tf_buffer A pointer to the tf2_ros Buffer to use
    */

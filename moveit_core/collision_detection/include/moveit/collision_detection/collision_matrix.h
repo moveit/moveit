@@ -73,10 +73,10 @@ using DecideContactFn = boost::function<bool(collision_detection::Contact&)>;
 
 MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);  // Defines AllowedCollisionMatrixPtr, ConstPtr, WeakPtr... etc
 
-/** @class AllowedCollisionMatrix
- *  @brief Definition of a structure for the allowed collision matrix. All elements in the collision world are referred
- * to by their names.
- *   This class represents which collisions are allowed to happen and which are not. */
+/** @brief Definition of a structure for the allowed collision matrix.
+ *
+ *  All elements in the collision world are referred to by their names.
+ *  This class represents which collisions are allowed to happen and which are not. */
 class AllowedCollisionMatrix
 {
 public:

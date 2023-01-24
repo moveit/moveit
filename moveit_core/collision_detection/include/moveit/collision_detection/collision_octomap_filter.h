@@ -49,13 +49,14 @@ namespace collision_detection
  *  Surfaces for Constraint-Based Haptic Rendering. ICRA, May 2012, St Paul, MN.
  *  http://adamleeper.com/research/papers/2012_ICRA_leeper-chan-salisbury.pdf
  *
- *  @param The octomap originally used for collision detection.
- *  @param The collision result (which will get its normals updated)
- *  @param The distance, as a multiple of the octomap cell size, from which to include neighboring cells.
- *  @param The minimum angle change required for a normal to be over-written
- *  @param Whether to request a depth estimate from the algorithm (experimental...)
- *  @param The iso-surface threshold value (0.5 is a reasonable default).
- *  @param The metaball radius, as a multiple of the octomap cell size (1.5 is a reasonable default)
+ *  @param object The octomap originally used for collision detection.
+ *  @param res    The collision result (which will get its normals updated)
+ *  @param cell_bbx_search_distance The distance, as a multiple of the octomap cell size,
+ *                                  from which to include neighboring cells.
+ *  @param allowed_angle_divergence The minimum angle change required for a normal to be over-written
+ *  @param estimate_depth           Whether to request a depth estimate from the algorithm (experimental...)
+ *  @param iso_value                The iso-surface threshold value (0.5 is a reasonable default).
+ *  @param metaball_radius_multiple The metaball radius, as a multiple of the octomap cell size (1.5 is a reasonable default)
  */
 int refineContactNormals(const World::ObjectConstPtr& object, CollisionResult& res,
                          double cell_bbx_search_distance = 1.0, double allowed_angle_divergence = 0.0,

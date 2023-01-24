@@ -193,9 +193,7 @@ class IKFastKinematicsPlugin : public kinematics::KinematicsBase
   }
 
 public:
-  /** @class
-   *  @brief Interface for an IKFast kinematics plugin
-   */
+  /** @brief Interface for an IKFast kinematics plugin */
   IKFastKinematicsPlugin() : num_joints_(GetNumJoints()), initialized_(false)
   {
     srand(time(nullptr));

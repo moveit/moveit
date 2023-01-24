@@ -140,7 +140,6 @@ struct KinematicsResult
 MOVEIT_CLASS_FORWARD(KinematicsBase);  // Defines KinematicsBasePtr, ConstPtr, WeakPtr... etc
 
 /**
- * @class KinematicsBase
  * @brief Provides an interface for kinematics solvers.
  */
 class KinematicsBase
@@ -607,10 +606,10 @@ protected:
    * for the private namespace and inside 'robot_description_kinematics'.
    * Parameters are searched in the following locations and order
    *
-   * ~/<group_name>/<param>
-   * ~/<param>
-   * robot_description_kinematics/<group_name>/<param>
-   * robot_description_kinematics/<param>
+   * - `~/<group_name>/<param>`
+   * - `~/<param>`
+   * - `robot_description_kinematics/<group_name>/<param>`
+   * - `robot_description_kinematics/<param>`
    *
    * This order maintains default behavior by keeping the private namespace
    * as the predominant configuration but also allows groupwise specifications.
