@@ -83,8 +83,12 @@ public:
     /** \brief Cancellation requested by user  */
     EXECUTION_CANCELLATION_REQUEST = 2,
 
+    /** \brief Request replacement of active trajectory  */
+    REPLACE_TRAJECTORY = 3,
+
     /** \brief Planning scene changed  */
-    PLANNING_SCENE_CHANGE = 3
+    PLANNING_SCENE_CHANGE = 4,
+
   };
 
   /// Data structure that represents an unique identifier for each trajectory execution through `push()` when
@@ -280,6 +284,10 @@ public:
                     const ExecutionCompleteCallback& callback = ExecutionCompleteCallback(),
                     const PathSegmentCompleteCallback& part_callback = PathSegmentCompleteCallback());
 
+  // /// Replace an active trajectory with a new one
+  bool replace(const TrajectoryID& trajectory_id, const moveit_msgs::RobotTrajectory& trajectory,
+               const std::vector<std::string>& controllers);
+
   /// Get the trajectories to be executed
   const std::vector<std::shared_ptr<TrajectoryExecutionContext>>& getTrajectories() const;
 
@@ -401,8 +409,8 @@ private:
   // controllers are available, and optionally check collision with active trajectories and the current planning scene
   bool validateTrajectories(const SequentialTrajectoryExecutionContext& trajectory_sequence);
   // Send trajectory to be executed in the corresponding controller(s)
-  bool executeTrajectory(const std::shared_ptr<SequentialTrajectoryExecutionContext> trajectory_sequence,
-                         const std::size_t index);
+  bool executeTrajectory(const std::shared_ptr<SequentialTrajectoryExecutionContext>& trajectory_sequence,
+                         const std::size_t& index, const bool& validate_trajectory);
   bool waitForRobotToStop(const TrajectoryExecutionContext& context, double wait_time = 1.0);
 
   void receiveEvent(const std_msgs::StringConstPtr& event);

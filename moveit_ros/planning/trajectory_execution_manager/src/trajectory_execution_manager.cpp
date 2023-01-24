@@ -511,7 +511,7 @@ TrajectoryExecutionManager::push(const std::vector<moveit_msgs::RobotTrajectory>
     trajectory_sequence->path_segment_complete_callback_ = part_callback;
     trajectory_sequence->remaining_trajectories_count_ = trajectories.size();
     trajectory_sequence->id_ = id;
-    if (!executeTrajectory(trajectory_sequence, 0))
+    if (!executeTrajectory(trajectory_sequence, 0, true))
     {
       if (callback)
         callback(moveit_controller_manager::ExecutionStatus::ABORTED);
@@ -520,6 +520,59 @@ TrajectoryExecutionManager::push(const std::vector<moveit_msgs::RobotTrajectory>
   }
 
   return id;
+}
+
+bool TrajectoryExecutionManager::replace(const TrajectoryID& trajectory_id,
+                                         const moveit_msgs::RobotTrajectory& trajectory,
+                                         const std::vector<std::string>& controllers)
+{
+  std::lock_guard<std::mutex> slock(active_trajectory_sequences_mutex_);
+  for (auto& trajectory_sequence : active_trajectory_sequences_)
+    if (trajectory_sequence->id_ == trajectory_id)
+    {
+      ROS_DEBUG_NAMED(LOGNAME, "Attempting to replace trajectory for group name: %s", trajectory.group_name.c_str());
+
+      // Assuming that the sequential trajectory has only one trajectory
+      auto& active_context = trajectory_sequence->contexts_[0];
+
+      // Validate trajectory matches active trajectory
+      // By move group name
+      if (trajectory.group_name != active_context->trajectory_.group_name)
+      {
+        ROS_WARN_NAMED(LOGNAME, "New trajectory does not share exact same move group. Aborting.");
+        return false;
+      }
+
+      // By controllers
+      std::shared_ptr<TrajectoryExecutionContext> context = std::make_shared<TrajectoryExecutionContext>();
+      if (configure(*context, trajectory, controllers))
+      {
+        if (context->controllers_ != active_context->controllers_)
+        {
+          ROS_WARN_NAMED(LOGNAME, "New trajectory does not share exact same controllers as the active one. Aborting.");
+          return false;
+        }
+      }
+
+      // New trajectory should start approximately at the current pose of the active trajectory
+      if (!validate(*context))
+      {
+        ROS_ERROR_NAMED(LOGNAME, "Abort execution: Trajectory does not match current state");
+        return false;
+      }
+
+      trajectory_sequence->contexts_[0] = context;
+
+      if (!executeTrajectory(trajectory_sequence, 0, false))
+      {
+        if (trajectory_sequence->execution_complete_callback_)
+          trajectory_sequence->execution_complete_callback_(moveit_controller_manager::ExecutionStatus::ABORTED);
+        return false;
+      }
+    }
+
+  ROS_WARN_NAMED(LOGNAME, "Trajectory is not active. Aborting.");
+  return false;
 }
 
 void TrajectoryExecutionManager::reloadControllerInformation()
@@ -1220,7 +1273,7 @@ void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback& callba
 
   execution_complete_ = false;
 
-  if (!executeTrajectory(trajectory_sequence, 0))
+  if (!executeTrajectory(trajectory_sequence, 0, true))
   {
     last_execution_status_ = moveit_controller_manager::ExecutionStatus::FAILED;
     if (callback)
@@ -1305,7 +1358,8 @@ bool TrajectoryExecutionManager::validateTrajectories(const SequentialTrajectory
 }
 
 bool TrajectoryExecutionManager::executeTrajectory(
-    const std::shared_ptr<SequentialTrajectoryExecutionContext> trajectory_sequence, const std::size_t index)
+    const std::shared_ptr<SequentialTrajectoryExecutionContext>& trajectory_sequence, const std::size_t& index,
+    const bool& validate_trajectory)
 {
   if (stop_execution_)
     return false;
@@ -1320,7 +1374,7 @@ bool TrajectoryExecutionManager::executeTrajectory(
 
   {
     // Validate only once that the trajectory starts at the current robot state and that the controllers are available
-    if (index == 0 && !validateTrajectories(*trajectory_sequence))
+    if (validate_trajectory && !validateTrajectories(*trajectory_sequence))
       return false;
 
     getContextHandles(*context_ptr, required_handles);
@@ -1930,7 +1984,7 @@ void TrajectoryExecutionManager::processTrajectorySegment(
       if (trajectory_sequence_ptr->path_segment_complete_callback_)
         trajectory_sequence_ptr->path_segment_complete_callback_(next_index - 1);
 
-      executeTrajectory(trajectory_sequence_ptr, next_index);
+      executeTrajectory(trajectory_sequence_ptr, next_index, false);
     }
     else  // Clear handles and active trajectories when there are no remaining trajectories for a trajectory sequence
     {
