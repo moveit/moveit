@@ -144,8 +144,9 @@ public:
    *
    * @param [in] out The file descriptor for printing
    */
-  virtual void print(std::ostream& /*unused*/ = std::cout) const
+  virtual void print(std::ostream& out = std::cout) const
   {
+    (void)out;
   }
 
   /**

@@ -71,8 +71,7 @@ class PR2ArmIKSolver : public KDL::ChainIkSolverPos
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  /** @class
-   *  @brief ROS/KDL based interface for the inverse kinematics of the PR2 arm
+  /** @brief ROS/KDL based interface for the inverse kinematics of the PR2 arm
    *  @author Sachin Chitta <sachinc@willowgarage.com>
    *
    *  This class provides a KDL based interface to the inverse kinematics of the PR2 arm.
@@ -131,9 +130,7 @@ MOVEIT_CLASS_FORWARD(PR2ArmKinematicsPlugin);
 class PR2ArmKinematicsPlugin : public kinematics::KinematicsBase
 {
 public:
-  /** @class
-   *  @brief Plugin-able interface to the PR2 arm kinematics
-   */
+  /** @brief Plugin-able interface to the PR2 arm kinematics */
   PR2ArmKinematicsPlugin();
 
   /**
@@ -144,7 +141,6 @@ public:
 
   /**
    * @brief Given a desired pose of the end-effector, compute the joint angles to reach it
-   * @param ik_link_name - the name of the link for which IK is being computed
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @return True if a valid solution was found, false otherwise
@@ -177,7 +173,7 @@ public:
    */
   bool searchPositionIK(
       const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
-      const std::vector<double>& consistency_limits, std::vector<double>& solution,
+      const std::vector<double>& consistency_limit, std::vector<double>& solution,
       moveit_msgs::MoveItErrorCodes& error_code,
       const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const override;
 
@@ -206,15 +202,12 @@ public:
    */
   bool searchPositionIK(
       const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
-      const std::vector<double>& consistency_limits, std::vector<double>& solution,
+      const std::vector<double>& consistency_limit, std::vector<double>& solution,
       const IKCallbackFn& solution_callback, moveit_msgs::MoveItErrorCodes& error_code,
       const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const override;
 
   /**
    * @brief Given a set of joint angles and a set of links, compute their pose
-   * @param request  - the request contains the joint angles, set of links for which poses are to be computed and a
-   * timeout
-   * @param response - the response contains stamped pose information for all the requested links
    * @return True if a valid solution was found, false otherwise
    */
   bool getPositionFK(const std::vector<std::string>& link_names, const std::vector<double>& joint_angles,

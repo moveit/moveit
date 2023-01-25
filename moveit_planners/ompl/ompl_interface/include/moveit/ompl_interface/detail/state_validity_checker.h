@@ -44,8 +44,7 @@ namespace ompl_interface
 {
 class ModelBasedPlanningContext;
 
-/** @class StateValidityChecker
-    @brief An interface for a OMPL state validity checker*/
+/** @brief An interface for a OMPL state validity checker */
 class StateValidityChecker : public ompl::base::StateValidityChecker
 {
 public:

@@ -45,7 +45,6 @@ namespace robot_model_loader
 {
 MOVEIT_CLASS_FORWARD(RobotModelLoader);  // Defines RobotModelLoaderPtr, ConstPtr, WeakPtr... etc
 
-/** @class RobotModelLoader */
 class RobotModelLoader
 {
 public:

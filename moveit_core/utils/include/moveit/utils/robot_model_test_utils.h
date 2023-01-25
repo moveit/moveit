@@ -124,16 +124,17 @@ public:
    *  \param[in] origin The origin pose of this collision mesh relative to the link origin
    */
   void addCollisionMesh(const std::string& link_name, const std::string& filename, geometry_msgs::Pose origin);
+
   /** \brief Adds a collision box to a specific link.
    *  \param[in] link_name The name of the link to which the box will be added. Must already be in the builder.
-   *  \param[in] size The dimensions of the box
+   *  \param[in] dims   The dimensions of the box
    *  \param[in] origin The origin pose of this collision box relative to the link origin
    */
   void addCollisionBox(const std::string& link_name, const std::vector<double>& dims, geometry_msgs::Pose origin);
 
   /** \brief Adds a visual box to a specific link.
    *  \param[in] link_name The name of the link to which the box will be added. Must already be in the builder.
-   *  \param[in] size The dimensions of the box
+   *  \param[in] size   The dimensions of the box
    *  \param[in] origin The origin pose of this visual box relative to the link origin
    */
   void addVisualBox(const std::string& link_name, const std::vector<double>& size, geometry_msgs::Pose origin);

@@ -273,7 +273,7 @@ struct FCLManager
  *
  *   \param o1 First FCL collision object
  *   \param o2 Second FCL collision object
- *   \data General pointer to arbitrary data which is used during the callback
+ *   \param data General pointer to arbitrary data which is used during the callback
  *   \return True terminates the collision check, false continues it to the next pair of objects */
 bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data);
 
@@ -282,7 +282,7 @@ bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, voi
  *
  *   \param o1 First FCL collision object
  *   \param o2 Second FCL collision object
- *   \data General pointer to arbitrary data which is used during the callback
+ *   \param data General pointer to arbitrary data which is used during the callback
  *   \return True terminates the distance check, false continues it to the next pair of objects */
 bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& min_dist);
 

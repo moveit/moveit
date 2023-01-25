@@ -47,8 +47,7 @@ namespace ompl_interface
 {
 class ModelBasedPlanningContext;
 
-/** @class ConstrainedGoalSampler
- *  An interface to the OMPL goal lazy sampler*/
+/** An interface to the OMPL goal lazy sampler */
 class ConstrainedGoalSampler : public ompl::base::GoalLazySamples
 {
 public:
