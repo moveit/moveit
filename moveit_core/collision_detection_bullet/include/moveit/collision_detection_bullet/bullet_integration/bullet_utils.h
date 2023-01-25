@@ -177,23 +177,23 @@ public:
   /** @brief Get the collision object name */
   const std::string& getName() const
   {
-    return m_name;
+    return m_name_;
   }
 
   /** @brief Get a user defined type */
   const collision_detection::BodyType& getTypeID() const
   {
-    return m_type_id;
+    return m_type_id_;
   }
 
   /** \brief Check if two CollisionObjectWrapper objects point to the same source object
    *  \return True if same objects, false otherwise */
   bool sameObject(const CollisionObjectWrapper& other) const
   {
-    return m_name == other.m_name && m_type_id == other.m_type_id && m_shapes.size() == other.m_shapes.size() &&
-           m_shape_poses.size() == other.m_shape_poses.size() &&
-           std::equal(m_shapes.begin(), m_shapes.end(), other.m_shapes.begin()) &&
-           std::equal(m_shape_poses.begin(), m_shape_poses.end(), other.m_shape_poses.begin(),
+    return m_name_ == other.m_name_ && m_type_id_ == other.m_type_id_ && m_shapes_.size() == other.m_shapes_.size() &&
+           m_shape_poses_.size() == other.m_shape_poses_.size() &&
+           std::equal(m_shapes_.begin(), m_shapes_.end(), other.m_shapes_.begin()) &&
+           std::equal(m_shape_poses_.begin(), m_shape_poses_.end(), other.m_shape_poses_.begin(),
                       [](const Eigen::Isometry3d& t1, const Eigen::Isometry3d& t2) { return t1.isApprox(t2); });
   }
 
@@ -215,7 +215,7 @@ public:
   std::shared_ptr<CollisionObjectWrapper> clone()
   {
     std::shared_ptr<CollisionObjectWrapper> clone_cow(
-        new CollisionObjectWrapper(m_name, m_type_id, m_shapes, m_shape_poses, m_collision_object_types, m_data));
+        new CollisionObjectWrapper(m_name_, m_type_id_, m_shapes_, m_shape_poses_, m_collision_object_types_, m_data_));
     clone_cow->setCollisionShape(getCollisionShape());
     clone_cow->setWorldTransform(getWorldTransform());
     clone_cow->m_collisionFilterGroup = m_collisionFilterGroup;
@@ -231,14 +231,14 @@ public:
   template <class T>
   void manage(T* t)
   {
-    m_data.push_back(std::shared_ptr<T>(t));
+    m_data_.push_back(std::shared_ptr<T>(t));
   }
 
   /** \brief Manage memory of a shared pointer shape */
   template <class T>
   void manage(std::shared_ptr<T> t)
   {
-    m_data.push_back(t);
+    m_data_.push_back(t);
   }
 
 protected:
@@ -250,21 +250,21 @@ protected:
                          const std::vector<std::shared_ptr<void>>& data);
 
   /** \brief The name of the object, must be unique. */
-  std::string m_name;
+  std::string m_name_;
 
-  collision_detection::BodyType m_type_id;
+  collision_detection::BodyType m_type_id_;
 
   /** @brief The shapes that define the collison object */
-  std::vector<shapes::ShapeConstPtr> m_shapes;
+  std::vector<shapes::ShapeConstPtr> m_shapes_;
 
   /** @brief The poses of the shapes, must be same length as m_shapes */
-  AlignedVector<Eigen::Isometry3d> m_shape_poses;
+  AlignedVector<Eigen::Isometry3d> m_shape_poses_;
 
   /** @brief The shape collision object type to be used. */
-  std::vector<CollisionObjectType> m_collision_object_types;
+  std::vector<CollisionObjectType> m_collision_object_types_;
 
   /** @brief Manages the collision shape pointer so they get destroyed */
-  std::vector<std::shared_ptr<void>> m_data;
+  std::vector<std::shared_ptr<void>> m_data_;
 };
 
 /** @brief Casted collision shape used for checking if an object is collision free between two discrete poses

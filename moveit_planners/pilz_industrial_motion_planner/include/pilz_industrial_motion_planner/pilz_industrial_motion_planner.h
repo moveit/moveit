@@ -116,7 +116,7 @@ public:
 
 private:
   /// Plugin loader
-  std::unique_ptr<pluginlib::ClassLoader<PlanningContextLoader>> planner_context_loader;
+  std::unique_ptr<pluginlib::ClassLoader<PlanningContextLoader>> planner_context_loader_;
 
   /// Mapping from command to loader
   std::map<std::string, pilz_industrial_motion_planner::PlanningContextLoaderPtr> context_loader_map_;

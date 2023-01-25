@@ -56,50 +56,50 @@ public:
   void SetUp() override
   {
     nh_ = ros::NodeHandle("/moveit_cpp_test");
-    moveit_cpp_ptr = std::make_shared<MoveItCpp>(nh_);
-    planning_component_ptr = std::make_shared<PlanningComponent>(PLANNING_GROUP, moveit_cpp_ptr);
-    robot_model_ptr = moveit_cpp_ptr->getRobotModel();
-    jmg_ptr = robot_model_ptr->getJointModelGroup(PLANNING_GROUP);
+    moveit_cpp_ptr_ = std::make_shared<MoveItCpp>(nh_);
+    planning_component_ptr_ = std::make_shared<PlanningComponent>(PLANNING_GROUP_, moveit_cpp_ptr_);
+    robot_model_ptr_ = moveit_cpp_ptr_->getRobotModel();
+    jmg_ptr_ = robot_model_ptr_->getJointModelGroup(PLANNING_GROUP_);
 
-    target_pose1.header.frame_id = "panda_link0";
-    target_pose1.pose.orientation.w = 1.0;
-    target_pose1.pose.position.x = 0.28;
-    target_pose1.pose.position.y = -0.2;
-    target_pose1.pose.position.z = 0.5;
+    target_pose1_.header.frame_id = "panda_link0";
+    target_pose1_.pose.orientation.w = 1.0;
+    target_pose1_.pose.position.x = 0.28;
+    target_pose1_.pose.position.y = -0.2;
+    target_pose1_.pose.position.z = 0.5;
 
-    start_pose.orientation.w = 1.0;
-    start_pose.position.x = 0.55;
-    start_pose.position.y = 0.0;
-    start_pose.position.z = 0.6;
+    start_pose_.orientation.w = 1.0;
+    start_pose_.position.x = 0.55;
+    start_pose_.position.y = 0.0;
+    start_pose_.position.z = 0.6;
 
-    target_pose2.orientation.w = 1.0;
-    target_pose2.position.x = 0.55;
-    target_pose2.position.y = -0.05;
-    target_pose2.position.z = 0.8;
+    target_pose2_.orientation.w = 1.0;
+    target_pose2_.position.x = 0.55;
+    target_pose2_.position.y = -0.05;
+    target_pose2_.position.z = 0.8;
   }
 
 protected:
   ros::NodeHandle nh_;
-  MoveItCppPtr moveit_cpp_ptr;
-  PlanningComponentPtr planning_component_ptr;
-  moveit::core::RobotModelConstPtr robot_model_ptr;
-  const moveit::core::JointModelGroup* jmg_ptr;
-  const std::string PLANNING_GROUP = "panda_arm";
-  geometry_msgs::PoseStamped target_pose1;
-  geometry_msgs::Pose target_pose2;
-  geometry_msgs::Pose start_pose;
+  MoveItCppPtr moveit_cpp_ptr_;
+  PlanningComponentPtr planning_component_ptr_;
+  moveit::core::RobotModelConstPtr robot_model_ptr_;
+  const moveit::core::JointModelGroup* jmg_ptr_;
+  const std::string PLANNING_GROUP_ = "panda_arm";
+  geometry_msgs::PoseStamped target_pose1_;
+  geometry_msgs::Pose target_pose2_;
+  geometry_msgs::Pose start_pose_;
 };
 
 // Test the current and the initial state of the Panda robot
 TEST_F(MoveItCppTest, GetCurrentStateTest)
 {
   ros::Duration(1.0).sleep();  // Otherwise joint_states will result in an invalid robot state
-  auto robot_model = moveit_cpp_ptr->getRobotModel();
+  auto robot_model = moveit_cpp_ptr_->getRobotModel();
   auto robot_state = std::make_shared<moveit::core::RobotState>(robot_model);
-  EXPECT_TRUE(moveit_cpp_ptr->getCurrentState(robot_state, 0.0));
+  EXPECT_TRUE(moveit_cpp_ptr_->getCurrentState(robot_state, 0.0));
   // Make sure the Panda robot is in "ready" state which is loaded from fake_controller.yaml
   std::vector<double> joints_vals;
-  robot_state->copyJointGroupPositions(PLANNING_GROUP, joints_vals);
+  robot_state->copyJointGroupPositions(PLANNING_GROUP_, joints_vals);
   EXPECT_NEAR(joints_vals[0], 0.0, 0.001);     // panda_joint1
   EXPECT_NEAR(joints_vals[1], -0.785, 0.001);  // panda_joint2
   EXPECT_NEAR(joints_vals[2], 0.0, 0.001);     // panda_joint3
@@ -112,49 +112,49 @@ TEST_F(MoveItCppTest, GetCurrentStateTest)
 // Test the name of the planning group used by PlanningComponent for the Panda robot
 TEST_F(MoveItCppTest, NameOfPlanningGroupTest)
 {
-  EXPECT_STREQ(planning_component_ptr->getPlanningGroupName().c_str(), "panda_arm");
+  EXPECT_STREQ(planning_component_ptr_->getPlanningGroupName().c_str(), "panda_arm");
 }
 
 // Test setting the start state of the plan to the current state of the robot
 TEST_F(MoveItCppTest, TestSetStartStateToCurrentState)
 {
-  planning_component_ptr->setStartStateToCurrentState();
-  planning_component_ptr->setGoal(target_pose1, "panda_link8");
+  planning_component_ptr_->setStartStateToCurrentState();
+  planning_component_ptr_->setGoal(target_pose1_, "panda_link8");
 
-  ASSERT_TRUE(static_cast<bool>(planning_component_ptr->plan()));
+  ASSERT_TRUE(static_cast<bool>(planning_component_ptr_->plan()));
   // TODO(JafarAbdi) adding testing to the soln state
 }
 
 // Test setting the goal using geometry_msgs::PoseStamped and a robot's link name
 TEST_F(MoveItCppTest, TestSetGoalFromPoseStamped)
 {
-  planning_component_ptr->setGoal(target_pose1, "panda_link8");
+  planning_component_ptr_->setGoal(target_pose1_, "panda_link8");
 
-  ASSERT_TRUE(static_cast<bool>(planning_component_ptr->plan()));
+  ASSERT_TRUE(static_cast<bool>(planning_component_ptr_->plan()));
 }
 
 // Test setting the plan start state using moveit::core::RobotState
 TEST_F(MoveItCppTest, TestSetStartStateFromRobotState)
 {
-  auto start_state = *(moveit_cpp_ptr->getCurrentState());
-  start_state.setFromIK(jmg_ptr, start_pose);
+  auto start_state = *(moveit_cpp_ptr_->getCurrentState());
+  start_state.setFromIK(jmg_ptr_, start_pose_);
 
-  planning_component_ptr->setStartState(start_state);
-  planning_component_ptr->setGoal(target_pose1, "panda_link8");
+  planning_component_ptr_->setStartState(start_state);
+  planning_component_ptr_->setGoal(target_pose1_, "panda_link8");
 
-  ASSERT_TRUE(static_cast<bool>(planning_component_ptr->plan()));
+  ASSERT_TRUE(static_cast<bool>(planning_component_ptr_->plan()));
 }
 
 // Test settting the goal of the plan using a moveit::core::RobotState
 TEST_F(MoveItCppTest, TestSetGoalFromRobotState)
 {
-  auto target_state = *(moveit_cpp_ptr->getCurrentState());
+  auto target_state = *(moveit_cpp_ptr_->getCurrentState());
 
-  target_state.setFromIK(jmg_ptr, target_pose2);
+  target_state.setFromIK(jmg_ptr_, target_pose2_);
 
-  planning_component_ptr->setGoal(target_state);
+  planning_component_ptr_->setGoal(target_state);
 
-  ASSERT_TRUE(static_cast<bool>(planning_component_ptr->plan()));
+  ASSERT_TRUE(static_cast<bool>(planning_component_ptr_->plan()));
 }
 }  // namespace moveit_cpp
 

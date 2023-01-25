@@ -351,9 +351,9 @@ GLuint mesh_filter::GLRenderer::loadShaders(const string& vertex_source, const s
   return program_id;
 }
 
-map<std::thread::id, pair<unsigned, GLuint> > mesh_filter::GLRenderer::context_;
-std::mutex mesh_filter::GLRenderer::context_lock_;
-bool mesh_filter::GLRenderer::glutInitialized_ = false;
+map<std::thread::id, pair<unsigned, GLuint> > mesh_filter::GLRenderer::CONTEXT;
+std::mutex mesh_filter::GLRenderer::CONTEXT_LOCK;
+bool mesh_filter::GLRenderer::GLUT_INITIALIZED = false;
 
 namespace
 {

@@ -399,7 +399,7 @@ bool BenchmarkExecutor::loadBenchmarkQueryData(const BenchmarkOptions& opts, mov
 {
   try
   {
-    warehouse_ros::DatabaseConnection::Ptr warehouse_connection = dbloader.loadDatabase();
+    warehouse_ros::DatabaseConnection::Ptr warehouse_connection = dbloader_.loadDatabase();
     warehouse_connection->setParams(opts.getHostName(), opts.getPort(), 20);
     if (warehouse_connection->connect())
     {

@@ -104,7 +104,7 @@ protected:
   TestdataLoaderUPtr data_loader_;
 
   //! The configuration at which the robot stays at the beginning of each test.
-  JointConfiguration start_config;
+  JointConfiguration start_config_;
 };
 
 void IntegrationTestSequenceAction::SetUp()
@@ -123,10 +123,10 @@ void IntegrationTestSequenceAction::SetUp()
   ASSERT_TRUE(ac_.waitForServer(ros::Duration(WAIT_FOR_ACTION_SERVER_TIME_OUT))) << "Action server is not active.";
 
   // move to default position
-  start_config = data_loader_->getJoints("ZeroPose", group_name_);
-  robot_state::RobotState robot_state{ start_config.toRobotState() };
+  start_config_ = data_loader_->getJoints("ZeroPose", group_name_);
+  robot_state::RobotState robot_state{ start_config_.toRobotState() };
 
-  move_group_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(start_config.getGroupName());
+  move_group_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(start_config_.getGroupName());
   move_group_->setPlannerId("PTP");
   move_group_->setGoalTolerance(joint_position_tolerance_);
   move_group_->setJointValueTarget(robot_state);

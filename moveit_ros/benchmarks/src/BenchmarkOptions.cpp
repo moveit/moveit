@@ -149,7 +149,7 @@ const std::string& BenchmarkOptions::getPredefinedPosesGroup() const
 void BenchmarkOptions::getGoalOffsets(std::vector<double>& offsets) const
 {
   offsets.resize(6);
-  memcpy(&offsets[0], goal_offsets, 6 * sizeof(double));
+  memcpy(&offsets[0], goal_offsets_, 6 * sizeof(double));
 }
 
 const std::map<std::string, std::vector<std::string>>& BenchmarkOptions::getPlanningPipelineConfigurations() const
@@ -209,12 +209,12 @@ void BenchmarkOptions::readBenchmarkParameters(ros::NodeHandle& nh)
     readWorkspaceParameters(nh);
 
   // Reading in goal_offset (or defaulting to zero)
-  nh.param(std::string("benchmark_config/parameters/goal_offset/x"), goal_offsets[0], 0.0);
-  nh.param(std::string("benchmark_config/parameters/goal_offset/y"), goal_offsets[1], 0.0);
-  nh.param(std::string("benchmark_config/parameters/goal_offset/z"), goal_offsets[2], 0.0);
-  nh.param(std::string("benchmark_config/parameters/goal_offset/roll"), goal_offsets[3], 0.0);
-  nh.param(std::string("benchmark_config/parameters/goal_offset/pitch"), goal_offsets[4], 0.0);
-  nh.param(std::string("benchmark_config/parameters/goal_offset/yaw"), goal_offsets[5], 0.0);
+  nh.param(std::string("benchmark_config/parameters/goal_offset/x"), goal_offsets_[0], 0.0);
+  nh.param(std::string("benchmark_config/parameters/goal_offset/y"), goal_offsets_[1], 0.0);
+  nh.param(std::string("benchmark_config/parameters/goal_offset/z"), goal_offsets_[2], 0.0);
+  nh.param(std::string("benchmark_config/parameters/goal_offset/roll"), goal_offsets_[3], 0.0);
+  nh.param(std::string("benchmark_config/parameters/goal_offset/pitch"), goal_offsets_[4], 0.0);
+  nh.param(std::string("benchmark_config/parameters/goal_offset/yaw"), goal_offsets_[5], 0.0);
 
   ROS_INFO("Benchmark name: '%s'", benchmark_name_.c_str());
   ROS_INFO("Benchmark #runs: %d", runs_);
@@ -224,8 +224,8 @@ void BenchmarkOptions::readBenchmarkParameters(ros::NodeHandle& nh)
   ROS_INFO("Benchmark start state regex: '%s':", start_state_regex_.c_str());
   ROS_INFO("Benchmark goal constraint regex: '%s':", goal_constraint_regex_.c_str());
   ROS_INFO("Benchmark path constraint regex: '%s':", path_constraint_regex_.c_str());
-  ROS_INFO("Benchmark goal offsets (%f %f %f, %f %f %f)", goal_offsets[0], goal_offsets[1], goal_offsets[2],
-           goal_offsets[3], goal_offsets[4], goal_offsets[5]);
+  ROS_INFO("Benchmark goal offsets (%f %f %f, %f %f %f)", goal_offsets_[0], goal_offsets_[1], goal_offsets_[2],
+           goal_offsets_[3], goal_offsets_[4], goal_offsets_[5]);
   ROS_INFO("Benchmark output directory: %s", output_directory_.c_str());
   ROS_INFO_STREAM("Benchmark workspace: " << workspace_);
 }

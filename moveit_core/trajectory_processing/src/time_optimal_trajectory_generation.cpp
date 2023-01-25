@@ -97,10 +97,10 @@ public:
     if ((intersection - start).norm() < 0.000001 || (end - intersection).norm() < 0.000001)
     {
       length_ = 0.0;
-      radius = 1.0;
-      center = intersection;
-      x = Eigen::VectorXd::Zero(start.size());
-      y = Eigen::VectorXd::Zero(start.size());
+      radius_ = 1.0;
+      center_ = intersection;
+      x_ = Eigen::VectorXd::Zero(start.size());
+      y_ = Eigen::VectorXd::Zero(start.size());
       return;
     }
 
@@ -112,10 +112,10 @@ public:
     if (start_dot_end > 0.999999 || start_dot_end < -0.999999)
     {
       length_ = 0.0;
-      radius = 1.0;
-      center = intersection;
-      x = Eigen::VectorXd::Zero(start.size());
-      y = Eigen::VectorXd::Zero(start.size());
+      radius_ = 1.0;
+      center_ = intersection;
+      x_ = Eigen::VectorXd::Zero(start.size());
+      y_ = Eigen::VectorXd::Zero(start.size());
       return;
     }
 
@@ -127,44 +127,44 @@ public:
     double distance = std::min(start_distance, end_distance);
     distance = std::min(distance, max_deviation * sin(0.5 * angle) / (1.0 - cos(0.5 * angle)));
 
-    radius = distance / tan(0.5 * angle);
-    length_ = angle * radius;
+    radius_ = distance / tan(0.5 * angle);
+    length_ = angle * radius_;
 
-    center = intersection + (end_direction - start_direction).normalized() * radius / cos(0.5 * angle);
-    x = (intersection - distance * start_direction - center).normalized();
-    y = start_direction;
+    center_ = intersection + (end_direction - start_direction).normalized() * radius_ / cos(0.5 * angle);
+    x_ = (intersection - distance * start_direction - center_).normalized();
+    y_ = start_direction;
   }
 
   Eigen::VectorXd getConfig(double s) const override
   {
-    const double angle = s / radius;
-    return center + radius * (x * cos(angle) + y * sin(angle));
+    const double angle = s / radius_;
+    return center_ + radius_ * (x_ * cos(angle) + y_ * sin(angle));
   }
 
   Eigen::VectorXd getTangent(double s) const override
   {
-    const double angle = s / radius;
-    return -x * sin(angle) + y * cos(angle);
+    const double angle = s / radius_;
+    return -x_ * sin(angle) + y_ * cos(angle);
   }
 
   Eigen::VectorXd getCurvature(double s) const override
   {
-    const double angle = s / radius;
-    return -1.0 / radius * (x * cos(angle) + y * sin(angle));
+    const double angle = s / radius_;
+    return -1.0 / radius_ * (x_ * cos(angle) + y_ * sin(angle));
   }
 
   std::list<double> getSwitchingPoints() const override
   {
     std::list<double> switching_points;
-    const double dim = x.size();
+    const double dim = x_.size();
     for (unsigned int i = 0; i < dim; ++i)
     {
-      double switching_angle = atan2(y[i], x[i]);
+      double switching_angle = atan2(y_[i], x_[i]);
       if (switching_angle < 0.0)
       {
         switching_angle += M_PI;
       }
-      const double switching_point = switching_angle * radius;
+      const double switching_point = switching_angle * radius_;
       if (switching_point < length_)
       {
         switching_points.push_back(switching_point);
@@ -180,10 +180,10 @@ public:
   }
 
 private:
-  double radius;
-  Eigen::VectorXd center;
-  Eigen::VectorXd x;
-  Eigen::VectorXd y;
+  double radius_;
+  Eigen::VectorXd center_;
+  Eigen::VectorXd x_;
+  Eigen::VectorXd y_;
 };
 
 Path::Path(const std::list<Eigen::VectorXd>& path, double max_deviation) : length_(0.0)

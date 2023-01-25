@@ -106,10 +106,10 @@ RobotPosesWidget::RobotPosesWidget(QWidget* parent, const MoveItConfigDataPtr& c
   // Collision Detection initializtion -------------------------------
 
   // Setup the request
-  request.contacts = true;
-  request.max_contacts = 1;
-  request.max_contacts_per_pair = 1;
-  request.verbose = false;
+  request_.contacts = true;
+  request_.max_contacts = 1;
+  request_.max_contacts_per_pair = 1;
+  request_.verbose = false;
 }
 
 // ******************************************************************************************
@@ -780,7 +780,7 @@ void RobotPosesWidget::publishJoints()
 
   // Decide if current state is in collision
   collision_detection::CollisionResult result;
-  config_data_->getPlanningScene()->checkSelfCollision(request, result, robot_state,
+  config_data_->getPlanningScene()->checkSelfCollision(request_, result, robot_state,
                                                        config_data_->allowed_collision_matrix_);
   collision_warning_->setHidden(result.contacts.empty());
 }

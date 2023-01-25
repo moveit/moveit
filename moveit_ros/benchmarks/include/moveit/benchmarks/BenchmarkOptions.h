@@ -128,7 +128,7 @@ protected:
   std::string trajectory_constraint_regex_;
   std::vector<std::string> predefined_poses_;
   std::string predefined_poses_group_;
-  double goal_offsets[6];
+  double goal_offsets_[6];
 
   /// planner configurations
   std::map<std::string, std::vector<std::string>> planning_pipelines_;

@@ -257,14 +257,14 @@ void SetupAssistantWidget::progressPastStartScreen()
   connect(virtual_joints_widget_, SIGNAL(referenceFrameChanged()), this, SLOT(virtualJointReferenceFrameChanged()));
 
   // Planning Groups
-  planning_groups_widget = new PlanningGroupsWidget(this, config_data_);
-  main_content_->addWidget(planning_groups_widget);
-  connect(planning_groups_widget, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
-  connect(planning_groups_widget, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
+  planning_groups_widget_ = new PlanningGroupsWidget(this, config_data_);
+  main_content_->addWidget(planning_groups_widget_);
+  connect(planning_groups_widget_, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
+  connect(planning_groups_widget_, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
           SLOT(highlightLink(const std::string&, const QColor&)));
-  connect(planning_groups_widget, SIGNAL(highlightGroup(const std::string&)), this,
+  connect(planning_groups_widget_, SIGNAL(highlightGroup(const std::string&)), this,
           SLOT(highlightGroup(const std::string&)));
-  connect(planning_groups_widget, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
+  connect(planning_groups_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
 
   // Robot Poses
   robot_poses_widget_ = new RobotPosesWidget(this, config_data_);

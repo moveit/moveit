@@ -206,7 +206,7 @@ private:
   // Screen Widgets
   StartScreenWidget* start_screen_widget_;
   DefaultCollisionsWidget* default_collisions_widget_;
-  PlanningGroupsWidget* planning_groups_widget;
+  PlanningGroupsWidget* planning_groups_widget_;
   RobotPosesWidget* robot_poses_widget_;
   EndEffectorsWidget* end_effectors_widget_;
   VirtualJointsWidget* virtual_joints_widget_;

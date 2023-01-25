@@ -70,11 +70,11 @@ bool CommandPlanner::initialize(const moveit::core::RobotModelConstPtr& model, c
       ros::NodeHandle(PARAM_NAMESPACE_LIMTS));
 
   // Load the planning context loader
-  planner_context_loader = std::make_unique<pluginlib::ClassLoader<PlanningContextLoader>>(
+  planner_context_loader_ = std::make_unique<pluginlib::ClassLoader<PlanningContextLoader>>(
       "pilz_industrial_motion_planner", "pilz_industrial_motion_planner::PlanningContextLoader");
 
   // List available plugins
-  const std::vector<std::string>& factories = planner_context_loader->getDeclaredClasses();
+  const std::vector<std::string>& factories = planner_context_loader_->getDeclaredClasses();
   std::stringstream ss;
   for (const auto& factory : factories)
   {
@@ -87,7 +87,7 @@ bool CommandPlanner::initialize(const moveit::core::RobotModelConstPtr& model, c
   for (const auto& factory : factories)
   {
     ROS_INFO_STREAM("About to load: " << factory);
-    PlanningContextLoaderPtr loader_pointer(planner_context_loader->createInstance(factory));
+    PlanningContextLoaderPtr loader_pointer(planner_context_loader_->createInstance(factory));
 
     pilz_industrial_motion_planner::LimitsContainer limits;
     limits.setJointLimits(aggregated_limit_active_joints_);

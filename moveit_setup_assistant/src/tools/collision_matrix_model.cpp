@@ -56,24 +56,24 @@ static const boost::unordered_map<moveit_setup_assistant::DisabledReason, QVaria
 
 CollisionMatrixModel::CollisionMatrixModel(const srdf::SRDFWriterPtr& srdf, const std::vector<std::string>& names,
                                            QObject* parent)
-  : QAbstractTableModel(parent), srdf(srdf), std_names(names)
+  : QAbstractTableModel(parent), srdf_(srdf), std_names_(names)
 {
   int idx = 0;
   for (std::vector<std::string>::const_iterator it = names.begin(), end = names.end(); it != end; ++it, ++idx)
   {
-    visual_to_index << idx;
-    q_names << QString::fromStdString(*it);
+    visual_to_index_ << idx;
+    q_names_ << QString::fromStdString(*it);
   }
 }
 
 int CollisionMatrixModel::rowCount(const QModelIndex& /*parent*/) const
 {
-  return visual_to_index.size();
+  return visual_to_index_.size();
 }
 
 int CollisionMatrixModel::columnCount(const QModelIndex& /*parent*/) const
 {
-  return visual_to_index.size();
+  return visual_to_index_.size();
 }
 
 struct PairMatcher
@@ -101,7 +101,7 @@ auto find(Container& pairs, const std::string& link1, const std::string& link2)
 
 bool CollisionMatrixModel::disabledByDefault(const std::string& link1, const std::string& link2) const
 {
-  for (const auto& name : srdf->no_default_collision_links_)
+  for (const auto& name : srdf_->no_default_collision_links_)
     if (name == link1 || name == link2)
       return true;
   return false;
@@ -125,13 +125,13 @@ QVariant CollisionMatrixModel::data(const QModelIndex& index, int role) const
   }
 
   const std::string* reason = nullptr;
-  int r = visual_to_index[index.row()], c = visual_to_index[index.column()];
-  auto it = find(srdf->disabled_collision_pairs_, std_names[r], std_names[c]);
-  if (it != srdf->disabled_collision_pairs_.end())
+  int r = visual_to_index_[index.row()], c = visual_to_index_[index.column()];
+  auto it = find(srdf_->disabled_collision_pairs_, std_names_[r], std_names_[c]);
+  if (it != srdf_->disabled_collision_pairs_.end())
     reason = &it->reason_;
-  else if (find(srdf->enabled_collision_pairs_, std_names[r], std_names[c]) != srdf->enabled_collision_pairs_.end())
+  else if (find(srdf_->enabled_collision_pairs_, std_names_[r], std_names_[c]) != srdf_->enabled_collision_pairs_.end())
     reason = &enabled;
-  else if (disabledByDefault(std_names[r], std_names[c]))
+  else if (disabledByDefault(std_names_[r], std_names_[c]))
     reason = &disabled;
 
   switch (role)
@@ -157,18 +157,18 @@ bool CollisionMatrixModel::setData(const QModelIndex& index, const QVariant& val
     return false;
 
   bool new_value = (value.toInt() == Qt::Checked);
-  srdf::Model::CollisionPair p{ std_names[visual_to_index[index.row()]], std_names[visual_to_index[index.column()]],
+  srdf::Model::CollisionPair p{ std_names_[visual_to_index_[index.row()]], std_names_[visual_to_index_[index.column()]],
                                 std::string() };
   if (p.link1_ > p.link2_)
     std::swap(p.link1_, p.link2_);
 
-  auto enabled = find(srdf->enabled_collision_pairs_, p.link1_, p.link2_);
-  auto disabled = find(srdf->disabled_collision_pairs_, p.link1_, p.link2_);
+  auto enabled = find(srdf_->enabled_collision_pairs_, p.link1_, p.link2_);
+  auto disabled = find(srdf_->disabled_collision_pairs_, p.link1_, p.link2_);
   bool changed = true;
   if (disabledByDefault(p.link1_, p.link2_))
   {
-    assert(disabled == srdf->disabled_collision_pairs_.end());
-    auto& pairs = srdf->enabled_collision_pairs_;
+    assert(disabled == srdf_->disabled_collision_pairs_.end());
+    auto& pairs = srdf_->enabled_collision_pairs_;
     if (new_value)
     {
       if (enabled != pairs.end())  // delete all matching pairs, starting with enabled
@@ -180,15 +180,15 @@ bool CollisionMatrixModel::setData(const QModelIndex& index, const QVariant& val
     {
       p.reason_ = moveit_setup_assistant::disabledReasonToString(moveit_setup_assistant::NOT_DISABLED);
       if (enabled == pairs.end())
-        srdf->enabled_collision_pairs_.push_back(p);
+        srdf_->enabled_collision_pairs_.push_back(p);
       else
         changed = false;
     }
   }
   else
   {
-    assert(enabled == srdf->enabled_collision_pairs_.end());
-    auto& pairs = srdf->disabled_collision_pairs_;
+    assert(enabled == srdf_->enabled_collision_pairs_.end());
+    auto& pairs = srdf_->disabled_collision_pairs_;
     if (new_value)
     {
       p.reason_ = moveit_setup_assistant::disabledReasonToString(moveit_setup_assistant::USER);
@@ -247,11 +247,11 @@ void CollisionMatrixModel::setFilterRegExp(const QString& filter)
 {
   beginResetModel();
   QRegExp regexp(filter);
-  visual_to_index.clear();
-  for (int idx = 0, end = q_names.size(); idx != end; ++idx)
+  visual_to_index_.clear();
+  for (int idx = 0, end = q_names_.size(); idx != end; ++idx)
   {
-    if (q_names[idx].contains(regexp))
-      visual_to_index << idx;
+    if (q_names_[idx].contains(regexp))
+      visual_to_index_ << idx;
   }
   endResetModel();
 }
@@ -259,7 +259,7 @@ void CollisionMatrixModel::setFilterRegExp(const QString& filter)
 QVariant CollisionMatrixModel::headerData(int section, Qt::Orientation /*orientation*/, int role) const
 {
   if (role == Qt::DisplayRole)
-    return q_names[visual_to_index[section]];
+    return q_names_[visual_to_index_[section]];
   return QVariant();
 }
 

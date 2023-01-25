@@ -89,7 +89,7 @@ private:
             trajectory_msgs::JointTrajectory& joint_trajectory) override;
 
 private:
-  const double MIN_MOVEMENT = 0.001;
+  const double MIN_MOVEMENT_ = 0.001;
   pilz_industrial_motion_planner::JointLimitsContainer joint_limits_;
   // most strict joint limits
   JointLimit most_strict_limit_;

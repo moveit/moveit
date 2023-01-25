@@ -56,55 +56,55 @@ public:
   void SetUp() override
   {
     nh_ = ros::NodeHandle();
-    moveit_cpp_ptr = std::make_shared<MoveItCpp>(nh_);
-    trajectory_execution_manager_ptr = moveit_cpp_ptr->getTrajectoryExecutionManager();
+    moveit_cpp_ptr_ = std::make_shared<MoveItCpp>(nh_);
+    trajectory_execution_manager_ptr_ = moveit_cpp_ptr_->getTrajectoryExecutionManager();
 
-    traj1.joint_trajectory.joint_names.push_back("panda_joint1");
-    traj1.joint_trajectory.points.resize(1);
-    traj1.joint_trajectory.points[0].positions.push_back(0.0);
+    traj1_.joint_trajectory.joint_names.push_back("panda_joint1");
+    traj1_.joint_trajectory.points.resize(1);
+    traj1_.joint_trajectory.points[0].positions.push_back(0.0);
 
-    traj2 = traj1;
-    traj2.joint_trajectory.joint_names.push_back("panda_joint2");
-    traj2.joint_trajectory.points[0].positions.push_back(1.0);
-    traj2.multi_dof_joint_trajectory.joint_names.push_back("panda_joint3");
-    traj2.multi_dof_joint_trajectory.points.resize(1);
-    traj2.multi_dof_joint_trajectory.points[0].transforms.resize(1);
+    traj2_ = traj1_;
+    traj2_.joint_trajectory.joint_names.push_back("panda_joint2");
+    traj2_.joint_trajectory.points[0].positions.push_back(1.0);
+    traj2_.multi_dof_joint_trajectory.joint_names.push_back("panda_joint3");
+    traj2_.multi_dof_joint_trajectory.points.resize(1);
+    traj2_.multi_dof_joint_trajectory.points[0].transforms.resize(1);
   }
 
 protected:
   ros::NodeHandle nh_;
-  MoveItCppPtr moveit_cpp_ptr;
-  PlanningComponentPtr planning_component_ptr;
-  trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_ptr;
-  moveit_msgs::RobotTrajectory traj1;
-  moveit_msgs::RobotTrajectory traj2;
+  MoveItCppPtr moveit_cpp_ptr_;
+  PlanningComponentPtr planning_component_ptr_;
+  trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_ptr_;
+  moveit_msgs::RobotTrajectory traj1_;
+  moveit_msgs::RobotTrajectory traj2_;
 };
 
 TEST_F(MoveItCppTest, EnsureActiveControllersForJointsTest)
 {
-  ASSERT_TRUE(trajectory_execution_manager_ptr->ensureActiveControllersForJoints({ "panda_joint1" }));
+  ASSERT_TRUE(trajectory_execution_manager_ptr_->ensureActiveControllersForJoints({ "panda_joint1" }));
 }
 
 TEST_F(MoveItCppTest, ensureActiveControllerTest)
 {
-  ASSERT_TRUE(trajectory_execution_manager_ptr->ensureActiveController("fake_panda_arm_controller"));
+  ASSERT_TRUE(trajectory_execution_manager_ptr_->ensureActiveController("fake_panda_arm_controller"));
 }
 
 TEST_F(MoveItCppTest, ExecuteEmptySetOfTrajectoriesTest)
 {
   // execute with empty set of trajectories
-  trajectory_execution_manager_ptr->execute();
-  auto last_execution_status = trajectory_execution_manager_ptr->waitForExecution();
+  trajectory_execution_manager_ptr_->execute();
+  auto last_execution_status = trajectory_execution_manager_ptr_->waitForExecution();
   ASSERT_EQ(last_execution_status, moveit_controller_manager::ExecutionStatus::SUCCEEDED);
 }
 
 TEST_F(MoveItCppTest, PushExecuteAndWaitTest)
 {
-  ASSERT_TRUE(trajectory_execution_manager_ptr->push(traj1));
-  ASSERT_TRUE(trajectory_execution_manager_ptr->push(traj2));
-  traj1.multi_dof_joint_trajectory = traj2.multi_dof_joint_trajectory;
-  ASSERT_TRUE(trajectory_execution_manager_ptr->push(traj1));
-  auto last_execution_status = trajectory_execution_manager_ptr->executeAndWait();
+  ASSERT_TRUE(trajectory_execution_manager_ptr_->push(traj1_));
+  ASSERT_TRUE(trajectory_execution_manager_ptr_->push(traj2_));
+  traj1_.multi_dof_joint_trajectory = traj2_.multi_dof_joint_trajectory;
+  ASSERT_TRUE(trajectory_execution_manager_ptr_->push(traj1_));
+  auto last_execution_status = trajectory_execution_manager_ptr_->executeAndWait();
   ASSERT_EQ(last_execution_status, moveit_controller_manager::ExecutionStatus::SUCCEEDED);
 }
 

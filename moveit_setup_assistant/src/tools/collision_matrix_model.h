@@ -69,8 +69,8 @@ private:
   bool disabledByDefault(const std::string& link1, const std::string& link2) const;
 
 private:
-  srdf::SRDFWriterPtr srdf;
-  const std::vector<std::string> std_names;  // names of links
-  QList<QString> q_names;                    // names of links
-  QList<int> visual_to_index;                // map from visual index to actual index
+  srdf::SRDFWriterPtr srdf_;
+  const std::vector<std::string> std_names_;  // names of links
+  QList<QString> q_names_;                    // names of links
+  QList<int> visual_to_index_;                // map from visual index to actual index
 };

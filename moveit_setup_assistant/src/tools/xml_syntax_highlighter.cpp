@@ -51,14 +51,14 @@ void XmlSyntaxHighlighter::addTag(const QString& tag, const QTextCharFormat& for
   if (!parent.isEmpty())
   {
     QString parent_start = start_pattern.arg(parent);
-    rule.parent = std::find_if(rules.begin(), rules.end(), [&](const std::pair<int, Rule>& rule) {
+    rule.parent = std::find_if(rules_.begin(), rules_.end(), [&](const std::pair<int, Rule>& rule) {
       return rule.second.start.pattern() == parent_start;
     });
   }
   else
-    rule.parent = rules.end();
+    rule.parent = rules_.end();
 
-  rules.insert(std::make_pair(rules.size(), rule));
+  rules_.insert(std::make_pair(rules_.size(), rule));
 }
 
 XmlSyntaxHighlighter::Rules::const_iterator
@@ -85,7 +85,7 @@ XmlSyntaxHighlighter::highlight(Rules::const_iterator active, QStringRef text, i
     return next;  // early return
 
   // highlight remaining text using active's children's rules
-  for (auto it = rules.begin(); it != rules.end(); ++it)
+  for (auto it = rules_.begin(); it != rules_.end(); ++it)
   {
     const auto& rule = it->second;
     if (rule.parent != active)
@@ -117,8 +117,8 @@ XmlSyntaxHighlighter::highlight(Rules::const_iterator active, QStringRef text, i
 
 void XmlSyntaxHighlighter::highlightBlock(const QString& text)
 {
-  Rules::const_iterator active = previousBlockState() < 0 ? rules.end() : rules.find(previousBlockState());
+  Rules::const_iterator active = previousBlockState() < 0 ? rules_.end() : rules_.find(previousBlockState());
   int unused = 0;
-  active = highlight(active, QStringRef(&text, 0, text.size()), 0, active != rules.cend(), unused);
-  setCurrentBlockState(active != rules.cend() ? active->first : -1);
+  active = highlight(active, QStringRef(&text, 0, text.size()), 0, active != rules_.cend(), unused);
+  setCurrentBlockState(active != rules_.cend() ? active->first : -1);
 }

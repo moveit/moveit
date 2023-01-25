@@ -59,7 +59,7 @@ private:
     std::map<int, Rule>::const_iterator parent;
   };
   using Rules = std::map<int, Rule>;
-  Rules rules;
+  Rules rules_;
 
   Rules::const_iterator highlight(Rules::const_iterator active, QStringRef text, int start, bool search_end, int& end);
 };
