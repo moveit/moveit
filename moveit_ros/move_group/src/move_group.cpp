@@ -54,7 +54,7 @@ namespace move_group
 {
 // These capabilities are loaded unless listed in disable_capabilities
 // clang-format off
-static const char* DEFAULT_CAPABILITIES[] = {
+static const char* const DEFAULT_CAPABILITIES[] = {
    "move_group/MoveGroupCartesianPathService",
    "move_group/MoveGroupKinematicsService",
    "move_group/MoveGroupExecuteTrajectoryAction",

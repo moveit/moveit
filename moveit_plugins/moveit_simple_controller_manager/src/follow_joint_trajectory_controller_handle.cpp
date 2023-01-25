@@ -107,13 +107,14 @@ inline double& variable<ACCELERATION>(control_msgs::JointTolerance& msg)
   return msg.acceleration;
 }
 
-static std::map<ToleranceVariables, std::string> VAR_NAME = { { POSITION, "position" },
-                                                              { VELOCITY, "velocity" },
-                                                              { ACCELERATION, "acceleration" } };
-static std::map<ToleranceVariables, decltype(&variable<POSITION>)> VAR_ACCESS = { { POSITION, &variable<POSITION> },
-                                                                                  { VELOCITY, &variable<VELOCITY> },
-                                                                                  { ACCELERATION,
-                                                                                    &variable<ACCELERATION> } };
+static const std::map<ToleranceVariables, std::string> VAR_NAME = { { POSITION, "position" },
+                                                                    { VELOCITY, "velocity" },
+                                                                    { ACCELERATION, "acceleration" } };
+static const std::map<ToleranceVariables, decltype(&variable<POSITION>)> VAR_ACCESS = {
+  { POSITION, &variable<POSITION> },
+  { VELOCITY, &variable<VELOCITY> },
+  { ACCELERATION, &variable<ACCELERATION> }
+};
 
 const char* errorCodeToMessage(int error_code)
 {
@@ -144,20 +145,20 @@ void FollowJointTrajectoryControllerHandle::configure(XmlRpc::XmlRpcValue& confi
   {
     for (ToleranceVariables var : { POSITION, VELOCITY, ACCELERATION })
     {
-      if (!config.hasMember(VAR_NAME[var]))
+      if (!config.hasMember(VAR_NAME.at(var)))
         continue;
-      XmlRpc::XmlRpcValue values = config[VAR_NAME[var]];
+      XmlRpc::XmlRpcValue values = config[VAR_NAME.at(var)];
       if (isArray(values, joints_.size()))
       {
         size_t i = 0;
         for (const auto& joint_name : joints_)
-          VAR_ACCESS[var](getTolerance(tolerances, joint_name)) = parseDouble(values[i++]);
+          VAR_ACCESS.at(var)(getTolerance(tolerances, joint_name)) = parseDouble(values[i++]);
       }
       else
       {  // use common value for all joints
         double value = parseDouble(values);
         for (const auto& joint_name : joints_)
-          VAR_ACCESS[var](getTolerance(tolerances, joint_name)) = value;
+          VAR_ACCESS.at(var)(getTolerance(tolerances, joint_name)) = value;
       }
     }
   }
@@ -168,9 +169,9 @@ void FollowJointTrajectoryControllerHandle::configure(XmlRpc::XmlRpcValue& confi
       control_msgs::JointTolerance& tol = getTolerance(tolerances, config[i]["name"]);
       for (ToleranceVariables var : { POSITION, VELOCITY, ACCELERATION })
       {
-        if (!config[i].hasMember(VAR_NAME[var]))
+        if (!config[i].hasMember(VAR_NAME.at(var)))
           continue;
-        VAR_ACCESS[var](tol) = parseDouble(config[i][VAR_NAME[var]]);
+        VAR_ACCESS.at(var)(tol) = parseDouble(config[i][VAR_NAME.at(var)]);
       }
     }
   }

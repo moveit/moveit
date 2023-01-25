@@ -39,7 +39,7 @@
 #include <moveit/trajectory_processing/limit_cartesian_speed.h>
 
 // Name of logger
-const char* LOGGER_NAME = "trajectory_processing.cartesian_speed";
+static const char* const LOGGER_NAME = "trajectory_processing.cartesian_speed";
 
 namespace trajectory_processing
 {

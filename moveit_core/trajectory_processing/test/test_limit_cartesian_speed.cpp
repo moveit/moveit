@@ -47,14 +47,14 @@
 #include <moveit/utils/robot_model_test_utils.h>
 
 // Static variables used in all tests
-moveit::core::RobotModelConstPtr RMODEL = moveit::core::loadTestingRobotModel("panda");
-robot_trajectory::RobotTrajectory TRAJECTORY(RMODEL, "panda_arm");
+static moveit::core::RobotModelConstPtr RMODEL = moveit::core::loadTestingRobotModel("panda");
+static robot_trajectory::RobotTrajectory TRAJECTORY(RMODEL, "panda_arm");
 
 // Vector of distances between waypoints
-std::vector<double> WAYPOINT_DISTANCES;
+static std::vector<double> WAYPOINT_DISTANCES;
 
 // Name of logger
-const char* LOGGER_NAME = "trajectory_processing";
+static const char* const LOGGER_NAME = "trajectory_processing";
 
 // Initialize one-joint, straight-line trajectory
 bool initStraightTrajectory(robot_trajectory::RobotTrajectory& trajectory)
