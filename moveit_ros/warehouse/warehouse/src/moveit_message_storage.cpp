@@ -61,14 +61,12 @@ void moveit_warehouse::MoveItMessageStorage::filterNames(const std::string& rege
   }
 }
 
-static std::unique_ptr<warehouse_ros::DatabaseLoader> DBLOADER;
-
 typename warehouse_ros::DatabaseConnection::Ptr moveit_warehouse::loadDatabase()
 {
-  if (!DBLOADER)
+  static std::unique_ptr<warehouse_ros::DatabaseLoader> dbloader;
+  if (!dbloader)
   {
-    DBLOADER = std::make_unique<warehouse_ros::DatabaseLoader>();
+    dbloader = std::make_unique<warehouse_ros::DatabaseLoader>();
   }
-  return DBLOADER->loadDatabase();
-  // return typename warehouse_ros::DatabaseConnection::Ptr(new warehouse_ros_mongo::MongoDatabaseConnection());
+  return dbloader->loadDatabase();
 }
