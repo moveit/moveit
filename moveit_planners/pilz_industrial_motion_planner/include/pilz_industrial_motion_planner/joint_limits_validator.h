@@ -105,7 +105,7 @@ public:
   }
 };
 
-/** Thrown the limits for a joint are defined in the urdf but not on the parameter server (loaded from yaml) */
+/** Thrown when the limits for a joint are defined in the urdf but not on the parameter server (loaded from yaml) */
 class ValidationJointMissingException : public ValidationException
 {
 public:

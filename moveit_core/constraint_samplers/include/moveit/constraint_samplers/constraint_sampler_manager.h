@@ -131,7 +131,7 @@ public:
    * @param group_name The group name for which to create a sampler
    * @param constr The set of constraints for which to create a sampler
    *
-   * @return A valid ConstraintSamplerPtr if one could be allocated, and otherwise an empty ConstraintSamplerPtr.
+   * @return A valid ConstraintSamplerPtr if one could be allocated, otherwise an empty ConstraintSamplerPtr.
    */
   static ConstraintSamplerPtr selectDefaultSampler(const planning_scene::PlanningSceneConstPtr& scene,
                                                    const std::string& group_name,
