@@ -65,7 +65,7 @@ class FilterTraits<unsigned short>
 {
 public:
   static const GLushort FILTER_GL_TYPE = GL_UNSIGNED_SHORT;
-  static constexpr double ToMetricScale = 0.001;
+  static constexpr double TO_METRIC_SCALE = 0.001;
 };
 
 template <>
@@ -73,7 +73,7 @@ class FilterTraits<float>
 {
 public:
   static const GLushort FILTER_GL_TYPE = GL_FLOAT;
-  static constexpr double ToMetricScale = 1.0f;
+  static constexpr double TO_METRIC_SCALE = 1.0f;
 };
 
 template <typename Type>
@@ -135,13 +135,13 @@ MeshFilterTest<Type>::MeshFilterTest(unsigned width, unsigned height, double nea
 
   // make it random but reproducable
   srand(0);
-  Type t_near = near_ / FilterTraits<Type>::ToMetricScale;
-  Type t_far = far_ / FilterTraits<Type>::ToMetricScale;
+  Type t_near = near_ / FilterTraits<Type>::TO_METRIC_SCALE;
+  Type t_far = far_ / FilterTraits<Type>::TO_METRIC_SCALE;
   for (typename vector<Type>::iterator s_it = sensor_data_.begin(); s_it != sensor_data_.end(); ++s_it)
   {
     do
     {
-      *s_it = getRandomNumber<Type>(0.0, 10.0 / FilterTraits<Type>::ToMetricScale);
+      *s_it = getRandomNumber<Type>(0.0, 10.0 / FilterTraits<Type>::TO_METRIC_SCALE);
     } while (*s_it == t_near || *s_it == t_far);
   }
 }
@@ -229,7 +229,7 @@ void MeshFilterTest<Type>::test()
   for (unsigned idx = 0; idx < width_ * height_; ++idx)
   {
     // Only test if we are not very close to boundaries of object meshes and shadow-boundaries.
-    float sensor_depth = sensor_data_[idx] * FilterTraits<Type>::ToMetricScale;
+    float sensor_depth = sensor_data_[idx] * FilterTraits<Type>::TO_METRIC_SCALE;
     if (fabs(sensor_depth - distance_ - shadow_) > epsilon_ && fabs(sensor_depth - distance_) > epsilon_)
     {
       ASSERT_NEAR(filtered_depth[idx], gt_depth[idx], 1e-4);
@@ -242,7 +242,7 @@ void MeshFilterTest<Type>::test()
 template <typename Type>
 void MeshFilterTest<Type>::getGroundTruth(unsigned int* labels, float* depth) const
 {
-  const double scale = FilterTraits<Type>::ToMetricScale;
+  const double scale = FilterTraits<Type>::TO_METRIC_SCALE;
   if (distance_ <= near_ || distance_ >= far_)
   {
     // no filtering is done -> no shadow values or label values
