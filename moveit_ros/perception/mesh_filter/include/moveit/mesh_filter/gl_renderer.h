@@ -296,11 +296,11 @@ private:
   float cy_;
 
   /** \brief map from thread id to OpenGL context */
-  static std::map<std::thread::id, std::pair<unsigned, GLuint> > CONTEXT;
+  static std::map<std::thread::id, std::pair<unsigned, GLuint> > context_;
 
   /* \brief lock for context map */
-  static std::mutex CONTEXT_LOCK;
+  static std::mutex context_lock_;
 
-  static bool GLUT_INITIALIZED;
+  static bool glutInitialized_;
 };
 }  // namespace mesh_filter
