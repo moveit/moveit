@@ -270,11 +270,11 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
                                                const AlignedVector<Eigen::Isometry3d>& shape_poses,
                                                const std::vector<CollisionObjectType>& collision_object_types,
                                                bool active)
-  : m_name_(name)
-  , m_type_id_(type_id)
-  , m_shapes_(shapes)
-  , m_shape_poses_(shape_poses)
-  , m_collision_object_types_(collision_object_types)
+  : name_(name)
+  , type_id_(type_id)
+  , shapes_(shapes)
+  , shape_poses_(shape_poses)
+  , collision_object_types_(collision_object_types)
 {
   if (shapes.empty() || shape_poses.empty() ||
       (shapes.size() != shape_poses.size() || collision_object_types.empty() ||
@@ -299,32 +299,31 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
 
   if (shapes.size() == 1)
   {
-    btCollisionShape* shape = createShapePrimitive(m_shapes_[0], collision_object_types[0], this);
+    btCollisionShape* shape = createShapePrimitive(shapes_[0], collision_object_types[0], this);
     shape->setMargin(BULLET_MARGIN);
     manage(shape);
     setCollisionShape(shape);
-    setWorldTransform(convertEigenToBt(m_shape_poses_[0]));
+    setWorldTransform(convertEigenToBt(shape_poses_[0]));
   }
   else
   {
-    btCompoundShape* compound =
-        new btCompoundShape(BULLET_COMPOUND_USE_DYNAMIC_AABB, static_cast<int>(m_shapes_.size()));
+    btCompoundShape* compound = new btCompoundShape(BULLET_COMPOUND_USE_DYNAMIC_AABB, static_cast<int>(shapes_.size()));
     manage(compound);
     // margin on compound seems to have no effect when positive but has an effect when negative
     compound->setMargin(BULLET_MARGIN);
     setCollisionShape(compound);
 
-    setWorldTransform(convertEigenToBt(m_shape_poses_[0]));
-    Eigen::Isometry3d inv_world = m_shape_poses_[0].inverse();
+    setWorldTransform(convertEigenToBt(shape_poses_[0]));
+    Eigen::Isometry3d inv_world = shape_poses_[0].inverse();
 
-    for (std::size_t j = 0; j < m_shapes_.size(); ++j)
+    for (std::size_t j = 0; j < shapes_.size(); ++j)
     {
-      btCollisionShape* subshape = createShapePrimitive(m_shapes_[j], collision_object_types[j], this);
+      btCollisionShape* subshape = createShapePrimitive(shapes_[j], collision_object_types[j], this);
       if (subshape != nullptr)
       {
         manage(subshape);
         subshape->setMargin(BULLET_MARGIN);
-        btTransform geom_trans = convertEigenToBt(inv_world * m_shape_poses_[j]);
+        btTransform geom_trans = convertEigenToBt(inv_world * shape_poses_[j]);
         compound->addChildShape(geom_trans, subshape);
       }
     }
@@ -338,7 +337,7 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
                                                const std::set<std::string>& touch_links)
   : CollisionObjectWrapper(name, type_id, shapes, shape_poses, collision_object_types, true)
 {
-  m_touch_links = touch_links;
+  this->touch_links = touch_links;
 }
 
 CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const collision_detection::BodyType& type_id,
@@ -346,12 +345,12 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
                                                const AlignedVector<Eigen::Isometry3d>& shape_poses,
                                                const std::vector<CollisionObjectType>& collision_object_types,
                                                const std::vector<std::shared_ptr<void>>& data)
-  : m_name_(name)
-  , m_type_id_(type_id)
-  , m_shapes_(shapes)
-  , m_shape_poses_(shape_poses)
-  , m_collision_object_types_(collision_object_types)
-  , m_data_(data)
+  : name_(name)
+  , type_id_(type_id)
+  , shapes_(shapes)
+  , shape_poses_(shape_poses)
+  , collision_object_types_(collision_object_types)
+  , data_(data)
 {
 }
 }  // namespace collision_detection_bullet

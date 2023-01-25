@@ -78,18 +78,18 @@ static const std::string VIS_TOPIC_NAME = "planning_components_visualization";
 // Used for checking for cycles in a subgroup hierarchy
 struct CycleDetector : public boost::dfs_visitor<>
 {
-  CycleDetector(bool& has_cycle) : m_has_cycle_(has_cycle)
+  CycleDetector(bool& has_cycle) : has_cycle_(has_cycle)
   {
   }
 
   template <class Edge, class Graph>
   void backEdge(Edge /*unused*/, Graph& /*unused*/)
   {
-    m_has_cycle_ = true;
+    has_cycle_ = true;
   }
 
 protected:
-  bool& m_has_cycle_;
+  bool& has_cycle_;
 };
 
 // ******************************************************************************************
