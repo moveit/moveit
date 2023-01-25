@@ -47,11 +47,11 @@
 #include <moveit/utils/robot_model_test_utils.h>
 
 // Static variables used in all tests
-static moveit::core::RobotModelConstPtr RMODEL = moveit::core::loadTestingRobotModel("panda");
-static robot_trajectory::RobotTrajectory TRAJECTORY(RMODEL, "panda_arm");
+static moveit::core::RobotModelConstPtr rmodel = moveit::core::loadTestingRobotModel("panda");
+static robot_trajectory::RobotTrajectory trajectory(rmodel, "panda_arm");
 
 // Vector of distances between waypoints
-static std::vector<double> WAYPOINT_DISTANCES;
+static std::vector<double> waypoint_distances;
 
 // Name of logger
 static const char* const LOGGER_NAME = "trajectory_processing";
@@ -92,7 +92,7 @@ bool initStraightTrajectory(robot_trajectory::RobotTrajectory& trajectory)
   state.setVariablePosition("panda_joint6", 1.61442119426705);
   state.setVariablePosition("panda_joint7", 0.7845267455355481);
   trajectory.addSuffixWayPoint(state, 0.0);
-  WAYPOINT_DISTANCES.push_back(0.3);
+  waypoint_distances.push_back(0.3);
 
   // Second waypoint (+0.3 m in Y direction)
   // Cartesian Position (in panda_link0 frame):
@@ -105,7 +105,7 @@ bool initStraightTrajectory(robot_trajectory::RobotTrajectory& trajectory)
   state.setVariablePosition("panda_joint6", 1.4764599578787032);
   state.setVariablePosition("panda_joint7", 1.2855361917975465);
   trajectory.addSuffixWayPoint(state, 0.0);
-  WAYPOINT_DISTANCES.push_back(0.3);
+  waypoint_distances.push_back(0.3);
 
   // Third waypoint (-0.3 m in Z direction)
   // Cartesian Position (in panda_link0 frame):
@@ -118,7 +118,7 @@ bool initStraightTrajectory(robot_trajectory::RobotTrajectory& trajectory)
   state.setVariablePosition("panda_joint6", 2.2024820844782385);
   state.setVariablePosition("panda_joint7", 1.3635216856419043);
   trajectory.addSuffixWayPoint(state, 0.0);
-  WAYPOINT_DISTANCES.push_back(0.3);
+  waypoint_distances.push_back(0.3);
 
   return true;
 }
@@ -153,14 +153,14 @@ void printTrajectory(robot_trajectory::RobotTrajectory& trajectory)
 TEST(TestCartesianSpeed, TestCartesianEndEffectorSpeed)
 {
   trajectory_processing::IterativeParabolicTimeParameterization time_parameterization;
-  EXPECT_EQ(initStraightTrajectory(TRAJECTORY), true);
+  EXPECT_EQ(initStraightTrajectory(trajectory), true);
   const char* end_effector_link = "panda_link8";
 
-  EXPECT_TRUE(time_parameterization.computeTimeStamps(TRAJECTORY));
-  trajectory_processing::limitMaxCartesianLinkSpeed(TRAJECTORY, 0.01, end_effector_link);
-  printTrajectory(TRAJECTORY);
-  size_t num_waypoints = TRAJECTORY.getWayPointCount();
-  robot_state::RobotStatePtr kinematic_state = TRAJECTORY.getFirstWayPointPtr();
+  EXPECT_TRUE(time_parameterization.computeTimeStamps(trajectory));
+  trajectory_processing::limitMaxCartesianLinkSpeed(trajectory, 0.01, end_effector_link);
+  printTrajectory(trajectory);
+  size_t num_waypoints = trajectory.getWayPointCount();
+  robot_state::RobotStatePtr kinematic_state = trajectory.getFirstWayPointPtr();
   Eigen::Isometry3d current_end_effector_state = kinematic_state->getGlobalLinkTransform(end_effector_link);
   Eigen::Isometry3d next_end_effector_state;
   double euclidean_distance = 0.0;
@@ -168,19 +168,19 @@ TEST(TestCartesianSpeed, TestCartesianEndEffectorSpeed)
   // Check average speed of the total trajectory by exact calculations
   for (size_t i = 0; i < num_waypoints - 1; i++)
   {
-    kinematic_state = TRAJECTORY.getWayPointPtr(i + 1);
+    kinematic_state = trajectory.getWayPointPtr(i + 1);
     next_end_effector_state = kinematic_state->getGlobalLinkTransform(end_effector_link);
     euclidean_distance += (next_end_effector_state.translation() - current_end_effector_state.translation()).norm();
     current_end_effector_state = next_end_effector_state;
   }
-  double avg_speed = euclidean_distance / TRAJECTORY.getWayPointDurationFromStart(num_waypoints);
+  double avg_speed = euclidean_distance / trajectory.getWayPointDurationFromStart(num_waypoints);
   ASSERT_NEAR(0.01, avg_speed, 2e-4);
 
   // Check average speed between waypoints using the information about the hand
   // designed waypoints
   for (size_t i = 1; i < num_waypoints; i++)
   {
-    double current_avg_speed = WAYPOINT_DISTANCES[i - 1] / TRAJECTORY.getWayPointDurationFromPrevious(i);
+    double current_avg_speed = waypoint_distances[i - 1] / trajectory.getWayPointDurationFromPrevious(i);
     ASSERT_NEAR(0.01, current_avg_speed, 2e-4);
   }
 }
