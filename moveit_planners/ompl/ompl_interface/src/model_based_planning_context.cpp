@@ -682,8 +682,8 @@ void ompl_interface::ModelBasedPlanningContext::postSolve()
 
 bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::MotionPlanResponse& res)
 {
-  res.error_code_ = solve(request_.allowed_planning_time, request_.num_planning_attempts);
-  if (res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+  res.error_code = solve(request_.allowed_planning_time, request_.num_planning_attempts);
+  if (res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
   {
     double ptime = getLastPlanTime();
     if (simplify_solutions_)
@@ -699,9 +699,9 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
     ROS_DEBUG_NAMED(LOGNAME, "%s: Returning successful solution with %lu states", getName().c_str(),
                     getOMPLSimpleSetup()->getSolutionPath().getStateCount());
 
-    res.trajectory_ = std::make_shared<robot_trajectory::RobotTrajectory>(getRobotModel(), getGroupName());
-    getSolutionPath(*res.trajectory_);
-    res.planning_time_ = ptime;
+    res.trajectory = std::make_shared<robot_trajectory::RobotTrajectory>(getRobotModel(), getGroupName());
+    getSolutionPath(*res.trajectory);
+    res.planning_time = ptime;
     return true;
   }
   else
@@ -713,39 +713,39 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
 
 bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::MotionPlanDetailedResponse& res)
 {
-  res.error_code_ = solve(request_.allowed_planning_time, request_.num_planning_attempts);
-  if (res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+  res.error_code = solve(request_.allowed_planning_time, request_.num_planning_attempts);
+  if (res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
   {
-    res.trajectory_.reserve(3);
+    res.trajectory.reserve(3);
 
     // add info about planned solution
     double ptime = getLastPlanTime();
-    res.processing_time_.push_back(ptime);
-    res.description_.emplace_back("plan");
-    res.trajectory_.resize(res.trajectory_.size() + 1);
-    res.trajectory_.back() = std::make_shared<robot_trajectory::RobotTrajectory>(getRobotModel(), getGroupName());
-    getSolutionPath(*res.trajectory_.back());
+    res.processing_time.push_back(ptime);
+    res.description.emplace_back("plan");
+    res.trajectory.resize(res.trajectory.size() + 1);
+    res.trajectory.back() = std::make_shared<robot_trajectory::RobotTrajectory>(getRobotModel(), getGroupName());
+    getSolutionPath(*res.trajectory.back());
 
     // simplify solution if time remains
     if (simplify_solutions_)
     {
       simplifySolution(request_.allowed_planning_time - ptime);
-      res.processing_time_.push_back(getLastSimplifyTime());
-      res.description_.emplace_back("simplify");
-      res.trajectory_.resize(res.trajectory_.size() + 1);
-      res.trajectory_.back() = std::make_shared<robot_trajectory::RobotTrajectory>(getRobotModel(), getGroupName());
-      getSolutionPath(*res.trajectory_.back());
+      res.processing_time.push_back(getLastSimplifyTime());
+      res.description.emplace_back("simplify");
+      res.trajectory.resize(res.trajectory.size() + 1);
+      res.trajectory.back() = std::make_shared<robot_trajectory::RobotTrajectory>(getRobotModel(), getGroupName());
+      getSolutionPath(*res.trajectory.back());
     }
 
     if (interpolate_)
     {
       ompl::time::point start_interpolate = ompl::time::now();
       interpolateSolution();
-      res.processing_time_.push_back(ompl::time::seconds(ompl::time::now() - start_interpolate));
-      res.description_.emplace_back("interpolate");
-      res.trajectory_.resize(res.trajectory_.size() + 1);
-      res.trajectory_.back() = std::make_shared<robot_trajectory::RobotTrajectory>(getRobotModel(), getGroupName());
-      getSolutionPath(*res.trajectory_.back());
+      res.processing_time.push_back(ompl::time::seconds(ompl::time::now() - start_interpolate));
+      res.description.emplace_back("interpolate");
+      res.trajectory.resize(res.trajectory.size() + 1);
+      res.trajectory.back() = std::make_shared<robot_trajectory::RobotTrajectory>(getRobotModel(), getGroupName());
+      getSolutionPath(*res.trajectory.back());
     }
 
     ROS_DEBUG_NAMED(LOGNAME, "%s: Returning successful solution with %lu states", getName().c_str(),

@@ -153,13 +153,13 @@ public:
         planning_interface::MotionPlanRequest req2 = req;
         moveit::core::robotStateToRobotStateMsg(start_state, req2.start_state);
         bool solved = planner(planning_scene, req2, res);
-        if (solved && !res.trajectory_->empty())
+        if (solved && !res.trajectory->empty())
         {
           // heuristically decide a duration offset for the trajectory (induced by the additional point added as a
           // prefix to the computed trajectory)
-          res.trajectory_->setWayPointDurationFromPrevious(0, std::min(max_dt_offset_,
-                                                                       res.trajectory_->getAverageSegmentDuration()));
-          res.trajectory_->addPrefixWayPoint(prefix_state, 0.0);
+          res.trajectory->setWayPointDurationFromPrevious(0, std::min(max_dt_offset_,
+                                                                      res.trajectory->getAverageSegmentDuration()));
+          res.trajectory->addPrefixWayPoint(prefix_state, 0.0);
           // we add a prefix point, so we need to bump any previously added index positions
           for (std::size_t& added_index : added_path_index)
             added_index++;
@@ -172,7 +172,7 @@ public:
         ROS_WARN("Unable to find a valid state nearby the start state "
                  "(using jiggle fraction of %lf and %u sampling attempts).",
                  jiggle_fraction_, sampling_attempts_);
-        res.error_code_.val = moveit_msgs::MoveItErrorCodes::START_STATE_IN_COLLISION;
+        res.error_code.val = moveit_msgs::MoveItErrorCodes::START_STATE_IN_COLLISION;
         return false;
       }
     }

@@ -176,10 +176,10 @@ TEST_F(TrajectoryTest, goalTolerance)
   // Creat planning context
   // ========================================================================================
   planning_interface::PlanningContextPtr context =
-      planner_instance->getPlanningContext(planning_scene, req, res.error_code_);
+      planner_instance->getPlanningContext(planning_scene, req, res.error_code);
 
   context->solve(res);
-  EXPECT_EQ(res.error_code_.val, res.error_code_.SUCCESS);
+  EXPECT_EQ(res.error_code.val, res.error_code.SUCCESS);
 
   moveit_msgs::MotionPlanResponse response;
   res.getMessage(response);

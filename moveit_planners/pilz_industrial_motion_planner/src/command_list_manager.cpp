@@ -236,11 +236,11 @@ CommandListManager::solveSequenceItems(const planning_scene::PlanningSceneConstP
 
     planning_interface::MotionPlanResponse res;
     planning_pipeline->generatePlan(planning_scene, req, res);
-    if (res.error_code_.val != res.error_code_.SUCCESS)
+    if (res.error_code.val != res.error_code.SUCCESS)
     {
       std::ostringstream os;
       os << "Could not solve request\n---\n" << req << "\n---\n";
-      throw PlanningPipelineException(os.str(), res.error_code_.val);
+      throw PlanningPipelineException(os.str(), res.error_code.val);
     }
     motion_plan_responses.emplace_back(res);
     ROS_DEBUG_STREAM("Solved [" << ++curr_req_index << "/" << num_req << "]");

@@ -39,19 +39,19 @@
 
 void planning_interface::MotionPlanResponse::getMessage(moveit_msgs::MotionPlanResponse& msg) const
 {
-  msg.error_code = error_code_;
-  msg.planning_time = planning_time_;
-  if (trajectory_ && !trajectory_->empty())
+  msg.error_code = error_code;
+  msg.planning_time = planning_time;
+  if (trajectory && !trajectory->empty())
   {
-    moveit::core::robotStateToRobotStateMsg(trajectory_->getFirstWayPoint(), msg.trajectory_start);
-    trajectory_->getRobotTrajectoryMsg(msg.trajectory);
-    msg.group_name = trajectory_->getGroupName();
+    moveit::core::robotStateToRobotStateMsg(trajectory->getFirstWayPoint(), msg.trajectory_start);
+    trajectory->getRobotTrajectoryMsg(msg.trajectory);
+    msg.group_name = trajectory->getGroupName();
   }
 }
 
 void planning_interface::MotionPlanDetailedResponse::getMessage(moveit_msgs::MotionPlanDetailedResponse& msg) const
 {
-  msg.error_code = error_code_;
+  msg.error_code = error_code;
 
   msg.trajectory.clear();
   msg.description.clear();
@@ -59,21 +59,21 @@ void planning_interface::MotionPlanDetailedResponse::getMessage(moveit_msgs::Mot
 
   bool first = true;
 
-  for (std::size_t i = 0; i < trajectory_.size(); ++i)
+  for (std::size_t i = 0; i < trajectory.size(); ++i)
   {
-    if (trajectory_[i]->empty())
+    if (trajectory[i]->empty())
       continue;
     if (first)
     {
       first = false;
-      moveit::core::robotStateToRobotStateMsg(trajectory_[i]->getFirstWayPoint(), msg.trajectory_start);
-      msg.group_name = trajectory_[i]->getGroupName();
+      moveit::core::robotStateToRobotStateMsg(trajectory[i]->getFirstWayPoint(), msg.trajectory_start);
+      msg.group_name = trajectory[i]->getGroupName();
     }
     msg.trajectory.resize(msg.trajectory.size() + 1);
-    trajectory_[i]->getRobotTrajectoryMsg(msg.trajectory.back());
-    if (description_.size() > i)
-      msg.description.push_back(description_[i]);
-    if (processing_time_.size() > i)
-      msg.processing_time.push_back(processing_time_[i]);
+    trajectory[i]->getRobotTrajectoryMsg(msg.trajectory.back());
+    if (description.size() > i)
+      msg.description.push_back(description[i]);
+    if (processing_time.size() > i)
+      msg.processing_time.push_back(processing_time[i]);
   }
 }

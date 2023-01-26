@@ -253,7 +253,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
     else
     {
       planning_interface::PlanningContextPtr context =
-          planner_instance_->getPlanningContext(planning_scene, req, res.error_code_);
+          planner_instance_->getPlanningContext(planning_scene, req, res.error_code);
       solved = context ? context->solve(res) : false;
     }
   }
@@ -266,9 +266,9 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   }
   bool valid = true;
 
-  if (solved && res.trajectory_)
+  if (solved && res.trajectory)
   {
-    std::size_t state_count = res.trajectory_->getWayPointCount();
+    std::size_t state_count = res.trajectory->getWayPointCount();
     ROS_DEBUG_STREAM("Motion planner reported a solution path with " << state_count << " states");
     if (check_solution_paths_)
     {
@@ -278,7 +278,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
       arr.markers.push_back(m);
 
       std::vector<std::size_t> index;
-      if (!planning_scene->isPathValid(*res.trajectory_, req.path_constraints, req.group_name, false, &index))
+      if (!planning_scene->isPathValid(*res.trajectory, req.path_constraints, req.group_name, false, &index))
       {
         // check to see if there is any problem with the states that are found to be invalid
         // they are considered ok if they were added by a planning request adapter
@@ -302,7 +302,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
           else
           {
             valid = false;
-            res.error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
+            res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
 
             // display error messages
             std::stringstream ss;
@@ -317,7 +317,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
             for (std::size_t it : index)
             {
               // check validity with verbose on
-              const moveit::core::RobotState& robot_state = res.trajectory_->getWayPoint(it);
+              const moveit::core::RobotState& robot_state = res.trajectory->getWayPoint(it);
               planning_scene->isStateValid(robot_state, req.path_constraints, req.group_name, true);
 
               // compute the contacts if any
@@ -355,8 +355,8 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
     moveit_msgs::DisplayTrajectory disp;
     disp.model_id = robot_model_->getName();
     disp.trajectory.resize(1);
-    res.trajectory_->getRobotTrajectoryMsg(disp.trajectory[0]);
-    moveit::core::robotStateToRobotStateMsg(res.trajectory_->getFirstWayPoint(), disp.trajectory_start);
+    res.trajectory->getRobotTrajectoryMsg(disp.trajectory[0]);
+    moveit::core::robotStateToRobotStateMsg(res.trajectory->getFirstWayPoint(), disp.trajectory_start);
     display_path_publisher_.publish(disp);
   }
 

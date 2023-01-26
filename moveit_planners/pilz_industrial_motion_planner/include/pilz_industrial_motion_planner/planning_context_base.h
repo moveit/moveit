@@ -130,12 +130,12 @@ bool pilz_industrial_motion_planner::PlanningContextBase<GeneratorT>::solve(plan
     }
     bool result = generator_.generate(getPlanningScene(), request_, res);
     return result;
-    // res.error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
+    // res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
     // return false; // TODO
   }
 
   ROS_ERROR("Using solve on a terminated planning context!");
-  res.error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+  res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
   return false;
 }
 
@@ -147,19 +147,19 @@ bool pilz_industrial_motion_planner::PlanningContextBase<GeneratorT>::solve(
   planning_interface::MotionPlanResponse undetailed_response;
   bool result = solve(undetailed_response);
 
-  res.description_.push_back("plan");
-  res.trajectory_.push_back(undetailed_response.trajectory_);
-  res.processing_time_.push_back(undetailed_response.planning_time_);
+  res.description.push_back("plan");
+  res.trajectory.push_back(undetailed_response.trajectory_);
+  res.processing_time.push_back(undetailed_response.planning_time_);
 
-  res.description_.push_back("simplify");
-  res.trajectory_.push_back(undetailed_response.trajectory_);
-  res.processing_time_.push_back(0);
+  res.description.push_back("simplify");
+  res.trajectory.push_back(undetailed_response.trajectory_);
+  res.processing_time.push_back(0);
 
-  res.description_.push_back("interpolate");
-  res.trajectory_.push_back(undetailed_response.trajectory_);
-  res.processing_time_.push_back(0);
+  res.description.push_back("interpolate");
+  res.trajectory.push_back(undetailed_response.trajectory_);
+  res.processing_time.push_back(0);
 
-  res.error_code_ = undetailed_response.error_code_;
+  res.error_code = undetailed_response.error_code_;
   return result;
 }
 

@@ -65,9 +65,9 @@ public:
                     std::vector<std::size_t>& /*added_path_index*/) const override
   {
     bool result = planner(planning_scene, req, res);
-    if (result && res.trajectory_)
+    if (result && res.trajectory)
     {
-      if (!smoother_.applySmoothing(*res.trajectory_, req.max_velocity_scaling_factor,
+      if (!smoother_.applySmoothing(*res.trajectory, req.max_velocity_scaling_factor,
                                     req.max_acceleration_scaling_factor))
       {
         ROS_WARN_NAMED(LOGGER, " Trajectory smoothing for the solution path failed.");

@@ -109,10 +109,10 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallbackPlanOnly(const m
     else
     {
       const pick_place::ManipulationPlanPtr& result = success.back();
-      convertToMsg(result->trajectories_, action_res.trajectory_start, action_res.trajectory_stages);
-      action_res.trajectory_descriptions.resize(result->trajectories_.size());
+      convertToMsg(result->trajectories_, action_res.trajectorystart, action_res.trajectorystages);
+      action_res.trajectorydescriptions.resize(result->trajectories_.size());
       for (std::size_t i = 0; i < result->trajectories_.size(); ++i)
-        action_res.trajectory_descriptions[i] = result->trajectories_[i].description_;
+        action_res.trajectorydescriptions[i] = result->trajectories_[i].description_;
       if (result->id_ < goal->possible_grasps.size())
         action_res.grasp = goal->possible_grasps[result->id_];
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
@@ -149,10 +149,10 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallbackPlanOnly(const mo
     else
     {
       const pick_place::ManipulationPlanPtr& result = success.back();
-      convertToMsg(result->trajectories_, action_res.trajectory_start, action_res.trajectory_stages);
-      action_res.trajectory_descriptions.resize(result->trajectories_.size());
+      convertToMsg(result->trajectories_, action_res.trajectorystart, action_res.trajectorystages);
+      action_res.trajectorydescriptions.resize(result->trajectories_.size());
       for (std::size_t i = 0; i < result->trajectories_.size(); ++i)
-        action_res.trajectory_descriptions[i] = result->trajectories_[i].description_;
+        action_res.trajectorydescriptions[i] = result->trajectories_[i].description_;
       if (result->id_ < goal->place_locations.size())
         action_res.place_location = goal->place_locations[result->id_];
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
@@ -278,10 +278,10 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallbackPlanAndExecute(
   plan_execution::ExecutableMotionPlan plan;
   context_->plan_execution_->planAndExecute(plan, goal->planning_options.planning_scene_diff, opt);
 
-  convertToMsg(plan.plan_components_, action_res.trajectory_start, action_res.trajectory_stages);
-  action_res.trajectory_descriptions.resize(plan.plan_components_.size());
+  convertToMsg(plan.plan_components_, action_res.trajectorystart, action_res.trajectorystages);
+  action_res.trajectorydescriptions.resize(plan.plan_components_.size());
   for (std::size_t i = 0; i < plan.plan_components_.size(); ++i)
-    action_res.trajectory_descriptions[i] = plan.plan_components_[i].description_;
+    action_res.trajectorydescriptions[i] = plan.plan_components_[i].description_;
   action_res.error_code = plan.error_code_;
 }
 
@@ -311,10 +311,10 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallbackPlanAndExecute(co
   plan_execution::ExecutableMotionPlan plan;
   context_->plan_execution_->planAndExecute(plan, goal->planning_options.planning_scene_diff, opt);
 
-  convertToMsg(plan.plan_components_, action_res.trajectory_start, action_res.trajectory_stages);
-  action_res.trajectory_descriptions.resize(plan.plan_components_.size());
+  convertToMsg(plan.plan_components_, action_res.trajectorystart, action_res.trajectorystages);
+  action_res.trajectorydescriptions.resize(plan.plan_components_.size());
   for (std::size_t i = 0; i < plan.plan_components_.size(); ++i)
-    action_res.trajectory_descriptions[i] = plan.plan_components_[i].description_;
+    action_res.trajectorydescriptions[i] = plan.plan_components_[i].description_;
   action_res.error_code = plan.error_code_;
 }
 
@@ -349,7 +349,7 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback(const moveit_ms
   else
     executePickupCallbackPlanAndExecute(goal, action_res);
 
-  bool planned_trajectory_empty = action_res.trajectory_stages.empty();
+  bool planned_trajectory_empty = action_res.trajectorystages.empty();
   std::string response =
       getActionResultString(action_res.error_code, planned_trajectory_empty, goal->planning_options.plan_only);
   if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
@@ -386,7 +386,7 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback(const moveit_msg
   else
     executePlaceCallbackPlanAndExecute(goal, action_res);
 
-  bool planned_trajectory_empty = action_res.trajectory_stages.empty();
+  bool planned_trajectory_empty = action_res.trajectorystages.empty();
   std::string response =
       getActionResultString(action_res.error_code, planned_trajectory_empty, goal->planning_options.plan_only);
   if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)

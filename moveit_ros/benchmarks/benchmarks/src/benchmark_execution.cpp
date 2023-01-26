@@ -808,13 +808,13 @@ void moveit_benchmarks::BenchmarkExecution::collectMetrics(RunData& rundata,
   if (solved)
   {
     double process_time = total_time;
-    for (std::size_t j = 0; j < mp_res.trajectory_.size(); ++j)
+    for (std::size_t j = 0; j < mp_res.trajectory.size(); ++j)
     {
       correct = true;
       L = 0.0;
       clearance = 0.0;
       smoothness = 0.0;
-      const robot_trajectory::RobotTrajectory& p = *mp_res.trajectory_[j];
+      const robot_trajectory::RobotTrajectory& p = *mp_res.trajectory[j];
 
       // compute path length
       for (std::size_t k = 1; k < p.getWayPointCount(); ++k)
@@ -867,13 +867,13 @@ void moveit_benchmarks::BenchmarkExecution::collectMetrics(RunData& rundata,
         }
         smoothness /= (double)p.getWayPointCount();
       }
-      rundata["path_" + mp_res.description_[j] + "_correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
-      rundata["path_" + mp_res.description_[j] + "_length REAL"] = boost::lexical_cast<std::string>(L);
-      rundata["path_" + mp_res.description_[j] + "_clearance REAL"] = boost::lexical_cast<std::string>(clearance);
-      rundata["path_" + mp_res.description_[j] + "_smoothness REAL"] = boost::lexical_cast<std::string>(smoothness);
-      rundata["path_" + mp_res.description_[j] + "_time REAL"] =
-          boost::lexical_cast<std::string>(mp_res.processing_time_[j]);
-      process_time -= mp_res.processing_time_[j];
+      rundata["path_" + mp_res.description[j] + "_correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
+      rundata["path_" + mp_res.description[j] + "_length REAL"] = boost::lexical_cast<std::string>(L);
+      rundata["path_" + mp_res.description[j] + "_clearance REAL"] = boost::lexical_cast<std::string>(clearance);
+      rundata["path_" + mp_res.description[j] + "_smoothness REAL"] = boost::lexical_cast<std::string>(smoothness);
+      rundata["path_" + mp_res.description[j] + "_time REAL"] =
+          boost::lexical_cast<std::string>(mp_res.processing_time[j]);
+      process_time -= mp_res.processing_time[j];
     }
     if (process_time <= 0.0)
       process_time = 0.0;

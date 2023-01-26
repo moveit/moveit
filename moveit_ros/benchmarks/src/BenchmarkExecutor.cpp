@@ -851,13 +851,13 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
     bool correct = true;      // entire trajectory collision free and in bounds
 
     double process_time = total_time;
-    for (std::size_t j = 0; j < mp_res.trajectory_.size(); ++j)
+    for (std::size_t j = 0; j < mp_res.trajectory.size(); ++j)
     {
       correct = true;
       traj_len = 0.0;
       clearance = 0.0;
       smoothness = 0.0;
-      const robot_trajectory::RobotTrajectory& p = *mp_res.trajectory_[j];
+      const robot_trajectory::RobotTrajectory& p = *mp_res.trajectory[j];
 
       // compute path length
       for (std::size_t k = 1; k < p.getWayPointCount(); ++k)
@@ -911,21 +911,21 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
         }
         smoothness /= (double)p.getWayPointCount();
       }
-      metrics["path_" + mp_res.description_[j] + "_correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
-      metrics["path_" + mp_res.description_[j] + "_length REAL"] = moveit::core::toString(traj_len);
-      metrics["path_" + mp_res.description_[j] + "_clearance REAL"] = moveit::core::toString(clearance);
-      metrics["path_" + mp_res.description_[j] + "_smoothness REAL"] = moveit::core::toString(smoothness);
-      metrics["path_" + mp_res.description_[j] + "_time REAL"] = moveit::core::toString(mp_res.processing_time_[j]);
+      metrics["path_" + mp_res.description[j] + "_correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
+      metrics["path_" + mp_res.description[j] + "_length REAL"] = moveit::core::toString(traj_len);
+      metrics["path_" + mp_res.description[j] + "_clearance REAL"] = moveit::core::toString(clearance);
+      metrics["path_" + mp_res.description[j] + "_smoothness REAL"] = moveit::core::toString(smoothness);
+      metrics["path_" + mp_res.description[j] + "_time REAL"] = moveit::core::toString(mp_res.processing_time[j]);
 
-      if (j == mp_res.trajectory_.size() - 1)
+      if (j == mp_res.trajectory.size() - 1)
       {
         metrics["final_path_correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
         metrics["final_path_length REAL"] = moveit::core::toString(traj_len);
         metrics["final_path_clearance REAL"] = moveit::core::toString(clearance);
         metrics["final_path_smoothness REAL"] = moveit::core::toString(smoothness);
-        metrics["final_path_time REAL"] = moveit::core::toString(mp_res.processing_time_[j]);
+        metrics["final_path_time REAL"] = moveit::core::toString(mp_res.processing_time[j]);
       }
-      process_time -= mp_res.processing_time_[j];
+      process_time -= mp_res.processing_time[j];
     }
     if (process_time <= 0.0)
       process_time = 0.0;

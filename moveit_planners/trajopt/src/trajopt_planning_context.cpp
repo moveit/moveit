@@ -27,23 +27,23 @@ bool TrajOptPlanningContext::solve(planning_interface::MotionPlanDetailedRespons
 
   if (trajopt_solved)
   {
-    res.trajectory_.resize(1);
-    res.trajectory_[0] =
+    res.trajectory.resize(1);
+    res.trajectory[0] =
         robot_trajectory::RobotTrajectoryPtr(new robot_trajectory::RobotTrajectory(robot_model_, getGroupName()));
 
     moveit::core::RobotState start_state(robot_model_);
     moveit::core::robotStateMsgToRobotState(res_msg.trajectory_start, start_state);
-    res.trajectory_[0]->setRobotTrajectoryMsg(start_state, res_msg.trajectory[0]);
+    res.trajectory[0]->setRobotTrajectoryMsg(start_state, res_msg.trajectory[0]);
 
-    res.description_.push_back("plan");
+    res.description.push_back("plan");
     // TODO: Add the initial trajectory to res (MotionPlanDetailedResponse)
-    res.processing_time_ = res_msg.processing_time;
-    res.error_code_ = res_msg.error_code;
+    res.processing_time = res_msg.processing_time;
+    res.error_code = res_msg.error_code;
     return true;
   }
   else
   {
-    res.error_code_ = res_msg.error_code;
+    res.error_code = res_msg.error_code;
     return false;
   }
 }
@@ -53,12 +53,12 @@ bool TrajOptPlanningContext::solve(planning_interface::MotionPlanResponse& res)
   planning_interface::MotionPlanDetailedResponse res_detailed;
   bool planning_success = solve(res_detailed);
 
-  res.error_code_ = res_detailed.error_code_;
+  res.error_code = res_detailed.error_code_;
 
   if (planning_success)
   {
-    res.trajectory_ = res_detailed.trajectory_[0];
-    res.planning_time_ = res_detailed.processing_time_[0];
+    res.trajectory = res_detailed.trajectory[0];
+    res.planning_time = res_detailed.processing_time_[0];
   }
 
   return planning_success;

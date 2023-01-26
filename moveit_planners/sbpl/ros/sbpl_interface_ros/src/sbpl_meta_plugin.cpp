@@ -75,7 +75,7 @@ public:
     moveit_msgs::GetMotionPlan::Response res2;
     if (sbpl_meta_interface_->solve(planning_scene, req, res2))
     {
-      res.trajectory_start = res2.trajectory_start;
+      res.trajectorystart = res2.trajectorystart;
       res.trajectory.push_back(res2.trajectory);
       res.description.push_back("plan");
       res.processing_time.push_back(res2.planning_time);

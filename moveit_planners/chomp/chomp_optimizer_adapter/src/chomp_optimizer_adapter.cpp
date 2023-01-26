@@ -194,16 +194,16 @@ public:
 
     chomp::ChompPlanner chomp_planner;
     planning_interface::MotionPlanDetailedResponse res_detailed;
-    res_detailed.trajectory_.push_back(res.trajectory_);
+    res_detailed.trajectory.push_back(res.trajectory);
 
     bool planning_success = chomp_planner.solve(planning_scene, req, params_, res_detailed);
 
     if (planning_success)
     {
-      res.trajectory_ = res_detailed.trajectory_[0];
-      res.planning_time_ += res_detailed.processing_time_[0];
+      res.trajectory = res_detailed.trajectory[0];
+      res.planning_time += res_detailed.processing_time[0];
     }
-    res.error_code_ = res_detailed.error_code_;
+    res.error_code = res_detailed.error_code;
 
     return planning_success;
   }

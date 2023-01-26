@@ -48,7 +48,7 @@ bool callPlannerInterfaceSolve(const planning_interface::PlannerManager& planner
                                const planning_interface::MotionPlanRequest& req,
                                planning_interface::MotionPlanResponse& res)
 {
-  planning_interface::PlanningContextPtr context = planner.getPlanningContext(planning_scene, req, res.error_code_);
+  planning_interface::PlanningContextPtr context = planner.getPlanningContext(planning_scene, req, res.error_code);
   if (context)
     return context->solve(res);
   else
@@ -64,7 +64,7 @@ bool callAdapter(const PlanningRequestAdapter& adapter, const PlanningRequestAda
   {
     bool result = adapter.adaptAndPlan(planner, planning_scene, req, res, added_path_index);
     ROS_DEBUG_STREAM_NAMED("planning_request_adapter", adapter.getDescription()
-                                                           << ": " << moveit::core::MoveItErrorCode(res.error_code_));
+                                                           << ": " << moveit::core::MoveItErrorCode(res.error_code));
     return result;
   }
   catch (std::exception& ex)

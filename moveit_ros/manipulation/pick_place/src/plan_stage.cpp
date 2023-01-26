@@ -72,12 +72,12 @@ bool PlanStage::evaluate(const ManipulationPlanPtr& plan) const
   {
     attempts++;
     if (!signal_stop_ && planning_pipeline_->generatePlan(planning_scene_, req, res) &&
-        res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS && res.trajectory_ && !res.trajectory_->empty())
+        res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS && res.trajectory && !res.trajectory->empty())
     {
       // We have a valid motion plan, now apply pre-approach end effector posture (open gripper) if applicable
       if (!plan->approach_posture_.joint_names.empty())
       {
-        moveit::core::RobotStatePtr pre_approach_state(new moveit::core::RobotState(res.trajectory_->getLastWayPoint()));
+        moveit::core::RobotStatePtr pre_approach_state(new moveit::core::RobotState(res.trajectory->getLastWayPoint()));
         robot_trajectory::RobotTrajectoryPtr pre_approach_traj(new robot_trajectory::RobotTrajectory(
             pre_approach_state->getRobotModel(), plan->shared_data_->end_effector_group_->getName()));
         pre_approach_traj->setRobotTrajectoryMsg(*pre_approach_state, plan->approach_posture_);
@@ -104,15 +104,15 @@ bool PlanStage::evaluate(const ManipulationPlanPtr& plan) const
       }
 
       // Add the pre-approach trajectory to the plan
-      plan_execution::ExecutableTrajectory et(res.trajectory_, name_);
+      plan_execution::ExecutableTrajectory et(res.trajectory, name_);
       plan->trajectories_.insert(plan->trajectories_.begin(), et);
 
-      plan->error_code_ = res.error_code_;
+      plan->error_code_ = res.error_code;
 
       return true;
     }
     else
-      plan->error_code_ = res.error_code_;
+      plan->error_code_ = res.error_code;
   }
   // if the planner reported an invalid plan, give it a second chance
   while (!signal_stop_ && plan->error_code_.val == moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN && attempts < 2);

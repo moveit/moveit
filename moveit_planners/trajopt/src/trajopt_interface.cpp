@@ -336,12 +336,12 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   }
 
   ROS_INFO(" ==================================== Response");
-  res.trajectory_start = req.start_state;
+  res.trajectorystart = req.start_state;
 
   ROS_INFO(" ==================================== Debug Response");
   ROS_INFO_STREAM_NAMED("group_name", res.group_name);
-  ROS_INFO_STREAM_NAMED("start_traj_name_size", res.trajectory_start.joint_state.name.size());
-  ROS_INFO_STREAM_NAMED("start_traj_position_size", res.trajectory_start.joint_state.position.size());
+  ROS_INFO_STREAM_NAMED("start_traj_name_size", res.trajectorystart.joint_state.name.size());
+  ROS_INFO_STREAM_NAMED("start_traj_position_size", res.trajectorystart.joint_state.position.size());
   ROS_INFO_STREAM_NAMED("traj_name_size", res.trajectory[0].joint_trajectory.joint_names.size());
   ROS_INFO_STREAM_NAMED("traj_point_size", res.trajectory[0].joint_trajectory.points.size());
   return true;

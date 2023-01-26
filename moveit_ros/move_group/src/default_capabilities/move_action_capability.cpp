@@ -141,7 +141,7 @@ void MoveGroupMoveAction::executeMoveCallbackPlanAndExecute(const moveit_msgs::M
 
   context_->plan_execution_->planAndExecute(plan, planning_scene_diff, opt);
 
-  convertToMsg(plan.plan_components_, action_res.trajectory_start, action_res.planned_trajectory);
+  convertToMsg(plan.plan_components_, action_res.trajectorystart, action_res.planned_trajectory);
   if (plan.executed_trajectory_)
     plan.executed_trajectory_->getRobotTrajectoryMsg(action_res.executed_trajectory);
   action_res.error_code = plan.error_code_;
@@ -182,12 +182,12 @@ void MoveGroupMoveAction::executeMoveCallbackPlanOnly(const moveit_msgs::MoveGro
   catch (std::exception& ex)
   {
     ROS_ERROR_NAMED(getName(), "Planning pipeline threw an exception: %s", ex.what());
-    res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
   }
 
-  convertToMsg(res.trajectory_, action_res.trajectory_start, action_res.planned_trajectory);
-  action_res.error_code = res.error_code_;
-  action_res.planning_time = res.planning_time_;
+  convertToMsg(res.trajectory, action_res.trajectorystart, action_res.planned_trajectory);
+  action_res.error_code = res.error_code;
+  action_res.planning_time = res.planning_time;
 }
 
 bool MoveGroupMoveAction::planUsingPlanningPipeline(const planning_interface::MotionPlanRequest& req,
@@ -202,7 +202,7 @@ bool MoveGroupMoveAction::planUsingPlanningPipeline(const planning_interface::Mo
   const planning_pipeline::PlanningPipelinePtr planning_pipeline = resolvePlanningPipeline(req.pipeline_id);
   if (!planning_pipeline)
   {
-    res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     return solved;
   }
 
@@ -214,15 +214,15 @@ bool MoveGroupMoveAction::planUsingPlanningPipeline(const planning_interface::Mo
   catch (std::exception& ex)
   {
     ROS_ERROR_NAMED(getName(), "Planning pipeline threw an exception: %s", ex.what());
-    res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
   }
-  if (res.trajectory_)
+  if (res.trajectory)
   {
     plan.plan_components_.resize(1);
-    plan.plan_components_[0].trajectory_ = res.trajectory_;
+    plan.plan_components_[0].trajectory_ = res.trajectory;
     plan.plan_components_[0].description_ = "plan";
   }
-  plan.error_code_ = res.error_code_;
+  plan.error_code_ = res.error_code;
   return solved;
 }
 
