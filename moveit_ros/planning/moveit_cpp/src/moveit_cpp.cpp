@@ -258,20 +258,18 @@ bool MoveItCpp::execute(const std::string& group_name, const robot_trajectory::R
       execution_complete_condition_.notify_all();
       execution_status = status;
     };
-  }
 
-  if (!trajectory_execution_manager_->push(robot_trajectory_msg, "", callback))
-    return false;
+    if (!trajectory_execution_manager_->push(robot_trajectory_msg, "", callback))
+      return false;
 
-  {
-    std::unique_lock<std::mutex> ulock(execution_complete_mutex_);
-    active_trajectories_.push_back(trajectory_id);
-  }
+    {
+      std::unique_lock<std::mutex> ulock(execution_complete_mutex_);
+      active_trajectories_.push_back(trajectory_id);
+    }
 
-  if (blocking)
-  {
-    if (trajectory_execution_manager_->getEnableSimultaneousExecution())
-    {  // wait for callback to return or for the trajectory to stop being active
+    if (blocking)
+    {
+      // wait for callback to return or for the trajectory to stop being active
       std::unique_lock<std::mutex> ulock(execution_complete_mutex_);
       execution_complete_condition_.wait(ulock, [this]() {
         return std::find(active_trajectories_.begin(), active_trajectories_.end(), trajectory_id) ==
@@ -279,11 +277,16 @@ bool MoveItCpp::execute(const std::string& group_name, const robot_trajectory::R
       });
       return execution_status;
     }
-    else
-    {
-      trajectory_execution_manager_->execute();
+  }
+  else
+  {
+    if (!trajectory_execution_manager_->push(robot_trajectory_msg))
+      return false;
+
+    trajectory_execution_manager_->execute();
+
+    if (blocking)
       return trajectory_execution_manager_->waitForExecution();
-    }
   }
 
   return true;
