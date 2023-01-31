@@ -143,13 +143,7 @@ PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positiona
 
 void PoseTracking::readROSParams()
 {
-  // Optional parameter sub-namespace specified in the launch file. All other parameters will be read from this namespace.
-  std::string parameter_ns;
-  ros::param::get("~parameter_ns", parameter_ns);
-
-  // If parameters have been loaded into sub-namespace within the node namespace, append the parameter namespace
-  // to load the parameters correctly.
-  ros::NodeHandle nh = parameter_ns.empty() ? nh_ : ros::NodeHandle(nh_, parameter_ns);
+  ros::NodeHandle nh("~");
 
   // Wait for ROS parameters to load
   ros::Time begin = ros::Time::now();
