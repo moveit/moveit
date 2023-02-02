@@ -863,6 +863,14 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
   spar_stwo.addParameter("max_failures", "5000", "maximum consecutive failure limit. default: 5000");
   planner_des.push_back(spar_stwo);
 
+  OMPLPlannerDescription aitstar("AITstar", "geometric");
+  aitstar.addParameter("use_k_nearest", "0", "TODO");
+  aitstar.addParameter("rewire_factor", "1.0", "TODO");
+  aitstar.addParameter("samples_per_batch", "100", "TODO");
+  aitstar.addParameter("use_graph_pruning", "0", "TODO");
+  aitstar.addParameter("find_approximate_solutions", "1", "TODO");
+  planner_des.push_back(aitstar);
+
   return planner_des;
 }
 
