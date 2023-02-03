@@ -8,7 +8,7 @@
     version: master
 - git:
     local-name: moveit_tutorials
-    uri: https://github.com/ros-planning/moveit_tutorials.git
+    uri: https://github.com/cambel/moveit_tutorials.git
     version: master
 - git:
     local-name: panda_moveit_config

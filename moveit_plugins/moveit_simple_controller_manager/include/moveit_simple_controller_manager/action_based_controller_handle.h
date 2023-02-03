@@ -119,6 +119,11 @@ public:
       controller_action_client_->cancelGoal();
       last_exec_ = moveit_controller_manager::ExecutionStatus::PREEMPTED;
       done_ = true;
+      if (execution_complete_callback_)
+      {
+        execution_complete_callback_(last_exec_);
+        execution_complete_callback_ = nullptr;
+      }
     }
     return true;
   }
@@ -174,6 +179,11 @@ protected:
     else
       last_exec_ = moveit_controller_manager::ExecutionStatus::FAILED;
     done_ = true;
+    if (execution_complete_callback_)
+    {
+      execution_complete_callback_(last_exec_);
+      execution_complete_callback_ = nullptr;
+    }
   }
 
   /* execution status */
@@ -189,6 +199,9 @@ protected:
 
   /* action client */
   std::shared_ptr<actionlib::SimpleActionClient<T>> controller_action_client_;
+
+  /* Execution complete callback*/
+  ExecutionCompleteCallback execution_complete_callback_;
 };
 
 }  // end namespace moveit_simple_controller_manager

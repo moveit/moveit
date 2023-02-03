@@ -55,7 +55,8 @@ public:
   {
   }
 
-  bool sendTrajectory(const moveit_msgs::RobotTrajectory& trajectory) override;
+  bool sendTrajectory(const moveit_msgs::RobotTrajectory& trajectory,
+                      const ExecutionCompleteCallback& callback) override;
 
   void configure(XmlRpc::XmlRpcValue& config) override;
 

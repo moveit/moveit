@@ -104,6 +104,8 @@ MOVEIT_CLASS_FORWARD(MoveItControllerHandle);  // Defines MoveItControllerHandle
 class MoveItControllerHandle
 {
 public:
+  using ExecutionCompleteCallback = std::function<void(const moveit_controller_manager::ExecutionStatus&)>;
+
   /** \brief Each controller has a name. The handle is initialized with that name */
   MoveItControllerHandle(const std::string& name) : name_(name)
   {
@@ -123,8 +125,14 @@ public:
    *
    * The controller is expected to execute the trajectory, but this function call should not block.
    * Blocking is achievable by calling waitForExecution().
-   * Return false when the controller cannot accept the trajectory. */
-  virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory& trajectory) = 0;
+   * Return false when the controller cannot accept the trajectory.
+   * The callback will be called in case of success, failure, or prevented collision. */
+  virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory& trajectory,
+                              const ExecutionCompleteCallback& callback) = 0;
+  bool sendTrajectory(const moveit_msgs::RobotTrajectory& trajectory)
+  {
+    return sendTrajectory(trajectory, nullptr);
+  }
 
   /** \brief Cancel the execution of any motion using this controller.
    *

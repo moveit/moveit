@@ -38,6 +38,7 @@
   <build_depend>eigen</build_depend>
 
   <test_depend>moveit_resources_panda_moveit_config</test_depend>
+  <test_depend>moveit_resources_dual_panda_moveit_config</test_depend>
   <test_depend>rostest</test_depend>
 
   <!-- we moved moveit_cpp from planning_interface in this version,

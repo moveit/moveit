@@ -72,11 +72,15 @@ LastPointController::LastPointController(const std::string& name, const std::vec
 
 LastPointController::~LastPointController() = default;
 
-bool LastPointController::sendTrajectory(const moveit_msgs::RobotTrajectory& t)
+bool LastPointController::sendTrajectory(const moveit_msgs::RobotTrajectory& t, const ExecutionCompleteCallback& cb)
 {
   ROS_INFO("Fake execution of trajectory");
   if (t.joint_trajectory.points.empty())
+  {
+    if (cb)
+      cb(moveit_controller_manager::ExecutionStatus::ABORTED);
     return true;
+  }
 
   sensor_msgs::JointState js;
   const trajectory_msgs::JointTrajectoryPoint& last = t.joint_trajectory.points.back();
@@ -87,6 +91,8 @@ bool LastPointController::sendTrajectory(const moveit_msgs::RobotTrajectory& t)
   js.velocity = last.velocities;
   js.effort = last.effort;
   pub_.publish(js);
+  if (cb)
+    cb(moveit_controller_manager::ExecutionStatus::SUCCEEDED);
 
   return true;
 }
@@ -119,12 +125,12 @@ void ThreadedController::cancelTrajectory()
   thread_.join();
 }
 
-bool ThreadedController::sendTrajectory(const moveit_msgs::RobotTrajectory& t)
+bool ThreadedController::sendTrajectory(const moveit_msgs::RobotTrajectory& t, const ExecutionCompleteCallback& cb)
 {
   cancelTrajectory();  // cancel any previous fake motion
   cancel_ = false;
   status_ = moveit_controller_manager::ExecutionStatus::PREEMPTED;
-  thread_ = boost::thread([this, t] { execTrajectory(t); });
+  thread_ = boost::thread([this, t, cb] { execTrajectory(t, cb); });
   return true;
 }
 
@@ -156,9 +162,9 @@ ViaPointController::ViaPointController(const std::string& name, const std::vecto
 
 ViaPointController::~ViaPointController() = default;
 
-void ViaPointController::execTrajectory(const moveit_msgs::RobotTrajectory& t)
+void ViaPointController::execTrajectory(const moveit_msgs::RobotTrajectory& t, const ExecutionCompleteCallback& cb)
 {
-  ROS_INFO("Fake execution of trajectory");
+  ROS_INFO("Fake execution of trajectory for '%s'", t.group_name.c_str());
   sensor_msgs::JointState js;
   js.header = t.joint_trajectory.header;
   js.name = t.joint_trajectory.joint_names;
@@ -183,7 +189,11 @@ void ViaPointController::execTrajectory(const moveit_msgs::RobotTrajectory& t)
     js.header.stamp = ros::Time::now();
     pub_.publish(js);
   }
-  ROS_DEBUG("Fake execution of trajectory: done");
+  auto last_status = cancelled() ? moveit_controller_manager::ExecutionStatus::ABORTED :
+                                   moveit_controller_manager::ExecutionStatus::SUCCEEDED;
+  if (cb)
+    cb(last_status);
+  ROS_DEBUG("Fake execution of trajectory done for '%s'", t.group_name.c_str());
 }
 
 InterpolatingController::InterpolatingController(const std::string& name, const std::vector<std::string>& joints,
@@ -215,11 +225,16 @@ void interpolate(sensor_msgs::JointState& js, const trajectory_msgs::JointTrajec
 }
 }  // namespace
 
-void InterpolatingController::execTrajectory(const moveit_msgs::RobotTrajectory& t)
+void InterpolatingController::execTrajectory(const moveit_msgs::RobotTrajectory& t, const ExecutionCompleteCallback& cb)
 {
-  ROS_INFO("Fake execution of trajectory");
+  ROS_INFO("Fake execution of trajectory for '%s'", t.group_name.c_str());
   if (t.joint_trajectory.points.empty())
+  {
+    ROS_DEBUG("No points to be executed, assuming success for '%s'", t.group_name.c_str());
+    if (cb)
+      cb(moveit_controller_manager::ExecutionStatus::SUCCEEDED);
     return;
+  }
 
   sensor_msgs::JointState js;
   js.header = t.joint_trajectory.header;
@@ -254,7 +269,11 @@ void InterpolatingController::execTrajectory(const moveit_msgs::RobotTrajectory&
     rate_.sleep();
   }
   if (cancelled())
+  {
+    if (cb)
+      cb(moveit_controller_manager::ExecutionStatus::ABORTED);
     return;
+  }
 
   ros::Duration elapsed = ros::Time::now() - start_time;
   ROS_DEBUG("elapsed: %.3f via points %td,%td / %td  alpha: 1.0", elapsed.toSec(), prev - points.begin(),
@@ -264,8 +283,9 @@ void InterpolatingController::execTrajectory(const moveit_msgs::RobotTrajectory&
   interpolate(js, *prev, *prev, prev->time_from_start);
   js.header.stamp = ros::Time::now();
   pub_.publish(js);
-
-  ROS_DEBUG("Fake execution of trajectory: done");
+  if (cb)
+    cb(moveit_controller_manager::ExecutionStatus::SUCCEEDED);
+  ROS_DEBUG("Fake execution of trajectory done for '%s'", t.group_name.c_str());
 }
 
 }  // end namespace moveit_fake_controller_manager

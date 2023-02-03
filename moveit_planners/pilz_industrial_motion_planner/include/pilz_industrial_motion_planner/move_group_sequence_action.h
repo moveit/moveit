@@ -35,12 +35,15 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
+#include <thread>
 
-#include <actionlib/server/simple_action_server.h>
+#include <actionlib/server/action_server.h>
 #include <moveit/move_group/move_group_capability.h>
 
 #include <moveit_msgs/MoveGroupSequenceAction.h>
 
+typedef actionlib::ActionServer<moveit_msgs::MoveGroupSequenceAction> MoveGroupSequenceActionServer;
 namespace pilz_industrial_motion_planner
 {
 class CommandListManager;
@@ -53,6 +56,7 @@ class MoveGroupSequenceAction : public move_group::MoveGroupCapability
 {
 public:
   MoveGroupSequenceAction();
+  ~MoveGroupSequenceAction();
 
   void initialize() override;
 
@@ -64,15 +68,19 @@ private:
   using PlannedTrajMsgs = moveit_msgs::MotionSequenceResponse::_planned_trajectories_type;
 
 private:
-  void executeSequenceCallback(const moveit_msgs::MoveGroupSequenceGoalConstPtr& goal);
-  void executeSequenceCallbackPlanAndExecute(const moveit_msgs::MoveGroupSequenceGoalConstPtr& goal,
+  bool isActive(MoveGroupSequenceActionServer::GoalHandle& goal_handle);
+  void cancelGoal(MoveGroupSequenceActionServer::GoalHandle& goal_handle, const std::string response);
+  void goalCallback(MoveGroupSequenceActionServer::GoalHandle goal_handle);
+  void cancelCallback(MoveGroupSequenceActionServer::GoalHandle goal_handle);
+  void clearInactiveGoals();
+
+  void executeSequenceCallback(MoveGroupSequenceActionServer::GoalHandle goal_handle);
+  void executeSequenceCallbackPlanAndExecute(MoveGroupSequenceActionServer::GoalHandle goal_handle,
                                              moveit_msgs::MoveGroupSequenceResult& action_res);
   void executeMoveCallbackPlanOnly(const moveit_msgs::MoveGroupSequenceGoalConstPtr& goal,
                                    moveit_msgs::MoveGroupSequenceResult& res);
-  void startMoveExecutionCallback();
-  void startMoveLookCallback();
-  void preemptMoveCallback();
-  void setMoveState(move_group::MoveGroupState state);
+  void startMoveExecutionCallback(MoveGroupSequenceActionServer::GoalHandle& goal_handle);
+  void setMoveState(move_group::MoveGroupState state, MoveGroupSequenceActionServer::GoalHandle& goal_handle);
   bool planUsingSequenceManager(const moveit_msgs::MotionSequenceRequest& req,
                                 plan_execution::ExecutableMotionPlan& plan);
 
@@ -81,7 +89,12 @@ private:
                            PlannedTrajMsgs& plannedTrajsMsgs);
 
 private:
-  std::unique_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupSequenceAction>> move_action_server_;
+  std::unique_ptr<MoveGroupSequenceActionServer> move_action_server_;
+
+  MoveGroupSequenceActionServer::GoalHandle current_goal_;
+  std::vector<std::pair<MoveGroupSequenceActionServer::GoalHandle, std::unique_ptr<std::thread>>> active_goals_;
+  std::mutex active_goals_mutex_;
+
   moveit_msgs::MoveGroupSequenceFeedback move_feedback_;
 
   move_group::MoveGroupState move_state_{ move_group::IDLE };

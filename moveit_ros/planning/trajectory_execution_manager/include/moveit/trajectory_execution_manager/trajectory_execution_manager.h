@@ -36,18 +36,21 @@
 
 #pragma once
 
+#include <moveit/controller_manager/controller_manager.h>
 #include <moveit/macros/class_forward.h>
-#include <moveit/robot_model/robot_model.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
-#include <moveit_msgs/RobotTrajectory.h>
+#include <moveit/robot_model/robot_model.h>
 #include <sensor_msgs/JointState.h>
+#include <moveit_msgs/RobotTrajectory.h>
 #include <std_msgs/String.h>
 #include <ros/ros.h>
-#include <moveit/controller_manager/controller_manager.h>
-#include <boost/thread.hpp>
 #include <pluginlib/class_loader.hpp>
+#include <moveit/robot_state/conversions.h>
 
+#include <condition_variable>
 #include <memory>
+#include <thread>
 
 namespace trajectory_execution_manager
 {
@@ -63,11 +66,56 @@ public:
 
   /// Definition of the function signature that is called when the execution of all the pushed trajectories completes.
   /// The status of the overall execution is passed as argument
-  typedef boost::function<void(const moveit_controller_manager::ExecutionStatus&)> ExecutionCompleteCallback;
+  using ExecutionCompleteCallback = std::function<void(const moveit_controller_manager::ExecutionStatus&)>;
 
   /// Definition of the function signature that is called when the execution of a pushed trajectory completes
   /// successfully.
-  using PathSegmentCompleteCallback = boost::function<void(std::size_t)>;
+  using PathSegmentCompleteCallback = std::function<void(std::size_t)>;
+
+  enum EventType
+  {
+    /** \brief The execution of a trajectory has been completed, regardless of status */
+    EXECUTION_COMPLETED = 0,
+
+    /** \brief The monitor trajectory execution timer  */
+    EXECUTION_TIMEOUT = 1,
+
+    /** \brief Cancellation requested by user  */
+    EXECUTION_CANCELLATION_REQUEST = 2,
+
+    /** \brief Request replacement of active trajectory  */
+    REPLACE_TRAJECTORY = 3,
+
+    /** \brief Planning scene changed  */
+    PLANNING_SCENE_CHANGE = 4,
+
+  };
+
+  /// Data structure that represents an unique identifier for each trajectory execution through `push()` when
+  /// simultaneous execution is ON. In blocking-mode, use stopExecution() to cancel everything.
+  struct TrajectoryID
+  {
+    TrajectoryID() : id_(0)
+    {
+    }
+
+    TrajectoryID(unsigned long id) : id_(id)
+    {
+    }
+
+    explicit operator bool() const
+    {
+      return id_ > 0;
+    }
+
+    bool operator==(const TrajectoryID& tid)
+    {
+      return id_ == tid.id_;
+    }
+
+  private:
+    unsigned long id_;
+  };
 
   /// Data structure that represents information necessary to execute a trajectory
   struct TrajectoryExecutionContext
@@ -78,15 +126,77 @@ public:
     // The trajectory to execute, split in different parts (by joints), each set of joints corresponding to one
     // controller
     std::vector<moveit_msgs::RobotTrajectory> trajectory_parts_;
+
+    // The trajectory to execute, the whole trajectory, used for collision checking
+    moveit_msgs::RobotTrajectory trajectory_;
+
+    // Timer to monitor the expected execution duration
+    ros::Timer execution_duration_timer_;
+
+    // Counter of remaining active trajectory parts
+    int active_controllers_count_;
+
+    // Used to find current expected trajectory location
+    std::vector<ros::Time> time_index_;
+  };
+
+  /// Data structure that represents information necessary to execute an interdependent sequence of trajectories. For a
+  /// sequence of trajectories the necessary controllers for all the trajectories in the sequence are blocked until the
+  /// sequence is completed.
+  struct SequentialTrajectoryExecutionContext
+  {
+    /// Set of interdependent trajectories
+    std::vector<std::shared_ptr<TrajectoryExecutionContext>> contexts_;
+
+    // Callback to inform the outcome of trajectories sent for execution with the continuous execution thread
+    ExecutionCompleteCallback execution_complete_callback_;
+
+    // Callback to inform
+    PathSegmentCompleteCallback path_segment_complete_callback_;
+
+    /// Counter of trajectories pending for execution
+    int remaining_trajectories_count_;
+
+    /// Identifier for this sequential trajectory
+    TrajectoryExecutionManager::TrajectoryID id_;
+
+    SequentialTrajectoryExecutionContext()
+    {
+    }
+
+    SequentialTrajectoryExecutionContext(const std::vector<std::shared_ptr<TrajectoryExecutionContext>> trajectories,
+                                         const ExecutionCompleteCallback callback,
+                                         const PathSegmentCompleteCallback part_callback)
+      : contexts_(trajectories)
+      , execution_complete_callback_(callback)
+      , path_segment_complete_callback_(part_callback)
+      , remaining_trajectories_count_(contexts_.size())
+    {
+    }
+  };
+
+  /// Data structure that represents information necessary to process an event
+  struct TrajectoryExecutionEvent
+  {
+    /// type of event
+    EventType type_;
+
+    // Pair of meta context and currently active context
+    std::pair<std::weak_ptr<SequentialTrajectoryExecutionContext>, std::weak_ptr<TrajectoryExecutionContext>>
+        context_pair;
+
+    // Execution status of trajectories associated to this event
+    moveit_controller_manager::ExecutionStatus execution_status_;
   };
 
   /// Load the controller manager plugin, start listening for events on a topic.
   TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& robot_model,
-                             const planning_scene_monitor::CurrentStateMonitorPtr& csm);
+                             const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
   /// Load the controller manager plugin, start listening for events on a topic.
   TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& robot_model,
-                             const planning_scene_monitor::CurrentStateMonitorPtr& csm, bool manage_controllers);
+                             const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
+                             bool manage_controllers);
 
   /// Destructor. Cancels all running trajectories (if any)
   ~TrajectoryExecutionManager();
@@ -130,28 +240,56 @@ public:
 
   /// Add a trajectory for future execution. Optionally specify a controller to use for the trajectory. If no controller
   /// is specified, a default is used.
-  bool push(const moveit_msgs::RobotTrajectory& trajectory, const std::string& controller = "");
+  /// Optionally specify callback that is called when the execution of the trajectory is completed.
+  /// Returns a trajectory id that can be used to cancel this specific trajectory
+  TrajectoryID push(const moveit_msgs::RobotTrajectory& trajectory, const std::string& controller = "",
+                    const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
 
   /// Add a trajectory for future execution. Optionally specify a controller to use for the trajectory. If no controller
   /// is specified, a default is used.
-  bool push(const trajectory_msgs::JointTrajectory& trajectory, const std::string& controller = "");
+  /// Optionally specify callback that is called when the execution of the trajectory is completed.
+  /// Returns a trajectory id that can be used to cancel this specific trajectory
+  TrajectoryID push(const trajectory_msgs::JointTrajectory& trajectory, const std::string& controller = "",
+                    const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
 
   /// Add a trajectory for future execution. Optionally specify a set of controllers to consider using for the
   /// trajectory. Multiple controllers can be used simultaneously
   /// to execute the different parts of the trajectory. If multiple controllers can be used, preference is given to the
   /// already loaded ones.
   /// If no controller is specified, a default is used.
-  bool push(const trajectory_msgs::JointTrajectory& trajectory, const std::vector<std::string>& controllers);
+  /// Optionally specify callback that is called when the execution of the trajectory is completed.
+  /// Returns a trajectory id that can be used to cancel this specific trajectory
+  TrajectoryID push(const trajectory_msgs::JointTrajectory& trajectory, const std::vector<std::string>& controllers,
+                    const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
 
   /// Add a trajectory for future execution. Optionally specify a set of controllers to consider using for the
   /// trajectory. Multiple controllers can be used simultaneously
   /// to execute the different parts of the trajectory. If multiple controllers can be used, preference is given to the
   /// already loaded ones.
   /// If no controller is specified, a default is used.
-  bool push(const moveit_msgs::RobotTrajectory& trajectory, const std::vector<std::string>& controllers);
+  /// Optionally specify callback that is called when the execution of the trajectory is completed.
+  /// Returns a trajectory id that can be used to cancel this specific trajectory
+  TrajectoryID push(const moveit_msgs::RobotTrajectory& trajectory, const std::vector<std::string>& controllers,
+                    const ExecutionCompleteCallback& callback = ExecutionCompleteCallback());
+
+  /// Add a set of trajectories for future execution. Optionally specify a set of controllers to consider using for the
+  /// trajectory. Multiple controllers can be used simultaneously
+  /// to execute the different parts of the trajectory. If multiple controllers can be used, preference is given to the
+  /// already loaded ones.
+  /// If no controller is specified, a default is used.
+  /// Optionally specify callback that is called when the execution of the trajectory is completed.
+  /// Returns a trajectory id that can be used to cancel this specific set of trajectories
+  TrajectoryID push(const std::vector<moveit_msgs::RobotTrajectory>& trajectories,
+                    const std::vector<std::vector<std::string>>& controllers,
+                    const ExecutionCompleteCallback& callback = ExecutionCompleteCallback(),
+                    const PathSegmentCompleteCallback& part_callback = PathSegmentCompleteCallback());
+
+  // /// Replace an active trajectory with a new one
+  bool replace(const TrajectoryID& trajectory_id, const moveit_msgs::RobotTrajectory& trajectory,
+               const std::vector<std::string>& controllers);
 
   /// Get the trajectories to be executed
-  const std::vector<TrajectoryExecutionContext*>& getTrajectories() const;
+  const std::vector<std::shared_ptr<TrajectoryExecutionContext>>& getTrajectories() const;
 
   /// Start the execution of pushed trajectories; this does not wait for completion, but calls a callback when done.
   void execute(const ExecutionCompleteCallback& callback = ExecutionCompleteCallback(), bool auto_clear = true);
@@ -183,6 +321,9 @@ public:
   /// Stop whatever executions are active, if any
   void stopExecution(bool auto_clear = true);
 
+  /// Stop executions of a given trajectory, if active
+  void stopExecution(const TrajectoryID trajectory_id);
+
   /// Clear the trajectories to execute
   void clear();
 
@@ -207,6 +348,15 @@ public:
 
   /// Enable or disable waiting for trajectory completion
   void setWaitForTrajectoryCompletion(bool flag);
+
+  /// Enable or disable simultaneous execution of trajetories
+  void setEnableSimultaneousExecution(bool flag);
+
+  /// Get simultaneous execution of trajetories
+  bool getEnableSimultaneousExecution() const;
+
+  /// Enable or disable collision checking right before execution
+  void setAllowCollisionChecking(bool flag);
 
 private:
   struct ControllerInformation
@@ -248,24 +398,52 @@ private:
   void generateControllerCombination(std::size_t start_index, std::size_t controller_count,
                                      const std::vector<std::string>& available_controllers,
                                      std::vector<std::string>& selected_controllers,
-                                     std::vector<std::vector<std::string> >& selected_options,
+                                     std::vector<std::vector<std::string>>& selected_options,
                                      const std::set<std::string>& actuated_joints);
   bool selectControllers(const std::set<std::string>& actuated_joints,
                          const std::vector<std::string>& available_controllers,
                          std::vector<std::string>& selected_controllers);
-
-  void executeThread(const ExecutionCompleteCallback& callback, const PathSegmentCompleteCallback& part_callback,
-                     bool auto_clear);
-  bool executePart(std::size_t part_index);
+  // Loop through events to simultaneously execute trajectories and sequences of trajectories
+  void runEventManager();
+  // Validate that sequences of trajectories are ready for execution; trajectory matches current robot state,
+  // controllers are available, and optionally check collision with active trajectories and the current planning scene
+  bool validateTrajectories(const SequentialTrajectoryExecutionContext& trajectory_sequence);
+  // Send trajectory to be executed in the corresponding controller(s)
+  bool executeTrajectory(const std::shared_ptr<SequentialTrajectoryExecutionContext>& trajectory_sequence,
+                         const std::size_t& index, const bool& validate_trajectory);
   bool waitForRobotToStop(const TrajectoryExecutionContext& context, double wait_time = 1.0);
-
-  void stopExecutionInternal();
 
   void receiveEvent(const std_msgs::StringConstPtr& event);
 
   void loadControllerParams();
 
+  void getContextHandles(const TrajectoryExecutionContext& context,
+                         std::set<moveit_controller_manager::MoveItControllerHandlePtr>& handles);
+  bool checkCollisionBetweenTrajectories(const moveit_msgs::RobotTrajectory& new_trajectory,
+                                         const moveit_msgs::RobotTrajectory& active_trajectory);
+  // Check that the new trajectory does not collide with other active trajectories
+  // Approach: checking point by point using planning_scene -> isPathValid()
+  bool checkCollisionsWithActiveTrajectories(const TrajectoryExecutionContext& context);
+  bool checkCollisionsWithCurrentState(const moveit_msgs::RobotTrajectory& trajectory);
+  void createExecutionDurationTimer(
+      const std::pair<std::weak_ptr<SequentialTrajectoryExecutionContext>, std::weak_ptr<TrajectoryExecutionContext>>
+          context_pair);
+
+  TrajectoryID generateTrajectoryID();
+
+  void planningSceneUpdatedCallback(const planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
+
+  void collisionCheckOnPlanningSceneUpdate();
+  void processTrajectorySegment(std::shared_ptr<SequentialTrajectoryExecutionContext>& trajectory_sequence_ptr,
+                                std::shared_ptr<TrajectoryExecutionContext>& context_ptr,
+                                const moveit_controller_manager::ExecutionStatus execution_status);
+  void abortExecution(std::shared_ptr<TrajectoryExecutionContext>& context_ptr);
+  void clearCompletedSequentialTrajectory(std::shared_ptr<SequentialTrajectoryExecutionContext>& trajectory_sequence_ptr,
+                                          std::shared_ptr<TrajectoryExecutionContext>& context_ptr,
+                                          const moveit_controller_manager::ExecutionStatus execution_status);
+
   moveit::core::RobotModelConstPtr robot_model_;
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   planning_scene_monitor::CurrentStateMonitorPtr csm_;
   ros::NodeHandle node_handle_;
   ros::NodeHandle root_node_handle_;
@@ -275,24 +453,37 @@ private:
   bool manage_controllers_;
 
   // thread used to execute trajectories using the execute() command
-  std::unique_ptr<boost::thread> execution_thread_;
+  std::mutex execution_state_mutex_;
 
-  boost::mutex execution_state_mutex_;
-  boost::mutex execution_thread_mutex_;
+  std::deque<std::shared_ptr<TrajectoryExecutionEvent>> events_queue_;
+  std::mutex events_queue_mutex_;
 
-  // this condition is used to notify the completion of execution for given trajectories
-  boost::condition_variable execution_complete_condition_;
+  std::condition_variable event_manager_condition_;
+  std::mutex event_manager_mutex_;
+  std::unique_ptr<std::thread> event_manager_thread_;
 
-  moveit_controller_manager::ExecutionStatus last_execution_status_;
-  std::vector<moveit_controller_manager::MoveItControllerHandlePtr> active_handles_;
-  int current_context_;
-  std::vector<ros::Time> time_index_;  // used to find current expected trajectory location
-  mutable boost::mutex time_index_mutex_;
+  bool run_event_manager_;
+  bool stop_execution_;
+  bool auto_clear_;
   bool execution_complete_;
 
-  std::vector<TrajectoryExecutionContext*> trajectories_;
+  std::set<moveit_controller_manager::MoveItControllerHandlePtr> active_handles_;
+  std::mutex active_handles_mutex_;
 
-  std::unique_ptr<pluginlib::ClassLoader<moveit_controller_manager::MoveItControllerManager> > controller_manager_loader_;
+  // this condition is used to notify the completion of execution for given trajectories
+  std::condition_variable execution_complete_condition_;
+
+  std::mutex cancel_execution_mutex_;
+  std::condition_variable cancel_execution_condition_;
+
+  moveit_controller_manager::ExecutionStatus last_execution_status_;
+
+  std::vector<std::shared_ptr<TrajectoryExecutionContext>> trajectories_;
+
+  std::vector<std::shared_ptr<SequentialTrajectoryExecutionContext>> active_trajectory_sequences_;
+  mutable std::mutex active_trajectory_sequences_mutex_;
+
+  std::unique_ptr<pluginlib::ClassLoader<moveit_controller_manager::MoveItControllerManager>> controller_manager_loader_;
   moveit_controller_manager::MoveItControllerManagerPtr controller_manager_;
 
   bool verbose_;
@@ -311,6 +502,11 @@ private:
 
   double allowed_start_tolerance_;  // joint tolerance for validate(): radians for revolute joints
   double execution_velocity_scaling_;
+  bool enable_simultaneous_execution_;
+  bool enable_collision_checking_;
   bool wait_for_trajectory_completion_;
+
+  std::mutex id_count_mutex_;
+  unsigned int id_count_ = 1;
 };
 }  // namespace trajectory_execution_manager

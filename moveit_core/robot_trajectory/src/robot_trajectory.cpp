@@ -231,6 +231,8 @@ void RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory& trajec
 
   std::vector<const moveit::core::JointModel*> onedof;
   std::vector<const moveit::core::JointModel*> mdof;
+
+  trajectory.group_name = group_ ? group_->getName() : "";
   trajectory.joint_trajectory.joint_names.clear();
   trajectory.multi_dof_joint_trajectory.joint_names.clear();
 
