@@ -243,6 +243,7 @@ set(pymoveit_libs
 find_package(pybind11 QUIET)
 if(NOT pybind11_FOUND)
   find_package(pybind11_catkin REQUIRED)
+  set(pybind11_INCLUDE_DIRS ${pybind11_catkin_INCLUDE_DIRS})
 endif()
 
 pybind11_add_module(pymoveit_core
@@ -254,7 +255,7 @@ pybind11_add_module(pymoveit_core
     planning_scene/src/pyplanning_scene.cpp
     kinematic_constraints/src/pykinematic_constraint.cpp
 )
-target_include_directories(pymoveit_core SYSTEM PRIVATE ${PYTHON_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+target_include_directories(pymoveit_core SYSTEM PRIVATE ${PYTHON_INCLUDE_DIRS} ${pybind11_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 target_link_libraries(pymoveit_core PRIVATE ${pymoveit_libs} ${PYTHON_LIBRARIES} ${catkin_LIBRARIES})
 set_target_properties(pymoveit_core PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION})
 #catkin_lint: ignore_once undefined_target (pymoveit_core is defined by pybind_add_module)
