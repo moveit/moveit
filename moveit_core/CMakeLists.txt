@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.1.3)
 project(moveit_core)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -240,7 +240,6 @@ set(pymoveit_libs
   moveit_transforms
 )
 
-find_package(Python3 COMPONENTS Interpreter Development)
 find_package(pybind11 CONFIG)
 
 pybind11_add_module(pymoveit_core
@@ -252,8 +251,8 @@ pybind11_add_module(pymoveit_core
     planning_scene/src/pyplanning_scene.cpp
     kinematic_constraints/src/pykinematic_constraint.cpp
 )
-target_include_directories(pymoveit_core SYSTEM PRIVATE ${Python3_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
-target_link_libraries(pymoveit_core PRIVATE ${pymoveit_libs} ${Python3_LIBRARIES} ${catkin_LIBRARIES})
+target_include_directories(pymoveit_core SYSTEM PRIVATE ${PYTHON_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+target_link_libraries(pymoveit_core PRIVATE ${pymoveit_libs} ${PYTHON_LIBRARIES} ${catkin_LIBRARIES})
 
 #catkin_lint: ignore_once undefined_target (pymoveit_core is defined by pybind_add_module)
 install(TARGETS pymoveit_core LIBRARY DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
