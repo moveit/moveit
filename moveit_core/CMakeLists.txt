@@ -253,7 +253,7 @@ pybind11_add_module(pymoveit_core
 )
 target_include_directories(pymoveit_core SYSTEM PRIVATE ${PYTHON_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 target_link_libraries(pymoveit_core PRIVATE ${pymoveit_libs} ${PYTHON_LIBRARIES} ${catkin_LIBRARIES})
-
+set_target_properties(pymoveit_core PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION})
 #catkin_lint: ignore_once undefined_target (pymoveit_core is defined by pybind_add_module)
 install(TARGETS pymoveit_core LIBRARY DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
 
