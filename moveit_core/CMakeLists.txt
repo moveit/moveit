@@ -240,7 +240,7 @@ set(pymoveit_libs
   moveit_transforms
 )
 
-find_package(pybind11 CONFIG)
+find_package(pybind11 REQUIRED)
 
 pybind11_add_module(pymoveit_core
     python/pymoveit_core.cpp
