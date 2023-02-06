@@ -39,7 +39,8 @@
   <depend>moveit_msgs</depend>
   <depend>octomap</depend>
   <depend>octomap_msgs</depend>
-  <depend>pybind11_catkin</depend>
+  <depend condition="$ROS_DISTRO == melodic">pybind11_catkin</depend>
+  <depend condition="$ROS_DISTRO != melodic">pybind11-dev</depend>
   <depend>random_numbers</depend>
   <depend>roslib</depend>
   <depend>rostime</depend>
