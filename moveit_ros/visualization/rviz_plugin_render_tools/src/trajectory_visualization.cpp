@@ -252,6 +252,14 @@ void TrajectoryVisualization::changedShowTrail()
     if (enable_robot_color_property_->getBool())
       setRobotColor(&(r->getRobot()), robot_color_property_->getColor());
     r->setVisible(display_->isEnabled() && (!animating_path_ || waypoint_i <= current_state_));
+    auto& robotPathLinks = display_path_robot_->getRobot().getLinks();
+    for (const auto& robotLink : robotPathLinks)
+    {
+      r->getRobot()
+          .getLink(robotLink.first)
+          ->getLinkProperty()
+          ->setValue(robotLink.second->getLinkProperty()->getValue());
+    }
     trajectory_trail_[i] = std::move(r);
   }
 }
