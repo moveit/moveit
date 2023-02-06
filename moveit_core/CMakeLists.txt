@@ -229,6 +229,12 @@ add_subdirectory(collision_distance_field)
 add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
 
+find_package(pybind11 QUIET)
+if(NOT pybind11_FOUND)
+  find_package(pybind11_catkin REQUIRED)
+  set(pybind11_INCLUDE_DIRS ${pybind11_catkin_INCLUDE_DIRS})
+endif()
+
 add_subdirectory(python)
 set(pymoveit_libs
   moveit_collision_detection
@@ -239,12 +245,6 @@ set(pymoveit_libs
   moveit_robot_state
   moveit_transforms
 )
-
-find_package(pybind11 QUIET)
-if(NOT pybind11_FOUND)
-  find_package(pybind11_catkin REQUIRED)
-  set(pybind11_INCLUDE_DIRS ${pybind11_catkin_INCLUDE_DIRS})
-endif()
 
 pybind11_add_module(pymoveit_core
     python/pymoveit_core.cpp
