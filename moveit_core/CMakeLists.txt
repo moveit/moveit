@@ -229,7 +229,7 @@ add_subdirectory(collision_distance_field)
 add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
 
-find_package(pybind11 2.4.3 QUIET)
+find_package(pybind11 2.5.0 QUIET)
 if(NOT pybind11_FOUND)
   find_package(pybind11_catkin)
   if(pybind11_catkin_FOUND)

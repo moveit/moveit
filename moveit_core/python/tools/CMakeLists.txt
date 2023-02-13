@@ -7,10 +7,6 @@ add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 target_include_directories(${MOVEIT_LIB_NAME} SYSTEM PRIVATE ${PYTHON_INCLUDE_DIRS} ${pybind11_INCLUDE_DIRS})
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${PYTHON_LIBRARIES})
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  # avoid "no matching function for call to 'operator delete'" - https://github.com/pybind/pybind11/issues/1604
-  target_compile_options(${MOVEIT_LIB_NAME} PUBLIC -fsized-deallocation)
-endif()
 
 install(
   TARGETS
