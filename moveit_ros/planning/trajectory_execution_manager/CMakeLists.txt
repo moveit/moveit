@@ -12,7 +12,6 @@ install(TARGETS ${MOVEIT_LIB_NAME}
 install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 
 if(CATKIN_ENABLE_TESTING)
-    find_package(moveit_resources_panda_moveit_config REQUIRED)
     find_package(rostest REQUIRED)
 
     add_rostest_gtest(test_execution_manager
