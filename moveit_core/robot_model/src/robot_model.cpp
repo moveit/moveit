@@ -976,6 +976,112 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
         break;
       }
     }
+    for (const srdf::Model::JointProperty& property : srdf_model.getJointProperties(new_joint_model->getName()))
+    {
+      if (property.property_name_ == "angular_distance_weight")
+      {
+        double angular_distance_weight;
+        try
+        {
+          std::string::size_type sz;
+          angular_distance_weight = std::stod(property.value_, &sz);
+          if (sz != property.value_.size())
+          {
+            ROS_WARN_STREAM_NAMED(LOGNAME, "Extra characters after property " << property.property_name_ << " for joint "
+                                                                              << property.joint_name_ << " as double: '"
+                                                                              << property.value_.substr(sz) << "'");
+          }
+        }
+        catch (const std::invalid_argument& e)
+        {
+          ROS_ERROR_STREAM_NAMED(LOGNAME, "Unable to parse property " << property.property_name_ << " for joint "
+                                                                      << property.joint_name_ << " as double: '"
+                                                                      << property.value_ << "'");
+          continue;
+        }
+
+        if (new_joint_model->getType() == JointModel::JointType::PLANAR)
+        {
+          ((PlanarJointModel*)new_joint_model)->setAngularDistanceWeight(angular_distance_weight);
+        }
+        else if (new_joint_model->getType() == JointModel::JointType::FLOATING)
+        {
+          ((FloatingJointModel*)new_joint_model)->setAngularDistanceWeight(angular_distance_weight);
+        }
+        else
+        {
+          ROS_ERROR_NAMED(LOGNAME, "Cannot apply property %s to joint type: %s",
+                                   property.property_name_.c_str(),
+                                   new_joint_model->getTypeName().c_str());
+        }
+      }
+      else if (property.property_name_ == "motion_model")
+      {
+        if (new_joint_model->getType() != JointModel::JointType::PLANAR)
+        {
+          ROS_ERROR_NAMED(LOGNAME, "Cannot apply property %s to joint type: %s",
+                          property.property_name_.c_str(),
+                          new_joint_model->getTypeName().c_str());
+          continue;
+        }
+
+        PlanarJointModel::MotionModel motion_model;
+        if (property.value_ == "holonomic")
+        {
+          motion_model = PlanarJointModel::MotionModel::HOLONOMIC;
+        }
+        else if (property.value_ == "diff_drive")
+        {
+          motion_model = PlanarJointModel::MotionModel::DIFF_DRIVE;
+        }
+        else
+        {
+          ROS_ERROR_STREAM_NAMED(LOGNAME, "Unknown value for property " << property.property_name_ << " ("
+                                                                        << property.joint_name_ << "): '" << property.value_
+                                                                        << "'");
+          ROS_ERROR_NAMED(LOGNAME, "Valid values are 'holonomic' and 'diff_drive'");
+          continue;
+        }
+
+        ((PlanarJointModel*)new_joint_model)->setMotionModel(motion_model);
+      }
+      else if (property.property_name_ == "min_translational_distance")
+      {
+        if (new_joint_model->getType() != JointModel::JointType::PLANAR)
+        {
+          ROS_ERROR_NAMED(LOGNAME, "Cannot apply property %s to joint type: %s",
+                          property.property_name_.c_str(),
+                          new_joint_model->getTypeName().c_str());
+          continue;
+        }
+        double min_translational_distance;
+        try
+        {
+          std::string::size_type sz;
+          min_translational_distance = std::stod(property.value_, &sz);
+          if (sz != property.value_.size())
+          {
+            ROS_WARN_STREAM_NAMED(LOGNAME, "Extra characters after property " << property.property_name_ << " for joint "
+                                                                       << property.joint_name_ << " as double: '"
+                                                                       << property.value_.substr(sz) << "'");
+          }
+        }
+        catch (const std::invalid_argument& e)
+        {
+          ROS_ERROR_NAMED(LOGNAME, "Unable to parse property %s for joint %s as double: '%s'",
+                          property.property_name_.c_str(),
+                          property.joint_name_.c_str(),
+                          property.value_.c_str());
+          continue;
+        }
+
+        ((PlanarJointModel*)new_joint_model)->setMinTranslationalDistance(min_translational_distance);
+      }
+      else
+      {
+        ROS_ERROR_NAMED(LOGNAME, "Unknown joint property: %s", property.property_name_.c_str());
+      }
+    }
   }
 
   return new_joint_model;
