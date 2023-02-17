@@ -184,6 +184,11 @@ public:
       This complete list is mainly useful when considering relative transforms. */
   const std::vector<std::string>& getJoints() const;
 
+  [[deprecated("use getVariableNames")]] const std::vector<std::string>& getJointNames() const
+  {
+    return getVariableNames();
+  }
+
   /** \brief Get names of degrees of freedom in this group
 
       This list does not include fixed joints, but does include mimic and passive joints.
@@ -191,7 +196,7 @@ public:
       It corresponds to the double vectors representing a robot state in the RobotState class.
       The joints in this list define all information necessary to recreate a complete robot state
       without additional knowledge. */
-  const std::vector<std::string>& getJointNames() const;
+  const std::vector<std::string>& getVariableNames() const;
 
   /** \brief Get names of joints with an active (actuated) DOF in this group
 

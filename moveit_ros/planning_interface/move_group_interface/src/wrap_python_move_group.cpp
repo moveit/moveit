@@ -167,7 +167,7 @@ public:
 
   bp::list getVariablesList() const
   {
-    return py_bindings_tools::listFromString(getJointNames());
+    return py_bindings_tools::listFromString(getVariableNames());
   }
 
   bp::list getCurrentJointValuesList()
