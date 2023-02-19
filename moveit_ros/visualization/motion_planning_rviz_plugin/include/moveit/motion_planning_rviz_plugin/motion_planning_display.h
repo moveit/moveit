@@ -72,7 +72,7 @@ class StringProperty;
 class BoolProperty;
 class FloatProperty;
 class RosTopicProperty;
-class EditableEnumProperty;
+class EnumProperty;
 class ColorProperty;
 class MovableText;
 }  // namespace rviz
@@ -292,7 +292,7 @@ protected:
   rviz::Property* plan_category_;
   rviz::Property* metrics_category_;
 
-  rviz::EditableEnumProperty* planning_group_property_;
+  rviz::EnumProperty* planning_group_property_;
   rviz::BoolProperty* query_start_state_property_;
   rviz::BoolProperty* query_goal_state_property_;
   rviz::FloatProperty* query_marker_scale_property_;
