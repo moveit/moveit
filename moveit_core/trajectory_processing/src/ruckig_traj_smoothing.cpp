@@ -299,12 +299,16 @@ bool RuckigSmoothing::runRuckig(robot_trajectory::RobotTrajectory& trajectory,
   {
     for (size_t waypoint_idx = 0; waypoint_idx < num_waypoints - 1; ++waypoint_idx)
     {
+      std::cerr << "WAYPOINT" << std::endl;
       moveit::core::RobotStatePtr next_waypoint = trajectory.getWayPointPtr(waypoint_idx + 1);
 
       getNextRuckigInput(trajectory.getWayPointPtr(waypoint_idx), next_waypoint, group, ruckig_input);
 
       // Run Ruckig
       ruckig_result = ruckig_ptr->update(ruckig_input, ruckig_output);
+
+      std::cerr << "INPUT: " << std::endl << ruckig_input.to_string() << std::endl;
+      std::cerr << "OUTPUT: " << std::endl << ruckig_output.to_string() << std::endl;
 
       // The difference between Result::Working and Result::Finished is that Finished can be reached in one
       // Ruckig timestep (constructor parameter). Both are acceptable for trajectories.
@@ -314,6 +318,7 @@ bool RuckigSmoothing::runRuckig(robot_trajectory::RobotTrajectory& trajectory,
       if ((waypoint_idx == num_waypoints - 2) &&
           (ruckig_result == ruckig::Result::Working || ruckig_result == ruckig::Result::Finished))
       {
+        std::cerr << "Final waypoint duration: " << ruckig_output.trajectory.get_duration() << std::endl;
         trajectory.setWayPointDurationFromPrevious(waypoint_idx + 1, ruckig_output.trajectory.get_duration());
         smoothing_complete = true;
         break;
