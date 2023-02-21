@@ -79,12 +79,13 @@ bool RuckigSmoothing::applySmoothing(robot_trajectory::RobotTrajectory& trajecto
     return false;
   }
 
-  auto ruckig_result = runRuckigInBatches(trajectory, ruckig_input);
-  if (ruckig_result.has_value())
-  {
-    trajectory = ruckig_result.value();
-  }
-  return ruckig_result.has_value();  // Ruckig failed to smooth the trajectory
+  // auto ruckig_result = runRuckigInBatches(trajectory, ruckig_input);
+  // if (ruckig_result.has_value())
+  // {
+  //   trajectory = ruckig_result.value();
+  // }
+  // return ruckig_result.has_value();  // Ruckig failed to smooth the trajectory
+  return runRuckig(trajectory, ruckig_input);
 }
 
 bool RuckigSmoothing::applySmoothing(robot_trajectory::RobotTrajectory& trajectory,
@@ -142,12 +143,13 @@ bool RuckigSmoothing::applySmoothing(robot_trajectory::RobotTrajectory& trajecto
     }
   }
 
-  auto ruckig_result = runRuckigInBatches(trajectory, ruckig_input);
-  if (ruckig_result.has_value())
-  {
-    trajectory = ruckig_result.value();
-  }
-  return ruckig_result.has_value();  // Ruckig failed to smooth the trajectory
+  // auto ruckig_result = runRuckigInBatches(trajectory, ruckig_input);
+  // if (ruckig_result.has_value())
+  // {
+  //   trajectory = ruckig_result.value();
+  // }
+  // return ruckig_result.has_value();  // Ruckig failed to smooth the trajectory
+  return runRuckig(trajectory, ruckig_input);
 }
 
 std::optional<robot_trajectory::RobotTrajectory>
@@ -412,8 +414,8 @@ void RuckigSmoothing::initializeRuckigState(const moveit::core::RobotState& firs
   ruckig_output.new_acceleration = ruckig_input.current_acceleration;
 }
 
-void RuckigSmoothing::getNextRuckigInput(const moveit::core::RobotStatePtr& current_waypoint,
-                                         const moveit::core::RobotStatePtr& next_waypoint,
+void RuckigSmoothing::getNextRuckigInput(const moveit::core::RobotStateConstPtr& current_waypoint,
+                                         const moveit::core::RobotStateConstPtr& next_waypoint,
                                          const moveit::core::JointModelGroup* joint_group,
                                          ruckig::InputParameter<ruckig::DynamicDOFs>& ruckig_input)
 {

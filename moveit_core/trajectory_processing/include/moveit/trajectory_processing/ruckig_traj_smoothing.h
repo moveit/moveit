@@ -81,8 +81,8 @@ private:
    * \param joint_group         The MoveIt JointModelGroup of interest
    * \param[out] ruckig_input   The Rucking parameters for the next iteration
    */
-  static void getNextRuckigInput(const moveit::core::RobotStatePtr& current_waypoint,
-                                 const moveit::core::RobotStatePtr& next_waypoint,
+  static void getNextRuckigInput(const moveit::core::RobotStateConstPtr& current_waypoint,
+                                 const moveit::core::RobotStateConstPtr& next_waypoint,
                                  const moveit::core::JointModelGroup* joint_group,
                                  ruckig::InputParameter<ruckig::DynamicDOFs>& ruckig_input);
 

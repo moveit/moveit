@@ -106,18 +106,17 @@ TEST_F(RuckigTests, basic_trajectory_with_custom_limits)
 TEST_F(RuckigTests, trajectory_duration)
 {
   // Compare against the OJET online trajectory generator: https://www.trajectorygenerator.com/ojet-online/
-  const double ideal_duration = 0.3662;
+  const double ideal_duration = 0.317;
 
   moveit::core::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
   // Special attention to Joint 0. It is the only joint to move in this test.
   // Zero velocities and accelerations at the endpoints
   robot_state.setVariablePosition("panda_joint1", 0.0);
-  robot_state.update();
   trajectory_->addSuffixWayPoint(robot_state, 0.0);
 
+  robot_state.setToDefaultValues();
   robot_state.setVariablePosition("panda_joint1", 0.1);
-  robot_state.update();
   trajectory_->addSuffixWayPoint(robot_state, DEFAULT_TIMESTEP);
 
   EXPECT_TRUE(
