@@ -165,6 +165,11 @@ public:
     return py_bindings_tools::listFromString(getJoints());
   }
 
+  bp::list getVariablesList() const
+  {
+    return py_bindings_tools::listFromString(getVariableNames());
+  }
+
   bp::list getCurrentJointValuesList()
   {
     return py_bindings_tools::listFromDouble(getCurrentJointValues());
@@ -684,8 +689,9 @@ static void wrap_move_group_interface()
   move_group_interface_class.def("get_planning_frame", &MoveGroupInterfaceWrapper::getPlanningFrameCStr);
   move_group_interface_class.def("get_interface_description", &MoveGroupInterfaceWrapper::getInterfaceDescriptionPython);
 
-  move_group_interface_class.def("get_active_joints", &MoveGroupInterfaceWrapper::getActiveJointsList);
   move_group_interface_class.def("get_joints", &MoveGroupInterfaceWrapper::getJointsList);
+  move_group_interface_class.def("get_variables", &MoveGroupInterfaceWrapper::getVariablesList);
+  move_group_interface_class.def("get_active_joints", &MoveGroupInterfaceWrapper::getActiveJointsList);
   move_group_interface_class.def("get_variable_count", &MoveGroupInterfaceWrapper::getVariableCount);
   move_group_interface_class.def("allow_looking", &MoveGroupInterfaceWrapper::allowLooking);
   move_group_interface_class.def("allow_replanning", &MoveGroupInterfaceWrapper::allowReplanning);

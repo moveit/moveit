@@ -1643,7 +1643,7 @@ void MoveGroupInterface::setRandomTarget()
   impl_->setTargetType(JOINT);
 }
 
-const std::vector<std::string>& MoveGroupInterface::getJointNames() const
+const std::vector<std::string>& MoveGroupInterface::getVariableNames() const
 {
   return impl_->getJointModelGroup()->getVariableNames();
 }

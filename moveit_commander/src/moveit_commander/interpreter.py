@@ -260,6 +260,9 @@ class MoveGroupCommandInterpreter(object):
         if cmd == "current":
             return self.command_current(g)
 
+        if cmd == "group_state":
+            return self.command_group_state(g)
+
         if cmd == "ground":
             pose = PoseStamped()
             pose.pose.position.x = 0
@@ -712,6 +715,19 @@ class MoveGroupCommandInterpreter(object):
             res.append(k + " = [" + " ".join([str(x) for x in known[k]]) + "]")
         return (MoveGroupInfoLevel.INFO, "\n".join(res))
 
+    def command_group_state(self, g):
+        res = (
+            '    <group_state name="custom_state" group="{}">\n'.format(g.get_name())
+            + "\n".join(
+                [
+                    '        <joint name="{}" value="{}"/>'.format(j, v)
+                    for j, v in zip(g._g.get_variables(), g.get_current_joint_values())
+                ]
+            )
+            + "\n    </group_state>"
+        )
+        return (MoveGroupInfoLevel.INFO, res)
+
     def command_current(self, g):
         res = (
             "joints = ["
@@ -779,6 +795,7 @@ class MoveGroupCommandInterpreter(object):
             "  constrain <name>    use the constraint <name> as a path constraint"
         )
         res.append("  current             show the current state of the active group")
+        res.append("  group_state         current state to copy&paste to srdf file")
         res.append(
             "  database            display the current database connection (if any)"
         )
@@ -861,6 +878,7 @@ class MoveGroupCommandInterpreter(object):
             "wait": [],
             "delete": known_vars,
             "database": [],
+            "group_state": [],
             "current": [],
             "use": groups,
             "load": [],
