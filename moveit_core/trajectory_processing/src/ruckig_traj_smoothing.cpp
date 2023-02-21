@@ -303,6 +303,7 @@ bool RuckigSmoothing::runRuckig(robot_trajectory::RobotTrajectory& trajectory,
     {
       std::cerr << "WAYPOINT" << std::endl;
       moveit::core::RobotStatePtr next_waypoint = trajectory.getWayPointPtr(waypoint_idx + 1);
+      next_waypoint->printStateInfo(std::cerr);
 
       getNextRuckigInput(trajectory.getWayPointPtr(waypoint_idx), next_waypoint, group, ruckig_input);
 
