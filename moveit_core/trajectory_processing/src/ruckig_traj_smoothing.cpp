@@ -306,14 +306,28 @@ bool RuckigSmoothing::runRuckig(robot_trajectory::RobotTrajectory& trajectory,
       // Run Ruckig
       ruckig_result = ruckig_ptr->update(ruckig_input, ruckig_output);
 
-      if ((waypoint_idx == num_waypoints - 2) && ruckig_result == ruckig::Result::Finished)
+      // The difference between Result::Working and Result::Finished is that Finished can be reached in one
+      // Ruckig timestep (constructor parameter). Both are acceptable for trajectories.
+      // (The difference is only relevant for streaming mode.)
+
+      // If successful and at the last trajectory segment
+      if ((waypoint_idx == num_waypoints - 2) &&
+          (ruckig_result == ruckig::Result::Working || ruckig_result == ruckig::Result::Finished))
       {
+        trajectory.setWayPointDurationFromPrevious(waypoint_idx + 1, ruckig_output.trajectory.get_duration());
         smoothing_complete = true;
         break;
       }
 
+      // If successful, on to the next waypoint
+      if (ruckig_result == ruckig::Result::Working || ruckig_result == ruckig::Result::Finished)
+      {
+        trajectory.setWayPointDurationFromPrevious(waypoint_idx + 1, ruckig_output.trajectory.get_duration());
+        continue;
+      }
+
       // Extend the trajectory duration if Ruckig could not reach the waypoint successfully
-      if (ruckig_result != ruckig::Result::Finished)
+      if (ruckig_result != ruckig::Result::Working && ruckig_result != ruckig::Result::Finished)
       {
         duration_extension_factor *= DURATION_EXTENSION_FRACTION;
         // Reset the trajectory
@@ -339,9 +353,8 @@ bool RuckigSmoothing::runRuckig(robot_trajectory::RobotTrajectory& trajectory,
           }
           target_state->update();
         }
-        ruckig_ptr = std::make_unique<ruckig::Ruckig<ruckig::DynamicDOFs>>(num_dof, timestep);
         initializeRuckigState(*trajectory.getFirstWayPointPtr(), group, ruckig_input, ruckig_output);
-        // Begin the while() loop again
+        // Begin the for() loop again
         break;
       }
     }
@@ -353,7 +366,7 @@ bool RuckigSmoothing::runRuckig(robot_trajectory::RobotTrajectory& trajectory,
                            "Ruckig extended the trajectory duration to its maximum and still did not find a solution");
   }
 
-  if (ruckig_result != ruckig::Result::Finished)
+  if (ruckig_result != ruckig::Result::Finished && ruckig_result != ruckig::Result::Working)
   {
     ROS_ERROR_STREAM_NAMED(LOGNAME, "Ruckig trajectory smoothing failed. Ruckig error: " << ruckig_result);
     return false;
