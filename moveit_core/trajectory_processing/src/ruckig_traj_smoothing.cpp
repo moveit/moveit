@@ -79,12 +79,6 @@ bool RuckigSmoothing::applySmoothing(robot_trajectory::RobotTrajectory& trajecto
     return false;
   }
 
-  // auto ruckig_result = runRuckigInBatches(trajectory, ruckig_input);
-  // if (ruckig_result.has_value())
-  // {
-  //   trajectory = ruckig_result.value();
-  // }
-  // return ruckig_result.has_value();  // Ruckig failed to smooth the trajectory
   return runRuckig(trajectory, ruckig_input);
 }
 
@@ -143,12 +137,6 @@ bool RuckigSmoothing::applySmoothing(robot_trajectory::RobotTrajectory& trajecto
     }
   }
 
-  // auto ruckig_result = runRuckigInBatches(trajectory, ruckig_input);
-  // if (ruckig_result.has_value())
-  // {
-  //   trajectory = ruckig_result.value();
-  // }
-  // return ruckig_result.has_value();  // Ruckig failed to smooth the trajectory
   return runRuckig(trajectory, ruckig_input);
 }
 
@@ -286,8 +274,7 @@ bool RuckigSmoothing::runRuckig(robot_trajectory::RobotTrajectory& trajectory,
 
   // Initialize the smoother
   double timestep = trajectory.getAverageSegmentDuration();
-  std::unique_ptr<ruckig::Ruckig<ruckig::DynamicDOFs>> ruckig_ptr;
-  ruckig_ptr = std::make_unique<ruckig::Ruckig<ruckig::DynamicDOFs>>(num_dof, timestep);
+  ruckig::Ruckig<ruckig::DynamicDOFs> ruckig(num_dof, timestep);
   initializeRuckigState(*trajectory.getFirstWayPointPtr(), group, ruckig_input, ruckig_output);
 
   // Cache the trajectory in case we need to reset it
@@ -306,7 +293,7 @@ bool RuckigSmoothing::runRuckig(robot_trajectory::RobotTrajectory& trajectory,
       getNextRuckigInput(trajectory.getWayPointPtr(waypoint_idx), next_waypoint, group, ruckig_input);
 
       // Run Ruckig
-      ruckig_result = ruckig_ptr->update(ruckig_input, ruckig_output);
+      ruckig_result = ruckig.update(ruckig_input, ruckig_output);
 
       // The difference between Result::Working and Result::Finished is that Finished can be reached in one
       // Ruckig timestep (constructor parameter). Both are acceptable for trajectories.
