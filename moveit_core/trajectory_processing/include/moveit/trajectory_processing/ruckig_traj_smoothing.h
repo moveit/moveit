@@ -81,8 +81,8 @@ private:
    * \param joint_group         The MoveIt JointModelGroup of interest
    * \param[out] ruckig_input   The Rucking parameters for the next iteration
    */
-  static void getNextRuckigInput(const moveit::core::RobotStatePtr& current_waypoint,
-                                 const moveit::core::RobotStatePtr& next_waypoint,
+  static void getNextRuckigInput(const moveit::core::RobotStateConstPtr& current_waypoint,
+                                 const moveit::core::RobotStateConstPtr& next_waypoint,
                                  const moveit::core::JointModelGroup* joint_group,
                                  ruckig::InputParameter<ruckig::DynamicDOFs>& ruckig_input);
 
@@ -121,5 +121,19 @@ private:
    */
   [[nodiscard]] static bool runRuckig(robot_trajectory::RobotTrajectory& trajectory,
                                       ruckig::InputParameter<ruckig::DynamicDOFs>& ruckig_input);
+
+  /**
+   * \brief Extend the duration of every trajectory segment
+   * \param[in] duration_extension_factor A number greater than 1. Extend every timestep by this much.
+   * \param[in] num_waypoints Number of waypoints in the trajectory.
+   * \param[in] num_dof Degrees of freedom in the manipulator.
+   * \param[in] move_group_idx For accessing the joints of interest out of the full RobotState.
+   * \param[in] original_trajectory Durations are extended based on the data in this original trajectory.
+   * \param[in, out] trajectory This trajectory will be returned with modified waypoint durations.
+   */
+  static void extendTrajectoryDuration(const double duration_extension_factor, size_t num_waypoints,
+                                       const size_t num_dof, const std::vector<int>& move_group_idx,
+                                       const robot_trajectory::RobotTrajectory& original_trajectory,
+                                       robot_trajectory::RobotTrajectory& trajectory);
 };
 }  // namespace trajectory_processing
