@@ -4,6 +4,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/pybind_rosmsg_typecasters.cpp
 )
 add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
+target_include_directories(${MOVEIT_LIB_NAME} SYSTEM PRIVATE ${PYTHON_INCLUDE_DIRS} ${pybind11_INCLUDE_DIRS})
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} pybind11::module)
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
