@@ -938,7 +938,7 @@ void cleanCollisionGeometryCache()
 void CollisionData::enableGroup(const moveit::core::RobotModelConstPtr& robot_model)
 {
   if (robot_model->hasJointModelGroup(req_->group_name))
-    active_components_only_ = &robot_model->getJointModelGroup(req_->group_name)->getUpdatedLinkModelsSet();
+    active_components_only_ = &robot_model->getJointModelGroup(req_->group_name)->getUpdatedLinkModelsWithGeometrySet();
   else
     active_components_only_ = nullptr;
 }
