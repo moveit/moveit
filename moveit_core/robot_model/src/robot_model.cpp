@@ -987,9 +987,9 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
           angular_distance_weight = std::stod(property.value_, &sz);
           if (sz != property.value_.size())
           {
-            ROS_WARN_STREAM_NAMED(LOGNAME, "Extra characters after property " << property.property_name_ << " for joint "
-                                                                              << property.joint_name_ << " as double: '"
-                                                                              << property.value_.substr(sz) << "'");
+            ROS_WARN_STREAM_NAMED(LOGNAME, "Extra characters after property "
+                                               << property.property_name_ << " for joint " << property.joint_name_
+                                               << " as double: '" << property.value_.substr(sz) << "'");
           }
         }
         catch (const std::invalid_argument& e)
@@ -1010,17 +1010,15 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
         }
         else
         {
-          ROS_ERROR_NAMED(LOGNAME, "Cannot apply property %s to joint type: %s",
-                                   property.property_name_.c_str(),
-                                   new_joint_model->getTypeName().c_str());
+          ROS_ERROR_NAMED(LOGNAME, "Cannot apply property %s to joint type: %s", property.property_name_.c_str(),
+                          new_joint_model->getTypeName().c_str());
         }
       }
       else if (property.property_name_ == "motion_model")
       {
         if (new_joint_model->getType() != JointModel::JointType::PLANAR)
         {
-          ROS_ERROR_NAMED(LOGNAME, "Cannot apply property %s to joint type: %s",
-                          property.property_name_.c_str(),
+          ROS_ERROR_NAMED(LOGNAME, "Cannot apply property %s to joint type: %s", property.property_name_.c_str(),
                           new_joint_model->getTypeName().c_str());
           continue;
         }
@@ -1037,8 +1035,8 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
         else
         {
           ROS_ERROR_STREAM_NAMED(LOGNAME, "Unknown value for property " << property.property_name_ << " ("
-                                                                        << property.joint_name_ << "): '" << property.value_
-                                                                        << "'");
+                                                                        << property.joint_name_ << "): '"
+                                                                        << property.value_ << "'");
           ROS_ERROR_NAMED(LOGNAME, "Valid values are 'holonomic' and 'diff_drive'");
           continue;
         }
@@ -1049,8 +1047,7 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
       {
         if (new_joint_model->getType() != JointModel::JointType::PLANAR)
         {
-          ROS_ERROR_NAMED(LOGNAME, "Cannot apply property %s to joint type: %s",
-                          property.property_name_.c_str(),
+          ROS_ERROR_NAMED(LOGNAME, "Cannot apply property %s to joint type: %s", property.property_name_.c_str(),
                           new_joint_model->getTypeName().c_str());
           continue;
         }
@@ -1061,17 +1058,15 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
           min_translational_distance = std::stod(property.value_, &sz);
           if (sz != property.value_.size())
           {
-            ROS_WARN_STREAM_NAMED(LOGNAME, "Extra characters after property " << property.property_name_ << " for joint "
-                                                                       << property.joint_name_ << " as double: '"
-                                                                       << property.value_.substr(sz) << "'");
+            ROS_WARN_STREAM_NAMED(LOGNAME, "Extra characters after property "
+                                               << property.property_name_ << " for joint " << property.joint_name_
+                                               << " as double: '" << property.value_.substr(sz) << "'");
           }
         }
         catch (const std::invalid_argument& e)
         {
           ROS_ERROR_NAMED(LOGNAME, "Unable to parse property %s for joint %s as double: '%s'",
-                          property.property_name_.c_str(),
-                          property.joint_name_.c_str(),
-                          property.value_.c_str());
+                          property.property_name_.c_str(), property.joint_name_.c_str(), property.value_.c_str());
           continue;
         }
 
