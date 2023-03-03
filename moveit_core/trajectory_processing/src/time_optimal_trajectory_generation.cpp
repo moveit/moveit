@@ -1026,4 +1026,22 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
 
   return true;
 }
+
+bool TimeOptimalTrajectoryGeneration::computeTimeStamps(
+    const std::vector<robot_trajectory::RobotTrajectory>& input_trajs, robot_trajectory::RobotTrajectory& output_traj,
+    const double max_velocity_scaling_factor, const double max_acceleration_scaling_factor) const
+{
+  if (input_trajs.empty())
+  {
+    return false;
+  }
+
+  output_traj.clear();
+  for (const robot_trajectory::RobotTrajectory& traj : input_trajs)
+  {
+    output_traj.append(traj, 0.1 /* dt doesn't matter, will be overwritten*/);
+  }
+
+  return computeTimeStamps(output_traj, max_velocity_scaling_factor, max_acceleration_scaling_factor);
+}
 }  // namespace trajectory_processing

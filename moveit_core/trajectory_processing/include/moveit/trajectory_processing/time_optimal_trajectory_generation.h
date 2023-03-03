@@ -167,8 +167,27 @@ public:
   TimeOptimalTrajectoryGeneration(const double path_tolerance = 0.1, const double resample_dt = 0.1,
                                   const double min_angle_change = 0.001);
 
+  /** @brief Compute velocities and accelerations along the input path. Assumes the robot starts and ends
+      at rest.
+      @param[in,out] trajectory Waypoints are taken as the input path. Velocities and accelerations are filled for output.
+      @param max_velocity_scaling_factor A factor in the range (0, 1]
+      @param max_acceleration_scaling_factor A factor in the range (0, 1]
+      @return true if successful
+   */
   bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory, const double max_velocity_scaling_factor = 1.0,
                          const double max_acceleration_scaling_factor = 1.0) const override;
+
+  /** @brief Combine the waypoints from several trajectories into one longer path, then compute velocities and
+      accelerations. Assumes the robot starts and ends at rest.
+      @param input_trajs Waypoints are combined as the input path.
+      @param max_velocity_scaling_factor A factor in the range (0, 1]
+      @param max_acceleration_scaling_factor A factor in the range (0, 1]
+      @param[out] output_traj Output trajectory, with velocities and accelerations filled.
+      @return true if successful
+   */
+  bool computeTimeStamps(const std::vector<robot_trajectory::RobotTrajectory>& input_trajs,
+                         robot_trajectory::RobotTrajectory& output_traj, const double max_velocity_scaling_factor = 1.0,
+                         const double max_acceleration_scaling_factor = 1.0) const;
 
 private:
   const double path_tolerance_;
