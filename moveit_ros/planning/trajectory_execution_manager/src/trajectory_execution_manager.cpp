@@ -819,8 +819,8 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
 {
   if (trajectory.multi_dof_joint_trajectory.points.empty() &&
       (trajectory.joint_trajectory.points.empty() ||
-       trajectory.joint_trajectory.header.stamp + trajectory.joint_trajectory.points.back().time_from_start ==
-           ros::Time()))
+       // zero-duration trajectory (start-time stamp + overall duration == 0) causes controller issues
+       (trajectory.joint_trajectory.header.stamp + trajectory.joint_trajectory.points.back().time_from_start).isZero()))
   {
     // empty trajectories don't need to configure anything
     return true;
