@@ -817,7 +817,10 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
                                            const moveit_msgs::RobotTrajectory& trajectory,
                                            const std::vector<std::string>& controllers)
 {
-  if (trajectory.multi_dof_joint_trajectory.points.empty() && trajectory.joint_trajectory.points.empty())
+  if (trajectory.multi_dof_joint_trajectory.points.empty() &&
+      (trajectory.joint_trajectory.points.empty() ||
+       trajectory.joint_trajectory.header.stamp + trajectory.joint_trajectory.points.back().time_from_start ==
+           ros::Time()))
   {
     // empty trajectories don't need to configure anything
     return true;
