@@ -817,11 +817,18 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
                                            const moveit_msgs::RobotTrajectory& trajectory,
                                            const std::vector<std::string>& controllers)
 {
+  // empty trajectories don't need to configure anything
   if (trajectory.multi_dof_joint_trajectory.points.empty() && trajectory.joint_trajectory.points.empty())
+    return true;
+
+  // zero-duration trajectory (start-time stamp + overall duration == 0) causes controller issues
+  if ((trajectory.joint_trajectory.header.stamp + trajectory.joint_trajectory.points.back().time_from_start).isZero())
   {
-    // empty trajectories don't need to configure anything
+    // https://github.com/ros-planning/moveit/pull/3362
+    ROS_DEBUG_STREAM_NAMED(LOGNAME, "Skipping zero-duration trajectory");
     return true;
   }
+
   std::set<std::string> actuated_joints;
 
   auto is_actuated = [this](const std::string& joint_name) -> bool {
