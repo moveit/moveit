@@ -199,7 +199,7 @@ const std::map<std::string, planning_pipeline::PlanningPipelinePtr>& MoveItCpp::
   return planning_pipelines_;
 }
 
-const planning_scene_monitor::PlanningSceneMonitorPtr& MoveItCpp::getPlanningSceneMonitor() const
+planning_scene_monitor::PlanningSceneMonitorConstPtr MoveItCpp::getPlanningSceneMonitor() const
 {
   return planning_scene_monitor_;
 }
@@ -209,7 +209,7 @@ planning_scene_monitor::PlanningSceneMonitorPtr MoveItCpp::getPlanningSceneMonit
   return planning_scene_monitor_;
 }
 
-const trajectory_execution_manager::TrajectoryExecutionManagerPtr& MoveItCpp::getTrajectoryExecutionManager() const
+trajectory_execution_manager::TrajectoryExecutionManagerConstPtr MoveItCpp::getTrajectoryExecutionManager() const
 {
   return trajectory_execution_manager_;
 }
@@ -268,7 +268,11 @@ bool MoveItCpp::terminatePlanningPipeline(std::string const& pipeline_name)
   }
 }
 
-const std::shared_ptr<tf2_ros::Buffer>& MoveItCpp::getTFBuffer() const
+std::shared_ptr<const tf2_ros::Buffer> MoveItCpp::getTFBuffer() const
+{
+  return tf_buffer_;
+}
+std::shared_ptr<tf2_ros::Buffer> MoveItCpp::getTFBuffer()
 {
   return tf_buffer_;
 }
