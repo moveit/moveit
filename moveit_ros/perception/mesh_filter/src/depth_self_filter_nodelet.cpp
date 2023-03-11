@@ -123,7 +123,7 @@ void mesh_filter::DepthSelfFiltering::filter(const sensor_msgs::ImageConstPtr& d
     data[idx] = (unsigned short)(src[idx] * 1000.0);
 
   mesh_filter_->filter(data, GL_UNSIGNED_SHORT);
-  // delete[] data;
+  delete[] data;
   /*/
   mesh_filter_->filter ((void*) &depth_msg->data[0], GL_FLOAT);
   //*/
