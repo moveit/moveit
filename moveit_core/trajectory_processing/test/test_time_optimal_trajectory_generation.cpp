@@ -243,17 +243,17 @@ TEST(time_optimal_trajectory_generation, testPluginAPI)
 
   robot_trajectory::RobotTrajectory trajectory(robot_model, group);
   waypoint_state.setJointGroupPositions(group, std::vector<double>{ -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
-  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1 /* dt: will be overwritten */);
   waypoint_state.setJointGroupPositions(group, std::vector<double>{ -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
-  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1 /* dt: will be overwritten */);
   waypoint_state.setJointGroupPositions(group, std::vector<double>{ 0.0, -3.5, 1.4, -1.2, -1.0, -0.2, 0.0 });
-  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1 /* dt: will be overwritten */);
   waypoint_state.setJointGroupPositions(group, std::vector<double>{ -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
-  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1 /* dt: will be overwritten */);
   waypoint_state.setJointGroupPositions(group, std::vector<double>{ 0.0, -3.5, 1.4, -1.2, -1.0, -0.2, 0.0 });
-  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1 /* dt: will be overwritten */);
   waypoint_state.setJointGroupPositions(group, std::vector<double>{ -0.5, -3.52, 1.35, -2.51, -0.88, 0.63, 0.0 });
-  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1 /* dt: will be overwritten */);
 
   // Number TOTG iterations
   constexpr size_t totg_iterations = 10;
@@ -346,6 +346,51 @@ TEST(time_optimal_trajectory_generation, testPluginAPI)
 
   // Make sure trajectories produce equal waypoints independent of TOTG instances
   ASSERT_EQ(first_trajectory_msg_end, third_trajectory_msg_end);
+}
+
+TEST(time_optimal_trajectory_generation, testSubTrajectoryCombination)
+{
+  // Create two paths and test their combination
+
+  constexpr auto robot_name{ "panda" };
+  constexpr auto group_name{ "panda_arm" };
+
+  auto robot_model = moveit::core::loadTestingRobotModel(robot_name);
+  ASSERT_TRUE((bool)robot_model) << "Failed to load robot model" << robot_name;
+  auto group = robot_model->getJointModelGroup(group_name);
+  ASSERT_TRUE((bool)group) << "Failed to load joint model group " << group_name;
+  moveit::core::RobotState waypoint_state(robot_model);
+  waypoint_state.setToDefaultValues();
+
+  robot_trajectory::RobotTrajectory trajectory1(robot_model, group);
+  waypoint_state.setJointGroupPositions(group, std::vector<double>{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 });
+  trajectory1.addSuffixWayPoint(waypoint_state, 0.1 /* dt: will be overwritten */);
+  waypoint_state.setJointGroupPositions(group, std::vector<double>{ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 });
+  trajectory1.addSuffixWayPoint(waypoint_state, 0.1 /* dt: will be overwritten */);
+
+  robot_trajectory::RobotTrajectory trajectory2(robot_model, group);
+  waypoint_state.setJointGroupPositions(group, std::vector<double>{ 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2 });
+  trajectory2.addSuffixWayPoint(waypoint_state, 0.1 /* dt: will be overwritten */);
+  waypoint_state.setJointGroupPositions(group, std::vector<double>{ 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3 });
+  trajectory2.addSuffixWayPoint(waypoint_state, 0.1 /* dt: will be overwritten */);
+
+  std::vector<robot_trajectory::RobotTrajectory> input_trajs{ trajectory1, trajectory2 };
+  robot_trajectory::RobotTrajectory output_traj(robot_model, group);
+
+  TimeOptimalTrajectoryGeneration totg;
+  ASSERT_TRUE(totg.computeTimeStamps(input_trajs, output_traj)) << "Failed to compute time stamps";
+
+  const std::vector<std::string>& joint_names = robot_model->getVariableNames();
+  const moveit::core::RobotState& first_waypoint = output_traj.getWayPoint(0);
+  // Spot check a few joints
+  EXPECT_NEAR(0.0, first_waypoint.getVariablePosition(joint_names.at(1)), 1e-4);
+  EXPECT_NEAR(0.0, first_waypoint.getVariablePosition(joint_names.at(2)), 1e-4);
+  const moveit::core::RobotState& last_waypoint = output_traj.getLastWayPoint();
+  EXPECT_NEAR(0.3, last_waypoint.getVariablePosition(joint_names.at(0)), 1e-4);
+  EXPECT_NEAR(0.3, last_waypoint.getVariablePosition(joint_names.at(6)), 1e-4);
+  EXPECT_GT(output_traj.getDuration(), 0);
+  EXPECT_LT(output_traj.getDuration(), 10);
+  EXPECT_GT(output_traj.getWayPointCount(), size_t(3));
 }
 
 int main(int argc, char** argv)
