@@ -113,20 +113,20 @@ void mesh_filter::DepthSelfFiltering::filter(const sensor_msgs::ImageConstPtr& d
   params.setCameraParameters(info_msg->K[0], info_msg->K[4], info_msg->K[2], info_msg->K[5]);
   params.setImageSize(depth_msg->width, depth_msg->height);
 
-  const float* src = (const float*)&depth_msg->data[0];
-  //*
-  static unsigned data_size = 0;
-  static unsigned short* data = nullptr;
-  if (data_size < depth_msg->width * depth_msg->height)
-    data = new unsigned short[depth_msg->width * depth_msg->height];
-  for (unsigned idx = 0; idx < depth_msg->width * depth_msg->height; ++idx)
-    data[idx] = (unsigned short)(src[idx] * 1000.0);
+  const float* src = reinterpret_cast<const float*>(depth_msg->data.data());
+  const size_t size = depth_msg->width * depth_msg->height;
 
-  mesh_filter_->filter(data, GL_UNSIGNED_SHORT);
-  delete[] data;
-  /*/
-  mesh_filter_->filter ((void*) &depth_msg->data[0], GL_FLOAT);
-  //*/
+  static size_t data_capacity = 0;
+  static std::unique_ptr<unsigned short[]> data;
+  if (data_capacity < size)
+  {
+    data_capacity = size;
+    data = std::make_unique<unsigned short[]>(size);
+  }
+  // scale data by factor 1000 and convert from float to unsigned short
+  std::transform(src, src + size, data.get(), [](float value) { return value * 1000; });
+  mesh_filter_->filter(data.get(), GL_UNSIGNED_SHORT);
+
   if (pub_filtered_depth_image_.getNumSubscribers() > 0)
   {
     filtered_depth_ptr_->encoding = sensor_msgs::image_encodings::TYPE_32FC1;
