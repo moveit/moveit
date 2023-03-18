@@ -115,15 +115,8 @@ void mesh_filter::DepthSelfFiltering::filter(const sensor_msgs::ImageConstPtr& d
 
   const float* src = reinterpret_cast<const float*>(depth_msg->data.data());
   const size_t size = depth_msg->width * depth_msg->height;
-
-  static size_t data_capacity = 0;
-  static std::unique_ptr<unsigned short[]> data;
-  if (data_capacity < size)
-  {
-    data_capacity = size;
-    data = std::make_unique<unsigned short[]>(size);
-  }
   // scale data by factor 1000 and convert from float to unsigned short
+  auto data = std::make_unique<unsigned short[]>(size);
   std::transform(src, src + size, data.get(), [](float value) { return value * 1000; });
   mesh_filter_->filter(data.get(), GL_UNSIGNED_SHORT);
 
