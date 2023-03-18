@@ -116,9 +116,9 @@ void mesh_filter::DepthSelfFiltering::filter(const sensor_msgs::ImageConstPtr& d
   const float* src = reinterpret_cast<const float*>(depth_msg->data.data());
   const size_t size = depth_msg->width * depth_msg->height;
   // scale data by factor 1000 and convert from float to unsigned short
-  auto data = std::make_unique<unsigned short[]>(size);
-  std::transform(src, src + size, data.get(), [](float value) { return value * 1000; });
-  mesh_filter_->filter(data.get(), GL_UNSIGNED_SHORT);
+  Eigen::Array<unsigned short, Eigen::Dynamic, 1> data =
+      (1000. * Eigen::Map<const Eigen::Array<float, Eigen::Dynamic, 1>>(src, size)).cast<unsigned short>();
+  mesh_filter_->filter(&data[0], GL_UNSIGNED_SHORT);
 
   if (pub_filtered_depth_image_.getNumSubscribers() > 0)
   {
