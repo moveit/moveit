@@ -46,14 +46,33 @@ namespace trajectory_processing
 class RuckigSmoothing
 {
 public:
+  /**
+   * \brief Apply jerk-limited smoothing to a trajectory
+   * \param max_velocity_scaling_factor Scale all joint velocity limits by this factor. Usually 1.0.
+   * \param max_acceleration_scaling_factor Scale all joint acceleration limits by this factor. Usually 1.0.
+   * \param mitigate_overshoot If true, overshoot is mitigated by extending trajectory duration.
+   * \param overshoot_threshold If an overshoot is greater than this, duration is extended (radians, for a single joint)
+   * \return true if successful.
+   */
   static bool applySmoothing(robot_trajectory::RobotTrajectory& trajectory,
                              const double max_velocity_scaling_factor = 1.0,
-                             const double max_acceleration_scaling_factor = 1.0);
+                             const double max_acceleration_scaling_factor = 1.0, const bool mitigate_overshoot = false,
+                             const double overshoot_threshold = 0.01);
 
+  /**
+   * \brief Apply jerk-limited smoothing to a trajectory
+   * \param velocity_limits Joint names and velocity limits in rad/s
+   * \param acceleration_limits Joint names and acceleration limits in rad/s^2
+   * \param jerk_limits Joint names and jerk limits in rad/s^3
+   * \param mitigate_overshoot If true, overshoot is mitigated by extending trajectory duration.
+   * \param overshoot_threshold If an overshoot is greater than this, duration is extended (radians, for a single joint)
+   * \return true if successful.
+   */
   static bool applySmoothing(robot_trajectory::RobotTrajectory& trajectory,
                              const std::unordered_map<std::string, double>& velocity_limits,
                              const std::unordered_map<std::string, double>& acceleration_limits,
-                             const std::unordered_map<std::string, double>& jerk_limits);
+                             const std::unordered_map<std::string, double>& jerk_limits,
+                             const bool mitigate_overshoot = false, const double overshoot_threshold = 0.01);
 
 private:
   /**
@@ -95,8 +114,7 @@ private:
    */
   static void initializeRuckigState(const moveit::core::RobotState& first_waypoint,
                                     const moveit::core::JointModelGroup* joint_group,
-                                    ruckig::InputParameter<ruckig::DynamicDOFs>& ruckig_input,
-                                    ruckig::OutputParameter<ruckig::DynamicDOFs>& ruckig_output);
+                                    ruckig::InputParameter<ruckig::DynamicDOFs>& ruckig_input);
 
   /**
    * \brief Break the `trajectory` parameter into batches of reasonable size (~100), run Ruckig on each of them, then
@@ -118,9 +136,12 @@ private:
    * \brief A utility function to instantiate and run Ruckig for a series of waypoints.
    * \param[in, out] trajectory      Trajectory to smooth.
    * \param[in, out] ruckig_input    Necessary input for Ruckig smoothing. Contains kinematic limits (vel, accel, jerk)
+   * \param mitigate_overshoot If true, overshoot is mitigated by extending trajectory duration.
+   * \param overshoot_threshold If an overshoot is greater than this, duration is extended (radians, for a single joint)
    */
   [[nodiscard]] static bool runRuckig(robot_trajectory::RobotTrajectory& trajectory,
-                                      ruckig::InputParameter<ruckig::DynamicDOFs>& ruckig_input);
+                                      ruckig::InputParameter<ruckig::DynamicDOFs>& ruckig_input,
+                                      const bool mitigate_overshoot = false, const double overshoot_threshold = 0.01);
 
   /**
    * \brief Extend the duration of every trajectory segment
@@ -135,5 +156,10 @@ private:
                                        const size_t num_dof, const std::vector<int>& move_group_idx,
                                        const robot_trajectory::RobotTrajectory& original_trajectory,
                                        robot_trajectory::RobotTrajectory& trajectory);
+
+  /** \brief Check if a trajectory out of Ruckig overshoots the target state */
+  static bool checkOvershoot(ruckig::Trajectory<ruckig::DynamicDOFs, ruckig::StandardVector>& ruckig_trajectory,
+                             const size_t num_dof, ruckig::InputParameter<ruckig::DynamicDOFs>& ruckig_input,
+                             const double overshoot_threshold);
 };
 }  // namespace trajectory_processing
