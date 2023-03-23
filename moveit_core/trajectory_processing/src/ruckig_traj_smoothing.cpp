@@ -282,13 +282,15 @@ bool RuckigSmoothing::runRuckig(robot_trajectory::RobotTrajectory& trajectory,
   ruckig::Result ruckig_result;
   double duration_extension_factor = 1;
   bool smoothing_complete = false;
+  size_t waypoint_idx = 0;
   while ((duration_extension_factor <= MAX_DURATION_EXTENSION_FACTOR) && !smoothing_complete)
   {
-    for (size_t waypoint_idx = 0; waypoint_idx < num_waypoints - 1; ++waypoint_idx)
+    while (waypoint_idx < num_waypoints - 1)
     {
+      moveit::core::RobotStatePtr curr_waypoint = trajectory.getWayPointPtr(waypoint_idx);
       moveit::core::RobotStatePtr next_waypoint = trajectory.getWayPointPtr(waypoint_idx + 1);
 
-      getNextRuckigInput(trajectory.getWayPointPtr(waypoint_idx), next_waypoint, group, ruckig_input);
+      getNextRuckigInput(curr_waypoint, next_waypoint, group, ruckig_input);
 
       // Run Ruckig
       ruckig_result = ruckig.update(ruckig_input, ruckig_output);
@@ -318,17 +320,16 @@ bool RuckigSmoothing::runRuckig(robot_trajectory::RobotTrajectory& trajectory,
       if (ruckig_result != ruckig::Result::Working && ruckig_result != ruckig::Result::Finished)
       {
         duration_extension_factor *= DURATION_EXTENSION_FRACTION;
-        // Reset the trajectory
-        trajectory = robot_trajectory::RobotTrajectory(original_trajectory, true /* deep copy */);
 
         const std::vector<int>& move_group_idx = group->getVariableIndexList();
-        extendTrajectoryDuration(duration_extension_factor, num_waypoints, num_dof, move_group_idx, trajectory,
+        extendTrajectoryDuration(duration_extension_factor, waypoint_idx, num_dof, move_group_idx, trajectory,
                                  original_trajectory);
 
         initializeRuckigState(*trajectory.getFirstWayPointPtr(), group, ruckig_input, ruckig_output);
-        // Begin the for() loop again
+        // Continue the loop from failed segment, but with increased duration extension factor
         break;
       }
+      ++waypoint_idx;
     }
   }
 
@@ -347,31 +348,29 @@ bool RuckigSmoothing::runRuckig(robot_trajectory::RobotTrajectory& trajectory,
   return true;
 }
 
-void RuckigSmoothing::extendTrajectoryDuration(const double duration_extension_factor, size_t num_waypoints,
+void RuckigSmoothing::extendTrajectoryDuration(const double duration_extension_factor, size_t waypoint_idx,
                                                const size_t num_dof, const std::vector<int>& move_group_idx,
                                                const robot_trajectory::RobotTrajectory& original_trajectory,
                                                robot_trajectory::RobotTrajectory& trajectory)
 {
-  for (size_t time_stretch_idx = 1; time_stretch_idx < num_waypoints; ++time_stretch_idx)
-  {
-    trajectory.setWayPointDurationFromPrevious(
-        time_stretch_idx,
-        duration_extension_factor * original_trajectory.getWayPointDurationFromPrevious(time_stretch_idx));
-    // re-calculate waypoint velocity and acceleration
-    auto target_state = trajectory.getWayPointPtr(time_stretch_idx);
-    const auto prev_state = trajectory.getWayPointPtr(time_stretch_idx - 1);
-    double timestep = trajectory.getAverageSegmentDuration();
-    for (size_t joint = 0; joint < num_dof; ++joint)
-    {
-      target_state->setVariableVelocity(move_group_idx.at(joint),
-                                        (1 / duration_extension_factor) *
-                                            target_state->getVariableVelocity(move_group_idx.at(joint)));
+  trajectory.setWayPointDurationFromPrevious(waypoint_idx + 1,
+                                             duration_extension_factor *
+                                                 original_trajectory.getWayPointDurationFromPrevious(waypoint_idx + 1));
+  // re-calculate waypoint velocity and acceleration
+  auto target_state = trajectory.getWayPointPtr(waypoint_idx + 1);
+  const auto prev_state = trajectory.getWayPointPtr(waypoint_idx);
 
-      double prev_velocity = prev_state->getVariableVelocity(move_group_idx.at(joint));
-      double curr_velocity = target_state->getVariableVelocity(move_group_idx.at(joint));
-      target_state->setVariableAcceleration(move_group_idx.at(joint), (curr_velocity - prev_velocity) / timestep);
-    }
-    target_state->update();
+  double timestep = trajectory.getWayPointDurationFromPrevious(waypoint_idx + 1);
+
+  for (size_t joint = 0; joint < num_dof; ++joint)
+  {
+    target_state->setVariableVelocity(move_group_idx.at(joint),
+                                      (1 / duration_extension_factor) *
+                                          target_state->getVariableVelocity(move_group_idx.at(joint)));
+
+    double prev_velocity = prev_state->getVariableVelocity(move_group_idx.at(joint));
+    double curr_velocity = target_state->getVariableVelocity(move_group_idx.at(joint));
+    target_state->setVariableAcceleration(move_group_idx.at(joint), (curr_velocity - prev_velocity) / timestep);
   }
 }
 
