@@ -908,8 +908,14 @@ void MotionPlanningFrame::populateCollisionObjectsList(planning_scene_monitor::L
 
   {
     QSignalBlocker block(ui_->collision_objects_list);
+
+    QString current_item_text;  // remember current item to restore it later
+    if (auto* item = ui_->collision_objects_list->currentItem())
+      current_item_text = item->text();
+    QListWidgetItem* current_item = nullptr;
+
+    std::set<std::string> to_select;  // remember current selections to restore it later
     QList<QListWidgetItem*> sel = ui_->collision_objects_list->selectedItems();
-    std::set<std::string> to_select;
     for (QListWidgetItem* item : sel)
       to_select.insert(item->text().toStdString());
     ui_->collision_objects_list->clear();
@@ -929,6 +935,8 @@ void MotionPlanningFrame::populateCollisionObjectsList(planning_scene_monitor::L
         QListWidgetItem* item = addCollisionObjectToList(name, ui_->collision_objects_list->count(), false);
         if (to_select.find(name) != to_select.end())
           item->setSelected(true);
+        if (!current_item && !current_item_text.isEmpty() && item->text() == current_item_text)
+          current_item = item;
       }
 
       std::vector<const moveit::core::AttachedBody*> attached_bodies;
@@ -940,6 +948,7 @@ void MotionPlanningFrame::populateCollisionObjectsList(planning_scene_monitor::L
           item->setSelected(true);
       }
     }
+    ui_->collision_objects_list->setCurrentItem(current_item);
   }
 
   ui_->clear_octomap_button->setEnabled(octomap_in_scene);
