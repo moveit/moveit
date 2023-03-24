@@ -70,64 +70,50 @@ TEST(PlanningScene, LoadOctomap)
   srdf::ModelSharedPtr srdf_model(new srdf::Model());
   planning_scene::PlanningScene ps(urdf_model, srdf_model);
 
-  {
-    // check octomap before doing any operations on it
-    octomap_msgs::OctomapWithPose octomap_msg;
-    ps.getOctomapMsg(octomap_msg);
-    EXPECT_FALSE(octomap_msg.octomap.id.empty());
-    EXPECT_TRUE(octomap_msg.octomap.data.empty());
+  {  // check octomap before doing any operations on it
+    octomap_msgs::OctomapWithPose msg;
+    ps.getOctomapMsg(msg);
+    EXPECT_TRUE(msg.octomap.id.empty());
+    EXPECT_TRUE(msg.octomap.data.empty());
   }
 
-  {
-    // set octomap to something
-
-    // create octomap by hand
+  {  // fill PlanningScene's octomap
     octomap::OcTree octomap(0.1);
     octomap::point3d origin(0, 0, 0);
     octomap::point3d end(0, 1, 2);
     octomap.insertRay(origin, end);
 
-    // create planning scene
-    moveit_msgs::PlanningScene ps_msg;
-    ps_msg.is_diff = true;
-    octomap_msgs::fullMapToMsg(octomap, ps_msg.world.octomap.octomap);
+    // populate PlanningScene with octomap
+    moveit_msgs::PlanningScene msg;
+    msg.is_diff = true;
+    octomap_msgs::fullMapToMsg(octomap, msg.world.octomap.octomap);
+    ps.setPlanningSceneDiffMsg(msg);
 
-    ps.setPlanningSceneDiffMsg(ps_msg);
+    // validate octomap message
     octomap_msgs::OctomapWithPose octomap_msg;
     ps.getOctomapMsg(octomap_msg);
     EXPECT_EQ(octomap_msg.octomap.id, "OcTree");
-    EXPECT_EQ(octomap_msg.octomap.data.size(), ps_msg.world.octomap.octomap.data.size());
+    EXPECT_EQ(octomap_msg.octomap.data.size(), msg.world.octomap.octomap.data.size());
   }
 
-  {
-    // verify that setting planning scene with octomap id empty does not modify octomap
-
+  {  // verify that a PlanningScene msg with an empty octomap id does not modify the octomap
     // create planning scene
-    moveit_msgs::PlanningScene ps_msg;
-    ps_msg.is_diff = true;
-    ps_msg.world.octomap.octomap.id = "";
+    moveit_msgs::PlanningScene msg;
+    msg.is_diff = true;
+    ps.setPlanningSceneDiffMsg(msg);
 
-    ps.setPlanningSceneDiffMsg(ps_msg);
     octomap_msgs::OctomapWithPose octomap_msg;
     ps.getOctomapMsg(octomap_msg);
     EXPECT_EQ(octomap_msg.octomap.id, "OcTree");
     EXPECT_FALSE(octomap_msg.octomap.data.empty());
   }
 
-  {
-    // zero/clear/unset octomap
-    moveit_msgs::PlanningScene ps_msg;
-    ps_msg.is_diff = true;
-
-    // create empty octomap
-    octomap::OcTree octomap(0.1);
-    octomap_msgs::fullMapToMsg(octomap, ps_msg.world.octomap.octomap);
-
-    ps.setPlanningSceneDiffMsg(ps_msg);
-    octomap_msgs::OctomapWithPose octomap_msg;
-    ps.getOctomapMsg(octomap_msg);
-    EXPECT_EQ(octomap_msg.octomap.id, "empty");
-    EXPECT_TRUE(octomap_msg.octomap.data.empty());
+  {  // check that a non-empty octomap id, but empty octomap will clear the octomap
+    moveit_msgs::PlanningScene msg;
+    msg.is_diff = true;
+    msg.world.octomap.octomap.id = "xxx";
+    ps.setPlanningSceneDiffMsg(msg);
+    EXPECT_FALSE(static_cast<bool>(ps.getWorld()->getObject(planning_scene::PlanningScene::OCTOMAP_NS)));
   }
 }
 
