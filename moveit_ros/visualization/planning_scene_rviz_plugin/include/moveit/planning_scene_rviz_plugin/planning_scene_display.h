@@ -128,8 +128,7 @@ private Q_SLOTS:
   void changedSceneColor();
   void changedPlanningSceneTopic();
   void changedSceneDisplayTime();
-  void changedOctreeRenderMode();
-  void changedOctreeColorMode();
+  void changedOctreeRendering();
   void setSceneName(const QString& name);
 
 protected Q_SLOTS:
