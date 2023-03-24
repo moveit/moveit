@@ -682,7 +682,12 @@ void PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_ms
     for (const std::pair<const std::string, collision_detection::World::Action>& it : *world_diff_)
     {
       if (it.first == OCTOMAP_NS)
-        do_omap = true;
+      {
+        if (it.second == collision_detection::World::DESTROY)
+          scene_msg.world.octomap.octomap.id = "cleared";  // indicate cleared octomap
+        else
+          do_omap = true;
+      }
       else if (it.second == collision_detection::World::DESTROY)
       {
         // if object became attached, it should not be recorded as removed here
@@ -1305,7 +1310,7 @@ bool PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene& sc
     result &= processCollisionObjectMsg(collision_object);
 
   // if an octomap was specified, replace the one we have with that one
-  if (!scene_msg.world.octomap.octomap.data.empty())
+  if (!scene_msg.world.octomap.octomap.id.empty())
     processOctomapMsg(scene_msg.world.octomap);
 
   return result;
