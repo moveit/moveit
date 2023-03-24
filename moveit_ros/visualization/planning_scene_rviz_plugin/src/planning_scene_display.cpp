@@ -538,7 +538,7 @@ void PlanningSceneDisplay::loadRobotModel()
     planning_scene_monitor_.swap(psm);
     planning_scene_monitor_->addUpdateCallback(
         [this](planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType type) {
-          sceneMonitorReceivedUpdate(type);
+          onSceneMonitorReceivedUpdate(type);
         });
     addMainLoopJob([this] { onRobotModelLoaded(); });
     waitForAllMainLoopJobs();
@@ -574,12 +574,6 @@ void PlanningSceneDisplay::onRobotModelLoaded()
 
 void PlanningSceneDisplay::onNewPlanningSceneState()
 {
-}
-
-void PlanningSceneDisplay::sceneMonitorReceivedUpdate(
-    planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
-{
-  onSceneMonitorReceivedUpdate(update_type);
 }
 
 void PlanningSceneDisplay::onSceneMonitorReceivedUpdate(
