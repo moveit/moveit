@@ -128,8 +128,7 @@ private Q_SLOTS:
   void changedSceneColor();
   void changedPlanningSceneTopic();
   void changedSceneDisplayTime();
-  void changedOctreeRenderMode();
-  void changedOctreeColorMode();
+  void changedOctreeRendering();
   void setSceneName(const QString& name);
 
 protected Q_SLOTS:
@@ -159,7 +158,6 @@ protected:
   void calculateOffsetPosition();
 
   void executeMainLoopJobs();
-  void sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
   void renderPlanningScene();
   void setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor& color);
   void unsetLinkColor(rviz::Robot* robot, const std::string& link_name);

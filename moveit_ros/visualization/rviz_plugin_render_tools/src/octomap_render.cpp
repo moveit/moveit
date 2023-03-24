@@ -88,6 +88,11 @@ OcTreeRender::~OcTreeRender()
   {
     delete cloud_[i];
   }
+  if (scene_node_->getParentSceneNode())
+  {  // when parent scene was already removed, there is no need for this cleanup
+    scene_node_->getParentSceneNode()->removeChild(scene_node_);
+    delete scene_node_;
+  }
 }
 
 void OcTreeRender::setPosition(const Ogre::Vector3& position)
