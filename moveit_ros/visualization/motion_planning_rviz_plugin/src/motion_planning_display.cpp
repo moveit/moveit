@@ -49,7 +49,7 @@
 #include <rviz/properties/bool_property.h>
 #include <rviz/properties/float_property.h>
 #include <rviz/properties/ros_topic_property.h>
-#include <rviz/properties/editable_enum_property.h>
+#include <rviz/properties/enum_property.h>
 #include <rviz/properties/color_property.h>
 #include <rviz/display_context.h>
 #include <rviz/frame_manager.h>
@@ -124,9 +124,9 @@ MotionPlanningDisplay::MotionPlanningDisplay()
   // Planning request category -----------------------------------------------------------------------------------------
 
   planning_group_property_ =
-      new rviz::EditableEnumProperty("Planning Group", "",
-                                     "The name of the group of links to plan for (from the ones defined in the SRDF)",
-                                     plan_category_, SLOT(changedPlanningGroup()), this);
+      new rviz::EnumProperty("Planning Group", "",
+                             "The name of the group of links to plan for (from the ones defined in the SRDF)",
+                             plan_category_, SLOT(changedPlanningGroup()), this);
   show_workspace_property_ = new rviz::BoolProperty("Show Workspace", false,
                                                     "Shows the axis-aligned bounding box for "
                                                     "the workspace allowed for planning",
