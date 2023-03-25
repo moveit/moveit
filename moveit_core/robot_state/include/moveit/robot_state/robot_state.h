@@ -1378,8 +1378,12 @@ public:
    *
    * This behaves the same as RobotModel::getRigidlyConnectedParentLinkModel,
    * but can additionally resolve parents for attached objects / subframes.
+   *
+   * If transform is specified, return the relative transform from the returned parent link to frame.
    */
-  const moveit::core::LinkModel* getRigidlyConnectedParentLinkModel(const std::string& frame) const;
+  const moveit::core::LinkModel*
+  getRigidlyConnectedParentLinkModel(const std::string& frame, Eigen::Isometry3d* transform = nullptr,
+                                     const moveit::core::JointModelGroup* jmg = nullptr) const;
 
   /** \brief Get the link transform w.r.t. the root link (model frame) of the RobotModel.
    *   This is typically the root link of the URDF unless a virtual joint is present.

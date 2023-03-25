@@ -256,6 +256,9 @@ public:
 
   /** \brief Get the latest link upwards the kinematic tree, which is only connected via fixed joints
    *
+   * If jmg is given, all links that are not active in this JMG are considered fixed.
+   * Otherwise only fixed joints are considered fixed.
+   *
    * This is useful, if the link should be warped to a specific pose using updateStateWithLinkAt().
    * As updateStateWithLinkAt() warps only the specified link and its descendants, you might not
    * achieve what you expect, if link is an abstract frame name. Considering the following example:
@@ -265,7 +268,8 @@ public:
    * what you went for. Instead, updateStateWithLinkAt(getRigidlyConnectedParentLinkModel(grasp_frame), ...)
    * will actually warp wrist (and all its descendants).
    */
-  static const moveit::core::LinkModel* getRigidlyConnectedParentLinkModel(const LinkModel* link);
+  static const moveit::core::LinkModel* getRigidlyConnectedParentLinkModel(const LinkModel* link,
+                                                                           const JointModelGroup* jmg = nullptr);
 
   /** \brief Get the array of links  */
   const std::vector<const LinkModel*>& getLinkModels() const
