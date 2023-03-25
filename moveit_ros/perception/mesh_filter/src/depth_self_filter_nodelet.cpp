@@ -114,14 +114,14 @@ void mesh_filter::DepthSelfFiltering::filter(const sensor_msgs::ImageConstPtr& d
   params.setImageSize(depth_msg->width, depth_msg->height);
 
   // Handling of two possible encodings of a depth image: 16UC1 and 32FC1
-  if (depth_msg->encoding == "16UC1")
-  {
+  if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1)
     mesh_filter_->filter(depth_msg->data.data(), GL_UNSIGNED_SHORT);
-  }
+  else if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_32FC1)
+    mesh_filter_->filter(reinterpret_cast<const float*>(depth_msg->data.data()), GL_FLOAT);
   else
   {
-    const float* src = reinterpret_cast<const float*>(depth_msg->data.data());
-    mesh_filter_->filter(src, GL_FLOAT);
+    ROS_WARN_STREAM_THROTTLE(1.0, "Unsupported encoding of depth image: " << depth_msg->encoding);
+    return;
   }
 
   if (pub_filtered_depth_image_.getNumSubscribers() > 0)
