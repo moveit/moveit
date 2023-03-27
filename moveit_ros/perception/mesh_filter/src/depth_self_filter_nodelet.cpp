@@ -115,7 +115,11 @@ void mesh_filter::DepthSelfFiltering::filter(const sensor_msgs::ImageConstPtr& d
 
   // Handling of two possible encodings of a depth image: 16UC1 and 32FC1
   if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1)
+  {
+    ROS_WARN_STREAM_THROTTLE(1.0, "The input depth image is encoded in the deprecated 16UC1 format, please consider "
+                                  "converting it to 32FC1 according to ROS REP-118!");
     mesh_filter_->filter(depth_msg->data.data(), GL_UNSIGNED_SHORT);
+  }
   else if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_32FC1)
     mesh_filter_->filter(reinterpret_cast<const float*>(depth_msg->data.data()), GL_FLOAT);
   else
