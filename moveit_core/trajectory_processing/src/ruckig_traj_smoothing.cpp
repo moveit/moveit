@@ -253,8 +253,7 @@ bool RuckigSmoothing::getRobotModelBounds(const double max_velocity_scaling_fact
                        << " rad/s^2. You can define acceleration limits in the URDF or joint_limits.yaml.");
       ruckig_input.max_acceleration.at(i) = max_acceleration_scaling_factor * DEFAULT_MAX_ACCELERATION;
     }
-    // TODO(andyz): Add bounds.jerk_bounded_ for MoveIt1
-    // For now, we check for a jerk parameter
+    // Read jerk limits from parameters since bounds.jerk_bounded_ was never implemented for MoveIt1
     ros::NodeHandle nh;
     double jerk_limit = DEFAULT_MAX_JERK;
     std::string jerk_param = "ruckig/" + vars.at(i) + "/jerk_limit";
@@ -265,9 +264,10 @@ bool RuckigSmoothing::getRobotModelBounds(const double max_velocity_scaling_fact
     else
     {
       ruckig_input.max_jerk.at(i) = DEFAULT_MAX_JERK;
-      ROS_WARN_STREAM_ONCE_NAMED(
-          LOGNAME, "Joint jerk limit for joint " + vars.at(i) + " was not defined. Using the default "
-                       << DEFAULT_MAX_JERK << " rad/s^3. You can define a jerk limit with parameter " + jerk_param);
+      ROS_WARN_STREAM_NAMED(LOGNAME, "Joint jerk limit for joint " + vars.at(i) + " was not defined. Using the default "
+                                         << DEFAULT_MAX_JERK
+                                         << " rad/s^3. You can define a jerk limit with parameter " +
+                                                nh.getNamespace() + jerk_param);
     }
   }
 
