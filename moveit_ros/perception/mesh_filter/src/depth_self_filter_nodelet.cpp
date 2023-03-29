@@ -126,7 +126,7 @@ void mesh_filter::DepthSelfFiltering::filter(const sensor_msgs::ImageConstPtr& d
     mesh_filter_->filter(reinterpret_cast<const float*>(depth_msg->data.data()), GL_FLOAT);
   else
   {
-   ROS_WARN_STREAM_THROTTLE_NAMED(1.0, LOGNAME, "Unsupported encoding of depth image: " << depth_msg->encoding);
+    ROS_WARN_STREAM_THROTTLE_NAMED(1.0, LOGNAME, "Unsupported encoding of depth image: " << depth_msg->encoding);
     return;
   }
 
