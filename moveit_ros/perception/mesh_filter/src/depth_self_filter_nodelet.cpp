@@ -45,6 +45,7 @@
 #include <cv_bridge/cv_bridge.h>
 
 namespace enc = sensor_msgs::image_encodings;
+static const std::string LOGNAME = "depth_self_filter_nodelet";
 
 mesh_filter::DepthSelfFiltering::~DepthSelfFiltering()
 {
@@ -113,8 +114,21 @@ void mesh_filter::DepthSelfFiltering::filter(const sensor_msgs::ImageConstPtr& d
   params.setCameraParameters(info_msg->K[0], info_msg->K[4], info_msg->K[2], info_msg->K[5]);
   params.setImageSize(depth_msg->width, depth_msg->height);
 
-  const float* src = reinterpret_cast<const float*>(depth_msg->data.data());
-  mesh_filter_->filter(src, GL_FLOAT);
+  // Handling of two possible encodings of a depth image: 16UC1 and 32FC1
+  if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1)
+  {
+    ROS_WARN_STREAM_ONCE_NAMED(LOGNAME,
+                               "The input depth image uses a 16UC1 encoding. Consider converting the publisher to "
+                               "generate the canonical 32FC1 encoding instead according to ROS REP-118.");
+    mesh_filter_->filter(depth_msg->data.data(), GL_UNSIGNED_SHORT);
+  }
+  else if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_32FC1)
+    mesh_filter_->filter(reinterpret_cast<const float*>(depth_msg->data.data()), GL_FLOAT);
+  else
+  {
+    ROS_WARN_STREAM_THROTTLE_NAMED(1.0, LOGNAME, "Unsupported encoding of depth image: " << depth_msg->encoding);
+    return;
+  }
 
   if (pub_filtered_depth_image_.getNumSubscribers() > 0)
   {
