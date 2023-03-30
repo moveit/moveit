@@ -38,6 +38,7 @@
 #include <Eigen/Geometry>
 #include <limits>
 #include <moveit/trajectory_processing/ruckig_traj_smoothing.h>
+#include <ros/ros.h>
 #include <vector>
 
 namespace trajectory_processing
@@ -254,10 +255,9 @@ bool RuckigSmoothing::getRobotModelBounds(const double max_velocity_scaling_fact
       ruckig_input.max_acceleration.at(i) = max_acceleration_scaling_factor * DEFAULT_MAX_ACCELERATION;
     }
     // Read jerk limits from parameters since bounds.jerk_bounded_ was never implemented for MoveIt1
-    ros::NodeHandle nh;
     double jerk_limit = DEFAULT_MAX_JERK;
     std::string jerk_param = "ruckig/" + vars.at(i) + "/jerk_limit";
-    if (nh.getParam(jerk_param, jerk_limit))
+    if (ros::param::get(jerk_param, jerk_limit))
     {
       ruckig_input.max_jerk.at(i) = jerk_limit;
     }
@@ -266,8 +266,7 @@ bool RuckigSmoothing::getRobotModelBounds(const double max_velocity_scaling_fact
       ruckig_input.max_jerk.at(i) = DEFAULT_MAX_JERK;
       ROS_WARN_STREAM_NAMED(LOGNAME, "Joint jerk limit for joint " + vars.at(i) + " was not defined. Using the default "
                                          << DEFAULT_MAX_JERK
-                                         << " rad/s^3. You can define a jerk limit with parameter " +
-                                                nh.getNamespace() + jerk_param);
+                                         << " rad/s^3. You can define a jerk limit with parameter " + jerk_param);
     }
   }
 
