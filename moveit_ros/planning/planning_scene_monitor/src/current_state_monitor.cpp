@@ -291,7 +291,7 @@ void CurrentStateMonitor::jointStateCallback(const sensor_msgs::JointStateConstP
     boost::mutex::scoped_lock _(state_update_lock_);
     // read the received values, and update their time stamps
     std::size_t n = joint_state->name.size();
-    current_state_time_ = joint_state->header.stamp;
+    current_state_time_ = std::max(current_state_time_, joint_state->header.stamp);
     for (std::size_t i = 0; i < n; ++i)
     {
       const moveit::core::JointModel* jm = robot_model_->getJointModel(joint_state->name[i]);
