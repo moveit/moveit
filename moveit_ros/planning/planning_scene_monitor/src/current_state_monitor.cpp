@@ -301,7 +301,19 @@ void CurrentStateMonitor::jointStateCallback(const sensor_msgs::JointStateConstP
       if (jm->getVariableCount() != 1)
         continue;
 
-      joint_time_[jm] = joint_state->header.stamp;
+      if (auto& joint_time{ joint_time_[jm] }; joint_time < joint_state->header.stamp)
+      {
+        joint_time = joint_state->header.stamp;
+      }
+      else
+      {
+        ROS_WARN_STREAM_NAMED(LOGNAME, "New joint state for joint '"
+                                           << jm->getName()
+                                           << "' is not newer than the previous state. Assuming your rosbag looped.");
+        joint_time_.clear();
+        joint_time_[jm] = joint_state->header.stamp;
+        current_state_time_ = joint_state->header.stamp;
+      }
 
       if (robot_state_.getJointPositions(jm)[0] != joint_state->position[i])
       {
