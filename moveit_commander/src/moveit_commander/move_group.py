@@ -683,7 +683,7 @@ class MoveGroupCommander(object):
     def execute(self, trajectory, wait=True):
         """Execute a previously planned path"""
         if not hasattr(trajectory, "joint_trajectory"):
-            plan_msg = RobotTrajectory(joint_trajectory=trajectory)
+            trajectory = RobotTrajectory(joint_trajectory=trajectory)
 
         if wait:
             return self._g.execute(conversions.msg_to_string(trajectory))
