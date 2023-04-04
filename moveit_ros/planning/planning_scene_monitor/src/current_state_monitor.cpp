@@ -291,7 +291,7 @@ void CurrentStateMonitor::jointStateCallback(const sensor_msgs::JointStateConstP
     boost::mutex::scoped_lock _(state_update_lock_);
     // read the received values, and update their time stamps
     std::size_t n = joint_state->name.size();
-    current_state_time_ = joint_state->header.stamp;
+    current_state_time_ = std::max(current_state_time_, joint_state->header.stamp);
     for (std::size_t i = 0; i < n; ++i)
     {
       const moveit::core::JointModel* jm = robot_model_->getJointModel(joint_state->name[i]);
@@ -301,7 +301,19 @@ void CurrentStateMonitor::jointStateCallback(const sensor_msgs::JointStateConstP
       if (jm->getVariableCount() != 1)
         continue;
 
-      joint_time_[jm] = joint_state->header.stamp;
+      if (auto& joint_time{ joint_time_[jm] }; joint_time < joint_state->header.stamp)
+      {
+        joint_time = joint_state->header.stamp;
+      }
+      else
+      {
+        ROS_WARN_STREAM_NAMED(LOGNAME, "New joint state for joint '"
+                                           << jm->getName()
+                                           << "' is not newer than the previous state. Assuming your rosbag looped.");
+        joint_time_.clear();
+        joint_time_[jm] = joint_state->header.stamp;
+        current_state_time_ = joint_state->header.stamp;
+      }
 
       if (robot_state_.getJointPositions(jm)[0] != joint_state->position[i])
       {
