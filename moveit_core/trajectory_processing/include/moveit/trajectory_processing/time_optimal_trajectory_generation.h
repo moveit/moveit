@@ -79,7 +79,15 @@ public:
   Eigen::VectorXd getConfig(double s) const;
   Eigen::VectorXd getTangent(double s) const;
   Eigen::VectorXd getCurvature(double s) const;
+
+  /** @brief Get the next switching point.
+   *  @param[in] s Arc length traveled so far
+   *  @param[out] discontinuity True if this switching point is a discontinuity
+   *  @return arc length to the switching point
+   **/
   double getNextSwitchingPoint(double s, bool& discontinuity) const;
+
+  /// @brief Return a list of all switching points as a pair (arc length to switching point, discontinuity)
   std::list<std::pair<double, bool>> getSwitchingPoints() const;
 
 private:
