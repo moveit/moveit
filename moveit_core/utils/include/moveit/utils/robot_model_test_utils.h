@@ -113,9 +113,9 @@ public:
    * origins will default to the identity transform
    * \param[in] joint_axis The joint axis specified in the joint frame defaults to (1,0,0)
    */
-  void addChain(const std::string& section, const std::string& type,
-                const std::vector<geometry_msgs::Pose>& joint_origins = {},
-                urdf::Vector3 joint_axis = urdf::Vector3(1.0, 0.0, 0.0));
+  RobotModelBuilder& addChain(const std::string& section, const std::string& type,
+                              const std::vector<geometry_msgs::Pose>& joint_origins = {},
+                              urdf::Vector3 joint_axis = urdf::Vector3(1.0, 0.0, 0.0));
 
   /** \brief Adds a collision mesh to a specific link.
    *  \param[in] link_name The name of the link to which the mesh will be added. Must already be in the builder
@@ -123,21 +123,24 @@ public:
    * "package://moveit_resources_pr2_description/urdf/meshes/base_v0/base_L.stl"
    *  \param[in] origin The origin pose of this collision mesh relative to the link origin
    */
-  void addCollisionMesh(const std::string& link_name, const std::string& filename, geometry_msgs::Pose origin);
+  RobotModelBuilder& addCollisionMesh(const std::string& link_name, const std::string& filename,
+                                      geometry_msgs::Pose origin);
 
   /** \brief Adds a collision box to a specific link.
    *  \param[in] link_name The name of the link to which the box will be added. Must already be in the builder.
    *  \param[in] dims   The dimensions of the box
    *  \param[in] origin The origin pose of this collision box relative to the link origin
    */
-  void addCollisionBox(const std::string& link_name, const std::vector<double>& dims, geometry_msgs::Pose origin);
+  RobotModelBuilder& addCollisionBox(const std::string& link_name, const std::vector<double>& dims,
+                                     geometry_msgs::Pose origin);
 
   /** \brief Adds a visual box to a specific link.
    *  \param[in] link_name The name of the link to which the box will be added. Must already be in the builder.
    *  \param[in] size   The dimensions of the box
    *  \param[in] origin The origin pose of this visual box relative to the link origin
    */
-  void addVisualBox(const std::string& link_name, const std::vector<double>& size, geometry_msgs::Pose origin);
+  RobotModelBuilder& addVisualBox(const std::string& link_name, const std::vector<double>& size,
+                                  geometry_msgs::Pose origin);
 
   /**
    * Adds an inertial component to a link.
@@ -145,8 +148,8 @@ public:
    * \param[in] mass The mass of the link
    * \param[in] origin The origin center pose of the center of mass of this link
    */
-  void addInertial(const std::string& link_name, double mass, geometry_msgs::Pose origin, double ixx, double ixy,
-                   double ixz, double iyy, double iyz, double izz);
+  RobotModelBuilder& addInertial(const std::string& link_name, double mass, geometry_msgs::Pose origin, double ixx,
+                                 double ixy, double ixz, double iyy, double iyz, double izz);
 
   /** \} */
 
@@ -160,25 +163,27 @@ public:
    *  \param[in] name The name of the virtual joint, if not given it's automatically made to be
    * "<parent_frame>-<child>-virtual-joint"
    */
-  void addVirtualJoint(const std::string& parent_frame, const std::string& child_link, const std::string& type,
-                       const std::string& name = "");
+  RobotModelBuilder& addVirtualJoint(const std::string& parent_frame, const std::string& child_link,
+                                     const std::string& type, const std::string& name = "");
 
   /** \brief Adds a new group using a chain of links. The group is the parent joint of each link in the chain.
    *  \param[in] base_link The starting link of the chain
    *  \param[in] tip_link The ending link of the chain.
    *  \param[in] name The name of the group, if not given it's set as "<base>-<tip>-chain-group"
    */
-  void addGroupChain(const std::string& base_link, const std::string& tip_link, const std::string& name = "");
+  RobotModelBuilder& addGroupChain(const std::string& base_link, const std::string& tip_link,
+                                   const std::string& name = "");
 
   /** \brief Adds a new group using a list of links and a list of joints.
    *  \param[in] links The links (really their parent joints) to include in the group
    *  \param[in] joints The joints to include in the group
    *  \param[in] name The name of the group, required
    */
-  void addGroup(const std::vector<std::string>& links, const std::vector<std::string>& joints, const std::string& name);
+  RobotModelBuilder& addGroup(const std::vector<std::string>& links, const std::vector<std::string>& joints,
+                              const std::string& name);
 
-  void addEndEffector(const std::string& name, const std::string& parent_link, const std::string& parent_group = "",
-                      const std::string& component_group = "");
+  RobotModelBuilder& addEndEffector(const std::string& name, const std::string& parent_link,
+                                    const std::string& parent_group = "", const std::string& component_group = "");
 
   /** \} */
 

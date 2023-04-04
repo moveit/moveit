@@ -136,8 +136,9 @@ RobotModelBuilder::RobotModelBuilder(const std::string& name, const std::string&
   srdf_writer_->robot_name_ = name;
 }
 
-void RobotModelBuilder::addChain(const std::string& section, const std::string& type,
-                                 const std::vector<geometry_msgs::Pose>& joint_origins, urdf::Vector3 joint_axis)
+RobotModelBuilder& RobotModelBuilder::addChain(const std::string& section, const std::string& type,
+                                               const std::vector<geometry_msgs::Pose>& joint_origins,
+                                               urdf::Vector3 joint_axis)
 {
   std::vector<std::string> link_names;
   boost::split_regex(link_names, section, boost::regex("->"));
@@ -145,14 +146,14 @@ void RobotModelBuilder::addChain(const std::string& section, const std::string& 
   {
     ROS_ERROR_NAMED(LOGNAME, "No links specified (empty section?)");
     is_valid_ = false;
-    return;
+    return *this;
   }
   // First link should already be added.
   if (!urdf_model_->getLink(link_names[0]))
   {
     ROS_ERROR_NAMED(LOGNAME, "Link %s not present in builder yet!", link_names[0].c_str());
     is_valid_ = false;
-    return;
+    return *this;
   }
 
   if (!joint_origins.empty() && link_names.size() - 1 != joint_origins.size())
@@ -160,7 +161,7 @@ void RobotModelBuilder::addChain(const std::string& section, const std::string& 
     ROS_ERROR_NAMED(LOGNAME, "There should be one more link (%zu) than there are joint origins (%zu)",
                     link_names.size(), joint_origins.size());
     is_valid_ = false;
-    return;
+    return *this;
   }
 
   // Iterate through each link.
@@ -171,7 +172,7 @@ void RobotModelBuilder::addChain(const std::string& section, const std::string& 
     {
       ROS_ERROR_NAMED(LOGNAME, "Link %s is already specified", link_names[i].c_str());
       is_valid_ = false;
-      return;
+      return *this;
     }
     urdf::LinkSharedPtr link(new urdf::Link);
     link->name = link_names[i];
@@ -206,7 +207,7 @@ void RobotModelBuilder::addChain(const std::string& section, const std::string& 
     {
       ROS_ERROR_NAMED(LOGNAME, "No such joint type as %s", type.c_str());
       is_valid_ = false;
-      return;
+      return *this;
     }
 
     joint->axis = joint_axis;
@@ -220,16 +221,18 @@ void RobotModelBuilder::addChain(const std::string& section, const std::string& 
     }
     urdf_model_->joints_.insert(std::make_pair(joint->name, joint));
   }
+  return *this;
 }
 
-void RobotModelBuilder::addInertial(const std::string& link_name, double mass, geometry_msgs::Pose origin, double ixx,
-                                    double ixy, double ixz, double iyy, double iyz, double izz)
+RobotModelBuilder& RobotModelBuilder::addInertial(const std::string& link_name, double mass, geometry_msgs::Pose origin,
+                                                  double ixx, double ixy, double ixz, double iyy, double iyz,
+                                                  double izz)
 {
   if (!urdf_model_->getLink(link_name))
   {
     ROS_ERROR_NAMED(LOGNAME, "Link %s not present in builder yet!", link_name.c_str());
     is_valid_ = false;
-    return;
+    return *this;
   }
 
   urdf::InertialSharedPtr inertial(new urdf::Inertial);
@@ -247,42 +250,47 @@ void RobotModelBuilder::addInertial(const std::string& link_name, double mass, g
   urdf::LinkSharedPtr link;
   urdf_model_->getLink(link_name, link);
   link->inertial = inertial;
+
+  return *this;
 }
 
-void RobotModelBuilder::addVisualBox(const std::string& link_name, const std::vector<double>& size,
-                                     geometry_msgs::Pose origin)
+RobotModelBuilder& RobotModelBuilder::addVisualBox(const std::string& link_name, const std::vector<double>& size,
+                                                   geometry_msgs::Pose origin)
 {
   urdf::VisualSharedPtr vis(new urdf::Visual);
   urdf::BoxSharedPtr geometry(new urdf::Box);
   geometry->dim = urdf::Vector3(size[0], size[1], size[2]);
   vis->geometry = geometry;
   addLinkVisual(link_name, vis, origin);
+  return *this;
 }
 
-void RobotModelBuilder::addCollisionBox(const std::string& link_name, const std::vector<double>& dims,
-                                        geometry_msgs::Pose origin)
+RobotModelBuilder& RobotModelBuilder::addCollisionBox(const std::string& link_name, const std::vector<double>& dims,
+                                                      geometry_msgs::Pose origin)
 {
   if (dims.size() != 3)
   {
     ROS_ERROR("There can only be 3 dimensions of a box (given %zu!)", dims.size());
     is_valid_ = false;
-    return;
+    return *this;
   }
   urdf::CollisionSharedPtr coll(new urdf::Collision);
   urdf::BoxSharedPtr geometry(new urdf::Box);
   geometry->dim = urdf::Vector3(dims[0], dims[1], dims[2]);
   coll->geometry = geometry;
   addLinkCollision(link_name, coll, origin);
+  return *this;
 }
 
-void RobotModelBuilder::addCollisionMesh(const std::string& link_name, const std::string& filename,
-                                         geometry_msgs::Pose origin)
+RobotModelBuilder& RobotModelBuilder::addCollisionMesh(const std::string& link_name, const std::string& filename,
+                                                       geometry_msgs::Pose origin)
 {
   urdf::CollisionSharedPtr coll(new urdf::Collision);
   urdf::MeshSharedPtr geometry(new urdf::Mesh);
   geometry->filename = filename;
   coll->geometry = geometry;
   addLinkCollision(link_name, coll, origin);
+  return *this;
 }
 
 void RobotModelBuilder::addLinkCollision(const std::string& link_name, const urdf::CollisionSharedPtr& collision,
@@ -334,8 +342,8 @@ void RobotModelBuilder::addLinkVisual(const std::string& link_name, const urdf::
   }
 }
 
-void RobotModelBuilder::addVirtualJoint(const std::string& parent_frame, const std::string& child_link,
-                                        const std::string& type, const std::string& name)
+RobotModelBuilder& RobotModelBuilder::addVirtualJoint(const std::string& parent_frame, const std::string& child_link,
+                                                      const std::string& type, const std::string& name)
 {
   srdf::Model::VirtualJoint new_virtual_joint;
   if (name.empty())
@@ -346,9 +354,11 @@ void RobotModelBuilder::addVirtualJoint(const std::string& parent_frame, const s
   new_virtual_joint.parent_frame_ = parent_frame;
   new_virtual_joint.child_link_ = child_link;
   srdf_writer_->virtual_joints_.push_back(new_virtual_joint);
+  return *this;
 }
 
-void RobotModelBuilder::addGroupChain(const std::string& base_link, const std::string& tip_link, const std::string& name)
+RobotModelBuilder& RobotModelBuilder::addGroupChain(const std::string& base_link, const std::string& tip_link,
+                                                    const std::string& name)
 {
   srdf::Model::Group new_group;
   if (name.empty())
@@ -357,20 +367,23 @@ void RobotModelBuilder::addGroupChain(const std::string& base_link, const std::s
     new_group.name_ = name;
   new_group.chains_.push_back(std::make_pair(base_link, tip_link));
   srdf_writer_->groups_.push_back(new_group);
+  return *this;
 }
 
-void RobotModelBuilder::addGroup(const std::vector<std::string>& links, const std::vector<std::string>& joints,
-                                 const std::string& name)
+RobotModelBuilder& RobotModelBuilder::addGroup(const std::vector<std::string>& links,
+                                               const std::vector<std::string>& joints, const std::string& name)
 {
   srdf::Model::Group new_group;
   new_group.name_ = name;
   new_group.links_ = links;
   new_group.joints_ = joints;
   srdf_writer_->groups_.push_back(new_group);
+  return *this;
 }
 
-void RobotModelBuilder::addEndEffector(const std::string& name, const std::string& parent_link,
-                                       const std::string& parent_group, const std::string& component_group)
+RobotModelBuilder& RobotModelBuilder::addEndEffector(const std::string& name, const std::string& parent_link,
+                                                     const std::string& parent_group,
+                                                     const std::string& component_group)
 {
   srdf::Model::EndEffector eef;
   eef.name_ = name;
@@ -378,6 +391,7 @@ void RobotModelBuilder::addEndEffector(const std::string& name, const std::strin
   eef.parent_group_ = parent_group;
   eef.component_group_ = component_group;
   srdf_writer_->end_effectors_.push_back(eef);
+  return *this;
 }
 
 bool RobotModelBuilder::isValid()
