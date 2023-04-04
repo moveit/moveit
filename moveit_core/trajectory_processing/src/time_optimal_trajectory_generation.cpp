@@ -868,7 +868,6 @@ Eigen::VectorXd Trajectory::getAcceleration(double time) const
   const double acceleration =
       2.0 * (it->path_pos_ - previous->path_pos_ - time_step * previous->path_vel_) / (time_step * time_step);
 
-  time_step = time - previous->time_;
   const double path_pos =
       previous->path_pos_ + time_step * previous->path_vel_ + 0.5 * time_step * time_step * acceleration;
   const double path_vel = previous->path_vel_ + time_step * acceleration;
@@ -876,6 +875,7 @@ Eigen::VectorXd Trajectory::getAcceleration(double time) const
       (path_.getTangent(path_pos) * path_vel - path_.getTangent(previous->path_pos_) * previous->path_vel_);
   if (time_step > 0.0)
     path_acc /= time_step;
+  std::cerr << "Getting acceleration: " << acceleration << " vector: " << path_acc[0] << std::endl;
   return path_acc;
 }
 

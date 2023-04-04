@@ -380,20 +380,17 @@ TEST(time_optimal_trajectory_generation, testSingleDofDiscontinuity)
   // Start matches
   EXPECT_DOUBLE_EQ(start_position, trajectory.getPosition(0.0)[0]);
 
-  std::stringstream buffer;
-  // Redirect std::cerr to buffer
-  std::streambuf* cerr_buf = std::cerr.rdbuf(buffer.rdbuf());
+  std::cerr << "Getting accel at 0.01: " << std::endl;
+  trajectory.getAcceleration(0.01)[0];
+  std::cerr << "Getting accel at 0.02: " << std::endl;
+  trajectory.getAcceleration(0.02)[0];
 
   // Check vels and accels at all points
   for (double time = 0; time < traj_duration; time += 0.01)
   {
     // This trajectory has a single switching point
     double t_switch = 0.1603407;
-    if (time == 0)
-    {
-      EXPECT_NEAR(trajectory.getAcceleration(time)[0], 0, 1e-3) << "Time: " << time;
-    }
-    else if (time > 0 && time < t_switch)
+    if (time < t_switch)
     {
       EXPECT_NEAR(trajectory.getAcceleration(time)[0], max_accelerations[0], 1e-3) << "Time: " << time;
     }
@@ -403,6 +400,9 @@ TEST(time_optimal_trajectory_generation, testSingleDofDiscontinuity)
     }
   }
 
+  std::stringstream buffer;
+  // Redirect std::cerr to buffer
+  std::streambuf* cerr_buf = std::cerr.rdbuf(buffer.rdbuf());
   std::cerr.rdbuf(cerr_buf);
 }
 
