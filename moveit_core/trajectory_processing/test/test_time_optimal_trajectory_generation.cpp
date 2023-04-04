@@ -40,6 +40,10 @@
 #include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
 #include <moveit/utils/robot_model_test_utils.h>
 
+#include <iostream>  // std::cout
+#include <sstream>   // std::stringstream
+#include <string>    // std::string
+
 using trajectory_processing::Path;
 using trajectory_processing::TimeOptimalTrajectoryGeneration;
 using trajectory_processing::Trajectory;
@@ -376,6 +380,10 @@ TEST(time_optimal_trajectory_generation, testSingleDofDiscontinuity)
   // Start matches
   EXPECT_DOUBLE_EQ(start_position, trajectory.getPosition(0.0)[0]);
 
+  std::stringstream buffer;
+  // Redirect std::cerr to buffer
+  std::streambuf* cerr_buf = std::cerr.rdbuf(buffer.rdbuf());
+
   // Check vels and accels at all points
   for (double time = 0; time < traj_duration; time += 0.01)
   {
@@ -394,6 +402,8 @@ TEST(time_optimal_trajectory_generation, testSingleDofDiscontinuity)
       EXPECT_NEAR(trajectory.getAcceleration(time)[0], -max_accelerations[0], 1e-3) << "Time: " << time;
     }
   }
+
+  std::cerr.rdbuf(cerr_buf);
 }
 
 int main(int argc, char** argv)

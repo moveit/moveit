@@ -317,6 +317,7 @@ Trajectory::Trajectory(const Path& path, const Eigen::VectorXd& max_velocity, co
   , time_step_(time_step)
   , cached_time_(std::numeric_limits<double>::max())
 {
+  std::cerr << "DOING IT" << std::endl;
   trajectory_.push_back(TrajectoryStep(0.0, 0.0));
   double after_acceleration = getMinMaxPathAcceleration(0.0, 0.0, true);
   while (valid_ && !integrateForward(trajectory_, after_acceleration) && valid_)
@@ -327,11 +328,6 @@ Trajectory::Trajectory(const Path& path, const Eigen::VectorXd& max_velocity, co
     {
       break;
     }
-    std::cerr << switching_point.path_pos_ << std::endl;
-    std::cerr << switching_point.path_pos_ << std::endl;
-    std::cerr << switching_point.path_pos_ << std::endl;
-    std::cerr << switching_point.path_pos_ << std::endl;
-    std::cerr << switching_point.path_pos_ << std::endl;
     integrateBackward(trajectory_, switching_point.path_pos_, switching_point.path_vel_, before_acceleration);
   }
 
@@ -347,6 +343,9 @@ Trajectory::Trajectory(const Path& path, const Eigen::VectorXd& max_velocity, co
     std::list<TrajectoryStep>::iterator previous = trajectory_.begin();
     std::list<TrajectoryStep>::iterator it = previous;
     it->time_ = 0.0;
+    // TOTG requires starting from rest
+    it->path_vel_ = 0.0;
+
     ++it;
     while (it != trajectory_.end())
     {
@@ -355,6 +354,14 @@ Trajectory::Trajectory(const Path& path, const Eigen::VectorXd& max_velocity, co
       previous = it;
       ++it;
     }
+
+    // TOTG requires ending at rest
+    trajectory_.back().path_vel_ = 0.0;
+  }
+
+  for (const TrajectoryStep& step : trajectory_)
+  {
+    std::cerr << "Time: " << step.time_ << " Pos: " << step.path_pos_ << "  vel: " << step.path_vel_ << std::endl;
   }
 }
 
@@ -511,6 +518,7 @@ bool Trajectory::getNextVelocitySwitchingPoint(double path_pos, TrajectoryStep& 
 // Returns true if end of path is reached
 bool Trajectory::integrateForward(std::list<TrajectoryStep>& trajectory, double acceleration)
 {
+  std::cerr << "DOING integrateForward" << std::endl;
   double path_pos = trajectory.back().path_pos_;
   double path_vel = trajectory.back().path_vel_;
 
@@ -523,6 +531,7 @@ bool Trajectory::integrateForward(std::list<TrajectoryStep>& trajectory, double 
            (next_discontinuity->first <= path_pos || !next_discontinuity->second))
     {
       ++next_discontinuity;
+      std::cerr << "++next_discontinuity" << std::endl;
     }
 
     double old_path_pos = path_pos;
@@ -530,13 +539,18 @@ bool Trajectory::integrateForward(std::list<TrajectoryStep>& trajectory, double 
 
     path_vel += time_step_ * acceleration;
     path_pos += time_step_ * 0.5 * (old_path_vel + path_vel);
+    std::cerr << "path_pos: " << path_pos << "  path_vel: " << path_vel << std::endl;
+    // TODO(andyz): path_vel slightly exceeds the maximum here. Clip it?
 
     if (next_discontinuity != switching_points.end() && path_pos > next_discontinuity->first)
     {
+      std::cerr << "Not at the last switching point" << std::endl;
+
       // Avoid having a TrajectoryStep with path_pos near a switching point which will cause an almost identical
       // TrajectoryStep get added in the next run (https://github.com/ros-planning/moveit/issues/1665)
       if (path_pos - next_discontinuity->first < EPS)
       {
+        std::cerr << "Too near switching point. Skipping it" << std::endl;
         continue;
       }
       path_vel = old_path_vel +
@@ -546,6 +560,7 @@ bool Trajectory::integrateForward(std::list<TrajectoryStep>& trajectory, double 
 
     if (path_pos > path_.getLength())
     {
+      std::cerr << "Returning b/c we were able to integrate forward to the end of the path" << std::endl;
       trajectory.push_back(TrajectoryStep(path_pos, path_vel));
       return true;
     }
@@ -628,6 +643,7 @@ bool Trajectory::integrateForward(std::list<TrajectoryStep>& trajectory, double 
 void Trajectory::integrateBackward(std::list<TrajectoryStep>& start_trajectory, double path_pos, double path_vel,
                                    double acceleration)
 {
+  std::cerr << "Integrating b/w" << std::endl;
   std::list<TrajectoryStep>::iterator start2 = start_trajectory.end();
   --start2;
   std::list<TrajectoryStep>::iterator start1 = start2;
@@ -643,6 +659,9 @@ void Trajectory::integrateBackward(std::list<TrajectoryStep>& start_trajectory, 
       trajectory.push_front(TrajectoryStep(path_pos, path_vel));
       path_vel -= time_step_ * acceleration;
       path_pos -= time_step_ * 0.5 * (path_vel + trajectory.front().path_vel_);
+
+      std::cerr << "path_pos: " << path_pos << "  path_vel: " << path_vel << std::endl;
+
       acceleration = getMinMaxPathAcceleration(path_pos, path_vel, false);
       slope = (trajectory.front().path_vel_ - path_vel) / (trajectory.front().path_pos_ - path_pos);
 
