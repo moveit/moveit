@@ -327,6 +327,11 @@ Trajectory::Trajectory(const Path& path, const Eigen::VectorXd& max_velocity, co
     {
       break;
     }
+    std::cerr << switching_point.path_pos_ << std::endl;
+    std::cerr << switching_point.path_pos_ << std::endl;
+    std::cerr << switching_point.path_pos_ << std::endl;
+    std::cerr << switching_point.path_pos_ << std::endl;
+    std::cerr << switching_point.path_pos_ << std::endl;
     integrateBackward(trajectory_, switching_point.path_pos_, switching_point.path_vel_, before_acceleration);
   }
 
