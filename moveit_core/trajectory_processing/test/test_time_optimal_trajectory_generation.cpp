@@ -40,10 +40,6 @@
 #include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
 #include <moveit/utils/robot_model_test_utils.h>
 
-#include <iostream>  // std::cout
-#include <sstream>   // std::stringstream
-#include <string>    // std::string
-
 using trajectory_processing::Path;
 using trajectory_processing::TimeOptimalTrajectoryGeneration;
 using trajectory_processing::Trajectory;
@@ -78,6 +74,11 @@ TEST(time_optimal_trajectory_generation, test1)
   EXPECT_DOUBLE_EQ(985.000244140625, trajectory.getPosition(trajectory.getDuration())[1]);
   EXPECT_DOUBLE_EQ(2126.0, trajectory.getPosition(trajectory.getDuration())[2]);
   EXPECT_DOUBLE_EQ(0.0, trajectory.getPosition(trajectory.getDuration())[3]);
+
+  // Start at rest and end at rest
+  const double traj_duration = trajectory.getDuration();
+  EXPECT_NEAR(0.0, trajectory.getVelocity(0.0)[0], 0.1);
+  EXPECT_NEAR(0.0, trajectory.getVelocity(traj_duration)[0], 0.1);
 }
 
 TEST(time_optimal_trajectory_generation, test2)
@@ -116,6 +117,11 @@ TEST(time_optimal_trajectory_generation, test2)
   EXPECT_DOUBLE_EQ(533.0, trajectory.getPosition(trajectory.getDuration())[1]);
   EXPECT_DOUBLE_EQ(951.0, trajectory.getPosition(trajectory.getDuration())[2]);
   EXPECT_DOUBLE_EQ(90.0, trajectory.getPosition(trajectory.getDuration())[3]);
+
+  // Start at rest and end at rest
+  const double traj_duration = trajectory.getDuration();
+  EXPECT_NEAR(0.0, trajectory.getVelocity(0.0)[0], 0.1);
+  EXPECT_NEAR(0.0, trajectory.getVelocity(traj_duration)[0], 0.1);
 }
 
 TEST(time_optimal_trajectory_generation, test3)
@@ -154,6 +160,11 @@ TEST(time_optimal_trajectory_generation, test3)
   EXPECT_DOUBLE_EQ(533.0, trajectory.getPosition(trajectory.getDuration())[1]);
   EXPECT_DOUBLE_EQ(951.0, trajectory.getPosition(trajectory.getDuration())[2]);
   EXPECT_DOUBLE_EQ(90.0, trajectory.getPosition(trajectory.getDuration())[3]);
+
+  // Start at rest and end at rest
+  const double traj_duration = trajectory.getDuration();
+  EXPECT_NEAR(0.0, trajectory.getVelocity(0.0)[0], 0.1);
+  EXPECT_NEAR(0.0, trajectory.getVelocity(traj_duration)[0], 0.1);
 }
 
 // Test that totg algorithm doesn't give large acceleration
@@ -379,11 +390,9 @@ TEST(time_optimal_trajectory_generation, testSingleDofDiscontinuity)
 
   // Start matches
   EXPECT_DOUBLE_EQ(start_position, trajectory.getPosition(0.0)[0]);
-
-  std::cerr << "Getting accel at 0.01: " << std::endl;
-  trajectory.getAcceleration(0.01)[0];
-  std::cerr << "Getting accel at 0.02: " << std::endl;
-  trajectory.getAcceleration(0.02)[0];
+  // Start at rest and end at rest
+  EXPECT_NEAR(0.0, trajectory.getVelocity(0.0)[0], 0.1);
+  EXPECT_NEAR(0.0, trajectory.getVelocity(traj_duration)[0], 0.1);
 
   // Check vels and accels at all points
   for (double time = 0; time < traj_duration; time += 0.01)
@@ -399,11 +408,6 @@ TEST(time_optimal_trajectory_generation, testSingleDofDiscontinuity)
       EXPECT_NEAR(trajectory.getAcceleration(time)[0], -max_accelerations[0], 1e-3) << "Time: " << time;
     }
   }
-
-  std::stringstream buffer;
-  // Redirect std::cerr to buffer
-  std::streambuf* cerr_buf = std::cerr.rdbuf(buffer.rdbuf());
-  std::cerr.rdbuf(cerr_buf);
 }
 
 int main(int argc, char** argv)
