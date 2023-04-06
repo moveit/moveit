@@ -74,6 +74,11 @@ TEST(time_optimal_trajectory_generation, test1)
   EXPECT_DOUBLE_EQ(985.000244140625, trajectory.getPosition(trajectory.getDuration())[1]);
   EXPECT_DOUBLE_EQ(2126.0, trajectory.getPosition(trajectory.getDuration())[2]);
   EXPECT_DOUBLE_EQ(0.0, trajectory.getPosition(trajectory.getDuration())[3]);
+
+  // Start at rest and end at rest
+  const double traj_duration = trajectory.getDuration();
+  EXPECT_NEAR(0.0, trajectory.getVelocity(0.0)[0], 0.1);
+  EXPECT_NEAR(0.0, trajectory.getVelocity(traj_duration)[0], 0.1);
 }
 
 TEST(time_optimal_trajectory_generation, test2)
@@ -112,6 +117,11 @@ TEST(time_optimal_trajectory_generation, test2)
   EXPECT_DOUBLE_EQ(533.0, trajectory.getPosition(trajectory.getDuration())[1]);
   EXPECT_DOUBLE_EQ(951.0, trajectory.getPosition(trajectory.getDuration())[2]);
   EXPECT_DOUBLE_EQ(90.0, trajectory.getPosition(trajectory.getDuration())[3]);
+
+  // Start at rest and end at rest
+  const double traj_duration = trajectory.getDuration();
+  EXPECT_NEAR(0.0, trajectory.getVelocity(0.0)[0], 0.1);
+  EXPECT_NEAR(0.0, trajectory.getVelocity(traj_duration)[0], 0.1);
 }
 
 TEST(time_optimal_trajectory_generation, test3)
@@ -150,6 +160,11 @@ TEST(time_optimal_trajectory_generation, test3)
   EXPECT_DOUBLE_EQ(533.0, trajectory.getPosition(trajectory.getDuration())[1]);
   EXPECT_DOUBLE_EQ(951.0, trajectory.getPosition(trajectory.getDuration())[2]);
   EXPECT_DOUBLE_EQ(90.0, trajectory.getPosition(trajectory.getDuration())[3]);
+
+  // Start at rest and end at rest
+  const double traj_duration = trajectory.getDuration();
+  EXPECT_NEAR(0.0, trajectory.getVelocity(0.0)[0], 0.1);
+  EXPECT_NEAR(0.0, trajectory.getVelocity(traj_duration)[0], 0.1);
 }
 
 // Test that totg algorithm doesn't give large acceleration
@@ -346,6 +361,53 @@ TEST(time_optimal_trajectory_generation, testPluginAPI)
 
   // Make sure trajectories produce equal waypoints independent of TOTG instances
   ASSERT_EQ(first_trajectory_msg_end, third_trajectory_msg_end);
+}
+
+TEST(time_optimal_trajectory_generation, testSingleDofDiscontinuity)
+{
+  // Test a (prior) specific failure case
+  Eigen::VectorXd waypoint(1);
+  std::list<Eigen::VectorXd> waypoints;
+
+  const double start_position = 1.881943;
+  waypoint << start_position;
+  waypoints.push_back(waypoint);
+  waypoint << 2.600542;
+  waypoints.push_back(waypoint);
+
+  Eigen::VectorXd max_velocities(1);
+  max_velocities << 4.54;
+  Eigen::VectorXd max_accelerations(1);
+  max_accelerations << 28.0;
+
+  Trajectory trajectory(Path(waypoints, 0.1 /* path tolerance */), max_velocities, max_accelerations,
+                        0.001 /* timestep */);
+  EXPECT_TRUE(trajectory.isValid());
+
+  EXPECT_GT(trajectory.getDuration(), 0.0);
+  const double traj_duration = trajectory.getDuration();
+  EXPECT_NEAR(0.320681, traj_duration, 1e-3);
+
+  // Start matches
+  EXPECT_DOUBLE_EQ(start_position, trajectory.getPosition(0.0)[0]);
+  // Start at rest and end at rest
+  EXPECT_NEAR(0.0, trajectory.getVelocity(0.0)[0], 0.1);
+  EXPECT_NEAR(0.0, trajectory.getVelocity(traj_duration)[0], 0.1);
+
+  // Check vels and accels at all points
+  for (double time = 0; time < traj_duration; time += 0.01)
+  {
+    // This trajectory has a single switching point
+    double t_switch = 0.1603407;
+    if (time < t_switch)
+    {
+      EXPECT_NEAR(trajectory.getAcceleration(time)[0], max_accelerations[0], 1e-3) << "Time: " << time;
+    }
+    else if (time > t_switch)
+    {
+      EXPECT_NEAR(trajectory.getAcceleration(time)[0], -max_accelerations[0], 1e-3) << "Time: " << time;
+    }
+  }
 }
 
 int main(int argc, char** argv)
