@@ -122,6 +122,16 @@ bool JointModel::satisfiesVelocityBounds(const double* values, const Bounds& oth
   return true;
 }
 
+bool JointModel::satisfiesAccelerationBounds(const double* values, const Bounds& other_bounds, double margin) const
+{
+  for (std::size_t i = 0; i < other_bounds.size(); ++i)
+    if (other_bounds[i].max_acceleration_ + margin < values[i])
+      return false;
+    else if (other_bounds[i].min_acceleration_ - margin > values[i])
+      return false;
+  return true;
+}
+
 const VariableBounds& JointModel::getVariableBounds(const std::string& variable) const
 {
   return variable_bounds_[getLocalVariableIndex(variable)];
