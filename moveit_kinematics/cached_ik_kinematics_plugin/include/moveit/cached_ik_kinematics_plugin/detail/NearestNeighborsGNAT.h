@@ -551,7 +551,7 @@ protected:
         std::vector<int> permutation(children_.size());
         for (unsigned int i = 0; i < permutation.size(); ++i)
           permutation[i] = i;
-        std::random_shuffle(permutation.begin(), permutation.end());
+        std::shuffle(permutation.begin(), permutation.end(), std::default_random_engine{});
 
         for (unsigned int i = 0; i < children_.size(); ++i)
           if (permutation[i] >= 0)
@@ -605,7 +605,7 @@ protected:
         std::vector<int> permutation(children_.size());
         for (unsigned int i = 0; i < permutation.size(); ++i)
           permutation[i] = i;
-        std::random_shuffle(permutation.begin(), permutation.end());
+        std::shuffle(permutation.begin(), permutation.end(), std::default_random_engine{});
 
         for (unsigned int i = 0; i < children_.size(); ++i)
           if (permutation[i] >= 0)
