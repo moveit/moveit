@@ -397,7 +397,7 @@ RobotModelBuilder& RobotModelBuilder::addEndEffector(const std::string& name, co
 void RobotModelBuilder::addJointProperty(const std::string& joint_name, const std::string& property_name,
                                          const std::string& value)
 {
-  srdf_writer_->joint_properties_[joint_name].push_back({ joint_name, property_name, value });
+  srdf_writer_->joint_properties_[joint_name][property_name] = value;
 }
 
 bool RobotModelBuilder::isValid()
