@@ -94,9 +94,6 @@ public:
   /** @brief Construct the structure from a message representation */
   AllowedCollisionMatrix(const moveit_msgs::AllowedCollisionMatrix& msg);
 
-  /** @brief Copy constructor */
-  AllowedCollisionMatrix(const AllowedCollisionMatrix& acm) = default;
-
   /** @brief Get the type of the allowed collision between two elements.
    *  Return true if the entry is included in the collision matrix. Return false if the entry is not found.
    *  @param name1 name of first element
