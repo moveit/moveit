@@ -968,7 +968,7 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
   {
     new_joint_model->setDistanceFactor(new_joint_model->getStateSpaceDimension());
     const std::vector<srdf::Model::PassiveJoint>& pjoints = srdf_model.getPassiveJoints();
-    std::string joint_name = new_joint_model->getName();
+    const std::string& joint_name = new_joint_model->getName();
     for (const srdf::Model::PassiveJoint& pjoint : pjoints)
     {
       if (joint_name == pjoint.name_)
@@ -977,10 +977,8 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
         break;
       }
     }
-    for (const auto& property : srdf_model.getJointProperties(joint_name))
+    for (const auto& [property_name, property_value] : srdf_model.getJointProperties(joint_name))
     {
-      std::string property_name = property.first;
-      std::string property_value = property.second;
       if (property_name == "angular_distance_weight")
       {
         double angular_distance_weight;
