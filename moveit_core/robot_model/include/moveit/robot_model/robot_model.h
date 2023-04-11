@@ -39,6 +39,8 @@
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/exceptions/exceptions.h>
+#include <moveit/utils/lexical_casts.h>
+
 #include <urdf/model.h>
 #include <srdfdom/model.h>
 

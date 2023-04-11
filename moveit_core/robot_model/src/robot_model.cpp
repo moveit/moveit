@@ -977,41 +977,45 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
         break;
       }
     }
-    for (const auto& [property_name, property_value] : srdf_model.getJointProperties(joint_name))
+
+    for (const auto& [property_name, property_value_str] : srdf_model.getJointProperties(joint_name))
     {
+      // parse a joint property string as a double with error handling
+      // if the property was successfully parsed,
+      // stores the resulting property value in prop_value and returns true
+      // otherwise logs a ROS_ERROR and returns false
+      auto parse_property_double = [&](double& prop_value) -> bool {
+        try
+        {
+          prop_value = moveit::core::toDouble(property_value_str);
+          return true;
+        }
+        catch (const std::runtime_error& e)
+        {
+          ROS_ERROR_STREAM_NAMED(LOGNAME, "Unable to parse property " << property_name << " for joint " << joint_name
+                                                                      << " as double: '" << property_value_str << "'");
+        }
+        return false;
+      };
+
       if (property_name == "angular_distance_weight")
       {
         double angular_distance_weight;
-        try
+        if (parse_property_double(angular_distance_weight))
         {
-          std::string::size_type sz;
-          angular_distance_weight = std::stod(property_value, &sz);
-          if (sz != property_value.size())
+          if (new_joint_model->getType() == JointModel::JointType::PLANAR)
           {
-            ROS_WARN_STREAM_NAMED(LOGNAME, "Extra characters after property " << property_name << " for joint "
-                                                                              << joint_name << " as double: '"
-                                                                              << property_value.substr(sz) << "'");
+            ((PlanarJointModel*)new_joint_model)->setAngularDistanceWeight(angular_distance_weight);
           }
-        }
-        catch (const std::invalid_argument& e)
-        {
-          ROS_ERROR_STREAM_NAMED(LOGNAME, "Unable to parse property " << property_name << " for joint " << joint_name
-                                                                      << " as double: '" << property_value << "'");
-          continue;
-        }
-
-        if (new_joint_model->getType() == JointModel::JointType::PLANAR)
-        {
-          ((PlanarJointModel*)new_joint_model)->setAngularDistanceWeight(angular_distance_weight);
-        }
-        else if (new_joint_model->getType() == JointModel::JointType::FLOATING)
-        {
-          ((FloatingJointModel*)new_joint_model)->setAngularDistanceWeight(angular_distance_weight);
-        }
-        else
-        {
-          ROS_ERROR_NAMED(LOGNAME, "Cannot apply property %s to joint type: %s", property_name.c_str(),
-                          new_joint_model->getTypeName().c_str());
+          else if (new_joint_model->getType() == JointModel::JointType::FLOATING)
+          {
+            ((FloatingJointModel*)new_joint_model)->setAngularDistanceWeight(angular_distance_weight);
+          }
+          else
+          {
+            ROS_ERROR_NAMED(LOGNAME, "Cannot apply property %s to joint type: %s", property_name.c_str(),
+                            new_joint_model->getTypeName().c_str());
+          }
         }
       }
       else if (property_name == "motion_model")
@@ -1024,18 +1028,18 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
         }
 
         PlanarJointModel::MotionModel motion_model;
-        if (property_value == "holonomic")
+        if (property_value_str == "holonomic")
         {
           motion_model = PlanarJointModel::MotionModel::HOLONOMIC;
         }
-        else if (property_value == "diff_drive")
+        else if (property_value_str == "diff_drive")
         {
           motion_model = PlanarJointModel::MotionModel::DIFF_DRIVE;
         }
         else
         {
           ROS_ERROR_STREAM_NAMED(LOGNAME, "Unknown value for property " << property_name << " (" << joint_name << "): '"
-                                                                        << property_value << "'");
+                                                                        << property_value_str << "'");
           ROS_ERROR_NAMED(LOGNAME, "Valid values are 'holonomic' and 'diff_drive'");
           continue;
         }
@@ -1051,25 +1055,10 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
           continue;
         }
         double min_translational_distance;
-        try
+        if (parse_property_double(min_translational_distance))
         {
-          std::string::size_type sz;
-          min_translational_distance = std::stod(property_value, &sz);
-          if (sz != property_value.size())
-          {
-            ROS_WARN_STREAM_NAMED(LOGNAME, "Extra characters after property " << property_name << " for joint "
-                                                                              << joint_name << " as double: '"
-                                                                              << property_value.substr(sz) << "'");
-          }
+          ((PlanarJointModel*)new_joint_model)->setMinTranslationalDistance(min_translational_distance);
         }
-        catch (const std::invalid_argument& e)
-        {
-          ROS_ERROR_NAMED(LOGNAME, "Unable to parse property %s for joint %s as double: '%s'", property_name.c_str(),
-                          joint_name.c_str(), property_value.c_str());
-          continue;
-        }
-
-        ((PlanarJointModel*)new_joint_model)->setMinTranslationalDistance(min_translational_distance);
       }
       else
       {
