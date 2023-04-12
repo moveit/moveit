@@ -984,7 +984,7 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
       // if the property was successfully parsed,
       // stores the resulting property value in prop_value and returns true
       // otherwise logs a ROS_ERROR and returns false
-      auto parse_property_double = [&](double& prop_value) -> bool {
+      auto parse_property_double = [&property_name, &property_value_str, &joint_name](double& prop_value) -> bool {
         try
         {
           prop_value = moveit::core::toDouble(property_value_str);
