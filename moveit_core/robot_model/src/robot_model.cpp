@@ -984,16 +984,16 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
       // if the property was successfully parsed,
       // stores the resulting property value in prop_value and returns true
       // otherwise logs a ROS_ERROR and returns false
-      auto parse_property_double = [&property_name, &property_value_str, &joint_name](double& prop_value) -> bool {
+      auto parse_property_double = [&joint_name](auto& prop_name, auto& prop_value_str, double& prop_value) -> bool {
         try
         {
-          prop_value = moveit::core::toDouble(property_value_str);
+          prop_value = moveit::core::toDouble(prop_value_str);
           return true;
         }
         catch (const std::runtime_error& e)
         {
-          ROS_ERROR_STREAM_NAMED(LOGNAME, "Unable to parse property " << property_name << " for joint " << joint_name
-                                                                      << " as double: '" << property_value_str << "'");
+          ROS_ERROR_STREAM_NAMED(LOGNAME, "Unable to parse property " << prop_name << " for joint " << joint_name
+                                                                      << " as double: '" << prop_value_str << "'");
         }
         return false;
       };
@@ -1001,7 +1001,7 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
       if (property_name == "angular_distance_weight")
       {
         double angular_distance_weight;
-        if (parse_property_double(angular_distance_weight))
+        if (parse_property_double(property_name, property_value_str, angular_distance_weight))
         {
           if (new_joint_model->getType() == JointModel::JointType::PLANAR)
           {
@@ -1055,7 +1055,7 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
           continue;
         }
         double min_translational_distance;
-        if (parse_property_double(min_translational_distance))
+        if (parse_property_double(property_name, property_value_str, min_translational_distance))
         {
           ((PlanarJointModel*)new_joint_model)->setMinTranslationalDistance(min_translational_distance);
         }
