@@ -978,26 +978,26 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
       }
     }
 
+    // parse a joint property string as a double with error handling
+    // if the property was successfully parsed,
+    // stores the resulting property value in prop_value and returns true
+    // otherwise logs a ROS_ERROR and returns false
+    auto parse_property_double = [&joint_name](auto& prop_name, auto& prop_value_str, double& prop_value) -> bool {
+      try
+      {
+        prop_value = moveit::core::toDouble(prop_value_str);
+        return true;
+      }
+      catch (const std::runtime_error& e)
+      {
+        ROS_ERROR_STREAM_NAMED(LOGNAME, "Unable to parse property " << prop_name << " for joint " << joint_name
+                                                                    << " as double: '" << prop_value_str << "'");
+      }
+      return false;
+    };
+
     for (const auto& [property_name, property_value_str] : srdf_model.getJointProperties(joint_name))
     {
-      // parse a joint property string as a double with error handling
-      // if the property was successfully parsed,
-      // stores the resulting property value in prop_value and returns true
-      // otherwise logs a ROS_ERROR and returns false
-      auto parse_property_double = [&joint_name](auto& prop_name, auto& prop_value_str, double& prop_value) -> bool {
-        try
-        {
-          prop_value = moveit::core::toDouble(prop_value_str);
-          return true;
-        }
-        catch (const std::runtime_error& e)
-        {
-          ROS_ERROR_STREAM_NAMED(LOGNAME, "Unable to parse property " << prop_name << " for joint " << joint_name
-                                                                      << " as double: '" << prop_value_str << "'");
-        }
-        return false;
-      };
-
       if (property_name == "angular_distance_weight")
       {
         double angular_distance_weight;
