@@ -335,11 +335,10 @@ void PerceptionWidget::loadSensorPluginsComboBox()
     loadConfigIntoWidgets(sensor_plugin_config);
 
   // Load values from existing config
+  uint idx = 0;
   for (const auto& sensor_plugin_config : config_data_->getSensorPluginConfig())
-  {
-    uint idx = loadConfigIntoWidgets(sensor_plugin_config);
-    sensor_plugin_field_->setCurrentIndex(idx);
-  }
+    idx = loadConfigIntoWidgets(sensor_plugin_config);
+  sensor_plugin_field_->setCurrentIndex(idx);
 }
 
 }  // namespace moveit_setup_assistant
