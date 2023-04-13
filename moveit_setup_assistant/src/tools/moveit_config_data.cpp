@@ -1889,6 +1889,7 @@ void MoveItConfigData::addGenericParameterToSensorPluginConfig(const std::string
   GenericParameter new_parameter;
   new_parameter.setName(name);
   new_parameter.setValue(value);
+  sensors_plugin_config_parameter_list_.resize(1);
   sensors_plugin_config_parameter_list_[0][name] = new_parameter;
 }
 
