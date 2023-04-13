@@ -471,7 +471,7 @@ public:
   /**
    * \brief Used for adding a sensor plugin configuation prameter to the sensor plugin configuration parameter list
    */
-  void addGenericParameterToSensorPluginConfig(const std::string& name, const std::string& value = "",
+  void addGenericParameterToSensorPluginConfig(const std::string& name, const std::string& value = "", int index = 1,
                                                const std::string& comment = "");
 
   /**

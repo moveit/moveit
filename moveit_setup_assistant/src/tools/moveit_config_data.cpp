@@ -1089,26 +1089,29 @@ bool MoveItConfigData::output3DSensorPluginYAML(const std::string& file_path)
   YAML::Emitter emitter;
 
   emitter << YAML::BeginMap;
-  emitter << YAML::Key << "sensors";
-  emitter << YAML::Value << YAML::BeginSeq;
 
-  for (auto& sensors_plugin_config : sensors_plugin_config_parameter_list_)
+  for (auto& parameterOctomap : sensors_plugin_config_parameter_list_[0])
   {
-    emitter << YAML::BeginMap;
-
-    for (auto& parameter : sensors_plugin_config)
-    {
-      emitter << YAML::Key << parameter.first;
-      emitter << YAML::Value << parameter.second.getValue();
-    }
-    emitter << YAML::EndMap;
+    emitter << YAML::Key << parameterOctomap.first;
+    emitter << YAML::Value << parameterOctomap.second.getValue();
   }
 
-  emitter << YAML::EndSeq;
+  emitter << YAML::Key << "sensors";
+  emitter << YAML::Value << YAML::BeginSeq;
+  emitter << YAML::BeginMap;
 
+  for (auto& parameterSensor : sensors_plugin_config_parameter_list_[1])
+  {
+    emitter << YAML::Key << parameterSensor.first;
+    emitter << YAML::Value << parameterSensor.second.getValue();
+  }
+
+  emitter << YAML::EndMap;
+  emitter << YAML::EndSeq;
   emitter << YAML::EndMap;
 
   std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
+
   if (!output_stream.good())
   {
     ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
@@ -1117,7 +1120,6 @@ bool MoveItConfigData::output3DSensorPluginYAML(const std::string& file_path)
 
   output_stream << emitter.c_str();
   output_stream.close();
-
   return true;  // file created successfully
 }
 
@@ -1763,6 +1765,29 @@ std::vector<std::map<std::string, GenericParameter>> MoveItConfigData::load3DSen
   try
   {
     const YAML::Node& doc = YAML::Load(input_stream);
+    std::map<std::string, GenericParameter> octomap_map;
+    bool empty_node = true;
+
+    // Loop through octomap nodes
+    for (YAML::const_iterator octomap_node = doc.begin(); octomap_node != doc.end(); ++octomap_node)
+    {
+      // Only top level nodes with scalar value
+      if (octomap_node->second.IsScalar())
+      {
+        empty_node = false;
+        GenericParameter octomap_param;
+        octomap_param.setName(octomap_node->first.as<std::string>());
+        octomap_param.setValue(octomap_node->second.as<std::string>());
+
+        // Set the key as the parameter name to make accessing it easier
+        octomap_map[octomap_node->first.as<std::string>()] = octomap_param;
+      }
+    }
+
+    // Don't push empty nodes
+    if (!empty_node)
+      config.push_back(octomap_map);
+
     // Get sensors node
     const YAML::Node& sensors_node = doc["sensors"];
 
@@ -1773,7 +1798,7 @@ std::vector<std::map<std::string, GenericParameter>> MoveItConfigData::load3DSen
       for (const YAML::Node& sensor : sensors_node)
       {
         std::map<std::string, GenericParameter> sensor_map;
-        bool empty_node = true;
+        empty_node = true;
         for (YAML::const_iterator sensor_it = sensor.begin(); sensor_it != sensor.end(); ++sensor_it)
         {
           empty_node = false;
@@ -1883,21 +1908,22 @@ bool MoveItConfigData::addController(const ControllerConfig& new_controller)
 // Used to add a sensor plugin configuation parameter to the sensor plugin configuration parameter list
 // ******************************************************************************************
 void MoveItConfigData::addGenericParameterToSensorPluginConfig(const std::string& name, const std::string& value,
-                                                               const std::string& /*comment*/)
+                                                               int index, const std::string& /*comment*/)
 {
-  // Use index 0 since we only write one plugin
+  // Use index 0 for octomap and 1 for sensor plugin configuation parameters
   GenericParameter new_parameter;
   new_parameter.setName(name);
   new_parameter.setValue(value);
-  sensors_plugin_config_parameter_list_[0][name] = new_parameter;
+  sensors_plugin_config_parameter_list_[index][name] = new_parameter;
 }
 
 // ******************************************************************************************
-// Used to clear sensor plugin configuration parameter list
+// Used to clear and resize sensor plugin configuration parameter list
 // ******************************************************************************************
 void MoveItConfigData::clearSensorPluginConfig()
 {
   sensors_plugin_config_parameter_list_.clear();
+  sensors_plugin_config_parameter_list_.resize(2);
 }
 
 }  // namespace moveit_setup_assistant
