@@ -207,6 +207,8 @@ bool PerceptionWidget::focusLost()
   // Save the sensor plugin configuration to sensors_plugin_config data structure
   if (sensor_plugin_field_->currentIndex() == 1)
   {
+    config_data_->clearSensorPluginConfig();
+
     // Point Cloud plugin fields
     config_data_->addGenericParameterToSensorPluginConfig("sensor_plugin", "occupancy_map_monitor/"
                                                                            "PointCloudOctomapUpdater");
@@ -228,6 +230,8 @@ bool PerceptionWidget::focusLost()
   }
   else if (sensor_plugin_field_->currentIndex() == 2)
   {
+    config_data_->clearSensorPluginConfig();
+
     // Depth Map plugin fields
     config_data_->addGenericParameterToSensorPluginConfig("sensor_plugin", "occupancy_map_monitor/"
                                                                            "DepthImageOctomapUpdater");
@@ -335,11 +339,10 @@ void PerceptionWidget::loadSensorPluginsComboBox()
     loadConfigIntoWidgets(sensor_plugin_config);
 
   // Load values from existing config
+  uint idx = 0;
   for (const auto& sensor_plugin_config : config_data_->getSensorPluginConfig())
-  {
-    uint idx = loadConfigIntoWidgets(sensor_plugin_config);
-    sensor_plugin_field_->setCurrentIndex(idx);
-  }
+    idx = loadConfigIntoWidgets(sensor_plugin_config);
+  sensor_plugin_field_->setCurrentIndex(idx);
 }
 
 }  // namespace moveit_setup_assistant
