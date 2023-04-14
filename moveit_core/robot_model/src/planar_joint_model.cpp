@@ -37,6 +37,7 @@
 
 #include <moveit/robot_model/planar_joint_model.h>
 #include <geometric_shapes/check_isometry.h>
+#include <angles/angles.h>
 #include <boost/math/constants/constants.hpp>
 #include <limits>
 #include <cmath>
@@ -45,7 +46,8 @@ namespace moveit
 {
 namespace core
 {
-PlanarJointModel::PlanarJointModel(const std::string& name) : JointModel(name), angular_distance_weight_(1.0)
+PlanarJointModel::PlanarJointModel(const std::string& name)
+  : JointModel(name), angular_distance_weight_(1.0), motion_model_(HOLONOMIC), min_translational_distance_(1e-5)
 {
   type_ = PLANAR;
 
@@ -139,39 +141,127 @@ void PlanarJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNu
   normalizeRotation(values);
 }
 
-void PlanarJointModel::interpolate(const double* from, const double* to, const double t, double* state) const
+void computeTurnDriveTurnGeometry(const double* from, const double* to, const double min_translational_distance,
+                                  double& dx, double& dy, double& initial_turn, double& drive_angle, double& final_turn)
 {
-  // interpolate position
-  state[0] = from[0] + (to[0] - from[0]) * t;
-  state[1] = from[1] + (to[1] - from[1]) * t;
-
-  // interpolate angle
-  double diff = to[2] - from[2];
-  if (fabs(diff) <= boost::math::constants::pi<double>())
-    state[2] = from[2] + diff * t;
+  dx = to[0] - from[0];
+  dy = to[1] - from[1];
+  // If the translational distance between from & to states is very small, it will cause an unnecessary rotation since
+  // the robot will try to do the following rather than rotating directly to the orientation of `to` state
+  // 1- Align itself with the line connecting the origin of both states
+  // 2- Move to the origin of `to` state
+  // 3- Rotate so it have the same orientation as `to` state
+  // Example: from=[0.0, 0.0, 0.0] - to=[1e-31, 1e-31, -130°]
+  // here the robot will: rotate 45° -> move to the origin of `to` state -> rotate -175°, rather than rotating directly
+  // to -130°
+  // to fix this we added a joint property (default value is 1e-5) and make the movement pure rotation if the
+  // translational distance is less than this number
+  const double angle_straight_diff = std::hypot(dx, dy) > min_translational_distance ?
+                                         angles::shortest_angular_distance(from[2], std::atan2(dy, dx)) :
+                                         0.0;
+  const double angle_backward_diff =
+      angles::normalize_angle(angle_straight_diff - boost::math::constants::pi<double>());
+  const double move_straight_cost =
+      std::abs(angle_straight_diff) + std::abs(angles::shortest_angular_distance(from[2] + angle_straight_diff, to[2]));
+  const double move_backward_cost =
+      std::abs(angle_backward_diff) + std::abs(angles::shortest_angular_distance(from[2] + angle_backward_diff, to[2]));
+  if (move_straight_cost <= move_backward_cost)
+  {
+    initial_turn = angle_straight_diff;
+  }
   else
   {
-    if (diff > 0.0)
-      diff = 2.0 * boost::math::constants::pi<double>() - diff;
+    initial_turn = angle_backward_diff;
+  }
+  drive_angle = from[2] + initial_turn;
+  final_turn = angles::shortest_angular_distance(drive_angle, to[2]);
+}
+
+void PlanarJointModel::interpolate(const double* from, const double* to, const double t, double* state) const
+{
+  if (motion_model_ == HOLONOMIC)
+  {
+    // interpolate position
+    state[0] = from[0] + (to[0] - from[0]) * t;
+    state[1] = from[1] + (to[1] - from[1]) * t;
+
+    // interpolate angle
+    double diff = to[2] - from[2];
+    if (fabs(diff) <= boost::math::constants::pi<double>())
+      state[2] = from[2] + diff * t;
     else
-      diff = -2.0 * boost::math::constants::pi<double>() - diff;
-    state[2] = from[2] - diff * t;
-    // input states are within bounds, so the following check is sufficient
-    if (state[2] > boost::math::constants::pi<double>())
-      state[2] -= 2.0 * boost::math::constants::pi<double>();
-    else if (state[2] < -boost::math::constants::pi<double>())
-      state[2] += 2.0 * boost::math::constants::pi<double>();
+    {
+      if (diff > 0.0)
+        diff = 2.0 * boost::math::constants::pi<double>() - diff;
+      else
+        diff = -2.0 * boost::math::constants::pi<double>() - diff;
+      state[2] = from[2] - diff * t;
+      // input states are within bounds, so the following check is sufficient
+      if (state[2] > boost::math::constants::pi<double>())
+        state[2] -= 2.0 * boost::math::constants::pi<double>();
+      else if (state[2] < -boost::math::constants::pi<double>())
+        state[2] += 2.0 * boost::math::constants::pi<double>();
+    }
+  }
+  else if (motion_model_ == DIFF_DRIVE)
+  {
+    double dx, dy, initial_turn, drive_angle, final_turn;
+    computeTurnDriveTurnGeometry(from, to, min_translational_distance_, dx, dy, initial_turn, drive_angle, final_turn);
+
+    double initial_d = fabs(initial_turn) * angular_distance_weight_;
+    double drive_d = hypot(dx, dy);
+    double final_d = fabs(final_turn) * angular_distance_weight_;
+
+    double total_d = initial_d + drive_d + final_d;
+
+    double initial_frac = initial_d / total_d;
+    double drive_frac = drive_d / total_d;
+    double final_frac = final_d / total_d;
+
+    double percent;
+    if (t <= initial_frac)
+    {
+      percent = t / initial_frac;
+      state[0] = from[0];
+      state[1] = from[1];
+      state[2] = from[2] + initial_turn * percent;
+    }
+    else if (t <= initial_frac + drive_frac)
+    {
+      percent = (t - initial_frac) / drive_frac;
+      state[0] = from[0] + dx * percent;
+      state[1] = from[1] + dy * percent;
+      state[2] = drive_angle;
+    }
+    else
+    {
+      percent = (t - initial_frac - drive_frac) / final_frac;
+      state[0] = to[0];
+      state[1] = to[1];
+      state[2] = drive_angle + final_turn * percent;
+    }
   }
 }
 
 double PlanarJointModel::distance(const double* values1, const double* values2) const
 {
-  double dx = values1[0] - values2[0];
-  double dy = values1[1] - values2[1];
+  if (motion_model_ == HOLONOMIC)
+  {
+    double dx = values1[0] - values2[0];
+    double dy = values1[1] - values2[1];
 
-  double d = fabs(values1[2] - values2[2]);
-  d = (d > boost::math::constants::pi<double>()) ? 2.0 * boost::math::constants::pi<double>() - d : d;
-  return sqrt(dx * dx + dy * dy) + angular_distance_weight_ * d;
+    double d = fabs(values1[2] - values2[2]);
+    d = (d > boost::math::constants::pi<double>()) ? 2.0 * boost::math::constants::pi<double>() - d : d;
+    return sqrt(dx * dx + dy * dy) + angular_distance_weight_ * d;
+  }
+  else if (motion_model_ == DIFF_DRIVE)
+  {
+    double dx, dy, initial_turn, drive_angle, final_turn;
+    computeTurnDriveTurnGeometry(values1, values2, min_translational_distance_, dx, dy, initial_turn, drive_angle,
+                                 final_turn);
+    return hypot(dx, dy) + angular_distance_weight_ * (fabs(initial_turn) + fabs(final_turn));
+  }
+  return 0.0;
 }
 
 bool PlanarJointModel::satisfiesPositionBounds(const double* values, const Bounds& bounds, double margin) const

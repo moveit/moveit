@@ -185,6 +185,13 @@ public:
   RobotModelBuilder& addEndEffector(const std::string& name, const std::string& parent_link,
                                     const std::string& parent_group = "", const std::string& component_group = "");
 
+  /** \brief Adds a new joint property
+   *  \param[in] joint_name The name of the joint the property is specified for
+   *  \param[in] property_name The joint property name
+   *  \param[in] value The value of the joint property
+   */
+  void addJointProperty(const std::string& joint_name, const std::string& property_name, const std::string& value);
+
   /** \} */
 
   /** \brief Returns true if the building process so far has been valid. */
