@@ -198,18 +198,7 @@ TEST(TestDiffDrive, TestStateSpace)
   ompl_interface::JointModelStateSpace ss(spec);
   ss.setPlanningVolume(-2, 2, -2, 2, -2, 2);
   ss.setup();
-
-  bool passed = false;
-  try
-  {
-    ss.sanityChecks();
-    passed = true;
-  }
-  catch (ompl::Exception& ex)
-  {
-    ROS_ERROR("Sanity checks did not pass: %s", ex.what());
-  }
-  EXPECT_TRUE(passed);
+  ss.sanityChecks();
 }
 
 int main(int argc, char** argv)
