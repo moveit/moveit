@@ -1142,8 +1142,11 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   PlanningSceneDisplay::onRobotModelLoaded();
   trajectory_visual_->onRobotModelLoaded(getRobotModel());
 
-  robot_interaction_ =
-      std::make_shared<robot_interaction::RobotInteraction>(getRobotModel(), "rviz_moveit_motion_planning_display");
+  std::string ns = "rviz_moveit_motion_planning_display";
+  std::string robot_desc_ns = ros::names::parentNamespace(robot_description_property_->getStdString());
+  if (!robot_desc_ns.empty())
+    ns = ros::names::append(robot_desc_ns, ns);
+  robot_interaction_ = std::make_shared<robot_interaction::RobotInteraction>(getRobotModel(), ns);
   robot_interaction::KinematicOptions o;
   o.state_validity_callback_ = [this](moveit::core::RobotState* robot_state,
                                       const moveit::core::JointModelGroup* joint_group,
