@@ -39,6 +39,9 @@
 #include <moveit/profiler/profiler.h>
 #include <utility>
 
+// OMPL version
+#include <ompl/config.h>
+
 #include <ompl/geometric/planners/AnytimePathShortening.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/pRRT.h>
@@ -66,6 +69,12 @@
 #include <ompl/geometric/planners/prm/LazyPRMstar.h>
 #include <ompl/geometric/planners/prm/SPARS.h>
 #include <ompl/geometric/planners/prm/SPARStwo.h>
+// TODO: remove when ROS Melodic and older are no longer supported
+#if OMPL_VERSION_VALUE >= 1005000
+#include <ompl/geometric/planners/informedtrees/AITstar.h>
+#include <ompl/geometric/planners/informedtrees/ABITstar.h>
+#include <ompl/geometric/planners/informedtrees/BITstar.h>
+#endif
 
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
@@ -290,6 +299,12 @@ void ompl_interface::PlanningContextManager::registerDefaultPlanners()
   registerPlannerAllocatorHelper<og::SPARStwo>("geometric::SPARStwo");
   registerPlannerAllocatorHelper<og::STRIDE>("geometric::STRIDE");
   registerPlannerAllocatorHelper<og::TRRT>("geometric::TRRT");
+// TODO: remove when ROS Melodic and older are no longer supported
+#if OMPL_VERSION_VALUE >= 1005000
+  registerPlannerAllocatorHelper<og::AITstar>("geometric::AITstar");
+  registerPlannerAllocatorHelper<og::ABITstar>("geometric::ABITstar");
+  registerPlannerAllocatorHelper<og::BITstar>("geometric::BITstar");
+#endif
 }
 
 void ompl_interface::PlanningContextManager::registerDefaultStateSpaces()
@@ -458,10 +473,24 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   // However consecutive IK solutions are not checked for proximity at the moment and sometimes happen to be flipped,
   // leading to invalid trajectories. This workaround lets the user prevent this problem by forcing rejection sampling
   // in JointModelStateSpace.
+  //
+  // Additionally, check if the requested planner is of the informed planner family (AITstar, ABITstar, BITstar) that
+  // does not support PoseModelStateSpace. If yes, force planning with JointModelStateSpace.
   ModelBasedStateSpaceFactoryPtr factory;
   auto it = pc->second.config.find("enforce_joint_model_state_space");
 
+  auto type_it = pc->second.config.find("type");
+  std::string planner_type;
+  if (type_it != pc->second.config.end())
+    planner_type = type_it->second;
+
   if (it != pc->second.config.end() && boost::lexical_cast<bool>(it->second))
+    factory = getStateSpaceFactory(JointModelStateSpace::PARAMETERIZATION_TYPE);
+  else if (planner_type == "geometric::AITstar")
+    factory = getStateSpaceFactory(JointModelStateSpace::PARAMETERIZATION_TYPE);
+  else if (planner_type == "geometric::ABITstar")
+    factory = getStateSpaceFactory(JointModelStateSpace::PARAMETERIZATION_TYPE);
+  else if (planner_type == "geometric::BITstar")
     factory = getStateSpaceFactory(JointModelStateSpace::PARAMETERIZATION_TYPE);
   else
     factory = getStateSpaceFactory(pc->second.group, req);

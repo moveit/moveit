@@ -863,6 +863,79 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
   spar_stwo.addParameter("max_failures", "5000", "maximum consecutive failure limit. default: 5000");
   planner_des.push_back(spar_stwo);
 
+// TODO: remove when ROS Melodic and older are no longer supported
+#if OMPL_VERSION_VALUE >= 1005000
+  OMPLPlannerDescription aitstar("AITstar", "geometric");
+  aitstar.addParameter("use_k_nearest", "1",
+                       "whether to use a k-nearest RGG connection model (1) or an r-disc model (0). Default: 1");
+  aitstar.addParameter("rewire_factor", "1.001",
+                       "rewire factor of the RGG. Valid values: [1.0:0.01:3.0]. Default: 1.001");
+  aitstar.addParameter("samples_per_batch", "100", "batch size. Valid values: [1:1:1000]. Default: 100");
+  aitstar.addParameter("use_graph_pruning", "1", "enable graph pruning (1) or not (0). Default: 1");
+  aitstar.addParameter("find_approximate_solutions", "0", "track approximate solutions (1) or not (0). Default: 0");
+  aitstar.addParameter("set_max_num_goals", "1",
+                       "maximum number of goals sampled from sampleable goal regions. "
+                       "Valid values: [1:1:1000]. Default: 1");
+  planner_des.push_back(aitstar);
+
+  OMPLPlannerDescription abitstar("ABITstar", "geometric");
+  abitstar.addParameter("use_k_nearest", "1",
+                        "whether to use a k-nearest RGG connection model (1) or an r-disc model (0). Default: 1");
+  abitstar.addParameter("rewire_factor", "1.001",
+                        "rewire factor of the RGG. Valid values: [1.0:0.01:3.0]. Default: 1.001");
+  abitstar.addParameter("samples_per_batch", "100", "batch size. Valid values: [1:1:1000]. Default: 100");
+  abitstar.addParameter("use_graph_pruning", "1", "enable graph pruning (1) or not (0). Default: 1");
+  abitstar.addParameter(
+      "prune_threshold_as_fractional_cost_change", "0.1",
+      "fractional change in the solution cost AND problem measure necessary for pruning to occur. Default: 0.1");
+  abitstar.addParameter("delay_rewiring_to_first_solution", "0",
+                        "delay (1) or not (0) rewiring until a solution is found. Default: 0");
+  abitstar.addParameter("use_just_in_time_sampling", "0",
+                        "delay the generation of samples until they are * necessary. Only works with r-disc connection "
+                        "and path length minimization. Default: 0");
+  abitstar.addParameter("drop_unconnected_samples_on_prune", "0",
+                        "drop unconnected samples when pruning, regardless of their heuristic value. Default: 0");
+  abitstar.addParameter("stop_on_each_solution_improvement", "0",
+                        "stop the planner each time a solution improvement is found. Useful for debugging. Default: 0");
+  abitstar.addParameter("use_strict_queue_ordering", "0",
+                        "sort edges in the queue at the end of the batch (0) or after each rewiring (1). Default: 0");
+  abitstar.addParameter("find_approximate_solutions", "0", "track approximate solutions (1) or not (0). Default: 0");
+  abitstar.addParameter(
+      "initial_inflation_factor", "1000000",
+      "inflation factor for the initial search. Valid values: [1.0:0.01:1000000.0]. Default: 1000000");
+  abitstar.addParameter(
+      "inflation_scaling_parameter", "10",
+      "scaling parameter for the inflation factor update policy. Valid values: [1.0:0.01:1000000.0]. Default: 0");
+  abitstar.addParameter(
+      "truncation_scaling_parameter", "5.0",
+      "scaling parameter for the truncation factor update policy. Valid values: [1.0:0.01:1000000.0]. Default: 0");
+  planner_des.push_back(abitstar);
+
+  OMPLPlannerDescription bitstar("BITstar", "geometric");
+  bitstar.addParameter("use_k_nearest", "1",
+                       "whether to use a k-nearest RGG connection model (1) or an r-disc model (0). Default: 1");
+  bitstar.addParameter("rewire_factor", "1.001",
+                       "rewire factor of the RGG. Valid values: [1.0:0.01:3.0]. Default: 1.001");
+  bitstar.addParameter("samples_per_batch", "100", "batch size. Valid values: [1:1:1000]. Default: 100");
+  bitstar.addParameter("use_graph_pruning", "1", "enable graph pruning (1) or not (0). Default: 1");
+  bitstar.addParameter(
+      "prune_threshold_as_fractional_cost_change", "0.1",
+      "fractional change in the solution cost AND problem measure necessary for pruning to occur. Default: 0.1");
+  bitstar.addParameter("delay_rewiring_to_first_solution", "0",
+                       "delay (1) or not (0) rewiring until a solution is found. Default: 0");
+  bitstar.addParameter("use_just_in_time_sampling", "0",
+                       "delay the generation of samples until they are * necessary. Only works with r-disc connection "
+                       "and path length minimization. Default: 0");
+  bitstar.addParameter("drop_unconnected_samples_on_prune", "0",
+                       "drop unconnected samples when pruning, regardless of their heuristic value. Default: 0");
+  bitstar.addParameter("stop_on_each_solution_improvement", "0",
+                       "stop the planner each time a solution improvement is found. Useful for debugging. Default: 0");
+  bitstar.addParameter("use_strict_queue_ordering", "0",
+                       "sort edges in the queue at the end of the batch (0) or after each rewiring (1). Default: 0");
+  bitstar.addParameter("find_approximate_solutions", "0", "track approximate solutions (1) or not (0). Default: 0");
+  planner_des.push_back(bitstar);
+#endif
+
   return planner_des;
 }
 
@@ -1889,7 +1962,6 @@ void MoveItConfigData::addGenericParameterToSensorPluginConfig(const std::string
   GenericParameter new_parameter;
   new_parameter.setName(name);
   new_parameter.setValue(value);
-  sensors_plugin_config_parameter_list_.resize(1);
   sensors_plugin_config_parameter_list_[0][name] = new_parameter;
 }
 
