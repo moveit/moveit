@@ -481,6 +481,18 @@ bool MoveItConfigData::outputKinematicsYAML(const std::string& file_path)
     emitter << YAML::Key << "kinematics_solver_timeout";
     emitter << YAML::Value << group_meta_data_[group.name_].kinematics_solver_timeout_;
 
+    // Goal joint tolerance
+    emitter << YAML::Key << "goal_joint_tolerance";
+    emitter << YAML::Value << DEFAULT_GOAL_JOINT_TOLERANCE;
+
+    // Goal position tolerance
+    emitter << YAML::Key << "goal_position_tolerance";
+    emitter << YAML::Value << DEFAULT_GOAL_POSITION_TOLERANCE;
+
+    // Goal orientation tolerance
+    emitter << YAML::Key << "goal_orientation_tolerance";
+    emitter << YAML::Value << DEFAULT_GOAL_ORIENTATION_TOLERANCE;
+
     emitter << YAML::EndMap;
   }
 

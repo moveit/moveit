@@ -57,6 +57,9 @@ static const std::string MOVEIT_ROBOT_STATE = "moveit_robot_state";
 // Default kin solver values
 static const double DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION = 0.005;
 static const double DEFAULT_KIN_SOLVER_TIMEOUT = 0.005;
+static const double DEFAULT_GOAL_JOINT_TOLERANCE = 1e-4;
+static const double DEFAULT_GOAL_POSITION_TOLERANCE = 1e-4;
+static const double DEFAULT_GOAL_ORIENTATION_TOLERANCE = 1e-3;
 
 // ******************************************************************************************
 // Structs
