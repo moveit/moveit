@@ -73,13 +73,16 @@ MOVEIT_CLASS_FORWARD(MoveGroupInterface);  // Defines MoveGroupInterfacePtr, Con
 class MoveGroupInterface
 {
 public:
-  /** \brief Default goal joint tolerance (0.1mm) if not specified with {robot description name}_kinematics/{joint model group name}/goal_joint_tolerance */
+  /** \brief Default goal joint tolerance (0.1mm) if not specified with {robot description name}_kinematics/{joint model
+   * group name}/goal_joint_tolerance */
   static constexpr double DEFAULT_GOAL_JOINT_TOLERANCE = 1e-4;
 
-  /** \brief Default goal position tolerance (0.1mm) if not specified with {robot description name}_kinematics/{joint model group name}/goal_position_tolerance */
+  /** \brief Default goal position tolerance (0.1mm) if not specified with {robot description name}_kinematics/{joint
+   * model group name}/goal_position_tolerance */
   static constexpr double DEFAULT_GOAL_POSITION_TOLERANCE = 1e-4;
 
-  /** \brief Default goal orientation tolerance (~0.1deg) if not specified with {robot description name}_kinematics/{joint model group name}/goal_orientation_tolerance */
+  /** \brief Default goal orientation tolerance (~0.1deg) if not specified with {robot description
+   * name}_kinematics/{joint model group name}/goal_orientation_tolerance */
   static constexpr double DEFAULT_GOAL_ORIENTATION_TOLERANCE = 1e-3;
 
   /** \brief Default allowed planning time (seconds) */

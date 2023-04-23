@@ -129,26 +129,20 @@ public:
     num_planning_attempts_ = DEFAULT_NUM_PLANNING_ATTEMPTS;
     max_cartesian_speed_ = 0.0;
 
-    std::string desc = opt.robot_description_.length()
-      ? opt.robot_description_
-      : ROBOT_DESCRIPTION;
+    std::string desc = opt.robot_description_.length() ? opt.robot_description_ : ROBOT_DESCRIPTION;
 
     std::string kinematics_desc = desc + "_kinematics/";
-    node_handle_.param<double>(kinematics_desc + opt.group_name_ + "/goal_joint_tolerance",
-                               goal_joint_tolerance_,
+    node_handle_.param<double>(kinematics_desc + opt.group_name_ + "/goal_joint_tolerance", goal_joint_tolerance_,
                                DEFAULT_GOAL_JOINT_TOLERANCE);
-    node_handle_.param<double>(kinematics_desc + opt.group_name_ + "/goal_position_tolerance",
-                               goal_position_tolerance_,
+    node_handle_.param<double>(kinematics_desc + opt.group_name_ + "/goal_position_tolerance", goal_position_tolerance_,
                                DEFAULT_GOAL_POSITION_TOLERANCE);
     node_handle_.param<double>(kinematics_desc + opt.group_name_ + "/goal_orientation_tolerance",
-                               goal_orientation_tolerance_,
-                               DEFAULT_GOAL_ORIENTATION_TOLERANCE);
+                               goal_orientation_tolerance_, DEFAULT_GOAL_ORIENTATION_TOLERANCE);
 
     std::string planning_desc = desc + "_planning/";
-    node_handle_.param<double>(planning_desc + "default_velocity_scaling_factor",
-                               max_velocity_scaling_factor_, 0.1);
-    node_handle_.param<double>(planning_desc + "default_acceleration_scaling_factor",
-                               max_acceleration_scaling_factor_, 0.1);
+    node_handle_.param<double>(planning_desc + "default_velocity_scaling_factor", max_velocity_scaling_factor_, 0.1);
+    node_handle_.param<double>(planning_desc + "default_acceleration_scaling_factor", max_acceleration_scaling_factor_,
+                               0.1);
     initializing_constraints_ = false;
 
     if (joint_model_group_->isChain())
