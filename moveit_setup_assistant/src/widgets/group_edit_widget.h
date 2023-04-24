@@ -75,6 +75,9 @@ public:
   QComboBox* kinematics_solver_field_;
   QLineEdit* kinematics_resolution_field_;
   QLineEdit* kinematics_timeout_field_;
+  QLineEdit* goal_joint_tolerance_field_;
+  QLineEdit* goal_position_tolerance_field_;
+  QLineEdit* goal_orientation_tolerance_field_;
   QLineEdit* kinematics_parameters_file_field_;
   QComboBox* default_planner_field_;
   QPushButton* btn_delete_;      // this button is hidden for new groups

@@ -94,6 +94,21 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, const MoveItConfigDataPtr& con
   kinematics_timeout_field_->setMaximumWidth(400);
   form_layout->addRow("Kin. Search Timeout (sec):", kinematics_timeout_field_);
 
+  // goal joint tolerance to use when planning with solver
+  goal_joint_tolerance_field_ = new QLineEdit(this);
+  goal_joint_tolerance_field_->setMaximumWidth(400);
+  form_layout->addRow("Goal Joint Tolerance (m):", goal_joint_tolerance_field_);
+
+  // goal position tolerance to use when planning with solver
+  goal_position_tolerance_field_ = new QLineEdit(this);
+  goal_position_tolerance_field_->setMaximumWidth(400);
+  form_layout->addRow("Goal Position Tolerance (m):", goal_position_tolerance_field_);
+
+  // goal orientation tolerance to use when planning with solver
+  goal_orientation_tolerance_field_ = new QLineEdit(this);
+  goal_orientation_tolerance_field_->setMaximumWidth(400);
+  form_layout->addRow("Goal Orientation Tolerance (rad):", goal_orientation_tolerance_field_);
+
   // file to load additional parameters from
   kinematics_parameters_file_field_ = new QLineEdit(this);
   kinematics_parameters_file_field_->setMaximumWidth(400);
@@ -248,6 +263,33 @@ void GroupEditWidget::setSelected(const std::string& group_name)
     *timeout = DEFAULT_KIN_SOLVER_TIMEOUT;
   }
   kinematics_timeout_field_->setText(QString::number(*timeout));
+
+  // Load goal joint tolerance
+  double* goal_joint_tolerance = &config_data_->group_meta_data_[group_name].goal_joint_tolerance_;
+  if (*goal_joint_tolerance == 0)
+  {
+    // Set default value
+    *goal_joint_tolerance = DEFAULT_GOAL_JOINT_TOLERANCE;
+  }
+  goal_joint_tolerance_field_->setText(QString::number(*goal_joint_tolerance));
+
+  // Load goal position tolerance
+  double* goal_position_tolerance = &config_data_->group_meta_data_[group_name].goal_position_tolerance_;
+  if (*goal_position_tolerance == 0)
+  {
+    // Set default value
+    *goal_position_tolerance = DEFAULT_GOAL_POSITION_TOLERANCE;
+  }
+  goal_position_tolerance_field_->setText(QString::number(*goal_position_tolerance));
+
+  // Load goal orientation tolerance
+  double* goal_orientation_tolerance = &config_data_->group_meta_data_[group_name].goal_orientation_tolerance_;
+  if (*goal_orientation_tolerance == 0)
+  {
+    // Set default value
+    *goal_orientation_tolerance = DEFAULT_GOAL_ORIENTATION_TOLERANCE;
+  }
+  goal_orientation_tolerance_field_->setText(QString::number(*goal_orientation_tolerance));
 
   // Set kin solver
   std::string kin_solver = config_data_->group_meta_data_[group_name].kinematics_solver_;

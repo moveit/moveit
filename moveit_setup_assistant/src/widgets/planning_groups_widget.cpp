@@ -1055,6 +1055,9 @@ bool PlanningGroupsWidget::saveGroupScreen()
   const std::string& default_planner = group_edit_widget_->default_planner_field_->currentText().toStdString();
   const std::string& kinematics_resolution = group_edit_widget_->kinematics_resolution_field_->text().toStdString();
   const std::string& kinematics_timeout = group_edit_widget_->kinematics_timeout_field_->text().toStdString();
+  const std::string& goal_joint_tolerance = group_edit_widget_->goal_joint_tolerance_field_->text().toStdString();
+  const std::string& goal_position_tolerance = group_edit_widget_->goal_position_tolerance_field_->text().toStdString();
+  const std::string& goal_orientation_tolerance = group_edit_widget_->goal_orientation_tolerance_field_->text().toStdString();
   const std::string& kinematics_parameters_file =
       group_edit_widget_->kinematics_parameters_file_field_->text().toStdString();
 
@@ -1113,6 +1116,42 @@ bool PlanningGroupsWidget::saveGroupScreen()
     return false;
   }
 
+  // Check that goal joint tolerance is a double number
+  double goal_joint_tolerance_double;
+  try
+  {
+    goal_joint_tolerance_double = boost::lexical_cast<double>(goal_joint_tolerance);
+  }
+  catch (boost::bad_lexical_cast&)
+  {
+    QMessageBox::warning(this, "Error Saving", "Unable to convert goal joint tolerance to a double number.");
+    return false;
+  }
+
+  // Check that goal position tolerance is a double number
+  double goal_position_tolerance_double;
+  try
+  {
+    goal_position_tolerance_double = boost::lexical_cast<double>(goal_position_tolerance);
+  }
+  catch (boost::bad_lexical_cast&)
+  {
+    QMessageBox::warning(this, "Error Saving", "Unable to convert goal position tolerance to a double number.");
+    return false;
+  }
+
+  // Check that goal orientation tolerance is a double number
+  double goal_orientation_tolerance_double;
+  try
+  {
+    goal_orientation_tolerance_double = boost::lexical_cast<double>(goal_orientation_tolerance);
+  }
+  catch (boost::bad_lexical_cast&)
+  {
+    QMessageBox::warning(this, "Error Saving", "Unable to convert goal orientation tolerance to a double number.");
+    return false;
+  }
+
   // Check that all numbers are >0
   if (kinematics_resolution_double <= 0)
   {
@@ -1122,6 +1161,16 @@ bool PlanningGroupsWidget::saveGroupScreen()
   if (kinematics_timeout_double <= 0)
   {
     QMessageBox::warning(this, "Error Saving", "Kinematics solver search timeout must be greater than 0.");
+    return false;
+  }
+  if (goal_joint_tolerance_double <= 0)
+  {
+    QMessageBox::warning(this, "Error Saving", "Goal joint tolerance must be greater than 0.");
+    return false;
+  }
+  if (goal_position_tolerance_double <= 0)
+  {
+    QMessageBox::warning(this, "Error Saving", "Goal position tolerance must be greater than 0.");
     return false;
   }
 
@@ -1207,6 +1256,9 @@ bool PlanningGroupsWidget::saveGroupScreen()
   config_data_->group_meta_data_[group_name].kinematics_solver_ = kinematics_solver;
   config_data_->group_meta_data_[group_name].kinematics_solver_search_resolution_ = kinematics_resolution_double;
   config_data_->group_meta_data_[group_name].kinematics_solver_timeout_ = kinematics_timeout_double;
+  config_data_->group_meta_data_[group_name].goal_joint_tolerance_ = goal_joint_tolerance_double;
+  config_data_->group_meta_data_[group_name].goal_position_tolerance_ = goal_position_tolerance_double;
+  config_data_->group_meta_data_[group_name].goal_orientation_tolerance_ = goal_orientation_tolerance_double;
   config_data_->group_meta_data_[group_name].kinematics_parameters_file_ = kinematics_parameters_file;
   config_data_->group_meta_data_[group_name].default_planner_ = (default_planner == "None" ? "" : default_planner);
   config_data_->changes |= MoveItConfigData::GROUP_KINEMATICS;
