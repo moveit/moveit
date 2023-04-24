@@ -275,17 +275,25 @@ public:
   /** \brief Get the number of seconds set by setPlanningTime() */
   double getPlanningTime() const;
 
-  /** \brief Get the tolerance that is used for reaching a joint goal. This is distance for each joint in configuration
-   * space */
+  /** \brief Get the tolerance that is used for reaching a joint goal. This is the distance for each joint in
+   * configuration space */
   double getGoalJointTolerance() const;
 
-  /** \brief Get the tolerance that is used for reaching a position goal. This is be the radius of a sphere where the
+  /** \brief Get the tolerance that is used for reaching a position goal. This is the radius of a sphere where the
    * end-effector must reach.*/
   double getGoalPositionTolerance() const;
 
   /** \brief Get the tolerance that is used for reaching an orientation goal. This is the tolerance for roll, pitch and
    * yaw, in radians. */
   double getGoalOrientationTolerance() const;
+
+  /** \brief Get the tolerance that is used for reaching a position goal. This is the tolerance for coordinates where
+   * the end-effector must reach.*/
+  std::vector<double> getGoalPositionToleranceXYZ() const;
+
+  /** \brief Get the tolerance that is used for reaching an orientation goal. This is one tolerance for each of the
+   * roll, pitch and yaw, in radians. */
+  std::vector<double> getGoalOrientationToleranceXYZ() const;
 
   /** \brief Set the tolerance that is used for reaching the goal. For
       joint state goals, this will be distance for each joint, in the
@@ -294,6 +302,10 @@ public:
       reach. This function simply triggers calls to setGoalPositionTolerance(),
       setGoalOrientationTolerance() and setGoalJointTolerance(). */
   void setGoalTolerance(double tolerance);
+
+  /** \brief Set the tolerance that is used for reaching the goal to default values. This function simply triggers calls
+     to setGoalPositionTolerance(), setGoalOrientationTolerance() and setGoalJointTolerance(). */
+  void setDefaultGoalTolerance();
 
   /** \brief Set the joint tolerance (for each joint) that is used for reaching the goal when moving to a joint value
    * target. */
@@ -304,6 +316,12 @@ public:
 
   /** \brief Set the orientation tolerance that is used for reaching the goal when moving to a pose. */
   void setGoalOrientationTolerance(double tolerance);
+
+  /** \brief Set the position tolerance (for each coordinate) that is used for reaching the goal when moving to a pose. */
+  void setGoalPositionToleranceXYZ(const std::vector<double>& tolerances);
+
+  /** \brief Set the orientation tolerance (for each coordinate) that is used for reaching the goal when moving to a pose. */
+  void setGoalOrientationToleranceXYZ(const std::vector<double>& tolerances);
 
   /** \brief Specify the workspace bounding box.
        The box is specified in the planning frame (i.e. relative to the robot root link start position).

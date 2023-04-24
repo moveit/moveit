@@ -759,12 +759,21 @@ static void wrap_move_group_interface()
   move_group_interface_class.def("get_goal_position_tolerance", &MoveGroupInterfaceWrapper::getGoalPositionTolerance);
   move_group_interface_class.def("get_goal_orientation_tolerance",
                                  &MoveGroupInterfaceWrapper::getGoalOrientationTolerance);
+  move_group_interface_class.def("get_goal_position_tolerance_xyz",
+                                 &MoveGroupInterfaceWrapper::getGoalPositionToleranceXYZ);
+  move_group_interface_class.def("get_goal_orientation_tolerance_xyz",
+                                 &MoveGroupInterfaceWrapper::getGoalOrientationToleranceXYZ);
 
   move_group_interface_class.def("set_goal_joint_tolerance", &MoveGroupInterfaceWrapper::setGoalJointTolerance);
   move_group_interface_class.def("set_goal_position_tolerance", &MoveGroupInterfaceWrapper::setGoalPositionTolerance);
   move_group_interface_class.def("set_goal_orientation_tolerance",
                                  &MoveGroupInterfaceWrapper::setGoalOrientationTolerance);
   move_group_interface_class.def("set_goal_tolerance", &MoveGroupInterfaceWrapper::setGoalTolerance);
+  move_group_interface_class.def("set_default_goal_tolerance", &MoveGroupInterfaceWrapper::setDefaultGoalTolerance);
+  move_group_interface_class.def("set_goal_position_tolerance_xyz",
+                                 &MoveGroupInterfaceWrapper::setGoalPositionToleranceXYZ);
+  move_group_interface_class.def("set_goal_orientation_tolerance_xyz",
+                                 &MoveGroupInterfaceWrapper::setGoalOrientationToleranceXYZ);
 
   move_group_interface_class.def("set_start_state_to_current_state",
                                  &MoveGroupInterfaceWrapper::setStartStateToCurrentState);

@@ -427,6 +427,14 @@ class MoveGroupCommander(object):
             self.get_goal_orientation_tolerance(),
         )
 
+    def get_goal_tolerance_xyz(self):
+        """ Return a tuple of goal tolerances: joint, position and orientation. """
+        return (
+            self.get_goal_joint_tolerance(),
+            self.get_goal_position_tolerance_xyz(),
+            self.get_goal_orientation_tolerance_xyz(),
+        )
+
     def get_goal_joint_tolerance(self):
         """Get the tolerance for achieving a joint goal (distance for each joint variable)"""
         return self._g.get_goal_joint_tolerance()
@@ -438,6 +446,18 @@ class MoveGroupCommander(object):
     def get_goal_orientation_tolerance(self):
         """When moving to an orientation goal or to a pose goal, the tolerance for the goal orientation is specified as the distance (roll, pitch, yaw) to the target origin of the end-effector"""
         return self._g.get_goal_orientation_tolerance()
+
+    def get_goal_position_tolerance_xyz(self):
+        """ When moving to a position goal or to a pose goal, the tolerance for the goal position is specified as tolerances on each coordinate x, y, z relative to the end-effector """
+        return self._g.get_goal_position_tolerance_xyz()
+
+    def get_goal_orientation_tolerance_xyz(self):
+        """ When moving to an orientation goal or to a pose goal, the tolerance for the goal orientation is specified as the distance for each angle (roll, pitch, yaw) to the end-effector """
+        return self._g.get_goal_orientation_tolerance_xyz()
+
+    def set_default_goal_tolerance(self):
+        """ Set the joint, position and orientation goal tolerances to their defaults """
+        self._g.set_default_goal_tolerance()
 
     def set_goal_tolerance(self, value):
         """Set the joint, position and orientation goal tolerances simultaneously"""
@@ -454,6 +474,14 @@ class MoveGroupCommander(object):
     def set_goal_orientation_tolerance(self, value):
         """Set the tolerance for a target end-effector orientation"""
         self._g.set_goal_orientation_tolerance(value)
+
+    def set_goal_position_tolerance_xyz(self, value):
+        """ Set the tolerances for each coordinate of a target end-effector position """
+        self._g.set_goal_position_tolerance_xyz(value)
+
+    def set_goal_orientation_tolerance_xyz(self, value):
+        """ Set the tolerances for each coordinate of a target end-effector orientation """
+        self._g.set_goal_orientation_tolerance_xyz(value)
 
     def allow_looking(self, value):
         """Enable/disable looking around for motion planning"""
