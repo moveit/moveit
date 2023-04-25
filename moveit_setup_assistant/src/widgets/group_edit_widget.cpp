@@ -48,6 +48,7 @@
 #include <QVBoxLayout>
 
 #include "group_edit_widget.h"
+#include <moveit/move_group_interface/move_group_interface.h>
 #include <pluginlib/class_loader.hpp>  // for loading all avail kinematic planners
 
 namespace moveit_setup_assistant

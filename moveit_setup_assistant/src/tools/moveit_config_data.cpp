@@ -35,6 +35,7 @@
 /* Author: Dave Coleman */
 
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
+#include <moveit/move_group_interface/move_group_interface.h>
 
 // Reading/Writing Files
 #include <iostream>  // For writing yaml and launch files
