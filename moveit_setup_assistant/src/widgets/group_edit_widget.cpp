@@ -59,14 +59,15 @@ namespace moveit_setup_assistant
 GroupEditWidget::GroupEditWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : QWidget(parent), config_data_(config_data)
 {
-  auto addLineEdit = [this](QFormLayout* form, const QString& label) {
+  auto add_line_edit = [this](QFormLayout* form, const QString& label) {
     QLineEdit* field = new QLineEdit(this);
     field->setMaximumWidth(FORM_CONTROL_WIDTH);
     form->addRow(label, field);
     return field;
   };
 
-  auto addSpinBox = [this](QFormLayout* form, const QString& label, double min, double max, double step, int decimals) {
+  auto add_spin_box = [this](QFormLayout* form, const QString& label, double min, double max, double step,
+                             int decimals) {
     QDoubleSpinBox* field = new QDoubleSpinBox(this);
     field->setMaximumWidth(FORM_CONTROL_WIDTH);
     field->setRange(min, max);
@@ -76,7 +77,7 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, const MoveItConfigDataPtr& con
     return field;
   };
 
-  auto addComboBox = [this](QFormLayout* form, const QString& label, bool editable = false) {
+  auto add_combo_box = [this](QFormLayout* form, const QString& label, bool editable = false) {
     QComboBox* field = new QComboBox(this);
     field->setEditable(editable);
     field->setMaximumWidth(FORM_CONTROL_WIDTH);
@@ -101,28 +102,28 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, const MoveItConfigDataPtr& con
   form_layout->setContentsMargins(0, 12, 0, 12);
 
   // Name input
-  group_name_field_ = addLineEdit(form_layout, "Group Name:");
+  group_name_field_ = add_line_edit(form_layout, "Group Name:");
 
   // Kinematic solver to use
-  kinematics_solver_field_ = addComboBox(form_layout, "Kinematic Solver:");
+  kinematics_solver_field_ = add_combo_box(form_layout, "Kinematic Solver:");
 
   // Resolution to use with solver
-  kinematics_resolution_field_ = addLineEdit(form_layout, "Kin. Search Resolution:");
+  kinematics_resolution_field_ = add_line_edit(form_layout, "Kin. Search Resolution:");
 
   // Timeout to use with solver
-  kinematics_timeout_field_ = addLineEdit(form_layout, "Kin. Search Timeout (sec):");
+  kinematics_timeout_field_ = add_line_edit(form_layout, "Kin. Search Timeout (sec):");
 
   // goal joint tolerance to use when planning with solver
-  goal_joint_tolerance_field_ = addSpinBox(form_layout, "Goal Joint Tolerance (m|rad):", MIN_TOLERANCE, MAX_TOLERANCE,
-                                           STEP_TOLERANCE, DECIMALS_TOLERANCE);
+  goal_joint_tolerance_field_ = add_spin_box(form_layout, "Goal Joint Tolerance (m|rad):", MIN_TOLERANCE, MAX_TOLERANCE,
+                                             STEP_TOLERANCE, DECIMALS_TOLERANCE);
 
   // goal position tolerance to use when planning with solver
-  goal_position_tolerance_field_ = addSpinBox(form_layout, "Goal Position Tolerance (m):", MIN_TOLERANCE, MAX_TOLERANCE,
-                                              STEP_TOLERANCE, DECIMALS_TOLERANCE);
+  goal_position_tolerance_field_ = add_spin_box(form_layout, "Goal Position Tolerance (m):", MIN_TOLERANCE,
+                                                MAX_TOLERANCE, STEP_TOLERANCE, DECIMALS_TOLERANCE);
 
   // goal orientation tolerance to use when planning with solver
-  goal_orientation_tolerance_field_ = addSpinBox(form_layout, "Goal Orientation Tolerance (rad):", MIN_TOLERANCE,
-                                                 MAX_TOLERANCE, STEP_TOLERANCE, DECIMALS_TOLERANCE);
+  goal_orientation_tolerance_field_ = add_spin_box(form_layout, "Goal Orientation Tolerance (rad):", MIN_TOLERANCE,
+                                                   MAX_TOLERANCE, STEP_TOLERANCE, DECIMALS_TOLERANCE);
 
   // file to load additional parameters from
   kinematics_parameters_file_field_ = new QLineEdit(this);
@@ -146,7 +147,7 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, const MoveItConfigDataPtr& con
   form_layout2->setContentsMargins(0, 12, 0, 12);
 
   // Kinematic default planner
-  default_planner_field_ = addComboBox(form_layout2, "Group Default Planner:");
+  default_planner_field_ = add_combo_box(form_layout2, "Group Default Planner:");
 
   group2->setLayout(form_layout2);
 
@@ -257,14 +258,14 @@ void GroupEditWidget::setSelected(const std::string& group_name)
   group_name_field_->setText(QString(group_name.c_str()));
 
   // Load properties from moveit_config_data.cpp ----------------------------------------------
-  auto setSpinBoxValue = [](double& value, const double defaultValue, QDoubleSpinBox* widget) {
+  auto set_spin_box_value = [](double& value, const double defaultValue, QDoubleSpinBox* widget) {
     if (value <= 0)
       value = defaultValue;
 
     widget->setValue(value);
   };
 
-  auto setLineEditValue = [](double& value, const double defaultValue, QLineEdit* widget) {
+  auto set_line_edit_value = [](double& value, const double defaultValue, QLineEdit* widget) {
     if (value <= 0)
       value = defaultValue;
 
@@ -274,26 +275,26 @@ void GroupEditWidget::setSelected(const std::string& group_name)
   GroupMetaData& group_metadata = config_data_->group_meta_data_[group_name];
 
   // Load resolution
-  setLineEditValue(group_metadata.kinematics_solver_search_resolution_, DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION,
-                   kinematics_resolution_field_);
+  set_line_edit_value(group_metadata.kinematics_solver_search_resolution_, DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION,
+                      kinematics_resolution_field_);
 
   // Load timeout
-  setLineEditValue(group_metadata.kinematics_solver_timeout_, DEFAULT_KIN_SOLVER_TIMEOUT, kinematics_timeout_field_);
+  set_line_edit_value(group_metadata.kinematics_solver_timeout_, DEFAULT_KIN_SOLVER_TIMEOUT, kinematics_timeout_field_);
 
   // Load goal joint tolerance
-  setSpinBoxValue(group_metadata.goal_joint_tolerance_,
-                  moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_JOINT_TOLERANCE,
-                  goal_joint_tolerance_field_);
+  set_spin_box_value(group_metadata.goal_joint_tolerance_,
+                     moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_JOINT_TOLERANCE,
+                     goal_joint_tolerance_field_);
 
   // Load goal position tolerance
-  setSpinBoxValue(group_metadata.goal_position_tolerance_,
-                  moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_POSITION_TOLERANCE,
-                  goal_position_tolerance_field_);
+  set_spin_box_value(group_metadata.goal_position_tolerance_,
+                     moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_POSITION_TOLERANCE,
+                     goal_position_tolerance_field_);
 
   // Load goal orientation tolerance
-  setSpinBoxValue(group_metadata.goal_orientation_tolerance_,
-                  moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_ORIENTATION_TOLERANCE,
-                  goal_orientation_tolerance_field_);
+  set_spin_box_value(group_metadata.goal_orientation_tolerance_,
+                     moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_ORIENTATION_TOLERANCE,
+                     goal_orientation_tolerance_field_);
 
   // Set kin solver
   std::string kin_solver = group_metadata.kinematics_solver_;
