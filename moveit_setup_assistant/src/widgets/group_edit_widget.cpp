@@ -281,14 +281,18 @@ void GroupEditWidget::setSelected(const std::string& group_name)
   setLineEditValue(group_metadata.kinematics_solver_timeout_, DEFAULT_KIN_SOLVER_TIMEOUT, kinematics_timeout_field_);
 
   // Load goal joint tolerance
-  setSpinBoxValue(group_metadata.goal_joint_tolerance_, DEFAULT_GOAL_JOINT_TOLERANCE, goal_joint_tolerance_field_);
+  setSpinBoxValue(group_metadata.goal_joint_tolerance_,
+                  moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_JOINT_TOLERANCE,
+                  goal_joint_tolerance_field_);
 
   // Load goal position tolerance
-  setSpinBoxValue(group_metadata.goal_position_tolerance_, DEFAULT_GOAL_POSITION_TOLERANCE,
+  setSpinBoxValue(group_metadata.goal_position_tolerance_,
+                  moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_POSITION_TOLERANCE,
                   goal_position_tolerance_field_);
 
   // Load goal orientation tolerance
-  setSpinBoxValue(group_metadata.goal_orientation_tolerance_, DEFAULT_GOAL_ORIENTATION_TOLERANCE,
+  setSpinBoxValue(group_metadata.goal_orientation_tolerance_,
+                  moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_ORIENTATION_TOLERANCE,
                   goal_orientation_tolerance_field_);
 
   // Set kin solver

@@ -1350,10 +1350,12 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
       parse(group, "kinematics_solver_search_resolution", meta_data.kinematics_solver_search_resolution_,
             DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION);
       parse(group, "kinematics_solver_timeout", meta_data.kinematics_solver_timeout_, DEFAULT_KIN_SOLVER_TIMEOUT);
-      parse(group, "goal_joint_tolerance", meta_data.goal_joint_tolerance_, DEFAULT_GOAL_JOINT_TOLERANCE);
-      parse(group, "goal_position_tolerance", meta_data.goal_position_tolerance_, DEFAULT_GOAL_POSITION_TOLERANCE);
+      parse(group, "goal_joint_tolerance", meta_data.goal_joint_tolerance_,
+            moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_JOINT_TOLERANCE);
+      parse(group, "goal_position_tolerance", meta_data.goal_position_tolerance_,
+            moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_POSITION_TOLERANCE);
       parse(group, "goal_orientation_tolerance", meta_data.goal_orientation_tolerance_,
-            DEFAULT_GOAL_ORIENTATION_TOLERANCE);
+            moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_ORIENTATION_TOLERANCE);
 
       // Assign meta data to vector
       group_meta_data_[group_name] = std::move(meta_data);
