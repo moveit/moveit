@@ -127,15 +127,16 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, const MoveItConfigDataPtr& con
 
   // file to load additional parameters from
   kinematics_parameters_file_field_ = new QLineEdit(this);
-  kinematics_parameters_file_field_->setMaximumWidth(FORM_CONTROL_WIDTH);
   QPushButton* kinematics_parameters_file_button = new QPushButton("...", this);
   kinematics_parameters_file_button->setMaximumWidth(50);
+  kinematics_parameters_file_button->setMaximumHeight(42);
   connect(kinematics_parameters_file_button, SIGNAL(clicked()), this, SLOT(selectKinematicsFile()));
   QBoxLayout* kinematics_parameters_file_layout = new QHBoxLayout(this);
   kinematics_parameters_file_layout->addWidget(kinematics_parameters_file_field_);
   kinematics_parameters_file_layout->addWidget(kinematics_parameters_file_button);
   kinematics_parameters_file_layout->setContentsMargins(0, 0, 0, 0);
   QWidget* container = new QWidget(this);
+  container->setMaximumWidth(FORM_CONTROL_WIDTH);
   container->setLayout(kinematics_parameters_file_layout);
   form_layout->addRow("Kin. parameters file:", container);
 
