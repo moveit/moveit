@@ -45,6 +45,15 @@
 
 namespace trajectory_processing
 {
+enum LimitType
+{
+  VELOCITY,
+  ACCELERATION
+};
+
+const std::unordered_map<LimitType, std::string> LIMIT_TYPES = { { VELOCITY, "velocity" },
+                                                                 { ACCELERATION, "acceleration" } };
+
 class PathSegment
 {
 public:
@@ -175,38 +184,64 @@ public:
   TimeOptimalTrajectoryGeneration(const double path_tolerance = 0.1, const double resample_dt = 0.1,
                                   const double min_angle_change = 0.001);
 
-  /* clang-format off */
-  /**
-   * \brief Given a sequence of waypoints and a robot model in trajectory, compute velocities and accelerations. This
-   * version checks joint torques at each waypoint and decreases acceleration iteratively until torque limits are not
-   * violated.
-   * \param[in,out] trajectory Encapsulates the RobotModel as well as the initial waypoints. As an output,
-   * contains the time-parameterized trajectory.
-   * \param max_velocity_scaling_factor In the range (0,1]
-   * \param max_acceleration_scaling_factor In the range (0,1]
-   * \param acceleration_limits Joint names and acceleration limits in rad/s^2
-   * \return true if successful.
-   */
-  /* clang-format on */
+  // clang-format off
+/**
+  * \brief Compute a trajectory with waypoints spaced equally in time (according to resample_dt_).
+  * Resampling the trajectory doesn't change the start and goal point,
+  * and all re-sampled waypoints will be on the path of the original trajectory (within path_tolerance_).
+  * However, controller execution is separate from MoveIt and may deviate from the intended path between waypoints.
+  * path_tolerance_ is defined in configuration space, so the unit is rad for revolute joints,
+  * meters for prismatic joints.
+  * \param[in,out] trajectory A path which needs time-parameterization. It's OK if this path has already been
+  * time-parameterized; this function will re-time-parameterize it.
+  * \param max_velocity_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
+  * \param max_acceleration_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
+  */
+  // clang-format on
   bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory, const double max_velocity_scaling_factor = 1.0,
                          const double max_acceleration_scaling_factor = 1.0) const override;
 
-  /* clang-format off */
-  /**
-   * \brief Given a sequence of waypoints and a robot model in trajectory, compute velocities and accelerations. Check
-   * joint torques at each waypoint and decreases acceleration iteratively until torque limits are not violated.
-   * \param[in,out] trajectory Encapsulates the RobotModel as well as the initial waypoints. As an output, contains the
-   * time-parameterized trajectory.
+  // clang-format off
+/**
+  * \brief Compute a trajectory with waypoints spaced equally in time (according to resample_dt_).
+  * Resampling the trajectory doesn't change the start and goal point,
+  * and all re-sampled waypoints will be on the path of the original trajectory (within path_tolerance_).
+  * However, controller execution is separate from MoveIt and may deviate from the intended path between waypoints.
+  * path_tolerance_ is defined in configuration space, so the unit is rad for revolute joints,
+  * meters for prismatic joints.
+  * \param[in,out] trajectory A path which needs time-parameterization. It's OK if this path has already been
+  * time-parameterized; this function will re-time-parameterize it.
+  * \param velocity_limits Joint names and velocity limits in rad/s
+  * \param acceleration_limits Joint names and acceleration limits in rad/s^2
+  * \param max_velocity_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
+  * \param max_acceleration_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
+  */
+  // clang-format on
+  bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
+                         const std::unordered_map<std::string, double>& velocity_limits,
+                         const std::unordered_map<std::string, double>& acceleration_limits,
+                         const double max_velocity_scaling_factor = 1.0,
+                         const double max_acceleration_scaling_factor = 1.0) const;
+
+  // clang-format off
+/**
+  * \brief Compute a trajectory with waypoints spaced equally in time (according to resample_dt_).
+  * Resampling the trajectory doesn't change the start and goal point,
+  * and all re-sampled waypoints will be on the path of the original trajectory (within path_tolerance_).
+  * However, controller execution is separate from MoveIt and may deviate from the intended path between waypoints.
+  * path_tolerance_ is defined in configuration space, so the unit is rad for revolute joints,
+  * meters for prismatic joints.
+  * \param[in,out] trajectory A path which needs time-parameterization. It's OK if this path has already been
+  * time-parameterized; this function will re-time-parameterize it.
    * \param gravity_vector For example, (0, 0, -9.81). Units are m/s^2
    * \param joint_torque_limits Torque limits for each joint in N*m. Should all be >0.
    * \param accel_limit_decrement_factor In the range (0,1]. This affects how fast acceleration limits are decreased while
    * searching for a solution. Time-optimality of the output is accurate to approximately (1-accel_limit_decrement_factor.)
    * For example, if accel_limit_decrement_factor is 0.9, the output should be within 10% of time-optimal.
-   * \param max_velocity_scaling_factor In the range (0,1]
-   * \param max_acceleration_scaling_factor In the range (0,1]
-   * \return true if successful.
-   */
-  /* clang-format on */
+  * \param max_velocity_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
+  * \param max_acceleration_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
+  */
+  // clang-format on
   bool computeTimeStampsWithTorqueLimits(robot_trajectory::RobotTrajectory& trajectory,
                                          const geometry_msgs::Vector3& gravity_vector,
                                          const std::vector<double>& joint_torque_limits,
@@ -215,6 +250,25 @@ public:
                                          const double max_acceleration_scaling_factor = 1.0) const;
 
 private:
+  bool doTimeParameterizationCalculations(robot_trajectory::RobotTrajectory& trajectory,
+                                          const Eigen::VectorXd& max_velocity,
+                                          const Eigen::VectorXd& max_acceleration) const;
+
+  /**
+   * @brief Check if a combination of revolute and prismatic joints is used. path_tolerance_ is not valid, if so.
+   * \param group The JointModelGroup to check.
+   * \return true if there are mixed joints.
+   */
+  bool hasMixedJointTypes(const moveit::core::JointModelGroup* group) const;
+
+  /**
+   * @brief Check if the requested scaling factor is valid and if not, return 1.0.
+   * \param requested_scaling_factor The desired maximum scaling factor to apply to the velocity or acceleration limits
+   * \param limit_type Whether the velocity or acceleration scaling factor is being verified
+   * \return The user requested scaling factor, if it is valid. Otherwise, return 1.0.
+   */
+  double verifyScalingFactor(const double requested_scaling_factor, const LimitType limit_type) const;
+
   const double path_tolerance_;
   const double resample_dt_;
   const double min_angle_change_;
