@@ -40,6 +40,7 @@
 #include <Eigen/Geometry>
 #include <algorithm>
 #include <cmath>
+#include <moveit/dynamics_solver/dynamics_solver.h>
 #include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
 #include <ros/console.h>
 #include <vector>
@@ -1020,6 +1021,88 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
 
     trajectory.addSuffixWayPoint(waypoint, t - last_t);
     last_t = t;
+  }
+
+  return true;
+}
+
+bool TimeOptimalTrajectoryGeneration::computeTimeStampsWithTorqueLimits(
+    robot_trajectory::RobotTrajectory& trajectory, const geometry_msgs::Vector3& gravity_vector,
+    const std::vector<double>& joint_torque_limits, double accel_limit_decrement_factor,
+    const double max_velocity_scaling_factor, const double max_acceleration_scaling_factor) const
+{
+  // 1. Call computeTimeStamps() to time-parameterize the trajectory with given vel/accel limits.
+  // 2. Run forward dynamics to check if torque limits are violated at any waypoint.
+  // 3. If a torque limit was violated, decrease the acceleration limit for that joint and go back to Step 1.
+
+  const moveit::core::JointModelGroup* group = trajectory.getGroup();
+  if (!group)
+  {
+    ROS_ERROR_NAMED(LOGNAME, "It looks like the planner did not set the group the plan was computed for");
+    return false;
+  }
+
+  auto robot_model = std::make_shared<moveit::core::RobotModel>(group->getParentModel());
+  size_t dof = robot_model->getActiveJointModels().size();
+  if (joint_torque_limits.size() != dof)
+  {
+    ROS_ERROR_NAMED(LOGNAME, "Joint torque limit vector does not match the DOF of the RobotModel");
+    return false;
+  }
+
+  dynamics_solver::DynamicsSolver dynamics_solver(robot_model, group->getName(), gravity_vector);
+
+  // Assume no external forces on the robot. This could easily be an argument later.
+  static const std::vector<geometry_msgs::Wrench> LINK_WRENCHES = [dof] {
+    geometry_msgs::Wrench zero_wrench;
+    zero_wrench.force.x = 0;
+    zero_wrench.force.y = 0;
+    zero_wrench.force.z = 0;
+    zero_wrench.torque.x = 0;
+    zero_wrench.torque.y = 0;
+    zero_wrench.torque.z = 0;
+    std::vector<geometry_msgs::Wrench> vector_of_zero_wrenches(dof);
+    return vector_of_zero_wrenches;
+  }();
+
+  // Create a copy of the trajectory that is not modified while iterating
+  robot_trajectory::RobotTrajectory original_trajectory(trajectory, true /* deep copy */);
+
+  while (ros::ok())
+  {
+    trajectory = robot_trajectory::RobotTrajectory(original_trajectory, true /* deep copy */);
+    computeTimeStamps(trajectory, max_velocity_scaling_factor, max_acceleration_scaling_factor);
+
+    std::vector<double> joint_positions(dof);
+    std::vector<double> joint_velocities(dof);
+    std::vector<double> joint_accelerations(dof);
+    std::vector<double> joint_torques(dof);
+
+    // Check if any torque limits are violated
+    for (size_t waypoint_idx = 0; waypoint_idx < trajectory.getWayPointCount(); ++waypoint_idx)
+    {
+      moveit::core::RobotStatePtr& waypoint = trajectory.getWayPointPtr(waypoint_idx);
+      // void copyJointGroupPositions(const std::string& joint_group_name, std::vector<double>& gstate) const
+      waypoint->copyJointGroupPositions(group->getName(), joint_positions);
+      waypoint->copyJointGroupVelocities(group->getName(), joint_velocities);
+      waypoint->copyJointGroupAccelerations(group->getName(), joint_accelerations);
+
+      if (!dynamics_solver.getTorques(joint_positions, joint_velocities, joint_accelerations, LINK_WRENCHES,
+                                      joint_torques))
+      {
+        ROS_ERROR_STREAM("Dynamics computation failed.");
+        return false;
+      }
+
+      // For each joint, check if torque exceeds the limit
+      for (size_t joint_idx = 0; joint_idx < joint_torque_limits.size(); ++joint_idx)
+      {
+        if (std::fabs(joint_torques.at(joint_idx)) > joint_torque_limits.at(joint_idx))
+        {
+          ;
+        }
+      }
+    }
   }
 
   return true;

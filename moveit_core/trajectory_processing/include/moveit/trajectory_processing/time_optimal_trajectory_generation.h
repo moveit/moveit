@@ -175,8 +175,44 @@ public:
   TimeOptimalTrajectoryGeneration(const double path_tolerance = 0.1, const double resample_dt = 0.1,
                                   const double min_angle_change = 0.001);
 
+  /* clang-format off */
+  /**
+   * \brief Given a sequence of waypoints and a robot model in trajectory, compute velocities and accelerations. This
+   * version checks joint torques at each waypoint and decreases acceleration iteratively until torque limits are not
+   * violated.
+   * \param[in,out] trajectory Encapsulates the RobotModel as well as the initial waypoints. As an output,
+   * contains the time-parameterized trajectory.
+   * \param max_velocity_scaling_factor In the range (0,1]
+   * \param max_acceleration_scaling_factor In the range (0,1]
+   * \param acceleration_limits Joint names and acceleration limits in rad/s^2
+   * \return true if successful.
+   */
+  /* clang-format on */
   bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory, const double max_velocity_scaling_factor = 1.0,
                          const double max_acceleration_scaling_factor = 1.0) const override;
+
+  /* clang-format off */
+  /**
+   * \brief Given a sequence of waypoints and a robot model in trajectory, compute velocities and accelerations. Check
+   * joint torques at each waypoint and decreases acceleration iteratively until torque limits are not violated.
+   * \param[in,out] trajectory Encapsulates the RobotModel as well as the initial waypoints. As an output, contains the
+   * time-parameterized trajectory.
+   * \param gravity_vector For example, (0, 0, -9.81). Units are m/s^2
+   * \param joint_torque_limits Torque limits for each joint in N*m. Should all be >0.
+   * \param accel_limit_decrement_factor In the range (0,1]. This affects how fast acceleration limits are decreased while
+   * searching for a solution. Time-optimality of the output is accurate to approximately (1-accel_limit_decrement_factor.)
+   * For example, if accel_limit_decrement_factor is 0.9, the output should be within 10% of time-optimal.
+   * \param max_velocity_scaling_factor In the range (0,1]
+   * \param max_acceleration_scaling_factor In the range (0,1]
+   * \return true if successful.
+   */
+  /* clang-format on */
+  bool computeTimeStampsWithTorqueLimits(robot_trajectory::RobotTrajectory& trajectory,
+                                         const geometry_msgs::Vector3& gravity_vector,
+                                         const std::vector<double>& joint_torque_limits,
+                                         double accel_limit_decrement_factor,
+                                         const double max_velocity_scaling_factor = 1.0,
+                                         const double max_acceleration_scaling_factor = 1.0) const;
 
 private:
   const double path_tolerance_;
