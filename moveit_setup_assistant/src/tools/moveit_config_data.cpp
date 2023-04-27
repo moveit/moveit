@@ -35,6 +35,7 @@
 /* Author: Dave Coleman */
 
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
+#include <moveit/move_group_interface/move_group_interface.h>
 
 // Reading/Writing Files
 #include <iostream>  // For writing yaml and launch files
@@ -480,6 +481,18 @@ bool MoveItConfigData::outputKinematicsYAML(const std::string& file_path)
     // Solver Timeout
     emitter << YAML::Key << "kinematics_solver_timeout";
     emitter << YAML::Value << group_meta_data_[group.name_].kinematics_solver_timeout_;
+
+    // Goal joint tolerance
+    emitter << YAML::Key << "goal_joint_tolerance";
+    emitter << YAML::Value << group_meta_data_[group.name_].goal_joint_tolerance_;
+
+    // Goal position tolerance
+    emitter << YAML::Key << "goal_position_tolerance";
+    emitter << YAML::Value << group_meta_data_[group.name_].goal_position_tolerance_;
+
+    // Goal orientation tolerance
+    emitter << YAML::Key << "goal_orientation_tolerance";
+    emitter << YAML::Value << group_meta_data_[group.name_].goal_orientation_tolerance_;
 
     emitter << YAML::EndMap;
   }
@@ -1337,6 +1350,12 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
       parse(group, "kinematics_solver_search_resolution", meta_data.kinematics_solver_search_resolution_,
             DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION);
       parse(group, "kinematics_solver_timeout", meta_data.kinematics_solver_timeout_, DEFAULT_KIN_SOLVER_TIMEOUT);
+      parse(group, "goal_joint_tolerance", meta_data.goal_joint_tolerance_,
+            moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_JOINT_TOLERANCE);
+      parse(group, "goal_position_tolerance", meta_data.goal_position_tolerance_,
+            moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_POSITION_TOLERANCE);
+      parse(group, "goal_orientation_tolerance", meta_data.goal_orientation_tolerance_,
+            moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_ORIENTATION_TOLERANCE);
 
       // Assign meta data to vector
       group_meta_data_[group_name] = std::move(meta_data);

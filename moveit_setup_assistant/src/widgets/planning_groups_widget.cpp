@@ -58,6 +58,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QDoubleSpinBox>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QStackedWidget>
@@ -1055,6 +1056,9 @@ bool PlanningGroupsWidget::saveGroupScreen()
   const std::string& default_planner = group_edit_widget_->default_planner_field_->currentText().toStdString();
   const std::string& kinematics_resolution = group_edit_widget_->kinematics_resolution_field_->text().toStdString();
   const std::string& kinematics_timeout = group_edit_widget_->kinematics_timeout_field_->text().toStdString();
+  double goal_joint_tolerance = group_edit_widget_->goal_joint_tolerance_field_->value();
+  double goal_position_tolerance = group_edit_widget_->goal_position_tolerance_field_->value();
+  double goal_orientation_tolerance = group_edit_widget_->goal_orientation_tolerance_field_->value();
   const std::string& kinematics_parameters_file =
       group_edit_widget_->kinematics_parameters_file_field_->text().toStdString();
 
@@ -1122,6 +1126,21 @@ bool PlanningGroupsWidget::saveGroupScreen()
   if (kinematics_timeout_double <= 0)
   {
     QMessageBox::warning(this, "Error Saving", "Kinematics solver search timeout must be greater than 0.");
+    return false;
+  }
+  if (goal_joint_tolerance <= 0)
+  {
+    QMessageBox::warning(this, "Error Saving", "Goal joint tolerance must be greater than 0.");
+    return false;
+  }
+  if (goal_position_tolerance <= 0)
+  {
+    QMessageBox::warning(this, "Error Saving", "Goal position tolerance must be greater than 0.");
+    return false;
+  }
+  if (goal_orientation_tolerance <= 0)
+  {
+    QMessageBox::warning(this, "Error Saving", "Goal orientation tolerance must be greater than 0.");
     return false;
   }
 
@@ -1207,6 +1226,9 @@ bool PlanningGroupsWidget::saveGroupScreen()
   config_data_->group_meta_data_[group_name].kinematics_solver_ = kinematics_solver;
   config_data_->group_meta_data_[group_name].kinematics_solver_search_resolution_ = kinematics_resolution_double;
   config_data_->group_meta_data_[group_name].kinematics_solver_timeout_ = kinematics_timeout_double;
+  config_data_->group_meta_data_[group_name].goal_joint_tolerance_ = goal_joint_tolerance;
+  config_data_->group_meta_data_[group_name].goal_position_tolerance_ = goal_position_tolerance;
+  config_data_->group_meta_data_[group_name].goal_orientation_tolerance_ = goal_orientation_tolerance;
   config_data_->group_meta_data_[group_name].kinematics_parameters_file_ = kinematics_parameters_file;
   config_data_->group_meta_data_[group_name].default_planner_ = (default_planner == "None" ? "" : default_planner);
   config_data_->changes |= MoveItConfigData::GROUP_KINEMATICS;

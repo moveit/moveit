@@ -40,6 +40,7 @@
 class QComboBox;
 class QLabel;
 class QLineEdit;
+class QDoubleSpinBox;
 class QPushButton;
 
 #ifndef Q_MOC_RUN
@@ -51,6 +52,13 @@ namespace moveit_setup_assistant
 class GroupEditWidget : public QWidget
 {
   Q_OBJECT
+
+private:
+  const int FORM_CONTROL_WIDTH = 400;
+  const int DECIMALS_TOLERANCE = 4;
+  const double MIN_TOLERANCE = 1e-4;
+  const double MAX_TOLERANCE = 1.0;
+  const double STEP_TOLERANCE = 1e-4;
 
 public:
   // ******************************************************************************************
@@ -75,6 +83,9 @@ public:
   QComboBox* kinematics_solver_field_;
   QLineEdit* kinematics_resolution_field_;
   QLineEdit* kinematics_timeout_field_;
+  QDoubleSpinBox* goal_joint_tolerance_field_;
+  QDoubleSpinBox* goal_position_tolerance_field_;
+  QDoubleSpinBox* goal_orientation_tolerance_field_;
   QLineEdit* kinematics_parameters_file_field_;
   QComboBox* default_planner_field_;
   QPushButton* btn_delete_;      // this button is hidden for new groups

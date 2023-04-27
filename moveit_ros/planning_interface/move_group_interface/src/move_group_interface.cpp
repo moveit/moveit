@@ -125,16 +125,24 @@ public:
     can_replan_ = false;
     replan_delay_ = 2.0;
     replan_attempts_ = 1;
-    goal_joint_tolerance_ = 1e-4;
-    goal_position_tolerance_ = 1e-4;     // 0.1 mm
-    goal_orientation_tolerance_ = 1e-3;  // ~0.1 deg
-    allowed_planning_time_ = 5.0;
-    num_planning_attempts_ = 1;
+    allowed_planning_time_ = DEFAULT_ALLOWED_PLANNING_TIME;
+    num_planning_attempts_ = DEFAULT_NUM_PLANNING_ATTEMPTS;
     max_cartesian_speed_ = 0.0;
-    node_handle_.param<double>("robot_description_planning/default_velocity_scaling_factor",
-                               max_velocity_scaling_factor_, 0.1);
-    node_handle_.param<double>("robot_description_planning/default_acceleration_scaling_factor",
-                               max_acceleration_scaling_factor_, 0.1);
+
+    std::string desc = opt.robot_description_.length() ? opt.robot_description_ : ROBOT_DESCRIPTION;
+
+    std::string kinematics_desc = desc + "_kinematics/";
+    node_handle_.param<double>(kinematics_desc + opt.group_name_ + "/goal_joint_tolerance", goal_joint_tolerance_,
+                               DEFAULT_GOAL_JOINT_TOLERANCE);
+    node_handle_.param<double>(kinematics_desc + opt.group_name_ + "/goal_position_tolerance", goal_position_tolerance_,
+                               DEFAULT_GOAL_POSITION_TOLERANCE);
+    node_handle_.param<double>(kinematics_desc + opt.group_name_ + "/goal_orientation_tolerance",
+                               goal_orientation_tolerance_, DEFAULT_GOAL_ORIENTATION_TOLERANCE);
+
+    std::string planning_desc = desc + "_planning/";
+    node_handle_.param<double>(planning_desc + "default_velocity_scaling_factor", max_velocity_scaling_factor_, 0.1);
+    node_handle_.param<double>(planning_desc + "default_acceleration_scaling_factor", max_acceleration_scaling_factor_,
+                               0.1);
     initializing_constraints_ = false;
 
     if (joint_model_group_->isChain())
