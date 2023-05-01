@@ -235,9 +235,10 @@ public:
   * time-parameterized; this function will re-time-parameterize it.
    * \param gravity_vector For example, (0, 0, -9.81). Units are m/s^2
    * \param joint_torque_limits Torque limits for each joint in N*m. Should all be >0.
-   * \param accel_limit_decrement_factor In the range (0,1]. This affects how fast acceleration limits are decreased while
-   * searching for a solution. Time-optimality of the output is accurate to approximately (1-accel_limit_decrement_factor.)
-   * For example, if accel_limit_decrement_factor is 0.9, the output should be within 10% of time-optimal.
+   * \param accel_limit_decrement_factor Typically in the range [0.01-0.1].
+   * This affects how fast acceleration limits are decreased while searching for a solution. Time-optimality
+   * of the output is accurate to approximately 100*accel_limit_decrement_factor %.
+   * For example, if accel_limit_decrement_factor is 0.1, the output should be within 10% of time-optimal.
   * \param max_velocity_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
   * \param max_acceleration_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
   */
@@ -246,8 +247,10 @@ public:
                                          const geometry_msgs::Vector3& gravity_vector,
                                          const std::vector<double>& joint_torque_limits,
                                          double accel_limit_decrement_factor,
-                                         const double max_velocity_scaling_factor = 1.0,
-                                         const double max_acceleration_scaling_factor = 1.0) const;
+                                         const std::unordered_map<std::string, double>& velocity_limits,
+                                         const std::unordered_map<std::string, double>& acceleration_limits,
+                                         const double max_velocity_scaling_factor,
+                                         const double max_acceleration_scaling_factor) const;
 
 private:
   bool doTimeParameterizationCalculations(robot_trajectory::RobotTrajectory& trajectory,

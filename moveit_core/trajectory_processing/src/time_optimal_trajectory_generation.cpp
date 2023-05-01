@@ -1051,11 +1051,16 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(
 bool TimeOptimalTrajectoryGeneration::computeTimeStampsWithTorqueLimits(
     robot_trajectory::RobotTrajectory& trajectory, const geometry_msgs::Vector3& gravity_vector,
     const std::vector<double>& joint_torque_limits, double accel_limit_decrement_factor,
-    const double max_velocity_scaling_factor, const double max_acceleration_scaling_factor) const
+    const std::unordered_map<std::string, double>& velocity_limits,
+    const std::unordered_map<std::string, double>& acceleration_limits, const double max_velocity_scaling_factor,
+    const double max_acceleration_scaling_factor) const
 {
   // 1. Call computeTimeStamps() to time-parameterize the trajectory with given vel/accel limits.
   // 2. Run forward dynamics to check if torque limits are violated at any waypoint.
   // 3. If a torque limit was violated, decrease the acceleration limit for that joint and go back to Step 1.
+
+  if (trajectory.empty())
+    return true;
 
   const moveit::core::JointModelGroup* group = trajectory.getGroup();
   if (!group)
@@ -1064,18 +1069,29 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStampsWithTorqueLimits(
     return false;
   }
 
+  // Create a mutable copy of acceleration_limits
+  std::unordered_map<std::string, double> mutable_accel_limits = acceleration_limits;
+
   auto robot_model = std::make_shared<moveit::core::RobotModel>(group->getParentModel());
-  size_t dof = robot_model->getActiveJointModels().size();
+  size_t dof = group->getActiveJointModels().size();
   if (joint_torque_limits.size() != dof)
   {
-    ROS_ERROR_NAMED(LOGNAME, "Joint torque limit vector does not match the DOF of the RobotModel");
+    ROS_ERROR_STREAM_NAMED(LOGNAME, "Joint torque limit vector size (" << joint_torque_limits.size()
+                                                                       << ") does not match the DOF of the RobotModel ("
+                                                                       << dof << ")");
+    return false;
+  }
+
+  if (accel_limit_decrement_factor < 0.01 || accel_limit_decrement_factor > 0.1)
+  {
+    ROS_ERROR_NAMED(LOGNAME, "The accel_limit_decrement_factor is outside the typical range [0.01, 0.1]");
     return false;
   }
 
   dynamics_solver::DynamicsSolver dynamics_solver(robot_model, group->getName(), gravity_vector);
 
   // Assume no external forces on the robot. This could easily be an argument later.
-  static const std::vector<geometry_msgs::Wrench> LINK_WRENCHES = [dof] {
+  const std::vector<geometry_msgs::Wrench> LINK_WRENCHES = [&group] {
     geometry_msgs::Wrench zero_wrench;
     zero_wrench.force.x = 0;
     zero_wrench.force.y = 0;
@@ -1083,28 +1099,39 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStampsWithTorqueLimits(
     zero_wrench.torque.x = 0;
     zero_wrench.torque.y = 0;
     zero_wrench.torque.z = 0;
-    std::vector<geometry_msgs::Wrench> vector_of_zero_wrenches(dof);
+    // KDL (the dynamics solver) requires one wrench per link
+    std::vector<geometry_msgs::Wrench> vector_of_zero_wrenches(group->getLinkModels().size());
     return vector_of_zero_wrenches;
   }();
 
-  // Create a copy of the trajectory that is not modified while iterating
-  robot_trajectory::RobotTrajectory original_trajectory(trajectory, true /* deep copy */);
+  // Copy the waypoints so we can modify them while iterating
+  moveit_msgs::RobotTrajectory original_traj;
+  trajectory.getRobotTrajectoryMsg(original_traj);
+  moveit::core::RobotState initial_state = trajectory.getFirstWayPoint();
 
-  while (ros::ok())
+  bool iteration_needed = true;
+  size_t num_iterations = 0;
+  const size_t max_iterations = 10;
+
+  while (ros::ok() && iteration_needed && num_iterations < max_iterations)
   {
-    trajectory = robot_trajectory::RobotTrajectory(original_trajectory, true /* deep copy */);
-    computeTimeStamps(trajectory, max_velocity_scaling_factor, max_acceleration_scaling_factor);
+    ++num_iterations;
+    iteration_needed = false;
+
+    computeTimeStamps(trajectory, velocity_limits, mutable_accel_limits, max_velocity_scaling_factor,
+                      max_acceleration_scaling_factor);
 
     std::vector<double> joint_positions(dof);
     std::vector<double> joint_velocities(dof);
     std::vector<double> joint_accelerations(dof);
     std::vector<double> joint_torques(dof);
 
+    const std::vector<const moveit::core::JointModel*>& joint_models = group->getActiveJointModels();
+
     // Check if any torque limits are violated
     for (size_t waypoint_idx = 0; waypoint_idx < trajectory.getWayPointCount(); ++waypoint_idx)
     {
       moveit::core::RobotStatePtr& waypoint = trajectory.getWayPointPtr(waypoint_idx);
-      // void copyJointGroupPositions(const std::string& joint_group_name, std::vector<double>& gstate) const
       waypoint->copyJointGroupPositions(group->getName(), joint_positions);
       waypoint->copyJointGroupVelocities(group->getName(), joint_velocities);
       waypoint->copyJointGroupAccelerations(group->getName(), joint_accelerations);
@@ -1121,12 +1148,45 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStampsWithTorqueLimits(
       {
         if (std::fabs(joint_torques.at(joint_idx)) > joint_torque_limits.at(joint_idx))
         {
-          ;
-        }
-      }
-    }
-  }  // while (ros::ok())
+          // We can't always just decrease acceleration to decrease joint torque.
+          // There are some edge cases where decreasing acceleration could actually increase joint torque. For example,
+          // if gravity is accelerating the joint. In that case, the joint would be fighting against gravity more.
+          // There is also a small chance that changing acceleration has no effect on joint torque, for example:
+          // centripetal acceleration caused by velocity of another joint. This should be uncommon on serial manipulators
+          // because their torque limits are high enough to withstand issues like that (or it just wouldn't work at all...)
 
+          // Check if decreasing acceleration of this joint actually decreases joint torque. Else, increase acceleration.
+          double previous_torque = joint_torques.at(joint_idx);
+          joint_accelerations.at(joint_idx) *= (1 + accel_limit_decrement_factor);
+          if (!dynamics_solver.getTorques(joint_positions, joint_velocities, joint_accelerations, LINK_WRENCHES,
+                                          joint_torques))
+          {
+            ROS_ERROR_STREAM("Dynamics computation failed.");
+            return false;
+          }
+          if (std::fabs(joint_torques.at(joint_idx)) < std::fabs(previous_torque))
+          {
+            mutable_accel_limits.at(joint_models.at(joint_idx)->getName()) *= (1 - accel_limit_decrement_factor);
+          }
+          else
+          {
+            mutable_accel_limits.at(joint_models.at(joint_idx)->getName()) *= (1 + accel_limit_decrement_factor);
+          }
+
+          iteration_needed = true;
+        }
+      }  // for each joint
+    }    // for each waypoint
+
+    if (iteration_needed)
+    {
+      // Reset
+      trajectory.setRobotTrajectoryMsg(initial_state, original_traj);
+    }
+  }      // while (ros::ok() && iteration_needed && num_iterations < max_iterations)
+
+  ROS_ERROR_STREAM("DONE!");
+  ROS_ERROR_STREAM(trajectory.getGroupName());
   return true;
 }
 
