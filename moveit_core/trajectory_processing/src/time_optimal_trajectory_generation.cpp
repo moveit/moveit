@@ -1072,8 +1072,8 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStampsWithTorqueLimits(
   // Create a mutable copy of acceleration_limits
   std::unordered_map<std::string, double> mutable_accel_limits = acceleration_limits;
 
-  auto robot_model = std::make_shared<moveit::core::RobotModel>(group->getParentModel());
   size_t dof = group->getActiveJointModels().size();
+
   if (joint_torque_limits.size() != dof)
   {
     ROS_ERROR_STREAM_NAMED(LOGNAME, "Joint torque limit vector size (" << joint_torque_limits.size()
@@ -1088,7 +1088,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStampsWithTorqueLimits(
     return false;
   }
 
-  dynamics_solver::DynamicsSolver dynamics_solver(robot_model, group->getName(), gravity_vector);
+  dynamics_solver::DynamicsSolver dynamics_solver(trajectory.getRobotModel(), group->getName(), gravity_vector);
 
   // Assume no external forces on the robot. This could easily be an argument later.
   const std::vector<geometry_msgs::Wrench> LINK_WRENCHES = [&group] {
@@ -1113,8 +1113,9 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStampsWithTorqueLimits(
   size_t num_iterations = 0;
   const size_t max_iterations = 10;
 
-  while (ros::ok() && iteration_needed && num_iterations < max_iterations)
+  while (iteration_needed && num_iterations < max_iterations)
   {
+    ROS_WARN_STREAM("Starting at beginning of trajectory. Accel limit: " << mutable_accel_limits.at("seg_0_shoulder_lift_joint"));
     ++num_iterations;
     iteration_needed = false;
 
@@ -1155,6 +1156,9 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStampsWithTorqueLimits(
           // centripetal acceleration caused by velocity of another joint. This should be uncommon on serial manipulators
           // because their torque limits are high enough to withstand issues like that (or it just wouldn't work at all...)
 
+          // Reset
+          waypoint->copyJointGroupAccelerations(group->getName(), joint_accelerations);
+
           // Check if decreasing acceleration of this joint actually decreases joint torque. Else, increase acceleration.
           double previous_torque = joint_torques.at(joint_idx);
           joint_accelerations.at(joint_idx) *= (1 + accel_limit_decrement_factor);
@@ -1166,16 +1170,31 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStampsWithTorqueLimits(
           }
           if (std::fabs(joint_torques.at(joint_idx)) < std::fabs(previous_torque))
           {
-            mutable_accel_limits.at(joint_models.at(joint_idx)->getName()) *= (1 - accel_limit_decrement_factor);
+            mutable_accel_limits.at(joint_models.at(joint_idx)->getName()) *= (1 + accel_limit_decrement_factor);
           }
           else
           {
-            mutable_accel_limits.at(joint_models.at(joint_idx)->getName()) *= (1 + accel_limit_decrement_factor);
+            mutable_accel_limits.at(joint_models.at(joint_idx)->getName()) *= (1 - accel_limit_decrement_factor);
           }
 
+          mutable_accel_limits.at(joint_models.at(joint_idx)->getName()) *= (1 - accel_limit_decrement_factor);
           iteration_needed = true;
+
+          if (joint_idx == 1)
+          {
+            ROS_ERROR_STREAM("Failing torque at waypoint: " << joint_torques.at(1) << "  " << waypoint_idx);
+          }
         }
       }  // for each joint
+      if (!iteration_needed)
+      {
+        ROS_ERROR_STREAM("Final output torque: " << joint_torques.at(1));
+      }
+      if (iteration_needed)
+      {
+        // Start over from the first waypoint
+        break;
+      }
     }    // for each waypoint
 
     if (iteration_needed)
@@ -1183,10 +1202,8 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStampsWithTorqueLimits(
       // Reset
       trajectory.setRobotTrajectoryMsg(initial_state, original_traj);
     }
-  }      // while (ros::ok() && iteration_needed && num_iterations < max_iterations)
+  }      // while (iteration_needed && num_iterations < max_iterations)
 
-  ROS_ERROR_STREAM("DONE!");
-  ROS_ERROR_STREAM(trajectory.getGroupName());
   return true;
 }
 
