@@ -51,6 +51,8 @@ const std::string LOGNAME = "trajectory_processing.time_optimal_trajectory_gener
 constexpr double EPS = 0.000001;
 constexpr double DEFAULT_TIMESTEP = 1e-3;
 constexpr double DEFAULT_SCALING_FACTOR = 1.0;
+constexpr double DEFAULT_VELOCITY_LIMIT = 1.0;
+constexpr double DEFAULT_ACCELERATION_LIMIT = 1.0;
 
 class LinearPathSegment : public PathSegment
 {
@@ -912,10 +914,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
     }
     else
     {
-      ROS_ERROR_STREAM_NAMED(LOGNAME, "No velocity limit was defined for joint "
-                                          << vars[idx].c_str()
-                                          << "! You have to define velocity limits in the URDF or joint_limits.yaml");
-      return false;
+      max_velocity[idx] = DEFAULT_VELOCITY_LIMIT;
     }
 
     if (bounds.acceleration_bounded_)
@@ -931,11 +930,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
     }
     else
     {
-      ROS_ERROR_STREAM_NAMED(LOGNAME, "No acceleration limit was defined for joint "
-                                          << vars[idx].c_str()
-                                          << "! You have to define acceleration limits in the URDF or "
-                                             "joint_limits.yaml");
-      return false;
+      max_acceleration[idx] = DEFAULT_ACCELERATION_LIMIT;
     }
   }
 
