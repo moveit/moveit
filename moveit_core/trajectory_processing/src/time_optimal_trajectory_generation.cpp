@@ -1082,9 +1082,9 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStampsWithTorqueLimits(
     return false;
   }
 
-  if (accel_limit_decrement_factor < 0.01 || accel_limit_decrement_factor > 0.1)
+  if (accel_limit_decrement_factor < 0.01 || accel_limit_decrement_factor > 0.2)
   {
-    ROS_ERROR_NAMED(LOGNAME, "The accel_limit_decrement_factor is outside the typical range [0.01, 0.1]");
+    ROS_ERROR_NAMED(LOGNAME, "The accel_limit_decrement_factor is outside the typical range [0.01, 0.2]");
     return false;
   }
 
@@ -1115,7 +1115,6 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStampsWithTorqueLimits(
 
   while (iteration_needed && num_iterations < max_iterations)
   {
-    ROS_WARN_STREAM("Starting at beginning of trajectory. Accel limit: " << mutable_accel_limits.at("seg_0_shoulder_lift_joint"));
     ++num_iterations;
     iteration_needed = false;
 
@@ -1179,30 +1178,21 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStampsWithTorqueLimits(
 
           mutable_accel_limits.at(joint_models.at(joint_idx)->getName()) *= (1 - accel_limit_decrement_factor);
           iteration_needed = true;
-
-          if (joint_idx == 1)
-          {
-            ROS_ERROR_STREAM("Failing torque at waypoint: " << joint_torques.at(1) << "  " << waypoint_idx);
-          }
         }
       }  // for each joint
-      if (!iteration_needed)
-      {
-        ROS_ERROR_STREAM("Final output torque: " << joint_torques.at(1));
-      }
       if (iteration_needed)
       {
         // Start over from the first waypoint
         break;
       }
-    }    // for each waypoint
+    }  // for each waypoint
 
     if (iteration_needed)
     {
       // Reset
       trajectory.setRobotTrajectoryMsg(initial_state, original_traj);
     }
-  }      // while (iteration_needed && num_iterations < max_iterations)
+  }  // while (iteration_needed && num_iterations < max_iterations)
 
   return true;
 }
