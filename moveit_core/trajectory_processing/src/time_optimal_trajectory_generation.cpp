@@ -1086,7 +1086,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStampsWithTorqueLimits(
   dynamics_solver::DynamicsSolver dynamics_solver(trajectory.getRobotModel(), group->getName(), gravity_vector);
 
   // Assume no external forces on the robot. This could easily be an argument later.
-  const std::vector<geometry_msgs::Wrench> LINK_WRENCHES = [&group] {
+  const std::vector<geometry_msgs::Wrench> link_wrenches = [&group] {
     geometry_msgs::Wrench zero_wrench;
     zero_wrench.force.x = 0;
     zero_wrench.force.y = 0;
@@ -1131,7 +1131,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStampsWithTorqueLimits(
       waypoint->copyJointGroupVelocities(group->getName(), joint_velocities);
       waypoint->copyJointGroupAccelerations(group->getName(), joint_accelerations);
 
-      if (!dynamics_solver.getTorques(joint_positions, joint_velocities, joint_accelerations, LINK_WRENCHES,
+      if (!dynamics_solver.getTorques(joint_positions, joint_velocities, joint_accelerations, link_wrenches,
                                       joint_torques))
       {
         ROS_ERROR_STREAM("Dynamics computation failed.");
@@ -1156,7 +1156,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStampsWithTorqueLimits(
           // Check if decreasing acceleration of this joint actually decreases joint torque. Else, increase acceleration.
           double previous_torque = joint_torques.at(joint_idx);
           joint_accelerations.at(joint_idx) *= (1 + accel_limit_decrement_factor);
-          if (!dynamics_solver.getTorques(joint_positions, joint_velocities, joint_accelerations, LINK_WRENCHES,
+          if (!dynamics_solver.getTorques(joint_positions, joint_velocities, joint_accelerations, link_wrenches,
                                           joint_torques))
           {
             ROS_ERROR_STREAM("Dynamics computation failed.");
