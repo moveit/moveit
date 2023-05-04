@@ -39,7 +39,6 @@
 #include <gtest/gtest.h>
 #include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
 #include <moveit/utils/robot_model_test_utils.h>
-#include <urdf_parser/urdf_parser.h>
 
 using trajectory_processing::Path;
 using trajectory_processing::TimeOptimalTrajectoryGeneration;
@@ -409,111 +408,6 @@ TEST(time_optimal_trajectory_generation, testSingleDofDiscontinuity)
       EXPECT_NEAR(trajectory.getAcceleration(time)[0], -max_accelerations[0], 1e-3) << "Time: " << time;
     }
   }
-}
-
-TEST(time_optimal_trajectory_generation, test_totg_with_torque_limits)
-{
-  // Request a trajectory. This will serve as the baseline.
-  // Then decrease the joint torque limits and re-parameterize. The trajectory duration should be shorter.
-
-  const std::string urdf = "<?xml version=\"1.0\" ?>"
-                           "<robot name=\"one_robot\">"
-                           "<link name=\"base_link\">"
-                           "  <collision>"
-                           "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
-                           "    <geometry>"
-                           "      <box size=\"1 2 1\" />"
-                           "    </geometry>"
-                           "  </collision>"
-                           "  <visual>"
-                           "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
-                           "    <geometry>"
-                           "      <box size=\"1 2 1\" />"
-                           "    </geometry>"
-                           "  </visual>"
-                           "</link>"
-                           "<joint name=\"joint_a\" type=\"continuous\">"
-                           "   <axis xyz=\"0.7071 0.7071 0\"/>"
-                           "   <parent link=\"base_link\"/>"
-                           "   <child link=\"link_a\"/>"
-                           "   <origin rpy=\" 0.0 0 0 \" xyz=\"0.0 0 0 \"/>"
-                           "</joint>"
-                           "<link name=\"link_a\">"
-                           "  <inertial>"
-                           "    <mass value=\"1000.0\"/>"
-                           "    <origin rpy=\"0 0 0\" xyz=\"0.0 0.0 .0\"/>"
-                           "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
-                           "  </inertial>"
-                           "  <collision>"
-                           "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
-                           "    <geometry>"
-                           "      <box size=\"1 2 1\" />"
-                           "    </geometry>"
-                           "  </collision>"
-                           "  <visual>"
-                           "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
-                           "    <geometry>"
-                           "      <box size=\"1 2 1\" />"
-                           "    </geometry>"
-                           "  </visual>"
-                           "</link>"
-                           "</robot>";
-
-  const std::string srdf =
-      "<?xml version=\"1.0\" ?>"
-      "<robot name=\"one_robot\">"
-      "<virtual_joint name=\"base_joint\" child_link=\"base_link\" parent_frame=\"odom_combined\" type=\"planar\"/>"
-      "<group name=\"single_dof_group\">"
-      "<joint name=\"joint_a\"/>"
-      "</group>"
-      "</robot>";
-
-  urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDF(urdf);
-  srdf::ModelSharedPtr srdf_model = std::make_shared<srdf::Model>();
-  srdf_model->initString(*urdf_model, srdf);
-  auto robot_model = std::make_shared<moveit::core::RobotModel>(urdf_model, srdf_model);
-  ASSERT_TRUE((bool)robot_model) << "Failed to load robot model";
-
-  auto group = robot_model->getJointModelGroup("single_dof_group");
-  ASSERT_TRUE((bool)group) << "Failed to load joint model group ";
-  moveit::core::RobotState waypoint_state(robot_model);
-  waypoint_state.setToDefaultValues();
-
-  robot_trajectory::RobotTrajectory trajectory(robot_model, group);
-  waypoint_state.setJointGroupPositions(group, std::vector<double>{ -0.5 });
-  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
-  waypoint_state.setJointGroupPositions(group, std::vector<double>{ 100.0 });
-  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
-
-  const geometry_msgs::Vector3 gravity_vector = [] {
-    geometry_msgs::Vector3 gravity;
-    gravity.x = 0;
-    gravity.y = 0;
-    gravity.z = -9.81;
-    return gravity;
-  }();
-  const std::vector<double> joint_torque_limits{ 250 };  // in N*m
-  const double accel_limit_decrement_factor = 0.1;
-  const std::unordered_map<std::string, double> velocity_limits = { { "joint_a", 3 } };
-  const std::unordered_map<std::string, double> acceleration_limits = { { "joint_a", 3 } };
-
-  TimeOptimalTrajectoryGeneration totg(0.1 /* path tolerance */, 0.01 /* resample dt */, 0.001 /* min angle change */);
-  bool totg_success =
-      totg.computeTimeStampsWithTorqueLimits(trajectory, gravity_vector, joint_torque_limits,
-                                             accel_limit_decrement_factor, velocity_limits, acceleration_limits,
-                                             1.0 /* accel scaling */, 1.0 /* vel scaling */);
-  ASSERT_TRUE(totg_success) << "Failed to compute timestamps";
-  double first_duration = trajectory.getDuration();
-
-  // Now decrease joint torque limits and re-time-parameterize. The trajectory duration should be longer.
-  const std::vector<double> lower_torque_limits{ 1 };  // in N*m
-  totg_success =
-      totg.computeTimeStampsWithTorqueLimits(trajectory, gravity_vector, lower_torque_limits,
-                                             accel_limit_decrement_factor, velocity_limits, acceleration_limits,
-                                             1.0 /* accel scaling */, 1.0 /* vel scaling */);
-  ASSERT_TRUE(totg_success) << "Failed to compute timestamps";
-  double second_duration = trajectory.getDuration();
-  EXPECT_GT(second_duration, first_duration) << "The second time parameterization should result in a longer duration";
 }
 
 int main(int argc, char** argv)

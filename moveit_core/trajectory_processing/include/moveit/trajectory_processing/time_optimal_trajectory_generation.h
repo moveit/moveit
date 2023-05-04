@@ -210,35 +210,6 @@ public:
                          const double max_velocity_scaling_factor = 1.0,
                          const double max_acceleration_scaling_factor = 1.0) const;
 
-  // clang-format off
-/**
-  * \brief Compute a trajectory with waypoints spaced equally in time (according to resample_dt_).
-  * Resampling the trajectory doesn't change the start and goal point,
-  * and all re-sampled waypoints will be on the path of the original trajectory (within path_tolerance_).
-  * However, controller execution is separate from MoveIt and may deviate from the intended path between waypoints.
-  * path_tolerance_ is defined in configuration space, so the unit is rad for revolute joints,
-  * meters for prismatic joints.
-  * \param[in,out] trajectory A path which needs time-parameterization. It's OK if this path has already been
-  * time-parameterized; this function will re-time-parameterize it.
-   * \param gravity_vector For example, (0, 0, -9.81). Units are m/s^2
-   * \param joint_torque_limits Torque limits for each joint in N*m. Should all be >0.
-   * \param accel_limit_decrement_factor Typically in the range [0.01-0.1].
-   * This affects how fast acceleration limits are decreased while searching for a solution. Time-optimality
-   * of the output is accurate to approximately 100*accel_limit_decrement_factor %.
-   * For example, if accel_limit_decrement_factor is 0.1, the output should be within 10% of time-optimal.
-  * \param max_velocity_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
-  * \param max_acceleration_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
-  */
-  // clang-format on
-  bool computeTimeStampsWithTorqueLimits(robot_trajectory::RobotTrajectory& trajectory,
-                                         const geometry_msgs::Vector3& gravity_vector,
-                                         const std::vector<double>& joint_torque_limits,
-                                         double accel_limit_decrement_factor,
-                                         const std::unordered_map<std::string, double>& velocity_limits,
-                                         const std::unordered_map<std::string, double>& acceleration_limits,
-                                         const double max_velocity_scaling_factor,
-                                         const double max_acceleration_scaling_factor) const;
-
 private:
   bool doTimeParameterizationCalculations(robot_trajectory::RobotTrajectory& trajectory,
                                           const Eigen::VectorXd& max_velocity,
