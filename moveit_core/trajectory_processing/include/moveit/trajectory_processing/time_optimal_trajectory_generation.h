@@ -45,15 +45,6 @@
 
 namespace trajectory_processing
 {
-enum LimitType
-{
-  VELOCITY,
-  ACCELERATION
-};
-
-const std::unordered_map<LimitType, std::string> LIMIT_TYPES = { { VELOCITY, "velocity" },
-                                                                 { ACCELERATION, "acceleration" } };
-
 class PathSegment
 {
 public:
@@ -267,10 +258,9 @@ private:
   /**
    * @brief Check if the requested scaling factor is valid and if not, return 1.0.
    * \param requested_scaling_factor The desired maximum scaling factor to apply to the velocity or acceleration limits
-   * \param limit_type Whether the velocity or acceleration scaling factor is being verified
    * \return The user requested scaling factor, if it is valid. Otherwise, return 1.0.
    */
-  double verifyScalingFactor(const double requested_scaling_factor, const LimitType limit_type) const;
+  double verifyScalingFactor(const double requested_scaling_factor) const;
 
   const double path_tolerance_;
   const double resample_dt_;

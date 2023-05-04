@@ -50,7 +50,6 @@ namespace trajectory_processing
 const std::string LOGNAME = "trajectory_processing.time_optimal_trajectory_generation";
 constexpr double EPS = 0.000001;
 constexpr double DEFAULT_TIMESTEP = 1e-3;
-constexpr double DEFAULT_SCALING_FACTOR = 1.0;
 constexpr double DEFAULT_VELOCITY_LIMIT = 1.0;
 constexpr double DEFAULT_ACCELERATION_LIMIT = 1.0;
 
@@ -880,8 +879,8 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
   }
 
   // Validate scaling
-  double velocity_scaling_factor = verifyScalingFactor(max_velocity_scaling_factor, VELOCITY);
-  double acceleration_scaling_factor = verifyScalingFactor(max_acceleration_scaling_factor, ACCELERATION);
+  double velocity_scaling_factor = verifyScalingFactor(max_velocity_scaling_factor);
+  double acceleration_scaling_factor = verifyScalingFactor(max_acceleration_scaling_factor);
 
   // Get the velocity and acceleration limits for all active joints
   const moveit::core::RobotModel& rmodel = group->getParentModel();
@@ -954,8 +953,8 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(
   }
 
   // Validate scaling
-  double velocity_scaling_factor = verifyScalingFactor(max_velocity_scaling_factor, VELOCITY);
-  double acceleration_scaling_factor = verifyScalingFactor(max_acceleration_scaling_factor, ACCELERATION);
+  double velocity_scaling_factor = verifyScalingFactor(max_velocity_scaling_factor);
+  double acceleration_scaling_factor = verifyScalingFactor(max_acceleration_scaling_factor);
 
   // Get the velocity and acceleration limits for specified joints
   const moveit::core::RobotModel& rmodel = group->getParentModel();
@@ -1313,26 +1312,13 @@ bool TimeOptimalTrajectoryGeneration::hasMixedJointTypes(const moveit::core::Joi
   return have_prismatic && have_revolute;
 }
 
-double TimeOptimalTrajectoryGeneration::verifyScalingFactor(const double requested_scaling_factor,
-                                                            const LimitType limit_type) const
+double TimeOptimalTrajectoryGeneration::verifyScalingFactor(const double requested_scaling_factor) const
 {
-  std::string limit_type_str;
-  double scaling_factor = DEFAULT_SCALING_FACTOR;
+  double scaling_factor = std::clamp(requested_scaling_factor, -1.0, 1.0);
 
-  const auto limit_type_it = LIMIT_TYPES.find(limit_type);
-  if (limit_type_it != LIMIT_TYPES.end())
+  if (requested_scaling_factor > 1.0 || requested_scaling_factor < -1.0)
   {
-    limit_type_str = limit_type_it->second + "_";
-  }
-
-  if (requested_scaling_factor > 0.0 && requested_scaling_factor <= 1.0)
-  {
-    scaling_factor = requested_scaling_factor;
-  }
-  else
-  {
-    ROS_WARN_NAMED(LOGNAME, "Invalid max_%sscaling_factor %f specified, defaulting to %f instead.",
-                   limit_type_str.c_str(), requested_scaling_factor, scaling_factor);
+    ROS_WARN_NAMED(LOGNAME, "Invalid max_scaling_factor specified, defaulting to %f instead.", scaling_factor);
   }
   return scaling_factor;
 }
