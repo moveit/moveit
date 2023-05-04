@@ -175,39 +175,35 @@ public:
   TimeOptimalTrajectoryGeneration(const double path_tolerance = 0.1, const double resample_dt = 0.1,
                                   const double min_angle_change = 0.001);
 
-  // clang-format off
-/**
-  * \brief Compute a trajectory with waypoints spaced equally in time (according to resample_dt_).
-  * Resampling the trajectory doesn't change the start and goal point,
-  * and all re-sampled waypoints will be on the path of the original trajectory (within path_tolerance_).
-  * However, controller execution is separate from MoveIt and may deviate from the intended path between waypoints.
-  * path_tolerance_ is defined in configuration space, so the unit is rad for revolute joints,
-  * meters for prismatic joints.
-  * \param[in,out] trajectory A path which needs time-parameterization. It's OK if this path has already been
-  * time-parameterized; this function will re-time-parameterize it.
-  * \param max_velocity_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
-  * \param max_acceleration_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
-  */
-  // clang-format on
+  /**
+   * \brief Compute a trajectory with waypoints spaced equally in time (according to resample_dt_).
+   * Resampling the trajectory doesn't change the start and goal point,
+   * and all re-sampled waypoints will be on the path of the original trajectory (within path_tolerance_).
+   * However, controller execution is separate from MoveIt and may deviate from the intended path between waypoints.
+   * path_tolerance_ is defined in configuration space, so the unit is rad for revolute joints,
+   * meters for prismatic joints.
+   * \param[in,out] trajectory A path which needs time-parameterization. It's OK if this path has already been
+   * time-parameterized; this function will re-time-parameterize it.
+   * \param max_velocity_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
+   * \param max_acceleration_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
+   */
   bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory, const double max_velocity_scaling_factor = 1.0,
                          const double max_acceleration_scaling_factor = 1.0) const override;
 
-  // clang-format off
-/**
-  * \brief Compute a trajectory with waypoints spaced equally in time (according to resample_dt_).
-  * Resampling the trajectory doesn't change the start and goal point,
-  * and all re-sampled waypoints will be on the path of the original trajectory (within path_tolerance_).
-  * However, controller execution is separate from MoveIt and may deviate from the intended path between waypoints.
-  * path_tolerance_ is defined in configuration space, so the unit is rad for revolute joints,
-  * meters for prismatic joints.
-  * \param[in,out] trajectory A path which needs time-parameterization. It's OK if this path has already been
-  * time-parameterized; this function will re-time-parameterize it.
-  * \param velocity_limits Joint names and velocity limits in rad/s
-  * \param acceleration_limits Joint names and acceleration limits in rad/s^2
-  * \param max_velocity_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
-  * \param max_acceleration_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
-  */
-  // clang-format on
+  /**
+   * \brief Compute a trajectory with waypoints spaced equally in time (according to resample_dt_).
+   * Resampling the trajectory doesn't change the start and goal point,
+   * and all re-sampled waypoints will be on the path of the original trajectory (within path_tolerance_).
+   * However, controller execution is separate from MoveIt and may deviate from the intended path between waypoints.
+   * path_tolerance_ is defined in configuration space, so the unit is rad for revolute joints,
+   * meters for prismatic joints.
+   * \param[in,out] trajectory A path which needs time-parameterization. It's OK if this path has already been
+   * time-parameterized; this function will re-time-parameterize it.
+   * \param velocity_limits Joint names and velocity limits in rad/s
+   * \param acceleration_limits Joint names and acceleration limits in rad/s^2
+   * \param max_velocity_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
+   * \param max_acceleration_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
+   */
   bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
                          const std::unordered_map<std::string, double>& velocity_limits,
                          const std::unordered_map<std::string, double>& acceleration_limits,

@@ -49,7 +49,6 @@ namespace trajectory_processing
 {
 const std::string LOGNAME = "trajectory_processing.time_optimal_trajectory_generation";
 constexpr double EPS = 0.000001;
-constexpr double DEFAULT_TIMESTEP = 1e-3;
 constexpr double DEFAULT_VELOCITY_LIMIT = 1.0;
 constexpr double DEFAULT_ACCELERATION_LIMIT = 1.0;
 
@@ -1094,7 +1093,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStampsWithTorqueLimits(
     zero_wrench.torque.y = 0;
     zero_wrench.torque.z = 0;
     // KDL (the dynamics solver) requires one wrench per link
-    std::vector<geometry_msgs::Wrench> vector_of_zero_wrenches(group->getLinkModels().size());
+    std::vector<geometry_msgs::Wrench> vector_of_zero_wrenches(group->getLinkModels().size(), zero_wrench);
     return vector_of_zero_wrenches;
   }();
 
@@ -1259,7 +1258,8 @@ bool TimeOptimalTrajectoryGeneration::doTimeParameterizationCalculations(robot_t
   }
 
   // Now actually call the algorithm
-  Trajectory parameterized(Path(points, path_tolerance_), max_velocity, max_acceleration, DEFAULT_TIMESTEP);
+  // We use a smaller timestep for better accuracy
+  Trajectory parameterized(Path(points, path_tolerance_), max_velocity, max_acceleration, 0.1 * resample_dt_);
   if (!parameterized.isValid())
   {
     ROS_ERROR_NAMED(LOGNAME, "Unable to parameterize trajectory.");
