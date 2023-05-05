@@ -124,17 +124,32 @@ TEST(time_optimal_trajectory_generation, test_totg_with_torque_limits)
 
   trajectory_processing::IterativeTorqueLimitParameterization totg(0.1 /* path tolerance */, 0.01 /* resample dt */,
                                                                    0.001 /* min angle change */);
+
+  // Assume no external forces on the robot.
+  const std::vector<geometry_msgs::Wrench> external_link_wrenches = [&group] {
+    geometry_msgs::Wrench zero_wrench;
+    zero_wrench.force.x = 0;
+    zero_wrench.force.y = 0;
+    zero_wrench.force.z = 0;
+    zero_wrench.torque.x = 0;
+    zero_wrench.torque.y = 0;
+    zero_wrench.torque.z = 0;
+    // KDL (the dynamics solver) requires one wrench per link
+    std::vector<geometry_msgs::Wrench> vector_of_zero_wrenches(group->getLinkModels().size(), zero_wrench);
+    return vector_of_zero_wrenches;
+  }();
+
   bool totg_success =
-      totg.computeTimeStampsWithTorqueLimits(trajectory, gravity_vector, joint_torque_limits,
+      totg.computeTimeStampsWithTorqueLimits(trajectory, gravity_vector, external_link_wrenches, joint_torque_limits,
                                              accel_limit_decrement_factor, velocity_limits, acceleration_limits,
-                                             1.0 /* accel scaling */, 1.0 /* vel scaling */);
+                                             1.0 /* vel scaling */, 1.0 /* accel scaling */);
   ASSERT_TRUE(totg_success) << "Failed to compute timestamps";
   double first_duration = trajectory.getDuration();
 
   // Now decrease joint torque limits and re-time-parameterize. The trajectory duration should be longer.
   const std::vector<double> lower_torque_limits{ 1 };  // in N*m
   totg_success =
-      totg.computeTimeStampsWithTorqueLimits(trajectory, gravity_vector, lower_torque_limits,
+      totg.computeTimeStampsWithTorqueLimits(trajectory, gravity_vector, external_link_wrenches, lower_torque_limits,
                                              accel_limit_decrement_factor, velocity_limits, acceleration_limits,
                                              1.0 /* accel scaling */, 1.0 /* vel scaling */);
   ASSERT_TRUE(totg_success) << "Failed to compute timestamps";

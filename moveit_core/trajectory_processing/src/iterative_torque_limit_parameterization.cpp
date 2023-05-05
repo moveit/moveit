@@ -52,8 +52,8 @@ IterativeTorqueLimitParameterization::IterativeTorqueLimitParameterization(const
 
 bool IterativeTorqueLimitParameterization::computeTimeStampsWithTorqueLimits(
     robot_trajectory::RobotTrajectory& trajectory, const geometry_msgs::Vector3& gravity_vector,
-    const std::vector<double>& joint_torque_limits, double accel_limit_decrement_factor,
-    const std::unordered_map<std::string, double>& velocity_limits,
+    const std::vector<geometry_msgs::Wrench>& external_link_wrenches, const std::vector<double>& joint_torque_limits,
+    double accel_limit_decrement_factor, const std::unordered_map<std::string, double>& velocity_limits,
     const std::unordered_map<std::string, double>& acceleration_limits, const double max_velocity_scaling_factor,
     const double max_acceleration_scaling_factor) const
 {
@@ -91,20 +91,6 @@ bool IterativeTorqueLimitParameterization::computeTimeStampsWithTorqueLimits(
   }
 
   dynamics_solver::DynamicsSolver dynamics_solver(trajectory.getRobotModel(), group->getName(), gravity_vector);
-
-  // Assume no external forces on the robot. This could easily be an argument later.
-  const std::vector<geometry_msgs::Wrench> link_wrenches = [&group] {
-    geometry_msgs::Wrench zero_wrench;
-    zero_wrench.force.x = 0;
-    zero_wrench.force.y = 0;
-    zero_wrench.force.z = 0;
-    zero_wrench.torque.x = 0;
-    zero_wrench.torque.y = 0;
-    zero_wrench.torque.z = 0;
-    // KDL (the dynamics solver) requires one wrench per link
-    std::vector<geometry_msgs::Wrench> vector_of_zero_wrenches(group->getLinkModels().size(), zero_wrench);
-    return vector_of_zero_wrenches;
-  }();
 
   // Copy the waypoints so we can modify them while iterating
   moveit_msgs::RobotTrajectory original_traj;
@@ -144,7 +130,7 @@ bool IterativeTorqueLimitParameterization::computeTimeStampsWithTorqueLimits(
       waypoint->copyJointGroupVelocities(group->getName(), joint_velocities);
       waypoint->copyJointGroupAccelerations(group->getName(), joint_accelerations);
 
-      if (!dynamics_solver.getTorques(joint_positions, joint_velocities, joint_accelerations, link_wrenches,
+      if (!dynamics_solver.getTorques(joint_positions, joint_velocities, joint_accelerations, external_link_wrenches,
                                       joint_torques))
       {
         ROS_ERROR_STREAM_NAMED(LOGNAME, "Dynamics computation failed.");
@@ -169,8 +155,8 @@ bool IterativeTorqueLimitParameterization::computeTimeStampsWithTorqueLimits(
           // Check if decreasing acceleration of this joint actually decreases joint torque. Else, increase acceleration.
           double previous_torque = joint_torques.at(joint_idx);
           joint_accelerations.at(joint_idx) *= (1 + accel_limit_decrement_factor);
-          if (!dynamics_solver.getTorques(joint_positions, joint_velocities, joint_accelerations, link_wrenches,
-                                          joint_torques))
+          if (!dynamics_solver.getTorques(joint_positions, joint_velocities, joint_accelerations,
+                                          external_link_wrenches, joint_torques))
           {
             ROS_ERROR_STREAM_NAMED(LOGNAME, "Dynamics computation failed.");
             return false;
