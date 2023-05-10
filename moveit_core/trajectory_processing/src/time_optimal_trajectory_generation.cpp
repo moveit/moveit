@@ -903,7 +903,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
       if (bounds.max_velocity_ <= 0.0)
       {
         ROS_ERROR_NAMED(LOGNAME, "Invalid max_velocity %f specified for '%s', must be greater than 0.0",
-                        bounds.max_velocity_, vars[idx].c_str());
+                        bounds.max_velocity_, vars[active_joint_indices[idx]].c_str());
         return false;
       }
       max_velocity[idx] =
@@ -1057,7 +1057,7 @@ bool TimeOptimalTrajectoryGeneration::doTimeParameterizationCalculations(robot_t
   if (hasMixedJointTypes(group))
   {
     ROS_WARN_NAMED(LOGNAME, "There is a combination of revolute and prismatic joints in the robot model. TOTG's "
-                            "`path_tolerance` will not function correctly.");
+                            "`path_tolerance` parameter will not function correctly.");
   }
 
   const unsigned num_points = trajectory.getWayPointCount();
@@ -1164,9 +1164,9 @@ bool TimeOptimalTrajectoryGeneration::hasMixedJointTypes(const moveit::core::Joi
 
 double TimeOptimalTrajectoryGeneration::verifyScalingFactor(const double requested_scaling_factor) const
 {
-  double scaling_factor = std::clamp(requested_scaling_factor, -1.0, 1.0);
+  double scaling_factor = std::clamp(requested_scaling_factor, 0.01, 1.0);
 
-  if (requested_scaling_factor > 1.0 || requested_scaling_factor < -1.0)
+  if (requested_scaling_factor > 1.0 || requested_scaling_factor < 0.01)
   {
     ROS_WARN_NAMED(LOGNAME, "Invalid max_scaling_factor specified, defaulting to %f instead.", scaling_factor);
   }
