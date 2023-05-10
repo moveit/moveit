@@ -581,6 +581,10 @@ public:
   bool isValidVelocityMove(const double* from_joint_pose, const double* to_joint_pose, std::size_t array_size,
                            double dt) const;
 
+  /** \brief Computes the indices of joint variables given a vector of joint names to look up */
+  bool computeJointVariableIndices(const std::vector<std::string>& joint_names,
+                                   std::vector<size_t>& joint_bijection) const;
+
 protected:
   bool computeIKIndexBijection(const std::vector<std::string>& ik_jnames,
                                std::vector<unsigned int>& joint_bijection) const;
