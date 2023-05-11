@@ -1056,8 +1056,9 @@ bool TimeOptimalTrajectoryGeneration::doTimeParameterizationCalculations(robot_t
 
   if (hasMixedJointTypes(group))
   {
-    ROS_WARN_NAMED(LOGNAME, "There is a combination of revolute and prismatic joints in the robot model. TOTG's "
-                            "`path_tolerance` parameter will not function correctly.");
+    ROS_WARN_NAMED(LOGNAME,
+                   "There is a combination of revolute and prismatic joints in the robot model. "
+                   "TOTG's `path_tolerance` parameter is applied to both types ignoring their different units.");
   }
 
   const unsigned num_points = trajectory.getWayPointCount();
@@ -1164,11 +1165,11 @@ bool TimeOptimalTrajectoryGeneration::hasMixedJointTypes(const moveit::core::Joi
 
 double TimeOptimalTrajectoryGeneration::verifyScalingFactor(const double requested_scaling_factor) const
 {
-  double scaling_factor = std::clamp(requested_scaling_factor, 0.01, 1.0);
-
-  if (requested_scaling_factor > 1.0 || requested_scaling_factor < 0.01)
+  double scaling_factor = std::clamp(requested_scaling_factor, 1e-7, 1.0);
+  if (requested_scaling_factor != scaling_factor)
   {
-    ROS_WARN_NAMED(LOGNAME, "Invalid max_scaling_factor specified, defaulting to %f instead.", scaling_factor);
+    ROS_WARN_NAMED(LOGNAME, "Invalid max_scaling_factor specified: %f, reverting to %f instead.",
+                   requested_scaling_factor, scaling_factor);
   }
   return scaling_factor;
 }
