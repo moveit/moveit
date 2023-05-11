@@ -73,6 +73,6 @@ public:
       const double max_acceleration_scaling_factor) const;
 
 private:
-  std::optional<TimeOptimalTrajectoryGeneration> totg_;
+  TimeOptimalTrajectoryGeneration totg_;
 };
 }  // namespace trajectory_processing
