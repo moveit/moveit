@@ -39,6 +39,7 @@
 #include <gtest/gtest.h>
 #include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
 #include <moveit/utils/robot_model_test_utils.h>
+#include <urdf_parser/urdf_parser.h>
 
 using trajectory_processing::Path;
 using trajectory_processing::TimeOptimalTrajectoryGeneration;
@@ -408,6 +409,61 @@ TEST(time_optimal_trajectory_generation, testSingleDofDiscontinuity)
       EXPECT_NEAR(trajectory.getAcceleration(time)[0], -max_accelerations[0], 1e-3) << "Time: " << time;
     }
   }
+}
+
+TEST(time_optimal_trajectory_generation, testMimicJoint)
+{
+  // Request a trajectory. This will serve as the baseline.
+  // Then decrease the joint torque limits and re-parameterize. The trajectory duration should be shorter.
+
+  const std::string urdf = R"(<?xml version="1.0" ?>
+      <robot name="one_robot">
+      <link name="base_link"/>
+      <link name="link_a"/>
+      <link name="link_b"/>
+      <joint name="joint_a" type="continuous">
+        <axis xyz="0 1 0"/>
+        <parent link="base_link"/>
+        <child link="link_a"/>
+        <limit effort="3" velocity="3"/>
+      </joint>
+      <joint name="joint_b" type="continuous">
+        <axis xyz="1 0 0"/>
+        <parent link="link_a"/>
+        <child link="link_b"/>
+        <mimic joint="joint_a" multiplier="2" />
+        <limit effort="3" velocity="3"/>
+      </joint>
+      </robot>)";
+
+  const std::string srdf = R"(<?xml version="1.0" ?>
+      <robot name="one_robot">
+        <virtual_joint name="base_joint" child_link="base_link" parent_frame="odom_combined" type="planar"/>
+        <group name="group">
+          <joint name="joint_a"/>
+          <joint name="joint_b"/>
+        </group>
+      "</robot>)";
+
+  urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDF(urdf);
+  srdf::ModelSharedPtr srdf_model = std::make_shared<srdf::Model>();
+  srdf_model->initString(*urdf_model, srdf);
+  auto robot_model = std::make_shared<moveit::core::RobotModel>(urdf_model, srdf_model);
+  ASSERT_TRUE((bool)robot_model) << "Failed to load robot model";
+
+  auto group = robot_model->getJointModelGroup("group");
+  ASSERT_TRUE((bool)group) << "Failed to load joint model group ";
+  moveit::core::RobotState waypoint_state(robot_model);
+  waypoint_state.setToDefaultValues();
+
+  robot_trajectory::RobotTrajectory trajectory(robot_model, group);
+  waypoint_state.setJointGroupActivePositions(group, std::vector<double>{ -0.5 });
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+  waypoint_state.setJointGroupActivePositions(group, std::vector<double>{ 100.0 });
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+
+  TimeOptimalTrajectoryGeneration totg;
+  ASSERT_TRUE(totg.computeTimeStamps(trajectory)) << "Failed to compute time stamps";
 }
 
 int main(int argc, char** argv)
