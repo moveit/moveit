@@ -105,7 +105,7 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
   use_sim_time_property_ = new rviz::BoolProperty("Use Sim Time", false,
                                                   "Indicates whether simulation time or wall-time is "
                                                   "used for state display timing.",
-                                                  widget, nullptr, this);
+                                                  widget);
 
   loop_display_property_ = new rviz::BoolProperty("Loop Animation", false,
                                                   "Indicates whether the last received path "

@@ -440,7 +440,7 @@ TEST(time_optimal_trajectory_generation, testMimicJoint)
           <joint name="joint_a"/>
           <joint name="joint_b"/>
         </group>
-      "</robot>)";
+      </robot>)";
 
   urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDF(urdf);
   srdf::ModelSharedPtr srdf_model = std::make_shared<srdf::Model>();
