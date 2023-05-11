@@ -1056,8 +1056,9 @@ bool TimeOptimalTrajectoryGeneration::doTimeParameterizationCalculations(robot_t
 
   if (hasMixedJointTypes(group))
   {
-    ROS_WARN_NAMED(LOGNAME, "There is a combination of revolute and prismatic joints in the robot model. TOTG's "
-                            "`path_tolerance` parameter will not function correctly.");
+    ROS_WARN_NAMED(
+        LOGNAME, "There is a combination of revolute and prismatic joints in the robot model. Due to mixed units, the "
+                 "`path_tolerance` parameter will not function correctly.");
   }
 
   const unsigned num_points = trajectory.getWayPointCount();
