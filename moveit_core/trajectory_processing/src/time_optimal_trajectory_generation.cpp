@@ -921,8 +921,8 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(
     else  // default limit
     {
       max_velocity[j] = DEFAULT_VELOCITY_LIMIT;
-      ROS_WARN_NAMED(LOGNAME, "No velocity limits defined for '%s'! Define them in URDF or joint_limits.yaml",
-                     name.c_str());
+      ROS_WARN_ONCE_NAMED(LOGNAME, "No velocity limits defined for '%s'! Define them in URDF or joint_limits.yaml",
+                          name.c_str());
     }
 
     // ACCELERATION LIMIT
@@ -944,7 +944,8 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(
     else  // default limit
     {
       max_acceleration[j] = DEFAULT_ACCELERATION_LIMIT;
-      ROS_WARN_NAMED(LOGNAME, "No acceleration limits defined for '%s'! Define them in joint_limits.yaml", name.c_str());
+      ROS_WARN_ONCE_NAMED(LOGNAME, "No acceleration limits defined for '%s'! Define them in joint_limits.yaml",
+                          name.c_str());
     }
   }
 
@@ -953,16 +954,16 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(
 
   if (hasMixedJointTypes(group))
   {
-    ROS_WARN_NAMED(LOGNAME,
-                   "There is a combination of revolute and prismatic joints in the robot model. "
-                   "TOTG's `path_tolerance` parameter is applied to both types ignoring their different units.");
+    ROS_WARN_ONCE_NAMED(LOGNAME,
+                        "There is a combination of revolute and prismatic joints in the robot model. "
+                        "TOTG's `path_tolerance` parameter is applied to both types ignoring their different units.");
   }
 
   const unsigned num_points = trajectory.getWayPointCount();
   const std::vector<int>& idx = group->getVariableIndexList();
 
   // Have to convert into Eigen data structs and remove repeated points
-  //  (https://github.com/tobiaskunz/trajectories/issues/3)
+  // (https://github.com/tobiaskunz/trajectories/issues/3)
   std::list<Eigen::VectorXd> points;
   for (size_t p = 0; p < num_points; ++p)
   {
