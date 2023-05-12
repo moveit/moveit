@@ -46,8 +46,8 @@ const std::string LOGNAME = "trajectory_processing.iterative_torque_limit_parame
 IterativeTorqueLimitParameterization::IterativeTorqueLimitParameterization(const double path_tolerance,
                                                                            const double resample_dt,
                                                                            const double min_angle_change)
+  : totg_(path_tolerance, resample_dt, min_angle_change)
 {
-  totg_.emplace(TimeOptimalTrajectoryGeneration(path_tolerance, resample_dt, min_angle_change));
 }
 
 bool IterativeTorqueLimitParameterization::computeTimeStampsWithTorqueLimits(
@@ -101,19 +101,13 @@ bool IterativeTorqueLimitParameterization::computeTimeStampsWithTorqueLimits(
   size_t num_iterations = 0;
   const size_t max_iterations = 10;
 
-  if (!totg_)
-  {
-    ROS_ERROR_NAMED(LOGNAME, "The totg_ member was not initialized.");
-    return false;
-  }
-
   while (iteration_needed && num_iterations < max_iterations)
   {
     ++num_iterations;
     iteration_needed = false;
 
-    totg_->computeTimeStamps(trajectory, velocity_limits, mutable_accel_limits, max_velocity_scaling_factor,
-                             max_acceleration_scaling_factor);
+    totg_.computeTimeStamps(trajectory, velocity_limits, mutable_accel_limits, max_velocity_scaling_factor,
+                            max_acceleration_scaling_factor);
 
     std::vector<double> joint_positions(dof);
     std::vector<double> joint_velocities(dof);

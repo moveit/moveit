@@ -188,7 +188,11 @@ public:
    * \param max_acceleration_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
    */
   bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory, const double max_velocity_scaling_factor = 1.0,
-                         const double max_acceleration_scaling_factor = 1.0) const override;
+                         const double max_acceleration_scaling_factor = 1.0) const override
+  {
+    std::unordered_map<std::string, double> empty;
+    return computeTimeStamps(trajectory, empty, empty, max_velocity_scaling_factor, max_acceleration_scaling_factor);
+  }
 
   /**
    * \brief Compute a trajectory with waypoints spaced equally in time (according to resample_dt_).
@@ -211,10 +215,6 @@ public:
                          const double max_acceleration_scaling_factor = 1.0) const;
 
 private:
-  bool doTimeParameterizationCalculations(robot_trajectory::RobotTrajectory& trajectory,
-                                          const Eigen::VectorXd& max_velocity,
-                                          const Eigen::VectorXd& max_acceleration) const;
-
   /**
    * @brief Check if a combination of revolute and prismatic joints is used. path_tolerance_ is not valid, if so.
    * \param group The JointModelGroup to check.

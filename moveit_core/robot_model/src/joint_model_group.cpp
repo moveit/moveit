@@ -558,31 +558,6 @@ void JointModelGroup::setDefaultIKTimeout(double ik_timeout)
     it.second.default_ik_timeout_ = ik_timeout;
 }
 
-bool JointModelGroup::computeJointVariableIndices(const std::vector<std::string>& joint_names,
-                                                  std::vector<size_t>& joint_bijection) const
-{
-  joint_bijection.clear();
-  for (const std::string& joint_name : joint_names)
-  {
-    VariableIndexMap::const_iterator it = joint_variables_index_map_.find(joint_name);
-    if (it == joint_variables_index_map_.end())
-    {
-      // skip reported fixed joints
-      if (hasJointModel(joint_name) && getJointModel(joint_name)->getType() == JointModel::FIXED)
-        continue;
-      ROS_ERROR_NAMED(LOGNAME,
-                      "Looking for variables for joint '%s', "
-                      "but group '%s' does not contain such a joint.",
-                      joint_name.c_str(), getName().c_str());
-      return false;
-    }
-    const JointModel* jm = getJointModel(joint_name);
-    for (size_t k = 0; k < jm->getVariableCount(); ++k)
-      joint_bijection.push_back(it->second + k);
-  }
-  return true;
-}
-
 bool JointModelGroup::computeIKIndexBijection(const std::vector<std::string>& ik_jnames,
                                               std::vector<unsigned int>& joint_bijection) const
 {

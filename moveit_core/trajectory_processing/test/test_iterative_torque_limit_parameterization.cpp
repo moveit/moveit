@@ -41,57 +41,24 @@ TEST(time_optimal_trajectory_generation, test_totg_with_torque_limits)
   // Request a trajectory. This will serve as the baseline.
   // Then decrease the joint torque limits and re-parameterize. The trajectory duration should be shorter.
 
-  const std::string urdf = "<?xml version=\"1.0\" ?>"
-                           "<robot name=\"one_robot\">"
-                           "<link name=\"base_link\">"
-                           "  <collision>"
-                           "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
-                           "    <geometry>"
-                           "      <box size=\"1 2 1\" />"
-                           "    </geometry>"
-                           "  </collision>"
-                           "  <visual>"
-                           "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
-                           "    <geometry>"
-                           "      <box size=\"1 2 1\" />"
-                           "    </geometry>"
-                           "  </visual>"
-                           "</link>"
-                           "<joint name=\"joint_a\" type=\"continuous\">"
-                           "   <axis xyz=\"0.7071 0.7071 0\"/>"
-                           "   <parent link=\"base_link\"/>"
-                           "   <child link=\"link_a\"/>"
-                           "   <origin rpy=\" 0.0 0 0 \" xyz=\"0.0 0 0 \"/>"
-                           "</joint>"
-                           "<link name=\"link_a\">"
-                           "  <inertial>"
-                           "    <mass value=\"1000.0\"/>"
-                           "    <origin rpy=\"0 0 0\" xyz=\"0.0 0.0 .0\"/>"
-                           "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
-                           "  </inertial>"
-                           "  <collision>"
-                           "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
-                           "    <geometry>"
-                           "      <box size=\"1 2 1\" />"
-                           "    </geometry>"
-                           "  </collision>"
-                           "  <visual>"
-                           "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
-                           "    <geometry>"
-                           "      <box size=\"1 2 1\" />"
-                           "    </geometry>"
-                           "  </visual>"
-                           "</link>"
-                           "</robot>";
+  const std::string urdf = R"(<?xml version="1.0" ?>
+      <robot name="one_robot">
+      <link name="base_link"/>
+      <joint name="joint_a" type="continuous">
+        <axis xyz="0.7071 0.7071 0"/>
+        <parent link="base_link"/>
+        <child link="link_a"/>
+      </joint>
+      <link name="link_a"/>
+      </robot>)";
 
-  const std::string srdf =
-      "<?xml version=\"1.0\" ?>"
-      "<robot name=\"one_robot\">"
-      "<virtual_joint name=\"base_joint\" child_link=\"base_link\" parent_frame=\"odom_combined\" type=\"planar\"/>"
-      "<group name=\"single_dof_group\">"
-      "<joint name=\"joint_a\"/>"
-      "</group>"
-      "</robot>";
+  const std::string srdf = R"(<?xml version="1.0" ?>
+      <robot name="one_robot">
+        <virtual_joint name="base_joint" child_link="base_link" parent_frame="odom_combined" type="planar"/>
+        <group name="single_dof_group">
+          <joint name="joint_a"/>
+        </group>
+      "</robot>)";
 
   urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDF(urdf);
   srdf::ModelSharedPtr srdf_model = std::make_shared<srdf::Model>();
@@ -107,7 +74,7 @@ TEST(time_optimal_trajectory_generation, test_totg_with_torque_limits)
   robot_trajectory::RobotTrajectory trajectory(robot_model, group);
   waypoint_state.setJointGroupPositions(group, std::vector<double>{ -0.5 });
   trajectory.addSuffixWayPoint(waypoint_state, 0.1);
-  waypoint_state.setJointGroupPositions(group, std::vector<double>{ 100.0 });
+  waypoint_state.setJointGroupPositions(group, std::vector<double>{ 0.5 });
   trajectory.addSuffixWayPoint(waypoint_state, 0.1);
 
   const geometry_msgs::Vector3 gravity_vector = [] {
