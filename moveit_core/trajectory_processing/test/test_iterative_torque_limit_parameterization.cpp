@@ -74,7 +74,7 @@ TEST(time_optimal_trajectory_generation, test_totg_with_torque_limits)
   robot_trajectory::RobotTrajectory trajectory(robot_model, group);
   waypoint_state.setJointGroupPositions(group, std::vector<double>{ -0.5 });
   trajectory.addSuffixWayPoint(waypoint_state, 0.1);
-  waypoint_state.setJointGroupPositions(group, std::vector<double>{ 100.0 });
+  waypoint_state.setJointGroupPositions(group, std::vector<double>{ 0.5 });
   trajectory.addSuffixWayPoint(waypoint_state, 0.1);
 
   const geometry_msgs::Vector3 gravity_vector = [] {
