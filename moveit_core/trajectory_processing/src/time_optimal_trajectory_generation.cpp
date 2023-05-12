@@ -928,6 +928,12 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(
     it = acceleration_limits.find(name);  // check for a custom limit
     if (it != acceleration_limits.end())
     {
+      if (it->second <= std::numeric_limits<double>::epsilon())
+      {
+        ROS_ERROR_NAMED(LOGNAME, "Invalid acceleration limit %f specified for '%s', must be greater than 0.0",
+                        it->second, name.c_str());
+        return false;
+      }
       max_acceleration[j] = it->second * acceleration_scaling_factor;
     }
 
@@ -945,7 +951,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(
     else  // default limit
     {
       max_acceleration[j] = DEFAULT_ACCELERATION_LIMIT;
-      // ROS_WARN_NAMED(LOGNAME, "No acceleration limits defined for '%s'! Define them in joint_limits.yaml", name.c_str());
+      ROS_WARN_NAMED(LOGNAME, "No acceleration limits defined for '%s'! Define them in joint_limits.yaml", name.c_str());
     }
   }
 

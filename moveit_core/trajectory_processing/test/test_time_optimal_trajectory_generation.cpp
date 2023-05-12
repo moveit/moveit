@@ -413,9 +413,6 @@ TEST(time_optimal_trajectory_generation, testSingleDofDiscontinuity)
 
 TEST(time_optimal_trajectory_generation, testMimicJoint)
 {
-  // Request a trajectory. This will serve as the baseline.
-  // Then decrease the joint torque limits and re-parameterize. The trajectory duration should be shorter.
-
   const std::string urdf = R"(<?xml version="1.0" ?>
       <robot name="one_robot">
       <link name="base_link"/>
