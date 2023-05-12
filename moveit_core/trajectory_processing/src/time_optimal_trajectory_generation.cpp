@@ -881,6 +881,17 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(
   double velocity_scaling_factor = verifyScalingFactor(max_velocity_scaling_factor);
   double acceleration_scaling_factor = verifyScalingFactor(max_acceleration_scaling_factor);
 
+  // limits need to be positive, otherwise we never exit
+  auto validate_limit = [](const char* type, double value, const std::string& name) {
+    if (value <= std::numeric_limits<double>::epsilon())
+    {
+      ROS_ERROR_NAMED(LOGNAME, "Invalid %s limit %f for joint '%s'. Must be greater than zero!", type, value,
+                      name.c_str());
+      return false;
+    }
+    return true;
+  };
+
   // Get the velocity and acceleration limits for all joint variables
   const moveit::core::RobotModel& rmodel = group->getParentModel();
   const std::vector<std::string>& vars = group->getVariableNames();
@@ -896,24 +907,14 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(
     auto it = velocity_limits.find(name);  // check for a custom limit
     if (it != velocity_limits.end())
     {
-      if (it->second <= std::numeric_limits<double>::epsilon())
-      {
-        ROS_ERROR_NAMED(LOGNAME, "Invalid velocity limit %f specified for '%s', must be greater than 0.0", it->second,
-                        name.c_str());
+      if (!validate_limit("velocity", it->second, name))
         return false;
-      }
-
       max_velocity[j] = it->second * velocity_scaling_factor;
     }
     else if (bounds.velocity_bounded_)  // resort to the limit from the robot model
     {
-      // limits need to be positive, otherwise we never exit
-      if (bounds.max_velocity_ <= std::numeric_limits<double>::epsilon())
-      {
-        ROS_ERROR_NAMED(LOGNAME, "Invalid max_velocity %f specified for '%s', must be greater than 0.0",
-                        bounds.max_velocity_, name.c_str());
+      if (!validate_limit("velocity", bounds.max_velocity_, name))
         return false;
-      }
       max_velocity[j] =
           std::min(std::fabs(bounds.max_velocity_), std::fabs(bounds.min_velocity_)) * velocity_scaling_factor;
     }
@@ -928,23 +929,15 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(
     it = acceleration_limits.find(name);  // check for a custom limit
     if (it != acceleration_limits.end())
     {
-      if (it->second <= std::numeric_limits<double>::epsilon())
-      {
-        ROS_ERROR_NAMED(LOGNAME, "Invalid acceleration limit %f specified for '%s', must be greater than 0.0",
-                        it->second, name.c_str());
+      if (!validate_limit("acceleration", it->second, name))
         return false;
-      }
       max_acceleration[j] = it->second * acceleration_scaling_factor;
     }
 
     else if (bounds.acceleration_bounded_)  // resort to the limit from the robot model
     {
-      if (bounds.max_acceleration_ <= std::numeric_limits<double>::epsilon())
-      {
-        ROS_ERROR_NAMED(LOGNAME, "Invalid max_acceleration %f specified for '%s', must be greater than 0.0",
-                        bounds.max_acceleration_, name.c_str());
+      if (!validate_limit("acceleration", bounds.max_acceleration_, name))
         return false;
-      }
       max_acceleration[j] = std::min(std::fabs(bounds.max_acceleration_), std::fabs(bounds.min_acceleration_)) *
                             acceleration_scaling_factor;
     }
