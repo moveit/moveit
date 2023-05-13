@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.12 (2023-05-13)
+-------------------
+* Generalize RobotState::setFromIK() (`<https://github.com/ros-planning/moveit/issues/3388>`_)
+* Allow configuration of goal tolerances in kinematics.yaml (`#3409 <https://github.com/ros-planning/moveit/issues/3409>`_)
+* Rename MGI::getJointNames() to getVariableNames() (`#3345 <https://github.com/ros-planning/moveit/issues/3345>`_)
+* Contributors: Erich Mielke, Michael Görner, Robert Haschke
+
 1.1.11 (2022-12-21)
 -------------------
 
