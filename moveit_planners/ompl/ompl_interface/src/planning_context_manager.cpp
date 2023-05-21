@@ -75,6 +75,9 @@
 #include <ompl/geometric/planners/informedtrees/ABITstar.h>
 #include <ompl/geometric/planners/informedtrees/BITstar.h>
 #endif
+#if OMPL_VERSION_VALUE >= 1006000
+#include <ompl/geometric/planners/informedtrees/EITstar.h>
+#endif
 
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
@@ -305,6 +308,9 @@ void ompl_interface::PlanningContextManager::registerDefaultPlanners()
   registerPlannerAllocatorHelper<og::ABITstar>("geometric::ABITstar");
   registerPlannerAllocatorHelper<og::BITstar>("geometric::BITstar");
 #endif
+#if OMPL_VERSION_VALUE >= 1006000
+  registerPlannerAllocatorHelper<og::EITstar>("geometric::EITstar");
+#endif
 }
 
 void ompl_interface::PlanningContextManager::registerDefaultStateSpaces()
@@ -491,6 +497,8 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   else if (planner_type == "geometric::ABITstar")
     factory = getStateSpaceFactory(JointModelStateSpace::PARAMETERIZATION_TYPE);
   else if (planner_type == "geometric::BITstar")
+    factory = getStateSpaceFactory(JointModelStateSpace::PARAMETERIZATION_TYPE);
+  else if (planner_type == "geometric::EITstar")
     factory = getStateSpaceFactory(JointModelStateSpace::PARAMETERIZATION_TYPE);
   else
     factory = getStateSpaceFactory(pc->second.group, req);
