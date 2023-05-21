@@ -961,6 +961,18 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
                        "maximum number of goals sampled from sampleable goal regions. "
                        "Valid values: [1:1:1000]. Default: 1");
   planner_des.push_back(eitstar);
+  OMPLPlannerDescription eirmstar("EIRMstar", "geometric");
+  eirmstar.addParameter("use_k_nearest", "1",
+                        "whether to use a k-nearest RGG connection model (1) or an r-disc model (0). Default: 1");
+  eirmstar.addParameter("rewire_factor", "1.001",
+                        "rewire factor of the RGG. Valid values: [1.0:0.01:3.0]. Default: 1.001");
+  eirmstar.addParameter("samples_per_batch", "100", "batch size. Valid values: [1:1:1000]. Default: 100");
+  eirmstar.addParameter("use_graph_pruning", "1", "enable graph pruning (1) or not (0). Default: 1");
+  eirmstar.addParameter("find_approximate_solutions", "0", "track approximate solutions (1) or not (0). Default: 0");
+  eirmstar.addParameter("set_max_num_goals", "1",
+                        "maximum number of goals sampled from sampleable goal regions. "
+                        "Valid values: [1:1:1000]. Default: 1");
+  planner_des.push_back(eirmstar);
 #endif
   return planner_des;
 }

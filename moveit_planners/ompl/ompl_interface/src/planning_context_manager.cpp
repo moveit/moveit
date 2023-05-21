@@ -77,6 +77,7 @@
 #endif
 #if OMPL_VERSION_VALUE >= 1006000
 #include <ompl/geometric/planners/informedtrees/EITstar.h>
+#include <ompl/geometric/planners/informedtrees/EIRMstar.h>
 #endif
 
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
@@ -232,6 +233,14 @@ MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::LazyPRMst
 {
   return new og::LazyPRMstar(data);
 };
+#if OMPL_VERSION_VALUE >= 1006000
+template <>
+inline ompl::base::Planner*
+MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::EIRMstar>(const ob::PlannerData& data)
+{
+  return new og::EIRMstar(data.getSpaceInformation());
+}
+#endif
 }  // namespace ompl_interface
 #endif
 
@@ -310,6 +319,7 @@ void ompl_interface::PlanningContextManager::registerDefaultPlanners()
 #endif
 #if OMPL_VERSION_VALUE >= 1006000
   registerPlannerAllocatorHelper<og::EITstar>("geometric::EITstar");
+  registerPlannerAllocatorHelper<og::EIRMstar>("geometric::EIRMstar");
 #endif
 }
 
@@ -499,6 +509,8 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   else if (planner_type == "geometric::BITstar")
     factory = getStateSpaceFactory(JointModelStateSpace::PARAMETERIZATION_TYPE);
   else if (planner_type == "geometric::EITstar")
+    factory = getStateSpaceFactory(JointModelStateSpace::PARAMETERIZATION_TYPE);
+  else if (planner_type == "geometric::EIRMstar")
     factory = getStateSpaceFactory(JointModelStateSpace::PARAMETERIZATION_TYPE);
   else
     factory = getStateSpaceFactory(pc->second.group, req);
