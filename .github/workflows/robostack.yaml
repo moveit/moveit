@@ -21,7 +21,7 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Set up Build Dependencies
-      uses: mamba-org/provision-with-micromamba@v14
+      uses: mamba-org/provision-with-micromamba@v16
       with:
         environment-file: .github/robostack_env.yaml
         micromamba-version: 0.17.0
