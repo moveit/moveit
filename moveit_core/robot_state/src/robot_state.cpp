@@ -1371,11 +1371,11 @@ bool RobotState::getJacobian(const JointModelGroup* group, const LinkModel* link
       }
       else if (pjm->getType() == moveit::core::JointModel::PLANAR)
       {
-        joint_axis = joint_transform * Eigen::Vector3d(1.0, 0.0, 0.0);
+        joint_axis = joint_transform.linear() * Eigen::Vector3d(1.0, 0.0, 0.0);
         jacobian.block<3, 1>(0, joint_index) = jacobian.block<3, 1>(0, joint_index) + joint_axis;
-        joint_axis = joint_transform * Eigen::Vector3d(0.0, 1.0, 0.0);
+        joint_axis = joint_transform.linear() * Eigen::Vector3d(0.0, 1.0, 0.0);
         jacobian.block<3, 1>(0, joint_index + 1) = jacobian.block<3, 1>(0, joint_index + 1) + joint_axis;
-        joint_axis = joint_transform * Eigen::Vector3d(0.0, 0.0, 1.0);
+        joint_axis = joint_transform.linear() * Eigen::Vector3d(0.0, 0.0, 1.0);
         jacobian.block<3, 1>(0, joint_index + 2) = jacobian.block<3, 1>(0, joint_index + 2) +
                                                    joint_axis.cross(point_transform - joint_transform.translation());
         jacobian.block<3, 1>(3, joint_index + 2) = jacobian.block<3, 1>(3, joint_index + 2) + joint_axis;
