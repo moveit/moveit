@@ -1,0 +1,3 @@
+<launch>
+	<test pkg="moveit_core" type="test_planar_joint_jacobian" test-name="test_planar_joint_jacobian" />
+</launch>
