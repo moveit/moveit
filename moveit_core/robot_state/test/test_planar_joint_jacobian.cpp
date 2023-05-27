@@ -70,17 +70,14 @@ TEST_F(SimplePlanarRobot, testSimplePlanarRobot)
   Eigen::Vector3d reference_point_position(0.0, 0.0, 0.0);
   auto joint_model_group = robot_model_->getJointModelGroup("group");
 
-  std::vector<double> q_test{0.0, 0.0, 0.0};
+  std::vector<double> q_test{ 0.0, 0.0, 0.0 };
   //-----------------------Set robot state-----------------------
-  robot_state_->setJointGroupPositions(joint_model_group, 
-                                       q_test);
+  robot_state_->setJointGroupPositions(joint_model_group, q_test);
   robot_state_->updateLinkTransforms();
 
   //-----------------------Calculate Jacobian-----------------------
   Eigen::MatrixXd jacobian;
-  robot_state_->getJacobian(joint_model_group,
-                            robot_state_->getLinkModel("b"),
-                            reference_point_position, jacobian);
+  robot_state_->getJacobian(joint_model_group, robot_state_->getLinkModel("b"), reference_point_position, jacobian);
 
   //-----------------------Move first axis to 10 m-----------------------
   q_test[0] = 10.0;
@@ -91,10 +88,7 @@ TEST_F(SimplePlanarRobot, testSimplePlanarRobot)
 
   //-----------------------Calculate Jacobian-----------------------
   Eigen::MatrixXd jacobian_2;
-  robot_state_->getJacobian(joint_model_group,
-                            robot_state_->getLinkModel("b"),
-                            reference_point_position, jacobian_2);
-
+  robot_state_->getJacobian(joint_model_group, robot_state_->getLinkModel("b"), reference_point_position, jacobian_2);
 
   std::cout << "First Jacobian = \n" << jacobian << "\n";
   std::cout << "Second Jacobian = \n" << jacobian_2 << "\n";
