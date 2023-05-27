@@ -82,8 +82,7 @@ TEST_F(SimplePlanarRobot, testSimplePlanarRobot)
   //-----------------------Move first axis to 10 m-----------------------
   q_test[0] = 10.0;
   //-----------------------Set robot state-----------------------
-  robot_state_->setJointGroupPositions(joint_model_group, 
-                                       q_test);
+  robot_state_->setJointGroupPositions(joint_model_group, q_test);
   robot_state_->updateLinkTransforms();
 
   //-----------------------Calculate Jacobian-----------------------
