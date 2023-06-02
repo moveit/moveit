@@ -174,7 +174,15 @@ void computeTurnDriveTurnGeometry(const double* from, const double* to, const do
     initial_turn = angle_backward_diff;
   }
   drive_angle = from[2] + initial_turn;
-  final_turn = angles::shortest_angular_distance(drive_angle, to[2]);
+  final_turn = to[2] - drive_angle;
+
+  // Check if normalization is needed, because
+  // if fabs(final_turn) << M_PI, the floating point arithmetic performed in `normalize_angle`
+  // will cause final_turn to be rounded to 0
+  if (final_turn < -boost::math::constants::pi<double>() || final_turn >= boost::math::constants::pi<double>())
+  {
+    final_turn = angles::normalize_angle(final_turn);
+  }
 }
 
 void PlanarJointModel::interpolate(const double* from, const double* to, const double t, double* state) const
@@ -208,17 +216,35 @@ void PlanarJointModel::interpolate(const double* from, const double* to, const d
     double dx, dy, initial_turn, drive_angle, final_turn;
     computeTurnDriveTurnGeometry(from, to, min_translational_distance_, dx, dy, initial_turn, drive_angle, final_turn);
 
+    // approximate cost (distance traveled) doing initial turn
     double initial_d = fabs(initial_turn) * angular_distance_weight_;
+    // approximate cost (distance traveled) doing straight drive
     double drive_d = hypot(dx, dy);
+    // approximate cost (distance traveled) doing final turn
     double final_d = fabs(final_turn) * angular_distance_weight_;
 
+    // total cost of executing manuever
     double total_d = initial_d + drive_d + final_d;
 
+    // If the difference between `from` and `to` is so low that it is within floating point arithmetic error
+    // or if `from == to`, the following operations will result in nan
+    // Just set the return state to target state and don't interpolate.
+    if (total_d == 0.0)
+    {
+      state[0] = to[0];
+      state[1] = to[1];
+      state[2] = to[2];
+      return;
+    }
+
+    // fraction of cost for each segment
     double initial_frac = initial_d / total_d;
     double drive_frac = drive_d / total_d;
     double final_frac = final_d / total_d;
 
     double percent;
+
+    // If the current time step is still in the initial rotation phase.
     if (t <= initial_frac)
     {
       percent = t / initial_frac;
@@ -226,6 +252,7 @@ void PlanarJointModel::interpolate(const double* from, const double* to, const d
       state[1] = from[1];
       state[2] = from[2] + initial_turn * percent;
     }
+    // If the current time step is doing the driving phase.
     else if (t <= initial_frac + drive_frac)
     {
       percent = (t - initial_frac) / drive_frac;
@@ -233,6 +260,7 @@ void PlanarJointModel::interpolate(const double* from, const double* to, const d
       state[1] = from[1] + dy * percent;
       state[2] = drive_angle;
     }
+    // If the current time step is in the final rotation phase.
     else
     {
       percent = (t - initial_frac - drive_frac) / final_frac;
