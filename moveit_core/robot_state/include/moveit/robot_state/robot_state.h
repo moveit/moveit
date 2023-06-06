@@ -1271,8 +1271,8 @@ public:
    * \param joint_index Joint index to compute the partial derivative with respect to
    * \return Partial derivative of a Jacobian column wrt a single joint
    */
-  Eigen::Matrix<double, 6, 1> getJacobianColumnPartialDerivative(const Eigen::MatrixXd& jacobian, int column_index,
-                                                                 int joint_index) const;
+  static Eigen::Matrix<double, 6, 1> getJacobianColumnPartialDerivative(const Eigen::MatrixXd& jacobian,
+                                                                        int column_index, int joint_index);
 
   /** \brief Given a twist for a particular link (\e tip), compute the corresponding velocity for every variable and
    * store it in \e qdot */

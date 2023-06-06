@@ -1443,10 +1443,6 @@ bool RobotState::getJacobianDerivative(const JointModelGroup* group, const LinkM
               velocities[pd_joint_index];
         }
       }
-      else if (pjm->getType() == moveit::core::JointModel::PLANAR)
-      {
-        ROS_ERROR_NAMED(LOGNAME, "JointModel::PLANAR is not supported for Jacobian derivative computation");
-      }
       else
         ROS_ERROR_NAMED(LOGNAME, "Unknown type of joint in Jacobian derivative computation");
     }
@@ -1458,9 +1454,9 @@ bool RobotState::getJacobianDerivative(const JointModelGroup* group, const LinkM
 }
 
 Eigen::Matrix<double, 6, 1> RobotState::getJacobianColumnPartialDerivative(const Eigen::MatrixXd& jacobian,
-                                                                           int column_index, int joint_index) const
+                                                                           int column_index, int joint_index)
 {
-  // Keeping MoveIt convention where twist is [v omega]^T, in KDL its [omega v]^T
+  // Twist is [v omega]^T, in KDL its [omega v]^T
   const Eigen::Matrix<double, 6, 1>& jac_j = jacobian.col(joint_index);
   const Eigen::Matrix<double, 6, 1>& jac_i = jacobian.col(column_index);
 
