@@ -169,13 +169,9 @@ TEST_F(SimpleRobot, testSimpleRobotJacobianDerivative)
   Eigen::MatrixXd moveit_jacobian, moveit_jacobian_derivative;
   auto joint_model_group = robot_model_->getJointModelGroup("group");
 
-  //-----------------------Test for random state-----------------------
-  std::vector<double> test_q{ 0.0, 0.0, 0.0, 0.0 };
-  std::vector<double> test_qdot{ 0.0, 0.0, 0.0, 0.0 };
-
-  std::generate(test_q.begin(), test_q.end(), []() { return static_cast<float>(rand()) / RAND_MAX; });
-
-  std::generate(test_qdot.begin(), test_qdot.end(), []() { return static_cast<float>(rand()) / RAND_MAX; });
+  //-----------------------Test state-----------------------
+  std::vector<double> test_q{ 0.72552, 0.11599, 0.99237, 0.24576 };
+  std::vector<double> test_qdot{ 0.31079, 0.56458, 0.60189, 0.12969 };
 
   //-----------------------Set robot state-----------------------
   robot_state_->setJointGroupPositions(joint_model_group, test_q);
@@ -250,13 +246,9 @@ TEST_F(PandaRobot, testPandaRobotJacobianDerivative)
   Eigen::Vector3d reference_point_position(0.0, 0.0, 0.0);
   Eigen::MatrixXd moveit_jacobian, moveit_jacobian_derivative;
 
-  //-----------------------Test for random state-----------------------
-  std::vector<double> test_q{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-  std::vector<double> test_qdot{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-
-  std::generate(test_q.begin(), test_q.end(), []() { return static_cast<float>(rand()) / RAND_MAX; });
-
-  std::generate(test_qdot.begin(), test_qdot.end(), []() { return static_cast<float>(rand()) / RAND_MAX; });
+  //-----------------------Test state-----------------------
+  std::vector<double> test_q{ 0.32640, 0.82863, 0.99677, 0.54311, 0.76774, 0.82150, 0.06884 };
+  std::vector<double> test_qdot{ 0.29751, 0.76376, 0.70464, 0.38797, 0.63743, 0.20855, 0.72211 };
 
   //-----------------------Set robot state-----------------------
   robot_state_->setJointGroupPositions(jmg_, test_q);
@@ -286,13 +278,9 @@ TEST_F(PandaRobot, testPandaRobotMidLinkJacobianDerivative)
   Eigen::Vector3d reference_point_position(0.0, 0.0, 0.0);
   Eigen::MatrixXd moveit_jacobian, moveit_jacobian_derivative;
   std::string link = "panda_link5";
-  //-----------------------Test for random state-----------------------
-  std::vector<double> test_q{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-  std::vector<double> test_qdot{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-
-  std::generate(test_q.begin(), test_q.end(), []() { return static_cast<float>(rand()) / RAND_MAX; });
-
-  std::generate(test_qdot.begin(), test_qdot.end(), []() { return static_cast<float>(rand()) / RAND_MAX; });
+  //-----------------------Test state-----------------------
+  std::vector<double> test_q{ 0.32640, 0.82863, 0.99677, 0.54311, 0.76774, 0.82150, 0.06884 };
+  std::vector<double> test_qdot{ 0.29751, 0.76376, 0.70464, 0.38797, 0.63743, 0.20855, 0.72211 };
 
   //-----------------------Set robot state-----------------------
   robot_state_->setJointGroupPositions(jmg_, test_q);
@@ -320,13 +308,9 @@ TEST_F(PandaRobot, testPandaRobotRefPointJacobianDerivative)
   Eigen::Vector3d reference_point_position(2.0, 4.0, 5.0);
   Eigen::MatrixXd moveit_jacobian, moveit_jacobian_derivative;
   std::string link = "panda_link8";
-  //-----------------------Test for random state-----------------------
-  std::vector<double> test_q{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-  std::vector<double> test_qdot{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-
-  std::generate(test_q.begin(), test_q.end(), []() { return static_cast<float>(rand()) / RAND_MAX; });
-
-  std::generate(test_qdot.begin(), test_qdot.end(), []() { return static_cast<float>(rand()) / RAND_MAX; });
+  //-----------------------Test state-----------------------
+  std::vector<double> test_q{ 0.32640, 0.82863, 0.99677, 0.54311, 0.76774, 0.82150, 0.06884 };
+  std::vector<double> test_qdot{ 0.29751, 0.76376, 0.70464, 0.38797, 0.63743, 0.20855, 0.72211 };
 
   //-----------------------Set robot state-----------------------
   robot_state_->setJointGroupPositions(jmg_, test_q);
