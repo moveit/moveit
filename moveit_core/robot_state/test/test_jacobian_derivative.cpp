@@ -182,7 +182,7 @@ TEST_F(SimpleRobot, testSimpleRobotJacobianDerivative)
   robot_state_->setJointGroupVelocities(joint_model_group, test_qdot);
   robot_state_->updateLinkTransforms();
 
-  //-----------------------Calculate Jacobian Derivative in Moveit-----------------------
+  //-----------------------Calculate Jacobian Derivative in MoveIt-----------------------
   robot_state_->getJacobianDerivative(joint_model_group, robot_state_->getLinkModel("e"), reference_point_position,
                                       moveit_jacobian, moveit_jacobian_derivative);
 
@@ -191,7 +191,7 @@ TEST_F(SimpleRobot, testSimpleRobotJacobianDerivative)
       JDotTestHelpers::calculateJacobianDerivativeKDL(test_q, test_qdot, *robot_model_, "e");
 
   //-----------------------Compare Jacobian Derivatives-----------------------
-  std::cout << "Moveit Jacobian Derivative\n" << moveit_jacobian_derivative << "\n\n";
+  std::cout << "MoveIt Jacobian Derivative\n" << moveit_jacobian_derivative << "\n\n";
   std::cout << "KDL Jacobian Derivative\n" << kdl_jacobian_derivative << "\n\n";
 
   EXPECT_EIGEN_NEAR(moveit_jacobian_derivative, kdl_jacobian_derivative, 1e-5);
@@ -263,7 +263,7 @@ TEST_F(PandaRobot, testPandaRobotJacobianDerivative)
   robot_state_->setJointGroupVelocities(jmg_, test_qdot);
   robot_state_->updateLinkTransforms();
 
-  //-----------------------Calculate Jacobian Derivative in Moveit-----------------------
+  //-----------------------Calculate Jacobian Derivative in MoveIt-----------------------
   robot_state_->getJacobianDerivative(jmg_, robot_model_->getLinkModel("panda_link8"), reference_point_position,
                                       moveit_jacobian, moveit_jacobian_derivative);
   //-----------------------Calculate Jacobian Derivative with KDL-----------------------
@@ -274,7 +274,7 @@ TEST_F(PandaRobot, testPandaRobotJacobianDerivative)
   }
 
   //-----------------------Compare Jacobian Derivatives-----------------------
-  std::cout << "Moveit Jacobian Derivative\n" << moveit_jacobian_derivative << "\n\n";
+  std::cout << "MoveIt Jacobian Derivative\n" << moveit_jacobian_derivative << "\n\n";
   std::cout << "KDL Jacobian Derivative\n" << kdl_jacobian_derivative << "\n\n";
 
   EXPECT_EIGEN_NEAR(moveit_jacobian_derivative, kdl_jacobian_derivative, 1e-3);
@@ -299,7 +299,7 @@ TEST_F(PandaRobot, testPandaRobotMidLinkJacobianDerivative)
   robot_state_->setJointGroupVelocities(jmg_, test_qdot);
   robot_state_->updateLinkTransforms();
 
-  //-----------------------Calculate Jacobian Derivative in Moveit-----------------------
+  //-----------------------Calculate Jacobian Derivative in MoveIt-----------------------
   robot_state_->getJacobianDerivative(jmg_, robot_model_->getLinkModel(link), reference_point_position, moveit_jacobian,
                                       moveit_jacobian_derivative);
 
@@ -308,7 +308,7 @@ TEST_F(PandaRobot, testPandaRobotMidLinkJacobianDerivative)
       robot_state_, robot_model_->getLinkModel(link), jmg_, reference_point_position, test_q, test_qdot);
 
   //-----------------------Compare Jacobian Derivatives-----------------------
-  std::cout << "Moveit Jacobian Derivative\n" << moveit_jacobian_derivative << "\n\n";
+  std::cout << "MoveIt Jacobian Derivative\n" << moveit_jacobian_derivative << "\n\n";
   std::cout << "Numerical Jacobian Derivative\n" << numerical_jdot << "\n\n";
 
   EXPECT_EIGEN_NEAR(moveit_jacobian_derivative, numerical_jdot, 1e-5);
@@ -333,7 +333,7 @@ TEST_F(PandaRobot, testPandaRobotRefPointJacobianDerivative)
   robot_state_->setJointGroupVelocities(jmg_, test_qdot);
   robot_state_->updateLinkTransforms();
 
-  //-----------------------Calculate Jacobian Derivative in Moveit-----------------------
+  //-----------------------Calculate Jacobian Derivative in MoveIt-----------------------
   robot_state_->getJacobianDerivative(jmg_, robot_model_->getLinkModel(link), reference_point_position, moveit_jacobian,
                                       moveit_jacobian_derivative);
 
@@ -342,7 +342,7 @@ TEST_F(PandaRobot, testPandaRobotRefPointJacobianDerivative)
       robot_state_, robot_model_->getLinkModel(link), jmg_, reference_point_position, test_q, test_qdot);
 
   //-----------------------Compare Jacobian Derivatives-----------------------
-  std::cout << "Moveit Jacobian Derivative\n" << moveit_jacobian_derivative << "\n\n";
+  std::cout << "MoveIt Jacobian Derivative\n" << moveit_jacobian_derivative << "\n\n";
   std::cout << "Numerical Jacobian Derivative\n" << numerical_jdot << "\n\n";
 
   EXPECT_EIGEN_NEAR(moveit_jacobian_derivative, numerical_jdot, 1e-3);
