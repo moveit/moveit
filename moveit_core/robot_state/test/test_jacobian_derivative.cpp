@@ -173,9 +173,9 @@ TEST_F(SimpleRobot, testSimpleRobotJacobianDerivative)
   std::vector<double> test_q{ 0.0, 0.0, 0.0, 0.0 };
   std::vector<double> test_qdot{ 0.0, 0.0, 0.0, 0.0 };
 
-  std::generate(test_q.begin(), test_q.end(), []() { return (float)rand() / RAND_MAX; });
+  std::generate(test_q.begin(), test_q.end(), []() { return static_cast<float>(rand()) / RAND_MAX; });
 
-  std::generate(test_qdot.begin(), test_qdot.end(), []() { return (float)rand() / RAND_MAX; });
+  std::generate(test_qdot.begin(), test_qdot.end(), []() { return static_cast<float>(rand()) / RAND_MAX; });
 
   //-----------------------Set robot state-----------------------
   robot_state_->setJointGroupPositions(joint_model_group, test_q);
@@ -254,9 +254,9 @@ TEST_F(PandaRobot, testPandaRobotJacobianDerivative)
   std::vector<double> test_q{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
   std::vector<double> test_qdot{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
-  std::generate(test_q.begin(), test_q.end(), []() { return (float)rand() / RAND_MAX; });
+  std::generate(test_q.begin(), test_q.end(), []() { return static_cast<float>(rand()) / RAND_MAX; });
 
-  std::generate(test_qdot.begin(), test_qdot.end(), []() { return (float)rand() / RAND_MAX; });
+  std::generate(test_qdot.begin(), test_qdot.end(), []() { return static_cast<float>(rand()) / RAND_MAX; });
 
   //-----------------------Set robot state-----------------------
   robot_state_->setJointGroupPositions(jmg_, test_q);
@@ -290,9 +290,9 @@ TEST_F(PandaRobot, testPandaRobotMidLinkJacobianDerivative)
   std::vector<double> test_q{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
   std::vector<double> test_qdot{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
-  std::generate(test_q.begin(), test_q.end(), []() { return (float)rand() / RAND_MAX; });
+  std::generate(test_q.begin(), test_q.end(), []() { return static_cast<float>(rand()) / RAND_MAX; });
 
-  std::generate(test_qdot.begin(), test_qdot.end(), []() { return (float)rand() / RAND_MAX; });
+  std::generate(test_qdot.begin(), test_qdot.end(), []() { return static_cast<float>(rand()) / RAND_MAX; });
 
   //-----------------------Set robot state-----------------------
   robot_state_->setJointGroupPositions(jmg_, test_q);
@@ -324,9 +324,9 @@ TEST_F(PandaRobot, testPandaRobotRefPointJacobianDerivative)
   std::vector<double> test_q{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
   std::vector<double> test_qdot{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
-  std::generate(test_q.begin(), test_q.end(), []() { return (float)rand() / RAND_MAX; });
+  std::generate(test_q.begin(), test_q.end(), []() { return static_cast<float>(rand()) / RAND_MAX; });
 
-  std::generate(test_qdot.begin(), test_qdot.end(), []() { return (float)rand() / RAND_MAX; });
+  std::generate(test_qdot.begin(), test_qdot.end(), []() { return static_cast<float>(rand()) / RAND_MAX; });
 
   //-----------------------Set robot state-----------------------
   robot_state_->setJointGroupPositions(jmg_, test_q);
