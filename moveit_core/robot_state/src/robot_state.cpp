@@ -1456,7 +1456,7 @@ bool RobotState::getJacobianDerivative(const JointModelGroup* group, const LinkM
 Eigen::Matrix<double, 6, 1> RobotState::getJacobianColumnPartialDerivative(const Eigen::MatrixXd& jacobian,
                                                                            int column_index, int joint_index)
 {
-  // Twist is [v omega]^T, in KDL its [omega v]^T
+  // Twist is [v omega]^T
   const Eigen::Matrix<double, 6, 1>& jac_j = jacobian.col(joint_index);
   const Eigen::Matrix<double, 6, 1>& jac_i = jacobian.col(column_index);
 
