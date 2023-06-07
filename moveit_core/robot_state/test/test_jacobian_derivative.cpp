@@ -111,19 +111,19 @@ Eigen::MatrixXd calculateJacobianKDL(const std::vector<double>& q, const RobotMo
   return kdl_jacobian.data;
 }
 
-Eigen::MatrixXd calculateNumericalJDot(RobotStatePtr robot_state, const LinkModel* link_model,
-                                       const JointModelGroup* jmg, Eigen::Vector3d reference_point_position,
+Eigen::MatrixXd calculateNumericalJDot(const RobotStatePtr& robot_state, const LinkModel* link_model,
+                                       const JointModelGroup* jmg, const Eigen::Vector3d& reference_point_position,
                                        const std::vector<double>& q, const std::vector<double>& qdot,
                                        double dt = 0.00001)
 {
   // Calculate numerical JDot = (J(q + qdot*dt) - J(q)) / dq;
-  Eigen::MatrixXd J, J_plus_dt;
+  Eigen::MatrixXd jac, jac_plus_dt;
 
   robot_state->setJointGroupPositions(jmg, q);
   robot_state->setJointGroupVelocities(jmg, qdot);
   robot_state->updateLinkTransforms();
 
-  robot_state->getJacobian(jmg, link_model, reference_point_position, J);
+  robot_state->getJacobian(jmg, link_model, reference_point_position, jac);
 
   auto q_plus_dt = q;
   for (unsigned int i = 0; i < q.size(); i++)
@@ -132,8 +132,8 @@ Eigen::MatrixXd calculateNumericalJDot(RobotStatePtr robot_state, const LinkMode
   robot_state->setJointGroupPositions(jmg, q_plus_dt);
   robot_state->updateLinkTransforms();
 
-  robot_state->getJacobian(jmg, link_model, reference_point_position, J_plus_dt);
-  return (J_plus_dt - J) / dt;
+  robot_state->getJacobian(jmg, link_model, reference_point_position, jac_plus_dt);
+  return (jac_plus_dt - jac) / dt;
 }
 }  // namespace JDotTestHelpers
 
