@@ -422,41 +422,30 @@ def update_moveit_package(args):
     try:
         moveit_config_pkg_path = get_pkg_dir(args.moveit_config_pkg)
     except InvalidROSPkgException:
-        raise Exception("Failed to find package: " + args.moveit_config_pkg)
+        raise RuntimeError(f"Failed to find package: {args.moveit_config_pkg}")
 
+    # SRDF sanity checks
     try:
         srdf_file_name = moveit_config_pkg_path + "/config/" + args.srdf_filename
         srdf = etree.parse(srdf_file_name).getroot()
-    except IOError:
-        raise Exception("Failed to find SRDF file: " + srdf_file_name)
-    except etree.XMLSyntaxError as err:
-        raise Exception(
-            "Failed to parse xml in file: %s\n%s" % (srdf_file_name, err.msg)
-        )
 
-    if args.robot_name_in_srdf != srdf.get("name"):
-        raise Exception(
-            "Robot name in srdf ('%s') doesn't match expected name ('%s')"
-            % (srdf.get("name"), args.robot_name_in_srdf)
-        )
-
-    groups = srdf.findall("group")
-    if len(groups) < 1:
-        raise Exception("No planning groups are defined in the SRDF")
-
-    planning_group = None
-    for group in groups:
-        if group.get("name").lower() == args.planning_group_name.lower():
-            planning_group = group
-
-    if planning_group is None:
-        raise Exception(
-            "Planning group '%s' not defined in the SRDF. Available groups: \n%s"
-            % (
-                args.planning_group_name,
-                ", ".join([group_name.get("name") for group_name in groups]),
+        robot_name = srdf.get("name")
+        if args.robot_name_in_srdf != robot_name:
+            raise RuntimeWarning(
+                f"Robot name in srdf ('{robot_name}') doesn't match expected name ('{args.robot_name_in_srdf}')"
             )
-        )
+
+        groups = [g.get("name") for g in srdf.findall("group")]
+        if args.planing_group_name not in groups:
+            raise RuntimeWarning(
+                f"Planning group '{args.planning_group_name}' not defined in the SRDF."
+                " Available groups: \n" + ", ".join(groups)
+            )
+
+    except IOError:
+        print(f"Failed to find SRDF file: {srdf_file_name}")
+    except etree.XMLSyntaxError as err:
+        print(f"Failed to parse xml in file: {srdf_file_name}\n{err.msg}")
 
     # Modify kinematics.yaml file
     kin_yaml_file_name = moveit_config_pkg_path + "/config/kinematics.yaml"
