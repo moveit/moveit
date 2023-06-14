@@ -444,7 +444,17 @@ def update_moveit_package(args):
     with open(kin_yaml_file_name, "r") as f:
         kin_yaml_data = yaml.safe_load(f)
 
-    kin_yaml_data[args.planning_group_name]["kinematics_solver"] = args.plugin_name
+    try:
+        kin_yaml_data[args.planning_group_name]["kinematics_solver"] = args.plugin_name
+    except KeyError:
+        # create new group entry
+        print(
+            f"Creating new planning group entry in kinematics.yaml for '{args.planning_group_name}'"
+        )
+        kin_yaml_data[args.planning_group_name] = dict(
+            kinematics_solver=args.plugin_name
+        )
+
     with open(kin_yaml_file_name, "w") as f:
         yaml.dump(kin_yaml_data, f, default_flow_style=False)
 
