@@ -491,6 +491,13 @@ def main():
         update_moveit_package(args)
     except Exception as e:
         print("Failed to update MoveIt package:\n" + str(e))
+        print(
+            "Update your kinematics.yaml manually to include the following configuration:"
+        )
+        print(
+            f"""{args.planning_group_name}:
+  kinematics_solver: {args.plugin_name}"""
+        )
 
 
 if __name__ == "__main__":
