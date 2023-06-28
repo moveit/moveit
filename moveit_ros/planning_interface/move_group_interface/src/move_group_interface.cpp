@@ -494,6 +494,9 @@ public:
       kinematics::KinematicsQueryOptions o;
       o.return_approximate_solution = approx;
 
+      // robot state needs to be updated before calling setFromIK since commit 6426c74 (PR #3388)
+      getTargetRobotState().update();
+
       // if no frame transforms are needed, call IK directly
       if (frame.empty() || moveit::core::Transforms::sameFrame(frame, getRobotModel()->getModelFrame()))
         return getTargetRobotState().setFromIK(getJointModelGroup(), eef_pose, eef, 0.0,
