@@ -345,6 +345,18 @@ TEST_F(MoveGroupTestFixture, JointSpaceGoalTest)
   testJointPositions(plan_joint_positions);
 }
 
+TEST_F(MoveGroupTestFixture, CartesianGoalTest)
+{
+  move_group_->setPoseReferenceFrame("world");
+  move_group_->setEndEffectorLink("panda_hand");
+  geometry_msgs::Pose pose;
+  pose.position.x = 0.417;
+  pose.position.y = 0.240;
+  pose.position.z = 0.532;
+  pose.orientation.w = 1.0;
+  EXPECT_TRUE(move_group_->setJointValueTarget(pose));
+}
+
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "move_group_interface_cpp_test");
