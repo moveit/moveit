@@ -1379,7 +1379,7 @@ public:
    * This behaves the same as RobotModel::getRigidlyConnectedParentLinkModel,
    * but can additionally resolve parents for attached objects / subframes.
    *
-   * If transform is specified, return the relative transform from the returned parent link to frame.
+   * If transform is specified, return the (fixed) relative transform from the returned parent link to frame.
    */
   const moveit::core::LinkModel*
   getRigidlyConnectedParentLinkModel(const std::string& frame, Eigen::Isometry3d* transform = nullptr,

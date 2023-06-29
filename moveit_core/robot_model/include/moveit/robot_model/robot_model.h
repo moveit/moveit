@@ -271,7 +271,14 @@ public:
    * will actually warp wrist (and all its descendants).
    */
   static const moveit::core::LinkModel* getRigidlyConnectedParentLinkModel(const LinkModel* link,
+                                                                           Eigen::Isometry3d& transform,
                                                                            const JointModelGroup* jmg = nullptr);
+  static const moveit::core::LinkModel* getRigidlyConnectedParentLinkModel(const LinkModel* link,
+                                                                           const JointModelGroup* jmg = nullptr)
+  {
+    Eigen::Isometry3d unused;
+    return getRigidlyConnectedParentLinkModel(link, unused, jmg);
+  }
 
   /** \brief Get the array of links  */
   const std::vector<const LinkModel*>& getLinkModels() const
