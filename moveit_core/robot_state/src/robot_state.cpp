@@ -1656,6 +1656,9 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Is
   else if (consistency_limit_sets.size() == 1)
     consistency_limits = consistency_limit_sets[0];
 
+  // ensure RobotState is up-to-date before employing it in the IK solver
+  update(false);
+
   const std::vector<std::string>& solver_tip_frames = solver->getTipFrames();
 
   // Track which possible tips frames we have filled in so far
