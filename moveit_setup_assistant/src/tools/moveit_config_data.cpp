@@ -739,10 +739,10 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
   trrt.addParameter("temp_change_factor", "2.0", "how much to increase or decrease temp. default: 2.0");
   trrt.addParameter("min_temperature", "10e-10", "lower limit of temp change. default: 10e-10");
   trrt.addParameter("init_temperature", "10e-6", "initial temperature. default: 10e-6");
-  trrt.addParameter("frountier_threshold", "0.0",
+  trrt.addParameter("frontier_threshold", "0.0",
                     "dist new state to nearest neighbor to disqualify as frontier. "
                     "default: 0.0 set in setup()");
-  trrt.addParameter("frountierNodeRatio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
+  trrt.addParameter("frontier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
   trrt.addParameter("k_constant", "0.0", "value used to normalize expresssion. default: 0.0 set in setup()");
   planner_des.push_back(trrt);
 
@@ -813,10 +813,10 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
                        "setup()");
   bi_trrt.addParameter("temp_change_factor", "0.1", "how much to increase or decrease temp. default: 0.1");
   bi_trrt.addParameter("init_temperature", "100", "initial temperature. default: 100");
-  bi_trrt.addParameter("frountier_threshold", "0.0",
+  bi_trrt.addParameter("frontier_threshold", "0.0",
                        "dist new state to nearest neighbor to disqualify as frontier. "
                        "default: 0.0 set in setup()");
-  bi_trrt.addParameter("frountier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
+  bi_trrt.addParameter("frontier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
   bi_trrt.addParameter("cost_threshold", "1e300",
                        "the cost threshold. Any motion cost that is not better will not be "
                        "expanded. default: inf");
