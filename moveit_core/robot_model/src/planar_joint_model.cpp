@@ -174,15 +174,7 @@ void computeTurnDriveTurnGeometry(const double* from, const double* to, const do
     initial_turn = angle_backward_diff;
   }
   drive_angle = from[2] + initial_turn;
-  final_turn = to[2] - drive_angle;
-
-  // Check if normalization is needed, because
-  // if fabs(final_turn) << M_PI, the floating point arithmetic performed in `normalize_angle`
-  // will cause final_turn to be rounded to 0
-  if (final_turn < -boost::math::constants::pi<double>() || final_turn >= boost::math::constants::pi<double>())
-  {
-    final_turn = angles::normalize_angle(final_turn);
-  }
+  final_turn = angles::shortest_angular_distance(drive_angle, to[2]);
 }
 
 void PlanarJointModel::interpolate(const double* from, const double* to, const double t, double* state) const
@@ -229,7 +221,7 @@ void PlanarJointModel::interpolate(const double* from, const double* to, const d
     // If the difference between `from` and `to` is so low that it is within floating point arithmetic error
     // or if `from == to`, the following operations will result in nan
     // Just set the return state to target state and don't interpolate.
-    if (total_d == 0.0)
+    if (total_d < std::numeric_limits<float>::epsilon())
     {
       state[0] = to[0];
       state[1] = to[1];
