@@ -38,6 +38,7 @@
 #include <moveit/move_group/capability_names.h>
 #include <moveit_msgs/GetPlanningScene.h>
 #include <moveit_msgs/ApplyPlanningScene.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <ros/ros.h>
 #include <algorithm>
 
@@ -114,22 +115,40 @@ public:
         continue;
       if (collision_object.mesh_poses.empty() && collision_object.primitive_poses.empty())
         continue;
+
+      // Compose mesh and primitive poses with the object pose before checking inclusion in the ROI
+      geometry_msgs::Pose pose_tf;
+      geometry_msgs::TransformStamped tf;
+      tf.header = collision_object.header;
+      tf.transform.translation.x = collision_object.pose.position.x;
+      tf.transform.translation.y = collision_object.pose.position.y;
+      tf.transform.translation.z = collision_object.pose.position.z;
+      tf.transform.rotation.x = collision_object.pose.orientation.x;
+      tf.transform.rotation.y = collision_object.pose.orientation.y;
+      tf.transform.rotation.z = collision_object.pose.orientation.z;
+      tf.transform.rotation.w = collision_object.pose.orientation.w;
+
       bool good = true;
       for (const geometry_msgs::Pose& mesh_pose : collision_object.mesh_poses)
-        if (!(mesh_pose.position.x >= minx && mesh_pose.position.x <= maxx && mesh_pose.position.y >= miny &&
-              mesh_pose.position.y <= maxy && mesh_pose.position.z >= minz && mesh_pose.position.z <= maxz))
+      {
+        tf2::doTransform(mesh_pose, pose_tf, tf);
+        if (!(pose_tf.position.x >= minx && pose_tf.position.x <= maxx && pose_tf.position.y >= miny &&
+              pose_tf.position.y <= maxy && pose_tf.position.z >= minz && pose_tf.position.z <= maxz))
         {
           good = false;
           break;
         }
+      }
       for (const geometry_msgs::Pose& primitive_pose : collision_object.primitive_poses)
-        if (!(primitive_pose.position.x >= minx && primitive_pose.position.x <= maxx &&
-              primitive_pose.position.y >= miny && primitive_pose.position.y <= maxy &&
-              primitive_pose.position.z >= minz && primitive_pose.position.z <= maxz))
+      {
+        tf2::doTransform(primitive_pose, pose_tf, tf);
+        if (!(pose_tf.position.x >= minx && pose_tf.position.x <= maxx && pose_tf.position.y >= miny &&
+              pose_tf.position.y <= maxy && pose_tf.position.z >= minz && pose_tf.position.z <= maxz))
         {
           good = false;
           break;
         }
+      }
       if (good)
       {
         result.push_back(collision_object.id);
