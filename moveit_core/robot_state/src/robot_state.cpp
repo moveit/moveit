@@ -809,36 +809,38 @@ const LinkModel* RobotState::getRigidlyConnectedParentLinkModel(const std::strin
     if (!hasAttachedBody(object))
       return nullptr;
     auto body{ getAttachedBody(object) };
-    if (!body->hasSubframeTransform(frame))
-      return nullptr;
+    bool found = false;
     if (transform)
-      *transform = body->getGlobalSubframeTransform(frame);
+      *transform = body->getSubframeTransform(frame, &found);
+    else
+      body->getSubframeTransform(frame, &found);
+    if (!found)
+      return nullptr;
+    if (transform)  // prepend the body transform
+      *transform = body->getPose() * *transform;
     link = body->getAttachedLink();
   }
   else if (hasAttachedBody(frame))
   {
     auto body{ getAttachedBody(frame) };
     if (transform)
-      *transform = body->getGlobalPose();
+      *transform = body->getPose();
     link = body->getAttachedLink();
   }
   else if (getRobotModel()->hasLinkModel(frame))
   {
     link = getLinkModel(frame);
     if (transform)
-    {
-      BOOST_VERIFY(checkLinkTransforms());
-      *transform = global_link_transforms_[link->getLinkIndex()];
-    }
+      transform->setIdentity();
+    if (!link)
+      return nullptr;
   }
   // link is valid and transform describes pose of frame w.r.t. global frame
-  auto* parent = getRobotModel()->getRigidlyConnectedParentLinkModel(link, jmg);
+  Eigen::Isometry3d link_transform;
+  auto* parent = getRobotModel()->getRigidlyConnectedParentLinkModel(link, link_transform, jmg);
   if (parent && transform)
-  {
-    BOOST_VERIFY(checkLinkTransforms());
-    // compute transform from parent link to frame
-    *transform = global_link_transforms_[parent->getLinkIndex()].inverse() * *transform;
-  }
+    // prepend link_transform to get transform from parent link to frame
+    *transform = link_transform * *transform;
   return parent;
 }
 
@@ -1653,6 +1655,9 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Is
   }
   else if (consistency_limit_sets.size() == 1)
     consistency_limits = consistency_limit_sets[0];
+
+  // ensure RobotState is up-to-date before employing it in the IK solver
+  update(false);
 
   const std::vector<std::string>& solver_tip_frames = solver->getTipFrames();
 

@@ -686,7 +686,6 @@ TEST_F(OneRobot, rigidlyConnectedParent)
   EXPECT_EQ(robot_model_->getRigidlyConnectedParentLinkModel(link_b), link_a);
 
   moveit::core::RobotState state(robot_model_);
-  state.update();
 
   Eigen::Isometry3d a_to_b;
   EXPECT_EQ(state.getRigidlyConnectedParentLinkModel("link_b", &a_to_b), link_a);
