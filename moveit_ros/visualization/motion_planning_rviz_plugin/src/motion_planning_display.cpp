@@ -1245,14 +1245,16 @@ void MotionPlanningDisplay::updateQueryStates(const moveit::core::RobotState& cu
   {
     moveit::core::RobotState start = *getQueryStartState();
     updateStateExceptModified(start, current_state);
-    setQueryStartState(start);
+    if (query_start_state_property_->getBool())
+      setQueryStartState(start);
   }
 
   if (query_goal_state_)
   {
     moveit::core::RobotState goal = *getQueryGoalState();
     updateStateExceptModified(goal, current_state);
-    setQueryGoalState(goal);
+    if (query_goal_state_property_->getBool())
+      setQueryGoalState(goal);
   }
 }
 
