@@ -99,14 +99,16 @@ jobs:
           no-cache: ${{ steps.apt.outputs.no_cache || github.event_name == 'workflow_dispatch' }}
           cache-from: type=registry,ref=${{ env.IMAGE }}
           cache-to: type=inline
-          tags: ${{ env.IMAGE }}
+          tags: |
+            ${{ env.IMAGE }}
+            ${{ matrix.IMAGE == 'master' && 'moveit/moveit:master-ci-testing' || '' }}
 
   ci-testing:
     needs: ci
     strategy:
       fail-fast: false
       matrix:
-        IMAGE: [noetic, master]
+        IMAGE: [noetic]
     runs-on: ubuntu-latest
     permissions:
       packages: write
