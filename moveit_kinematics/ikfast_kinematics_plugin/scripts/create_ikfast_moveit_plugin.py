@@ -427,7 +427,7 @@ def update_moveit_package(args):
             )
 
         groups = [g.get("name") for g in srdf.findall("group")]
-        if args.planing_group_name not in groups:
+        if args.planning_group_name not in groups:
             raise RuntimeWarning(
                 f"Planning group '{args.planning_group_name}' not defined in the SRDF."
                 " Available groups: \n" + ", ".join(groups)
