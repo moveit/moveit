@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+* Avoid costly updates of invisible RobotInteractions on query state changes (`#3478 <https://github.com/ros-planning/moveit/issues/3478>`_)
+* Contributors: Robert Haschke
+
 1.1.12 (2023-05-13)
 -------------------
 * MPD: Resolve namespace ambiguity in RobotInteraction (`#3403 <https://github.com/ros-planning/moveit/issues/3403>`_)

@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+* Add unittest for `#3467 <https://github.com/ros-planning/moveit/issues/3467>`_ (`#3470 <https://github.com/ros-planning/moveit/issues/3470>`_)
+* Contributors: Robert Haschke
+
 1.1.12 (2023-05-13)
 -------------------
 * Generalize RobotState::setFromIK() (`<https://github.com/ros-planning/moveit/issues/3388>`_)

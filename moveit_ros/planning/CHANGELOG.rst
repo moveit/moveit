@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+
 1.1.12 (2023-05-13)
 -------------------
 * Add CSM tests (`#3395 <https://github.com/ros-planning/moveit/issues/3395>`_)

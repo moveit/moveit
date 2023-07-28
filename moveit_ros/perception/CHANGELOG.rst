@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+
 1.1.12 (2023-05-13)
 -------------------
 * MeshFilter: handle both, 32FC1 and 16UC1 encodings of depth images (`#3387 <https://github.com/ros-planning/moveit/issues/3387>`_)

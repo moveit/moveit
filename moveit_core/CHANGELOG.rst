@@ -2,6 +2,18 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+* Avoid global transforms in ``getRigidlyConnectedParentLinkModel()`` (`#3470 <https://github.com/ros-planning/moveit/issues/3470>`_)
+
+  * RobotState::setFromIK: ensure up-to-date state before calling IK solver
+  * Remove unimplemented RobotState::getSubframeTransformInLinkFrame()
+
+* Add missing include (`#3451 <https://github.com/ros-planning/moveit/issues/3451>`_)
+* Fix Jacobian calculation for planar joint (`#3439 <https://github.com/ros-planning/moveit/issues/3439>`_)
+* Silent "empty quaternion" warning from poseMsgToEigen() (`#3435 <https://github.com/ros-planning/moveit/issues/3435>`_)
+* Contributors: Cong Liu, Ivo Vatavuk, Robert Haschke
+
 1.1.12 (2023-05-13)
 -------------------
 * Generalize RobotState::setFromIK() (`<https://github.com/ros-planning/moveit/issues/3388>`_)

@@ -2,6 +2,9 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+
 1.1.12 (2023-05-13)
 -------------------
 * Add AITstar, BITstar and ABITstar planners from OMPL >= 1.5 (`#3347 <https://github.com/ros-planning/moveit/issues/3347>`_)
