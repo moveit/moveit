@@ -92,6 +92,11 @@ move_group::MoveGroupContext::~MoveGroupContext()
 
 bool move_group::MoveGroupContext::status() const
 {
+  if (!planning_pipeline_)
+  {
+    ROS_ERROR("No planning pipeline initialized.");
+    return false;
+  }
   const planning_interface::PlannerManagerPtr& planner_interface = planning_pipeline_->getPlannerManager();
   if (planner_interface)
   {
