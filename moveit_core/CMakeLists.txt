@@ -86,6 +86,7 @@ COMPONENTS
   xmlrpcpp
   pybind11_catkin
   pluginlib
+  angles
 )
 
 catkin_python_setup()
