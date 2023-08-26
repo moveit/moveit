@@ -591,7 +591,10 @@ size_t IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<d
       // For **Direction3D**, **Ray4D**, and **TranslationDirection5D**, the first 3 values represent the target
       // direction.
 
-      direction = pose_frame.M * KDL::Vector(0, 0, 1);
+      direction = pose_frame.M * KDL::Vector(_EEF_DIRECTION_);
+      // Making sure the resulting "direction" has a unit length, as users might pass in an unnormalized input through
+      // the input argument "--eef_direction"
+      direction.Normalize();
       ComputeIk(trans, direction.data, vfree.size() > 0 ? &vfree[0] : nullptr, solutions);
       return solutions.GetNumSolutions();
 
@@ -626,7 +629,10 @@ size_t IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<d
       // starting from the x/y/z-axis (defined in the manipulator base link’s coordinate system)
       {
         double angle = 0;
-        direction = pose_frame.M * KDL::Vector(0, 0, 1);
+        direction = pose_frame.M * KDL::Vector(_EEF_DIRECTION_);
+        // Making sure the resulting "direction" has a unit length, as users might pass in an unnormalized input through
+        // the input argument "--eef_direction"
+        direction.Normalize();
 
         switch (ik_type)  // inner switch case
         {
