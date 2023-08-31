@@ -7,9 +7,8 @@
            value="gdb -x $(dirname)/gdb_settings.gdb --ex run --args" />
 
   <!-- Verbose Mode Option -->
-  <arg name="info" default="$(arg debug)" />
-  <arg unless="$(arg info)" name="command_args" value="" />
-  <arg     if="$(arg info)" name="command_args" value="--debug" />
+  <arg unless="$(arg debug)" name="command_args" value="" />
+  <arg     if="$(arg debug)" name="command_args" value="--debug" />
 
   <!-- move_group settings -->
   <arg name="pipeline" default="ompl" />

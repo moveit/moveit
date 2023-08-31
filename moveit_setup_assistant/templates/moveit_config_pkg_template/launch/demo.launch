@@ -46,7 +46,6 @@
     <arg name="allow_trajectory_execution" value="true"/>
     <arg name="moveit_controller_manager" value="$(arg moveit_controller_manager)" />
     <arg name="fake_execution_type" value="$(arg fake_execution_type)"/>
-    <arg name="info" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
     <arg name="pipeline" value="$(arg pipeline)"/>
     <arg name="load_robot_description" value="$(arg load_robot_description)"/>
