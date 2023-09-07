@@ -27,8 +27,8 @@
   <depend>eigen</depend>
   <depend>tf2</depend>
   <depend>tf2_kdl</depend>
-  <depend condition="$ROS_DISTRO != noetic">orocos_kdl</depend>
-  <depend condition="$ROS_DISTRO == noetic">liborocos-kdl-dev</depend>
+  <depend condition="$ROS_DISTRO == melodic">orocos_kdl</depend>
+  <depend condition="$ROS_DISTRO != melodic">liborocos-kdl-dev</depend>
 
   <!-- some requirements of ikfast scripts -->
   <exec_depend>liburdfdom-tools</exec_depend> <!-- provides check_urdf -->

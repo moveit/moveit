@@ -62,8 +62,8 @@
   <test_depend>moveit_resources_panda_moveit_config</test_depend>
   <test_depend>moveit_resources_pr2_description</test_depend>
   <test_depend>tf2_kdl</test_depend>
-  <test_depend condition="$ROS_DISTRO != noetic">orocos_kdl</test_depend>
-  <test_depend condition="$ROS_DISTRO == noetic">liborocos-kdl-dev</test_depend>
+  <test_depend condition="$ROS_DISTRO == melodic">orocos_kdl</test_depend>
+  <test_depend condition="$ROS_DISTRO != melodic">liborocos-kdl-dev</test_depend>
   <test_depend>rosunit</test_depend>
   <test_depend>rostest</test_depend>
 
