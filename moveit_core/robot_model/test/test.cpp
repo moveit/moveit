@@ -118,6 +118,35 @@ TEST(SiblingAssociateLinks, SimpleYRobot)
   }
 }
 
+TEST(RobotModel, DuplicateLinks)
+{
+  static const std::string URDF = R"(<?xml version="1.0"?>
+  <robot name="test">
+    <link name="base"/>
+    <link name="a"/>
+    <link name="b"/>
+    <joint name="base_a" type="fixed">
+      <parent link="base"/>
+      <child link="a"/>
+    </joint>
+    <joint name="base_b1" type="continuous">
+      <parent link="base"/>
+      <child link="b"/>
+    </joint>
+    <joint name="base_b2" type="continuous">
+      <parent link="base"/>
+      <child link="b"/>
+    </joint>
+  </robot>)";
+
+  auto urdf = std::make_shared<urdf::Model>();
+  ASSERT_TRUE(urdf->initString(URDF));
+  auto srdf = std::make_shared<srdf::Model>();
+  moveit::core::RobotModel robot_model(urdf, srdf);
+  EXPECT_EQ(robot_model.getActiveJointModels().size(), 1u);  // base_b?
+  EXPECT_EQ(robot_model.getLinkModelCount(), 3u);            // base, a, b
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
