@@ -27,7 +27,7 @@ jobs:
       IMAGE: moveit/moveit:${{ matrix.ROS_DISTRO }}-${{ github.job }}
 
     steps:
-      - uses: addnab/docker-run-action@v3
+      - uses: rhaschke/docker-run-action@v4
         name: Check for apt updates
         continue-on-error: true
         id: apt
@@ -71,7 +71,7 @@ jobs:
       ROS_DISTRO: ${{ matrix.IMAGE == 'master' && 'melodic' || 'noetic' }}
 
     steps:
-      - uses: addnab/docker-run-action@v3
+      - uses: rhaschke/docker-run-action@v4
         name: Check for apt updates
         continue-on-error: true
         id: apt
@@ -117,7 +117,7 @@ jobs:
       IMAGE: moveit/moveit:${{ matrix.IMAGE }}-${{ github.job }}
 
     steps:
-      - uses: addnab/docker-run-action@v3
+      - uses: rhaschke/docker-run-action@v4
         name: Check for apt updates
         continue-on-error: true
         id: apt
