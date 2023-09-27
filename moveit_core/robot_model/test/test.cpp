@@ -134,7 +134,7 @@ TEST(RobotModel, DuplicateLinks)
       <child link="b"/>
     </joint>
     <joint name="base_b2" type="continuous">
-      <parent link="base"/>
+      <parent link="a"/>
       <child link="b"/>
     </joint>
   </robot>)";
