@@ -825,9 +825,9 @@ JointModel* RobotModel::buildRecursive(LinkModel* parent, const urdf::Link* urdf
 
     if (child_link->parent_joint->name != child_joint->name)
     {
-      ROS_ERROR_STREAM_NAMED(LOGNAME, "Encountered link with multiple parent joints '"
-                                          << child_link->parent_joint->name << "' and '" << child_joint->name
-                                          << "' when parsing URDF. Skipping the second joint.");
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "Skipping additional joint '" << child_joint->name << "' pointing to link '"
+                                                                    << child_link->name << "' (other was '"
+                                                                    << child_link->parent_joint->name << "')");
       continue;
     }
 
