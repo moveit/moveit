@@ -825,9 +825,10 @@ JointModel* RobotModel::buildRecursive(LinkModel* parent, const urdf::Link* urdf
 
     if (child_link->parent_joint->name != child_joint->name)
     {
-      ROS_ERROR_STREAM_NAMED(LOGNAME, "Skipping additional joint '" << child_joint->name << "' pointing to link '"
-                                                                    << child_link->name << "' (other was '"
-                                                                    << child_link->parent_joint->name << "')");
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "Found link '" << child_link->name << "' with multiple parent joints '"
+                                                     << child_link->parent_joint->name << "' and '" << child_joint->name
+                                                     << "'. Ignoring the latter joint because cycles in the kinematic "
+                                                        "structure are not supported.");
       continue;
     }
 
