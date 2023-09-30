@@ -818,8 +818,20 @@ JointModel* RobotModel::buildRecursive(LinkModel* parent, const urdf::Link* urdf
   link->setParentJointModel(joint);
 
   // recursively build child links (and joints)
-  for (const urdf::LinkSharedPtr& child_link : urdf_link->child_links)
+  for (unsigned int i = 0; i < urdf_link->child_links.size(); ++i)
   {
+    const urdf::LinkSharedPtr& child_link{ urdf_link->child_links[i] };
+    const urdf::JointSharedPtr& child_joint{ urdf_link->child_joints[i] };
+
+    if (child_link->parent_joint->name != child_joint->name)
+    {
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "Found link '" << child_link->name << "' with multiple parent joints '"
+                                                     << child_link->parent_joint->name << "' and '" << child_joint->name
+                                                     << "'. Ignoring the latter joint because cycles in the kinematic "
+                                                        "structure are not supported.");
+      continue;
+    }
+
     JointModel* jm = buildRecursive(link, child_link.get(), srdf_model);
     if (jm)
       link->addChildJointModel(jm);
