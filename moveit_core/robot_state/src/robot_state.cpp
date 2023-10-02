@@ -281,11 +281,7 @@ void RobotState::dropDynamics()
 
 void RobotState::setToRandomPositions()
 {
-  random_numbers::RandomNumberGenerator& rng = getRandomNumberGenerator();
-  robot_model_->getVariableRandomPositions(rng, position_);
-  memset(dirty_joint_transforms_, 1, robot_model_->getJointModelCount() * sizeof(unsigned char));
-  dirty_link_transforms_ = robot_model_->getRootJoint();
-  // mimic values are correctly set in RobotModel
+  setToRandomPositions(getRandomNumberGenerator());
 }
 
 void RobotState::setToRandomPositions(random_numbers::RandomNumberGenerator& rng)
@@ -293,6 +289,7 @@ void RobotState::setToRandomPositions(random_numbers::RandomNumberGenerator& rng
   robot_model_->getVariableRandomPositions(rng, position_);
   memset(dirty_joint_transforms_, 1, robot_model_->getJointModelCount() * sizeof(unsigned char));
   dirty_link_transforms_ = robot_model_->getRootJoint();
+  // mimic values are correctly set in RobotModel
 }
 
 void RobotState::setToRandomPositions(const JointModelGroup* group)
