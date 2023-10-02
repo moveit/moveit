@@ -1299,7 +1299,7 @@ public:
   /** \brief Set all joints to random values.  Values will be within default bounds. */
   void setToRandomPositions();
 
-  /** \brief Set all joints to random values using a specified random number generator.
+  /** \brief Set all joints to random values using the specified random number generator.
       Values will be within default bounds. */
   void setToRandomPositions(random_numbers::RandomNumberGenerator& rng);
 
