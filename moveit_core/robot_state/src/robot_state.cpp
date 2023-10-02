@@ -288,6 +288,13 @@ void RobotState::setToRandomPositions()
   // mimic values are correctly set in RobotModel
 }
 
+void RobotState::setToRandomPositions(random_numbers::RandomNumberGenerator& rng)
+{
+  robot_model_->getVariableRandomPositions(rng, position_);
+  memset(dirty_joint_transforms_, 1, robot_model_->getJointModelCount() * sizeof(unsigned char));
+  dirty_link_transforms_ = robot_model_->getRootJoint();
+}
+
 void RobotState::setToRandomPositions(const JointModelGroup* group)
 {
   // we do not make calls to RobotModel for random number generation because mimic joints

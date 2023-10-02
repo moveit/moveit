@@ -43,6 +43,7 @@
 
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection/collision_plugin_cache.h>
+#include <random_numbers.h>
 
 const int TRIALS = 1000;
 const int THREADS = 2;
@@ -118,11 +119,14 @@ TEST_P(CollisionDetectorTests, Threaded)
   for (unsigned int i = 0; i < THREADS; ++i)
   {
     moveit::core::RobotState state{ planning_scene_->getRobotModel() };
+    const moveit::core::JointModelGroup* g_mim = model->getJointModelGroup("mim_joints");
     collision_detection::CollisionRequest req;
     state.setToRandomPositions();
     state.update();
     collisions.push_back(runCollisionDetection(0, 1, *planning_scene_, state));
     states.push_back(std::move(state));
+    random_numbers::RandomNumberGenerator rng(void);
+    state.setToRandomPositions(rng);
   }
 
   for (unsigned int i = 0; i < THREADS; ++i)
