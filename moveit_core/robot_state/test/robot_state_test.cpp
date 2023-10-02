@@ -43,7 +43,6 @@
 #include <algorithm>
 #include <limits>
 #include <ctype.h>
-#include <random_numbers.h>
 
 namespace
 {
@@ -520,7 +519,6 @@ TEST_F(OneRobot, FK)
   state.copyJointGroupPositions(g_mim, gstate);
 
   // setToRandomPositions() uses a different mechanism to update mimic joints
-  
   random_numbers::RandomNumberGenerator rng(void);
   state.setToRandomPositions(rng);
   double joint_f = state.getVariablePosition("joint_f");

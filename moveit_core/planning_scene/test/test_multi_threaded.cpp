@@ -43,7 +43,6 @@
 
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection/collision_plugin_cache.h>
-#include <random_numbers.h>
 
 const int TRIALS = 1000;
 const int THREADS = 2;
