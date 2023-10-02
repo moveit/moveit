@@ -519,8 +519,7 @@ TEST_F(OneRobot, FK)
   state.copyJointGroupPositions(g_mim, gstate);
 
   // setToRandomPositions() uses a different mechanism to update mimic joints
-  random_numbers::RandomNumberGenerator rng(void);
-  state.setToRandomPositions(rng);
+  state.setToRandomPositions(g_mim);
   double joint_f = state.getVariablePosition("joint_f");
   double mim_f = state.getVariablePosition("mim_f");
   EXPECT_NEAR(mim_f, 1.5 * joint_f + 0.1, 1e-8);
