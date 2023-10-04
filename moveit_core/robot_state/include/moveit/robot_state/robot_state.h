@@ -1299,6 +1299,10 @@ public:
   /** \brief Set all joints to random values.  Values will be within default bounds. */
   void setToRandomPositions();
 
+  /** \brief Set all joints to random values using the specified random number generator.
+      Values will be within default bounds. */
+  void setToRandomPositions(random_numbers::RandomNumberGenerator& rng);
+
   /** \brief Set all joints in \e group to random values.  Values will be within default bounds. */
   void setToRandomPositions(const JointModelGroup* group);
 
