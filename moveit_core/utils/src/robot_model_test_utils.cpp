@@ -265,6 +265,17 @@ RobotModelBuilder& RobotModelBuilder::addVisualBox(const std::string& link_name,
   return *this;
 }
 
+RobotModelBuilder& RobotModelBuilder::addCollisionSphere(const std::string& link_name, double radius,
+                                                         geometry_msgs::Pose origin)
+{
+  urdf::CollisionSharedPtr coll(new urdf::Collision);
+  urdf::SphereSharedPtr geometry(new urdf::Sphere);
+  geometry->radius = radius;
+  coll->geometry = geometry;
+  addLinkCollision(link_name, coll, origin);
+  return *this;
+}
+
 RobotModelBuilder& RobotModelBuilder::addCollisionBox(const std::string& link_name, const std::vector<double>& dims,
                                                       geometry_msgs::Pose origin)
 {
