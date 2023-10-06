@@ -49,11 +49,11 @@ collision_detection::determineCollisionSpheres(const bodies::Body* body, Eigen::
   std::vector<collision_detection::CollisionSphere> css;
   if (body->getType() == shapes::ShapeType::SPHERE)
   {
-    const auto radius = body->getDimensions()[0];
-    if (radius > 0.0)
+    bodies::BoundingSphere bsphere;
+    body->computeBoundingSphere(bsphere);
+    if (bsphere.radius > 0.0)
     {
-      collision_detection::CollisionSphere cs(body->getPose().translation(), radius);
-      css.push_back(cs);
+      css.push_back(collision_detection::CollisionSphere{ bsphere.center, bsphere.radius });
     }
   }
   else
