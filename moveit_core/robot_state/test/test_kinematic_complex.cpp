@@ -78,7 +78,7 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
 
 TEST_F(LoadPlanningModelsPr2, ModelInit)
 {
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
 
   // with no world multidof we should get a fixed joint
   moveit::core::RobotModel robot_model0(urdf_model_, srdf_model);
@@ -122,7 +122,7 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
                                      "</group>"
                                      "</robot>";
 
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   srdf_model->initString(*urdf_model_, SMODEL1);
   moveit::core::RobotModel robot_model1(urdf_model_, srdf_model);
 

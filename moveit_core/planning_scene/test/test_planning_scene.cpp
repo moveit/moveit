@@ -53,7 +53,7 @@
 TEST(PlanningScene, LoadRestore)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   planning_scene::PlanningScene ps(urdf_model, srdf_model);
   moveit_msgs::PlanningScene ps_msg;
   ps.getPlanningSceneMsg(ps_msg);
@@ -67,7 +67,7 @@ TEST(PlanningScene, LoadRestore)
 TEST(PlanningScene, LoadOctomap)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   planning_scene::PlanningScene ps(urdf_model, srdf_model);
 
   {  // check octomap before doing any operations on it
@@ -120,7 +120,7 @@ TEST(PlanningScene, LoadOctomap)
 TEST(PlanningScene, LoadRestoreDiff)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   auto ps = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
 
   collision_detection::World& world = *ps->getWorldNonConst();
@@ -180,7 +180,7 @@ TEST(PlanningScene, LoadRestoreDiff)
 TEST(PlanningScene, MakeAttachedDiff)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   auto ps = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
 
   /* add a single object to ps's world */
@@ -321,7 +321,7 @@ TEST_P(CollisionDetectorTests, ClearDiff)
   SCOPED_TRACE(plugin_name);
 
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   // create parent scene
   planning_scene::PlanningScenePtr parent = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
 
