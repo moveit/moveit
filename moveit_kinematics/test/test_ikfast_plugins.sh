@@ -20,7 +20,7 @@ else
 fi
 
 # Clone moveit_resources for URDFs. They are not available before running docker.
-git clone -q --depth=1 https://github.com/ros-planning/moveit_resources /tmp/ros/src/moveit_resources
+git clone -q -b master --depth=1 https://github.com/ros-planning/moveit_resources /tmp/ros/src/moveit_resources
 docker run --rm -v /tmp/ros:/tmp/ros -w /tmp/ros "$DOCKER_IMAGE" bash -c "catkin build --no-status --no-summary --no-deps moveit_resources_panda_description"
 
 fanuc=/tmp/ros/src/moveit_resources/fanuc_description/urdf/fanuc.urdf
