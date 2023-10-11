@@ -208,17 +208,35 @@ void PlanarJointModel::interpolate(const double* from, const double* to, const d
     double dx, dy, initial_turn, drive_angle, final_turn;
     computeTurnDriveTurnGeometry(from, to, min_translational_distance_, dx, dy, initial_turn, drive_angle, final_turn);
 
+    // approximate cost (distance traveled) doing initial turn
     double initial_d = fabs(initial_turn) * angular_distance_weight_;
+    // approximate cost (distance traveled) doing straight drive
     double drive_d = hypot(dx, dy);
+    // approximate cost (distance traveled) doing final turn
     double final_d = fabs(final_turn) * angular_distance_weight_;
 
+    // total cost of executing manuever
     double total_d = initial_d + drive_d + final_d;
 
+    // If the difference between `from` and `to` is so low that it is within floating point arithmetic error
+    // or if `from == to`, the following operations will result in nan
+    // Just set the return state to target state and don't interpolate.
+    if (total_d < std::numeric_limits<float>::epsilon())
+    {
+      state[0] = to[0];
+      state[1] = to[1];
+      state[2] = to[2];
+      return;
+    }
+
+    // fraction of cost for each segment
     double initial_frac = initial_d / total_d;
     double drive_frac = drive_d / total_d;
     double final_frac = final_d / total_d;
 
     double percent;
+
+    // If the current time step is still in the initial rotation phase.
     if (t <= initial_frac)
     {
       percent = t / initial_frac;
@@ -226,6 +244,7 @@ void PlanarJointModel::interpolate(const double* from, const double* to, const d
       state[1] = from[1];
       state[2] = from[2] + initial_turn * percent;
     }
+    // If the current time step is doing the driving phase.
     else if (t <= initial_frac + drive_frac)
     {
       percent = (t - initial_frac) / drive_frac;
@@ -233,6 +252,7 @@ void PlanarJointModel::interpolate(const double* from, const double* to, const d
       state[1] = from[1] + dy * percent;
       state[2] = drive_angle;
     }
+    // If the current time step is in the final rotation phase.
     else
     {
       percent = (t - initial_frac - drive_frac) / final_frac;
