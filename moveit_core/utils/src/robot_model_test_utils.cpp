@@ -82,7 +82,7 @@ urdf::ModelInterfaceSharedPtr loadModelInterface(const std::string& robot_name)
 srdf::ModelSharedPtr loadSRDFModel(const std::string& robot_name)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = loadModelInterface(robot_name);
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   std::string srdf_path;
   if (robot_name == "pr2")
   {
@@ -129,7 +129,7 @@ RobotModelBuilder::RobotModelBuilder(const std::string& name, const std::string&
   urdf_model_->clear();
   urdf_model_->name_ = name;
 
-  urdf::LinkSharedPtr base_link(new urdf::Link);
+  auto base_link = std::make_shared<urdf::Link>();
   base_link->name = base_link_name;
   urdf_model_->links_.insert(std::make_pair(base_link_name, base_link));
 
@@ -174,10 +174,10 @@ RobotModelBuilder& RobotModelBuilder::addChain(const std::string& section, const
       is_valid_ = false;
       return *this;
     }
-    urdf::LinkSharedPtr link(new urdf::Link);
+    auto link = std::make_shared<urdf::Link>();
     link->name = link_names[i];
     urdf_model_->links_.insert(std::make_pair(link_names[i], link));
-    urdf::JointSharedPtr joint(new urdf::Joint);
+    auto joint = std::make_shared<urdf::Joint>();
     joint->name = link_names[i - 1] + "-" + link_names[i] + "-joint";
     // Default to Identity transform for origins.
     joint->parent_to_joint_origin_transform.clear();
@@ -213,7 +213,7 @@ RobotModelBuilder& RobotModelBuilder::addChain(const std::string& section, const
     joint->axis = joint_axis;
     if (joint->type == urdf::Joint::REVOLUTE || joint->type == urdf::Joint::PRISMATIC)
     {
-      urdf::JointLimitsSharedPtr limits(new urdf::JointLimits);
+      auto limits = std::make_shared<urdf::JointLimits>();
       limits->lower = -boost::math::constants::pi<double>();
       limits->upper = boost::math::constants::pi<double>();
 
@@ -235,7 +235,7 @@ RobotModelBuilder& RobotModelBuilder::addInertial(const std::string& link_name, 
     return *this;
   }
 
-  urdf::InertialSharedPtr inertial(new urdf::Inertial);
+  auto inertial = std::make_shared<urdf::Inertial>();
   inertial->origin.position = urdf::Vector3(origin.position.x, origin.position.y, origin.position.z);
   inertial->origin.rotation =
       urdf::Rotation(origin.orientation.x, origin.orientation.y, origin.orientation.z, origin.orientation.w);
@@ -257,11 +257,22 @@ RobotModelBuilder& RobotModelBuilder::addInertial(const std::string& link_name, 
 RobotModelBuilder& RobotModelBuilder::addVisualBox(const std::string& link_name, const std::vector<double>& size,
                                                    geometry_msgs::Pose origin)
 {
-  urdf::VisualSharedPtr vis(new urdf::Visual);
-  urdf::BoxSharedPtr geometry(new urdf::Box);
+  auto vis = std::make_shared<urdf::Visual>();
+  auto geometry = std::make_shared<urdf::Box>();
   geometry->dim = urdf::Vector3(size[0], size[1], size[2]);
   vis->geometry = geometry;
   addLinkVisual(link_name, vis, origin);
+  return *this;
+}
+
+RobotModelBuilder& RobotModelBuilder::addCollisionSphere(const std::string& link_name, double radius,
+                                                         geometry_msgs::Pose origin)
+{
+  auto coll = std::make_shared<urdf::Collision>();
+  auto geometry = std::make_shared<urdf::Sphere>();
+  geometry->radius = radius;
+  coll->geometry = geometry;
+  addLinkCollision(link_name, coll, origin);
   return *this;
 }
 
@@ -274,8 +285,8 @@ RobotModelBuilder& RobotModelBuilder::addCollisionBox(const std::string& link_na
     is_valid_ = false;
     return *this;
   }
-  urdf::CollisionSharedPtr coll(new urdf::Collision);
-  urdf::BoxSharedPtr geometry(new urdf::Box);
+  auto coll = std::make_shared<urdf::Collision>();
+  auto geometry = std::make_shared<urdf::Box>();
   geometry->dim = urdf::Vector3(dims[0], dims[1], dims[2]);
   coll->geometry = geometry;
   addLinkCollision(link_name, coll, origin);
@@ -285,8 +296,8 @@ RobotModelBuilder& RobotModelBuilder::addCollisionBox(const std::string& link_na
 RobotModelBuilder& RobotModelBuilder::addCollisionMesh(const std::string& link_name, const std::string& filename,
                                                        geometry_msgs::Pose origin)
 {
-  urdf::CollisionSharedPtr coll(new urdf::Collision);
-  urdf::MeshSharedPtr geometry(new urdf::Mesh);
+  auto coll = std::make_shared<urdf::Collision>();
+  auto geometry = std::make_shared<urdf::Mesh>();
   geometry->filename = filename;
   coll->geometry = geometry;
   addLinkCollision(link_name, coll, origin);
