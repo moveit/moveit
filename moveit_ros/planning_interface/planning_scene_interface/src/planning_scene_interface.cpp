@@ -274,7 +274,7 @@ public:
     planning_scene_diff_publisher_.publish(planning_scene);
   }
 
-  bool clearScene()
+  bool clear()
   {
     moveit_msgs::PlanningScene clear_scene;
     clear_scene.is_diff = true;
@@ -428,9 +428,9 @@ void PlanningSceneInterface::removeCollisionObjects(const std::vector<std::strin
   impl_->removeCollisionObjects(object_ids);
 }
 
-bool PlanningSceneInterface::clearScene()
+bool PlanningSceneInterface::clear()
 {
-  return impl_->clearScene();
+  return impl_->clear();
 }
 
 }  // namespace planning_interface
