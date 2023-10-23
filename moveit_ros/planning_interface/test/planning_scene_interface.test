@@ -2,6 +2,6 @@
   <include file="$(find moveit_resources_panda_moveit_config)/launch/test_environment.launch" />
 
   <!-- test -->
-  <test pkg="moveit_ros_planning_interface" type="planning_scene_interface_clearScene_test" test-name="planning_scene_interface_clearScene_test"
+  <test pkg="moveit_ros_planning_interface" type="planning_scene_interface_test" test-name="planning_scene_interface_test"
         time-limit="60" args=""/>
 </launch>

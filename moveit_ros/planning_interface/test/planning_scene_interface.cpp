@@ -65,7 +65,7 @@ protected:
     collision_object.id = std::to_string(object_counter);
     collision_object.header.frame_id = "panda_link0";
     collision_object.primitives.resize(1);
-    collision_object.primitives[0].type = collision_object.primitives[0].BOX;
+    collision_object.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
     collision_object.primitives[0].dimensions.resize(3);
     collision_object.primitives[0].dimensions[0] = std::abs(dist(gen));
     collision_object.primitives[0].dimensions[1] = std::abs(dist(gen));
@@ -90,24 +90,7 @@ protected:
 
     moveit_msgs::AttachedCollisionObject attached_collision_object;
     attached_collision_object.link_name = "panda_link0";
-    attached_collision_object.object.id = std::to_string(object_counter);
-    attached_collision_object.object.header.frame_id = "panda_link0";
-    attached_collision_object.object.primitives.resize(1);
-    attached_collision_object.object.primitives[0].type = attached_collision_object.object.primitives[0].BOX;
-    attached_collision_object.object.primitives[0].dimensions.resize(3);
-    attached_collision_object.object.primitives[0].dimensions[0] = std::abs(dist(gen));
-    attached_collision_object.object.primitives[0].dimensions[1] = std::abs(dist(gen));
-    attached_collision_object.object.primitives[0].dimensions[2] = std::abs(dist(gen));
-    attached_collision_object.object.primitive_poses.resize(1);
-    attached_collision_object.object.primitive_poses[0].position.x = dist(gen);
-    ;
-    attached_collision_object.object.primitive_poses[0].position.y = dist(gen);
-    ;
-    attached_collision_object.object.primitive_poses[0].position.z = dist(gen);
-    ;
-    attached_collision_object.object.primitive_poses[0].orientation.w = 1.0;
-    attached_collision_object.object.operation = attached_collision_object.object.ADD;
-
+    attached_collision_object.object = randomCollisionObject();
     // Global random counter update
     object_counter++;
 
@@ -123,7 +106,9 @@ TEST_F(ClearSceneFixture, CollisionObjectClearTest)
 
   // Add and verify if the objects have been added
   std::vector<moveit_msgs::CollisionObject> collision_objects;
-  for (int i = 0; i < 4; i++)
+  collision_objects.reserve(4);
+
+for (int i = 0; i < 4; i++)
   {
     collision_objects.push_back(randomCollisionObject());
   }
@@ -146,7 +131,9 @@ TEST_F(ClearSceneFixture, AttachedObjectClearTest)
 
   // Add and verify if the objects have been added
   std::vector<moveit_msgs::AttachedCollisionObject> attached_objects;
-  for (int i = 0; i < 4; i++)
+  attached_objects.reserve(4);
+
+for (int i = 0; i < 4; i++)
   {
     attached_objects.push_back(randomAttachedCollisionObject());
   }
@@ -168,7 +155,9 @@ TEST_F(ClearSceneFixture, CollisionAndAttachedObjectClearTest)
 
   // Add and verify if the objects have been added
   std::vector<moveit_msgs::AttachedCollisionObject> attached_objects;
-  for (int i = 0; i < 2; i++)
+  attached_objects.reserve(2);
+
+for (int i = 0; i < 2; i++)
   {
     attached_objects.push_back(randomAttachedCollisionObject());
   }
@@ -176,7 +165,9 @@ TEST_F(ClearSceneFixture, CollisionAndAttachedObjectClearTest)
   planning_scene_interface.applyAttachedCollisionObjects(attached_objects);
 
   std::vector<moveit_msgs::CollisionObject> collision_objects;
-  for (int i = 0; i < 2; i++)
+  collision_objects.reserve(2);
+
+for (int i = 0; i < 2; i++)
   {
     collision_objects.push_back(randomCollisionObject());
   }
