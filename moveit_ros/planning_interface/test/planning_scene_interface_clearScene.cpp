@@ -50,7 +50,6 @@
 
 class ClearSceneFixture : public ::testing::Test
 {
-
 protected:
   moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
 
@@ -100,9 +99,12 @@ protected:
     attached_collision_object.object.primitives[0].dimensions[1] = std::abs(dist(gen));
     attached_collision_object.object.primitives[0].dimensions[2] = std::abs(dist(gen));
     attached_collision_object.object.primitive_poses.resize(1);
-    attached_collision_object.object.primitive_poses[0].position.x = dist(gen);;
-    attached_collision_object.object.primitive_poses[0].position.y = dist(gen);;
-    attached_collision_object.object.primitive_poses[0].position.z = dist(gen);;
+    attached_collision_object.object.primitive_poses[0].position.x = dist(gen);
+    ;
+    attached_collision_object.object.primitive_poses[0].position.y = dist(gen);
+    ;
+    attached_collision_object.object.primitive_poses[0].position.z = dist(gen);
+    ;
     attached_collision_object.object.primitive_poses[0].orientation.w = 1.0;
     attached_collision_object.object.operation = attached_collision_object.object.ADD;
 
@@ -120,8 +122,9 @@ TEST_F(ClearSceneFixture, CollisionObjectClearTest)
   ASSERT_EQ(planning_scene_interface.getObjects().size(), 0ul);
 
   // Add and verify if the objects have been added
-  std::vector <moveit_msgs::CollisionObject> collision_objects;
-  for (int i = 0 ; i < 4; i++ ){
+  std::vector<moveit_msgs::CollisionObject> collision_objects;
+  for (int i = 0; i < 4; i++)
+  {
     collision_objects.push_back(randomCollisionObject());
   }
 
@@ -142,8 +145,9 @@ TEST_F(ClearSceneFixture, AttachedObjectClearTest)
   ASSERT_EQ(planning_scene_interface.getAttachedObjects().size(), 0ul);
 
   // Add and verify if the objects have been added
-  std::vector <moveit_msgs::AttachedCollisionObject> attached_objects;  
-  for (int i = 0 ; i < 4; i++ ){
+  std::vector<moveit_msgs::AttachedCollisionObject> attached_objects;
+  for (int i = 0; i < 4; i++)
+  {
     attached_objects.push_back(randomAttachedCollisionObject());
   }
 
@@ -160,24 +164,25 @@ TEST_F(ClearSceneFixture, AttachedObjectClearTest)
 TEST_F(ClearSceneFixture, CollisionAndAttachedObjectClearTest)
 {
   // Verify the scene is clear
-  ASSERT_EQ((planning_scene_interface.getAttachedObjects().size() + planning_scene_interface.getObjects().size()),
-            0ul);
+  ASSERT_EQ((planning_scene_interface.getAttachedObjects().size() + planning_scene_interface.getObjects().size()), 0ul);
 
   // Add and verify if the objects have been added
-  std::vector <moveit_msgs::AttachedCollisionObject> attached_objects;
-  for (int i = 0 ; i < 2; i++ ){
+  std::vector<moveit_msgs::AttachedCollisionObject> attached_objects;
+  for (int i = 0; i < 2; i++)
+  {
     attached_objects.push_back(randomAttachedCollisionObject());
   }
 
   planning_scene_interface.applyAttachedCollisionObjects(attached_objects);
 
-  std::vector <moveit_msgs::CollisionObject> collision_objects;
-  for (int i = 0 ; i < 2; i++ ){
+  std::vector<moveit_msgs::CollisionObject> collision_objects;
+  for (int i = 0; i < 2; i++)
+  {
     collision_objects.push_back(randomCollisionObject());
   }
 
   planning_scene_interface.applyCollisionObjects(collision_objects);
-  
+
   ASSERT_EQ((planning_scene_interface.getAttachedObjects().size() + planning_scene_interface.getObjects().size()),
             std::size_t(4));
 
@@ -185,8 +190,7 @@ TEST_F(ClearSceneFixture, CollisionAndAttachedObjectClearTest)
   planning_scene_interface.clear();
 
   // Verify the scene is cleared
-  ASSERT_EQ((planning_scene_interface.getAttachedObjects().size() + planning_scene_interface.getObjects().size()),
-            0ul);
+  ASSERT_EQ((planning_scene_interface.getAttachedObjects().size() + planning_scene_interface.getObjects().size()), 0ul);
 }
 
 int main(int argc, char** argv)
