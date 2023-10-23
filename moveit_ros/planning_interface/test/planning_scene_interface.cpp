@@ -45,7 +45,7 @@
 // Testing Framework
 #include <gtest/gtest.h>
 
-// Moveit PLanning Scene Interface
+// moveit PLanning Scene Interface
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 
 class ClearSceneFixture : public ::testing::Test
@@ -108,7 +108,7 @@ TEST_F(ClearSceneFixture, CollisionObjectClearTest)
   std::vector<moveit_msgs::CollisionObject> collision_objects;
   collision_objects.reserve(4);
 
-for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; i++)
   {
     collision_objects.push_back(randomCollisionObject());
   }
@@ -133,7 +133,7 @@ TEST_F(ClearSceneFixture, AttachedObjectClearTest)
   std::vector<moveit_msgs::AttachedCollisionObject> attached_objects;
   attached_objects.reserve(4);
 
-for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; i++)
   {
     attached_objects.push_back(randomAttachedCollisionObject());
   }
@@ -157,7 +157,7 @@ TEST_F(ClearSceneFixture, CollisionAndAttachedObjectClearTest)
   std::vector<moveit_msgs::AttachedCollisionObject> attached_objects;
   attached_objects.reserve(2);
 
-for (int i = 0; i < 2; i++)
+  for (int i = 0; i < 2; i++)
   {
     attached_objects.push_back(randomAttachedCollisionObject());
   }
@@ -167,7 +167,7 @@ for (int i = 0; i < 2; i++)
   std::vector<moveit_msgs::CollisionObject> collision_objects;
   collision_objects.reserve(2);
 
-for (int i = 0; i < 2; i++)
+  for (int i = 0; i < 2; i++)
   {
     collision_objects.push_back(randomCollisionObject());
   }
