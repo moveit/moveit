@@ -168,8 +168,7 @@ class PlanningSceneInterface(object):
 
     def clear(self):
         """Remove all objects from the planning scene"""
-        self.remove_attached_object()
-        self.remove_world_object()
+        self._psi.clear()
 
     def remove_world_object(self, name=None):
         """
