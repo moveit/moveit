@@ -192,7 +192,12 @@ MotionPlanningFrameJointsWidget::MotionPlanningFrameJointsWidget(MotionPlanningD
   ui_->joints_view_->viewport()->installEventFilter(new JointsWidgetEventFilter(ui_->joints_view_));
   // intercept keyboard events delivered to joints_view_ to operate joints directly
   ui_->joints_view_->installEventFilter(new JointsWidgetEventFilter(ui_->joints_view_));
-  ui_->joints_view_->setItemDelegateForColumn(1, new ProgressBarDelegate(this));
+  auto delegate = new ProgressBarDelegate(this);
+  connect(ui_->joints_view_->button_group_units_, QButtonGroup::idToggled, [delegate](int id, bool checked) {
+    if (checked)
+      delegate->setUnit(id == 0 ? ProgressBarDelegate::Degrees : ProgressBarDelegate::Radians);
+  });
+  ui_->joints_view_->setItemDelegateForColumn(1, delegate);
   svd_.setThreshold(0.001);
 }
 
@@ -417,8 +422,8 @@ void ProgressBarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
       switch (joint_type.toInt())
       {
         case moveit::core::JointModel::REVOLUTE:
-          if (false) //TODO: FLAG connect to the checkbox update
-            style_option.text = option.locale.toString(value, 'f', 3).append(" rad");
+          if (unit_ == Radians)
+            style_option.text = option.locale.toString(value, 'f', 3);
           else
             style_option.text = option.locale.toString(value * 180 / M_PI, 'f', 0).append("°");
           break;

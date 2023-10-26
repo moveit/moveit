@@ -171,13 +171,24 @@ public:
     JointTypeRole = Qt::UserRole,  // NOLINT(readability-identifier-naming)
     VariableBoundsRole             // NOLINT(readability-identifier-naming)
   };
+  enum RevoluteUnit
+  {
+    Degrees = 0,
+    Radians = 1,
+  };
 
-  ProgressBarDelegate(QWidget* parent = nullptr) : QStyledItemDelegate(parent)
+  ProgressBarDelegate(QWidget* parent = nullptr) : QStyledItemDelegate(parent), unit_(Degrees)
   {
   }
 
+  void setUnit(RevoluteUnit unit)
+  {
+    unit_ = unit;
+  }
   void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
   QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
+
+  RevoluteUnit unit_;
 };
 
 /// Slider that jumps back to zero
