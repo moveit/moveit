@@ -43,6 +43,34 @@
       </widget>
      </item>
      <item>
+      <widget class="QCheckBox" name="display_joints_radians">
+       <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+         </sizepolicy>
+       </property>
+       <property name="minimumSize">
+         <size>
+           <width>30</width>
+           <height>0</height>
+         </size>
+       </property>
+       <property name="toolTip">
+        <string>Check this to change the above joint angle from degrees to radians</string>
+       </property>
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>Display joints in Radians</string>
+       </property>
+       <property name="tristate">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QLabel" name="nullspace_label">
        <property name="toolTip">
         <string>The sliders below allow for jogging the nullspace of the current configuration,
