@@ -193,7 +193,7 @@ MotionPlanningFrameJointsWidget::MotionPlanningFrameJointsWidget(MotionPlanningD
   // intercept keyboard events delivered to joints_view_ to operate joints directly
   ui_->joints_view_->installEventFilter(new JointsWidgetEventFilter(ui_->joints_view_));
   auto delegate = new ProgressBarDelegate(this);
-  connect(ui_->joints_view_->button_group_units_, QButtonGroup::idToggled, [delegate](int id, bool checked) {
+  connect(ui_->button_group_units_, static_cast<void(QButtonGroup::*)(int, bool)>(&QButtonGroup::buttonToggled), [delegate](int id, bool checked) {
     if (checked)
       delegate->setUnit(id == 0 ? ProgressBarDelegate::Degrees : ProgressBarDelegate::Radians);
   });
