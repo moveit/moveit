@@ -2,6 +2,7 @@ set(MOVEIT_LIB_NAME moveit_robot_state)
 
 add_library(${MOVEIT_LIB_NAME}
   src/attached_body.cpp
+  src/mesh_cache.cpp
   src/conversions.cpp
   src/robot_state.cpp
   src/cartesian_interpolator.cpp
