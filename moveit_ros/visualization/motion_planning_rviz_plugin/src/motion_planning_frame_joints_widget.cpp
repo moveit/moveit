@@ -202,7 +202,9 @@ MotionPlanningFrameJointsWidget::MotionPlanningFrameJointsWidget(MotionPlanningD
       delegate->setUnit(static_cast<ProgressBarDelegate::RevoluteUnit>(id));
       // trigger repaint of joint values
       auto model = ui_->joints_view_->model();
-      ui_->joints_view_->dataChanged(model->index(0, 1), model->index(model->rowCount() - 1, 1));
+      if (model)  // during initial loading, the model is not yet set
+        ui_->joints_view_->dataChanged(model->index(0, 1), model->index(model->rowCount() - 1, 1));
+      Q_EMIT configChanged();
     }
   });
   ui_->joints_view_->setItemDelegateForColumn(1, delegate);
@@ -212,6 +214,15 @@ MotionPlanningFrameJointsWidget::MotionPlanningFrameJointsWidget(MotionPlanningD
 MotionPlanningFrameJointsWidget::~MotionPlanningFrameJointsWidget()
 {
   delete ui_;
+}
+
+bool MotionPlanningFrameJointsWidget::useRadians() const
+{
+  return ui_->radio_radian_->isChecked();
+}
+void MotionPlanningFrameJointsWidget::setUseRadians(bool use_radians)
+{
+  ui_->radio_radian_->setChecked(use_radians);
 }
 
 void MotionPlanningFrameJointsWidget::clearRobotModel()

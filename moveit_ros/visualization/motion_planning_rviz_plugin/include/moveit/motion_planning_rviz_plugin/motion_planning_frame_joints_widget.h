@@ -134,6 +134,12 @@ public:
                            const robot_interaction::InteractionHandlerPtr& start_state_handler,
                            const robot_interaction::InteractionHandlerPtr& goal_state_handler);
 
+  bool useRadians() const;
+  void setUseRadians(bool use_radians);
+
+Q_SIGNALS:
+  void configChanged();
+
 public Q_SLOTS:
   void queryStartStateChanged();
   void queryGoalStateChanged();
