@@ -196,17 +196,18 @@ MotionPlanningFrameJointsWidget::MotionPlanningFrameJointsWidget(MotionPlanningD
   auto delegate = new ProgressBarDelegate(this);
   ui_->button_group_units_->setId(ui_->radio_degree_, ProgressBarDelegate::Degrees);
   ui_->button_group_units_->setId(ui_->radio_radian_, ProgressBarDelegate::Radians);
-  connect(ui_->button_group_units_, &QButtonGroup::idToggled, ui_->joints_view_, [delegate, this](int id, bool checked) {
-    if (checked)
-    {
-      delegate->setUnit(static_cast<ProgressBarDelegate::RevoluteUnit>(id));
-      // trigger repaint of joint values
-      auto model = ui_->joints_view_->model();
-      if (model)  // during initial loading, the model is not yet set
-        ui_->joints_view_->dataChanged(model->index(0, 1), model->index(model->rowCount() - 1, 1));
-      Q_EMIT configChanged();
-    }
-  });
+  connect(ui_->button_group_units_, QOverload<QAbstractButton*, bool>::of(&QButtonGroup::buttonToggled),
+          ui_->joints_view_, [delegate, this](QAbstractButton* button, bool checked) {
+            if (checked)
+            {
+              delegate->setUnit(static_cast<ProgressBarDelegate::RevoluteUnit>(ui_->button_group_units_->id(button)));
+              // trigger repaint of joint values
+              auto model = ui_->joints_view_->model();
+              if (model)  // during initial loading, the model is not yet set
+                ui_->joints_view_->dataChanged(model->index(0, 1), model->index(model->rowCount() - 1, 1));
+              Q_EMIT configChanged();
+            }
+          });
   ui_->joints_view_->setItemDelegateForColumn(1, delegate);
   svd_.setThreshold(0.001);
 }
