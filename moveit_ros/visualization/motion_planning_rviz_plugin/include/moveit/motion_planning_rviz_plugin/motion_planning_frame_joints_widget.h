@@ -179,11 +179,11 @@ public:
   };
   enum RevoluteUnit
   {
-    Degrees = 0,
-    Radians = 1,
+    DEGREES = 0,
+    RADIANS = 1,
   };
 
-  ProgressBarDelegate(QWidget* parent = nullptr) : QStyledItemDelegate(parent), unit_(Degrees)
+  ProgressBarDelegate(QWidget* parent = nullptr) : QStyledItemDelegate(parent), unit_(DEGREES)
   {
   }
 

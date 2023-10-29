@@ -194,8 +194,8 @@ MotionPlanningFrameJointsWidget::MotionPlanningFrameJointsWidget(MotionPlanningD
   ui_->joints_view_->installEventFilter(new JointsWidgetEventFilter(ui_->joints_view_));
 
   auto delegate = new ProgressBarDelegate(this);
-  ui_->button_group_units_->setId(ui_->radio_degree_, ProgressBarDelegate::Degrees);
-  ui_->button_group_units_->setId(ui_->radio_radian_, ProgressBarDelegate::Radians);
+  ui_->button_group_units_->setId(ui_->radio_degree_, ProgressBarDelegate::DEGREES);
+  ui_->button_group_units_->setId(ui_->radio_radian_, ProgressBarDelegate::RADIANS);
   connect(ui_->button_group_units_, QOverload<QAbstractButton*, bool>::of(&QButtonGroup::buttonToggled),
           ui_->joints_view_, [delegate, this](QAbstractButton* button, bool checked) {
             if (checked)
@@ -442,7 +442,7 @@ void ProgressBarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
       switch (joint_type.toInt())
       {
         case moveit::core::JointModel::REVOLUTE:
-          if (unit_ == Radians)
+          if (unit_ == RADIANS)
             style_option.text = option.locale.toString(value, 'f', 3);
           else
             style_option.text = option.locale.toString(value * 180 / M_PI, 'f', 0).append("°");
