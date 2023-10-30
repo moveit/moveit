@@ -102,11 +102,11 @@ public:
 
 private:
   /** \brief Adds `control_block` to the cache.*/
-  void cacheControlBlock(std::shared_ptr<MeshCacheControlBlock> control_block);
+  void cacheControlBlock(const std::shared_ptr<MeshCacheControlBlock>& control_block);
   /** \brief Removes `control_block` from the cache.*/
-  void removeControlBlock(std::shared_ptr<MeshCacheControlBlock> control_block);
+  void removeControlBlock(const std::shared_ptr<MeshCacheControlBlock>& control_block);
   /** \brief Updates the last used timestamp of `control_block` to now.*/
-  void updateLastUsed(std::shared_ptr<MeshCacheControlBlock> control_block);
+  void updateLastUsed(const std::shared_ptr<MeshCacheControlBlock>& control_block);
 
   const std::size_t min_size_to_cache_;
   const std::size_t max_cache_size_;

@@ -105,7 +105,7 @@ shapes::ShapeConstPtr MeshCache::getShape(const shape_msgs::Mesh& mesh)
   }
 }
 
-void MeshCache::cacheControlBlock(std::shared_ptr<MeshCacheControlBlock> control_block)
+void MeshCache::cacheControlBlock(const std::shared_ptr<MeshCacheControlBlock>& control_block)
 {
   // Do not cache the control block if it is too small or too large.
   if (control_block->approximateMemoryUse() < min_size_to_cache_)
@@ -139,14 +139,14 @@ void MeshCache::cacheControlBlock(std::shared_ptr<MeshCacheControlBlock> control
   cache_by_last_used_[control_block->last_used_hash_] = control_block;
 }
 
-void MeshCache::removeControlBlock(std::shared_ptr<MeshCacheControlBlock> control_block)
+void MeshCache::removeControlBlock(const std::shared_ptr<MeshCacheControlBlock>& control_block)
 {
   cache_by_mesh_hash_.erase(control_block->mesh_hash_);
   cache_by_last_used_.erase(control_block->last_used_hash_);
   cache_size_ -= control_block->approximateMemoryUse();
 }
 
-void MeshCache::updateLastUsed(std::shared_ptr<MeshCacheControlBlock> control_block)
+void MeshCache::updateLastUsed(const std::shared_ptr<MeshCacheControlBlock>& control_block)
 {
   cache_by_last_used_.erase(hashTime(control_block->last_used_));
   control_block->last_used_ = ros::Time::now();
