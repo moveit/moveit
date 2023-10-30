@@ -217,6 +217,7 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
        ++time_iter)
   {
     tf2::fromMsg(tf2::toMsg(trajectory.Pos(*time_iter)), pose_sample);
+    
     if (!computePoseIK(scene, group_name, link_name, pose_sample, robot_model->getModelFrame(), ik_solution_last,
                        ik_solution, check_self_collision))
     {
