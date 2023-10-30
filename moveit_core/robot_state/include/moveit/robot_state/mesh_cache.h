@@ -41,7 +41,6 @@ namespace moveit
 {
 namespace core
 {
-
 /// \brief The type used to hash meshes.
 using MeshHash = std::size_t;
 

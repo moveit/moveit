@@ -38,7 +38,6 @@ namespace moveit
 {
 namespace core
 {
-
 std::string meshString(const shape_msgs::Mesh& mesh)
 {
   std::ostringstream oss;

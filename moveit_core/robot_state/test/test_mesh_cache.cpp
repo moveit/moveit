@@ -39,7 +39,6 @@ namespace moveit
 {
 namespace core
 {
-
 static void expect_near(const shapes::Shape* shape, const shapes::Shape* expected,
                         double tolerance = std::numeric_limits<double>::epsilon())
 {
