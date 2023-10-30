@@ -53,11 +53,19 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
     ROS_ERROR_STREAM("Robot model has no planning group named as " << group_name);
     return false;
   }
-
-  if (!robot_model->getJointModelGroup(group_name)->canSetStateFromIK(link_name))
+  const moveit::core::JointModelGroup* jmg = robot_model->getJointModelGroup(group_name);
+  std::string ik_link_name = link_name;
+  Eigen::Isometry3d ik_link_pose = pose;
+  if (jmg->canSetStateFromIK(link_name))
   {
-    ROS_ERROR_STREAM("No valid IK solver exists for " << link_name << " in planning group " << group_name);
-    return false;
+    /// Transforms the goal into a link goal if link_name is a subframe
+    if (scene->knowsFrameTransform(link_name)) {
+      ik_link_name = jmg->getSolverInstance()->getTipFrame();
+      ik_link_pose = pose * scene->getFrameTransform(link_name).inverse() * scene->getFrameTransform(ik_link_name);
+    } else {
+      ROS_ERROR_STREAM("No valid IK solver exists for " << link_name << " in planning group " << group_name);
+      return false;
+    }
   }
 
   if (frame_id != robot_model->getModelFrame())
@@ -67,7 +75,8 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
     return false;
   }
 
-  robot_state::RobotState rstate(robot_model);
+  moveit::core::RobotState rstate = scene->getCurrentState();
+  
   // By setting the robot state to default values, we basically allow
   // the user of this function to supply an incomplete or even empty seed.
   rstate.setToDefaultValues();
@@ -82,10 +91,10 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
   };
 
   // call ik
-  if (rstate.setFromIK(robot_model->getJointModelGroup(group_name), pose, link_name, timeout, ik_constraint_function))
+  if (rstate.setFromIK(jmg, ik_link_pose, ik_link_name, timeout, ik_constraint_function))
   {
     // copy the solution
-    for (const auto& joint_name : robot_model->getJointModelGroup(group_name)->getActiveJointModelNames())
+    for (const auto& joint_name : jmg->getActiveJointModelNames())
     {
       solution[joint_name] = rstate.getVariablePosition(joint_name);
     }
@@ -111,12 +120,12 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
                        timeout);
 }
 
-bool pilz_industrial_motion_planner::computeLinkFK(const moveit::core::RobotModelConstPtr& robot_model,
+bool pilz_industrial_motion_planner::computeLinkFK(const planning_scene::PlanningSceneConstPtr& scene,
                                                    const std::string& link_name,
                                                    const std::map<std::string, double>& joint_state,
                                                    Eigen::Isometry3d& pose)
 {  // create robot state
-  robot_state::RobotState rstate(robot_model);
+  robot_state::RobotState rstate = scene->getCurrentState();
 
   // check the reference frame of the target pose
   if (!rstate.knowsFrameTransform(link_name))
@@ -132,7 +141,6 @@ bool pilz_industrial_motion_planner::computeLinkFK(const moveit::core::RobotMode
   // update the frame
   rstate.update();
   pose = rstate.getFrameTransform(link_name);
-
   return true;
 }
 
@@ -230,7 +238,6 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
        ++time_iter)
   {
     tf2::fromMsg(tf2::toMsg(trajectory.Pos(*time_iter)), pose_sample);
-
     if (!computePoseIK(scene, group_name, link_name, pose_sample, robot_model->getModelFrame(), ik_solution_last,
                        ik_solution, check_self_collision))
     {
