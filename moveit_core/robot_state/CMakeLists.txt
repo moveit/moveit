@@ -43,4 +43,7 @@ if(CATKIN_ENABLE_TESTING)
 
   catkin_add_gtest(test_aabb test/test_aabb.cpp)
   target_link_libraries(test_aabb ${MOVEIT_LIB_NAME} moveit_test_utils)
+
+  catkin_add_gtest(test_mesh_cache test/test_mesh_cache.cpp)
+  target_link_libraries(test_mesh_cache ${MOVEIT_LIB_NAME} moveit_test_utils)
 endif()
