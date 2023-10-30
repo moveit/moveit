@@ -76,10 +76,6 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
   }
 
   moveit::core::RobotState rstate = scene->getCurrentState();
-  
-  // By setting the robot state to default values, we basically allow
-  // the user of this function to supply an incomplete or even empty seed.
-  rstate.setToDefaultValues();
   rstate.setVariablePositions(seed);
 
   moveit::core::GroupStateValidityCallbackFn ik_constraint_function;
