@@ -76,16 +76,16 @@ bool computePoseIK(const planning_scene::PlanningSceneConstPtr& scene, const std
 
 /**
  * @brief compute the pose of a link at give robot state
- * @param scene: planning scene
+ * @param robot_state: an arbitrary robot state (with collision objects attached)
  * @param link_name: target link name
  * @param joint_state: joint positons of this group
  * @param pose: pose of the link in base frame of robot model
  * @return true if succeed
  */
-bool computeLinkFK(const planning_scene::PlanningSceneConstPtr& scene, const std::string& link_name,
+bool computeLinkFK(robot_state::RobotState& robot_state, const std::string& link_name,
                    const std::map<std::string, double>& joint_state, Eigen::Isometry3d& pose);
 
-bool computeLinkFK(const planning_scene::PlanningSceneConstPtr& scene, const std::string& link_name,
+bool computeLinkFK(robot_state::RobotState& robot_state, const std::string& link_name,
                    const std::vector<std::string>& joint_names, const std::vector<double>& joint_positions,
                    Eigen::Isometry3d& pose);
 

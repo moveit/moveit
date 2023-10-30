@@ -116,27 +116,24 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
                        timeout);
 }
 
-bool pilz_industrial_motion_planner::computeLinkFK(const planning_scene::PlanningSceneConstPtr& scene,
+bool pilz_industrial_motion_planner::computeLinkFK(robot_state::RobotState& robot_state,
                                                    const std::string& link_name,
                                                    const std::map<std::string, double>& joint_state,
-                                                   Eigen::Isometry3d& pose)
-{  // create robot state
-  robot_state::RobotState rstate = scene->getCurrentState();
-
+                                                   Eigen::Isometry3d& pose) {
   // check the reference frame of the target pose
-  if (!rstate.knowsFrameTransform(link_name))
+  if (!robot_state.knowsFrameTransform(link_name))
   {
     ROS_ERROR_STREAM("The target link " << link_name << " is not known by robot.");
     return false;
   }
 
   // set the joint positions
-  rstate.setToDefaultValues();
-  rstate.setVariablePositions(joint_state);
+  robot_state.setToDefaultValues();
+  robot_state.setVariablePositions(joint_state);
 
   // update the frame
-  rstate.update();
-  pose = rstate.getFrameTransform(link_name);
+  robot_state.update();
+  pose = robot_state.getFrameTransform(link_name);
   return true;
 }
 
