@@ -102,10 +102,10 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
                        timeout);
 }
 
-bool pilz_industrial_motion_planner::computeLinkFK(robot_state::RobotState& robot_state,
-                                                   const std::string& link_name,
+bool pilz_industrial_motion_planner::computeLinkFK(robot_state::RobotState& robot_state, const std::string& link_name,
                                                    const std::map<std::string, double>& joint_state,
-                                                   Eigen::Isometry3d& pose) {
+                                                   Eigen::Isometry3d& pose)
+{
   // check the reference frame of the target pose
   if (!robot_state.knowsFrameTransform(link_name))
   {
@@ -217,7 +217,7 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
        ++time_iter)
   {
     tf2::fromMsg(tf2::toMsg(trajectory.Pos(*time_iter)), pose_sample);
-    
+
     if (!computePoseIK(scene, group_name, link_name, pose_sample, robot_model->getModelFrame(), ik_solution_last,
                        ik_solution, check_self_collision))
     {
