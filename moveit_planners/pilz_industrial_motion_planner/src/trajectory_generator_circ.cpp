@@ -93,6 +93,7 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_scene::Planni
 
   info.group_name = req.group_name;
   std::string frame_id{ robot_model_->getModelFrame() };
+  robot_state::RobotState robot_state = scene->getCurrentState();
 
   // goal given in joint space
   if (!req.goal_constraints.front().joint_constraints.empty())
@@ -125,7 +126,12 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_scene::Planni
       info.goal_joint_position[joint_item.joint_name] = joint_item.position;
     }
 
-    computeLinkFK(robot_model_, info.link_name, info.goal_joint_position, info.goal_pose);
+    if (!computeLinkFK(robot_state, info.link_name, info.goal_joint_position, info.goal_pose))
+    {
+      std::ostringstream os;
+      os << "Failed to compute forward kinematics for link: " << info.link_name << " of goal joints";
+      throw CircForwardForGoalIncalculable(os.str());
+    }
   }
   // goal given in Cartesian space
   else
@@ -160,7 +166,12 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_scene::Planni
     info.start_joint_position[joint_name] = req.start_state.joint_state.position[index];
   }
 
-  computeLinkFK(robot_model_, info.link_name, info.start_joint_position, info.start_pose);
+  if (!computeLinkFK(robot_state, info.link_name, info.start_joint_position, info.start_pose))
+  {
+    std::ostringstream os;
+    os << "Failed to compute forward kinematics for link: " << info.link_name << " of start joints";
+    throw CircForwardForStartIncalculable(os.str());
+  }
 
   // check goal pose ik before Cartesian motion plan starts
   std::map<std::string, double> ik_solution;

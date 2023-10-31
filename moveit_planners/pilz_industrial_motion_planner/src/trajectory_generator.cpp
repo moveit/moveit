@@ -203,12 +203,12 @@ void TrajectoryGenerator::checkCartesianGoalConstraint(const moveit_msgs::Constr
     throw PositionOrientationConstraintNameMismatch(os.str());
   }
 
-  if (!robot_model_->getJointModelGroup(group_name)->canSetStateFromIK(pos_constraint.link_name))
-  {
-    std::ostringstream os;
-    os << "No IK solver available for link: \"" << pos_constraint.link_name << "\"";
-    throw NoIKSolverAvailable(os.str());
-  }
+  // if (!robot_model_->getJointModelGroup(group_name)->canSetStateFromIK(pos_constraint.link_name))
+  // {
+  //   std::ostringstream os;
+  //   os << "No IK solver available for link: \"" << pos_constraint.link_name << "\"";
+  //   throw NoIKSolverAvailable(os.str());
+  // }
 
   if (pos_constraint.constraint_region.primitive_poses.empty())
   {
