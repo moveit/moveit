@@ -54,8 +54,6 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
     return false;
   }
   const moveit::core::JointModelGroup* jmg = robot_model->getJointModelGroup(group_name);
-  moveit::core::RobotState rstate = scene->getCurrentState();
-  rstate.setVariablePositions(seed);
 
   if (frame_id != robot_model->getModelFrame())
   {
@@ -63,6 +61,9 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
                                      << ")");
     return false;
   }
+
+  moveit::core::RobotState rstate = scene->getCurrentState();
+  rstate.setVariablePositions(seed);
 
   moveit::core::GroupStateValidityCallbackFn ik_constraint_function;
   ik_constraint_function = [check_self_collision, scene](moveit::core::RobotState* robot_state,
@@ -115,7 +116,6 @@ bool pilz_industrial_motion_planner::computeLinkFK(robot_state::RobotState& robo
   }
 
   // set the joint positions
-  robot_state.setToDefaultValues();
   robot_state.setVariablePositions(joint_state);
 
   // update the frame
