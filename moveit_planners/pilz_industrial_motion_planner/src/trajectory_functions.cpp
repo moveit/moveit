@@ -114,7 +114,6 @@ bool pilz_industrial_motion_planner::computeLinkFK(robot_state::RobotState& robo
   }
 
   // set the joint positions
-  robot_state.setToDefaultValues();
   robot_state.setVariablePositions(joint_state);
 
   // update the frame
