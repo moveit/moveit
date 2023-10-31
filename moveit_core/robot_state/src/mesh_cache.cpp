@@ -50,11 +50,6 @@ MeshHash hashMeshString(const std::string& mesh_string)
   return std::hash<std::string>()(mesh_string);
 }
 
-MeshHash hashMesh(const shape_msgs::Mesh& mesh)
-{
-  return hashMeshString(meshString(mesh));
-}
-
 TimeHash hashTime(const ros::Time& time)
 {
   return std::make_pair(time.sec, time.nsec);

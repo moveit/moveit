@@ -34,6 +34,7 @@
 
 #include <moveit/robot_state/mesh_cache.h>
 #include <gtest/gtest.h>
+#include <thread>
 
 namespace moveit
 {
@@ -163,6 +164,23 @@ TEST_F(MeshCacheTest, expellsOldestUsedMeshWhenCacheFull)
   EXPECT_EQ(cache.getShape(multi_triangle_mesh_a_), shape_a);
   EXPECT_EQ(cache.getShape(multi_triangle_mesh_b_), shape_d);
   EXPECT_NE(cache.getShape(single_triangle_mesh_), shape_b);
+}
+
+TEST_F(MeshCacheTest, threadLocalCacheAliasesBetweenCalls)
+{
+  auto shape_a = MeshCache::threadLocalCache().getShape(single_triangle_mesh_);
+  auto shape_b = MeshCache::threadLocalCache().getShape(single_triangle_mesh_);
+  EXPECT_EQ(shape_a, shape_b);
+}
+
+TEST_F(MeshCacheTest, threadLocalCacheDoesNotAliasBetweenThreads)
+{
+  auto shape_a = MeshCache::threadLocalCache().getShape(single_triangle_mesh_);
+  std::thread thread([&shape_a, this]() {
+    auto shape_b = MeshCache::threadLocalCache().getShape(single_triangle_mesh_);
+    EXPECT_NE(shape_a, shape_b);
+  });
+  thread.join();
 }
 
 }  // namespace core
