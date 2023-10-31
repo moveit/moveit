@@ -109,8 +109,9 @@ bool pilz_industrial_motion_planner::computeLinkFK(robot_state::RobotState& robo
   // check the reference frame of the target pose
   if (!robot_state.knowsFrameTransform(link_name))
   {
-    ROS_ERROR_STREAM("The target link " << link_name << " is not known by robot.");
-    return false;
+    std::ostringstream os;
+    os << "No such link or subframe known for forward kinematics: " << link_name;
+    throw UnknownLinkOrSubframe(os.str());
   }
 
   // set the joint positions

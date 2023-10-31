@@ -52,8 +52,6 @@ CREATE_MOVEIT_ERROR_CODE_EXCEPTION(LinTrajectoryConversionFailure, moveit_msgs::
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(JointNumberMismatch, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(LinJointMissingInStartState, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(LinInverseForGoalIncalculable, moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION);
-CREATE_MOVEIT_ERROR_CODE_EXCEPTION(LinForwardForStartIncalculable, moveit_msgs::MoveItErrorCodes::INVALID_LINK_NAME);
-CREATE_MOVEIT_ERROR_CODE_EXCEPTION(LinForwardForGoalIncalculable, moveit_msgs::MoveItErrorCodes::INVALID_LINK_NAME);
 
 /**
  * @brief This class implements a linear trajectory generator in Cartesian

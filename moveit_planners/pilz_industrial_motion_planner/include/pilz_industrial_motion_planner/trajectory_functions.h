@@ -42,12 +42,16 @@
 #include <tf2/transform_datatypes.h>
 #include <trajectory_msgs/MultiDOFJointTrajectory.h>
 #include <moveit/planning_scene/planning_scene.h>
-
+#include <moveit/planning_interface/planning_interface.h>
 #include "pilz_industrial_motion_planner/cartesian_trajectory.h"
 #include "pilz_industrial_motion_planner/limits_container.h"
+#include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"
 
 namespace pilz_industrial_motion_planner
 {
+
+CREATE_MOVEIT_ERROR_CODE_EXCEPTION(UnknownLinkOrSubframe, moveit_msgs::MoveItErrorCodes::INVALID_LINK_NAME);
+
 /**
  * @brief compute the inverse kinematics of a given pose, also check robot self
  * collision
