@@ -42,7 +42,6 @@
 #include <tf2/transform_datatypes.h>
 #include <trajectory_msgs/MultiDOFJointTrajectory.h>
 #include <moveit/planning_scene/planning_scene.h>
-#include <moveit/planning_interface/planning_interface.h>
 #include "pilz_industrial_motion_planner/cartesian_trajectory.h"
 #include "pilz_industrial_motion_planner/limits_container.h"
 #include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"
@@ -79,8 +78,8 @@ bool computePoseIK(const planning_scene::PlanningSceneConstPtr& scene, const std
                    bool check_self_collision = true, const double timeout = 0.0);
 
 /**
- * @brief compute the pose of a link at give robot state
- * @param robot_state: an arbitrary robot state (with collision objects attached)
+ * @brief compute the pose of a link at given robot state
+ * @param robot_state: the given robot state (with collision objects attached)
  * @param link_name: target link name
  * @param joint_state: joint positons of this group
  * @param pose: pose of the link in base frame of robot model

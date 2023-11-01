@@ -53,7 +53,6 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
     ROS_ERROR_STREAM("Robot model has no planning group named as " << group_name);
     return false;
   }
-  const moveit::core::JointModelGroup* jmg = robot_model->getJointModelGroup(group_name);
 
   if (frame_id != robot_model->getModelFrame())
   {
@@ -74,6 +73,7 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
   };
 
   // call ik
+  const moveit::core::JointModelGroup* jmg = robot_model->getJointModelGroup(group_name);
   if (rstate.setFromIK(jmg, pose, link_name, timeout, ik_constraint_function))
   {
     // copy the solution
