@@ -53,9 +53,6 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
     ROS_ERROR_STREAM("Robot model has no planning group named as " << group_name);
     return false;
   }
-  const moveit::core::JointModelGroup* jmg = robot_model->getJointModelGroup(group_name);
-  moveit::core::RobotState rstate = scene->getCurrentState();
-  rstate.setVariablePositions(seed);
 
   if (frame_id != robot_model->getModelFrame())
   {
@@ -63,6 +60,9 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
                                      << ")");
     return false;
   }
+
+  moveit::core::RobotState rstate = scene->getCurrentState();
+  rstate.setVariablePositions(seed);
 
   moveit::core::GroupStateValidityCallbackFn ik_constraint_function;
   ik_constraint_function = [check_self_collision, scene](moveit::core::RobotState* robot_state,
@@ -73,6 +73,7 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
   };
 
   // call ik
+  const moveit::core::JointModelGroup* jmg = robot_model->getJointModelGroup(group_name);
   if (rstate.setFromIK(jmg, pose, link_name, timeout, ik_constraint_function))
   {
     // copy the solution
@@ -109,12 +110,12 @@ bool pilz_industrial_motion_planner::computeLinkFK(robot_state::RobotState& robo
   // check the reference frame of the target pose
   if (!robot_state.knowsFrameTransform(link_name))
   {
-    ROS_ERROR_STREAM("The target link " << link_name << " is not known by robot.");
-    return false;
+    std::ostringstream os;
+    os << "No such link or subframe known for forward kinematics: " << link_name;
+    throw UnknownLinkOrSubframe(os.str());
   }
 
   // set the joint positions
-  robot_state.setToDefaultValues();
   robot_state.setVariablePositions(joint_state);
 
   // update the frame

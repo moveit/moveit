@@ -45,9 +45,13 @@
 
 #include "pilz_industrial_motion_planner/cartesian_trajectory.h"
 #include "pilz_industrial_motion_planner/limits_container.h"
+#include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"
 
 namespace pilz_industrial_motion_planner
 {
+
+CREATE_MOVEIT_ERROR_CODE_EXCEPTION(UnknownLinkOrSubframe, moveit_msgs::MoveItErrorCodes::INVALID_LINK_NAME);
+
 /**
  * @brief compute the inverse kinematics of a given pose, also check robot self
  * collision
@@ -75,7 +79,7 @@ bool computePoseIK(const planning_scene::PlanningSceneConstPtr& scene, const std
                    bool check_self_collision = true, const double timeout = 0.0);
 
 /**
- * @brief compute the pose of a link at give robot state
+ * @brief compute the pose of a link at given robot state
  * @param robot_state: an arbitrary robot state (with collision objects attached)
  * @param link_name: target link name
  * @param joint_state: joint positons of this group
@@ -84,10 +88,6 @@ bool computePoseIK(const planning_scene::PlanningSceneConstPtr& scene, const std
  */
 bool computeLinkFK(robot_state::RobotState& robot_state, const std::string& link_name,
                    const std::map<std::string, double>& joint_state, Eigen::Isometry3d& pose);
-
-bool computeLinkFK(robot_state::RobotState& robot_state, const std::string& link_name,
-                   const std::vector<std::string>& joint_names, const std::vector<double>& joint_positions,
-                   Eigen::Isometry3d& pose);
 
 /**
  * @brief verify the velocity/acceleration limits of current sample (based on

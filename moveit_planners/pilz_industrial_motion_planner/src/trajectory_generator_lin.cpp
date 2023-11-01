@@ -98,12 +98,7 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_scene::Plannin
       info.goal_joint_position[joint_item.joint_name] = joint_item.position;
     }
 
-    if (!computeLinkFK(robot_state, info.link_name, info.goal_joint_position, info.goal_pose))
-    {
-      std::ostringstream os;
-      os << "Failed to compute forward kinematics for link: " << info.link_name << " of goal joints";
-      throw LinForwardForGoalIncalculable(os.str());
-    }
+    computeLinkFK(robot_state, info.link_name, info.goal_joint_position, info.goal_pose);
   }
   // goal given in Cartesian space
   else
@@ -124,30 +119,27 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_scene::Plannin
   }
 
   assert(req.start_state.joint_state.name.size() == req.start_state.joint_state.position.size());
+  std::map<std::string, double> start_joint_position;
+  for (unsigned i=0; i<req.start_state.joint_state.name.size(); ++i) {
+    start_joint_position[req.start_state.joint_state.name[i]] = req.start_state.joint_state.position[i];
+  }
   for (const auto& joint_name : robot_model_->getJointModelGroup(req.group_name)->getActiveJointModelNames())
   {
-    auto it{ std::find(req.start_state.joint_state.name.cbegin(), req.start_state.joint_state.name.cend(), joint_name) };
-    if (it == req.start_state.joint_state.name.cend())
+    if (start_joint_position.count(joint_name) == 0)
     {
       std::ostringstream os;
       os << "Could not find joint \"" << joint_name << "\" of group \"" << req.group_name
          << "\" in start state of request";
       throw LinJointMissingInStartState(os.str());
     }
-    size_t index = it - req.start_state.joint_state.name.cbegin();
-    info.start_joint_position[joint_name] = req.start_state.joint_state.position[index];
+    info.start_joint_position[joint_name] = start_joint_position[joint_name];
   }
 
-  if (!computeLinkFK(robot_state, info.link_name, info.start_joint_position, info.start_pose))
-  {
-    std::ostringstream os;
-    os << "Failed to compute forward kinematics for link: " << info.link_name << " of start joints";
-    throw LinForwardForStartIncalculable(os.str());
-  }
+  computeLinkFK(robot_state, info.link_name, info.start_joint_position, info.start_pose);
 
   // check goal pose ik before Cartesian motion plan starts
   std::map<std::string, double> ik_solution;
-  if (!computePoseIK(scene, info.group_name, info.link_name, info.goal_pose, frame_id, info.start_joint_position,
+  if (!computePoseIK(scene, info.group_name, info.link_name, info.goal_pose, frame_id, start_joint_position,
                      ik_solution))
   {
     std::ostringstream os;

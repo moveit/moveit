@@ -41,7 +41,6 @@
 #include "pilz_industrial_motion_planner/capability_names.h"
 #include "pilz_industrial_motion_planner/command_list_manager.h"
 #include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"
-#include "moveit/planning_scene_interface/planning_scene_interface.h"
 
 namespace pilz_industrial_motion_planner
 {
@@ -118,6 +117,7 @@ bool MoveGroupSequenceService::plan(moveit_msgs::GetMotionSequence::Request& req
   res.response.planning_time = (ros::Time::now() - planning_start).toSec();
   return true;
 }
+
 }  // namespace pilz_industrial_motion_planner
 
 #include <pluginlib/class_list_macros.hpp>

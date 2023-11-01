@@ -57,8 +57,6 @@ CREATE_MOVEIT_ERROR_CODE_EXCEPTION(UnknownLinkNameOfAuxiliaryPoint, moveit_msgs:
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(NumberOfConstraintsMismatch, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(CircJointMissingInStartState, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(CircInverseForGoalIncalculable, moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION);
-CREATE_MOVEIT_ERROR_CODE_EXCEPTION(CircForwardForStartIncalculable, moveit_msgs::MoveItErrorCodes::INVALID_LINK_NAME);
-CREATE_MOVEIT_ERROR_CODE_EXCEPTION(CircForwardForGoalIncalculable, moveit_msgs::MoveItErrorCodes::INVALID_LINK_NAME);
 
 /**
  * @brief This class implements a trajectory generator of arcs in Cartesian
