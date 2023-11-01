@@ -119,18 +119,18 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_scene::Plannin
   }
 
   assert(req.start_state.joint_state.name.size() == req.start_state.joint_state.position.size());
+  for (unsigned i=0; i<req.start_state.joint_state.name.size(); ++i) {
+    info.start_joint_position[req.start_state.joint_state.name[i]] = req.start_state.joint_state.position[i];
+  }
   for (const auto& joint_name : robot_model_->getJointModelGroup(req.group_name)->getActiveJointModelNames())
   {
-    auto it{ std::find(req.start_state.joint_state.name.cbegin(), req.start_state.joint_state.name.cend(), joint_name) };
-    if (it == req.start_state.joint_state.name.cend())
+    if (info.start_joint_position.count(joint_name) == 0)
     {
       std::ostringstream os;
       os << "Could not find joint \"" << joint_name << "\" of group \"" << req.group_name
          << "\" in start state of request";
       throw LinJointMissingInStartState(os.str());
     }
-    size_t index = it - req.start_state.joint_state.name.cbegin();
-    info.start_joint_position[joint_name] = req.start_state.joint_state.position[index];
   }
 
   computeLinkFK(robot_state, info.link_name, info.start_joint_position, info.start_pose);
