@@ -176,7 +176,9 @@ void TrajectoryGenerator::checkJointGoalConstraint(const moveit_msgs::Constraint
   }
 }
 
-void TrajectoryGenerator::checkCartesianGoalConstraint(const moveit_msgs::Constraints& constraint) const
+void TrajectoryGenerator::checkCartesianGoalConstraint(const moveit_msgs::Constraints& constraint,
+                                                       const moveit::core::RobotState& robot_state,
+                                                       const moveit::core::JointModelGroup* const jmg) const
 {
   assert(constraint.position_constraints.size() == 1);
   assert(constraint.orientation_constraints.size() == 1);
@@ -202,6 +204,14 @@ void TrajectoryGenerator::checkCartesianGoalConstraint(const moveit_msgs::Constr
     throw PositionOrientationConstraintNameMismatch(os.str());
   }
 
+  const auto* lm = robot_state.getRigidlyConnectedParentLinkModel(pos_constraint.link_name, nullptr, jmg);
+  if (!lm || !jmg->canSetStateFromIK(lm->getName()))
+  {
+    std::ostringstream os;
+    os << "No IK solver available for link: \"" << pos_constraint.link_name << "\"";
+    throw NoIKSolverAvailable(os.str());
+  }
+
   if (pos_constraint.constraint_region.primitive_poses.empty())
   {
     throw NoPrimitivePoseGiven("Primitive pose in position constraints of goal missing");
@@ -210,7 +220,8 @@ void TrajectoryGenerator::checkCartesianGoalConstraint(const moveit_msgs::Constr
 
 void TrajectoryGenerator::checkGoalConstraints(
     const moveit_msgs::MotionPlanRequest::_goal_constraints_type& goal_constraints,
-    const std::vector<std::string>& expected_joint_names, const std::string& group_name) const
+    const std::vector<std::string>& expected_joint_names, const std::string& group_name,
+    const moveit::core::RobotState& rstate) const
 {
   if (goal_constraints.size() != 1)
   {
@@ -231,17 +242,18 @@ void TrajectoryGenerator::checkGoalConstraints(
   }
   else
   {
-    checkCartesianGoalConstraint(goal_con);
+    checkCartesianGoalConstraint(goal_con, rstate, robot_model_->getJointModelGroup(group_name));
   }
 }
 
-void TrajectoryGenerator::validateRequest(const planning_interface::MotionPlanRequest& req) const
+void TrajectoryGenerator::validateRequest(const planning_interface::MotionPlanRequest& req,
+                                          const moveit::core::RobotState& rstate) const
 {
   checkVelocityScaling(req.max_velocity_scaling_factor);
   checkAccelerationScaling(req.max_acceleration_scaling_factor);
   checkForValidGroupName(req.group_name);
   checkStartState(req.start_state, req.group_name);
-  checkGoalConstraints(req.goal_constraints, req.start_state.joint_state.name, req.group_name);
+  checkGoalConstraints(req.goal_constraints, req.start_state.joint_state.name, req.group_name, rstate);
 }
 
 void TrajectoryGenerator::setSuccessResponse(const moveit::core::RobotState& start_state, const std::string& group_name,
@@ -296,7 +308,7 @@ bool TrajectoryGenerator::generate(const planning_scene::PlanningSceneConstPtr& 
 
   try
   {
-    validateRequest(req);
+    validateRequest(req, scene->getCurrentState());
   }
   catch (const MoveItErrorCodeException& ex)
   {

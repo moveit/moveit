@@ -49,8 +49,6 @@
 
 namespace pilz_industrial_motion_planner
 {
-CREATE_MOVEIT_ERROR_CODE_EXCEPTION(UnknownLinkOrSubframe, moveit_msgs::MoveItErrorCodes::INVALID_LINK_NAME);
-
 /**
  * @brief compute the inverse kinematics of a given pose, also check robot self
  * collision

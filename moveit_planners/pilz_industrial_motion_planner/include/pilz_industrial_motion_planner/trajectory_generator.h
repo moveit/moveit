@@ -199,7 +199,7 @@ private:
    * moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS on failure
    * @param req: motion plan request
    */
-  void validateRequest(const planning_interface::MotionPlanRequest& req) const;
+  void validateRequest(const planning_interface::MotionPlanRequest& req, const moveit::core::RobotState& rstate) const;
 
   /**
    * @brief set MotionPlanResponse from joint trajectory
@@ -226,13 +226,16 @@ private:
   void checkStartState(const moveit_msgs::RobotState& start_state, const std::string& group) const;
 
   void checkGoalConstraints(const moveit_msgs::MotionPlanRequest::_goal_constraints_type& goal_constraints,
-                            const std::vector<std::string>& expected_joint_names, const std::string& group_name) const;
+                            const std::vector<std::string>& expected_joint_names, const std::string& group_name,
+                            const moveit::core::RobotState& rstate) const;
 
   void checkJointGoalConstraint(const moveit_msgs::Constraints& constraint,
                                 const std::vector<std::string>& expected_joint_names,
                                 const std::string& group_name) const;
 
-  void checkCartesianGoalConstraint(const moveit_msgs::Constraints& constraint) const;
+  void checkCartesianGoalConstraint(const moveit_msgs::Constraints& constraint,
+                                    const moveit::core::RobotState& robot_state,
+                                    const moveit::core::JointModelGroup* const jmg) const;
 
 private:
   /**
