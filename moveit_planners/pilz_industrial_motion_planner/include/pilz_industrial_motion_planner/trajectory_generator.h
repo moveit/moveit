@@ -111,12 +111,13 @@ public:
 
 protected:
   /**
-   * @brief This class is used to extract needed information from motion plan
-   * request.
+   * @brief This class is used to extract needed information from motion plan request.
    */
   class MotionPlanInfo
   {
   public:
+    MotionPlanInfo(const planning_scene::PlanningSceneConstPtr& scene, const planning_interface::MotionPlanRequest& req);
+
     std::string group_name;
     std::string link_name;
     Eigen::Isometry3d start_pose;
@@ -124,6 +125,7 @@ protected:
     std::map<std::string, double> start_joint_position;
     std::map<std::string, double> goal_joint_position;
     std::pair<std::string, Eigen::Vector3d> circ_path_point;
+    planning_scene::PlanningSceneConstPtr start_scene;  // scene with updated start state
   };
 
   /**

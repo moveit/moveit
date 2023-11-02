@@ -330,7 +330,7 @@ bool TrajectoryGenerator::generate(const planning_scene::PlanningSceneConstPtr& 
     return false;
   }
 
-  MotionPlanInfo plan_info;
+  MotionPlanInfo plan_info(scene, req);
   try
   {
     extractMotionPlanInfo(scene, req, plan_info);
@@ -356,10 +356,26 @@ bool TrajectoryGenerator::generate(const planning_scene::PlanningSceneConstPtr& 
     return false;
   }
 
-  moveit::core::RobotState start_state(scene->getCurrentState());
-  moveit::core::robotStateMsgToRobotState(req.start_state, start_state, true);
-  setSuccessResponse(start_state, req.group_name, joint_trajectory, planning_begin, res);
+  setSuccessResponse(plan_info.start_scene->getCurrentState(), req.group_name, joint_trajectory, planning_begin, res);
   return true;
+}
+
+TrajectoryGenerator::MotionPlanInfo::MotionPlanInfo(const planning_scene::PlanningSceneConstPtr& scene,
+                                                    const planning_interface::MotionPlanRequest& req)
+{
+  auto ps = scene->diff();
+  auto& start_state = ps->getCurrentStateNonConst();
+  // update start state from req
+  moveit::core::robotStateMsgToRobotState(scene->getTransforms(), req.start_state, start_state);
+  start_state.update();
+  // initialize info.start_joint_position with active joint values from start_state
+  const double* positions = start_state.getVariablePositions();
+  for (const auto* jm : start_state.getRobotModel()->getJointModelGroup(req.group_name)->getActiveJointModels())
+  {
+    const auto& names = jm->getVariableNames();
+    for (std::size_t i = 0, j = jm->getFirstVariableIndex(); i < jm->getVariableCount(); ++i, ++j)
+      start_joint_position[names[i]] = positions[j];
+  }
 }
 
 }  // namespace pilz_industrial_motion_planner

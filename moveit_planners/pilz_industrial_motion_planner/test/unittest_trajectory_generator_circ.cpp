@@ -264,11 +264,6 @@ TEST(TrajectoryGeneratorCIRCTest, TestExceptionErrorCodeMapping)
   }
 
   {
-    std::shared_ptr<CircJointMissingInStartState> cjmiss_ex{ new CircJointMissingInStartState("") };
-    EXPECT_EQ(cjmiss_ex->getErrorCode(), moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
-  }
-
-  {
     std::shared_ptr<CircInverseForGoalIncalculable> cifgi_ex{ new CircInverseForGoalIncalculable("") };
     EXPECT_EQ(cifgi_ex->getErrorCode(), moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION);
   }

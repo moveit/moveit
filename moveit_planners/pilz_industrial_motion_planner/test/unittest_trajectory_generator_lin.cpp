@@ -187,11 +187,6 @@ TEST(TrajectoryGeneratorLINTest, TestExceptionErrorCodeMapping)
   }
 
   {
-    std::shared_ptr<LinJointMissingInStartState> ljmiss_ex{ new LinJointMissingInStartState("") };
-    EXPECT_EQ(ljmiss_ex->getErrorCode(), moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
-  }
-
-  {
     std::shared_ptr<LinInverseForGoalIncalculable> lifgi_ex{ new LinInverseForGoalIncalculable("") };
     EXPECT_EQ(lifgi_ex->getErrorCode(), moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION);
   }
