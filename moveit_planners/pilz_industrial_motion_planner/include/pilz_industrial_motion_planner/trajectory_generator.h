@@ -128,7 +128,7 @@ protected:
 
   /**
    * @brief Constructs MotionPlanInfo::start_joint_position from a MotionPlanRequest.
-  */
+   */
   static std::map<std::string, double> startJointPosition(const planning_interface::MotionPlanRequest& req);
 
   /**

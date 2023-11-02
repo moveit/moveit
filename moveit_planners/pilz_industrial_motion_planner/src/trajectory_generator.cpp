@@ -279,7 +279,8 @@ void TrajectoryGenerator::setFailureResponse(const ros::Time& planning_start,
   res.planning_time_ = (ros::Time::now() - planning_start).toSec();
 }
 
-std::map<std::string, double> TrajectoryGenerator::startJointPosition(const planning_interface::MotionPlanRequest& req) {
+std::map<std::string, double> TrajectoryGenerator::startJointPosition(const planning_interface::MotionPlanRequest& req)
+{
   assert(req.start_state.joint_state.name.size() == req.start_state.joint_state.position.size());
   std::map<std::string, double> start_joint_position;
   for (std::size_t i = 0; i < req.start_state.joint_state.name.size(); ++i)
