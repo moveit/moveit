@@ -232,7 +232,7 @@ private:
                                 const std::vector<std::string>& expected_joint_names,
                                 const std::string& group_name) const;
 
-  void checkCartesianGoalConstraint(const moveit_msgs::Constraints& constraint, const std::string& group_name) const;
+  void checkCartesianGoalConstraint(const moveit_msgs::Constraints& constraint) const;
 
 private:
   /**

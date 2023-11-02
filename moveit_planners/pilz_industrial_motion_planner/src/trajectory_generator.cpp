@@ -176,8 +176,7 @@ void TrajectoryGenerator::checkJointGoalConstraint(const moveit_msgs::Constraint
   }
 }
 
-void TrajectoryGenerator::checkCartesianGoalConstraint(const moveit_msgs::Constraints& constraint,
-                                                       const std::string& group_name) const
+void TrajectoryGenerator::checkCartesianGoalConstraint(const moveit_msgs::Constraints& constraint) const
 {
   assert(constraint.position_constraints.size() == 1);
   assert(constraint.orientation_constraints.size() == 1);
@@ -202,13 +201,6 @@ void TrajectoryGenerator::checkCartesianGoalConstraint(const moveit_msgs::Constr
        << ori_constraint.link_name << "\")";
     throw PositionOrientationConstraintNameMismatch(os.str());
   }
-
-  // if (!robot_model_->getJointModelGroup(group_name)->canSetStateFromIK(pos_constraint.link_name))
-  // {
-  //   std::ostringstream os;
-  //   os << "No IK solver available for link: \"" << pos_constraint.link_name << "\"";
-  //   throw NoIKSolverAvailable(os.str());
-  // }
 
   if (pos_constraint.constraint_region.primitive_poses.empty())
   {
@@ -239,7 +231,7 @@ void TrajectoryGenerator::checkGoalConstraints(
   }
   else
   {
-    checkCartesianGoalConstraint(goal_con, group_name);
+    checkCartesianGoalConstraint(goal_con);
   }
 }
 
