@@ -149,8 +149,7 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_scene::Planni
   std::map<std::string, double> start_joint_position = startJointPosition(req);
   for (const auto& joint_name : robot_model_->getJointModelGroup(req.group_name)->getActiveJointModelNames())
   {
-    if (start_joint_position.count(joint_name) == 0)
-    {
+    if (start_joint_position.count(joint_name) == 0) {
       std::ostringstream os;
       os << "Could not find joint \"" << joint_name << "\" of group \"" << req.group_name
          << "\" in start state of request";
