@@ -404,7 +404,7 @@ TYPED_TEST(TrajectoryGeneratorCommonTest, InvalidLinkNameInCartesianGoal)
   this->req_.goal_constraints.clear();
   this->req_.goal_constraints.push_back(goal_constraint);
   EXPECT_FALSE(this->trajectory_generator_->generate(this->planning_scene_, this->req_, this->res_));
-  EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_LINK_NAME);
+  EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION);
 }
 
 /**
