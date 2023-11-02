@@ -206,11 +206,7 @@ void TrajectoryGeneratorPTP::extractMotionPlanInfo(const planning_scene::Plannin
   info.group_name = req.group_name;
 
   // extract start state information
-  info.start_joint_position.clear();
-  for (std::size_t i = 0; i < req.start_state.joint_state.name.size(); ++i)
-  {
-    info.start_joint_position[req.start_state.joint_state.name[i]] = req.start_state.joint_state.position[i];
-  }
+  info.start_joint_position = startJointPosition(req);
 
   // extract goal
   info.goal_joint_position.clear();
