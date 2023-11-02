@@ -127,11 +127,6 @@ protected:
   };
 
   /**
-   * @brief Constructs MotionPlanInfo::start_joint_position from a MotionPlanRequest.
-  */
-  static std::map<std::string, double> startJointPosition(const planning_interface::MotionPlanRequest& req);
-
-  /**
    * @brief build cartesian velocity profile for the path
    *
    * Uses the path to get the cartesian length and the angular distance from

@@ -146,23 +146,26 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_scene::Planni
     info.goal_pose = getConstraintPose(req.goal_constraints.front());
   }
 
-  std::map<std::string, double> start_joint_position = startJointPosition(req);
+  assert(req.start_state.joint_state.name.size() == req.start_state.joint_state.position.size());
   for (const auto& joint_name : robot_model_->getJointModelGroup(req.group_name)->getActiveJointModelNames())
   {
-    if (start_joint_position.count(joint_name) == 0) {
+    auto it{ std::find(req.start_state.joint_state.name.cbegin(), req.start_state.joint_state.name.cend(), joint_name) };
+    if (it == req.start_state.joint_state.name.cend())
+    {
       std::ostringstream os;
       os << "Could not find joint \"" << joint_name << "\" of group \"" << req.group_name
          << "\" in start state of request";
       throw CircJointMissingInStartState(os.str());
     }
-    info.start_joint_position[joint_name] = start_joint_position[joint_name];
+    size_t index = it - req.start_state.joint_state.name.cbegin();
+    info.start_joint_position[joint_name] = req.start_state.joint_state.position[index];
   }
 
-  computeLinkFK(robot_state, info.link_name, start_joint_position, info.start_pose);
+  computeLinkFK(robot_state, info.link_name, info.start_joint_position, info.start_pose);
 
   // check goal pose ik before Cartesian motion plan starts
   std::map<std::string, double> ik_solution;
-  if (!computePoseIK(scene, info.group_name, info.link_name, info.goal_pose, frame_id, start_joint_position,
+  if (!computePoseIK(scene, info.group_name, info.link_name, info.goal_pose, frame_id, info.start_joint_position,
                      ik_solution))
   {
     // LCOV_EXCL_START
