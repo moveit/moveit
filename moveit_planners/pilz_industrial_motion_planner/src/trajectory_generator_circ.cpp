@@ -144,21 +144,22 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_scene::Planni
       frame_id = req.goal_constraints.front().position_constraints.front().header.frame_id;
     }
     info.goal_pose = getConstraintPose(req.goal_constraints.front());
+
+    // check goal pose ik before Cartesian motion plan start
+    std::map<std::string, double> ik_solution;
+    if (!computePoseIK(scene, info.group_name, info.link_name, info.goal_pose, frame_id, info.start_joint_position,
+                       ik_solution))
+    {
+      // LCOV_EXCL_START
+      std::ostringstream os;
+      os << "Failed to compute inverse kinematics for link: " << info.link_name << " of goal pose";
+      throw CircInverseForGoalIncalculable(os.str());
+      // LCOV_EXCL_STOP // not able to trigger here since lots of checks before
+      // are in place
+    }
   }
   computeLinkFK(robot_state, info.link_name, info.start_joint_position, info.start_pose);
 
-  // check goal pose ik before Cartesian motion plan starts
-  std::map<std::string, double> ik_solution;
-  if (!computePoseIK(scene, info.group_name, info.link_name, info.goal_pose, frame_id, info.start_joint_position,
-                     ik_solution))
-  {
-    // LCOV_EXCL_START
-    std::ostringstream os;
-    os << "Failed to compute inverse kinematics for link: " << info.link_name << " of goal pose";
-    throw CircInverseForGoalIncalculable(os.str());
-    // LCOV_EXCL_STOP // not able to trigger here since lots of checks before
-    // are in place
-  }
   info.circ_path_point.first = req.path_constraints.name;
   if (!req.goal_constraints.front().position_constraints.empty())
   {
