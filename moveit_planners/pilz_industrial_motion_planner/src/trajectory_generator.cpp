@@ -368,6 +368,8 @@ TrajectoryGenerator::MotionPlanInfo::MotionPlanInfo(const planning_scene::Planni
   // update start state from req
   moveit::core::robotStateMsgToRobotState(scene->getTransforms(), req.start_state, start_state);
   start_state.update();
+  start_scene = std::move(ps);
+
   // initialize info.start_joint_position with active joint values from start_state
   const double* positions = start_state.getVariablePositions();
   for (const auto* jm : start_state.getRobotModel()->getJointModelGroup(req.group_name)->getActiveJointModels())
