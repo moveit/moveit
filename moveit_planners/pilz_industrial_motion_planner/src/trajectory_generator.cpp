@@ -109,11 +109,6 @@ void TrajectoryGenerator::checkForValidGroupName(const std::string& group_name) 
 
 void TrajectoryGenerator::checkStartState(const moveit_msgs::RobotState& start_state, const std::string& group) const
 {
-  if (start_state.joint_state.name.empty())
-  {
-    throw NoJointNamesInStartState("No joint names for state state given");
-  }
-
   if (start_state.joint_state.name.size() != start_state.joint_state.position.size())
   {
     throw SizeMismatchInStartState("Joint state name and position do not match in start state");
@@ -146,19 +141,11 @@ void TrajectoryGenerator::checkStartState(const moveit_msgs::RobotState& start_s
 }
 
 void TrajectoryGenerator::checkJointGoalConstraint(const moveit_msgs::Constraints& constraint,
-                                                   const std::vector<std::string>& expected_joint_names,
                                                    const std::string& group_name) const
 {
   for (auto const& joint_constraint : constraint.joint_constraints)
   {
     const std::string& curr_joint_name{ joint_constraint.joint_name };
-    if (std::find(expected_joint_names.cbegin(), expected_joint_names.cend(), curr_joint_name) ==
-        expected_joint_names.cend())
-    {
-      std::ostringstream os;
-      os << "Cannot find joint \"" << curr_joint_name << "\" from start state in goal constraint";
-      throw StartStateGoalStateMismatch(os.str());
-    }
 
     if (!robot_model_->getJointModelGroup(group_name)->hasJointModel(curr_joint_name))
     {
@@ -219,8 +206,7 @@ void TrajectoryGenerator::checkCartesianGoalConstraint(const moveit_msgs::Constr
 }
 
 void TrajectoryGenerator::checkGoalConstraints(
-    const moveit_msgs::MotionPlanRequest::_goal_constraints_type& goal_constraints,
-    const std::vector<std::string>& expected_joint_names, const std::string& group_name,
+    const moveit_msgs::MotionPlanRequest::_goal_constraints_type& goal_constraints, const std::string& group_name,
     const moveit::core::RobotState& rstate) const
 {
   if (goal_constraints.size() != 1)
@@ -238,7 +224,7 @@ void TrajectoryGenerator::checkGoalConstraints(
 
   if (isJointGoalGiven(goal_con))
   {
-    checkJointGoalConstraint(goal_con, expected_joint_names, group_name);
+    checkJointGoalConstraint(goal_con, group_name);
   }
   else
   {
@@ -253,7 +239,7 @@ void TrajectoryGenerator::validateRequest(const planning_interface::MotionPlanRe
   checkAccelerationScaling(req.max_acceleration_scaling_factor);
   checkForValidGroupName(req.group_name);
   checkStartState(req.start_state, req.group_name);
-  checkGoalConstraints(req.goal_constraints, req.start_state.joint_state.name, req.group_name, rstate);
+  checkGoalConstraints(req.goal_constraints, req.group_name, rstate);
 }
 
 void TrajectoryGenerator::setSuccessResponse(const moveit::core::RobotState& start_state, const std::string& group_name,

@@ -228,12 +228,9 @@ private:
   void checkStartState(const moveit_msgs::RobotState& start_state, const std::string& group) const;
 
   void checkGoalConstraints(const moveit_msgs::MotionPlanRequest::_goal_constraints_type& goal_constraints,
-                            const std::vector<std::string>& expected_joint_names, const std::string& group_name,
-                            const moveit::core::RobotState& rstate) const;
+                            const std::string& group_name, const moveit::core::RobotState& rstate) const;
 
-  void checkJointGoalConstraint(const moveit_msgs::Constraints& constraint,
-                                const std::vector<std::string>& expected_joint_names,
-                                const std::string& group_name) const;
+  void checkJointGoalConstraint(const moveit_msgs::Constraints& constraint, const std::string& group_name) const;
 
   void checkCartesianGoalConstraint(const moveit_msgs::Constraints& constraint,
                                     const moveit::core::RobotState& robot_state,

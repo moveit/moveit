@@ -284,24 +284,6 @@ TEST_P(TrajectoryGeneratorCIRCTest, noLimits)
 }
 
 /**
- * @brief test invalid motion plan request with incomplete start state and
- * cartesian goal
- */
-TEST_P(TrajectoryGeneratorCIRCTest, incompleteStartState)
-{
-  auto circ{ tdp_->getCircCartCenterCart("circ1_center_2") };
-
-  planning_interface::MotionPlanRequest req{ circ.toRequest() };
-  EXPECT_GT(req.start_state.joint_state.name.size(), 1u);
-  req.start_state.joint_state.name.resize(1);
-  req.start_state.joint_state.position.resize(1);  // prevent failing check for equal sizes
-
-  planning_interface::MotionPlanResponse res;
-  EXPECT_FALSE(circ_->generate(planning_scene_, req, res));
-  EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
-}
-
-/**
  * @brief test invalid motion plan request with non zero start velocity
  */
 TEST_P(TrajectoryGeneratorCIRCTest, nonZeroStartVelocity)
