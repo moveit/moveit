@@ -346,7 +346,7 @@ bool TrajectoryGenerator::generate(const planning_scene::PlanningSceneConstPtr& 
   trajectory_msgs::JointTrajectory joint_trajectory;
   try
   {
-    plan(scene, req, plan_info, sampling_time, joint_trajectory);
+    plan(plan_info.start_scene, req, plan_info, sampling_time, joint_trajectory);
   }
   catch (const MoveItErrorCodeException& ex)
   {
