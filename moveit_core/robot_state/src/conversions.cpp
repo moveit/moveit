@@ -286,7 +286,9 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           append(shapes::ShapeConstPtr(shapes::constructShapeFromMsg(aco.object.primitives[i])),
                  aco.object.primitive_poses[i]);
         for (std::size_t i = 0; i < aco.object.meshes.size(); ++i)
-          append(MeshCache::threadLocalCache(1e6, 1e9).getShape(aco.object.meshes[i]), aco.object.mesh_poses[i]);
+          // TODO: consider exposing min_size_to_cache and max_cache_size to the user.
+          // min_size_to_cache is relevant in the case where too many small meshes are pushing larger meshes out of the cache.
+          append(MeshCache::threadLocalCache(0, 1e9).getShape(aco.object.meshes[i]), aco.object.mesh_poses[i]);
         for (std::size_t i = 0; i < aco.object.planes.size(); ++i)
           append(shapes::ShapeConstPtr(shapes::constructShapeFromMsg(aco.object.planes[i])), aco.object.plane_poses[i]);
 

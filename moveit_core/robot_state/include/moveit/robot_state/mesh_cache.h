@@ -53,9 +53,6 @@ std::string meshString(const shape_msgs::Mesh& mesh);
 /// \brief Convert a std::string to a MeshHash.
 MeshHash hashMeshString(const std::string& mesh_string);
 
-/// \brief Convert a shape_msgs::Mesh to a MeshHash.
-MeshHash hashMesh(const shape_msgs::Mesh& mesh);
-
 /// \brief Convert a ros::Time to a TimeHash.
 TimeHash hashTime(const ros::Time& time);
 

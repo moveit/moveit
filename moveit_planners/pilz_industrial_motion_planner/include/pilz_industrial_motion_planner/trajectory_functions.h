@@ -49,9 +49,6 @@
 
 namespace pilz_industrial_motion_planner
 {
-
-CREATE_MOVEIT_ERROR_CODE_EXCEPTION(UnknownLinkOrSubframe, moveit_msgs::MoveItErrorCodes::INVALID_LINK_NAME);
-
 /**
  * @brief compute the inverse kinematics of a given pose, also check robot self
  * collision
@@ -88,6 +85,10 @@ bool computePoseIK(const planning_scene::PlanningSceneConstPtr& scene, const std
  */
 bool computeLinkFK(robot_state::RobotState& robot_state, const std::string& link_name,
                    const std::map<std::string, double>& joint_state, Eigen::Isometry3d& pose);
+
+bool computeLinkFK(robot_state::RobotState& robot_state, const std::string& link_name,
+                   const std::vector<std::string>& joint_names, const std::vector<double>& joint_positions,
+                   Eigen::Isometry3d& pose);
 
 /**
  * @brief verify the velocity/acceleration limits of current sample (based on
