@@ -54,12 +54,6 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
     return false;
   }
 
-  if (!robot_model->getJointModelGroup(group_name)->canSetStateFromIK(link_name))
-  {
-    ROS_ERROR_STREAM("No valid IK solver exists for " << link_name << " in planning group " << group_name);
-    return false;
-  }
-
   if (frame_id != robot_model->getModelFrame())
   {
     ROS_ERROR_STREAM("Given frame (" << frame_id << ") is unequal to model frame(" << robot_model->getModelFrame()
@@ -67,25 +61,24 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
     return false;
   }
 
-  robot_state::RobotState rstate(robot_model);
-  // By setting the robot state to default values, we basically allow
-  // the user of this function to supply an incomplete or even empty seed.
-  rstate.setToDefaultValues();
+  moveit::core::RobotState rstate = scene->getCurrentState();
   rstate.setVariablePositions(seed);
 
   moveit::core::GroupStateValidityCallbackFn ik_constraint_function;
-  ik_constraint_function = [check_self_collision, scene](moveit::core::RobotState* robot_state,
-                                                         const moveit::core::JointModelGroup* joint_group,
-                                                         const double* joint_group_variable_values) {
-    return pilz_industrial_motion_planner::isStateColliding(check_self_collision, scene, robot_state, joint_group,
-                                                            joint_group_variable_values);
-  };
+  if (check_self_collision)
+    ik_constraint_function = [scene](moveit::core::RobotState* robot_state,
+                                     const moveit::core::JointModelGroup* joint_group,
+                                     const double* joint_group_variable_values) {
+      return pilz_industrial_motion_planner::isStateColliding(scene, robot_state, joint_group,
+                                                              joint_group_variable_values);
+    };
 
   // call ik
-  if (rstate.setFromIK(robot_model->getJointModelGroup(group_name), pose, link_name, timeout, ik_constraint_function))
+  const moveit::core::JointModelGroup* jmg = robot_model->getJointModelGroup(group_name);
+  if (rstate.setFromIK(jmg, pose, link_name, timeout, ik_constraint_function))
   {
     // copy the solution
-    for (const auto& joint_name : robot_model->getJointModelGroup(group_name)->getActiveJointModelNames())
+    for (const auto& joint_name : jmg->getActiveJointModelNames())
     {
       solution[joint_name] = rstate.getVariablePosition(joint_name);
     }
@@ -111,28 +104,23 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
                        timeout);
 }
 
-bool pilz_industrial_motion_planner::computeLinkFK(const moveit::core::RobotModelConstPtr& robot_model,
-                                                   const std::string& link_name,
+bool pilz_industrial_motion_planner::computeLinkFK(robot_state::RobotState& robot_state, const std::string& link_name,
                                                    const std::map<std::string, double>& joint_state,
                                                    Eigen::Isometry3d& pose)
-{  // create robot state
-  robot_state::RobotState rstate(robot_model);
-
+{
   // check the reference frame of the target pose
-  if (!rstate.knowsFrameTransform(link_name))
+  if (!robot_state.knowsFrameTransform(link_name))
   {
     ROS_ERROR_STREAM("The target link " << link_name << " is not known by robot.");
     return false;
   }
 
   // set the joint positions
-  rstate.setToDefaultValues();
-  rstate.setVariablePositions(joint_state);
+  robot_state.setVariablePositions(joint_state);
 
   // update the frame
-  rstate.update();
-  pose = rstate.getFrameTransform(link_name);
-
+  robot_state.update();
+  pose = robot_state.getFrameTransform(link_name);
   return true;
 }
 
@@ -562,17 +550,11 @@ bool pilz_industrial_motion_planner::intersectionFound(const Eigen::Vector3d& p_
   return ((p_current - p_center).norm() <= r) && ((p_next - p_center).norm() >= r);
 }
 
-bool pilz_industrial_motion_planner::isStateColliding(const bool test_for_self_collision,
-                                                      const planning_scene::PlanningSceneConstPtr& scene,
+bool pilz_industrial_motion_planner::isStateColliding(const planning_scene::PlanningSceneConstPtr& scene,
                                                       robot_state::RobotState* rstate,
                                                       const robot_state::JointModelGroup* const group,
                                                       const double* const ik_solution)
 {
-  if (!test_for_self_collision)
-  {
-    return true;
-  }
-
   rstate->setJointGroupPositions(group, ik_solution);
   rstate->update();
   collision_detection::CollisionRequest collision_req;

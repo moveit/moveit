@@ -45,6 +45,7 @@
 
 #include "pilz_industrial_motion_planner/cartesian_trajectory.h"
 #include "pilz_industrial_motion_planner/limits_container.h"
+#include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"
 
 namespace pilz_industrial_motion_planner
 {
@@ -75,17 +76,17 @@ bool computePoseIK(const planning_scene::PlanningSceneConstPtr& scene, const std
                    bool check_self_collision = true, const double timeout = 0.0);
 
 /**
- * @brief compute the pose of a link at give robot state
- * @param robot_model: kinematic model of the robot
+ * @brief compute the pose of a link at given robot state
+ * @param robot_state: an arbitrary robot state (with collision objects attached)
  * @param link_name: target link name
  * @param joint_state: joint positons of this group
  * @param pose: pose of the link in base frame of robot model
  * @return true if succeed
  */
-bool computeLinkFK(const robot_model::RobotModelConstPtr& robot_model, const std::string& link_name,
+bool computeLinkFK(robot_state::RobotState& robot_state, const std::string& link_name,
                    const std::map<std::string, double>& joint_state, Eigen::Isometry3d& pose);
 
-bool computeLinkFK(const robot_model::RobotModelConstPtr& robot_model, const std::string& link_name,
+bool computeLinkFK(robot_state::RobotState& robot_state, const std::string& link_name,
                    const std::vector<std::string>& joint_names, const std::vector<double>& joint_positions,
                    Eigen::Isometry3d& pose);
 
@@ -214,9 +215,8 @@ bool intersectionFound(const Eigen::Vector3d& p_center, const Eigen::Vector3d& p
  * @param ik_solution
  * @return
  */
-bool isStateColliding(const bool test_for_self_collision, const planning_scene::PlanningSceneConstPtr& scene,
-                      robot_state::RobotState* state, const robot_state::JointModelGroup* const group,
-                      const double* const ik_solution);
+bool isStateColliding(const planning_scene::PlanningSceneConstPtr& scene, robot_state::RobotState* state,
+                      const robot_state::JointModelGroup* const group, const double* const ik_solution);
 }  // namespace pilz_industrial_motion_planner
 
 void normalizeQuaternion(geometry_msgs::Quaternion& quat);

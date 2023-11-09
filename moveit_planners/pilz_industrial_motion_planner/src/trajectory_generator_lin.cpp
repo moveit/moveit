@@ -70,6 +70,7 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_scene::Plannin
 
   info.group_name = req.group_name;
   std::string frame_id{ robot_model_->getModelFrame() };
+  robot_state::RobotState robot_state = scene->getCurrentState();
 
   // goal given in joint space
   if (!req.goal_constraints.front().joint_constraints.empty())
@@ -97,9 +98,7 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_scene::Plannin
       info.goal_joint_position[joint_item.joint_name] = joint_item.position;
     }
 
-    // Ignored return value because at this point the function should always
-    // return 'true'.
-    computeLinkFK(robot_model_, info.link_name, info.goal_joint_position, info.goal_pose);
+    computeLinkFK(robot_state, info.link_name, info.goal_joint_position, info.goal_pose);
   }
   // goal given in Cartesian space
   else
@@ -119,24 +118,7 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_scene::Plannin
     info.goal_pose = getConstraintPose(req.goal_constraints.front());
   }
 
-  assert(req.start_state.joint_state.name.size() == req.start_state.joint_state.position.size());
-  for (const auto& joint_name : robot_model_->getJointModelGroup(req.group_name)->getActiveJointModelNames())
-  {
-    auto it{ std::find(req.start_state.joint_state.name.cbegin(), req.start_state.joint_state.name.cend(), joint_name) };
-    if (it == req.start_state.joint_state.name.cend())
-    {
-      std::ostringstream os;
-      os << "Could not find joint \"" << joint_name << "\" of group \"" << req.group_name
-         << "\" in start state of request";
-      throw LinJointMissingInStartState(os.str());
-    }
-    size_t index = it - req.start_state.joint_state.name.cbegin();
-    info.start_joint_position[joint_name] = req.start_state.joint_state.position[index];
-  }
-
-  // Ignored return value because at this point the function should always
-  // return 'true'.
-  computeLinkFK(robot_model_, info.link_name, info.start_joint_position, info.start_pose);
+  computeLinkFK(robot_state, info.link_name, info.start_joint_position, info.start_pose);
 
   // check goal pose ik before Cartesian motion plan starts
   std::map<std::string, double> ik_solution;

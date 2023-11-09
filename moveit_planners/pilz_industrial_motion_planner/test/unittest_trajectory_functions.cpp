@@ -105,6 +105,7 @@ protected:
   // ros stuff
   ros::NodeHandle ph_{ "~" };
   robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(GetParam()).getModel() };
+  robot_state::RobotState robot_state_{ robot_model_ };
   planning_scene::PlanningSceneConstPtr planning_scene_{ new planning_scene::PlanningScene(robot_model_) };
 
   // test parameters from parameter server
@@ -181,27 +182,27 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, TipLinkFK)
 {
   Eigen::Isometry3d tip_pose;
   std::map<std::string, double> test_state = zero_state_;
-  EXPECT_TRUE(pilz_industrial_motion_planner::computeLinkFK(robot_model_, group_tip_link_, test_state, tip_pose));
+  EXPECT_TRUE(pilz_industrial_motion_planner::computeLinkFK(robot_state_, group_tip_link_, test_state, tip_pose));
   EXPECT_NEAR(tip_pose(0, 3), 0, EPSILON);
   EXPECT_NEAR(tip_pose(1, 3), 0, EPSILON);
   EXPECT_NEAR(tip_pose(2, 3), L0 + L1 + L2 + L3, EPSILON);
 
   test_state[joint_names_.at(1)] = M_PI_2;
-  EXPECT_TRUE(pilz_industrial_motion_planner::computeLinkFK(robot_model_, group_tip_link_, test_state, tip_pose));
+  EXPECT_TRUE(pilz_industrial_motion_planner::computeLinkFK(robot_state_, group_tip_link_, test_state, tip_pose));
   EXPECT_NEAR(tip_pose(0, 3), L1 + L2 + L3, EPSILON);
   EXPECT_NEAR(tip_pose(1, 3), 0, EPSILON);
   EXPECT_NEAR(tip_pose(2, 3), L0, EPSILON);
 
   test_state[joint_names_.at(1)] = -M_PI_2;
   test_state[joint_names_.at(2)] = M_PI_2;
-  EXPECT_TRUE(pilz_industrial_motion_planner::computeLinkFK(robot_model_, group_tip_link_, test_state, tip_pose));
+  EXPECT_TRUE(pilz_industrial_motion_planner::computeLinkFK(robot_state_, group_tip_link_, test_state, tip_pose));
   EXPECT_NEAR(tip_pose(0, 3), -L1, EPSILON);
   EXPECT_NEAR(tip_pose(1, 3), 0, EPSILON);
   EXPECT_NEAR(tip_pose(2, 3), L0 - L2 - L3, EPSILON);
 
   // wrong link name
   std::string link_name = "wrong_link_name";
-  EXPECT_FALSE(pilz_industrial_motion_planner::computeLinkFK(robot_model_, link_name, test_state, tip_pose));
+  EXPECT_FALSE(pilz_industrial_motion_planner::computeLinkFK(robot_state_, link_name, test_state, tip_pose));
 }
 
 /**
