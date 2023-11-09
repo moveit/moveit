@@ -65,12 +65,13 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
   rstate.setVariablePositions(seed);
 
   moveit::core::GroupStateValidityCallbackFn ik_constraint_function;
-  ik_constraint_function = [check_self_collision, scene](moveit::core::RobotState* robot_state,
-                                                         const moveit::core::JointModelGroup* joint_group,
-                                                         const double* joint_group_variable_values) {
-    return pilz_industrial_motion_planner::isStateColliding(check_self_collision, scene, robot_state, joint_group,
-                                                            joint_group_variable_values);
-  };
+  if (check_self_collision)
+    ik_constraint_function = [scene](moveit::core::RobotState* robot_state,
+                                     const moveit::core::JointModelGroup* joint_group,
+                                     const double* joint_group_variable_values) {
+      return pilz_industrial_motion_planner::isStateColliding(scene, robot_state, joint_group,
+                                                              joint_group_variable_values);
+    };
 
   // call ik
   const moveit::core::JointModelGroup* jmg = robot_model->getJointModelGroup(group_name);
@@ -549,17 +550,11 @@ bool pilz_industrial_motion_planner::intersectionFound(const Eigen::Vector3d& p_
   return ((p_current - p_center).norm() <= r) && ((p_next - p_center).norm() >= r);
 }
 
-bool pilz_industrial_motion_planner::isStateColliding(const bool test_for_self_collision,
-                                                      const planning_scene::PlanningSceneConstPtr& scene,
+bool pilz_industrial_motion_planner::isStateColliding(const planning_scene::PlanningSceneConstPtr& scene,
                                                       robot_state::RobotState* rstate,
                                                       const robot_state::JointModelGroup* const group,
                                                       const double* const ik_solution)
 {
-  if (!test_for_self_collision)
-  {
-    return true;
-  }
-
   rstate->setJointGroupPositions(group, ik_solution);
   rstate->update();
   collision_detection::CollisionRequest collision_req;
