@@ -233,7 +233,7 @@ void TrajectoryGeneratorPTP::extractMotionPlanInfo(const planning_scene::Plannin
     }
 
     // goal pose with optional offset wrt. the planning frame
-    info.goal_pose = scene->getFrameTransform(frame_id) * getConstraintPose(req.goal_constraints.front());
+    info.goal_pose = scene->getFrameTransform(frame_id) * getPose(req.goal_constraints.front());
     frame_id = robot_model_->getModelFrame();
 
     // check goal pose ik before Cartesian motion plan start

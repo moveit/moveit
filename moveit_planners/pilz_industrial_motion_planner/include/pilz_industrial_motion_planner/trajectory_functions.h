@@ -222,18 +222,16 @@ bool isStateColliding(const planning_scene::PlanningSceneConstPtr& scene, robot_
 void normalizeQuaternion(geometry_msgs::Quaternion& quat);
 
 /**
- * @brief Adapt goal pose, defined by position+orientation, to consider offset
- * @param constraint to apply offset to
- * @param offset to apply to the constraint
- * @param orientation to apply to the offset
- * @return final goal pose
+ * @brief Compose pose from position and orientation
+ * @param position
+ * @param orientation
+ * @return pose
  */
-Eigen::Isometry3d getConstraintPose(const geometry_msgs::Point& position, const geometry_msgs::Quaternion& orientation,
-                                    const geometry_msgs::Vector3& offset);
+Eigen::Isometry3d getPose(const geometry_msgs::Point& position, const geometry_msgs::Quaternion& orientation);
 
 /**
  * @brief Conviencency method, passing args from a goal constraint
  * @param goal goal constraint
- * @return final goal pose
+ * @return pose
  */
-Eigen::Isometry3d getConstraintPose(const moveit_msgs::Constraints& goal);
+Eigen::Isometry3d getPose(const moveit_msgs::Constraints& goal);
