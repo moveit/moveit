@@ -187,15 +187,25 @@ void TrajectoryGeneratorCIRCTest::getCircCenter(const planning_interface::Motion
                                                 const planning_interface::MotionPlanResponse& res,
                                                 Eigen::Vector3d& circ_center)
 {
+  moveit::core::RobotState rstate(robot_model_);
+  moveit::core::robotStateMsgToRobotState(moveit::core::Transforms(robot_model_->getModelFrame()), req.start_state,
+                                          rstate);
+  rstate.update();
+
   if (req.path_constraints.name == "center")
   {
-    tf2::fromMsg(req.path_constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).position,
-                 circ_center);
+    Eigen::Isometry3d center_pose;
+    tf2::fromMsg(req.path_constraints.position_constraints.front().constraint_region.primitive_poses.front(),
+                 center_pose);
+
+    circ_center =
+        (rstate.getFrameTransform(req.path_constraints.position_constraints.front().header.frame_id) * center_pose)
+            .translation();
   }
   else if (req.path_constraints.name == "interim")
   {
     Eigen::Vector3d interim;
-    tf2::fromMsg(req.path_constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).position,
+    tf2::fromMsg(req.path_constraints.position_constraints.front().constraint_region.primitive_poses.at(0).position,
                  interim);
     Eigen::Vector3d start = res.trajectory_->getFirstWayPointPtr()->getFrameTransform(target_link_).translation();
     Eigen::Vector3d goal = res.trajectory_->getLastWayPointPtr()->getFrameTransform(target_link_).translation();
