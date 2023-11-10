@@ -81,10 +81,10 @@ protected:
    */
   void SetUp() override;
 
-  void checkCircResult(const planning_interface::MotionPlanRequest& req,
+  void checkCircResult(const robot_model::RobotState& robot_state, const planning_interface::MotionPlanRequest& req,
                        const planning_interface::MotionPlanResponse& res);
 
-  void getCircCenter(const planning_interface::MotionPlanRequest& req,
+  void getCircCenter(const robot_model::RobotState& robot_state, const planning_interface::MotionPlanRequest& req,
                      const planning_interface::MotionPlanResponse& res, Eigen::Vector3d& circ_center);
 
 protected:
@@ -145,7 +145,8 @@ void TrajectoryGeneratorCIRCTest::SetUp()
   ASSERT_NE(nullptr, circ_) << "failed to create CIRC trajectory generator";
 }
 
-void TrajectoryGeneratorCIRCTest::checkCircResult(const planning_interface::MotionPlanRequest& req,
+void TrajectoryGeneratorCIRCTest::checkCircResult(const robot_model::RobotState& robot_state,
+                                                  const planning_interface::MotionPlanRequest& req,
                                                   const planning_interface::MotionPlanResponse& res)
 {
   moveit_msgs::MotionPlanResponse res_msg;
@@ -161,7 +162,7 @@ void TrajectoryGeneratorCIRCTest::checkCircResult(const planning_interface::Moti
 
   // Check that all point have the equal distance to the center
   Eigen::Vector3d circ_center;
-  getCircCenter(req, res, circ_center);
+  getCircCenter(robot_state, req, res, circ_center);
 
   for (std::size_t i = 0; i < res.trajectory_->getWayPointCount(); ++i)
   {
@@ -183,14 +184,28 @@ void TrajectoryGeneratorCIRCTest::checkCircResult(const planning_interface::Moti
   }
 }
 
-void TrajectoryGeneratorCIRCTest::getCircCenter(const planning_interface::MotionPlanRequest& req,
+void TrajectoryGeneratorCIRCTest::getCircCenter(const robot_model::RobotState& robot_state,
+                                                const planning_interface::MotionPlanRequest& req,
                                                 const planning_interface::MotionPlanResponse& res,
                                                 Eigen::Vector3d& circ_center)
 {
+  robot_model::RobotState start_state = robot_model::RobotState(robot_state);
+
+  for (std::size_t i = 0; i < req.start_state.joint_state.name.size(); ++i)
+  {
+    start_state.setJointPositions(req.start_state.joint_state.name[i], &req.start_state.joint_state.position[i]);
+  }
+  start_state.update();
+
   if (req.path_constraints.name == "center")
   {
-    tf2::fromMsg(req.path_constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).position,
-                 circ_center);
+    Eigen::Isometry3d center_pose;
+    tf2::fromMsg(req.path_constraints.position_constraints.front().constraint_region.primitive_poses.front(),
+                 center_pose);
+
+    circ_center =
+        (start_state.getFrameTransform(req.path_constraints.position_constraints.front().header.frame_id) * center_pose)
+            .translation();
   }
   else if (req.path_constraints.name == "interim")
   {
@@ -531,7 +546,7 @@ TEST_P(TrajectoryGeneratorCIRCTest, colinearCenterAndInterim)
   planning_interface::MotionPlanResponse res;
   EXPECT_TRUE(circ_->generate(planning_scene_, req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
-  checkCircResult(req, res);
+  checkCircResult(planning_scene_->getCurrentState(), req, res);
 }
 
 /**
@@ -565,7 +580,7 @@ TEST_P(TrajectoryGeneratorCIRCTest, interimLarger180Degree)
   planning_interface::MotionPlanResponse res;
   EXPECT_TRUE(circ_->generate(planning_scene_, req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
-  checkCircResult(req, res);
+  checkCircResult(planning_scene_->getCurrentState(), req, res);
 }
 
 /**
@@ -581,7 +596,7 @@ TEST_P(TrajectoryGeneratorCIRCTest, centerPointJointGoal)
   planning_interface::MotionPlanResponse res;
   ASSERT_TRUE(circ_->generate(planning_scene_, req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
-  checkCircResult(req, res);
+  checkCircResult(planning_scene_->getCurrentState(), req, res);
 }
 
 /**
@@ -644,7 +659,7 @@ TEST_P(TrajectoryGeneratorCIRCTest, CenterPointPoseGoal)
   planning_interface::MotionPlanResponse res;
   ASSERT_TRUE(circ_->generate(planning_scene_, req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
-  checkCircResult(req, res);
+  checkCircResult(planning_scene_->getCurrentState(), req, res);
 }
 
 /**
@@ -661,7 +676,7 @@ TEST_P(TrajectoryGeneratorCIRCTest, CenterPointPoseGoalFrameIdPositionConstraint
   planning_interface::MotionPlanResponse res;
   ASSERT_TRUE(circ_->generate(planning_scene_, req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
-  checkCircResult(req, res);
+  checkCircResult(planning_scene_->getCurrentState(), req, res);
 }
 
 /**
@@ -677,7 +692,7 @@ TEST_P(TrajectoryGeneratorCIRCTest, CenterPointPoseGoalFrameIdOrientationConstra
   planning_interface::MotionPlanResponse res;
   ASSERT_TRUE(circ_->generate(planning_scene_, req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
-  checkCircResult(req, res);
+  checkCircResult(planning_scene_->getCurrentState(), req, res);
 }
 
 /**
@@ -696,7 +711,7 @@ TEST_P(TrajectoryGeneratorCIRCTest, CenterPointPoseGoalFrameIdBothConstraints)
   planning_interface::MotionPlanResponse res;
   ASSERT_TRUE(circ_->generate(planning_scene_, req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
-  checkCircResult(req, res);
+  checkCircResult(planning_scene_->getCurrentState(), req, res);
 }
 
 /**
@@ -713,7 +728,7 @@ TEST_P(TrajectoryGeneratorCIRCTest, InterimPointJointGoal)
   planning_interface::MotionPlanResponse res;
   ASSERT_TRUE(circ_->generate(planning_scene_, req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
-  checkCircResult(req, res);
+  checkCircResult(planning_scene_->getCurrentState(), req, res);
 }
 
 /**
@@ -736,7 +751,7 @@ TEST_P(TrajectoryGeneratorCIRCTest, InterimPointJointGoalStartVelNearZero)
   planning_interface::MotionPlanResponse res;
   ASSERT_TRUE(circ_->generate(planning_scene_, req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
-  checkCircResult(req, res);
+  checkCircResult(planning_scene_->getCurrentState(), req, res);
 }
 
 /**
@@ -750,7 +765,7 @@ TEST_P(TrajectoryGeneratorCIRCTest, InterimPointPoseGoal)
   planning_interface::MotionPlanResponse res;
   ASSERT_TRUE(circ_->generate(planning_scene_, req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
-  checkCircResult(req, res);
+  checkCircResult(planning_scene_->getCurrentState(), req, res);
 }
 
 int main(int argc, char** argv)
