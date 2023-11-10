@@ -700,8 +700,57 @@ TEST_P(TrajectoryGeneratorCIRCTest, CenterPointPoseGoalFrameIdBothConstraints)
 }
 
 /**
- * @brief test the circ planner with interim point with joint goal
+ * @brief Set different frame_id's on both goal pose and path constraint
  */
+TEST_P(TrajectoryGeneratorCIRCTest, CenterPointPoseGoalFrameIdPoseAndPathConstraints)
+{
+  auto circ{ tdp_->getCircCartCenterCart("circ1_center_2") };
+
+  moveit_msgs::MotionPlanRequest req = circ.toRequest();
+
+  // set to start state
+  auto rstate = planning_scene_->getCurrentState();
+  moveit::core::robotStateMsgToRobotState(planning_scene_->getTransforms(), req.start_state, rstate);
+  rstate.update();
+
+  // compute offset between links
+  auto pose_tcp = rstate.getFrameTransform("prbt_tcp");
+  auto pose_link5 = rstate.getFrameTransform("prbt_link_5");
+
+  double offset_link5_to_tcp = (pose_link5.inverse() * pose_tcp).translation()[1];
+  double goal_offset_z = 0.3;
+
+  // Set goal constraint: apply Z axis translation only
+  auto& pc = req.goal_constraints.front().position_constraints.front();
+  pc.header.frame_id = "prbt_tcp";
+  pc.constraint_region.primitive_poses.front().position.x = 0.0;
+  pc.constraint_region.primitive_poses.front().position.y = 0.0;
+  pc.constraint_region.primitive_poses.front().position.z = goal_offset_z;
+
+  auto& oc = req.goal_constraints.front().orientation_constraints.front();
+  oc.header.frame_id = "prbt_tcp";
+  oc.orientation.x = 0;
+  oc.orientation.y = 0;
+  oc.orientation.z = 0;
+  oc.orientation.w = 1;
+
+  // Set path constraint:
+  //   `prbt_tcp` Z axis is aligned with `prbt_link_5` Y axis
+  //   `prbt_link_5` Y axis position is at the center of the start and end goal wrt. the `prbt_tcp` link
+  //   `prbt_link_5` X and Z axis positions can be of any value, will not affect the center between start and goal
+  auto& path_pc = req.path_constraints.position_constraints.front();
+  path_pc.header.frame_id = "prbt_link_5";
+  path_pc.constraint_region.primitive_poses.front().position.x = 0.0;
+  path_pc.constraint_region.primitive_poses.front().position.y = goal_offset_z / 2 + offset_link5_to_tcp;
+  path_pc.constraint_region.primitive_poses.front().position.z = -0.1;
+
+  planning_interface::MotionPlanResponse res;
+  ASSERT_TRUE(circ_->generate(planning_scene_, req, res));
+  EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
+
+  checkCircResult(req, res);
+}
+
 TEST_P(TrajectoryGeneratorCIRCTest, InterimPointJointGoal)
 {
   SKIP_IF_GRIPPER
