@@ -165,7 +165,7 @@ void TrajectoryGeneratorCIRCTest::checkCircResult(const planning_interface::Moti
 
   for (std::size_t i = 0; i < res.trajectory_->getWayPointCount(); ++i)
   {
-    Eigen::Affine3d waypoint_pose = res.trajectory_->getWayPointPtr(i)->getFrameTransform(target_link_);
+    Eigen::Isometry3d waypoint_pose = res.trajectory_->getWayPointPtr(i)->getFrameTransform(target_link_);
     EXPECT_NEAR(
         (res.trajectory_->getFirstWayPointPtr()->getFrameTransform(target_link_).translation() - circ_center).norm(),
         (circ_center - waypoint_pose.translation()).norm(), cartesian_position_tolerance_);

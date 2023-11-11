@@ -161,8 +161,8 @@ void TrajectoryGeneratorLIN::plan(const planning_scene::PlanningSceneConstPtr& s
   }
 }
 
-std::unique_ptr<KDL::Path> TrajectoryGeneratorLIN::setPathLIN(const Eigen::Affine3d& start_pose,
-                                                              const Eigen::Affine3d& goal_pose) const
+std::unique_ptr<KDL::Path> TrajectoryGeneratorLIN::setPathLIN(const Eigen::Isometry3d& start_pose,
+                                                              const Eigen::Isometry3d& goal_pose) const
 {
   ROS_DEBUG("Set Cartesian path for LIN command.");
 

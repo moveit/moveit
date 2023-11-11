@@ -82,7 +82,7 @@ private:
    * @brief construct a KDL::Path object for a Cartesian straight line
    * @return a unique pointer of the path object. null_ptr in case of an error.
    */
-  std::unique_ptr<KDL::Path> setPathLIN(const Eigen::Affine3d& start_pose, const Eigen::Affine3d& goal_pose) const;
+  std::unique_ptr<KDL::Path> setPathLIN(const Eigen::Isometry3d& start_pose, const Eigen::Isometry3d& goal_pose) const;
 };
 
 }  // namespace pilz_industrial_motion_planner
