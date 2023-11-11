@@ -133,6 +133,9 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_scene::Planni
     std::string frame_id;
 
     info.link_name = req.goal_constraints.front().position_constraints.front().link_name;
+    const auto& offset = req.goal_constraints.front().position_constraints.front().target_point_offset;
+    info.ioffset = Eigen::Translation3d(offset.x, offset.y, offset.z).inverse();
+
     if (req.goal_constraints.front().position_constraints.front().header.frame_id.empty() ||
         req.goal_constraints.front().orientation_constraints.front().header.frame_id.empty())
     {
@@ -151,8 +154,8 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_scene::Planni
 
     // check goal pose ik before Cartesian motion plan start
     std::map<std::string, double> ik_solution;
-    if (!computePoseIK(scene, info.group_name, info.link_name, info.goal_pose, frame_id, info.start_joint_position,
-                       ik_solution))
+    if (!computePoseIK(scene, info.group_name, info.link_name, info.goal_pose * info.ioffset, frame_id,
+                       info.start_joint_position, ik_solution))
     {
       // LCOV_EXCL_START
       std::ostringstream os;
@@ -163,6 +166,7 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_scene::Planni
     }
   }
   computeLinkFK(robot_state, info.link_name, info.start_joint_position, info.start_pose);
+  info.start_pose *= info.ioffset.inverse();  // add offset to start pose
 
   // center point's frame_id
   std::string center_point_frame_id = req.path_constraints.position_constraints.front().header.frame_id;
@@ -196,8 +200,8 @@ void TrajectoryGeneratorCIRC::plan(const planning_scene::PlanningSceneConstPtr& 
   // sample the Cartesian trajectory and compute joint trajectory using inverse
   // kinematics
   if (!generateJointTrajectory(scene, planner_limits_.getJointLimitContainer(), cart_trajectory, plan_info.group_name,
-                               plan_info.link_name, plan_info.start_joint_position, sampling_time, joint_trajectory,
-                               error_code))
+                               plan_info.link_name, plan_info.ioffset, plan_info.start_joint_position, sampling_time,
+                               joint_trajectory, error_code))
   {
     throw CircTrajectoryConversionFailure("Failed to generate valid joint trajectory from the Cartesian path",
                                           error_code.val);

@@ -684,8 +684,8 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testNonLinearBlending)
 
     moveit_msgs::MoveItErrorCodes error_code;
     if (!generateJointTrajectory(planning_scene_, planner_limits_.getJointLimitContainer(), cart_traj, planning_group_,
-                                 target_link_, initial_joint_position, initial_joint_velocity, joint_traj, error_code,
-                                 true))
+                                 target_link_, Eigen::Translation3d::Identity(), initial_joint_position,
+                                 initial_joint_velocity, joint_traj, error_code, true))
     {
       std::runtime_error("Failed to generate trajectory.");
     }

@@ -71,9 +71,10 @@ bool computePoseIK(const planning_scene::PlanningSceneConstPtr& scene, const std
                    bool check_self_collision = true, const double timeout = 0.0);
 
 bool computePoseIK(const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name,
-                   const std::string& link_name, const geometry_msgs::Pose& pose, const std::string& frame_id,
-                   const std::map<std::string, double>& seed, std::map<std::string, double>& solution,
-                   bool check_self_collision = true, const double timeout = 0.0);
+                   const std::string& link_name, const Eigen::Translation3d& offset, const geometry_msgs::Pose& pose,
+                   const std::string& frame_id, const std::map<std::string, double>& seed,
+                   std::map<std::string, double>& solution, bool check_self_collision = true,
+                   const double timeout = 0.0);
 
 /**
  * @brief compute the pose of a link at given robot state
@@ -116,6 +117,7 @@ bool verifySampleJointLimits(const std::map<std::string, double>& position_last,
  * @param trajectory: KDL Cartesian trajectory
  * @param group_name: name of the planning group
  * @param link_name: name of the target robot link
+ * @param offset: (inverse) offset from link name to IK solver frame
  * @param initial_joint_position: initial joint positions, needed for selecting
  * the ik solution
  * @param sampling_time: sampling time of the generated trajectory
@@ -129,6 +131,7 @@ bool verifySampleJointLimits(const std::map<std::string, double>& position_last,
 bool generateJointTrajectory(const planning_scene::PlanningSceneConstPtr& scene,
                              const JointLimitsContainer& joint_limits, const KDL::Trajectory& trajectory,
                              const std::string& group_name, const std::string& link_name,
+                             const Eigen::Translation3d& offset,
                              const std::map<std::string, double>& initial_joint_position, const double& sampling_time,
                              trajectory_msgs::JointTrajectory& joint_trajectory,
                              moveit_msgs::MoveItErrorCodes& error_code, bool check_self_collision = false);
@@ -147,6 +150,7 @@ bool generateJointTrajectory(const planning_scene::PlanningSceneConstPtr& scene,
                              const JointLimitsContainer& joint_limits,
                              const pilz_industrial_motion_planner::CartesianTrajectory& trajectory,
                              const std::string& group_name, const std::string& link_name,
+                             const Eigen::Translation3d& offset,
                              const std::map<std::string, double>& initial_joint_position,
                              const std::map<std::string, double>& initial_joint_velocity,
                              trajectory_msgs::JointTrajectory& joint_trajectory,

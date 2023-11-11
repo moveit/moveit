@@ -220,6 +220,9 @@ void TrajectoryGeneratorPTP::extractMotionPlanInfo(const planning_scene::Plannin
     std::string frame_id;
 
     info.link_name = req.goal_constraints.front().position_constraints.front().link_name;
+    const auto& offset = req.goal_constraints.front().position_constraints.front().target_point_offset;
+    info.ioffset = Eigen::Translation3d(offset.x, offset.y, offset.z).inverse();
+
     if (req.goal_constraints.front().position_constraints.front().header.frame_id.empty() ||
         req.goal_constraints.front().orientation_constraints.front().header.frame_id.empty())
     {
@@ -237,8 +240,8 @@ void TrajectoryGeneratorPTP::extractMotionPlanInfo(const planning_scene::Plannin
     frame_id = robot_model_->getModelFrame();
 
     // check goal pose ik before Cartesian motion plan start
-    if (!computePoseIK(scene, info.group_name, info.link_name, info.goal_pose, frame_id, info.start_joint_position,
-                       info.goal_joint_position))
+    if (!computePoseIK(scene, info.group_name, info.link_name, info.goal_pose * info.ioffset, frame_id,
+                       info.start_joint_position, info.goal_joint_position))
     {
       std::ostringstream os;
       os << "Failed to compute inverse kinematics for link: " << info.link_name << " of goal pose";
