@@ -701,8 +701,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testGenerateJointTrajectoryWithI
   bool check_self_collision{ false };
 
   EXPECT_FALSE(pilz_industrial_motion_planner::generateJointTrajectory(
-      planning_scene_, joint_limits, kdl_trajectory, group_name, tcp_link_, initial_joint_position, sampling_time,
-      joint_trajectory, error_code, check_self_collision));
+      planning_scene_, joint_limits, kdl_trajectory, group_name, tcp_link_, Eigen::Translation3d::Identity(),
+      initial_joint_position, sampling_time, joint_trajectory, error_code, check_self_collision));
 
   std::map<std::string, double> initial_joint_velocity;
 
@@ -713,8 +713,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testGenerateJointTrajectoryWithI
   cart_traj.points.push_back(cart_traj_point);
 
   EXPECT_FALSE(pilz_industrial_motion_planner::generateJointTrajectory(
-      planning_scene_, joint_limits, cart_traj, group_name, tcp_link_, initial_joint_position, initial_joint_velocity,
-      joint_trajectory, error_code, check_self_collision));
+      planning_scene_, joint_limits, cart_traj, group_name, tcp_link_, Eigen::Translation3d::Identity(),
+      initial_joint_position, initial_joint_velocity, joint_trajectory, error_code, check_self_collision));
 }
 
 /**
