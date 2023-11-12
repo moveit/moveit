@@ -378,7 +378,8 @@ TEST_P(TrajectoryGeneratorPTPTest, testCartesianGoal)
   }
 
   // check goal pose
-  EXPECT_TRUE(testutils::isGoalReached(robot_model_, res_msg.trajectory.joint_trajectory, req, pose_norm_tolerance_));
+  EXPECT_TRUE(testutils::isGoalReached(planning_scene_->getCurrentState(), res_msg.trajectory.joint_trajectory, req,
+                                       pose_norm_tolerance_));
 }
 
 /**

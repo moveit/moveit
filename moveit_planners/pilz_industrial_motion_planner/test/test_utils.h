@@ -150,9 +150,8 @@ inline moveit_msgs::Constraints generateJointConstraint(const std::vector<double
  * @brief Determines the goal position from the given request.
  * TRUE if successful, FALSE otherwise.
  */
-bool getExpectedGoalPose(const moveit::core::RobotModelConstPtr& robot_model,
-                         const planning_interface::MotionPlanRequest& req, std::string& link_name,
-                         Eigen::Isometry3d& goal_pose_expect);
+bool getExpectedGoalPose(const moveit::core::RobotState& robot_state, const planning_interface::MotionPlanRequest& req,
+                         std::string& link_name, Eigen::Isometry3d& goal_pose_expect);
 
 /**
  * @brief create a dummy motion plan request with zero start state
@@ -183,25 +182,24 @@ bool isGoalReached(const trajectory_msgs::JointTrajectory& trajectory,
 /**
  * @brief check if the goal given in cartesian space is reached
  * Only the last point in the trajectory is veryfied.
- * @param robot_model
+ * @param robot_state
  * @param trajectory
  * @param req
  * @param matrix_norm_tolerance: used to compare the transformation matrix
  * @param joint_velocity_tolerance
  * @return
  */
-bool isGoalReached(const robot_model::RobotModelConstPtr& robot_model,
-                   const trajectory_msgs::JointTrajectory& trajectory, const planning_interface::MotionPlanRequest& req,
-                   const double pos_tolerance, const double orientation_tolerance);
+bool isGoalReached(const robot_model::RobotState& robot_state, const trajectory_msgs::JointTrajectory& trajectory,
+                   const planning_interface::MotionPlanRequest& req, const double pos_tolerance,
+                   const double orientation_tolerance);
 
-bool isGoalReached(const moveit::core::RobotModelConstPtr& robot_model,
-                   const trajectory_msgs::JointTrajectory& trajectory, const planning_interface::MotionPlanRequest& req,
-                   const double tolerance);
+bool isGoalReached(const moveit::core::RobotState& robot_state, const trajectory_msgs::JointTrajectory& trajectory,
+                   const planning_interface::MotionPlanRequest& req, const double tolerance);
 
 /**
  * @brief Check that given trajectory is straight line.
  */
-bool checkCartesianLinearity(const robot_model::RobotModelConstPtr& robot_model,
+bool checkCartesianLinearity(const robot_model::RobotState& robot_state,
                              const trajectory_msgs::JointTrajectory& trajectory,
                              const planning_interface::MotionPlanRequest& req, const double translation_norm_tolerance,
                              const double rot_axis_norm_tolerance, const double rot_angle_tolerance = 10e-5);
@@ -291,26 +289,26 @@ bool isAccelerationBounded(const trajectory_msgs::JointTrajectory& trajectory,
 
 /**
  * @brief compute the tcp pose from joint values
- * @param robot_model
+ * @param robot_state
  * @param link_name
  * @param joint_values
  * @param pose
  * @param joint_prefix Prefix of the joint names
  * @return false if forward kinematics failed
  */
-bool toTCPPose(const moveit::core::RobotModelConstPtr& robot_model, const std::string& link_name,
+bool toTCPPose(const robot_state::RobotState& robot_state, const std::string& link_name,
                const std::vector<double>& joint_values, geometry_msgs::Pose& pose,
                const std::string& joint_prefix = testutils::JOINT_NAME_PREFIX);
 
 /**
  * @brief computeLinkFK
- * @param robot_model
+ * @param robot_state
  * @param link_name
  * @param joint_state
  * @param pose
  * @return
  */
-bool computeLinkFK(const robot_model::RobotModelConstPtr& robot_model, const std::string& link_name,
+bool computeLinkFK(const robot_state::RobotState& robot_state, const std::string& link_name,
                    const std::map<std::string, double>& joint_state, Eigen::Isometry3d& pose);
 
 /**

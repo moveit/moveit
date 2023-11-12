@@ -151,12 +151,14 @@ bool TrajectoryGeneratorLINTest::checkLinResponse(const planning_interface::Moti
 {
   moveit_msgs::MotionPlanResponse res_msg;
   res.getMessage(res_msg);
-  if (!testutils::isGoalReached(robot_model_, res_msg.trajectory.joint_trajectory, req, pose_norm_tolerance_))
+
+  robot_model::RobotState robot_state = planning_scene_->getCurrentState();
+  if (!testutils::isGoalReached(robot_state, res_msg.trajectory.joint_trajectory, req, pose_norm_tolerance_))
   {
     return false;
   }
 
-  if (!testutils::checkCartesianLinearity(robot_model_, res_msg.trajectory.joint_trajectory, req, pose_norm_tolerance_,
+  if (!testutils::checkCartesianLinearity(robot_state, res_msg.trajectory.joint_trajectory, req, pose_norm_tolerance_,
                                           rot_axis_norm_tolerance_))
   {
     return false;

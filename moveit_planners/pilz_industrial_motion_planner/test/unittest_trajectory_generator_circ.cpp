@@ -151,8 +151,7 @@ void TrajectoryGeneratorCIRCTest::checkCircResult(const robot_model::RobotState&
 {
   moveit_msgs::MotionPlanResponse res_msg;
   res.getMessage(res_msg);
-  EXPECT_TRUE(testutils::isGoalReached(res.trajectory_->getFirstWayPointPtr()->getRobotModel(),
-                                       res_msg.trajectory.joint_trajectory, req, other_tolerance_));
+  EXPECT_TRUE(testutils::isGoalReached(robot_state, res_msg.trajectory.joint_trajectory, req, other_tolerance_));
 
   EXPECT_TRUE(
       testutils::checkJointTrajectory(res_msg.trajectory.joint_trajectory, planner_limits_.getJointLimitContainer()));

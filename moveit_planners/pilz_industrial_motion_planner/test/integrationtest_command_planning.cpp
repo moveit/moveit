@@ -238,6 +238,7 @@ TEST_F(IntegrationTestCommandPlanning, PtpJointCart)
  */
 TEST_F(IntegrationTestCommandPlanning, LinJoint)
 {
+  robot_model::RobotState robot_state(robot_model_);
   planning_interface::MotionPlanRequest req{ test_data_->getLinJoint("lin2").toRequest() };
 
   std::cout << "++++++++++" << std::endl;
@@ -259,7 +260,7 @@ TEST_F(IntegrationTestCommandPlanning, LinJoint)
   std::cout << "+ Step 2 +" << std::endl;
   std::cout << "++++++++++" << std::endl;
 
-  ASSERT_TRUE(testutils::isGoalReached(robot_model_, response.trajectory.joint_trajectory, req, pose_norm_tolerance_,
+  ASSERT_TRUE(testutils::isGoalReached(robot_state, response.trajectory.joint_trajectory, req, pose_norm_tolerance_,
                                        orientation_norm_tolerance_))
       << "Goal not reached.";
 
@@ -267,7 +268,7 @@ TEST_F(IntegrationTestCommandPlanning, LinJoint)
   std::cout << "+ Step 3 +" << std::endl;
   std::cout << "++++++++++" << std::endl;
 
-  ASSERT_TRUE(testutils::checkCartesianLinearity(robot_model_, response.trajectory.joint_trajectory, req,
+  ASSERT_TRUE(testutils::checkCartesianLinearity(robot_state, response.trajectory.joint_trajectory, req,
                                                  pose_norm_tolerance_, orientation_norm_tolerance_))
       << "Trajectory violates cartesian linearity.";
 }
@@ -290,6 +291,7 @@ TEST_F(IntegrationTestCommandPlanning, LinJoint)
 TEST_F(IntegrationTestCommandPlanning, LinJointCart)
 {
   ros::NodeHandle node_handle("~");
+  robot_model::RobotState robot_state(robot_model_);
   planning_interface::MotionPlanRequest req{ test_data_->getLinJointCart("lin2").toRequest() };
 
   std::cout << "++++++++++" << std::endl;
@@ -310,7 +312,7 @@ TEST_F(IntegrationTestCommandPlanning, LinJointCart)
   std::cout << "+ Step 2 +" << std::endl;
   std::cout << "++++++++++" << std::endl;
 
-  ASSERT_TRUE(testutils::isGoalReached(robot_model_, response.trajectory.joint_trajectory, req, pose_norm_tolerance_,
+  ASSERT_TRUE(testutils::isGoalReached(robot_state, response.trajectory.joint_trajectory, req, pose_norm_tolerance_,
                                        orientation_norm_tolerance_))
       << "Goal not reached.";
 
@@ -318,7 +320,7 @@ TEST_F(IntegrationTestCommandPlanning, LinJointCart)
   std::cout << "+ Step 3 +" << std::endl;
   std::cout << "++++++++++" << std::endl;
 
-  ASSERT_TRUE(testutils::checkCartesianLinearity(robot_model_, response.trajectory.joint_trajectory, req,
+  ASSERT_TRUE(testutils::checkCartesianLinearity(robot_state, response.trajectory.joint_trajectory, req,
                                                  pose_norm_tolerance_, orientation_norm_tolerance_))
       << "Trajectory violates cartesian linearity.";
 }
@@ -338,6 +340,7 @@ TEST_F(IntegrationTestCommandPlanning, LinJointCart)
 TEST_F(IntegrationTestCommandPlanning, CircJointCenterCart)
 {
   ros::NodeHandle node_handle("~");
+  robot_model::RobotState robot_state(robot_model_);
 
   CircJointCenterCart circ{ test_data_->getCircJointCenterCart("circ1_center_2") };
 
@@ -367,7 +370,7 @@ TEST_F(IntegrationTestCommandPlanning, CircJointCenterCart)
   }
 
   // check goal is reached
-  ASSERT_TRUE(testutils::isGoalReached(robot_model_, response.trajectory.joint_trajectory, req, pose_norm_tolerance_,
+  ASSERT_TRUE(testutils::isGoalReached(robot_state, response.trajectory.joint_trajectory, req, pose_norm_tolerance_,
                                        orientation_norm_tolerance_))
       << "Goal not reached.";
 
@@ -423,6 +426,7 @@ TEST_F(IntegrationTestCommandPlanning, CircJointCenterCart)
 TEST_F(IntegrationTestCommandPlanning, CircCartCenterCart)
 {
   ros::NodeHandle node_handle("~");
+  robot_model::RobotState robot_state(robot_model_);
 
   CircCenterCart circ{ test_data_->getCircCartCenterCart("circ1_center_2") };
   moveit_msgs::MotionPlanRequest req{ circ.toRequest() };
@@ -450,7 +454,7 @@ TEST_F(IntegrationTestCommandPlanning, CircCartCenterCart)
   }
 
   // check goal is reached
-  ASSERT_TRUE(testutils::isGoalReached(robot_model_, response.trajectory.joint_trajectory, req, pose_norm_tolerance_,
+  ASSERT_TRUE(testutils::isGoalReached(robot_state, response.trajectory.joint_trajectory, req, pose_norm_tolerance_,
                                        orientation_norm_tolerance_))
       << "Goal not reached.";
 

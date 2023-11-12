@@ -64,7 +64,7 @@ testutils::createFakeLimits(const std::vector<std::string>& joint_names)
   return container;
 }
 
-bool testutils::getExpectedGoalPose(const moveit::core::RobotModelConstPtr& robot_model,
+bool testutils::getExpectedGoalPose(const robot_state::RobotState& robot_state,
                                     const planning_interface::MotionPlanRequest& req, std::string& link_name,
                                     Eigen::Isometry3d& goal_pose_expect)
 {
@@ -76,7 +76,7 @@ bool testutils::getExpectedGoalPose(const moveit::core::RobotModelConstPtr& robo
     std::map<std::string, double> goal_joint_position;
 
     // initializing all joints of the model
-    for (const auto& joint_name : robot_model->getVariableNames())
+    for (const auto& joint_name : robot_state.getVariableNames())
     {
       goal_joint_position[joint_name] = 0;
     }
@@ -86,9 +86,9 @@ bool testutils::getExpectedGoalPose(const moveit::core::RobotModelConstPtr& robo
       goal_joint_position[joint_item.joint_name] = joint_item.position;
     }
 
-    link_name = robot_model->getJointModelGroup(req.group_name)->getSolverInstance()->getTipFrame();
+    link_name = robot_state.getJointModelGroup(req.group_name)->getSolverInstance()->getTipFrame();
 
-    if (!computeLinkFK(robot_model, link_name, goal_joint_position, goal_pose_expect))
+    if (!computeLinkFK(robot_state, link_name, goal_joint_position, goal_pose_expect))
     {
       std::cerr << "Failed to compute forward kinematics for link in goal "
                    "constraints \n";
@@ -146,14 +146,14 @@ bool testutils::isGoalReached(const trajectory_msgs::JointTrajectory& trajectory
   return true;
 }
 
-bool testutils::isGoalReached(const moveit::core::RobotModelConstPtr& robot_model,
+bool testutils::isGoalReached(const moveit::core::RobotState& robot_state,
                               const trajectory_msgs::JointTrajectory& trajectory,
                               const planning_interface::MotionPlanRequest& req, const double pos_tolerance,
                               const double orientation_tolerance)
 {
   std::string link_name;
   Eigen::Isometry3d goal_pose_expect;
-  if (!testutils::getExpectedGoalPose(robot_model, req, link_name, goal_pose_expect))
+  if (!testutils::getExpectedGoalPose(robot_state, req, link_name, goal_pose_expect))
   {
     return false;
   }
@@ -164,7 +164,7 @@ bool testutils::isGoalReached(const moveit::core::RobotModelConstPtr& robot_mode
   std::map<std::string, double> joint_state;
 
   // initializing all joints of the model
-  for (const auto& joint_name : robot_model->getVariableNames())
+  for (const auto& joint_name : robot_state.getVariableNames())
   {
     joint_state[joint_name] = 0;
   }
@@ -174,7 +174,7 @@ bool testutils::isGoalReached(const moveit::core::RobotModelConstPtr& robot_mode
     joint_state[trajectory.joint_names.at(i)] = last_point.positions.at(i);
   }
 
-  if (!computeLinkFK(robot_model, link_name, joint_state, goal_pose_actual))
+  if (!computeLinkFK(robot_state, link_name, joint_state, goal_pose_actual))
   {
     std::cerr << "[ Fail     ] forward kinematics computation failed for link: " << link_name << std::endl;
   }
@@ -208,14 +208,14 @@ bool testutils::isGoalReached(const moveit::core::RobotModelConstPtr& robot_mode
   return true;
 }
 
-bool testutils::isGoalReached(const moveit::core::RobotModelConstPtr& robot_model,
+bool testutils::isGoalReached(const moveit::core::RobotState& robot_state,
                               const trajectory_msgs::JointTrajectory& trajectory,
                               const planning_interface::MotionPlanRequest& req, const double tolerance)
 {
-  return isGoalReached(robot_model, trajectory, req, tolerance, tolerance);
+  return isGoalReached(robot_state, trajectory, req, tolerance, tolerance);
 }
 
-bool testutils::checkCartesianLinearity(const moveit::core::RobotModelConstPtr& robot_model,
+bool testutils::checkCartesianLinearity(const moveit::core::RobotState& robot_state,
                                         const trajectory_msgs::JointTrajectory& trajectory,
                                         const planning_interface::MotionPlanRequest& req,
                                         const double translation_norm_tolerance, const double rot_axis_norm_tolerance,
@@ -223,16 +223,16 @@ bool testutils::checkCartesianLinearity(const moveit::core::RobotModelConstPtr& 
 {
   std::string link_name;
   Eigen::Isometry3d goal_pose_expect;
-  if (!testutils::getExpectedGoalPose(robot_model, req, link_name, goal_pose_expect))
+  if (!testutils::getExpectedGoalPose(robot_state, req, link_name, goal_pose_expect))
   {
     return false;
   }
 
   // compute start pose
-  robot_state::RobotState rstate(robot_model);
-  rstate.setToDefaultValues();
-  moveit::core::jointStateToRobotState(req.start_state.joint_state, rstate);
-  Eigen::Isometry3d start_pose = rstate.getFrameTransform(link_name);
+  moveit::core::RobotState start_state(robot_state);
+  start_state.setToDefaultValues();
+  moveit::core::jointStateToRobotState(req.start_state.joint_state, start_state);
+  Eigen::Isometry3d start_pose = start_state.getFrameTransform(link_name);
 
   // start goal angle axis
   Eigen::AngleAxisd start_goal_aa(start_pose.rotation().transpose() * goal_pose_expect.rotation());
@@ -244,7 +244,7 @@ bool testutils::checkCartesianLinearity(const moveit::core::RobotModelConstPtr& 
     std::map<std::string, double> way_point_joint_state;
 
     // initializing all joints of the model
-    for (const auto& joint_name : robot_model->getVariableNames())
+    for (const auto& joint_name : start_state.getVariableNames())
     {
       way_point_joint_state[joint_name] = 0;
     }
@@ -254,7 +254,7 @@ bool testutils::checkCartesianLinearity(const moveit::core::RobotModelConstPtr& 
       way_point_joint_state[trajectory.joint_names.at(i)] = way_point.positions.at(i);
     }
 
-    if (!computeLinkFK(robot_model, link_name, way_point_joint_state, way_point_pose))
+    if (!computeLinkFK(start_state, link_name, way_point_joint_state, way_point_pose))
     {
       std::cerr << "Failed to compute forward kinematics for link in goal "
                    "constraints \n";
@@ -314,12 +314,10 @@ bool testutils::checkSLERP(const Eigen::Isometry3d& start_pose, const Eigen::Iso
   return true;
 }
 
-bool testutils::computeLinkFK(const moveit::core::RobotModelConstPtr& robot_model, const std::string& link_name,
+bool testutils::computeLinkFK(const robot_state::RobotState& robot_state, const std::string& link_name,
                               const std::map<std::string, double>& joint_state, Eigen::Isometry3d& pose)
 {
-  // create robot state
-  robot_state::RobotState rstate(robot_model);
-  rstate.setToDefaultValues();
+  moveit::core::RobotState rstate(robot_state);
 
   // check the reference frame of the target pose
   if (!rstate.knowsFrameTransform(link_name))
@@ -526,7 +524,7 @@ void testutils::createPTPRequest(const std::string& planning_group, const robot_
       goal_state, goal_state.getRobotModel()->getJointModelGroup(planning_group)));
 }
 
-bool testutils::toTCPPose(const moveit::core::RobotModelConstPtr& robot_model, const std::string& link_name,
+bool testutils::toTCPPose(const robot_state::RobotState& robot_state, const std::string& link_name,
                           const std::vector<double>& joint_values, geometry_msgs::Pose& pose,
                           const std::string& joint_prefix)
 {
@@ -535,7 +533,7 @@ bool testutils::toTCPPose(const moveit::core::RobotModelConstPtr& robot_model, c
     auto joint_values_it = joint_values.begin();
 
     // initializing all joints of the model
-    for (const auto& joint_name : robot_model->getVariableNames())
+    for (const auto& joint_name : robot_state.getVariableNames())
     {
       joint_state[joint_name] = 0;
     }
@@ -547,7 +545,7 @@ bool testutils::toTCPPose(const moveit::core::RobotModelConstPtr& robot_model, c
     }
 
     Eigen::Isometry3d eig_pose;
-    if (!testutils::computeLinkFK(robot_model, link_name, joint_state, eig_pose))
+    if (!testutils::computeLinkFK(robot_state, link_name, joint_state, eig_pose))
     {
       return false;
     }
