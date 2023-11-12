@@ -761,6 +761,9 @@ TEST_P(TrajectoryGeneratorCIRCTest, CenterPointPoseGoalFrameIdPoseAndPathConstra
   checkCircResult(req, res);
 }
 
+/**
+ * @brief test the circ planner with interim point with joint goal
+ */
 TEST_P(TrajectoryGeneratorCIRCTest, InterimPointJointGoal)
 {
   SKIP_IF_GRIPPER
