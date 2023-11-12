@@ -100,14 +100,17 @@ bool testutils::getExpectedGoalPose(const robot_state::RobotState& robot_state,
   // ++++++++++++++++++++++++++++++++++++++
   // + Get goal from cartesian constraint +
   // ++++++++++++++++++++++++++++++++++++++
-  // TODO frame id
+  robot_state::RobotState start_state = robot_state::RobotState(robot_state);
+
+  for (std::size_t i = 0; i < req.start_state.joint_state.name.size(); ++i)
+    start_state.setJointPositions(req.start_state.joint_state.name[i], &req.start_state.joint_state.position[i]);
+  start_state.update();
+
   link_name = req.goal_constraints.front().position_constraints.front().link_name;
-  geometry_msgs::Pose goal_pose_msg;
-  goal_pose_msg.position =
-      req.goal_constraints.front().position_constraints.front().constraint_region.primitive_poses.front().position;
-  goal_pose_msg.orientation = req.goal_constraints.front().orientation_constraints.front().orientation;
-  normalizeQuaternion(goal_pose_msg.orientation);
-  tf2::fromMsg(goal_pose_msg, goal_pose_expect);
+  goal_pose_expect =
+      start_state.getFrameTransform(req.goal_constraints.front().position_constraints.front().header.frame_id) *
+      getConstraintPose(req.goal_constraints.front());
+
   return true;
 }
 
