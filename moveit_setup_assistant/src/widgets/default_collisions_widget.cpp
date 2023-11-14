@@ -192,6 +192,13 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, const MoveItCo
   progress_bar_->hide();  // only show when computation begins
   layout_->addWidget(progress_bar_);
 
+  // Interrupt Button
+  btn_interrupt_ = new QPushButton(this);
+  btn_interrupt_->setText("Interrupt");
+  btn_interrupt_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+  connect(btn_interrupt_, SIGNAL(clicked()), this, SLOT(interruptGeneratingCollisionTable()));
+  layout_->addWidget(btn_interrupt_);
+
   // Table Area --------------------------------------------
 
   // Table
@@ -278,6 +285,29 @@ void DefaultCollisionsWidget::startGeneratingCollisionTable()
   worker_ = new MonitorThread([this](unsigned int* progress) { generateCollisionTable(progress); }, progress_bar_);
   connect(worker_, SIGNAL(finished()), this, SLOT(finishGeneratingCollisionTable()));
   worker_->start();  // start after having finished() signal connected
+}
+
+// ******************************************************************************************
+// interrupt generating the collision table
+// ******************************************************************************************
+void DefaultCollisionsWidget::interruptGeneratingCollisionTable()
+{
+  if (QMessageBox::No == QMessageBox::question(this, "Collision Matrix Generation",
+                                                "Collision Matrix Generation is still active. Cancel computation?",
+                                                QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
+    return;
+  worker_->cancel();
+  worker_->wait();
+
+  // Load the data to the table
+  loadCollisionTable();
+
+  // Hide the progress bar
+  disableControls(false);  // enable everything else
+
+  config_data_->changes |= MoveItConfigData::COLLISIONS;
+  worker_->deleteLater();
+  worker_ = nullptr;
 }
 
 // ******************************************************************************************
@@ -688,9 +718,11 @@ void DefaultCollisionsWidget::changeDensity(int value)
 {
   density_value_spinbox_->blockSignals(true);
   density_slider_->blockSignals(true);
+
   int rounded_value = round(value/1000.0)*1000;
   density_value_spinbox_->setValue(rounded_value);
   density_slider_->setValue(rounded_value);
+
   density_value_spinbox_->blockSignals(false);
   density_slider_->blockSignals(false);
 }
@@ -707,11 +739,13 @@ void DefaultCollisionsWidget::disableControls(bool disable)
   {
     progress_bar_->show();  // only show when computation begins
     progress_label_->show();
+    btn_interrupt_->show();
   }
   else
   {
-    progress_label_->hide();
     progress_bar_->hide();
+    progress_label_->hide();
+    btn_interrupt_->hide();
   }
 
   QApplication::processEvents();  // allow the progress bar to be shown

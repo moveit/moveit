@@ -107,6 +107,10 @@ private Q_SLOTS:
    * \brief finish generating collision matrix after worker thread has finished
    */
   void finishGeneratingCollisionTable();
+  /**
+   * \brief interrupt generating collision matrix
+   */
+  void interruptGeneratingCollisionTable();
 
   /**
    * \brief GUI func for showing sampling density amount. Number of samples will be rounded in 1000s.
@@ -169,6 +173,7 @@ private:
   QPushButton* btn_generate_;
   QGroupBox* controls_box_;
   QProgressBar* progress_bar_;
+  QPushButton* btn_interrupt_;
   QLabel* progress_label_;
   QLineEdit* link_name_filter_;
   QCheckBox* collision_checkbox_;
