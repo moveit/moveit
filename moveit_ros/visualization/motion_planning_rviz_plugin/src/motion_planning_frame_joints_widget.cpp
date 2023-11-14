@@ -192,13 +192,38 @@ MotionPlanningFrameJointsWidget::MotionPlanningFrameJointsWidget(MotionPlanningD
   ui_->joints_view_->viewport()->installEventFilter(new JointsWidgetEventFilter(ui_->joints_view_));
   // intercept keyboard events delivered to joints_view_ to operate joints directly
   ui_->joints_view_->installEventFilter(new JointsWidgetEventFilter(ui_->joints_view_));
-  ui_->joints_view_->setItemDelegateForColumn(1, new ProgressBarDelegate(this));
+
+  auto delegate = new ProgressBarDelegate(this);
+  ui_->button_group_units_->setId(ui_->radio_degree_, ProgressBarDelegate::DEGREES);
+  ui_->button_group_units_->setId(ui_->radio_radian_, ProgressBarDelegate::RADIANS);
+  connect(ui_->button_group_units_, QOverload<QAbstractButton*, bool>::of(&QButtonGroup::buttonToggled),
+          ui_->joints_view_, [delegate, this](QAbstractButton* button, bool checked) {
+            if (checked)
+            {
+              delegate->setUnit(static_cast<ProgressBarDelegate::RevoluteUnit>(ui_->button_group_units_->id(button)));
+              // trigger repaint of joint values
+              auto model = ui_->joints_view_->model();
+              if (model)  // during initial loading, the model is not yet set
+                ui_->joints_view_->dataChanged(model->index(0, 1), model->index(model->rowCount() - 1, 1));
+              Q_EMIT configChanged();
+            }
+          });
+  ui_->joints_view_->setItemDelegateForColumn(1, delegate);
   svd_.setThreshold(0.001);
 }
 
 MotionPlanningFrameJointsWidget::~MotionPlanningFrameJointsWidget()
 {
   delete ui_;
+}
+
+bool MotionPlanningFrameJointsWidget::useRadians() const
+{
+  return ui_->radio_radian_->isChecked();
+}
+void MotionPlanningFrameJointsWidget::setUseRadians(bool use_radians)
+{
+  ui_->radio_radian_->setChecked(use_radians);
 }
 
 void MotionPlanningFrameJointsWidget::clearRobotModel()
@@ -417,7 +442,10 @@ void ProgressBarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
       switch (joint_type.toInt())
       {
         case moveit::core::JointModel::REVOLUTE:
-          style_option.text = option.locale.toString(value * 180 / M_PI, 'f', 0).append("°");
+          if (unit_ == RADIANS)
+            style_option.text = option.locale.toString(value, 'f', 3);
+          else
+            style_option.text = option.locale.toString(value * 180 / M_PI, 'f', 0).append("°");
           break;
         case moveit::core::JointModel::PRISMATIC:
           style_option.text = option.locale.toString(value, 'f', 3).append("m");

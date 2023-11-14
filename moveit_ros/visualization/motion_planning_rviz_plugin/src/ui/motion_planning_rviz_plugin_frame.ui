@@ -2087,6 +2087,8 @@ This is usually achieved by random seeding, which can flip the robot configurati
   </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>planning_pipeline_combo_box</tabstop>
   <tabstop>planning_algorithm_combo_box</tabstop>
   <tabstop>planner_param_treeview</tabstop>
   <tabstop>database_host</tabstop>
@@ -2131,8 +2133,8 @@ This is usually achieved by random seeding, which can flip the robot configurati
   <tabstop>roi_size_z</tabstop>
   <tabstop>collision_objects_list</tabstop>
   <tabstop>shape_size_x_spin_box</tabstop>
-  <tabstop>shape_size_z_spin_box</tabstop>
   <tabstop>shape_size_y_spin_box</tabstop>
+  <tabstop>shape_size_z_spin_box</tabstop>
   <tabstop>shapes_combo_box</tabstop>
   <tabstop>add_object_button</tabstop>
   <tabstop>remove_object_button</tabstop>
@@ -2163,7 +2165,6 @@ This is usually achieved by random seeding, which can flip the robot configurati
   <tabstop>save_start_state_button</tabstop>
   <tabstop>save_goal_state_button</tabstop>
   <tabstop>status_text</tabstop>
-  <tabstop>tabWidget</tabstop>
  </tabstops>
  <resources/>
  <connections/>

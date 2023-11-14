@@ -90,8 +90,8 @@ bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::blend(
   moveit_msgs::MoveItErrorCodes error_code;
 
   if (!generateJointTrajectory(planning_scene, limits_.getJointLimitContainer(), blend_trajectory_cartesian,
-                               req.group_name, req.link_name, initial_joint_position, initial_joint_velocity,
-                               blend_joint_trajectory, error_code))
+                               req.group_name, req.link_name, Eigen::Translation3d::Identity(), initial_joint_position,
+                               initial_joint_velocity, blend_joint_trajectory, error_code))
   {
     // LCOV_EXCL_START
     ROS_INFO("Failed to generate joint trajectory for blending trajectory.");

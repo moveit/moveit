@@ -274,6 +274,19 @@ public:
     planning_scene_diff_publisher_.publish(planning_scene);
   }
 
+  bool clear()
+  {
+    moveit_msgs::PlanningScene clear_scene;
+    clear_scene.is_diff = true;
+    clear_scene.robot_state.is_diff = true;
+    clear_scene.robot_state.attached_collision_objects.resize(1);
+    clear_scene.robot_state.attached_collision_objects[0].object.operation = moveit_msgs::CollisionObject::REMOVE;
+    clear_scene.world.collision_objects.resize(1);
+    clear_scene.world.collision_objects[0].operation = moveit_msgs::CollisionObject::REMOVE;
+
+    return applyPlanningScene(clear_scene);
+  }
+
 private:
   void waitForService(ros::ServiceClient& srv)
   {
@@ -414,5 +427,11 @@ void PlanningSceneInterface::removeCollisionObjects(const std::vector<std::strin
 {
   impl_->removeCollisionObjects(object_ids);
 }
+
+bool PlanningSceneInterface::clear()
+{
+  return impl_->clear();
+}
+
 }  // namespace planning_interface
 }  // namespace moveit

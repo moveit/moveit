@@ -93,15 +93,16 @@ bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::Plannin
 
 bool pilz_industrial_motion_planner::computePoseIK(const planning_scene::PlanningSceneConstPtr& scene,
                                                    const std::string& group_name, const std::string& link_name,
-                                                   const geometry_msgs::Pose& pose, const std::string& frame_id,
+                                                   const Eigen::Translation3d& offset, const geometry_msgs::Pose& pose,
+                                                   const std::string& frame_id,
                                                    const std::map<std::string, double>& seed,
                                                    std::map<std::string, double>& solution, bool check_self_collision,
                                                    const double timeout)
 {
   Eigen::Isometry3d pose_eigen;
   tf2::fromMsg(pose, pose_eigen);
-  return computePoseIK(scene, group_name, link_name, pose_eigen, frame_id, seed, solution, check_self_collision,
-                       timeout);
+  return computePoseIK(scene, group_name, link_name, pose_eigen * offset, frame_id, seed, solution,
+                       check_self_collision, timeout);
 }
 
 bool pilz_industrial_motion_planner::computeLinkFK(robot_state::RobotState& robot_state, const std::string& link_name,
@@ -186,7 +187,7 @@ bool pilz_industrial_motion_planner::verifySampleJointLimits(
 bool pilz_industrial_motion_planner::generateJointTrajectory(
     const planning_scene::PlanningSceneConstPtr& scene,
     const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits, const KDL::Trajectory& trajectory,
-    const std::string& group_name, const std::string& link_name,
+    const std::string& group_name, const std::string& link_name, const Eigen::Translation3d& offset,
     const std::map<std::string, double>& initial_joint_position, const double& sampling_time,
     trajectory_msgs::JointTrajectory& joint_trajectory, moveit_msgs::MoveItErrorCodes& error_code,
     bool check_self_collision)
@@ -219,8 +220,8 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
   {
     tf2::fromMsg(tf2::toMsg(trajectory.Pos(*time_iter)), pose_sample);
 
-    if (!computePoseIK(scene, group_name, link_name, pose_sample, robot_model->getModelFrame(), ik_solution_last,
-                       ik_solution, check_self_collision))
+    if (!computePoseIK(scene, group_name, link_name, pose_sample * offset, robot_model->getModelFrame(),
+                       ik_solution_last, ik_solution, check_self_collision))
     {
       ROS_ERROR("Failed to compute inverse kinematics solution for sampled "
                 "Cartesian pose.");
@@ -303,7 +304,8 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
     const planning_scene::PlanningSceneConstPtr& scene,
     const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits,
     const pilz_industrial_motion_planner::CartesianTrajectory& trajectory, const std::string& group_name,
-    const std::string& link_name, const std::map<std::string, double>& initial_joint_position,
+    const std::string& link_name, const Eigen::Translation3d& offset,
+    const std::map<std::string, double>& initial_joint_position,
     const std::map<std::string, double>& initial_joint_velocity, trajectory_msgs::JointTrajectory& joint_trajectory,
     moveit_msgs::MoveItErrorCodes& error_code, bool check_self_collision)
 {
@@ -325,7 +327,7 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
   for (size_t i = 0; i < trajectory.points.size(); ++i)
   {
     // compute inverse kinematics
-    if (!computePoseIK(scene, group_name, link_name, trajectory.points.at(i).pose, robot_model->getModelFrame(),
+    if (!computePoseIK(scene, group_name, link_name, offset, trajectory.points.at(i).pose, robot_model->getModelFrame(),
                        ik_solution_last, ik_solution, check_self_collision))
     {
       ROS_ERROR("Failed to compute inverse kinematics solution for sampled "
@@ -572,25 +574,20 @@ void normalizeQuaternion(geometry_msgs::Quaternion& quat)
   quat = tf2::toMsg(q.normalize());
 }
 
-Eigen::Isometry3d getConstraintPose(const geometry_msgs::Point& position, const geometry_msgs::Quaternion& orientation,
-                                    const geometry_msgs::Vector3& offset)
+Eigen::Isometry3d getPose(const geometry_msgs::Point& position, const geometry_msgs::Quaternion& orientation)
 {
   Eigen::Quaterniond quat;
   tf2::fromMsg(orientation, quat);
   quat.normalize();
+
   Eigen::Vector3d v;
   tf2::fromMsg(position, v);
 
-  Eigen::Isometry3d pose = Eigen::Translation3d(v) * quat;
-
-  tf2::fromMsg(offset, v);
-  pose.translation() -= quat * v;
-  return pose;
+  return Eigen::Translation3d(v) * quat;
 }
 
-Eigen::Isometry3d getConstraintPose(const moveit_msgs::Constraints& goal)
+Eigen::Isometry3d getPose(const moveit_msgs::Constraints& goal)
 {
-  return getConstraintPose(goal.position_constraints.front().constraint_region.primitive_poses.front().position,
-                           goal.orientation_constraints.front().orientation,
-                           goal.position_constraints.front().target_point_offset);
+  return getPose(goal.position_constraints.front().constraint_region.primitive_poses.front().position,
+                 goal.orientation_constraints.front().orientation);
 }

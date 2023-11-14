@@ -351,8 +351,10 @@ TrajectoryGenerator::MotionPlanInfo::MotionPlanInfo(const planning_scene::Planni
 {
   auto ps = scene->diff();
   auto& start_state = ps->getCurrentStateNonConst();
-  // update start state from req
-  moveit::core::robotStateMsgToRobotState(scene->getTransforms(), req.start_state, start_state);
+  const auto& rs = req.start_state;
+  if (!rs.joint_state.name.empty() || !rs.multi_dof_joint_state.joint_names.empty())
+    // update start state from request's start state
+    moveit::core::robotStateMsgToRobotState(scene->getTransforms(), req.start_state, start_state);
   start_state.update();
   start_scene = std::move(ps);
 

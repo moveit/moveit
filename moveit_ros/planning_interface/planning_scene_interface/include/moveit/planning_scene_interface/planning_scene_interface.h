@@ -142,6 +142,12 @@ public:
       consider using `applyCollisionObjects` instead. */
   void removeCollisionObjects(const std::vector<std::string>& object_ids) const;
 
+  /** \brief Remove all the collision and attached objects from the world via the planning scene of the move_group node
+     synchronously.
+
+      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
+  bool clear();
+
   /**@}*/
 
 private:

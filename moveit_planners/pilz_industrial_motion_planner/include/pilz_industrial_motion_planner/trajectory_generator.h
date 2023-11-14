@@ -120,6 +120,7 @@ protected:
 
     std::string group_name;
     std::string link_name;
+    Eigen::Translation3d ioffset;  // inverse offset from link_name to IK point
     Eigen::Isometry3d start_pose;
     Eigen::Isometry3d goal_pose;
     std::map<std::string, double> start_joint_position;
