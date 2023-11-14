@@ -137,18 +137,23 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, const MoveItCo
   density_slider_->setTickInterval(10);
   density_slider_->setOrientation(Qt::Horizontal);
   slider_layout->addWidget(density_slider_);
-  connect(density_slider_, SIGNAL(valueChanged(int)), this, SLOT(changeDensityLabel(int)));
+  connect(density_slider_, SIGNAL(valueChanged(int)), this, SLOT(changeDensitySpinbox(int)));
 
   // Slider Right Label
   QLabel* density_right_label = new QLabel(this);
   density_right_label->setText("High   ");
   slider_layout->addWidget(density_right_label);
 
-  // Slider Value Label
-  density_value_label_ = new QLabel(this);
-  density_value_label_->setMinimumWidth(50);
-  slider_layout->addWidget(density_value_label_);
-  changeDensityLabel(density_slider_->value());  // initialize label with value
+  // Spinbox Value Label
+  density_value_spinbox_ = new QSpinBox(this);
+  density_value_spinbox_->setMinimumWidth(70);
+  density_value_spinbox_->setMinimum(1000);
+  density_value_spinbox_->setMaximum(100000000);
+  density_value_spinbox_->setSingleStep(1000);
+  density_value_spinbox_->setEnabled(true);
+  slider_layout->addWidget(density_value_spinbox_);
+  changeDensitySpinbox(density_slider_->value());  // initialize label with value
+  connect(density_value_spinbox_, SIGNAL(valueChanged(int)), this, SLOT(changeDensitySlider(int)));
 
   QHBoxLayout* buttons_layout = new QHBoxLayout();
   buttons_layout->setAlignment(Qt::AlignRight);
@@ -299,7 +304,7 @@ void DefaultCollisionsWidget::finishGeneratingCollisionTable()
 // ******************************************************************************************
 void DefaultCollisionsWidget::generateCollisionTable(unsigned int* collision_progress)
 {
-  unsigned int num_trials = density_slider_->value() * 1000 + 1000;  // scale to trials amount
+  unsigned int num_trials = density_value_spinbox_->value();
   double min_frac = (double)fraction_spinbox_->value() / 100.0;
 
   const bool verbose = true;  // Output benchmarking and statistics
@@ -679,9 +684,18 @@ void DefaultCollisionsWidget::toggleSelection(QItemSelection selection)
 // ******************************************************************************************
 // GUI func for showing sampling density amount
 // ******************************************************************************************
-void DefaultCollisionsWidget::changeDensityLabel(int value)
+void DefaultCollisionsWidget::changeDensitySpinbox(int value)
 {
-  density_value_label_->setText(QString::number(value * 1000 + 1000));  //.append(" samples") );
+  density_value_spinbox_->blockSignals(true);
+  density_value_spinbox_->setValue(value * 1000 + 1000); //.append(" samples") );
+  density_value_spinbox_->blockSignals(false);
+}
+
+void DefaultCollisionsWidget::changeDensitySlider(int value)
+{
+  density_slider_->blockSignals(true);
+  density_slider_->setValue((value - 1000) / 1000);
+  density_slider_->blockSignals(false);
 }
 
 // ******************************************************************************************

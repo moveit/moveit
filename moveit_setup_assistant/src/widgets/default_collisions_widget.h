@@ -45,6 +45,7 @@ class QHeaderView;
 class QItemSelection;
 class QItemSelectionModel;
 class QLabel;
+class QSpinBox;
 class QLineEdit;
 class QProgressBar;
 class QPushButton;
@@ -111,7 +112,13 @@ private Q_SLOTS:
    * \brief GUI func for showing sampling density amount
    * \param value Sampling density
    */
-  void changeDensityLabel(int value);
+  void changeDensitySpinbox(int value);
+
+  /**
+   * \brief GUI func for showing sampling density amount
+   * \param value Number of samples
+   */
+  void changeDensitySlider(int value);
 
   /**
    * \brief Update view and data model for the link_pairs data structure
@@ -163,7 +170,7 @@ private:
   QAbstractItemModel* model_;
   QItemSelectionModel* selection_model_;
   QVBoxLayout* layout_;
-  QLabel* density_value_label_;
+  QSpinBox* density_value_spinbox_;
   QSlider* density_slider_;
   QPushButton* btn_generate_;
   QGroupBox* controls_box_;
