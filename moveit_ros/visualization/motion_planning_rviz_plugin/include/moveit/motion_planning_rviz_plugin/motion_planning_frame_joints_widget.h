@@ -134,6 +134,12 @@ public:
                            const robot_interaction::InteractionHandlerPtr& start_state_handler,
                            const robot_interaction::InteractionHandlerPtr& goal_state_handler);
 
+  bool useRadians() const;
+  void setUseRadians(bool use_radians);
+
+Q_SIGNALS:
+  void configChanged();
+
 public Q_SLOTS:
   void queryStartStateChanged();
   void queryGoalStateChanged();
@@ -171,13 +177,24 @@ public:
     JointTypeRole = Qt::UserRole,  // NOLINT(readability-identifier-naming)
     VariableBoundsRole             // NOLINT(readability-identifier-naming)
   };
+  enum RevoluteUnit
+  {
+    DEGREES = 0,
+    RADIANS = 1,
+  };
 
-  ProgressBarDelegate(QWidget* parent = nullptr) : QStyledItemDelegate(parent)
+  ProgressBarDelegate(QWidget* parent = nullptr) : QStyledItemDelegate(parent), unit_(DEGREES)
   {
   }
 
+  void setUnit(RevoluteUnit unit)
+  {
+    unit_ = unit;
+  }
   void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
   QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
+
+  RevoluteUnit unit_;
 };
 
 /// Slider that jumps back to zero

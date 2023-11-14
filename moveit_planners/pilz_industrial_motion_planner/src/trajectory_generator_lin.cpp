@@ -69,7 +69,6 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_scene::Plannin
   ROS_DEBUG("Extract necessary information from motion plan request.");
 
   info.group_name = req.group_name;
-  std::string frame_id{ robot_model_->getModelFrame() };
   robot_state::RobotState robot_state = scene->getCurrentState();
 
   // goal given in joint space
@@ -103,7 +102,12 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_scene::Plannin
   // goal given in Cartesian space
   else
   {
+    std::string frame_id;
+
     info.link_name = req.goal_constraints.front().position_constraints.front().link_name;
+    const auto& offset = req.goal_constraints.front().position_constraints.front().target_point_offset;
+    info.ioffset = Eigen::Translation3d(offset.x, offset.y, offset.z).inverse();
+
     if (req.goal_constraints.front().position_constraints.front().header.frame_id.empty() ||
         req.goal_constraints.front().orientation_constraints.front().header.frame_id.empty())
     {
@@ -115,20 +119,24 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_scene::Plannin
     {
       frame_id = req.goal_constraints.front().position_constraints.front().header.frame_id;
     }
-    info.goal_pose = getConstraintPose(req.goal_constraints.front());
+
+    // goal pose with optional offset wrt. the planning frame
+    info.goal_pose = scene->getFrameTransform(frame_id) * getPose(req.goal_constraints.front());
+    frame_id = robot_model_->getModelFrame();
+
+    // check goal pose ik before Cartesian motion plan start
+    std::map<std::string, double> ik_solution;
+    if (!computePoseIK(scene, info.group_name, info.link_name, info.goal_pose * info.ioffset, frame_id,
+                       info.start_joint_position, ik_solution))
+    {
+      std::ostringstream os;
+      os << "Failed to compute inverse kinematics for link: " << info.link_name << " of goal pose";
+      throw LinInverseForGoalIncalculable(os.str());
+    }
   }
 
   computeLinkFK(robot_state, info.link_name, info.start_joint_position, info.start_pose);
-
-  // check goal pose ik before Cartesian motion plan starts
-  std::map<std::string, double> ik_solution;
-  if (!computePoseIK(scene, info.group_name, info.link_name, info.goal_pose, frame_id, info.start_joint_position,
-                     ik_solution))
-  {
-    std::ostringstream os;
-    os << "Failed to compute inverse kinematics for link: " << info.link_name << " of goal pose";
-    throw LinInverseForGoalIncalculable(os.str());
-  }
+  info.start_pose *= info.ioffset.inverse();  // add offset to start pose
 }
 
 void TrajectoryGeneratorLIN::plan(const planning_scene::PlanningSceneConstPtr& scene,
@@ -152,8 +160,8 @@ void TrajectoryGeneratorLIN::plan(const planning_scene::PlanningSceneConstPtr& s
   // sample the Cartesian trajectory and compute joint trajectory using inverse
   // kinematics
   if (!generateJointTrajectory(scene, planner_limits_.getJointLimitContainer(), cart_trajectory, plan_info.group_name,
-                               plan_info.link_name, plan_info.start_joint_position, sampling_time, joint_trajectory,
-                               error_code))
+                               plan_info.link_name, plan_info.ioffset, plan_info.start_joint_position, sampling_time,
+                               joint_trajectory, error_code))
   {
     std::ostringstream os;
     os << "Failed to generate valid joint trajectory from the Cartesian path";
@@ -161,8 +169,8 @@ void TrajectoryGeneratorLIN::plan(const planning_scene::PlanningSceneConstPtr& s
   }
 }
 
-std::unique_ptr<KDL::Path> TrajectoryGeneratorLIN::setPathLIN(const Eigen::Affine3d& start_pose,
-                                                              const Eigen::Affine3d& goal_pose) const
+std::unique_ptr<KDL::Path> TrajectoryGeneratorLIN::setPathLIN(const Eigen::Isometry3d& start_pose,
+                                                              const Eigen::Isometry3d& goal_pose) const
 {
   ROS_DEBUG("Set Cartesian path for LIN command.");
 

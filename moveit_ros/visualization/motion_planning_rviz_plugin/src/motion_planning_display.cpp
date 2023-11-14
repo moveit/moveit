@@ -1361,6 +1361,8 @@ void MotionPlanningDisplay::load(const rviz::Config& config)
       frame_->ui_->collision_aware_ik->setChecked(b);
     if (config.mapGetBool("MoveIt_Allow_Approximate_IK", &b))
       frame_->ui_->approximate_ik->setChecked(b);
+    if (config.mapGetBool("JointsTab_Use_Radians", &b))
+      frame_->joints_tab_->setUseRadians(true);
 
     rviz::Config workspace = config.mapGetChild("MoveIt_Workspace");
     rviz::Config ws_center = workspace.mapGetChild("Center");
@@ -1413,6 +1415,7 @@ void MotionPlanningDisplay::save(rviz::Config config) const
     config.mapSetValue("MoveIt_Use_Cartesian_Path", frame_->ui_->use_cartesian_path->isChecked());
     config.mapSetValue("MoveIt_Use_Constraint_Aware_IK", frame_->ui_->collision_aware_ik->isChecked());
     config.mapSetValue("MoveIt_Allow_Approximate_IK", frame_->ui_->approximate_ik->isChecked());
+    config.mapSetValue("JointsTab_Use_Radians", frame_->joints_tab_->useRadians());
 
     rviz::Config workspace = config.mapMakeChild("MoveIt_Workspace");
     rviz::Config ws_center = workspace.mapMakeChild("Center");

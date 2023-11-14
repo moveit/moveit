@@ -124,6 +124,7 @@ static void wrap_planning_scene_interface()
   planning_scene_class.def("get_objects", &PlanningSceneInterfaceWrapper::getObjectsPython);
   planning_scene_class.def("get_attached_objects", &PlanningSceneInterfaceWrapper::getAttachedObjectsPython);
   planning_scene_class.def("apply_planning_scene", &PlanningSceneInterfaceWrapper::applyPlanningScenePython);
+  planning_scene_class.def("clear", &PlanningSceneInterfaceWrapper::clear);
 }
 }  // namespace planning_interface
 }  // namespace moveit
