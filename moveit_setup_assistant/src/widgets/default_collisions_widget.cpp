@@ -721,7 +721,7 @@ void DefaultCollisionsWidget::changeDensity(int value)
   density_slider_->blockSignals(true);
 
   int rounded_value = round(value / 1000.0) * 1000;
-  if (density_value_spinbox_->hasFocus() == false)
+  if (!density_value_spinbox_->hasFocus())
   {
     density_value_spinbox_->setValue(rounded_value);
   }
