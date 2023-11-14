@@ -293,8 +293,8 @@ void DefaultCollisionsWidget::startGeneratingCollisionTable()
 void DefaultCollisionsWidget::interruptGeneratingCollisionTable()
 {
   if (QMessageBox::No == QMessageBox::question(this, "Collision Matrix Generation",
-                                                "Collision Matrix Generation is still active. Cancel computation?",
-                                                QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
+                                               "Collision Matrix Generation is still active. Cancel computation?",
+                                               QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
     return;
   worker_->cancel();
   worker_->wait();
@@ -334,7 +334,8 @@ void DefaultCollisionsWidget::finishGeneratingCollisionTable()
 // ******************************************************************************************
 void DefaultCollisionsWidget::generateCollisionTable(unsigned int* collision_progress)
 {
-  unsigned int num_trials = density_value_spinbox_->value();
+  unsigned int num_trials = (density_value_spinbox_->value() / 1000.0) * 1000;  // round the value in 1000s
+  num_trials = num_trials < 1000 ? 1000 : num_trials;                           // make sure that num_trials >= 1000
   double min_frac = (double)fraction_spinbox_->value() / 100.0;
 
   const bool verbose = true;  // Output benchmarking and statistics
@@ -719,8 +720,11 @@ void DefaultCollisionsWidget::changeDensity(int value)
   density_value_spinbox_->blockSignals(true);
   density_slider_->blockSignals(true);
 
-  int rounded_value = round(value/1000.0)*1000;
-  density_value_spinbox_->setValue(rounded_value);
+  int rounded_value = round(value / 1000.0) * 1000;
+  if (density_value_spinbox_->hasFocus() == false)
+  {
+    density_value_spinbox_->setValue(rounded_value);
+  }
   density_slider_->setValue(rounded_value);
 
   density_value_spinbox_->blockSignals(false);
