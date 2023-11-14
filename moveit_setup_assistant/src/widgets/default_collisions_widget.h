@@ -109,16 +109,10 @@ private Q_SLOTS:
   void finishGeneratingCollisionTable();
 
   /**
-   * \brief GUI func for showing sampling density amount
-   * \param value Sampling density
-   */
-  void changeDensitySpinbox(int value);
-
-  /**
-   * \brief GUI func for showing sampling density amount
+   * \brief GUI func for showing sampling density amount. Number of samples will be rounded in 1000s.
    * \param value Number of samples
    */
-  void changeDensitySlider(int value);
+  void changeDensity(int value);
 
   /**
    * \brief Update view and data model for the link_pairs data structure
