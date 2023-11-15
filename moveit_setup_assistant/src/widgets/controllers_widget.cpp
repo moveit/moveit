@@ -659,7 +659,7 @@ bool ControllersWidget::saveControllerScreen()
   moveit_setup_assistant::ControllerConfig* searched_controller = nullptr;
 
   std::smatch invalid_name_match;
-  std::regex invalid_reg_ex("[^a-z|^1-9|^_]");
+  std::regex invalid_reg_ex("[^a-z|^0-9|^_]");
 
   // Check that a valid controller name has been given
   if (controller_name.empty() || std::regex_search(controller_name, invalid_name_match, invalid_reg_ex))
