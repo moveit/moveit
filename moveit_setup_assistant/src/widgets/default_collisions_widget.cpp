@@ -298,16 +298,6 @@ void DefaultCollisionsWidget::interruptGeneratingCollisionTable()
     return;
   worker_->cancel();
   worker_->wait();
-
-  // Load the data to the table
-  loadCollisionTable();
-
-  // Hide the progress bar
-  disableControls(false);  // enable everything else
-
-  config_data_->changes |= MoveItConfigData::COLLISIONS;
-  worker_->deleteLater();
-  worker_ = nullptr;
 }
 
 // ******************************************************************************************
