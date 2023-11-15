@@ -296,8 +296,12 @@ void DefaultCollisionsWidget::interruptGeneratingCollisionTable()
                                                "Collision Matrix Generation is still active. Cancel computation?",
                                                QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
     return;
-  worker_->cancel();
-  worker_->wait();
+
+  if (worker_)
+  {
+    worker_->cancel();
+    worker_->wait();
+  }
 }
 
 // ******************************************************************************************
@@ -310,11 +314,11 @@ void DefaultCollisionsWidget::finishGeneratingCollisionTable()
     // Load the results into the GUI
     loadCollisionTable();
 
-    // Hide the progress bar
-    disableControls(false);  // enable everything else
-
     config_data_->changes |= MoveItConfigData::COLLISIONS;
   }
+  disableControls(false);  // enable controls, hide interrupt button + progress bar
+  progress_bar_->show();   // make progress bar visislbe again
+
   worker_->deleteLater();
   worker_ = nullptr;
 }
@@ -826,8 +830,11 @@ bool DefaultCollisionsWidget::focusLost()
                                                  "Collision Matrix Generation is still active. Cancel computation?",
                                                  QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
       return false;
-    worker_->cancel();
-    worker_->wait();
+    if (worker_)
+    {
+      worker_->cancel();
+      worker_->wait();
+    }
   }
   *config_data_->srdf_ = *wip_srdf_;
 
