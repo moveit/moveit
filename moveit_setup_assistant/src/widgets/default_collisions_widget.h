@@ -113,10 +113,10 @@ private Q_SLOTS:
   void interruptGeneratingCollisionTable();
 
   /**
-   * \brief GUI func for showing sampling density amount. Number of samples will be rounded in 1000s.
+   * \brief GUI func for showing number of samples. value will be rounded in 1000s.
    * \param value Number of samples
    */
-  void changeDensity(int value);
+  void changeNumSamples(int value);
 
   /**
    * \brief Update view and data model for the link_pairs data structure
@@ -168,8 +168,8 @@ private:
   QAbstractItemModel* model_;
   QItemSelectionModel* selection_model_;
   QVBoxLayout* layout_;
-  QSpinBox* density_value_spinbox_;
-  QSlider* density_slider_;
+  QSpinBox* sample_spinbox_;
+  QSlider* sample_slider_;
   QPushButton* btn_generate_;
   QGroupBox* controls_box_;
   QProgressBar* progress_bar_;

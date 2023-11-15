@@ -127,17 +127,17 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, const MoveItCo
   slider_layout->addWidget(density_left_label);
 
   // Slider
-  density_slider_ = new QSlider(this);
-  density_slider_->setTickPosition(QSlider::TicksBelow);
-  density_slider_->setMinimum(1000);
-  density_slider_->setMaximum(100000);
-  density_slider_->setSingleStep(1000);
-  density_slider_->setPageStep(10000);
-  density_slider_->setSliderPosition(10000);  // 10,000 is default
-  density_slider_->setTickInterval(10000);
-  density_slider_->setOrientation(Qt::Horizontal);
-  slider_layout->addWidget(density_slider_);
-  connect(density_slider_, SIGNAL(valueChanged(int)), this, SLOT(changeDensity(int)));
+  sample_slider_ = new QSlider(this);
+  sample_slider_->setTickPosition(QSlider::TicksBelow);
+  sample_slider_->setMinimum(1000);
+  sample_slider_->setMaximum(100000);
+  sample_slider_->setSingleStep(1000);
+  sample_slider_->setPageStep(10000);
+  sample_slider_->setSliderPosition(10000);  // 10,000 is default
+  sample_slider_->setTickInterval(10000);
+  sample_slider_->setOrientation(Qt::Horizontal);
+  slider_layout->addWidget(sample_slider_);
+  connect(sample_slider_, SIGNAL(valueChanged(int)), this, SLOT(changeNumSamples(int)));
 
   // Slider Right Label
   QLabel* density_right_label = new QLabel(this);
@@ -145,15 +145,15 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, const MoveItCo
   slider_layout->addWidget(density_right_label);
 
   // Spinbox Value Label
-  density_value_spinbox_ = new QSpinBox(this);
-  density_value_spinbox_->setMinimumWidth(70);
-  density_value_spinbox_->setMinimum(1000);
-  density_value_spinbox_->setMaximum(100000000);
-  density_value_spinbox_->setSingleStep(1000);
-  density_value_spinbox_->setEnabled(true);
-  slider_layout->addWidget(density_value_spinbox_);
-  changeDensity(density_slider_->value());  // initialize label with value
-  connect(density_value_spinbox_, SIGNAL(valueChanged(int)), this, SLOT(changeDensity(int)));
+  sample_spinbox_ = new QSpinBox(this);
+  sample_spinbox_->setMinimumWidth(70);
+  sample_spinbox_->setMinimum(1000);
+  sample_spinbox_->setMaximum(100000000);
+  sample_spinbox_->setSingleStep(1000);
+  sample_spinbox_->setEnabled(true);
+  slider_layout->addWidget(sample_spinbox_);
+  changeNumSamples(sample_slider_->value());  // initialize label with value
+  connect(sample_spinbox_, SIGNAL(valueChanged(int)), this, SLOT(changeNumSamples(int)));
 
   QHBoxLayout* buttons_layout = new QHBoxLayout();
   buttons_layout->setAlignment(Qt::AlignRight);
@@ -328,8 +328,8 @@ void DefaultCollisionsWidget::finishGeneratingCollisionTable()
 // ******************************************************************************************
 void DefaultCollisionsWidget::generateCollisionTable(unsigned int* collision_progress)
 {
-  unsigned int num_trials = (density_value_spinbox_->value() / 1000.0) * 1000;  // round the value in 1000s
-  num_trials = num_trials < 1000 ? 1000 : num_trials;                           // make sure that num_trials >= 1000
+  unsigned int num_trials = (sample_spinbox_->value() / 1000.0) * 1000;  // round the value in 1000s
+  num_trials = num_trials < 1000 ? 1000 : num_trials;                    // make sure that num_trials >= 1000
   double min_frac = (double)fraction_spinbox_->value() / 100.0;
 
   const bool verbose = true;  // Output benchmarking and statistics
@@ -708,22 +708,22 @@ void DefaultCollisionsWidget::toggleSelection(QItemSelection selection)
 }
 
 // ******************************************************************************************
-// GUI func for showing sampling density amount
+// GUI func for updating number of samples
 // ******************************************************************************************
-void DefaultCollisionsWidget::changeDensity(int value)
+void DefaultCollisionsWidget::changeNumSamples(int value)
 {
-  density_value_spinbox_->blockSignals(true);
-  density_slider_->blockSignals(true);
+  sample_spinbox_->blockSignals(true);
+  sample_slider_->blockSignals(true);
 
   int rounded_value = round(value / 1000.0) * 1000;
-  if (!density_value_spinbox_->hasFocus())
+  if (!sample_spinbox_->hasFocus())
   {
-    density_value_spinbox_->setValue(rounded_value);
+    sample_spinbox_->setValue(rounded_value);
   }
-  density_slider_->setValue(rounded_value);
+  sample_slider_->setValue(rounded_value);
 
-  density_value_spinbox_->blockSignals(false);
-  density_slider_->blockSignals(false);
+  sample_spinbox_->blockSignals(false);
+  sample_slider_->blockSignals(false);
 }
 
 // ******************************************************************************************
