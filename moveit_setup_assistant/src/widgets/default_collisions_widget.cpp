@@ -132,9 +132,9 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, const MoveItCo
   density_slider_->setMinimum(1000);
   density_slider_->setMaximum(100000);
   density_slider_->setSingleStep(1000);
-  density_slider_->setPageStep(1000);
+  density_slider_->setPageStep(10000);
   density_slider_->setSliderPosition(10000);  // 10,000 is default
-  density_slider_->setTickInterval(1000);
+  density_slider_->setTickInterval(10000);
   density_slider_->setOrientation(Qt::Horizontal);
   slider_layout->addWidget(density_slider_);
   connect(density_slider_, SIGNAL(valueChanged(int)), this, SLOT(changeDensity(int)));
