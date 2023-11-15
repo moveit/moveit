@@ -341,8 +341,9 @@ void DefaultCollisionsWidget::generateCollisionTable(unsigned int* collision_pro
   // Update collision_matrix for robot pose's use
   config_data_->loadAllowedCollisionMatrix(*wip_srdf_);
 
-  // End the progress bar loop
-  *collision_progress = 100;
+  // Indicate end the progress bar loop (MonitorThread::run())
+  if (worker_ && !worker_->canceled())
+    *collision_progress = 100;
 
   ROS_INFO_STREAM("Thread complete " << link_pairs.size());
 }
@@ -859,7 +860,6 @@ void moveit_setup_assistant::MonitorThread::run()
 
   worker_.join();
 
-  progress_ = 100;
   Q_EMIT progress(progress_);
 }
 

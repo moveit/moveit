@@ -274,8 +274,6 @@ LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr
     */
   }
 
-  *progress = 100;  // end the status bar
-
   return link_pairs;
 }
 
