@@ -315,16 +315,16 @@ void DefaultCollisionsWidget::interruptGeneratingCollisionTable()
 // ******************************************************************************************
 void DefaultCollisionsWidget::finishGeneratingCollisionTable()
 {
-  if (worker_->canceled())
-    return;
+  if (!worker_->canceled())
+  {
+    // Load the results into the GUI
+    loadCollisionTable();
 
-  // Load the results into the GUI
-  loadCollisionTable();
+    // Hide the progress bar
+    disableControls(false);  // enable everything else
 
-  // Hide the progress bar
-  disableControls(false);  // enable everything else
-
-  config_data_->changes |= MoveItConfigData::COLLISIONS;
+    config_data_->changes |= MoveItConfigData::COLLISIONS;
+  }
   worker_->deleteLater();
   worker_ = nullptr;
 }
