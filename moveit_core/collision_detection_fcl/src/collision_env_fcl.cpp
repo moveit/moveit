@@ -273,6 +273,7 @@ void CollisionEnvFCL::checkSelfCollisionHelper(const CollisionRequest& req, Coll
     dreq.acm = acm;
     dreq.enableGroup(getRobotModel());
     distanceSelf(dreq, dres, state);
+    res.distance_result = dres;
     res.distance = dres.minimum_distance.distance;
   }
 }
@@ -326,6 +327,7 @@ void CollisionEnvFCL::checkRobotCollisionHelper(const CollisionRequest& req, Col
     dreq.acm = acm;
     dreq.enableGroup(getRobotModel());
     distanceRobot(dreq, dres, state);
+    res.distance_result = dres;
     res.distance = dres.minimum_distance.distance;
   }
 }
