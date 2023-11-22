@@ -16,6 +16,8 @@ COPY . src/moveit
 # Commands are combined in single RUN statement with "apt/lists" folder removal to reduce image size
 # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#minimize-the-number-of-layers
 RUN \
+    # Download ROS keys: https://github.com/osrf/docker_images/issues/697#issuecomment-1819626877
+    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 4B63CF8FDE49746E98FA01DDAD19BAB3CBF125EA && \
     # Update apt package list as previous containers clear the cache
     apt-get -q update && \
     apt-get -q -y dist-upgrade && \
