@@ -148,6 +148,7 @@ struct CollisionRequest
 {
   CollisionRequest()
     : distance(false)
+    , detailed_distance(false)
     , cost(false)
     , contacts(false)
     , max_contacts(1)
@@ -165,6 +166,9 @@ struct CollisionRequest
 
   /** \brief If true, compute proximity distance */
   bool distance;
+
+  /** \brief If true, return detailed distance information. Distance must be set to true as well */
+  bool detailed_distance;
 
   /** \brief If true, a collision cost is computed */
   bool cost;
