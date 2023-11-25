@@ -99,27 +99,27 @@ class PlanningSceneInterface(object):
 
     def add_sphere(self, name, pose, radius=1):
         """Add a sphere to the planning scene"""
-        co = self.__make_sphere(name, pose, radius)
+        co = self.make_sphere(name, pose, radius)
         self.__submit(co, attach=False)
 
     def add_cylinder(self, name, pose, height, radius):
         """Add a cylinder to the planning scene"""
-        co = self.__make_cylinder(name, pose, height, radius)
+        co = self.make_cylinder(name, pose, height, radius)
         self.__submit(co, attach=False)
 
     def add_cone(self, name, pose, height, radius):
         """Add a cylinder to the planning scene"""
-        co = self.__make_cone(name, pose, height, radius)
+        co = self.make_cone(name, pose, height, radius)
         self.__submit(co, attach=False)
 
     def add_mesh(self, name, pose, filename, size=(1, 1, 1)):
         """Add a mesh to the planning scene"""
-        co = self.__make_mesh(name, pose, filename, size)
+        co = self.make_mesh(name, pose, filename, size)
         self.__submit(co, attach=False)
 
     def add_box(self, name, pose, size=(1, 1, 1)):
         """Add a box to the planning scene"""
-        co = self.__make_box(name, pose, size)
+        co = self.make_box(name, pose, size)
         self.__submit(co, attach=False)
 
     def add_plane(self, name, pose, normal=(0, 0, 1), offset=0):
@@ -144,7 +144,7 @@ class PlanningSceneInterface(object):
     ):
         aco = AttachedCollisionObject()
         if (pose is not None) and filename:
-            aco.object = self.__make_mesh(name, pose, filename, size)
+            aco.object = self.make_mesh(name, pose, filename, size)
         else:
             aco.object = self.__make_existing(name)
         aco.link_name = link
@@ -156,7 +156,7 @@ class PlanningSceneInterface(object):
     def attach_box(self, link, name, pose=None, size=(1, 1, 1), touch_links=[]):
         aco = AttachedCollisionObject()
         if pose is not None:
-            aco.object = self.__make_box(name, pose, size)
+            aco.object = self.make_box(name, pose, size)
         else:
             aco.object = self.__make_existing(name)
         aco.link_name = link
@@ -280,13 +280,13 @@ class PlanningSceneInterface(object):
         return co
 
     @staticmethod
-    def __make_box(name, pose, size):
+    def make_box(name, pose, size):
         return PlanningSceneInterface.__make_primitive(
             name, pose, SolidPrimitive.BOX, size
         )
 
     @staticmethod
-    def __make_mesh(name, pose, filename, scale=(1, 1, 1)):
+    def make_mesh(name, pose, filename, scale=(1, 1, 1)):
         co = CollisionObject()
         if pyassimp is False:
             raise MoveItCommanderException(
@@ -335,19 +335,19 @@ class PlanningSceneInterface(object):
         return co
 
     @staticmethod
-    def __make_sphere(name, pose, radius):
+    def make_sphere(name, pose, radius):
         return PlanningSceneInterface.__make_primitive(
             name, pose, SolidPrimitive.SPHERE, [radius]
         )
 
     @staticmethod
-    def __make_cylinder(name, pose, height, radius):
+    def make_cylinder(name, pose, height, radius):
         return PlanningSceneInterface.__make_primitive(
             name, pose, SolidPrimitive.CYLINDER, [height, radius]
         )
 
     @staticmethod
-    def __make_cone(name, pose, height, radius):
+    def make_cone(name, pose, height, radius):
         return PlanningSceneInterface.__make_primitive(
             name, pose, SolidPrimitive.CONE, [height, radius]
         )
