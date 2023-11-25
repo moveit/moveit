@@ -124,15 +124,7 @@ class PlanningSceneInterface(object):
 
     def add_plane(self, name, pose, normal=(0, 0, 1), offset=0):
         """Add a plane to the planning scene"""
-        co = CollisionObject()
-        co.operation = CollisionObject.ADD
-        co.id = name
-        co.header = pose.header
-        p = Plane()
-        p.coef = list(normal)
-        p.coef.append(offset)
-        co.planes = [p]
-        co.plane_poses = [pose.pose]
+        co = self.make_plane(name, pose, normal, offset)
         self.__submit(co, attach=False)
 
     def attach_object(self, attached_collision_object):
@@ -351,6 +343,18 @@ class PlanningSceneInterface(object):
         return PlanningSceneInterface.__make_primitive(
             name, pose, SolidPrimitive.CONE, [height, radius]
         )
+
+    def make_plane(self, name, pose, normal=(0, 0, 1), offset=0):
+        co = CollisionObject()
+        co.operation = CollisionObject.ADD
+        co.id = name
+        co.header = pose.header
+        p = Plane()
+        p.coef = list(normal)
+        p.coef.append(offset)
+        co.planes = [p]
+        co.plane_poses = [pose.pose]
+        return co
 
     @staticmethod
     def __make_planning_scene_diff_req(collision_object, attach=False):
