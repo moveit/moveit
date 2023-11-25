@@ -142,7 +142,7 @@ class PlanningSceneInterface(object):
         self.__submit(object, attach=True)
 
     def attach_mesh(
-        self, link, name, pose=None, filename="", size=(1, 1, 1), touch_links=[]
+        self, link, name, pose=None, filename="", size=(1, 1, 1), touch_links=None
     ):
         """Create mesh and attach it to the given link"""
         if (pose is not None) and filename:
@@ -151,7 +151,7 @@ class PlanningSceneInterface(object):
             co = self.__make_existing(name)
         self.attach_object(co, link, touch_links)
 
-    def attach_box(self, link, name, pose=None, size=(1, 1, 1), touch_links=[]):
+    def attach_box(self, link, name, pose=None, size=(1, 1, 1), touch_links=None):
         """Create box and attach it to the given link"""
         if pose is not None:
             co = self.make_box(name, pose, size)
@@ -159,7 +159,7 @@ class PlanningSceneInterface(object):
             co = self.__make_existing(name)
         self.attach_object(co, link, touch_links)
 
-    def attach_sphere(self, link, name, pose=None, radius=1, touch_links=[]):
+    def attach_sphere(self, link, name, pose=None, radius=1, touch_links=None):
         """Create sphere and attach it to the given link"""
         if pose is not None:
             co = self.make_sphere(name, pose, radius)
@@ -168,7 +168,7 @@ class PlanningSceneInterface(object):
         self.attach_object(co, link, touch_links)
 
     def attach_cylinder(
-        self, link, name, pose=None, height=1, radius=1, touch_links=[]
+        self, link, name, pose=None, height=1, radius=1, touch_links=None
     ):
         """Create cylinder and attach it to the given link"""
         if pose is not None:
