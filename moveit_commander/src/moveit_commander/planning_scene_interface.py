@@ -127,36 +127,54 @@ class PlanningSceneInterface(object):
         co = self.make_plane(name, pose, normal, offset)
         self.__submit(co, attach=False)
 
-    def attach_object(self, attached_collision_object):
-        """Attach an object in the planning scene"""
-        self.__submit(attached_collision_object, attach=True)
+    def attach_object(self, object, link, touch_links=None):
+        """Attach an object to the given link"""
+        if isinstance(object, str):
+            object = self.__make_existing(object)
+        if isinstance(object, CollisionObject):
+            object = AttachedCollisionObject(object=object)
+
+        object.link_name = link
+        if touch_links is not None:
+            object.touch_links = touch_links if touch_links is not None else [link]
+
+        self.__submit(object, attach=True)
 
     def attach_mesh(
         self, link, name, pose=None, filename="", size=(1, 1, 1), touch_links=[]
     ):
-        aco = AttachedCollisionObject()
+        """Create mesh and attach it to the given link"""
         if (pose is not None) and filename:
-            aco.object = self.make_mesh(name, pose, filename, size)
+            co = self.make_mesh(name, pose, filename, size)
         else:
-            aco.object = self.__make_existing(name)
-        aco.link_name = link
-        aco.touch_links = [link]
-        if len(touch_links) > 0:
-            aco.touch_links = touch_links
-        self.__submit(aco, attach=True)
+            co = self.__make_existing(name)
+        self.attach_object(co, link, touch_links)
 
     def attach_box(self, link, name, pose=None, size=(1, 1, 1), touch_links=[]):
-        aco = AttachedCollisionObject()
+        """Create box and attach it to the given link"""
         if pose is not None:
-            aco.object = self.make_box(name, pose, size)
+            co = self.make_box(name, pose, size)
         else:
-            aco.object = self.__make_existing(name)
-        aco.link_name = link
-        if len(touch_links) > 0:
-            aco.touch_links = touch_links
+            co = self.__make_existing(name)
+        self.attach_object(co, link, touch_links)
+
+    def attach_sphere(self, link, name, pose=None, radius=1, touch_links=[]):
+        """Create sphere and attach it to the given link"""
+        if pose is not None:
+            co = self.make_sphere(name, pose, radius)
         else:
-            aco.touch_links = [link]
-        self.__submit(aco, attach=True)
+            co = self.__make_existing(name)
+        self.attach_object(co, link, touch_links)
+
+    def attach_cylinder(
+        self, link, name, pose=None, height=1, radius=1, touch_links=[]
+    ):
+        """Create cylinder and attach it to the given link"""
+        if pose is not None:
+            co = self.make_cylinder(name, pose, height, radius)
+        else:
+            co = self.__make_existing(name)
+        self.attach_object(co, link, touch_links)
 
     def clear(self):
         """Remove all objects from the planning scene"""
