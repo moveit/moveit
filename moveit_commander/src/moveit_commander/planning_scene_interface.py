@@ -129,15 +129,18 @@ class PlanningSceneInterface(object):
         co = self.make_plane(name, pose, normal, offset)
         self.__submit(co, attach=False)
 
-    def attach_object(self, object, link, touch_links=None):
+    def attach_object(self, object, link=None, touch_links=None):
         """Attach an object to the given link"""
         if isinstance(object, str):
             object = self.__make_existing(object)
         if isinstance(object, CollisionObject):
             object = AttachedCollisionObject(object=object)
 
-        object.link_name = link
-        object.touch_links = touch_links if touch_links is not None else [link]
+        if link is not None:
+            object.link_name = link
+        object.touch_links = (
+            touch_links if touch_links is not None else [object.link_name]
+        )
 
         self.__submit(object, attach=True)
 
