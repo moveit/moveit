@@ -260,6 +260,12 @@ class PlanningSceneInterface(object):
             aobjs[key] = msg
         return aobjs
 
+    def get_planning_scene(self, components):
+        """Get move_group's current planning scene"""
+        msg = PlanningScene()
+        conversions.msg_from_string(msg, self._psi.get_planning_scene(components))
+        return msg
+
     def apply_planning_scene(self, planning_scene_message):
         """
         Applies the planning scene message.
