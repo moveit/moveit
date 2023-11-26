@@ -37,6 +37,7 @@ from rosgraph.names import ns_join
 from . import conversions
 
 from moveit_msgs.msg import PlanningScene, CollisionObject, AttachedCollisionObject
+from moveit_msgs.msg import AllowedCollisionMatrix, AllowedCollisionEntry
 from moveit_ros_planning_interface import _moveit_planning_scene_interface
 from geometry_msgs.msg import Pose, Point
 from shape_msgs.msg import SolidPrimitive, Plane, Mesh, MeshTriangle
@@ -380,3 +381,38 @@ class PlanningSceneInterface(object):
         co.planes = [p]
         co.plane_poses = [pose.pose]
         return co
+
+
+def acm_set_default(acm, obj, allow):
+    """Set default collision behavior for obj"""
+    if obj not in acm.default_entry_names:
+        acm.default_entry_names.append(obj)
+        acm.default_entry_values.append(allow)
+    else:
+        idx = acm.default_entry_names.index(obj)
+        acm.default_entry_values[idx] = allow
+
+
+def acm_set_allowed(acm, obj, other=None, allow=True):
+    """Allow collisions between obj and other"""
+    if other is None:
+        acm.set_default(obj, allow)
+        return
+
+    other_idx = acm.entry_names.index(other)
+    if obj not in acm.entry_names:
+        acm.entry_names.append(obj)
+        for entry in acm.entry_values:
+            entry.enabled.append(allow)
+        acm.entry_values.append(
+            AllowedCollisionEntry(enabled=[allow for i in range(len(acm.entry_names))])
+        )
+        acm.entry_values[-1].enabled[other_idx] = allow
+    else:
+        obj_idx = acm.entry_names.index(obj)
+        acm.entry_values[obj_idx].enabled[other_idx] = allow
+        acm.entry_values[other_idx].enabled[obj_idx] = allow
+
+
+AllowedCollisionMatrix.set_default = acm_set_default
+AllowedCollisionMatrix.set_allowed = acm_set_allowed
