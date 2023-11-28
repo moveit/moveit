@@ -108,7 +108,6 @@ void plan_execution::PlanExecution::stop()
 void plan_execution::PlanExecution::planAndExecute(ExecutableMotionPlan& plan, const Options& opt)
 {
   plan.planning_scene_monitor_ = planning_scene_monitor_;
-  plan.planning_scene_ = planning_scene_monitor_->getPlanningScene();
   planAndExecuteHelper(plan, opt);
 }
 
@@ -245,14 +244,15 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan& p
 bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionPlan& plan,
                                                          const std::pair<int, int>& path_segment)
 {
-  if (path_segment.first >= 0 &&
-      plan.plan_components_[path_segment.first].trajectory_monitoring_)  // If path_segment.second <= 0, the function
-                                                                         // will fallback to check the entire trajectory
+  // If path_segment.second <= 0, the function will fallback to check the entire trajectory
+  if (path_segment.first >= 0 && plan.plan_components_[path_segment.first].trajectory_monitoring_)
   {
-    planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_);  // lock the scene so that it
-                                                                                         // does not modify the world
-                                                                                         // representation while
-                                                                                         // isStateValid() is called
+    // lock the scene so that it does not modify the world representation while isStateValid() is called
+    planning_scene_monitor::LockedPlanningSceneRO locked_scene(plan.planning_scene_monitor_);
+
+    // consider the custom scene if one was provided with the plan, else use the current scene
+    planning_scene::PlanningSceneConstPtr planning_scene{ plan.planning_scene_ ? plan.planning_scene_ : locked_scene };
+
     const robot_trajectory::RobotTrajectory& t = *plan.plan_components_[path_segment.first].trajectory_;
     const collision_detection::AllowedCollisionMatrix* acm =
         plan.plan_components_[path_segment.first].allowed_collision_matrix_.get();
@@ -263,20 +263,20 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
     {
       collision_detection::CollisionResult res;
       if (acm)
-        plan.planning_scene_->checkCollisionUnpadded(req, res, t.getWayPoint(i), *acm);
+        planning_scene->checkCollisionUnpadded(req, res, t.getWayPoint(i), *acm);
       else
-        plan.planning_scene_->checkCollisionUnpadded(req, res, t.getWayPoint(i));
+        planning_scene->checkCollisionUnpadded(req, res, t.getWayPoint(i));
 
-      if (res.collision || !plan.planning_scene_->isStateFeasible(t.getWayPoint(i), false))
+      if (res.collision || !planning_scene->isStateFeasible(t.getWayPoint(i), false))
       {
         // call the same functions again, in verbose mode, to show what issues have been detected
-        plan.planning_scene_->isStateFeasible(t.getWayPoint(i), true);
+        planning_scene->isStateFeasible(t.getWayPoint(i), true);
         req.verbose = true;
         res.clear();
         if (acm)
-          plan.planning_scene_->checkCollisionUnpadded(req, res, t.getWayPoint(i), *acm);
+          planning_scene->checkCollisionUnpadded(req, res, t.getWayPoint(i), *acm);
         else
-          plan.planning_scene_->checkCollisionUnpadded(req, res, t.getWayPoint(i));
+          planning_scene->checkCollisionUnpadded(req, res, t.getWayPoint(i));
         return false;
       }
     }
@@ -292,8 +292,6 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(E
 
   if (!plan.planning_scene_monitor_)
     plan.planning_scene_monitor_ = planning_scene_monitor_;
-  if (!plan.planning_scene_)
-    plan.planning_scene_ = planning_scene_monitor_->getPlanningScene();
 
   moveit_msgs::MoveItErrorCodes result;
 
@@ -338,14 +336,30 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(E
 
     if (!unwound)
     {
-      // unwind the path to execute based on the current state of the system
+      // unwind the first trajectory based on the most current available system state (or custom if requested)
       if (prev < 0)
-        plan.plan_components_[i].trajectory_->unwind(
-            plan.planning_scene_monitor_ && plan.planning_scene_monitor_->getStateMonitor() ?
-                *plan.planning_scene_monitor_->getStateMonitor()->getCurrentState() :
-                plan.planning_scene_->getCurrentState());
+      {
+        if (plan.planning_scene_)
+        {
+          plan.plan_components_[i].trajectory_->unwind(plan.planning_scene_->getCurrentState());
+        }
+        else if (plan.planning_scene_monitor_->getStateMonitor() &&
+                 plan.planning_scene_monitor_->getStateMonitor()->isActive())
+        {
+          moveit::core::RobotStateConstPtr state{ planning_scene_monitor_->getStateMonitor()->getCurrentState() };
+          plan.plan_components_[i].trajectory_->unwind(*state);
+        }
+        else
+        {
+          planning_scene_monitor::LockedPlanningSceneRO lscene{ plan.planning_scene_monitor_ };
+          plan.plan_components_[i].trajectory_->unwind(lscene->getCurrentState());
+        }
+      }
       else
+      {
+        // unwind based on end of previous trajectory
         plan.plan_components_[i].trajectory_->unwind(plan.plan_components_[prev].trajectory_->getLastWayPoint());
+      }
     }
 
     if (plan.plan_components_[i].trajectory_ && !plan.plan_components_[i].trajectory_->empty())

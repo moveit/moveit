@@ -154,7 +154,7 @@ void MoveGroupMoveAction::executeMoveCallbackPlanOnly(const moveit_msgs::MoveGro
 
   // lock the scene so that it does not modify the world representation while diff() is called
   planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
-  const planning_scene::PlanningSceneConstPtr& the_scene =
+  const planning_scene::PlanningSceneConstPtr the_scene =
       (moveit::core::isEmpty(goal->planning_options.planning_scene_diff)) ?
           static_cast<const planning_scene::PlanningSceneConstPtr&>(lscene) :
           lscene->diff(goal->planning_options.planning_scene_diff);
@@ -209,7 +209,7 @@ bool MoveGroupMoveAction::planUsingPlanningPipeline(const planning_interface::Mo
   planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_);
   try
   {
-    solved = planning_pipeline->generatePlan(plan.planning_scene_, req, res);
+    solved = planning_pipeline->generatePlan(plan.planning_scene_ ? plan.planning_scene_ : lscene, req, res);
   }
   catch (std::exception& ex)
   {
