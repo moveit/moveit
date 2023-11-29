@@ -396,7 +396,7 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(E
       std::pair<int, int> current_index = trajectory_execution_manager_->getCurrentExpectedTrajectoryIndex();
       if (!isRemainingPathValid(plan, current_index))
       {
-        ROS_INFO_NAMED("plan_execution", "Trajectory component '%s' is invalid after scene update",
+        ROS_WARN_NAMED("plan_execution", "Trajectory component '%s' is invalid after scene update",
                        plan.plan_components_[current_index.first].description_.c_str());
         path_became_invalid_ = true;
         break;
