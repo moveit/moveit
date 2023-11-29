@@ -811,13 +811,25 @@ const LinkModel* RobotState::getRigidlyConnectedParentLinkModel(const std::strin
 {
   const moveit::core::LinkModel* link{ nullptr };
 
-  size_t idx = 0;
-  if ((idx = frame.find('/')) != std::string::npos)
+  if (getRobotModel()->hasLinkModel(frame))
+  {
+    link = getLinkModel(frame);
+    if (transform)
+      transform->setIdentity();
+  }
+  else if (hasAttachedBody(frame))
+  {
+    auto* body{ getAttachedBody(frame) };
+    link = body->getAttachedLink();
+    if (transform)
+      *transform = body->getPose();
+  }
+  else if (size_t idx = frame.rfind('/'); idx != std::string::npos)
   {  // resolve sub frame
     std::string object{ frame.substr(0, idx) };
     if (!hasAttachedBody(object))
       return nullptr;
-    auto body{ getAttachedBody(object) };
+    auto* body{ getAttachedBody(object) };
     bool found = false;
     if (transform)
       *transform = body->getSubframeTransform(frame, &found);
@@ -829,21 +841,9 @@ const LinkModel* RobotState::getRigidlyConnectedParentLinkModel(const std::strin
       *transform = body->getPose() * *transform;
     link = body->getAttachedLink();
   }
-  else if (hasAttachedBody(frame))
-  {
-    auto body{ getAttachedBody(frame) };
-    if (transform)
-      *transform = body->getPose();
-    link = body->getAttachedLink();
-  }
-  else if (getRobotModel()->hasLinkModel(frame))
-  {
-    link = getLinkModel(frame);
-    if (transform)
-      transform->setIdentity();
-    if (!link)
-      return nullptr;
-  }
+  else
+    return nullptr;
+
   // link is valid and transform describes pose of frame w.r.t. global frame
   Eigen::Isometry3d link_transform;
   auto* parent = getRobotModel()->getRigidlyConnectedParentLinkModel(link, link_transform, jmg);
