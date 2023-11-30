@@ -41,15 +41,15 @@ namespace occupancy_map_monitor
 {
 static const std::string LOGNAME = "lazy_free_space_updater";
 
-LazyFreeSpaceUpdater::LazyFreeSpaceUpdater(const OccMapTreePtr& tree, unsigned int max_batch_size)
+LazyFreeSpaceUpdater::LazyFreeSpaceUpdater(const collision_detection::OccMapTreePtr& tree, unsigned int max_batch_size)
   : tree_(tree)
   , running_(true)
   , max_batch_size_(max_batch_size)
   , max_sensor_delta_(1e-3)  // 1mm
   , process_occupied_cells_set_(nullptr)
   , process_model_cells_set_(nullptr)
-  , update_thread_(boost::bind(&LazyFreeSpaceUpdater::lazyUpdateThread, this))
-  , process_thread_(boost::bind(&LazyFreeSpaceUpdater::processThread, this))
+  , update_thread_([this] { lazyUpdateThread(); })
+  , process_thread_([this] { processThread(); })
 {
 }
 

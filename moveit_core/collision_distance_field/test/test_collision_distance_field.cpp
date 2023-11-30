@@ -62,10 +62,10 @@ protected:
   {
     robot_model_ = moveit::core::loadTestingRobotModel("pr2");
 
-    acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), true));
+    acm_ = std::make_shared<collision_detection::AllowedCollisionMatrix>(robot_model_->getLinkModelNames(), true);
 
     std::map<std::string, std::vector<collision_detection::CollisionSphere>> link_body_decompositions;
-    cenv_.reset(new DefaultCEnvType(robot_model_, link_body_decompositions));
+    cenv_ = std::make_shared<DefaultCEnvType>(robot_model_, link_body_decompositions);
   }
 
   void TearDown() override
@@ -193,7 +193,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, ContactReporting)
 
   req.max_contacts = 10;
   req.max_contacts_per_pair = 2;
-  acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), false));
+  acm_ = std::make_shared<collision_detection::AllowedCollisionMatrix>(robot_model_->getLinkModelNames(), false);
   cenv_->checkSelfCollision(req, res, robot_state, *acm_);
   ASSERT_TRUE(res.collision);
   EXPECT_LE(res.contacts.size(), 10u);
@@ -269,7 +269,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester)
 
   req.group_name = "right_arm";
 
-  acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), true));
+  acm_ = std::make_shared<collision_detection::AllowedCollisionMatrix>(robot_model_->getLinkModelNames(), true);
 
   moveit::core::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
@@ -292,16 +292,16 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester)
   // deletes shape
   cenv_->getWorld()->removeObject("box");
 
+  const auto identity = Eigen::Isometry3d::Identity();
   std::vector<shapes::ShapeConstPtr> shapes;
   EigenSTL::vector_Isometry3d poses;
   shapes.push_back(shapes::ShapeConstPtr(new shapes::Box(.25, .25, .25)));
-  poses.push_back(Eigen::Isometry3d::Identity());
+  poses.push_back(identity);
   std::set<std::string> touch_links;
   trajectory_msgs::JointTrajectory empty_state;
-  moveit::core::AttachedBody* attached_body = new moveit::core::AttachedBody(
-      robot_state.getLinkModel("r_gripper_palm_link"), "box", shapes, poses, touch_links, empty_state);
 
-  robot_state.attachBody(attached_body);
+  robot_state.attachBody(std::make_unique<moveit::core::AttachedBody>(
+      robot_state.getLinkModel("r_gripper_palm_link"), "box", identity, shapes, poses, touch_links, empty_state));
 
   res = collision_detection::CollisionResult();
   cenv_->checkSelfCollision(req, res, robot_state, *acm_);
@@ -311,11 +311,10 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester)
   robot_state.clearAttachedBody("box");
 
   touch_links.insert("r_gripper_palm_link");
-  shapes[0].reset(new shapes::Box(.1, .1, .1));
+  shapes[0] = std::make_shared<shapes::Box>(.1, .1, .1);
 
-  moveit::core::AttachedBody* attached_body_1 = new moveit::core::AttachedBody(
-      robot_state.getLinkModel("r_gripper_palm_link"), "box", shapes, poses, touch_links, empty_state);
-  robot_state.attachBody(attached_body_1);
+  robot_state.attachBody(std::make_unique<moveit::core::AttachedBody>(
+      robot_state.getLinkModel("r_gripper_palm_link"), "box", identity, shapes, poses, touch_links, empty_state));
 
   res = collision_detection::CollisionResult();
   cenv_->checkSelfCollision(req, res, robot_state, *acm_);
@@ -332,6 +331,55 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester)
   res = collision_detection::CollisionResult();
   cenv_->checkRobotCollision(req, res, robot_state, *acm_);
   ASSERT_TRUE(res.collision);
+}
+
+TEST(DistanceFieldCollisionDetectionPadding, Sphere)
+{
+  geometry_msgs::Pose origin;
+  origin.orientation.w = 1.0;
+  moveit::core::RobotModelPtr robot_model{
+    moveit::core::RobotModelBuilder{ "test", "base" }.addCollisionSphere("base", 0.04, origin).build()
+  };
+  ASSERT_TRUE(static_cast<bool>(robot_model));
+
+  auto world = std::make_shared<collision_detection::World>();
+  world->addToObject("box", Eigen::Isometry3d::Identity(), std::make_shared<shapes::Box>(.02, .02, .02),
+                     Eigen::Isometry3d::Identity());
+
+  collision_detection::CollisionEnvDistanceField cenv{
+    robot_model,
+    world,
+    std::map<std::string, std::vector<collision_detection::CollisionSphere>>(),
+    0.1,                       // size_x
+    0.1,                       // size_y
+    0.2,                       // size_z
+    Eigen::Vector3d(0, 0, 0),  // origin
+    collision_detection::DEFAULT_USE_SIGNED_DISTANCE_FIELD,
+    collision_detection::DEFAULT_RESOLUTION,
+    collision_detection::DEFAULT_COLLISION_TOLERANCE,
+    collision_detection::DEFAULT_MAX_PROPOGATION_DISTANCE,
+    0.04  // non-zero padding
+  };
+
+  // required to invoke collision checks
+  moveit::core::RobotState robot_state{ robot_model };
+  collision_detection::AllowedCollisionMatrix acm{ robot_model->getLinkModelNames() };
+  collision_detection::CollisionRequest req;
+  collision_detection::CollisionResult res;
+
+  cenv.checkRobotCollision(req, res, robot_state, acm);
+  EXPECT_TRUE(res.collision) << "Trivial collision between two primitives should be detected";
+  res.clear();
+
+  world->setObjectPose("box", Eigen::Isometry3d::Identity() * Eigen::Translation3d(0, 0, 0.08));
+  cenv.checkRobotCollision(req, res, robot_state, acm);
+  EXPECT_TRUE(res.collision) << "Collision should be detected when box is in padding area of base";
+  res.clear();
+
+  world->setObjectPose("box", Eigen::Isometry3d::Identity() * Eigen::Translation3d(0, 0, 0.1));
+  cenv.checkRobotCollision(req, res, robot_state, acm);
+  EXPECT_FALSE(res.collision) << "No collision should be reported when box is outside of padding area";
+  res.clear();
 }
 
 int main(int argc, char** argv)

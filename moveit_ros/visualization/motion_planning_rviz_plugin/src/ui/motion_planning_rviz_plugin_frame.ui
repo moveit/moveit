@@ -58,6 +58,16 @@
              </widget>
             </item>
             <item>
+             <widget class="QComboBox" name="planning_pipeline_combo_box">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QComboBox" name="planning_algorithm_combo_box">
               <property name="sizePolicy">
                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
@@ -137,7 +147,7 @@
           <item>
            <widget class="QLineEdit" name="database_host">
             <property name="text">
-             <string>127.0.0.1</string>
+             <string></string>
             </property>
            </widget>
           </item>
@@ -154,7 +164,7 @@
              <number>65535</number>
             </property>
             <property name="value">
-             <number>33829</number>
+             <number>0</number>
             </property>
            </widget>
           </item>
@@ -920,235 +930,6 @@ This is usually achieved by random seeding, which can flip the robot configurati
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="manipulation">
-      <attribute name="title">
-       <string>Manipulation</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_13">
-       <item row="0" column="0" rowspan="2">
-        <widget class="QGroupBox" name="groupBox_13">
-         <property name="title">
-          <string>Detected Objects</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_8">
-          <item>
-           <widget class="QListWidget" name="detected_objects_list"/>
-          </item>
-          <item>
-           <widget class="QPushButton" name="detect_objects_button">
-            <property name="text">
-             <string>&amp;Detect</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QGroupBox" name="groupBox_14">
-         <property name="title">
-          <string>Support Surfaces</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_12">
-          <item row="1" column="1">
-           <widget class="QPushButton" name="place_button">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>P&amp;lace</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <spacer name="verticalSpacer_9">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="0" column="1">
-           <widget class="QPushButton" name="pick_button">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>&amp;Pick</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0" rowspan="3">
-           <widget class="QListWidget" name="support_surfaces_list"/>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QGroupBox" name="groupBox_7">
-         <property name="title">
-          <string>ROI</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_14">
-          <item row="0" column="2">
-           <widget class="QDoubleSpinBox" name="roi_center_y">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>40</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="minimum">
-             <double>-99.000000000000000</double>
-            </property>
-            <property name="singleStep">
-             <double>0.010000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QDoubleSpinBox" name="roi_size_x">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>40</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="singleStep">
-             <double>0.010000000000000</double>
-            </property>
-            <property name="value">
-             <double>4.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QDoubleSpinBox" name="roi_size_z">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>40</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="singleStep">
-             <double>0.010000000000000</double>
-            </property>
-            <property name="value">
-             <double>1.200000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QDoubleSpinBox" name="roi_size_y">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>40</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="singleStep">
-             <double>0.010000000000000</double>
-            </property>
-            <property name="value">
-             <double>1.500000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_14">
-            <property name="text">
-             <string>Size (m): </string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QDoubleSpinBox" name="roi_center_x">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>40</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="minimum">
-             <double>-99.000000000000000</double>
-            </property>
-            <property name="singleStep">
-             <double>0.010000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_12">
-            <property name="text">
-             <string>Center (m): </string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="3">
-           <widget class="QDoubleSpinBox" name="roi_center_z">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>40</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="minimum">
-             <double>-99.000000000000000</double>
-            </property>
-            <property name="singleStep">
-             <double>0.010000000000000</double>
-            </property>
-            <property name="value">
-             <double>0.600000000000000</double>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-      </layout>
-     </widget>
      <widget class="QWidget" name="scene_collision_objects">
       <attribute name="title">
        <string>Scene Objects</string>
@@ -1187,6 +968,9 @@ This is usually achieved by random seeding, which can flip the robot configurati
               </property>
               <property name="editTriggers">
                <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+              </property>
+              <property name="selectionMode">
+               <enum>QAbstractItemView::ExtendedSelection</enum>
               </property>
              </widget>
             </item>
@@ -1245,7 +1029,7 @@ This is usually achieved by random seeding, which can flip the robot configurati
                </widget>
               </item>
               <item>
-               <widget class="QDoubleSpinBox" name="shape_size_z_spin_box">
+               <widget class="QDoubleSpinBox" name="shape_size_y_spin_box">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -1270,7 +1054,7 @@ This is usually achieved by random seeding, which can flip the robot configurati
                </widget>
               </item>
               <item>
-               <widget class="QDoubleSpinBox" name="shape_size_y_spin_box">
+               <widget class="QDoubleSpinBox" name="shape_size_z_spin_box">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -1715,7 +1499,7 @@ This is usually achieved by random seeding, which can flip the robot configurati
                </size>
               </property>
               <property name="toolTip">
-               <string>Export scene geometry to a .scene file (only geometry information is preserved)</string>
+               <string>Export scene geometry to a .scene file (only world object information is preserved)</string>
               </property>
               <property name="text">
                <string>&amp;Export</string>
@@ -1737,7 +1521,7 @@ This is usually achieved by random seeding, which can flip the robot configurati
                </size>
               </property>
               <property name="toolTip">
-               <string>Import scene geometry from a .scene file (only geometry information is preserved)</string>
+               <string>Import scene geometry from a .scene file (only world object information is preserved)</string>
               </property>
               <property name="text">
                <string>&amp;Import</string>
@@ -2008,7 +1792,7 @@ This is usually achieved by random seeding, which can flip the robot configurati
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab">
+     <widget class="QWidget" name="status">
       <attribute name="title">
        <string>Status</string>
       </attribute>
@@ -2018,6 +1802,235 @@ This is usually achieved by random seeding, which can flip the robot configurati
          <property name="readOnly">
           <bool>true</bool>
          </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="manipulation">
+      <attribute name="title">
+       <string>Manipulation</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_13">
+       <item row="0" column="0" rowspan="2">
+        <widget class="QGroupBox" name="groupBox_13">
+         <property name="title">
+          <string>Detected Objects</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_8">
+          <item>
+           <widget class="QListWidget" name="detected_objects_list"/>
+          </item>
+          <item>
+           <widget class="QPushButton" name="detect_objects_button">
+            <property name="text">
+             <string>&amp;Detect</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QGroupBox" name="groupBox_14">
+         <property name="title">
+          <string>Support Surfaces</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_12">
+          <item row="1" column="1">
+           <widget class="QPushButton" name="place_button">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>P&amp;lace</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <spacer name="verticalSpacer_9">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="1">
+           <widget class="QPushButton" name="pick_button">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>&amp;Pick</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" rowspan="3">
+           <widget class="QListWidget" name="support_surfaces_list"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QGroupBox" name="groupBox_7">
+         <property name="title">
+          <string>ROI</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_14">
+          <item row="0" column="2">
+           <widget class="QDoubleSpinBox" name="roi_center_y">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="minimum">
+             <double>-99.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="roi_size_x">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
+            <property name="value">
+             <double>4.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QDoubleSpinBox" name="roi_size_z">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.200000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QDoubleSpinBox" name="roi_size_y">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.500000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_14">
+            <property name="text">
+             <string>Size (m): </string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QDoubleSpinBox" name="roi_center_x">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="minimum">
+             <double>-99.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>Center (m): </string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="QDoubleSpinBox" name="roi_center_z">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="minimum">
+             <double>-99.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.600000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>
@@ -2032,81 +2045,11 @@ This is usually achieved by random seeding, which can flip the robot configurati
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>5</height>
-      </size>
-     </property>
      <property name="maximumSize">
       <size>
        <width>16777215</width>
        <height>5</height>
       </size>
-     </property>
-     <property name="palette">
-      <palette>
-       <active>
-        <colorrole role="Highlight">
-         <brush brushstyle="SolidPattern">
-          <color alpha="255">
-           <red>255</red>
-           <green>255</green>
-           <blue>255</blue>
-          </color>
-         </brush>
-        </colorrole>
-        <colorrole role="HighlightedText">
-         <brush brushstyle="SolidPattern">
-          <color alpha="255">
-           <red>255</red>
-           <green>0</green>
-           <blue>0</blue>
-          </color>
-         </brush>
-        </colorrole>
-       </active>
-       <inactive>
-        <colorrole role="Highlight">
-         <brush brushstyle="SolidPattern">
-          <color alpha="255">
-           <red>255</red>
-           <green>255</green>
-           <blue>255</blue>
-          </color>
-         </brush>
-        </colorrole>
-        <colorrole role="HighlightedText">
-         <brush brushstyle="SolidPattern">
-          <color alpha="255">
-           <red>255</red>
-           <green>0</green>
-           <blue>0</blue>
-          </color>
-         </brush>
-        </colorrole>
-       </inactive>
-       <disabled>
-        <colorrole role="Highlight">
-         <brush brushstyle="SolidPattern">
-          <color alpha="255">
-           <red>240</red>
-           <green>240</green>
-           <blue>240</blue>
-          </color>
-         </brush>
-        </colorrole>
-        <colorrole role="HighlightedText">
-         <brush brushstyle="SolidPattern">
-          <color alpha="255">
-           <red>255</red>
-           <green>0</green>
-           <blue>0</blue>
-          </color>
-         </brush>
-        </colorrole>
-       </disabled>
-      </palette>
      </property>
      <property name="whatsThis">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Progress of background jobs&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -2144,6 +2087,8 @@ This is usually achieved by random seeding, which can flip the robot configurati
   </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>planning_pipeline_combo_box</tabstop>
   <tabstop>planning_algorithm_combo_box</tabstop>
   <tabstop>planner_param_treeview</tabstop>
   <tabstop>database_host</tabstop>
@@ -2188,8 +2133,8 @@ This is usually achieved by random seeding, which can flip the robot configurati
   <tabstop>roi_size_z</tabstop>
   <tabstop>collision_objects_list</tabstop>
   <tabstop>shape_size_x_spin_box</tabstop>
-  <tabstop>shape_size_z_spin_box</tabstop>
   <tabstop>shape_size_y_spin_box</tabstop>
+  <tabstop>shape_size_z_spin_box</tabstop>
   <tabstop>shapes_combo_box</tabstop>
   <tabstop>add_object_button</tabstop>
   <tabstop>remove_object_button</tabstop>
@@ -2220,7 +2165,6 @@ This is usually achieved by random seeding, which can flip the robot configurati
   <tabstop>save_start_state_button</tabstop>
   <tabstop>save_goal_state_button</tabstop>
   <tabstop>status_text</tabstop>
-  <tabstop>tabWidget</tabstop>
  </tabstops>
  <resources/>
  <connections/>

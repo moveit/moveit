@@ -1,16 +1,6 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(moveit_planners_trajopt)
 
-if(NOT "${CMAKE_CXX_STANDARD}")
-  set(CMAKE_CXX_STANDARD 14)
-endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
-
 find_package(catkin REQUIRED
     COMPONENTS
       moveit_core
@@ -20,8 +10,10 @@ find_package(catkin REQUIRED
       pluginlib
       roscpp
       rosparam_shortcuts
-      trajopt
 )
+find_package(trajopt REQUIRED)
+
+moveit_build_options()
 
 catkin_package(
     INCLUDE_DIRS include
@@ -58,6 +50,7 @@ target_link_libraries(
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
+  trajopt::trajopt
 )
 
 set_target_properties(

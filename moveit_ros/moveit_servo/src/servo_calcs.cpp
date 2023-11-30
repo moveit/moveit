@@ -86,7 +86,11 @@ geometry_msgs::TransformStamped convertIsometryToTransform(const Eigen::Isometry
 // Constructor for the class that handles servoing calculations
 ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
                        const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
-  : nh_(nh), parameters_(parameters), planning_scene_monitor_(planning_scene_monitor), stop_requested_(true)
+  : nh_(nh)
+  , parameters_(parameters)
+  , planning_scene_monitor_(planning_scene_monitor)
+  , stop_requested_(true)
+  , paused_(false)
 {
   // MoveIt Setup
   current_state_ = planning_scene_monitor_->getStateMonitor()->getCurrentState();
@@ -184,8 +188,7 @@ void ServoCalcs::start()
     // I do not know of a robot that takes acceleration commands.
     // However, some controllers check that this data is non-empty.
     // Send all zeros, for now.
-    std::vector<double> acceleration(num_joints_);
-    point.accelerations = acceleration;
+    point.accelerations.resize(num_joints_);
   }
   initial_joint_trajectory->points.push_back(point);
   last_sent_command_ = initial_joint_trajectory;
@@ -231,14 +234,10 @@ void ServoCalcs::mainCalcLoop()
     // lock the input state mutex
     std::unique_lock<std::mutex> input_lock(input_mutex_);
 
-    // low latency mode
+    // low latency mode -- begin calculations as soon as a new command is received.
     if (parameters_.low_latency_mode)
     {
       input_cv_.wait(input_lock, [this] { return (new_input_cmd_ || stop_requested_); });
-
-      // break out of the loop if stop was requested
-      if (stop_requested_)
-        break;
     }
 
     // reset new_input_cmd_ flag
@@ -360,7 +359,7 @@ void ServoCalcs::calculateSingleIteration()
   }
 
   // Print a warning to the user if both are stale
-  if (!twist_command_is_stale_ || !joint_command_is_stale_)
+  if (twist_command_is_stale_ && joint_command_is_stale_)
   {
     ROS_WARN_STREAM_THROTTLE_NAMED(10, LOGNAME,
                                    "Stale command. "
@@ -581,7 +580,7 @@ bool ServoCalcs::convertDeltasToOutgoingCmd(trajectory_msgs::JointTrajectory& jo
 
   composeJointTrajMessage(internal_joint_state_, joint_trajectory);
 
-  if (!enforcePositionLimits())
+  if (!enforcePositionLimits(internal_joint_state_))
   {
     suddenHalt(joint_trajectory);
     status_ = StatusCode::JOINT_BOUND;
@@ -598,15 +597,15 @@ bool ServoCalcs::convertDeltasToOutgoingCmd(trajectory_msgs::JointTrajectory& jo
 
 // Spam several redundant points into the trajectory. The first few may be skipped if the
 // time stamp is in the past when it reaches the client. Needed for gazebo simulation.
-// Start from 2 because the first point's timestamp is already 1*parameters_.publish_period
 void ServoCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& joint_trajectory, int count) const
 {
   joint_trajectory.points.resize(count);
   auto point = joint_trajectory.points[0];
-  // Start from 2 because we already have the first point. End at count+1 so (total #) == count
-  for (int i = 2; i < count; ++i)
+  // Start from 2nd point (i = 1) because we already have the first point.
+  // The timestamps are shifted up one period since first point is at 1 * publish_period, not 0.
+  for (int i = 1; i < count; ++i)
   {
-    point.time_from_start = ros::Duration(i * parameters_.publish_period);
+    point.time_from_start = ros::Duration((i + 1) * parameters_.publish_period);
     joint_trajectory.points[i] = point;
   }
 }
@@ -722,9 +721,8 @@ double ServoCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& co
 
   Eigen::JacobiSVD<Eigen::MatrixXd> new_svd(new_jacobian);
   double new_condition = new_svd.singularValues()(0) / new_svd.singularValues()(new_svd.singularValues().size() - 1);
-  // If new_condition < ini_condition, the singular vector does point towards a
-  // singularity. Otherwise, flip its direction.
-  if (ini_condition >= new_condition)
+  // If new_condition < ini_condition, the singular vector points away from the singularity. If so, flip its direction.
+  if (new_condition < ini_condition)
   {
     vector_toward_singularity *= -1;
   }
@@ -758,61 +756,29 @@ double ServoCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& co
 
 void ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
 {
+  // Convert to joint angle velocities for checking and applying joint specific velocity limits.
   Eigen::ArrayXd velocity = delta_theta / parameters_.publish_period;
 
-  std::size_t joint_delta_index = 0;
-  // Track the smallest velocity scaling factor required, across all joints
-  double velocity_limit_scaling_factor = 1;
-
-  for (auto joint : joint_model_group_->getActiveJointModels())
+  std::size_t joint_delta_index{ 0 };
+  double velocity_scaling_factor{ 1.0 };
+  for (const moveit::core::JointModel* joint : joint_model_group_->getActiveJointModels())
   {
-    // Some joints do not have bounds defined
-    const auto bounds = joint->getVariableBounds(joint->getName());
-
-    if (bounds.velocity_bounded_)
+    const auto& bounds = joint->getVariableBounds(joint->getName());
+    if (bounds.velocity_bounded_ && velocity(joint_delta_index) != 0.0)
     {
-      velocity(joint_delta_index) = delta_theta(joint_delta_index) / parameters_.publish_period;
-
-      bool clip_velocity = false;
-      double velocity_limit = 0.0;
-      if (velocity(joint_delta_index) < bounds.min_velocity_)
-      {
-        clip_velocity = true;
-        velocity_limit = bounds.min_velocity_;
-      }
-      else if (velocity(joint_delta_index) > bounds.max_velocity_)
-      {
-        clip_velocity = true;
-        velocity_limit = bounds.max_velocity_;
-      }
-
-      // Apply velocity bounds
-      if (clip_velocity)
-      {
-        const double scaling_factor =
-            fabs(velocity_limit * parameters_.publish_period) / fabs(delta_theta(joint_delta_index));
-
-        // Store the scaling factor if it's the smallest yet
-        if (scaling_factor < velocity_limit_scaling_factor)
-          velocity_limit_scaling_factor = scaling_factor;
-      }
+      const double unbounded_velocity = velocity(joint_delta_index);
+      // Clamp each joint velocity to a joint specific [min_velocity, max_velocity] range.
+      const auto bounded_velocity = std::min(std::max(unbounded_velocity, bounds.min_velocity_), bounds.max_velocity_);
+      velocity_scaling_factor = std::min(velocity_scaling_factor, bounded_velocity / unbounded_velocity);
     }
     ++joint_delta_index;
   }
 
-  // Apply the velocity scaling to all joints
-  if (velocity_limit_scaling_factor < 1)
-  {
-    for (joint_delta_index = 0; joint_delta_index < joint_model_group_->getActiveJointModels().size();
-         ++joint_delta_index)
-    {
-      delta_theta(joint_delta_index) = velocity_limit_scaling_factor * delta_theta(joint_delta_index);
-      velocity(joint_delta_index) = velocity_limit_scaling_factor * velocity(joint_delta_index);
-    }
-  }
+  // Convert back to joint angle increments.
+  delta_theta = velocity_scaling_factor * velocity * parameters_.publish_period;
 }
 
-bool ServoCalcs::enforcePositionLimits()
+bool ServoCalcs::enforcePositionLimits(sensor_msgs::JointState& joint_state)
 {
   bool halting = false;
 
@@ -830,14 +796,18 @@ bool ServoCalcs::enforcePositionLimits()
     }
     if (!current_state_->satisfiesPositionBounds(joint, -parameters_.joint_limit_margin))
     {
-      const std::vector<moveit_msgs::JointLimits> limits = joint->getVariableBoundsMsg();
+      const std::vector<moveit_msgs::JointLimits>& limits = joint->getVariableBoundsMsg();
 
       // Joint limits are not defined for some joints. Skip them.
       if (!limits.empty())
       {
-        if ((current_state_->getJointVelocities(joint)[0] < 0 &&
+        // Check if pending velocity command is moving in the right direction
+        auto joint_itr = std::find(joint_state.name.begin(), joint_state.name.end(), joint->getName());
+        auto joint_idx = std::distance(joint_state.name.begin(), joint_itr);
+
+        if ((joint_state.velocity.at(joint_idx) < 0 &&
              (joint_angle < (limits[0].min_position + parameters_.joint_limit_margin))) ||
-            (current_state_->getJointVelocities(joint)[0] > 0 &&
+            (joint_state.velocity.at(joint_idx) > 0 &&
              (joint_angle > (limits[0].max_position - parameters_.joint_limit_margin))))
         {
           ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
@@ -867,8 +837,10 @@ void ServoCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory)
   // being 0 seconds in the past, the smallest supported timestep is added as time from start to the trajectory point.
   point.time_from_start.fromNSec(1);
 
-  point.positions.resize(num_joints_);
-  point.velocities.resize(num_joints_);
+  if (parameters_.publish_joint_positions)
+    point.positions.resize(num_joints_);
+  if (parameters_.publish_joint_velocities)
+    point.velocities.resize(num_joints_);
 
   // Assert the following loop is safe to execute
   assert(original_joint_state_.position.size() >= num_joints_);

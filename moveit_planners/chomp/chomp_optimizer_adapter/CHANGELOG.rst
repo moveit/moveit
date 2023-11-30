@@ -2,6 +2,47 @@
 Changelog for package moveit_chomp_optimizer_adapter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+
+1.1.12 (2023-05-13)
+-------------------
+
+1.1.11 (2022-12-21)
+-------------------
+
+1.1.10 (2022-09-13)
+-------------------
+
+1.1.9 (2022-03-06)
+------------------
+
+1.1.8 (2022-01-30)
+------------------
+
+1.1.7 (2021-12-31)
+------------------
+
+1.1.6 (2021-11-06)
+------------------
+* Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``
+* CHOMP: Rename param 'clearence' to 'clearance' (`#2702 <https://github.com/ros-planning/moveit/issues/2702>`_, `#2707 <https://github.com/ros-planning/moveit/issues/2707>`_)
+* Contributors: Martin Günther, Michael Görner, Robert Haschke
+
+1.1.5 (2021-05-23)
+------------------
+
+1.1.4 (2021-05-12)
+------------------
+
+1.1.3 (2021-04-29)
+------------------
+
+1.1.2 (2021-04-08)
+------------------
+* Sanitize CHOMP initialization method parameter (`#2540 <https://github.com/ros-planning/moveit/issues/2540>`_)
+* Contributors: Cong Liu
+
 1.1.1 (2020-10-13)
 ------------------
 

@@ -286,27 +286,27 @@ void FloatingJointModel::getVariableRandomPositions(random_numbers::RandomNumber
 }
 
 void FloatingJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
-                                                          const Bounds& bounds, const double* near,
+                                                          const Bounds& bounds, const double* seed,
                                                           const double distance) const
 {
   if (bounds[0].max_position_ >= std::numeric_limits<double>::infinity() ||
       bounds[0].min_position_ <= -std::numeric_limits<double>::infinity())
     values[0] = 0.0;
   else
-    values[0] = rng.uniformReal(std::max(bounds[0].min_position_, near[0] - distance),
-                                std::min(bounds[0].max_position_, near[0] + distance));
+    values[0] = rng.uniformReal(std::max(bounds[0].min_position_, seed[0] - distance),
+                                std::min(bounds[0].max_position_, seed[0] + distance));
   if (bounds[1].max_position_ >= std::numeric_limits<double>::infinity() ||
       bounds[1].min_position_ <= -std::numeric_limits<double>::infinity())
     values[1] = 0.0;
   else
-    values[1] = rng.uniformReal(std::max(bounds[1].min_position_, near[1] - distance),
-                                std::min(bounds[1].max_position_, near[1] + distance));
+    values[1] = rng.uniformReal(std::max(bounds[1].min_position_, seed[1] - distance),
+                                std::min(bounds[1].max_position_, seed[1] + distance));
   if (bounds[2].max_position_ >= std::numeric_limits<double>::infinity() ||
       bounds[2].min_position_ <= -std::numeric_limits<double>::infinity())
     values[2] = 0.0;
   else
-    values[2] = rng.uniformReal(std::max(bounds[2].min_position_, near[2] - distance),
-                                std::min(bounds[2].max_position_, near[2] + distance));
+    values[2] = rng.uniformReal(std::max(bounds[2].min_position_, seed[2] - distance),
+                                std::min(bounds[2].max_position_, seed[2] + distance));
 
   double da = angular_distance_weight_ * distance;
   if (da >= .25 * boost::math::constants::pi<double>())
@@ -343,10 +343,10 @@ void FloatingJointModel::getVariableRandomPositionsNearBy(random_numbers::Random
       q[3] = cos(angle / 2.0);
     }
     // multiply quaternions: near * q
-    values[3] = near[6] * q[0] + near[3] * q[3] + near[4] * q[2] - near[5] * q[1];
-    values[4] = near[6] * q[1] + near[4] * q[3] + near[5] * q[0] - near[3] * q[2];
-    values[5] = near[6] * q[2] + near[5] * q[3] + near[3] * q[1] - near[4] * q[0];
-    values[6] = near[6] * q[3] - near[3] * q[0] - near[4] * q[1] - near[5] * q[2];
+    values[3] = seed[6] * q[0] + seed[3] * q[3] + seed[4] * q[2] - seed[5] * q[1];
+    values[4] = seed[6] * q[1] + seed[4] * q[3] + seed[5] * q[0] - seed[3] * q[2];
+    values[5] = seed[6] * q[2] + seed[5] * q[3] + seed[3] * q[1] - seed[4] * q[0];
+    values[6] = seed[6] * q[3] - seed[3] * q[0] - seed[4] * q[1] - seed[5] * q[2];
   }
 }
 

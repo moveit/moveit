@@ -47,8 +47,8 @@ namespace pilz_industrial_motion_planner
 {
 /**
  * @brief Base class for all PlanningContextLoaders.
- * Since planning_interface::PlanningContext has a non empty ctor classes
- * derived from it can not be plugins.
+ * Since planning_interface::PlanningContext has a non empty ctor,
+ * classes derived from it can not be plugins.
  * This class serves as base class for wrappers.
  */
 class PlanningContextLoader
@@ -123,7 +123,7 @@ bool PlanningContextLoader::loadContext(planning_interface::PlanningContextPtr& 
 {
   if (limits_set_ && model_set_)
   {
-    planning_context.reset(new T(name, group, model_, limits_));
+    planning_context = std::make_shared<T>(name, group, model_, limits_);
     return true;
   }
   else

@@ -36,10 +36,24 @@
 
 #include <moveit/constraint_samplers/default_constraint_samplers.h>
 #include <cassert>
-#include <boost/bind.hpp>
+#include <functional>
 
 namespace constraint_samplers
 {
+random_numbers::RandomNumberGenerator createSeededRNG(const std::string& seed_param)
+{
+  int rng_seed;
+  if (ros::param::get(seed_param, rng_seed))
+  {
+    ROS_DEBUG_STREAM_NAMED("constraint_samplers", "Creating random number generator with seed " << rng_seed);
+    return random_numbers::RandomNumberGenerator(rng_seed);
+  }
+  else
+  {
+    return random_numbers::RandomNumberGenerator();
+  }
+}
+
 bool JointConstraintSampler::configure(const moveit_msgs::Constraints& constr)
 {
   // construct the constraints
@@ -175,11 +189,6 @@ bool JointConstraintSampler::sample(moveit::core::RobotState& state,
 
   // we are always successful
   return true;
-}
-
-bool JointConstraintSampler::project(moveit::core::RobotState& state, unsigned int max_attempts)
-{
-  return sample(state, state, max_attempts);
 }
 
 void JointConstraintSampler::clear()
@@ -475,9 +484,28 @@ bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& q
     double angle_z =
         2.0 * (random_number_generator_.uniform01() - 0.5) *
         (sampling_pose_.orientation_constraint_->getZAxisTolerance() - std::numeric_limits<double>::epsilon());
-    Eigen::Isometry3d diff(Eigen::AngleAxisd(angle_x, Eigen::Vector3d::UnitX()) *
-                           Eigen::AngleAxisd(angle_y, Eigen::Vector3d::UnitY()) *
-                           Eigen::AngleAxisd(angle_z, Eigen::Vector3d::UnitZ()));
+
+    Eigen::Isometry3d diff;
+    if (sampling_pose_.orientation_constraint_->getParameterizationType() ==
+        moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES)
+    {
+      diff = Eigen::Isometry3d(Eigen::AngleAxisd(angle_x, Eigen::Vector3d::UnitX()) *
+                               Eigen::AngleAxisd(angle_y, Eigen::Vector3d::UnitY()) *
+                               Eigen::AngleAxisd(angle_z, Eigen::Vector3d::UnitZ()));
+    }
+    else if (sampling_pose_.orientation_constraint_->getParameterizationType() ==
+             moveit_msgs::OrientationConstraint::ROTATION_VECTOR)
+    {
+      Eigen::Vector3d rotation_vector(angle_x, angle_y, angle_z);
+      diff = Eigen::Isometry3d(Eigen::AngleAxisd(rotation_vector.norm(), rotation_vector.normalized()));
+    }
+    else
+    {
+      /* The parameterization type should be validated in configure, so this should never happen. */
+      ROS_ERROR_STREAM_NAMED("default_constraint_samplers",
+                             "The parameterization type for the orientation constraints is invalid.");
+    }
+
     // diff is isometry by construction
     // getDesiredRotationMatrix() returns a valid rotation matrix by contract
     // reqr has thus to be a valid isometry
@@ -515,8 +543,7 @@ namespace
 {
 void samplingIkCallbackFnAdapter(moveit::core::RobotState* state, const moveit::core::JointModelGroup* jmg,
                                  const moveit::core::GroupStateValidityCallbackFn& constraint,
-                                 const geometry_msgs::Pose& /*unused*/, const std::vector<double>& ik_sol,
-                                 moveit_msgs::MoveItErrorCodes& error_code)
+                                 const std::vector<double>& ik_sol, moveit_msgs::MoveItErrorCodes& error_code)
 {
   const std::vector<unsigned int>& bij = jmg->getKinematicsSolverJointBijection();
   std::vector<double> solution(bij.size());
@@ -532,11 +559,11 @@ void samplingIkCallbackFnAdapter(moveit::core::RobotState* state, const moveit::
 bool IKConstraintSampler::sample(moveit::core::RobotState& state, const moveit::core::RobotState& reference_state,
                                  unsigned int max_attempts)
 {
-  return sampleHelper(state, reference_state, max_attempts, false);
+  return sampleHelper(state, reference_state, max_attempts);
 }
 
 bool IKConstraintSampler::sampleHelper(moveit::core::RobotState& state, const moveit::core::RobotState& reference_state,
-                                       unsigned int max_attempts, bool project)
+                                       unsigned int max_attempts)
 {
   if (!is_valid_)
   {
@@ -546,8 +573,11 @@ bool IKConstraintSampler::sampleHelper(moveit::core::RobotState& state, const mo
 
   kinematics::KinematicsBase::IKCallbackFn adapted_ik_validity_callback;
   if (group_state_validity_callback_)
-    adapted_ik_validity_callback =
-        boost::bind(&samplingIkCallbackFnAdapter, &state, jmg_, group_state_validity_callback_, _1, _2, _3);
+    adapted_ik_validity_callback = [this, state_ptr = &state](const geometry_msgs::Pose& /*unused*/,
+                                                              const std::vector<double>& joints,
+                                                              moveit_msgs::MoveItErrorCodes& error_code) {
+      samplingIkCallbackFnAdapter(state_ptr, jmg_, group_state_validity_callback_, joints, error_code);
+    };
 
   for (unsigned int a = 0; a < max_attempts; ++a)
   {
@@ -591,15 +621,10 @@ bool IKConstraintSampler::sampleHelper(moveit::core::RobotState& state, const mo
     ik_query.orientation.z = quat.z();
     ik_query.orientation.w = quat.w();
 
-    if (callIK(ik_query, adapted_ik_validity_callback, ik_timeout_, state, project && a == 0))
+    if (callIK(ik_query, adapted_ik_validity_callback, ik_timeout_, state, a == 0))
       return true;
   }
   return false;
-}
-
-bool IKConstraintSampler::project(moveit::core::RobotState& state, unsigned int max_attempts)
-{
-  return sampleHelper(state, state, max_attempts, true);
 }
 
 bool IKConstraintSampler::validate(moveit::core::RobotState& state) const

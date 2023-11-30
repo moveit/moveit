@@ -4,12 +4,12 @@
   <arg name="cfg" />
 
   <!-- Load URDF -->
-  <include file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_context.launch">
+  <include file="$(dirname)/planning_context.launch">
     <arg name="load_robot_description" value="true"/>
   </include>
 
   <!-- Start the database -->
-  <include file="$(find [GENERATED_PACKAGE_NAME])/launch/warehouse.launch">
+  <include file="$(dirname)/warehouse.launch">
     <arg name="moveit_warehouse_database_path" value="moveit_ompl_benchmark_warehouse"/>
   </include>
 

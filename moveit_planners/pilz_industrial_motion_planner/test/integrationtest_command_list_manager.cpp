@@ -113,8 +113,8 @@ void IntegrationTestCommandListManager::SetUp()
   ASSERT_TRUE(ph_.getParam(TEST_DATA_FILE_NAME, test_data_file_name));
 
   // load the test data provider
-  data_loader_.reset(
-      new pilz_industrial_motion_planner_testutils::XmlTestdataLoader{ test_data_file_name, robot_model_ });
+  data_loader_ =
+      std::make_unique<pilz_industrial_motion_planner_testutils::XmlTestdataLoader>(test_data_file_name, robot_model_);
   ASSERT_NE(nullptr, data_loader_) << "Failed to load test data by provider.";
 
   // Define and set the current scene and manager test object
@@ -624,13 +624,13 @@ TEST_F(IntegrationTestCommandListManager, TestGroupSpecificStartState)
   seq.erase(4, seq.size());
 
   Gripper& gripper{ seq.getCmd<Gripper>(0) };
-  gripper.getStartConfiguration().setCreateJointNameFunc(std::bind(&createGripperJointName, _1));
+  gripper.getStartConfiguration().setCreateJointNameFunc([](size_t n) { return createGripperJointName(n); });
   // By deleting the model we guarantee that the start state only consists
   // of joints of the gripper group without the manipulator
   gripper.getStartConfiguration().clearModel();
 
   PtpJointCart& ptp{ seq.getCmd<PtpJointCart>(1) };
-  ptp.getStartConfiguration().setCreateJointNameFunc(std::bind(&createManipulatorJointName, _1));
+  ptp.getStartConfiguration().setCreateJointNameFunc([](size_t n) { return createManipulatorJointName(n); });
   // By deleting the model we guarantee that the start state only consists
   // of joints of the manipulator group without the gripper
   ptp.getStartConfiguration().clearModel();

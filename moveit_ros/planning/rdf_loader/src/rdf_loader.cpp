@@ -87,7 +87,7 @@ rdf_loader::RDFLoader::RDFLoader(const std::string& robot_description)
     return;
   }
 
-  srdf::ModelSharedPtr srdf(new srdf::Model());
+  auto srdf = std::make_shared<srdf::Model>();
   if (!srdf->initString(*urdf_, scontent))
   {
     ROS_ERROR_NAMED("rdf_loader", "Unable to parse SRDF from parameter '%s'", srdf_description.c_str());
@@ -103,21 +103,20 @@ rdf_loader::RDFLoader::RDFLoader(const std::string& urdf_string, const std::stri
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("RDFLoader(string)");
 
-  urdf::Model* umodel = new urdf::Model();
-  urdf_.reset(umodel);
+  auto umodel = std::make_unique<urdf::Model>();
   if (umodel->initString(urdf_string))
   {
-    srdf_.reset(new srdf::Model());
-    if (!srdf_->initString(*urdf_, srdf_string))
+    auto smodel = std::make_shared<srdf::Model>();
+    if (!smodel->initString(*umodel, srdf_string))
     {
       ROS_ERROR_NAMED("rdf_loader", "Unable to parse SRDF");
-      srdf_.reset();
     }
+    urdf_ = std::move(umodel);
+    srdf_ = std::move(smodel);
   }
   else
   {
     ROS_ERROR_NAMED("rdf_loader", "Unable to parse URDF");
-    urdf_.reset();
   }
 }
 
@@ -163,6 +162,7 @@ bool rdf_loader::RDFLoader::loadFileToString(std::string& buffer, const std::str
 bool rdf_loader::RDFLoader::loadXacroFileToString(std::string& buffer, const std::string& path,
                                                   const std::vector<std::string>& xacro_args)
 {
+  buffer.clear();
   if (path.empty())
   {
     ROS_ERROR_NAMED("rdf_loader", "Path is empty");

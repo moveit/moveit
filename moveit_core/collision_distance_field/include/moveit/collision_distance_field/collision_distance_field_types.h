@@ -104,12 +104,12 @@ struct GradientInfo
   }
 };
 
-MOVEIT_CLASS_FORWARD(PosedDistanceField)
+MOVEIT_CLASS_FORWARD(PosedDistanceField);
 MOVEIT_CLASS_FORWARD(BodyDecomposition);  // Defines BodyDecompositionPtr, ConstPtr, WeakPtr... etc
-MOVEIT_CLASS_FORWARD(PosedBodySphereDecomposition)
-MOVEIT_CLASS_FORWARD(PosedBodyPointDecomposition)
-MOVEIT_CLASS_FORWARD(PosedBodySphereDecompositionVector)
-MOVEIT_CLASS_FORWARD(PosedBodyPointDecompositionVector)
+MOVEIT_CLASS_FORWARD(PosedBodySphereDecomposition);
+MOVEIT_CLASS_FORWARD(PosedBodyPointDecomposition);
+MOVEIT_CLASS_FORWARD(PosedBodySphereDecompositionVector);
+MOVEIT_CLASS_FORWARD(PosedBodyPointDecompositionVector);
 
 class PosedDistanceField : public distance_field::PropagationDistanceField
 {

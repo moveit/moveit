@@ -395,7 +395,7 @@ bool StartScreenWidget::loadExistingFiles()
   QApplication::processEvents();
 
   // Load the SRDF
-  if (!loadSRDFFile(config_data_->srdf_path_))
+  if (!loadSRDFFile(config_data_->srdf_path_, config_data_->xacro_args_))
     return false;  // error occured
 
   // Progress Indicator
@@ -403,7 +403,7 @@ bool StartScreenWidget::loadExistingFiles()
   QApplication::processEvents();
 
   // Load the allowed collision matrix
-  config_data_->loadAllowedCollisionMatrix();
+  config_data_->loadAllowedCollisionMatrix(*config_data_->srdf_);
 
   // Load kinematics yaml file if available --------------------------------------------------
   fs::path kinematics_yaml_path = config_data_->config_pkg_path_;
@@ -428,7 +428,7 @@ bool StartScreenWidget::loadExistingFiles()
   // Load 3d_sensors config file
   load3DSensorsFile();
 
-  // Load ros controllers yaml file if available-----------------------------------------------
+  // Load ros_controllers.yaml file if available-----------------------------------------------
   fs::path ros_controllers_yaml_path = config_data_->config_pkg_path_;
   ros_controllers_yaml_path /= "config/ros_controllers.yaml";
   config_data_->inputROSControllersYAML(ros_controllers_yaml_path.make_preferred().string());
@@ -546,9 +546,7 @@ bool StartScreenWidget::loadNewFiles()
 // ******************************************************************************************
 bool StartScreenWidget::loadURDFFile(const std::string& urdf_file_path, const std::string& xacro_args)
 {
-  const std::vector<std::string> vec_xacro_args = { xacro_args };
-
-  if (!rdf_loader::RDFLoader::loadXmlFileToString(config_data_->urdf_string_, urdf_file_path, vec_xacro_args))
+  if (!rdf_loader::RDFLoader::loadXmlFileToString(config_data_->urdf_string_, urdf_file_path, { xacro_args }))
   {
     QMessageBox::warning(this, "Error Loading Files",
                          QString("URDF/COLLADA file not found: ").append(urdf_file_path.c_str()));
@@ -592,12 +590,10 @@ bool StartScreenWidget::loadURDFFile(const std::string& urdf_file_path, const st
 // ******************************************************************************************
 // Load SRDF File to Parameter Server
 // ******************************************************************************************
-bool StartScreenWidget::loadSRDFFile(const std::string& srdf_file_path)
+bool StartScreenWidget::loadSRDFFile(const std::string& srdf_file_path, const std::string& xacro_args)
 {
-  const std::vector<std::string> xacro_args;
-
   std::string srdf_string;
-  if (!rdf_loader::RDFLoader::loadXmlFileToString(srdf_string, srdf_file_path, xacro_args))
+  if (!rdf_loader::RDFLoader::loadXmlFileToString(srdf_string, srdf_file_path, { xacro_args }))
   {
     QMessageBox::warning(this, "Error Loading Files", QString("SRDF file not found: ").append(srdf_file_path.c_str()));
     return false;
@@ -666,7 +662,7 @@ bool StartScreenWidget::extractPackageNameFromPath()
     {
       QMessageBox::warning(this, "Package Not Found In ROS Workspace",
                            QString("ROS was unable to find the package name '")
-                               .append(config_data_->urdf_pkg_name_.c_str())
+                               .append(package_name.c_str())
                                .append("' within the ROS workspace. This may cause issues later."));
     }
 
@@ -738,18 +734,9 @@ bool StartScreenWidget::load3DSensorsFile()
   fs::path sensors_3d_yaml_path = config_data_->config_pkg_path_;
   sensors_3d_yaml_path /= "config/sensors_3d.yaml";
 
-  // Default parameters values are always loaded but overridden by values existing in sensors_3d
-  fs::path default_sensors_3d_yaml_path = "templates/moveit_config_pkg_template/config/sensors_3d.yaml";
-
-  if (!fs::is_regular_file(sensors_3d_yaml_path))
-  {
-    return config_data_->input3DSensorsYAML(default_sensors_3d_yaml_path.make_preferred().string());
-  }
-  else
-  {
-    return config_data_->input3DSensorsYAML(default_sensors_3d_yaml_path.make_preferred().string(),
-                                            sensors_3d_yaml_path.make_preferred().string());
-  }
+  if (fs::is_regular_file(sensors_3d_yaml_path))
+    config_data_->input3DSensorsYAML(sensors_3d_yaml_path.make_preferred().string());
+  return true;
 }
 
 // ******************************************************************************************

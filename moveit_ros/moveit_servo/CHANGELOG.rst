@@ -2,6 +2,71 @@
 Changelog for package moveit_servo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+
+1.1.12 (2023-05-13)
+-------------------
+* Simplify servo config + reusable launch files (`#3326 <https://github.com/ros-planning/moveit/issues/3326>`_)
+* Contributors: Robert Haschke
+
+1.1.11 (2022-12-21)
+-------------------
+
+1.1.10 (2022-09-13)
+-------------------
+
+1.1.9 (2022-03-06)
+------------------
+
+1.1.8 (2022-01-30)
+------------------
+
+1.1.7 (2021-12-31)
+------------------
+
+1.1.6 (2021-11-06)
+------------------
+* Backport position limit enforcement from MoveIt2 (`#2898 <https://github.com/ros-planning/moveit/issues/2898>`_)
+* Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``
+* Minor fixups (`#2759 <https://github.com/ros-planning/moveit/issues/2759>`_)
+* Remove gtest include from non-testing source (`#2747 <https://github.com/ros-planning/moveit/issues/2747>`_)
+* Fix an off-by-one error in servo_calcs.cpp (`#2740 <https://github.com/ros-planning/moveit/issues/2740>`_)
+* Refactor ``moveit_servo::LowPassFilter`` to be assignable (`#2722 <https://github.com/ros-planning/moveit/issues/2722>`_)
+* Contributors: Griswald Brooks, Michael Görner, Michael Wiznitzer, Robert Haschke, luisrayas3, toru-kuga
+
+1.1.5 (2021-05-23)
+------------------
+
+1.1.4 (2021-05-12)
+------------------
+
+1.1.3 (2021-04-29)
+------------------
+* Avoid joint jump when SuddenHalt() is called in velocity mode (`#2594 <https://github.com/ros-planning/moveit/issues/2594>`_)
+* Contributors: Nathan Brooks
+
+1.1.2 (2021-04-08)
+------------------
+* Fix formatting errors
+* Halt Servo command on Pose Tracking stop (`#2501 <https://github.com/ros-planning/moveit/issues/2501>`_)
+* stop_requested\_ flag clearing fix (`#2537 <https://github.com/ros-planning/moveit/issues/2537>`_)
+* Add missing include (`#2519 <https://github.com/ros-planning/moveit/issues/2519>`_)
+* Refactor Servo velocity bounds enforcement (`#2471 <https://github.com/ros-planning/moveit/issues/2471>`_)
+* Protect paused\_ flag, for thread safety (`#2494 <https://github.com/ros-planning/moveit/issues/2494>`_)
+* Do not break out of loop -- need to update low pass filters (`#2496 <https://github.com/ros-planning/moveit/issues/2496>`_)
+* Fix initial angle error is always 0 (`#2464 <https://github.com/ros-planning/moveit/issues/2464>`_)
+* Add an important sleep in Servo pose tracking (`#2463 <https://github.com/ros-planning/moveit/issues/2463>`_)
+* Prevent moveit_servo transforms between fixed frames from causing timeout (`#2418 <https://github.com/ros-planning/moveit/issues/2418>`_)
+* Low latency mode (`#2401 <https://github.com/ros-planning/moveit/issues/2401>`_)
+* Move timer initialization down to fix potential race condition
+* Fix pose tracking race condition (`#2395 <https://github.com/ros-planning/moveit/issues/2395>`_)
+* Cleanup current state handling in servo (`#2372 <https://github.com/ros-planning/moveit/issues/2372>`_)
+* Change servo namespacing logic (`#2354 <https://github.com/ros-planning/moveit/issues/2354>`_)
+* Fix servo trajectory point timestamping (`#2375 <https://github.com/ros-planning/moveit/issues/2375>`_)
+* Fix ordering of windup args to control_toolbox::Pid (`#2370 <https://github.com/ros-planning/moveit/issues/2370>`_)
+* Contributors: AdamPettinger, AndyZe, Jere Liukkonen, Michael Görner, Nathan Brooks, Tyler Weaver, parunapu
+
 1.1.1 (2020-10-13)
 ------------------
 * [feature] A library for servoing toward a moving pose (`#2203 <https://github.com/ros-planning/moveit/issues/2203>`_)

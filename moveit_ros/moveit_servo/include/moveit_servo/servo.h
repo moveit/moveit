@@ -38,8 +38,10 @@
 
 #pragma once
 
+// System
 #include <memory>
 
+// MoveIt
 #include <moveit_servo/collision_check.h>
 #include <moveit_servo/servo_parameters.h>
 #include <moveit_servo/servo_calcs.h>
@@ -92,6 +94,9 @@ public:
   {
     servo_calcs_->changeRobotLinkCommandFrame(new_command_frame);
   }
+
+  // Give test access to private/protected methods
+  friend class ServoFixture;
 
 private:
   bool readParameters();

@@ -1,20 +1,10 @@
-<?xml version="1.0"?>
 <launch>
-  <!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
-  <include file="$(find moveit_resources)/pr2_moveit_config/launch/planning_context.launch">
-    <arg name="load_robot_description" value="true"/>
-  </include>
+    <include file="$(find moveit_resources_panda_moveit_config)/launch/test_environment.launch"/>
 
-  <!-- If needed, broadcast static tf for robot root -->
-  <node pkg="tf2_ros" type="static_transform_publisher" name="virtual_joint_broadcaster_1" args="0 0 0 0 0 0 world base_footprint" />
+    <!-- Load the robot specific controller manager; this sets the moveit_controller_manager ROS parameter -->
+    <include ns="test_execution_manager" file="$(find moveit_resources_panda_moveit_config)/launch/fake_moveit_controller_manager.launch.xml" />
 
-  <!-- Send fake joint values -->
-  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+    <rosparam ns="planning_pipelines" param="pipeline_names">["ompl"]</rosparam>
 
-  <!-- Start robot state publisher -->
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
-
-  <test test-name="execution_manager" pkg="moveit_ros_planning" type="test_execution_manager">
-    <param name="moveit_controller_manager" value=""/>
-  </test>
+    <test pkg="moveit_ros_planning" type="test_execution_manager" test-name="test_execution_manager" time-limit="300" args="" />
 </launch>

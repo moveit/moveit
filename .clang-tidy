@@ -7,6 +7,10 @@ Checks:          '-*,
                   modernize-use-default,
                   modernize-use-override,
                   modernize-loop-convert,
+                  modernize-make-shared,
+                  modernize-make-unique,
+                  modernize-avoid-bind,
+                  misc-unused-parameters,
                   readability-named-parameter,
                   readability-redundant-smartptr-get,
                   readability-redundant-string-cstr,
@@ -21,6 +25,8 @@ CheckOptions:
     value:           '10'
   - key:             llvm-namespace-comment.SpacesBeforeComments
     value:           '2'
+  - key:             misc-unused-parameters.StrictMode
+    value:           '1'
   - key:             readability-braces-around-statements.ShortStatementLines
     value:           '2'
   # type names

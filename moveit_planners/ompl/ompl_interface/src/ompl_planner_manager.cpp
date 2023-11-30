@@ -100,7 +100,7 @@ public:
       }
     };
 
-    output_handler_.reset(new OutputHandler());
+    output_handler_ = std::make_shared<OutputHandler>();
     ompl::msg::useOutputHandler(output_handler_.get());
   }
 
@@ -108,12 +108,12 @@ public:
   {
     if (!ns.empty())
       nh_ = ros::NodeHandle(ns);
-    ompl_interface_.reset(new OMPLInterface(model, nh_));
+    ompl_interface_ = std::make_unique<OMPLInterface>(model, nh_);
     std::string ompl_ns = ns.empty() ? "ompl" : ns + "/ompl";
-    dynamic_reconfigure_server_.reset(
-        new dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig>(ros::NodeHandle(nh_, ompl_ns)));
+    dynamic_reconfigure_server_ =
+        std::make_unique<dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig>>(ros::NodeHandle(nh_, ompl_ns));
     dynamic_reconfigure_server_->setCallback(
-        std::bind(&OMPLPlannerManager::dynamicReconfigureCallback, this, std::placeholders::_1, std::placeholders::_2));
+        [this](auto& config, uint32_t level) { dynamicReconfigureCallback(config, level); });
     config_settings_ = ompl_interface_->getPlannerConfigurations();
     return true;
   }
@@ -295,8 +295,7 @@ private:
       pub_valid_states_ = nh_.advertise<moveit_msgs::DisplayRobotState>("ompl_planner_valid_states", 5);
       pub_valid_traj_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("ompl_planner_valid_trajectories", 5);
       display_random_valid_states_ = true;
-      //    pub_valid_states_thread_.reset(new boost::thread(boost::bind(&OMPLPlannerManager::displayRandomValidStates,
-      //    this)));
+      //    pub_valid_states_thread_.reset(new boost::thread([this] { displayRandomValidStates(); }));
     }
   }
 

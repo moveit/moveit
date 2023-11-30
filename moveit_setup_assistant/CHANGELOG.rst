@@ -2,6 +2,192 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+* Fix OMPL's TRRT parameter names (`#3461 <https://github.com/ros-planning/moveit/issues/3461>`_)
+* Contributors: VideoSystemsTech
+
+1.1.12 (2023-05-13)
+-------------------
+* Add AITstar, BITstar and ABITstar planners from OMPL >= 1.5 (`#3347 <https://github.com/ros-planning/moveit/issues/3347>`_)
+* Allow configuration of goal tolerances in kinematics.yaml (`#3409 <https://github.com/ros-planning/moveit/issues/3409>`_)
+* MSA: Fix 3D Perception widget (`#3399 <https://github.com/ros-planning/moveit/issues/3399>`_)
+* Fix deprecation warnings in Debian bookworm (`#3397 <https://github.com/ros-planning/moveit/issues/3397>`_)
+* Contributors: Michael Görner, Robert Haschke, alaflaquiere
+
+1.1.11 (2022-12-21)
+-------------------
+* MSA: Cleanup SimulationWidget (`#3281 <https://github.com/ros-planning/moveit/issues/3281>`_)
+
+  * Don't rewrite ``gazebo.launch`` after user changes
+  * Only offer to write ``gazebo\_*.urdf`` if content would be non-empty
+  * Clarify usage
+  * Graceful opening of editor
+  * Disable "overwrite" button if there are no changes
+  * If overwriting fails: ``write gazebo\_*.urdf`` as fallback
+* Remove capabilities declaration from pipeline configs (`#3274 <https://github.com/ros-planning/moveit/issues/3274>`_)
+
+  Capabilities are global to the ``move_group`` node and not specific to pipleline configs.
+  As the latter ones load their parameters into a namespace, e.g. ``/move_group/planning_pipelines/ompl/*``,
+  loading a capability as suggested by the comments, didn't have any effect.
+* Expose ``world_name`` and ``world_pose`` args in ``*gazebo.launch`` (`#3238 <https://github.com/ros-planning/moveit/issues/3238>`_)
+* run-depend on all default MoveIt planners
+* Start ``robot_state_publisher`` in ``gazebo.launch`` (`#3236 <https://github.com/ros-planning/moveit/issues/3236>`_)
+* Generalize sizing of joint list widgets (`#3219 <https://github.com/ros-planning/moveit/issues/3219>`_)
+* Contributors: Robert Haschke, Robert Kampf
+
+1.1.10 (2022-09-13)
+-------------------
+* Limit Cartesian speed for link(s) (`#2856 <https://github.com/ros-planning/moveit/issues/2856>`_)
+* MSA templates: replace hard-coded package name
+* Extended ACM editing in MSA (`#3093 <https://github.com/ros-planning/moveit/issues/3093>`_)
+
+  * Allow disabling/enabling links by default
+  * Use matrix view by default
+* Optionally enable dynamics monitoring in move_group node (`#3137 <https://github.com/ros-planning/moveit/issues/3137>`_)
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Improve Gazebo-compatible URDF generation in MSA (`#3081 <https://github.com/ros-planning/moveit/issues/3081>`_)
+* Contributors: AM4283, Michael Görner, Robert Haschke, rickstaa
+
+1.1.9 (2022-03-06)
+------------------
+* Fix collisions_updater's set comparison (`#3076 <https://github.com/ros-planning/moveit/issues/3076>`_)
+* MSA: boost::bind -> std::bind (`#3039 <https://github.com/ros-planning/moveit/issues/3039>`_)
+* Do not automatically load robot description in move_group.launch (`#3065 <https://github.com/ros-planning/moveit/issues/3065>`_)
+* Contributors: Jochen Sprickerhof, Loy van Beek, Michael Görner
+
+1.1.8 (2022-01-30)
+------------------
+* Implement ACM defaults as a fallback instead of an override (`#2938 <https://github.com/ros-planning/moveit/issues/2938>`_)
+* MSA: Add STOMP + OMPL-CHOMP configs (`#2955 <https://github.com/ros-planning/moveit/issues/2955>`_)
+
+  - Add stomp planner to MSA
+  - Add OMPL-CHOMP planner to MSA
+  - Remove obsolete CHOMP parameters
+  - Update CHOMP config parameters to match code defaults
+  - Create CHOMP config via template (instead of code)
+* Move MoveItConfigData::setCollisionLinkPairs to collisions_updater.cpp
+* Contributors: Rick Staa, Robert Haschke
+
+1.1.7 (2021-12-31)
+------------------
+* Pass xacro_args to both, urdf and srdf loading (`#3013 <https://github.com/ros-planning/moveit/issues/3013>`_)
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* Update timestamp of .setup_assistant file when writing files (`#2964 <https://github.com/ros-planning/moveit/issues/2964>`_)
+* Upload controller_list for simple controller manager (`#2954 <https://github.com/ros-planning/moveit/issues/2954>`_)
+* Contributors: Jochen Sprickerhof, Rick Staa, Robert Haschke
+
+1.1.6 (2021-11-06)
+------------------
+* Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``
+* Correctly state not-found package name
+* Finish setup_assistant.launch when MSA finished (`#2749 <https://github.com/ros-planning/moveit/issues/2749>`_)
+
+* **Enabling the following new features requires recreation of your robot's MoveIt config with the new MSA!**
+* Various improvements (`#2932 <https://github.com/ros-planning/moveit/issues/2932>`_)
+
+  * Define default planner for Pilz pipeline
+  * Allow checking/unchecking multiple files for generation
+  * ``moveit.rviz``: Use Orbit view controller
+  * Rename launch argument ``execution_type`` -> ``fake_execution_type`` to clarify that this parameter is only used for fake controllers
+  * ``demo.launch``: Start joint + robot-state publishers in fake mode only
+  * Modularize ``demo_gazebo.launch`` reusing ``demo.launch``
+  * ``gazebo.launch``
+
+    * Delay unpause to ensure that the robot's initial pose is actually held
+    * Allow initial_joint_positions
+    * Load URDF via xacro if neccessary
+
+  * Rework ``moveit_controller_manager`` handling
+
+    So far, ``move_group.launch`` distinguished between fake and real-robot operation only.
+    The boolean launch-file argument ``fake_execution`` was translated to ``moveit_controller_manager = [fake|robot]``
+    in ``move_group.launch`` and then further translated to the actual plugin name.
+
+    However, MoveIt provides 3 basic controller manager plugins:
+
+    - ``fake`` = ``moveit_fake_controller_manager::MoveItFakeControllerManager`` (default in ``demo.launch``)
+
+      Doesn't really control the robot. Provides these interpolation types (``fake_execution_type``):
+
+      - ``via points``: jumps to the via points
+      - ``interpolate``: linearly interpolates between via points (default)
+      - ``last point``: jumps to the final trajectory point (used for fast execution testing)
+    - ``ros_control`` = ``moveit_ros_control_interface::MoveItControllerManager``
+
+      Interfaces to ``ros_control`` controllers.
+    - ``simple`` = ``moveit_simple_controller_manager/MoveItSimpleControllerManager``
+      Interfaces to action servers for ``FollowJointTrajectory`` and/or ``GripperCommand``
+      that in turn interface to the low-level robot controllers (typically based on ros_control).
+
+    Now, the argument ``moveit_controller_manager`` allows for switching between these 3 variants using the given names.
+    Adding more ``*_moveit_controller_manager.launch`` files allows for further extension of this scheme.
+
+* Rework Controller Handling (`#2945 <https://github.com/ros-planning/moveit/issues/2945>`_)
+
+  * Write separate controller config files for different MoveIt controller managers:
+
+    - ``fake_controllers.yaml`` for use with ``MoveItFakeControllerManager``
+    - ``simple_moveit_controllers.yaml`` handles everything relevant for ``MoveItSimpleControllerManager``
+    - ``ros_controllers.yaml`` defines ``ros_control`` controllers
+    - ``gazebo_controllers.yaml`` lists controllers required for Gazebo
+
+  * Rework controller config generation
+
+    - Provide all types of ``JointTrajectoryController`` (position, velocity, and effort based)
+      as well as ``FollowJointTrajectory`` and ``GripperCommand`` (use by simple controller manager)
+    - Use ``effort_controllers/JointTrajectoryController`` as default
+    - Create ``FollowJointTrajectory`` entries for any ``JointTrajectoryController``
+    - Fix controller list generation: always write joint names as a list
+
+  * Code refactoring to clarify that controller widget handles all controllers, not only ``ros_control`` controllers
+
+    * Update widget texts to speak about generic controllers
+    * Rename ``ROSControllersWidget`` -> ``ControllersWidget``
+    * Rename files ``ros_controllers_widget.*`` -> ``controllers_widget.*``
+    * Rename ``ros_controllers_config_`` -> ``controller_configs_``
+    * Rename functions ``*ROSController*`` -> ``*Controller*``
+    * Rename ``ROSControlConfig`` -> ``ControllerConfig``
+
+* Fix sensor config handling (`#2708 <https://github.com/ros-planning/moveit/issues/2708>`_, `#2946 <https://github.com/ros-planning/moveit/issues/2946>`_)
+
+* Load planning pipelines into their own namespace (`#2888 <https://github.com/ros-planning/moveit/issues/2888>`_)
+* Add ``jiggle_fraction`` arg to trajopt template (`#2858 <https://github.com/ros-planning/moveit/issues/2858>`_)
+* Only define ``default`` values for input argumens in ``*_planning_pipeline.launch`` templates (`#2849 <https://github.com/ros-planning/moveit/issues/2849>`_)
+* Mention (optional) Gazebo deps in package.xml templates (`#2839 <https://github.com/ros-planning/moveit/issues/2839>`_)
+* Create ``static_transform_publisher`` for each virtual joint type (`#2769 <https://github.com/ros-planning/moveit/issues/2769>`_)
+* Use $(dirname) in launch files (`#2748 <https://github.com/ros-planning/moveit/issues/2748>`_)
+* CHOMP: Read parameters from proper namespace (`#2707 <https://github.com/ros-planning/moveit/issues/2707>`_)
+
+  * Pilz pipeline: remove unused arg ``start_state_max_bounds_error``
+  * Set ``jiggle_fraction`` per pipeline
+  * Rename param ``clearence`` to ``clearance``
+* Load ``max_safe_path_cost`` into namespace ``sense_for_plan`` (`#2703 <https://github.com/ros-planning/moveit/issues/2703>`_)
+* Contributors: David V. Lu!!, Martin Günther, Max Puig, Michael Görner, Rick Staa, Robert Haschke, pvanlaar, v4hn
+
+1.1.5 (2021-05-23)
+------------------
+
+1.1.4 (2021-05-12)
+------------------
+
+1.1.3 (2021-04-29)
+------------------
+* Let users override fake execution type from demo.launch (`#2602 <https://github.com/ros-planning/moveit/issues/2602>`_)
+* Contributors: Michael Görner
+
+1.1.2 (2021-04-08)
+------------------
+* Fix formatting errors
+* Fix segfault in MSA (`#2564 <https://github.com/ros-planning/moveit/issues/2564>`_)
+* Support multiple planning pipelines with MoveGroup via MoveItCpp (`#2127 <https://github.com/ros-planning/moveit/issues/2127>`_)
+* Update MSA launch templates for multi-pipeline support
+* Missing RViz and moveit_simple_controller_manager dependencies in MSA template (`#2455 <https://github.com/ros-planning/moveit/issues/2455>`_)
+* Fix empty sequence in moveit_setup_assistant (`#2406 <https://github.com/ros-planning/moveit/issues/2406>`_)
+* Add Pilz industrial motion planner (`#1893 <https://github.com/ros-planning/moveit/issues/1893>`_)
+* MSA launch files: fix indentation (`#2371 <https://github.com/ros-planning/moveit/issues/2371>`_)
+* Contributors: Christian Henkel, David V. Lu!!, Henning Kayser, Michael Görner, Tyler Weaver
+
 1.1.1 (2020-10-13)
 ------------------
 * [feature] Allow showing both, visual and collision geometry (`#2352 <https://github.com/ros-planning/moveit/issues/2352>`_)
@@ -139,7 +325,7 @@ Changelog for package moveit_setup_assistant
 * [enhancement][GUI] Planning Groups screen (`#1017 <https://github.com/ros-planning/moveit/issues/1017>`_)
 * [enhancement] use panda for test, and write test file in tmp dir (`#1042 <https://github.com/ros-planning/moveit/issues/1042>`_)
 * [enhancement] Added capabilties as arg to move_group.launch (`#998 <https://github.com/ros-planning/moveit/issues/998>`_)
-* [enhancement] Add moveit_setup_assistant as depenency of all *_moveit_config pkgs (`#1029 <https://github.com/ros-planning/moveit/issues/1029>`_)
+* [enhancement] Add moveit_setup_assistant as depenency of all ``*_moveit_config`` pkgs (`#1029 <https://github.com/ros-planning/moveit/issues/1029>`_)
 * [maintenance] various compiler warnings (`#1038 <https://github.com/ros-planning/moveit/issues/1038>`_)
 * [enhancement] Improving gazebo integration. (`#956 <https://github.com/ros-planning/moveit/issues/956>`_, `#936 <https://github.com/ros-planning/moveit/issues/936>`_)
 * [maintenance] Renamed wedgits in setup assistant wedgit to follow convention (`#995 <https://github.com/ros-planning/moveit/issues/995>`_)

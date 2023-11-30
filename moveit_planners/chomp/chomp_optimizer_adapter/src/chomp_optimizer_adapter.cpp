@@ -134,10 +134,13 @@ public:
       params_.joint_update_limit_ = 0.1;
       ROS_INFO_STREAM("Param joint_update_limit was not set. Using default value: " << params_.joint_update_limit_);
     }
-    if (!nh.getParam("min_clearence", params_.min_clearence_))
+    // TODO: remove this warning after 06/2022
+    if (!nh.hasParam("min_clearance") && nh.hasParam("min_clearence"))
+      ROS_WARN("The param 'min_clearence' has been renamed to 'min_clearance', please update your config!");
+    if (!nh.getParam("min_clearance", params_.min_clearance_))
     {
-      params_.min_clearence_ = 0.2;
-      ROS_INFO_STREAM("Param min_clearence was not set. Using default value: " << params_.min_clearence_);
+      params_.min_clearance_ = 0.2;
+      ROS_INFO_STREAM("Param min_clearance was not set. Using default value: " << params_.min_clearance_);
     }
     if (!nh.getParam("collision_threshold", params_.collision_threshold_))
     {
@@ -150,11 +153,19 @@ public:
       ROS_INFO_STREAM(
           "Param use_stochastic_descent was not set. Using default value: " << params_.use_stochastic_descent_);
     }
-    if (!nh.getParam("trajectory_initialization_method", params_.trajectory_initialization_method_))
+    // default
+    params_.trajectory_initialization_method_ = std::string("fillTrajectory");
+    std::string trajectory_initialization_method;
+    if (!nh.getParam("trajectory_initialization_method", trajectory_initialization_method))
     {
-      params_.trajectory_initialization_method_ = std::string("fillTrajectory");
-      ROS_INFO_STREAM("Param trajectory_initialization_method was not set. Using New value as: "
+      ROS_INFO_STREAM("Param trajectory_initialization_method was not set. Using value: "
                       << params_.trajectory_initialization_method_);
+    }
+    else if (!params_.setTrajectoryInitializationMethod(trajectory_initialization_method))
+    {
+      ROS_ERROR_STREAM("Param trajectory_initialization_method set to invalid value '"
+                       << trajectory_initialization_method << "'. Using '" << params_.trajectory_initialization_method_
+                       << "' instead.");
     }
   }
 

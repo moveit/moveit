@@ -65,9 +65,9 @@ protected:
     // Load the plugin
     try
     {
-      planning_context_loader_class_loader_.reset(
-          new pluginlib::ClassLoader<pilz_industrial_motion_planner::PlanningContextLoader>(
-              "pilz_industrial_motion_planner", "pilz_industrial_motion_planner::PlanningContextLoader"));
+      planning_context_loader_class_loader_ =
+          std::make_unique<pluginlib::ClassLoader<pilz_industrial_motion_planner::PlanningContextLoader>>(
+              "pilz_industrial_motion_planner", "pilz_industrial_motion_planner::PlanningContextLoader");
     }
     catch (pluginlib::PluginlibException& ex)
     {
@@ -100,7 +100,7 @@ protected:
   robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(GetParam().back()).getModel() };
 
   // Load the plugin
-  boost::scoped_ptr<pluginlib::ClassLoader<pilz_industrial_motion_planner::PlanningContextLoader>>
+  std::unique_ptr<pluginlib::ClassLoader<pilz_industrial_motion_planner::PlanningContextLoader>>
       planning_context_loader_class_loader_;
 
   pilz_industrial_motion_planner::PlanningContextLoaderPtr planning_context_loader_;
@@ -139,9 +139,10 @@ TEST_P(PlanningContextLoadersTest, GetAlgorithm)
 TEST_P(PlanningContextLoadersTest, LoadContext)
 {
   planning_interface::PlanningContextPtr planning_context;
+  const std::string& group_name = "manipulator";
 
   // Without limits should return false
-  bool res = planning_context_loader_->loadContext(planning_context, "test", "test");
+  bool res = planning_context_loader_->loadContext(planning_context, "test", group_name);
   EXPECT_EQ(false, res) << "Context returned even when no limits where set";
 
   // After setting the limits this should work
@@ -161,7 +162,7 @@ TEST_P(PlanningContextLoadersTest, LoadContext)
 
   try
   {
-    res = planning_context_loader_->loadContext(planning_context, "test", "test");
+    res = planning_context_loader_->loadContext(planning_context, "test", group_name);
   }
   catch (std::exception& ex)
   {

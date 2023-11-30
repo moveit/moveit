@@ -76,19 +76,11 @@ protected:
     robot_model_ = moveit::core::loadTestingRobotModel("panda");
     robot_model_ok_ = static_cast<bool>(robot_model_);
 
-    acm_.reset(new collision_detection::AllowedCollisionMatrix());
-    // Use default collision operations in the SRDF to setup the acm
-    const std::vector<std::string>& collision_links = robot_model_->getLinkModelNamesWithCollisionGeometry();
-    acm_->setEntry(collision_links, collision_links, false);
+    acm_ = std::make_shared<collision_detection::AllowedCollisionMatrix>(*robot_model_->getSRDF());
 
-    // allow collisions for pairs that have been disabled
-    const std::vector<srdf::Model::DisabledCollision>& dc = robot_model_->getSRDF()->getDisabledCollisionPairs();
-    for (const srdf::Model::DisabledCollision& it : dc)
-      acm_->setEntry(it.link1_, it.link2_, true);
+    cenv_ = std::make_shared<collision_detection::CollisionEnvBullet>(robot_model_);
 
-    cenv_.reset(new collision_detection::CollisionEnvBullet(robot_model_));
-
-    robot_state_.reset(new moveit::core::RobotState(robot_model_));
+    robot_state_ = std::make_shared<moveit::core::RobotState>(robot_model_);
 
     setToHome(*robot_state_);
   }
@@ -184,8 +176,7 @@ void addCollisionObjectsMesh(cb::BulletCastBVHManager& checker)
   s_pose.setIdentity();
 
   std::string kinect = "package://moveit_resources_panda_description/meshes/collision/hand.stl";
-  shapes::ShapeConstPtr s;
-  s.reset(shapes::createMeshFromResource(kinect));
+  auto s = std::shared_ptr<shapes::Shape>{ shapes::createMeshFromResource(kinect) };
   obj2_shapes.push_back(s);
   obj2_types.push_back(cb::CollisionObjectType::CONVEX_HULL);
   obj2_poses.push_back(s_pose);
@@ -312,6 +303,21 @@ TEST_F(BulletCollisionDetectionTester, ContinuousCollisionWorld)
   cenv_->checkRobotCollision(req, res, state1, state2, *acm_);
   ASSERT_TRUE(res.collision);
   ASSERT_EQ(res.contact_count, 4u);
+  // test contact types
+  for (auto& contact_pair : res.contacts)
+  {
+    for (collision_detection::Contact& contact : contact_pair.second)
+    {
+      collision_detection::BodyType contact_type1 = contact.body_name_1 == "box" ?
+                                                        collision_detection::BodyType::WORLD_OBJECT :
+                                                        collision_detection::BodyType::ROBOT_LINK;
+      collision_detection::BodyType contact_type2 = contact.body_name_2 == "box" ?
+                                                        collision_detection::BodyType::WORLD_OBJECT :
+                                                        collision_detection::BodyType::ROBOT_LINK;
+      ASSERT_EQ(contact.body_type_1, contact_type1);
+      ASSERT_EQ(contact.body_type_2, contact_type2);
+    }
+  }
   res.clear();
 }
 

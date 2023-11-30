@@ -53,15 +53,14 @@ namespace moveit_rviz_plugin
 void MotionPlanningFrame::planButtonClicked()
 {
   publishSceneIfNeeded();
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computePlanButtonClicked, this),
-                                      "compute plan");
+  planning_display_->addBackgroundJob([this] { computePlanButtonClicked(); }, "compute plan");
 }
 
 void MotionPlanningFrame::executeButtonClicked()
 {
   ui_->execute_button->setEnabled(false);
   // execution is done in a separate thread, to not block other background jobs by blocking for synchronous execution
-  planning_display_->spawnBackgroundJob(boost::bind(&MotionPlanningFrame::computeExecuteButtonClicked, this));
+  planning_display_->spawnBackgroundJob([this] { computeExecuteButtonClicked(); });
 }
 
 void MotionPlanningFrame::planAndExecuteButtonClicked()
@@ -70,13 +69,13 @@ void MotionPlanningFrame::planAndExecuteButtonClicked()
   ui_->plan_and_execute_button->setEnabled(false);
   ui_->execute_button->setEnabled(false);
   // execution is done in a separate thread, to not block other background jobs by blocking for synchronous execution
-  planning_display_->spawnBackgroundJob(boost::bind(&MotionPlanningFrame::computePlanAndExecuteButtonClicked, this));
+  planning_display_->spawnBackgroundJob([this] { computePlanAndExecuteButtonClicked(); });
 }
 
 void MotionPlanningFrame::stopButtonClicked()
 {
   ui_->stop_button->setEnabled(false);  // avoid clicking again
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeStopButtonClicked, this), "stop");
+  planning_display_->addBackgroundJob([this] { computeStopButtonClicked(); }, "stop");
 }
 
 void MotionPlanningFrame::allowReplanningToggled(bool checked)
@@ -152,7 +151,7 @@ bool MotionPlanningFrame::computeCartesianPlan()
     ROS_INFO("Computing time stamps %s", success ? "SUCCEDED" : "FAILED");
 
     // Store trajectory in current_plan_
-    current_plan_.reset(new moveit::planning_interface::MoveGroupInterface::Plan());
+    current_plan_ = std::make_shared<moveit::planning_interface::MoveGroupInterface::Plan>();
     rt.getRobotTrajectoryMsg(current_plan_->trajectory_);
     current_plan_->planning_time_ = (ros::WallTime::now() - start).toSec();
     return success;
@@ -162,8 +161,8 @@ bool MotionPlanningFrame::computeCartesianPlan()
 
 bool MotionPlanningFrame::computeJointSpacePlan()
 {
-  current_plan_.reset(new moveit::planning_interface::MoveGroupInterface::Plan());
-  return move_group_->plan(*current_plan_) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
+  current_plan_ = std::make_shared<moveit::planning_interface::MoveGroupInterface::Plan>();
+  return move_group_->plan(*current_plan_) == moveit::core::MoveItErrorCode::SUCCESS;
 }
 
 void MotionPlanningFrame::computePlanButtonClicked()
@@ -182,7 +181,11 @@ void MotionPlanningFrame::computePlanButtonClicked()
 
   if (success)
   {
-    ui_->execute_button->setEnabled(true);
+    moveit::core::RobotState start_state(planning_display_->getRobotModel());
+    moveit::core::RobotState current_state(planning_display_->getPlanningSceneRO()->getCurrentState());
+    moveit::core::robotStateMsgToRobotState(current_plan_->start_state_, start_state, true);
+    if (moveit::core::haveSameAttachedObjects(start_state, current_state))
+      ui_->execute_button->setEnabled(true);
     ui_->result_label->setText(QString("Time: ").append(QString::number(current_plan_->planning_time_, 'f', 3)));
   }
   else
@@ -200,20 +203,22 @@ void MotionPlanningFrame::computeExecuteButtonClicked()
   if (mgi && current_plan_)
   {
     ui_->stop_button->setEnabled(true);  // enable stopping
-    bool success = mgi->execute(*current_plan_) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
+    bool success = mgi->execute(*current_plan_) == moveit::core::MoveItErrorCode::SUCCESS;
     onFinishedExecution(success);
   }
 }
 
 void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
 {
-  if (!move_group_)
+  // ensures the MoveGroupInterface is not destroyed while executing
+  moveit::planning_interface::MoveGroupInterfacePtr mgi(move_group_);
+  if (!mgi)
     return;
   configureForPlanning();
   planning_display_->rememberPreviousStartState();
   // move_group::move() on the server side, will always start from the current state
   // to suppress a warning, we pass an empty state (which encodes "start from current state")
-  move_group_->setStartStateToCurrentState();
+  mgi->setStartStateToCurrentState();
   ui_->stop_button->setEnabled(true);
   if (ui_->use_cartesian_path->isEnabled() && ui_->use_cartesian_path->checkState())
   {
@@ -222,7 +227,7 @@ void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
   }
   else
   {
-    bool success = move_group_->move() == moveit::planning_interface::MoveItErrorCode::SUCCESS;
+    bool success = mgi->move() == moveit::core::MoveItErrorCode::SUCCESS;
     onFinishedExecution(success);
   }
   ui_->plan_and_execute_button->setEnabled(true);
@@ -269,8 +274,7 @@ void MotionPlanningFrame::onNewPlanningSceneState()
 void MotionPlanningFrame::startStateTextChanged(const QString& start_state)
 {
   // use background job: fetching the current state might take up to a second
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::startStateTextChangedExec, this,
-                                                  start_state.toStdString()),
+  planning_display_->addBackgroundJob([this, state = start_state.toStdString()] { startStateTextChangedExec(state); },
                                       "update start state");
 }
 
@@ -284,8 +288,8 @@ void MotionPlanningFrame::startStateTextChangedExec(const std::string& start_sta
 void MotionPlanningFrame::goalStateTextChanged(const QString& goal_state)
 {
   // use background job: fetching the current state might take up to a second
-  planning_display_->addBackgroundJob(
-      boost::bind(&MotionPlanningFrame::goalStateTextChangedExec, this, goal_state.toStdString()), "update goal state");
+  planning_display_->addBackgroundJob([this, state = goal_state.toStdString()] { goalStateTextChangedExec(state); },
+                                      "update goal state");
 }
 
 void MotionPlanningFrame::goalStateTextChangedExec(const std::string& goal_state)
@@ -377,7 +381,34 @@ void MotionPlanningFrame::updateQueryStateHelper(moveit::core::RobotState& state
     state.setToDefaultValues(jmg, v);
 }
 
-void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfaceDescription& desc)
+void MotionPlanningFrame::populatePlannersList(const std::vector<moveit_msgs::PlannerInterfaceDescription>& desc)
+{
+  ui_->planning_pipeline_combo_box->clear();
+
+  planner_descriptions_ = desc;
+  size_t default_planner_index = 0;
+  for (auto& d : planner_descriptions_)
+  {
+    QString item_text(d.pipeline_id.c_str());
+    // Check for default planning pipeline
+    if (d.pipeline_id == default_planning_pipeline_)
+    {
+      if (item_text.isEmpty())
+        item_text = QString::fromStdString(d.name);
+      default_planner_index = ui_->planning_pipeline_combo_box->count();
+    }
+    ui_->planning_pipeline_combo_box->addItem(item_text);
+  }
+  QFont font;
+  font.setBold(true);
+  ui_->planning_pipeline_combo_box->setItemData(default_planner_index, font, Qt::FontRole);
+
+  // Select default pipeline - triggers populatePlannerDescription() via callback
+  if (!planner_descriptions_.empty())
+    ui_->planning_pipeline_combo_box->setCurrentIndex(default_planner_index);
+}
+
+void MotionPlanningFrame::populatePlannerDescription(const moveit_msgs::PlannerInterfaceDescription& desc)
 {
   std::string group = planning_display_->getCurrentPlanningGroup();
   ui_->planning_algorithm_combo_box->clear();
@@ -409,6 +440,7 @@ void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfa
   if (ui_->planning_algorithm_combo_box->count() == 0 && !found_group)
     for (const std::string& planner_id : desc.planner_ids)
       ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(planner_id));
+
   ui_->planning_algorithm_combo_box->insertItem(0, "<unspecified>");
 
   // retrieve default planner config from parameter server
@@ -417,13 +449,16 @@ void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfa
   if (default_index < 0)
     default_index = 0;  // 0 is <unspecified> fallback
   ui_->planning_algorithm_combo_box->setCurrentIndex(default_index);
+
+  QFont font;
+  font.setBold(true);
+  ui_->planning_algorithm_combo_box->setItemData(default_index, font, Qt::FontRole);
 }
 
 void MotionPlanningFrame::populateConstraintsList()
 {
   if (move_group_)
-    planning_display_->addMainLoopJob(
-        boost::bind(&MotionPlanningFrame::populateConstraintsList, this, move_group_->getKnownConstraints()));
+    planning_display_->addMainLoopJob([this]() { populateConstraintsList(move_group_->getKnownConstraints()); });
 }
 
 void MotionPlanningFrame::populateConstraintsList(const std::vector<std::string>& constr)

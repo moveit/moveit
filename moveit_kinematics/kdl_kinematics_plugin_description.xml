@@ -1,4 +1,4 @@
-<library path="lib/libmoveit_kdl_kinematics_plugin">
+<library path="libmoveit_kdl_kinematics_plugin">
   <class name="kdl_kinematics_plugin/KDLKinematicsPlugin" type="kdl_kinematics_plugin::KDLKinematicsPlugin" base_class_type="kinematics::KinematicsBase">
     <description>
       A implementation of kinematics as a plugin based on KDL.

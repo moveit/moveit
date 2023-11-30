@@ -173,7 +173,8 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene,
   for (std::size_t i = 0; i < goal.possible_grasps.size(); ++i)
     grasp_order[i] = i;
   OrderGraspQuality oq(goal.possible_grasps);
-  std::sort(grasp_order.begin(), grasp_order.end(), oq);
+  // using stable_sort to preserve order of grasps with equal quality
+  std::stable_sort(grasp_order.begin(), grasp_order.end(), oq);
 
   // feed the available grasps to the stages we set up
   for (std::size_t i = 0; i < goal.possible_grasps.size(); ++i)

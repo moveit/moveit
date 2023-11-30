@@ -52,25 +52,27 @@ void CHOMPInterface::loadParams()
   nh_.param("obstacle_cost_weight", params_.obstacle_cost_weight_, 1.0);
   nh_.param("learning_rate", params_.learning_rate_, 0.01);
 
-  // nh_.param("add_randomness", params_.add_randomness_, false);
   nh_.param("smoothness_cost_velocity", params_.smoothness_cost_velocity_, 0.0);
   nh_.param("smoothness_cost_acceleration", params_.smoothness_cost_acceleration_, 1.0);
   nh_.param("smoothness_cost_jerk", params_.smoothness_cost_jerk_, 0.0);
-  // nh_.param("hmc_discretization", params_.hmc_discretization_, 0.01);
-  // nh_.param("hmc_stochasticity", params_.hmc_stochasticity_, 0.01);
-  // nh_.param("hmc_annealing_factor", params_.hmc_annealing_factor_, 0.99);
-  // nh_.param("use_hamiltonian_monte_carlo", params_.use_hamiltonian_monte_carlo_, false);
   nh_.param("ridge_factor", params_.ridge_factor_, 0.0);
   nh_.param("use_pseudo_inverse", params_.use_pseudo_inverse_, false);
   nh_.param("pseudo_inverse_ridge_factor", params_.pseudo_inverse_ridge_factor_, 1e-4);
 
   nh_.param("joint_update_limit", params_.joint_update_limit_, 0.1);
-  nh_.param("collision_clearence", params_.min_clearence_, 0.2);
+  // TODO: remove this warning after 06/2022
+  if (!nh_.hasParam("collision_clearance") && nh_.hasParam("collision_clearence"))
+    ROS_WARN("The param 'collision_clearence' has been renamed to 'collision_clearance', please update your config!");
+  nh_.param("collision_clearance", params_.min_clearance_, 0.2);
   nh_.param("collision_threshold", params_.collision_threshold_, 0.07);
-  // nh_.param("random_jump_amount", params_.random_jump_amount_, 1.0);
   nh_.param("use_stochastic_descent", params_.use_stochastic_descent_, true);
-  nh_.param("trajectory_initialization_method", params_.trajectory_initialization_method_,
-            std::string("quintic-spline"));
+  {
+    params_.trajectory_initialization_method_ = "quintic-spline";
+    std::string method;
+    if (nh_.getParam("trajectory_initialization_method", method) && !params_.setTrajectoryInitializationMethod(method))
+      ROS_ERROR_STREAM("Attempted to set trajectory_initialization_method to invalid value '"
+                       << method << "'. Using default '" << params_.trajectory_initialization_method_ << "' instead.");
+  }
   nh_.param("enable_failure_recovery", params_.enable_failure_recovery_, false);
   nh_.param("max_recovery_attempts", params_.max_recovery_attempts_, 5);
 }

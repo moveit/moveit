@@ -2,6 +2,218 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+* Avoid global transforms in ``getRigidlyConnectedParentLinkModel()`` (`#3470 <https://github.com/ros-planning/moveit/issues/3470>`_)
+
+  * RobotState::setFromIK: ensure up-to-date state before calling IK solver
+  * Remove unimplemented RobotState::getSubframeTransformInLinkFrame()
+
+* Add missing include (`#3451 <https://github.com/ros-planning/moveit/issues/3451>`_)
+* Fix Jacobian calculation for planar joint (`#3439 <https://github.com/ros-planning/moveit/issues/3439>`_)
+* Silent "empty quaternion" warning from poseMsgToEigen() (`#3435 <https://github.com/ros-planning/moveit/issues/3435>`_)
+* Contributors: Cong Liu, Ivo Vatavuk, Robert Haschke
+
+1.1.12 (2023-05-13)
+-------------------
+* Generalize RobotState::setFromIK() (`<https://github.com/ros-planning/moveit/issues/3388>`_)
+* Time parameterization with torque limits, based on TOTG (`#3412 <https://github.com/ros-planning/moveit/issues/3412>`_, `#3427 <https://github.com/ros-planning/moveit/issues/3427>`_)
+* Make XmlRpcValue arguments const references (`#3419 <https://github.com/ros-planning/moveit/issues/3419>`_)
+* Differential drive for planar Joints (`#3359 <https://github.com/ros-planning/moveit/issues/3359>`_)
+* Fix deprecation warnings in Debian bookworm (`#3397 <https://github.com/ros-planning/moveit/issues/3397>`_)
+* Add JointModel::satisfiesAccelerationBounds() (`#3396 <https://github.com/ros-planning/moveit/issues/3396>`_)
+* Add CSM tests (`#3395 <https://github.com/ros-planning/moveit/issues/3395>`_)
+* Fix TOTG: could return vels/accels greater than the limits (`#3394 <https://github.com/ros-planning/moveit/issues/3394>`_)
+* Propagate "clear octomap" actions to monitoring planning scenes (`#3134 <https://github.com/ros-planning/moveit/issues/3134>`_)
+* Fix (some) doxygen warnings (`#3315 <https://github.com/ros-planning/moveit/issues/3315>`_)
+* Switch master build to C++17 (`#3313 <https://github.com/ros-planning/moveit/issues/3313>`_)
+* Drop lib/ prefix from plugin paths (`#3305 <https://github.com/ros-planning/moveit/issues/3305>`_)
+* Improve Ruckig time parameterization
+
+  * Check for a Ruckig jerk limit parameter (`#3375 <https://github.com/ros-planning/moveit/issues/3375>`_)
+  * Optionally mitigate Ruckig overshoot
+  * Reduce number of duration extensions
+  * Fix termination condition (`#3348 <https://github.com/ros-planning/moveit/issues/3348>`_)
+  * Fix tests (`#3300 <https://github.com/ros-planning/moveit/issues/3300>`_)
+* Contributors: Andy Zelenak, Filip Sund, Jochen Sprickerhof, Michael Görner, Robert Haschke, Scott Chow, Tobias Fischer
+
+1.1.11 (2022-12-21)
+-------------------
+* Fix some consistency issues in PlanningScene handling (`#3298 <https://github.com/ros-planning/moveit/issues/3298>`_)
+* Backport ruckig trajectory_processing plugin (`#2902 <https://github.com/ros-planning/moveit/issues/2902>`_)
+* version.h: automatically bump patch number for devel builds (`#3211 <https://github.com/ros-planning/moveit/issues/3211>`_)
+* Merge fixes+improvements to ``PlanningScene`` editing in rviz: `#3263 <https://github.com/ros-planning/moveit/issues/3263>`_, `#3264 <https://github.com/ros-planning/moveit/issues/3264>`_, `#3296 <https://github.com/ros-planning/moveit/issues/3296>`_
+* Fix loading of ``PlanningScene`` from ``.scene`` text file: Replace existing world objects
+* Drop return value from ``IKCallbackFn`` usage (`#3277 <https://github.com/ros-planning/moveit/issues/3277>`_)
+* Allow planning with multiple pipelines in parallel with ``moveit_cpp`` (`#3244 <https://github.com/ros-planning/moveit/issues/3244>`_)
+* MotionPlanningDisplay: only allow execution if start state is up-to-date
+* Merge PR `#3262 <https://github.com/ros-planning/moveit/issues/3262>`_: Short-circuit planning adapters
+
+  - Early return from failing planning adapters, namely ``FixStartStateCollision`` and ``FixStartStatePathConstraint``
+  - Propagate the error code via ``MotionPlanResponse::error_code_``
+  - Add string translations for all error codes
+* Cleanup translation of MoveItErrorCode to string
+
+  - Move default code to moveit_core/utils
+  - Override defaults in existing getActionResultString()
+  - Provide translations for all error codes defined in moveit_msgs
+* Add debug message in call stack of planning_request_adapters
+* Contributors: Robert Haschke, Simon Schmeisser
+
+1.1.10 (2022-09-13)
+-------------------
+* Limit Cartesian speed for link(s) (`#2856 <https://github.com/ros-planning/moveit/issues/2856>`_)
+* Generalize computeCartesianPath() to consider a link_offset (`#3197 <https://github.com/ros-planning/moveit/issues/3197>`_)
+* Generate version.h with git branch and commit hash (`#2793 <https://github.com/ros-planning/moveit/issues/2793>`_)
+* robot_model_test_utils: Add loadIKPluginForGroup()
+* Remove ConstraintSampler::project() (`#3170 <https://github.com/ros-planning/moveit/issues/3170>`_)
+* Add dual arm test (`#3119 <https://github.com/ros-planning/moveit/issues/3119>`_)
+* Fix PlanarJointModel::satisfiesPositionBounds (`#3160 <https://github.com/ros-planning/moveit/issues/3160>`_)
+* Switch to hpp headers of pluginlib
+* Fix bug in applying planning scene diffs that have attached collision objects (`#3124 <https://github.com/ros-planning/moveit/issues/3124>`_)
+* Fix flaky constraint sampler test (`#3135 <https://github.com/ros-planning/moveit/issues/3135>`_)
+* Constraint samplers with seed (`#3112 <https://github.com/ros-planning/moveit/issues/3112>`_)
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Fix null pointer access to CollisionEnvObject in PlanningScene (`#3104 <https://github.com/ros-planning/moveit/issues/3104>`_)
+* ACM: Consider default entries when packing a ROS message (`#3096 <https://github.com/ros-planning/moveit/issues/3096>`_)
+* Contributors: Captain Yoshi, Jafar, Jochen Sprickerhof, Michael Görner, Robert Haschke, Rufus Wong, Tahsincan Köse, cambel
+
+1.1.9 (2022-03-06)
+------------------
+* Add special case for sphere bodies in sphere decomposition (`#3056 <https://github.com/ros-planning/moveit/issues/3056>`_)
+* Add Ptr definitions for TimeParameterization classes (`#3078 <https://github.com/ros-planning/moveit/issues/3078>`_)
+* Fix python-versioned dependency (`#3063 <https://github.com/ros-planning/moveit/issues/3063>`_)
+* Contributors: Jochen Sprickerhof, Martin Oehler, Michael Görner
+
+1.1.8 (2022-01-30)
+------------------
+* Avoid downgrading default C++ standard (`#3043 <https://github.com/ros-planning/moveit/issues/3043>`_)
+* Implement ACM defaults as a fallback instead of an override (`#2938 <https://github.com/ros-planning/moveit/issues/2938>`_)
+
+  This allows disabling collisions for specific links/objects by default and re-enabling individual pairs if necessary.
+* Adapt message passing of AllowedCollisionMatrix
+
+  - Serialize full current state (previously pairs with a default, but no entry were skipped)
+  - Only initialize matrix entries that deviate from the default.
+* Make ``TimeParameterization`` classes polymorphic (`#3021 <https://github.com/ros-planning/moveit/issues/3021>`_)
+* Fix wrong transform in distance fields' determineCollisionSpheres() (`#3022 <https://github.com/ros-planning/moveit/issues/3022>`_)
+* ``collision_distance_field``: Fix undefined behavior vector insertion (`#3017 <https://github.com/ros-planning/moveit/issues/3017>`_)
+* Contributors: Jafar Abdi, Jochen Sprickerhof, Martin Oehler, Robert Haschke
+
+1.1.7 (2021-12-31)
+------------------
+* Move ``MoveItErrorCode`` class to ``moveit_core`` (`#3009 <https://github.com/ros-planning/moveit/issues/3009>`_)
+* Disable (flaky) timing tests in ``DEBUG`` mode (`#3012 <https://github.com/ros-planning/moveit/issues/3012>`_)
+* ``RobotState::attachBody``: Migrate to unique_ptr argument (`#3011 <https://github.com/ros-planning/moveit/issues/3011>`_)
+* Add API stress tests for ``TOTG``, fix undefined behavior (`#2957 <https://github.com/ros-planning/moveit/issues/2957>`_)
+* Do not assert on printTransform with non-isometry (`#3005 <https://github.com/ros-planning/moveit/issues/3005>`_)
+* Provide ``MOVEIT_VERSION_CHECK`` macro (`#2997 <https://github.com/ros-planning/moveit/issues/2997>`_)
+* Quietly use backward_cpp/ros if available (`#2988 <https://github.com/ros-planning/moveit/issues/2988>`_)
+* Allow restricting collision pairs to a group (`#2987 <https://github.com/ros-planning/moveit/issues/2987>`_)
+* Add backwards compatibility for old scene serialization format (`#2986 <https://github.com/ros-planning/moveit/issues/2986>`_)
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* Add waypoint duration to the trajectory deep copy unit test (`#2961 <https://github.com/ros-planning/moveit/issues/2961>`_)
+* Contributors: AndyZe, Henning Kayser, Jafar Abdi, Jochen Sprickerhof, Michael Görner, Robert Haschke, Simon Schmeisser, Wolfgang Merkt, pvanlaar
+
+1.1.6 (2021-11-06)
+------------------
+* Silent warning about invalid ``virtual_joint`` in Gazebo setups
+* Add ``RobotState::getRigidlyConnectedParentLinkModel`` `#2918 <https://github.com/ros-planning/moveit/issues/2918>`_ (add RobotState::getRigidlyAttachedParentLink)
+* Normalize incoming transforms (`#2920 <https://github.com/ros-planning/moveit/issues/2920>`_)
+* Reworked compiler flags and fixed various warnings (`#2915 <https://github.com/ros-planning/moveit/issues/2915>`_)
+
+  * Remove unused arguments from global_adjustment_factor()
+  * Simplify API: Remove obviously unused arguments
+  * Introduced cmake macro ``moveit_build_options()`` in ``moveit_core`` to centrally define
+    common build options like ``CMAKE_CXX_STANDARD``, ``CMAKE_BUILD_TYPE``, and compiler warning flags
+* Fix uninitialized orientation in default shape pose (`#2896 <https://github.com/ros-planning/moveit/issues/2896>`_)
+* Drop the minimum velocity/acceleration limits for TOTG (`#2937 <https://github.com/ros-planning/moveit/issues/2937>`_)
+* Readability and consistency improvements in TOTG (`#2882 <https://github.com/ros-planning/moveit/issues/2882>`_)
+* Bullet collision: Consider ACM defaults using ``getAllowedCollision()`` (`#2871 <https://github.com/ros-planning/moveit/issues/2871>`_)
+* ``PlanningScene::getPlanningSceneDiffMsg()``: Do not list an object as destroyed when it got attached (`#2864 <https://github.com/ros-planning/moveit/issues/2864>`_)
+
+  The information in the diff is redundant because attaching implies the removal from the PlanningScene.
+  In the unlikely case, you relied on the ``REMOVE`` entry in the diff message,
+  use the newly attached collision object to indicate the same instead.
+* Fix Bullet collision: Register ``notify`` function to receive world updates (`#2830 <https://github.com/ros-planning/moveit/issues/2830>`_)
+* Split CollisionPluginLoader (`#2834 <https://github.com/ros-planning/moveit/issues/2834>`_)
+
+  To avoid circular dependencies, but enable reuse of the ``CollisionPluginLoader``, the non-ROS part was moved into ``moveit_core/moveit_collision_detection.so``
+  and the ROS part (reading the plugin name from the parameter server) into ``moveit_ros_planning/moveit_collision_plugin_loader.so`` (as before).
+* Use default copy constructor to clone attached objects (`#2855 <https://github.com/ros-planning/moveit/issues/2855>`_)
+* Fix pose-not-set-bug (`#2852 <https://github.com/ros-planning/moveit/issues/2852>`_)
+* Add API for passing a ``RNG`` to ``setToRandomPositionsNearBy()`` (`#2799 <https://github.com/ros-planning/moveit/issues/2799>`_)
+* Fix backwards compatibility for specifying poses for a single collision shape (`#2816 <https://github.com/ros-planning/moveit/issues/2816>`_)
+* Fix Bullet collision returning wrong contact type (`#2829 <https://github.com/ros-planning/moveit/issues/2829>`_)
+* Add ``RobotState::setToDefaultValues(string group)`` (`#2828 <https://github.com/ros-planning/moveit/issues/2828>`_)
+* Fix confusion of tolerance limits in JointConstraint (`#2815 <https://github.com/ros-planning/moveit/issues/2815>`_)
+* Fix RobotState constructor segfault (`#2790 <https://github.com/ros-planning/moveit/issues/2790>`_)
+* Preserve metadata (color, type) when detaching objects (`#2814 <https://github.com/ros-planning/moveit/issues/2814>`_)
+* Introduce a reference frame for collision objects (`#2037 <https://github.com/ros-planning/moveit/issues/2037>`_)
+
+  ``CollisionObject`` messages are now defined with a ``Pose``. Shapes and subframes are defined relative to that pose.
+  This makes it easier to place objects with subframes and multiple shapes in the scene.
+  This causes several changes:
+
+  - ``getFrameTransform()`` now returns this pose instead of the first shape's pose.
+  - The Rviz plugin's manipulation tab now uses the object's pose instead of the shape pose to evaluate if object's are in the region of interest.
+  - PlanningScene geometry text files (``.scene``) have changed format.
+
+    Add a line ``0 0 0 0 0 0 1`` under each line with an asterisk to upgrade old files if required.
+* Fix bullet plugin library path name (`#2783 <https://github.com/ros-planning/moveit/issues/2783>`_)
+* clang-tidy: modernize-make-shared, modernize-make-unique (`#2762 <https://github.com/ros-planning/moveit/issues/2762>`_)
+* ``RobotTrajectory``: convenience constructor + chain setter support (`#2751 <https://github.com/ros-planning/moveit/issues/2751>`_)
+* Fix Windows build (`#2604 <https://github.com/ros-planning/moveit/issues/2604>`_, `#2776 <https://github.com/ros-planning/moveit/issues/2776>`_)
+* Allow axis-angle representation for orientation constraints (`#2402 <https://github.com/ros-planning/moveit/issues/2402>`_)
+* Optimization: ``reserve()`` vector in advance (`#2732 <https://github.com/ros-planning/moveit/issues/2732>`_)
+* Use same padding/scale for attached collision objects as for parent link (`#2721 <https://github.com/ros-planning/moveit/issues/2721>`_)
+* Optimize ``FCL distanceCallback()``: use thread_local vars, avoid copying (`#2698 <https://github.com/ros-planning/moveit/issues/2698>`_)
+* Remove octomap from catkin_packages ``LIBRARIES`` entry (`#2700 <https://github.com/ros-planning/moveit/issues/2700>`_)
+* Remove deprecated header ``deprecation.h`` (`#2693 <https://github.com/ros-planning/moveit/issues/2693>`_)
+* ``collision_detection_fcl``: Report link_names in correct order (`#2682 <https://github.com/ros-planning/moveit/issues/2682>`_)
+* Move ``OccMapTree`` to ``moveit_core/collision_detection`` (`#2684 <https://github.com/ros-planning/moveit/issues/2684>`_)
+* Contributors: 0Nel, AndyZe, Captain Yoshi, Felix von Drigalski, Jafar Abdi, Jeroen, Jochen Sprickerhof, John Stechschulte, Jonathan Grebe, Max Schwarz, Michael Görner, Michael Wiznitzer, Peter Mitrano, Robert Haschke, Silvio Traversaro, Simon Schmeisser, Tobias Fischer, Tyler Weaver, Wolf Vollprecht, Yuri Rocha, pvanlaar, toru-kuga, v4hn, werner291
+
+1.1.5 (2021-05-23)
+------------------
+* Revert "Lock the octomap/octree while collision checking (`#2683 <https://github.com/ros-planning/moveit/issues/2683>`_)
+* RobotState interpolation: warn if interpolation parameter is out of range [0, 1] (`#2664 <https://github.com/ros-planning/moveit/issues/2664>`_)
+* Contributors: John Stechschulte, Michael Görner
+
+1.1.4 (2021-05-12)
+------------------
+* Lock the octomap/octree while collision checking (`#2596 <https://github.com/ros-planning/moveit/issues/2596>`_)
+* Add sphinx-rtd-theme for python docs as a dependency (`#2645 <https://github.com/ros-planning/moveit/issues/2645>`_)
+* Contributors: Peter Mitrano, Simon Schmeisser
+
+1.1.3 (2021-04-29)
+------------------
+* Set rotation value of cartesian MaxEEFStep by default (`#2614 <https://github.com/ros-planning/moveit/issues/2614>`_)
+* Lock the Bullet collision environment, for thread safety (`#2598 <https://github.com/ros-planning/moveit/issues/2598>`_)
+* Contributors: Felix von Drigalski, Michael Görner
+
+1.1.2 (2021-04-08)
+------------------
+* Make setToIKSolverFrame accessible again (`#2580 <https://github.com/ros-planning/moveit/issues/2580>`_)
+* Python bindings for moveit_core (`#2547 <https://github.com/ros-planning/moveit/issues/2547>`_)
+* Fix formatting errors
+* add get_active_joint_names (`#2533 <https://github.com/ros-planning/moveit/issues/2533>`_)
+* Update doxygen comments for distance() and interpolate() (`#2528 <https://github.com/ros-planning/moveit/issues/2528>`_)
+* Replaced eigen+kdl conversions with tf2_eigen + tf2_kdl (`#2472 <https://github.com/ros-planning/moveit/issues/2472>`_)
+* Fix logic, improve function comment for clearDiffs() (`#2497 <https://github.com/ros-planning/moveit/issues/2497>`_)
+* Clean up collision-related log statements (`#2480 <https://github.com/ros-planning/moveit/issues/2480>`_)
+* Fix RobotState::dropAccelerations/dropEffort to not drop velocities (`#2478 <https://github.com/ros-planning/moveit/issues/2478>`_)
+* Provide a function to set the position of active joints in a JointModelGroup (`#2456 <https://github.com/ros-planning/moveit/issues/2456>`_)
+* Fix doxygen documentation for setToIKSolverFrame (`#2461 <https://github.com/ros-planning/moveit/issues/2461>`_)
+* Fix validation of orientation constraints (`#2434 <https://github.com/ros-planning/moveit/issues/2434>`_)
+* RobotModelBuilder: Add parameter to specify the joint rotation axis
+* RobotModelBuilder: Allow adding end effectors (`#2454 <https://github.com/ros-planning/moveit/issues/2454>`_)
+* Delete CollisionRequest min_cost_density
+* Fix OrientationConstraint::decide (`#2414 <https://github.com/ros-planning/moveit/issues/2414>`_)
+* Changed processing_thread\_ spin to use std::make_unique instead of new (`#2412 <https://github.com/ros-planning/moveit/issues/2412>`_)
+* Update collision-related comments (`#2382 <https://github.com/ros-planning/moveit/issues/2382>`_) (`#2388 <https://github.com/ros-planning/moveit/issues/2388>`_)
+* Contributors: AndyZe, JafarAbdi, Michael Görner, Peter Mitrano, Robert Haschke, Simon Schmeisser, Stuart Anderson, Thomas G, Tyler Weaver, petkovich, sevangelatos
+
 1.1.1 (2020-10-13)
 ------------------
 * [feature] Handle multiple link libraries for FCL (`#2325 <https://github.com/ros-planning/moveit/issues/2325>`_)

@@ -32,4 +32,6 @@
 #
 # Author: Ioan Sucan
 
-class MoveItCommanderException(Exception): pass
+
+class MoveItCommanderException(Exception):
+    pass

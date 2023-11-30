@@ -41,6 +41,7 @@
 #include <pluginlib/class_loader.hpp>
 #include <ros/ros.h>
 
+#include <atomic>
 #include <memory>
 
 /** \brief Planning pipeline */
@@ -67,25 +68,26 @@ public:
    * this topic (visualization_msgs::MarkerArray) */
   static const std::string MOTION_CONTACTS_TOPIC;
 
-  /** \brief Given a robot model (\e model), a node handle (\e nh), initialize the planning pipeline.
+  /** \brief Given a robot model (\e model), a node handle (\e pipeline_nh), initialize the planning pipeline.
       \param model The robot model for which this pipeline is initialized.
-      \param nh The ROS node handle that should be used for reading parameters needed for configuration
+      \param pipeline_nh The ROS node handle that should be used for reading parameters needed for configuration
       \param planning_plugin_param_name The name of the ROS parameter under which the name of the planning plugin is
      specified
       \param adapter_plugins_param_name The name of the ROS parameter under which the names of the request adapter
      plugins are specified (plugin names separated by space; order matters)
   */
-  PlanningPipeline(const moveit::core::RobotModelConstPtr& model, const ros::NodeHandle& nh = ros::NodeHandle("~"),
+  PlanningPipeline(const moveit::core::RobotModelConstPtr& model,
+                   const ros::NodeHandle& pipeline_nh = ros::NodeHandle("~"),
                    const std::string& planning_plugin_param_name = "planning_plugin",
                    const std::string& adapter_plugins_param_name = "request_adapters");
 
-  /** \brief Given a robot model (\e model), a node handle (\e nh), initialize the planning pipeline.
+  /** \brief Given a robot model (\e model), a node handle (\e pipeline_nh), initialize the planning pipeline.
       \param model The robot model for which this pipeline is initialized.
-      \param nh The ROS node handle that should be used for reading parameters needed for configuration
+      \param pipeline_nh The ROS node handle that should be used for reading parameters needed for configuration
       \param planning_plugin_name The name of the planning plugin to load
       \param adapter_plugins_names The names of the planning request adapter plugins to load
   */
-  PlanningPipeline(const moveit::core::RobotModelConstPtr& model, const ros::NodeHandle& nh,
+  PlanningPipeline(const moveit::core::RobotModelConstPtr& model, const ros::NodeHandle& pipeline_nh,
                    const std::string& planning_plugin_name, const std::vector<std::string>& adapter_plugin_names);
 
   /** \brief Pass a flag telling the pipeline whether or not to publish the computed motion plans on DISPLAY_PATH_TOPIC.
@@ -165,10 +167,23 @@ public:
     return robot_model_;
   }
 
+  /** \brief Get current status of the planning pipeline */
+  [[nodiscard]] bool isActive() const
+  {
+    return active_;
+  }
+
 private:
   void configure();
 
-  ros::NodeHandle nh_;
+  // Flag that indicates whether or not the planning pipeline is currently solving a planning problem
+  mutable std::atomic<bool> active_;
+
+  // The NodeHandle to initialize the PlanningPipeline (parameters plugins) with
+  ros::NodeHandle pipeline_nh_;
+  // The private node handle of the node this PlanningPipeline was initialized from.
+  // It's used for plugin-agnostic display and info topics.
+  ros::NodeHandle private_nh_;
 
   /// Flag indicating whether motion plans should be published as a moveit_msgs::DisplayTrajectory
   bool display_computed_motion_plans_;

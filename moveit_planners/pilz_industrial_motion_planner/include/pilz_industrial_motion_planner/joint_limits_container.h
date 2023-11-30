@@ -38,6 +38,7 @@
 
 #include <map>
 #include <vector>
+#include <string>
 
 namespace pilz_industrial_motion_planner
 {
@@ -138,15 +139,6 @@ public:
    * @return
    */
   bool verifyPositionLimit(const std::string& joint_name, const double& joint_position) const;
-
-  /**
-   * @brief verify position limits of multiple joints
-   * @param joint_names
-   * @param joint_positions
-   * @return
-   */
-  bool verifyPositionLimits(const std::vector<std::string>& joint_names,
-                            const std::vector<double>& joint_positions) const;
 
 private:
   /**

@@ -110,7 +110,7 @@ public:
 
   /**
    * @brief Set a transform in the transform tree (adding it if necessary)
-   * @param transform The input transforms (the frame_id must match the target frame)
+   * @param transforms The input transforms (the frame_id must match the target frame)
    */
   void setTransforms(const std::vector<geometry_msgs::TransformStamped>& transforms);
 
@@ -143,8 +143,8 @@ public:
   /**
    * @brief Transform a quaternion in from_frame to the target_frame
    * @param from_frame The frame in which the input quaternion is specified
-   * @param v_in The input quaternion (in from_frame). Make sure the quaternion is normalized.
-   * @param v_out The resultant (transformed) quaternion. It is guaranteed to be a valid and normalized quaternion.
+   * @param q_in The input quaternion (in from_frame). Make sure the quaternion is normalized.
+   * @param q_out The resultant (transformed) quaternion. It is guaranteed to be a valid and normalized quaternion.
    */
   void transformQuaternion(const std::string& from_frame, const Eigen::Quaterniond& q_in,
                            Eigen::Quaterniond& q_out) const

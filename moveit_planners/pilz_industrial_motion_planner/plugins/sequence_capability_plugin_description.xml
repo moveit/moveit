@@ -1,4 +1,4 @@
-<library path="lib/libsequence_capability">
+<library path="libsequence_capability">
   <class name="pilz_industrial_motion_planner/MoveGroupSequenceAction"
          type="pilz_industrial_motion_planner::MoveGroupSequenceAction"
          base_class_type="move_group::MoveGroupCapability">

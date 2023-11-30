@@ -38,8 +38,6 @@
 
 #include <nodelet/nodelet.h>
 #include <image_transport/image_transport.h>
-#include <boost/thread.hpp>
-#include <boost/thread/condition_variable.hpp>
 #include <moveit/mesh_filter/transform_provider.h>
 #include <moveit/mesh_filter/mesh_filter.h>
 #include <moveit/mesh_filter/stereo_camera_model.h>
@@ -57,10 +55,10 @@ class DepthSelfFiltering : public nodelet::Nodelet
 {
 public:
   /** \brief Nodelet init callback*/
-  virtual void onInit();
+  void onInit() override;
 
 private:
-  ~DepthSelfFiltering();
+  ~DepthSelfFiltering() override;
 
   /**
    * \brief adding the meshes to a given mesh filter object.
@@ -103,14 +101,14 @@ private:
   image_transport::CameraPublisher pub_model_label_image_;
 
   /** \brief required to avoid listener registration before we are all set*/
-  boost::mutex connect_mutex_;
+  std::mutex connect_mutex_;
   int queue_size_;
   TransformProvider transform_provider_;
 
-  cv_bridge::CvImagePtr filtered_depth_ptr_;
-  cv_bridge::CvImagePtr filtered_label_ptr_;
-  cv_bridge::CvImagePtr model_depth_ptr_;
-  cv_bridge::CvImagePtr model_label_ptr_;
+  std::shared_ptr<cv_bridge::CvImage> filtered_depth_ptr_;
+  std::shared_ptr<cv_bridge::CvImage> filtered_label_ptr_;
+  std::shared_ptr<cv_bridge::CvImage> model_depth_ptr_;
+  std::shared_ptr<cv_bridge::CvImage> model_label_ptr_;
   /** \brief distance of near clipping plane*/
   double near_clipping_plane_distance_;
 

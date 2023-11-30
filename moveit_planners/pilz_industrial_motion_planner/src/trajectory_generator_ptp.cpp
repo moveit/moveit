@@ -33,21 +33,19 @@
  *********************************************************************/
 
 #include "pilz_industrial_motion_planner/trajectory_generator_ptp.h"
-#include "eigen_conversions/eigen_msg.h"
 #include "moveit/robot_state/conversions.h"
 #include "ros/ros.h"
 
 #include <iostream>
 #include <sstream>
 
-#include <tf2/convert.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 namespace pilz_industrial_motion_planner
 {
 TrajectoryGeneratorPTP::TrajectoryGeneratorPTP(const robot_model::RobotModelConstPtr& robot_model,
-                                               const LimitsContainer& planner_limits)
+                                               const LimitsContainer& planner_limits, const std::string& group_name)
   : TrajectoryGenerator::TrajectoryGenerator(robot_model, planner_limits)
 {
   if (!planner_limits_.hasJointLimits())
@@ -58,27 +56,23 @@ TrajectoryGeneratorPTP::TrajectoryGeneratorPTP(const robot_model::RobotModelCons
   joint_limits_ = planner_limits_.getJointLimitContainer();
 
   // collect most strict joint limits for each group in robot model
-  for (const auto& jmg : robot_model->getJointModelGroups())
+  const auto* jmg = robot_model->getJointModelGroup(group_name);
+  if (!jmg)
+    throw TrajectoryGeneratorInvalidLimitsException("invalid group: " + group_name);
+
+  const auto& active_joints = jmg->getActiveJointModelNames();
+
+  // no active joints
+  if (!active_joints.empty())
   {
-    JointLimit most_strict_limit = joint_limits_.getCommonLimit(jmg->getActiveJointModelNames());
+    most_strict_limit_ = joint_limits_.getCommonLimit(active_joints);
 
-    if (!most_strict_limit.has_velocity_limits)
-    {
-      ROS_ERROR_STREAM("velocity limit not set for group " << jmg->getName());
-      throw TrajectoryGeneratorInvalidLimitsException("velocity limit not set for group " + jmg->getName());
-    }
-    if (!most_strict_limit.has_acceleration_limits)
-    {
-      ROS_ERROR_STREAM("acceleration limit not set for group " << jmg->getName());
-      throw TrajectoryGeneratorInvalidLimitsException("acceleration limit not set for group " + jmg->getName());
-    }
-    if (!most_strict_limit.has_deceleration_limits)
-    {
-      ROS_ERROR_STREAM("deceleration limit not set for group " << jmg->getName());
-      throw TrajectoryGeneratorInvalidLimitsException("deceleration limit not set for group " + jmg->getName());
-    }
-
-    most_strict_limits_.insert(std::pair<std::string, JointLimit>(jmg->getName(), most_strict_limit));
+    if (!most_strict_limit_.has_velocity_limits)
+      throw TrajectoryGeneratorInvalidLimitsException("velocity limit not set for group " + group_name);
+    if (!most_strict_limit_.has_acceleration_limits)
+      throw TrajectoryGeneratorInvalidLimitsException("acceleration limit not set for group " + group_name);
+    if (!most_strict_limit_.has_deceleration_limits)
+      throw TrajectoryGeneratorInvalidLimitsException("deceleration limit not set for group " + group_name);
   }
 
   ROS_INFO("Initialized Point-to-Point Trajectory Generator.");
@@ -86,7 +80,7 @@ TrajectoryGeneratorPTP::TrajectoryGeneratorPTP(const robot_model::RobotModelCons
 
 void TrajectoryGeneratorPTP::planPTP(const std::map<std::string, double>& start_pos,
                                      const std::map<std::string, double>& goal_pos,
-                                     trajectory_msgs::JointTrajectory& joint_trajectory, const std::string& group_name,
+                                     trajectory_msgs::JointTrajectory& joint_trajectory,
                                      const double& velocity_scaling_factor, const double& acceleration_scaling_factor,
                                      const double& sampling_time)
 {
@@ -133,10 +127,9 @@ void TrajectoryGeneratorPTP::planPTP(const std::map<std::string, double>& start_
   {
     // create vecocity profile if necessary
     velocity_profile.insert(std::make_pair(
-        joint_name,
-        VelocityProfileATrap(velocity_scaling_factor * most_strict_limits_.at(group_name).max_velocity,
-                             acceleration_scaling_factor * most_strict_limits_.at(group_name).max_acceleration,
-                             acceleration_scaling_factor * most_strict_limits_.at(group_name).max_deceleration)));
+        joint_name, VelocityProfileATrap(velocity_scaling_factor * most_strict_limit_.max_velocity,
+                                         acceleration_scaling_factor * most_strict_limit_.max_acceleration,
+                                         acceleration_scaling_factor * most_strict_limit_.max_deceleration)));
 
     velocity_profile.at(joint_name).SetProfile(start_pos.at(joint_name), goal_pos.at(joint_name));
     if (velocity_profile.at(joint_name).Duration() > max_duration)
@@ -206,17 +199,11 @@ void TrajectoryGeneratorPTP::planPTP(const std::map<std::string, double>& start_
             0.0);
 }
 
-void TrajectoryGeneratorPTP::extractMotionPlanInfo(const planning_interface::MotionPlanRequest& req,
+void TrajectoryGeneratorPTP::extractMotionPlanInfo(const planning_scene::PlanningSceneConstPtr& scene,
+                                                   const planning_interface::MotionPlanRequest& req,
                                                    MotionPlanInfo& info) const
 {
   info.group_name = req.group_name;
-
-  // extract start state information
-  info.start_joint_position.clear();
-  for (std::size_t i = 0; i < req.start_state.joint_state.name.size(); ++i)
-  {
-    info.start_joint_position[req.start_state.joint_state.name[i]] = req.start_state.joint_state.position[i];
-  }
 
   // extract goal
   info.goal_joint_position.clear();
@@ -227,34 +214,48 @@ void TrajectoryGeneratorPTP::extractMotionPlanInfo(const planning_interface::Mot
       info.goal_joint_position[joint_constraint.joint_name] = joint_constraint.position;
     }
   }
-  // slove the ik
+  // solve the ik
   else
   {
-    geometry_msgs::Point p =
-        req.goal_constraints.at(0).position_constraints.at(0).constraint_region.primitive_poses.at(0).position;
-    p.x -= req.goal_constraints.at(0).position_constraints.at(0).target_point_offset.x;
-    p.y -= req.goal_constraints.at(0).position_constraints.at(0).target_point_offset.y;
-    p.z -= req.goal_constraints.at(0).position_constraints.at(0).target_point_offset.z;
+    std::string frame_id;
 
-    geometry_msgs::Pose pose;
-    pose.position = p;
-    pose.orientation = req.goal_constraints.at(0).orientation_constraints.at(0).orientation;
-    Eigen::Isometry3d pose_eigen;
-    normalizeQuaternion(pose.orientation);
-    tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(pose, pose_eigen);
-    if (!computePoseIK(robot_model_, req.group_name, req.goal_constraints.at(0).position_constraints.at(0).link_name,
-                       pose_eigen, robot_model_->getModelFrame(), info.start_joint_position, info.goal_joint_position))
+    info.link_name = req.goal_constraints.front().position_constraints.front().link_name;
+    const auto& offset = req.goal_constraints.front().position_constraints.front().target_point_offset;
+    info.ioffset = Eigen::Translation3d(offset.x, offset.y, offset.z).inverse();
+
+    if (req.goal_constraints.front().position_constraints.front().header.frame_id.empty() ||
+        req.goal_constraints.front().orientation_constraints.front().header.frame_id.empty())
     {
-      throw PtpNoIkSolutionForGoalPose("No IK solution for goal pose");
+      ROS_WARN("Frame id is not set in position/orientation constraints of "
+               "goal. Use model frame as default");
+      frame_id = robot_model_->getModelFrame();
+    }
+    else
+    {
+      frame_id = req.goal_constraints.front().position_constraints.front().header.frame_id;
+    }
+
+    // goal pose with optional offset wrt. the planning frame
+    info.goal_pose = scene->getFrameTransform(frame_id) * getPose(req.goal_constraints.front());
+    frame_id = robot_model_->getModelFrame();
+
+    // check goal pose ik before Cartesian motion plan start
+    if (!computePoseIK(scene, info.group_name, info.link_name, info.goal_pose * info.ioffset, frame_id,
+                       info.start_joint_position, info.goal_joint_position))
+    {
+      std::ostringstream os;
+      os << "Failed to compute inverse kinematics for link: " << info.link_name << " of goal pose";
+      throw PtpNoIkSolutionForGoalPose(os.str());
     }
   }
 }
 
-void TrajectoryGeneratorPTP::plan(const planning_interface::MotionPlanRequest& req, const MotionPlanInfo& plan_info,
+void TrajectoryGeneratorPTP::plan(const planning_scene::PlanningSceneConstPtr& /*scene*/,
+                                  const planning_interface::MotionPlanRequest& req, const MotionPlanInfo& plan_info,
                                   const double& sampling_time, trajectory_msgs::JointTrajectory& joint_trajectory)
 {
   // plan the ptp trajectory
-  planPTP(plan_info.start_joint_position, plan_info.goal_joint_position, joint_trajectory, plan_info.group_name,
+  planPTP(plan_info.start_joint_position, plan_info.goal_joint_position, joint_trajectory,
           req.max_velocity_scaling_factor, req.max_acceleration_scaling_factor, sampling_time);
 }
 

@@ -74,23 +74,15 @@ public:
 protected:
   void SetUp() override
   {
-    value_.reset(new CollisionAllocatorType);
+    value_ = std::make_shared<CollisionAllocatorType>();
     robot_model_ = moveit::core::loadTestingRobotModel("panda");
     robot_model_ok_ = static_cast<bool>(robot_model_);
 
-    acm_.reset(new collision_detection::AllowedCollisionMatrix());
-    // Use default collision operations in the SRDF to setup the acm
-    const std::vector<std::string>& collision_links = robot_model_->getLinkModelNamesWithCollisionGeometry();
-    acm_->setEntry(collision_links, collision_links, false);
-
-    // allow collisions for pairs that have been disabled
-    const std::vector<srdf::Model::DisabledCollision>& dc = robot_model_->getSRDF()->getDisabledCollisionPairs();
-    for (const srdf::Model::DisabledCollision& it : dc)
-      acm_->setEntry(it.link1_, it.link2_, true);
+    acm_ = std::make_shared<collision_detection::AllowedCollisionMatrix>(*robot_model_->getSRDF());
 
     cenv_ = value_->allocateEnv(robot_model_);
 
-    robot_state_.reset(new moveit::core::RobotState(robot_model_));
+    robot_state_ = std::make_shared<moveit::core::RobotState>(robot_model_);
     setToHome(*robot_state_);
   }
 
@@ -153,7 +145,7 @@ TYPED_TEST_P(CollisionDetectorPandaTest, RobotWorldCollision_1)
 
   Eigen::Isometry3d pos1 = Eigen::Isometry3d::Identity();
   pos1.translation().z() = 0.3;
-  this->cenv_->getWorld()->addToObject("box", shape_ptr, pos1);
+  this->cenv_->getWorld()->addToObject("box", pos1, shape_ptr, Eigen::Isometry3d::Identity());
 
   this->cenv_->checkSelfCollision(req, res, *this->robot_state_, *this->acm_);
   ASSERT_FALSE(res.collision);
@@ -186,7 +178,8 @@ TYPED_TEST_P(CollisionDetectorPandaTest, RobotWorldCollision_2)
 
   Eigen::Isometry3d pos1 = Eigen::Isometry3d::Identity();
   pos1.translation().z() = 0.3;
-  this->cenv_->getWorld()->addToObject("box", shape_ptr, pos1);
+  this->cenv_->getWorld()->addToObject("box", pos1, shape_ptr, Eigen::Isometry3d::Identity());
+
   this->cenv_->checkRobotCollision(req, res, *this->robot_state_, *this->acm_);
   ASSERT_TRUE(res.collision);
   ASSERT_GE(res.contact_count, 3u);
@@ -213,7 +206,7 @@ TYPED_TEST_P(CollisionDetectorPandaTest, PaddingTest)
   pos.translation().x() = 0.43;
   pos.translation().y() = 0;
   pos.translation().z() = 0.55;
-  this->cenv_->getWorld()->addToObject("box", shape_ptr, pos);
+  this->cenv_->getWorld()->addToObject("box", pos, shape_ptr, Eigen::Isometry3d::Identity());
 
   this->cenv_->setLinkPadding("panda_hand", 0.08);
   this->cenv_->checkRobotCollision(req, res, *this->robot_state_, *this->acm_);
@@ -250,7 +243,7 @@ TYPED_TEST_P(CollisionDetectorPandaTest, DistanceWorld)
   pos.translation().x() = 0.43;
   pos.translation().y() = 0;
   pos.translation().z() = 0.55;
-  this->cenv_->getWorld()->addToObject("box", shape_ptr, pos);
+  this->cenv_->getWorld()->addToObject("box", pos, shape_ptr, Eigen::Isometry3d::Identity());
 
   this->cenv_->setLinkPadding("panda_hand", 0.0);
   this->cenv_->checkRobotCollision(req, res, *this->robot_state_, *this->acm_);
@@ -287,9 +280,9 @@ TYPED_TEST_P(DistanceCheckPandaTest, DistanceSingle)
     rng.quaternion(quat);
     pose.linear() = Eigen::Quaterniond(quat[0], quat[1], quat[2], quat[3]).toRotationMatrix();
 
-    this->cenv_->getWorld()->addToObject("collection", shape, pose);
+    this->cenv_->getWorld()->addToObject("collection", Eigen::Isometry3d::Identity(), shape, pose);
     this->cenv_->getWorld()->removeObject("object");
-    this->cenv_->getWorld()->addToObject("object", shape, pose);
+    this->cenv_->getWorld()->addToObject("object", pose, shape, Eigen::Isometry3d::Identity());
 
     this->cenv_->distanceRobot(req, res, *this->robot_state_);
     auto& distances1 = res.distances[std::pair<std::string, std::string>("collection", "panda_hand")];
@@ -304,7 +297,66 @@ TYPED_TEST_P(DistanceCheckPandaTest, DistanceSingle)
   }
 }
 
+// FCL < 0.6 completely fails the DistancePoints test, so we have two test
+// suites, one with and one without the test.
+template <class CollisionAllocatorType>
+class DistanceFullPandaTest : public DistanceCheckPandaTest<CollisionAllocatorType>
+{
+};
+
+TYPED_TEST_CASE_P(DistanceFullPandaTest);
+
+/** \brief Tests if nearest points are computed correctly. */
+TYPED_TEST_P(DistanceFullPandaTest, DistancePoints)
+{
+  // Adding the box right in front of the robot hand
+  shapes::Box* shape = new shapes::Box(0.1, 0.1, 0.1);
+  shapes::ShapeConstPtr shape_ptr(shape);
+
+  Eigen::Isometry3d pos{ Eigen::Isometry3d::Identity() };
+  pos.translation().x() = 0.43;
+  pos.translation().y() = 0;
+  pos.translation().z() = 0.55;
+  this->cenv_->getWorld()->addToObject("box", shape_ptr, pos);
+
+  collision_detection::DistanceRequest req;
+  req.acm = &*this->acm_;
+  req.type = collision_detection::DistanceRequestTypes::SINGLE;
+  req.enable_nearest_points = true;
+  req.max_contacts_per_body = 1;
+
+  collision_detection::DistanceResult res;
+  this->cenv_->distanceRobot(req, res, *this->robot_state_);
+
+  // Checks a particular point is inside the box
+  auto check_in_box = [&](const Eigen::Vector3d& p) {
+    Eigen::Vector3d in_box = pos.inverse() * p;
+
+    constexpr double eps = 1e-5;
+    EXPECT_LE(std::abs(in_box.x()), shape->size[0] + eps);
+    EXPECT_LE(std::abs(in_box.y()), shape->size[1] + eps);
+    EXPECT_LE(std::abs(in_box.z()), shape->size[2] + eps);
+  };
+
+  // Check that all points reported on "box" are actually on the box and not
+  // on the robot
+  for (auto& distance : res.distances)
+  {
+    for (auto& pair : distance.second)
+    {
+      if (pair.link_names[0] == "box")
+        check_in_box(pair.nearest_points[0]);
+      else if (pair.link_names[1] == "box")
+        check_in_box(pair.nearest_points[1]);
+      else
+        ADD_FAILURE() << "Unrecognized link names";
+    }
+  }
+}
+
 REGISTER_TYPED_TEST_CASE_P(CollisionDetectorPandaTest, InitOK, DefaultNotInCollision, LinksInCollision,
                            RobotWorldCollision_1, RobotWorldCollision_2, PaddingTest, DistanceSelf, DistanceWorld);
 
 REGISTER_TYPED_TEST_CASE_P(DistanceCheckPandaTest, DistanceSingle);
+
+REGISTER_TYPED_TEST_CASE_P(DistanceFullPandaTest, DistancePoints);

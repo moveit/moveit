@@ -32,76 +32,90 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Cristian C. Beltran
+   Desc: Test the TrajectoryExecutionManager with MoveitCpp
+*/
 
-#include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+// ROS
+#include <ros/ros.h>
+
+// Testing
+#include <gtest/gtest.h>
+
+// Main class
+#include <moveit/moveit_cpp/moveit_cpp.h>
+#include <moveit/moveit_cpp/planning_component.h>
+// Msgs
+#include <geometry_msgs/PointStamped.h>
+
+namespace moveit_cpp
+{
+class MoveItCppTest : public ::testing::Test
+{
+public:
+  void SetUp() override
+  {
+    nh_ = ros::NodeHandle();
+    moveit_cpp_ptr = std::make_shared<MoveItCpp>(nh_);
+    trajectory_execution_manager_ptr = moveit_cpp_ptr->getTrajectoryExecutionManagerNonConst();
+
+    traj1.joint_trajectory.joint_names.push_back("panda_joint1");
+    traj1.joint_trajectory.points.resize(1);
+    traj1.joint_trajectory.points[0].positions.push_back(0.0);
+
+    traj2 = traj1;
+    traj2.joint_trajectory.joint_names.push_back("panda_joint2");
+    traj2.joint_trajectory.points[0].positions.push_back(1.0);
+    traj2.multi_dof_joint_trajectory.joint_names.push_back("panda_joint3");
+    traj2.multi_dof_joint_trajectory.points.resize(1);
+    traj2.multi_dof_joint_trajectory.points[0].transforms.resize(1);
+  }
+
+protected:
+  ros::NodeHandle nh_;
+  MoveItCppPtr moveit_cpp_ptr;
+  PlanningComponentPtr planning_component_ptr;
+  trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_ptr;
+  moveit_msgs::RobotTrajectory traj1;
+  moveit_msgs::RobotTrajectory traj2;
+};
+
+TEST_F(MoveItCppTest, EnsureActiveControllersForJointsTest)
+{
+  ASSERT_TRUE(trajectory_execution_manager_ptr->ensureActiveControllersForJoints({ "panda_joint1" }));
+}
+
+TEST_F(MoveItCppTest, ensureActiveControllerTest)
+{
+  ASSERT_TRUE(trajectory_execution_manager_ptr->ensureActiveController("fake_panda_arm_controller"));
+}
+
+TEST_F(MoveItCppTest, ExecuteEmptySetOfTrajectoriesTest)
+{
+  // execute with empty set of trajectories
+  trajectory_execution_manager_ptr->execute();
+  auto last_execution_status = trajectory_execution_manager_ptr->waitForExecution();
+  ASSERT_EQ(last_execution_status, moveit_controller_manager::ExecutionStatus::SUCCEEDED);
+}
+
+TEST_F(MoveItCppTest, PushExecuteAndWaitTest)
+{
+  ASSERT_TRUE(trajectory_execution_manager_ptr->push(traj1));
+  ASSERT_TRUE(trajectory_execution_manager_ptr->push(traj2));
+  traj1.multi_dof_joint_trajectory = traj2.multi_dof_joint_trajectory;
+  ASSERT_TRUE(trajectory_execution_manager_ptr->push(traj1));
+  auto last_execution_status = trajectory_execution_manager_ptr->executeAndWait();
+  ASSERT_EQ(last_execution_status, moveit_controller_manager::ExecutionStatus::SUCCEEDED);
+}
+
+}  // namespace moveit_cpp
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "test_trajectory_execution_manager");
+  testing::InitGoogleTest(&argc, argv);
+  ros::init(argc, argv, "test_execution_manager");
 
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
+  int result = RUN_ALL_TESTS();
 
-  robot_model_loader::RobotModelLoaderPtr rml(new robot_model_loader::RobotModelLoader);
-  planning_scene_monitor::PlanningSceneMonitor psm(rml);
-  trajectory_execution_manager::TrajectoryExecutionManager tem(rml->getModel(), psm.getStateMonitor(), true);
-
-  std::cout << "1:\n";
-  if (!tem.ensureActiveControllersForJoints(std::vector<std::string>(1, "basej")))
-    ROS_ERROR("Fail!");
-
-  std::cout << "2:\n";
-  if (!tem.ensureActiveController("arms"))
-    ROS_ERROR("Fail!");
-
-  std::cout << "3:\n";
-  if (!tem.ensureActiveControllersForJoints(std::vector<std::string>(1, "rj2")))
-    ROS_ERROR("Fail!");
-
-  std::cout << "4:\n";
-  if (!tem.ensureActiveControllersForJoints(std::vector<std::string>(1, "lj1")))
-    ROS_ERROR("Fail!");
-
-  std::cout << "5:\n";
-  if (!tem.ensureActiveController("left_arm_head"))
-    ROS_ERROR("Fail!");
-  std::cout << "6:\n";
-  if (!tem.ensureActiveController("arms"))
-    ROS_ERROR("Fail!");
-
-  // execute with empty set of trajectories
-  tem.execute();
-  if (!tem.waitForExecution())
-    ROS_ERROR("Fail!");
-
-  moveit_msgs::RobotTrajectory traj1;
-  traj1.joint_trajectory.joint_names.push_back("rj1");
-  traj1.joint_trajectory.points.resize(1);
-  traj1.joint_trajectory.points[0].positions.push_back(0.0);
-  if (!tem.push(traj1))
-    ROS_ERROR("Fail!");
-
-  moveit_msgs::RobotTrajectory traj2 = traj1;
-  traj2.joint_trajectory.joint_names.push_back("lj2");
-  traj2.joint_trajectory.points[0].positions.push_back(1.0);
-  traj2.multi_dof_joint_trajectory.joint_names.push_back("basej");
-  traj2.multi_dof_joint_trajectory.points.resize(1);
-  traj2.multi_dof_joint_trajectory.points[0].transforms.resize(1);
-
-  if (!tem.push(traj2))
-    ROS_ERROR("Fail!");
-
-  traj1.multi_dof_joint_trajectory = traj2.multi_dof_joint_trajectory;
-  if (!tem.push(traj1))
-    ROS_ERROR("Fail!");
-
-  if (!tem.executeAndWait())
-    ROS_ERROR("Fail!");
-
-  ros::waitForShutdown();
-
-  return 0;
+  return result;
 }

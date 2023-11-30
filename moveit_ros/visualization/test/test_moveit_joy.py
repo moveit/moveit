@@ -42,8 +42,9 @@ import rospy
 import rostest
 import os
 
-_PKGNAME = 'moveit_ros_visualization'
-_NODENAME = 'test_moveit_joy'
+_PKGNAME = "moveit_ros_visualization"
+_NODENAME = "test_moveit_joy"
+
 
 class TestMoveitJoy(unittest.TestCase):
     def __init__(self, *args, **kwargs):
@@ -54,7 +55,8 @@ class TestMoveitJoy(unittest.TestCase):
         # However, at least we tested, that MoveitJoy constructor can be called...
         self.assertRaises(RuntimeError, MoveitJoy)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     rospy.init_node(_NODENAME)
     rostest.rosrun(_PKGNAME, _NODENAME, TestMoveitJoy)
     # Don't get trapped by https://github.com/ros/ros_comm/issues/870

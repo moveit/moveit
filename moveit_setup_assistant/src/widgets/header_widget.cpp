@@ -54,7 +54,6 @@ HeaderWidget::HeaderWidget(const std::string& title, const std::string& instruct
 {
   // Basic widget container
   QVBoxLayout* layout = new QVBoxLayout(this);
-  layout->setAlignment(Qt::AlignTop);
 
   // Page Title
   QLabel* page_title = new QLabel(this);
@@ -62,23 +61,23 @@ HeaderWidget::HeaderWidget(const std::string& title, const std::string& instruct
   QFont page_title_font(QFont().defaultFamily(), 18, QFont::Bold);
   page_title->setFont(page_title_font);
   page_title->setWordWrap(true);
+  page_title->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
   layout->addWidget(page_title);
-  layout->setAlignment(page_title, Qt::AlignTop);
 
   // Page Instructions
   QLabel* page_instructions = new QLabel(this);
   page_instructions->setText(instructions.c_str());
   page_instructions->setWordWrap(true);
-  // page_instructions->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding );
-  page_instructions->setMinimumWidth(1);
+  page_instructions->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
   layout->addWidget(page_instructions);
-  layout->setAlignment(page_instructions, Qt::AlignTop);
 
   // Margin on bottom
   layout->setContentsMargins(0, 0, 0, 0);  // last 15
 
   this->setLayout(layout);
-  // this->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding );
+
+  // For some reason, this style sheet setting affects the placement layout!?
+  this->setStyleSheet(QString("background-color:%1;").arg(QWidget::palette().color(QWidget::backgroundRole()).name()));
 }
 
 // ******************************************************************************************

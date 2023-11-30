@@ -36,7 +36,7 @@
 #include "moveit/planning_scene/planning_scene.h"
 #include "pilz_industrial_motion_planner/planning_context_ptp.h"
 
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 
 pilz_industrial_motion_planner::PlanningContextLoaderPTP::PlanningContextLoaderPTP()
 {
@@ -52,7 +52,7 @@ bool pilz_industrial_motion_planner::PlanningContextLoaderPTP::loadContext(
 {
   if (limits_set_ && model_set_)
   {
-    planning_context.reset(new PlanningContextPTP(name, group, model_, limits_));
+    planning_context = std::make_shared<PlanningContextPTP>(name, group, model_, limits_);
     return true;
   }
   else

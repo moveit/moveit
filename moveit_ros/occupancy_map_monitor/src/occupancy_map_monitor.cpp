@@ -37,7 +37,7 @@
 #include <ros/ros.h>
 #include <moveit_msgs/SaveMap.h>
 #include <moveit_msgs/LoadMap.h>
-#include <moveit/occupancy_map_monitor/occupancy_map.h>
+#include <moveit/collision_detection/occupancy_map.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <XmlRpcException.h>
 
@@ -99,7 +99,7 @@ void OccupancyMapMonitor::initialize()
                                                      << "\" specified but no TF instance (buffer) specified. "
                                                         "No transforms will be applied to received data.");
 
-  tree_.reset(new OccMapTree(map_resolution_));
+  tree_ = std::make_shared<collision_detection::OccMapTree>(map_resolution_);
   tree_const_ = tree_;
 
   XmlRpc::XmlRpcValue sensor_list;
@@ -133,8 +133,8 @@ void OccupancyMapMonitor::initialize()
           {
             try
             {
-              updater_plugin_loader_.reset(new pluginlib::ClassLoader<OccupancyMapUpdater>(
-                  "moveit_ros_perception", "occupancy_map_monitor::OccupancyMapUpdater"));
+              updater_plugin_loader_ = std::make_unique<pluginlib::ClassLoader<OccupancyMapUpdater>>(
+                  "moveit_ros_perception", "occupancy_map_monitor::OccupancyMapUpdater");
             }
             catch (pluginlib::PluginlibException& ex)
             {
@@ -181,7 +181,7 @@ void OccupancyMapMonitor::initialize()
     }
   }
   else
-    ROS_ERROR_NAMED(LOGNAME, "Failed to find 3D sensor plugin parameters for octomap generation");
+    ROS_INFO_NAMED(LOGNAME, "No 3D sensor plugin(s) defined for octomap updates");
 
   /* advertise a service for loading octomaps from disk */
   save_map_srv_ = nh_.advertiseService("save_map", &OccupancyMapMonitor::saveMapCallback, this);
@@ -197,17 +197,24 @@ void OccupancyMapMonitor::addUpdater(const OccupancyMapUpdaterPtr& updater)
     if (map_updaters_.size() > 1)
     {
       mesh_handles_.resize(map_updaters_.size());
-      // when we had one updater only, we passed direcly the transform cache callback to that updater
+      // when we had one updater only, we passed the transform cache callback directly to that updater
       if (map_updaters_.size() == 2)
       {
         map_updaters_[0]->setTransformCacheCallback(
-            boost::bind(&OccupancyMapMonitor::getShapeTransformCache, this, 0, _1, _2, _3));
+            [this](const std::string& frame, const ros::Time& stamp, ShapeTransformCache& cache) {
+              return getShapeTransformCache(0, frame, stamp, cache);
+            });
         map_updaters_[1]->setTransformCacheCallback(
-            boost::bind(&OccupancyMapMonitor::getShapeTransformCache, this, 1, _1, _2, _3));
+            [this](const std::string& frame, const ros::Time& stamp, ShapeTransformCache& cache) {
+              return getShapeTransformCache(1, frame, stamp, cache);
+            });
       }
       else
         map_updaters_.back()->setTransformCacheCallback(
-            boost::bind(&OccupancyMapMonitor::getShapeTransformCache, this, map_updaters_.size() - 1, _1, _2, _3));
+            [this, i = map_updaters_.size() - 1](const std::string& frame, const ros::Time& stamp,
+                                                 ShapeTransformCache& cache) {
+              return getShapeTransformCache(i, frame, stamp, cache);
+            });
     }
     else
       updater->setTransformCacheCallback(transform_cache_callback_);

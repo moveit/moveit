@@ -1,39 +1,19 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(moveit_core)
 
-if(NOT "${CMAKE_CXX_STANDARD}")
-  set(CMAKE_CXX_STANDARD 14)
-endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  # Enable warnings
-  add_compile_options(-Wall -Wextra
-    -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wcast-qual
-    -Wno-unused-parameter -Wno-unused-function)
-endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  # This too often has false-positives
+  # Silent these warnings. They are too often false-positives.
+  message("TODO: Analyse and fix gcc's maybe-uninitialized warnings")
   add_compile_options(-Wno-maybe-uninitialized)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
+include(cmake/moveit.cmake)
+moveit_build_options()
 
-if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-  message("${PROJECT_NAME}: You did not request a specific build type: Choosing 'Release' for maximum performance")
-  set(CMAKE_BUILD_TYPE Release)
-endif()
-
-# boost::iostreams on Windows depends on boost::zlib
-if(WIN32)
-  set(EXTRA_BOOST_COMPONENTS zlib)
-endif()
 find_package(Boost REQUIRED system filesystem date_time thread iostreams regex ${EXTRA_BOOST_COMPONENTS})
 find_package(Eigen3 REQUIRED)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
-
 # TODO: Move collision detection into separate packages
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 find_package(Bullet 2.87)
 
 # TODO(j-petit): Version check can be dropped when Xenial reaches end-of-life
@@ -46,17 +26,39 @@ else()
   message(STATUS "Version of Bullet too old or not available: disabling Bullet collision detection plugin. Try using Ubuntu 18.04 or later.")
 endif()
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBFCL_PC REQUIRED fcl)
-set(LIBFCL_INCLUDE_DIRS ${LIBFCL_PC_INCLUDE_DIRS})
-# find *absolute* paths to LIBFCL_LIBRARIES
-set(LIBFCL_LIBRARIES)
-foreach(_lib ${LIBFCL_PC_LIBRARIES})
-  find_library(_lib_${_lib} ${_lib} HINTS ${LIBFCL_PC_LIBRARY_DIRS})
-  list(APPEND LIBFCL_LIBRARIES ${_lib_${_lib}})
-endforeach()
+find_package(fcl QUIET)
+if (fcl_FOUND)
+  # convert cmake target to variables for catkin_package DEPENDS
+  if(TARGET ${FCL_LIBRARIES})
+    get_target_property(LIBFCL_LOCATION ${FCL_LIBRARIES} LOCATION)
+    get_target_property(LIBFCL_INTERFACE_LINK_LIBRARIES ${FCL_LIBRARIES} INTERFACE_LINK_LIBRARIES)
+    get_target_property(LIBFCL_INCLUDE_DIRS ${FCL_LIBRARIES} INTERFACE_INCLUDE_DIRECTORIES)
+    set(LIBFCL_LIBRARIES ${LIBFCL_LOCATION} ${LIBFCL_INTERFACE_LINK_LIBRARIES})
+  else()
+    set(LIBFCL_LIBRARIES ${FCL_LIBRARIES})
+    set(LIBFCL_INCLUDE_DIRS ${FCL_INCLUDE_DIRS})
+  endif()
+else()
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(LIBFCL_PC REQUIRED fcl)
+  set(LIBFCL_INCLUDE_DIRS ${LIBFCL_PC_INCLUDE_DIRS})
+  # find *absolute* paths to LIBFCL_LIBRARIES
+  set(LIBFCL_LIBRARIES)
+  foreach(_lib ${LIBFCL_PC_LIBRARIES})
+    find_library(_lib_${_lib} ${_lib} HINTS ${LIBFCL_PC_LIBRARY_DIRS})
+    list(APPEND LIBFCL_LIBRARIES ${_lib_${_lib}})
+  endforeach()
+endif()
 
 find_package(octomap REQUIRED)
+
+find_package(ruckig REQUIRED)
+# work around catkin_package not fetching the interface includes from the target
+# to forward to downstream dependencies. The includes do not need to be added
+# in include_directories below because the target is correctly imported here.
+get_target_property(ruckig_INCLUDE_DIRS ruckig::ruckig INTERFACE_INCLUDE_DIRECTORIES)
+set(ruckig_LIBRARIES "ruckig::ruckig")
+
 find_package(urdfdom REQUIRED)
 find_package(urdfdom_headers REQUIRED)
 
@@ -65,7 +67,6 @@ COMPONENTS
   tf2_eigen
   tf2_geometry_msgs
   eigen_stl_containers
-  eigen_conversions
   geometric_shapes
   geometry_msgs
   kdl_parser
@@ -83,7 +84,12 @@ COMPONENTS
   urdf
   visualization_msgs
   xmlrpcpp
+  pybind11_catkin
+  pluginlib
+  angles
 )
+
+catkin_python_setup()
 
 set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
 # Pass the folder of the generated version.h to catkin_package() for export in devel-space
@@ -116,6 +122,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     planning_request_adapter/include
     planning_scene/include
     profiler/include
+    python/tools/include
     sensor_manager/include
     trajectory_processing/include
     utils/include
@@ -141,6 +148,7 @@ catkin_package(
     moveit_constraint_samplers
     moveit_planning_request_adapter
     moveit_profiler
+    moveit_python_tools
     moveit_trajectory_processing
     moveit_distance_field
     moveit_collision_distance_field
@@ -148,7 +156,6 @@ catkin_package(
     moveit_dynamics_solver
     moveit_utils
     moveit_test_utils
-    ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     eigen_stl_containers
     geometric_shapes
@@ -170,10 +177,18 @@ catkin_package(
     EIGEN3
     LIBFCL
     OCTOMAP
+    ruckig
     urdfdom
     urdfdom_headers
     ${BULLET_ENABLE}
+  CFG_EXTRAS
+    moveit.cmake
     )
+
+if (WIN32)
+  # for msvc 2017 compatibility
+  add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE)
+endif()
 
 include_directories(SYSTEM ${catkin_INCLUDE_DIRS}
                            ${Boost_INCLUDE_DIRS}
@@ -188,17 +203,6 @@ include_directories(SYSTEM ${catkin_INCLUDE_DIRS}
 #catkin_lint: ignore_once external_directory  (${VERSION_FILE_PATH})
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${VERSION_FILE_PATH})
-
-# Generate and install version.h
-string(REGEX REPLACE "^([0-9]+)\\..*" "\\1" MOVEIT_VERSION_MAJOR "${${PROJECT_NAME}_VERSION}")
-string(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" MOVEIT_VERSION_MINOR "${${PROJECT_NAME}_VERSION}")
-string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" MOVEIT_VERSION_PATCH "${${PROJECT_NAME}_VERSION}")
-set(MOVEIT_VERSION_EXTRA "Alpha")
-set(MOVEIT_VERSION "${MOVEIT_VERSION_MAJOR}.${MOVEIT_VERSION_MINOR}.${MOVEIT_VERSION_PATCH}-${MOVEIT_VERSION_EXTRA}")
-message(STATUS " *** Building MoveIt ${MOVEIT_VERSION} ***")
-configure_file("version/version.h.in" "${VERSION_FILE_PATH}/moveit/version.h")
-#catkin_lint: ignore_once external_file
-install(FILES "${VERSION_FILE_PATH}/moveit/version.h" DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
 
 add_subdirectory(version)
 add_subdirectory(macros)
@@ -226,6 +230,32 @@ add_subdirectory(distance_field)
 add_subdirectory(collision_distance_field)
 add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
+
+add_subdirectory(python)
+set(pymoveit_libs
+  moveit_collision_detection
+  moveit_kinematic_constraints
+  moveit_planning_scene
+  moveit_python_tools
+  moveit_robot_model
+  moveit_robot_state
+  moveit_transforms
+)
+
+pybind_add_module(pymoveit_core
+    python/pymoveit_core.cpp
+    collision_detection/src/pycollision_detection.cpp
+    robot_model/src/pyrobot_model.cpp
+    robot_state/src/pyrobot_state.cpp
+    transforms/src/pytransforms.cpp
+    planning_scene/src/pyplanning_scene.cpp
+    kinematic_constraints/src/pykinematic_constraint.cpp
+)
+target_include_directories(pymoveit_core SYSTEM PRIVATE ${catkin_INCLUDE_DIRS})
+target_link_libraries(pymoveit_core PRIVATE ${pymoveit_libs} ${catkin_LIBRARIES})
+
+#catkin_lint: ignore_once undefined_target (pymoveit_core is defined by pybind_add_module)
+install(TARGETS pymoveit_core LIBRARY DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
 
 if(BULLET_ENABLE)
   add_subdirectory(collision_detection_bullet)

@@ -55,7 +55,7 @@ const btScalar BULLET_EPSILON = 1e-3f;                   // numerical precision 
 const btScalar BULLET_DEFAULT_CONTACT_DISTANCE = 0.00f;  // All pairs closer than this distance get reported
 const bool BULLET_COMPOUND_USE_DYNAMIC_AABB = true;
 
-MOVEIT_CLASS_FORWARD(CollisionObjectWrapper)
+MOVEIT_CLASS_FORWARD(CollisionObjectWrapper);
 
 /** \brief Allowed = true */
 inline bool acmCheck(const std::string& body_1, const std::string& body_2,
@@ -65,7 +65,7 @@ inline bool acmCheck(const std::string& body_1, const std::string& body_2,
 
   if (acm != nullptr)
   {
-    if (acm->getEntry(body_1, body_2, allowed_type))
+    if (acm->getAllowedCollision(body_1, body_2, allowed_type))
     {
       if (allowed_type == collision_detection::AllowedCollision::Type::NEVER)
       {
@@ -153,7 +153,9 @@ public:
                          const AlignedVector<Eigen::Isometry3d>& shape_poses,
                          const std::vector<CollisionObjectType>& collision_object_types, bool active = true);
 
-  /** \brief Constructor for attached robot objects */
+  /** \brief Constructor for attached robot objects
+   *
+   *  \param shape_poses These poses are in the global (planning) frame */
   CollisionObjectWrapper(const std::string& name, const collision_detection::BodyType& type_id,
                          const std::vector<shapes::ShapeConstPtr>& shapes,
                          const AlignedVector<Eigen::Isometry3d>& shape_poses,
@@ -441,7 +443,7 @@ inline btScalar addDiscreteSingleResult(btManifoldPoint& cp, const btCollisionOb
   contact.nearest_points[1] = convertBtToEigen(cp.m_positionWorldOnB);
 
   contact.body_type_1 = cd0->getTypeID();
-  contact.body_type_2 = cd0->getTypeID();
+  contact.body_type_2 = cd1->getTypeID();
 
   if (!processResult(collisions, contact, pc, found))
   {
@@ -474,7 +476,7 @@ inline btScalar addCastSingleResult(btManifoldPoint& cp, const btCollisionObject
   contact.pos = convertBtToEigen(cp.m_positionWorldOnA);
 
   contact.body_type_1 = cd0->getTypeID();
-  contact.body_type_2 = cd0->getTypeID();
+  contact.body_type_2 = cd1->getTypeID();
 
   collision_detection::Contact* col = processResult(collisions, contact, pc, found);
 
@@ -599,8 +601,8 @@ struct BroadphaseContactResultCallback
   }
 
   /** \brief This callback is used after btManifoldResult processed a collision result. */
-  btScalar addSingleResult(btManifoldPoint& cp, const btCollisionObjectWrapper* colObj0Wrap, int partId0, int index0,
-                           const btCollisionObjectWrapper* colObj1Wrap, int partId1, int index1)
+  btScalar addSingleResult(btManifoldPoint& cp, const btCollisionObjectWrapper* colObj0Wrap, int /*partId0*/,
+                           int index0, const btCollisionObjectWrapper* colObj1Wrap, int /*partId1*/, int index1)
   {
     if (cp.m_distance1 > static_cast<btScalar>(contact_distance_))
     {

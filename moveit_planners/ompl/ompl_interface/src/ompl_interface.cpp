@@ -37,7 +37,6 @@
 #include <moveit/ompl_interface/ompl_interface.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/kinematic_constraints/utils.h>
-#include <moveit/ompl_interface/detail/constrained_valid_state_sampler.h>
 #include <moveit/profiler/profiler.h>
 #include <moveit/utils/lexical_casts.h>
 #include <fstream>
@@ -123,8 +122,8 @@ void ompl_interface::OMPLInterface::configureContext(const ModelBasedPlanningCon
 
 void ompl_interface::OMPLInterface::loadConstraintSamplers()
 {
-  constraint_sampler_manager_loader_.reset(
-      new constraint_sampler_manager_loader::ConstraintSamplerManagerLoader(constraint_sampler_manager_));
+  constraint_sampler_manager_loader_ =
+      std::make_shared<constraint_sampler_manager_loader::ConstraintSamplerManagerLoader>(constraint_sampler_manager_);
 }
 
 bool ompl_interface::OMPLInterface::loadPlannerConfiguration(

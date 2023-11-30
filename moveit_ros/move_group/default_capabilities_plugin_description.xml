@@ -65,7 +65,7 @@
       Provide a ROS service that allows for clearing the octomap
     </description>
   </class>
-  
+
   <class name="move_group/TfPublisher" type="move_group::TfPublisher" base_class_type="move_group::MoveGroupCapability">
     <description>
       Provide a capability that publishes PlanningScene frames to the tf system

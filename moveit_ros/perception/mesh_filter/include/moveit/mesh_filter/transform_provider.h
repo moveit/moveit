@@ -37,8 +37,6 @@
 #pragma once
 
 #include <string>
-#include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
 #include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/mesh_filter/mesh_filter_base.h>
@@ -60,9 +58,9 @@ public:
   /**
    * \brief Constructor
    * \author Suat Gedikli (gedikli@willowgarage.com)
-   * \param[in] interval_us update interval in micro seconds
+   * \param[in] update_rate update rate in Hz
    */
-  TransformProvider(unsigned long interval_us = 30000);
+  TransformProvider(double update_rate = 30.);
 
   /** \brief Destructor */
   ~TransformProvider();
@@ -80,7 +78,7 @@ public:
    * \brief registers a mesh with its handle
    * \author Suat Gedikli (gedikli@willowgarage.com)
    * \param[in] handle handle of the mesh
-   * \param[in] name frame_id_ of teh mesh
+   * \param[in] name frame_id_ of the mesh
    */
   void addHandle(mesh_filter::MeshHandle handle, const std::string& name);
 
@@ -104,13 +102,12 @@ public:
   void stop();
 
   /**
-   * \brief sets the update interval in micro seconds. This should be low enough to reduce the system load but high
-   * enough
-   * to get up-to-date transformations. For PSDK compatible devices this value should be around 30000 = 30ms
+   * \brief sets the update rate in Hz. This should be slow enough to reduce the system load but fast enough to get
+   * up-to-date transformations. For PSDK compatible devices this value should be around 30 Hz.
    * \author Suat Gedikli (gedikli@willowgarage.com)
-   * \param[in] usecs interval in micro seconds
+   * \param[in] update_rate update rate in Hz
    */
-  void setUpdateInterval(unsigned long usecs);
+  void setUpdateRate(double update_rate);
 
 private:
   /**
@@ -126,8 +123,9 @@ private:
    * \brief Context Object for registered frames
    * \author Suat Gedikli (gedikli@willowgarage.com)
    */
-  struct TransformContext
+  class TransformContext
   {
+  public:
     TransformContext(const std::string& name) : frame_id_(name)
     {
       transformation_.matrix().setZero();
@@ -135,7 +133,7 @@ private:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     std::string frame_id_;
     Eigen::Isometry3d transformation_;
-    boost::mutex mutex_;
+    std::mutex mutex_;
   };
 
   /**
@@ -158,11 +156,11 @@ private:
   std::string frame_id_;
 
   /** \brief thread object*/
-  boost::thread thread_;
+  std::thread thread_;
 
   /** \flag to leave the update loop*/
   bool stop_;
 
-  /** \brief update interval in micro seconds*/
-  unsigned long interval_us_;
+  /** \brief update rate in Hz*/
+  ros::Rate update_rate_;
 };

@@ -39,7 +39,6 @@
 #include <string>
 #include <vector>
 
-#include <eigen_conversions/eigen_msg.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/planning_interface/planning_request.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
@@ -50,7 +49,6 @@
 #include <pilz_industrial_motion_planner_testutils/command_types_typedef.h>
 #include <pilz_industrial_motion_planner_testutils/xml_testdata_loader.h>
 #include <ros/ros.h>
-#include <tf2/convert.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
@@ -108,8 +106,8 @@ void IntegrationTestCommandPlanning::SetUp()
   ASSERT_TRUE(ros::service::waitForService(PLAN_SERVICE_NAME, ros::Duration(testutils::DEFAULT_SERVICE_TIMEOUT)));
 
   // load the test data provider
-  test_data_.reset(
-      new pilz_industrial_motion_planner_testutils::XmlTestdataLoader{ test_data_file_name_, robot_model_ });
+  test_data_ =
+      std::make_unique<pilz_industrial_motion_planner_testutils::XmlTestdataLoader>(test_data_file_name_, robot_model_);
   ASSERT_NE(nullptr, test_data_) << "Failed to load test data by provider.";
 
   num_joints_ = robot_model_->getJointModelGroup(planning_group_)->getActiveJointModelNames().size();
@@ -219,7 +217,7 @@ TEST_F(IntegrationTestCommandPlanning, PtpJointCart)
   EXPECT_NEAR(tf(2, 3), expected_pose.position.z, EPSILON);
 
   Eigen::Isometry3d exp_iso3d_pose;
-  tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(expected_pose, exp_iso3d_pose);
+  tf2::fromMsg(expected_pose, exp_iso3d_pose);
 
   EXPECT_TRUE(Eigen::Quaterniond(tf.rotation()).isApprox(Eigen::Quaterniond(exp_iso3d_pose.rotation()), EPSILON));
 }
@@ -404,8 +402,8 @@ TEST_F(IntegrationTestCommandPlanning, CircJointCenterCart)
 
     // Check orientation
     Eigen::Isometry3d start_pose_iso3d, goal_pose_iso3d;
-    tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(start_pose, start_pose_iso3d);
-    tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(goal_pose, goal_pose_iso3d);
+    tf2::fromMsg(start_pose, start_pose_iso3d);
+    tf2::fromMsg(goal_pose, goal_pose_iso3d);
     EXPECT_TRUE(testutils::checkSLERP(start_pose_iso3d, goal_pose_iso3d, waypoint_pose, orientation_norm_tolerance_));
   }
 }
@@ -485,8 +483,8 @@ TEST_F(IntegrationTestCommandPlanning, CircCartCenterCart)
 
     // Check orientation
     Eigen::Isometry3d start_pose_iso3d, goal_pose_iso3d;
-    tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(start_pose, start_pose_iso3d);
-    tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(goal_pose, goal_pose_iso3d);
+    tf2::fromMsg(start_pose, start_pose_iso3d);
+    tf2::fromMsg(goal_pose, goal_pose_iso3d);
     EXPECT_TRUE(testutils::checkSLERP(start_pose_iso3d, goal_pose_iso3d, waypoint_pose, orientation_norm_tolerance_));
   }
 }

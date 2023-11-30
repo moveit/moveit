@@ -40,10 +40,10 @@ from moveit_commander import RobotCommander, roscpp_initialize, roscpp_shutdown
 from moveit_msgs.msg import RobotState, Constraints
 from geometry_msgs.msg import Pose
 
-if __name__=='__main__':
+if __name__ == "__main__":
 
     roscpp_initialize(sys.argv)
-    rospy.init_node('moveit_py_demo', anonymous=True)
+    rospy.init_node("moveit_py_demo", anonymous=True)
 
     robot = RobotCommander()
     rospy.sleep(1)
@@ -51,8 +51,8 @@ if __name__=='__main__':
     a = robot.right_arm
     a.set_start_state(RobotState())
 
-    print "current pose:"
-    print a.get_current_pose()
+    print("current pose:")
+    print(a.get_current_pose())
     c = Constraints()
 
     waypoints = []
@@ -72,4 +72,4 @@ if __name__=='__main__':
     waypoints.append(wpose)
 
     plan, fraction = a.compute_cartesian_path(waypoints, 0.01, 0.0, path_constraints=c)
-    print 'Plan success percent: ', fraction
+    print("Plan success percent: ", fraction)

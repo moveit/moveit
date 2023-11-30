@@ -105,6 +105,8 @@ bool DepthImageOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
     readXmlParam(params, "skip_horizontal_pixels", &skip_horizontal_pixels_);
     if (params.hasMember("filtered_cloud_topic"))
       filtered_cloud_topic_ = static_cast<const std::string&>(params["filtered_cloud_topic"]);
+    if (params.hasMember("ns"))
+      ns_ = static_cast<const std::string&>(params["ns"]);
   }
   catch (XmlRpc::XmlRpcException& ex)
   {
@@ -118,16 +120,17 @@ bool DepthImageOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
 bool DepthImageOctomapUpdater::initialize()
 {
   tf_buffer_ = monitor_->getTFClient();
-  free_space_updater_.reset(new LazyFreeSpaceUpdater(tree_));
+  free_space_updater_ = std::make_unique<LazyFreeSpaceUpdater>(tree_);
 
   // create our mesh filter
-  mesh_filter_.reset(new mesh_filter::MeshFilter<mesh_filter::StereoCameraModel>(
-      mesh_filter::MeshFilterBase::TransformCallback(), mesh_filter::StereoCameraModel::REGISTERED_PSDK_PARAMS));
+  mesh_filter_ = std::make_unique<mesh_filter::MeshFilter<mesh_filter::StereoCameraModel>>(
+      mesh_filter::MeshFilterBase::TransformCallback(), mesh_filter::StereoCameraModel::REGISTERED_PSDK_PARAMS);
   mesh_filter_->parameters().setDepthRange(near_clipping_plane_distance_, far_clipping_plane_distance_);
   mesh_filter_->setShadowThreshold(shadow_threshold_);
   mesh_filter_->setPaddingOffset(padding_offset_);
   mesh_filter_->setPaddingScale(padding_scale_);
-  mesh_filter_->setTransformCallback(boost::bind(&DepthImageOctomapUpdater::getShapeTransform, this, _1, _2));
+  mesh_filter_->setTransformCallback(
+      [this](mesh_filter::MeshHandle mesh, Eigen::Isometry3d& tf) { return getShapeTransform(mesh, tf); });
 
   return true;
 }
@@ -135,14 +138,18 @@ bool DepthImageOctomapUpdater::initialize()
 void DepthImageOctomapUpdater::start()
 {
   image_transport::TransportHints hints("raw", ros::TransportHints(), nh_);
-  pub_model_depth_image_ = model_depth_transport_.advertiseCamera("model_depth", 1);
 
+  std::string prefix = "";
+  if (!ns_.empty())
+    prefix = ns_ + "/";
+
+  pub_model_depth_image_ = model_depth_transport_.advertiseCamera(prefix + "model_depth", 1);
   if (!filtered_cloud_topic_.empty())
-    pub_filtered_depth_image_ = filtered_depth_transport_.advertiseCamera(filtered_cloud_topic_, 1);
+    pub_filtered_depth_image_ = filtered_depth_transport_.advertiseCamera(prefix + filtered_cloud_topic_, 1);
   else
-    pub_filtered_depth_image_ = filtered_depth_transport_.advertiseCamera("filtered_depth", 1);
+    pub_filtered_depth_image_ = filtered_depth_transport_.advertiseCamera(prefix + "filtered_depth", 1);
 
-  pub_filtered_label_image_ = filtered_label_transport_.advertiseCamera("filtered_label", 1);
+  pub_filtered_label_image_ = filtered_label_transport_.advertiseCamera(prefix + "filtered_label", 1);
 
   sub_depth_image_ = input_depth_transport_.subscribeCamera(image_topic_, queue_size_,
                                                             &DepthImageOctomapUpdater::depthImageCallback, this, hints);
@@ -311,10 +318,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
   }
 
   if (!updateTransformCache(depth_msg->header.frame_id, depth_msg->header.stamp))
-  {
-    ROS_ERROR_THROTTLE_NAMED(1, LOGNAME, "Transform cache was not updated. Self-filtering may fail.");
     return;
-  }
 
   if (depth_msg->is_bigendian && !HOST_IS_BIG_ENDIAN)
     ROS_ERROR_THROTTLE_NAMED(1, LOGNAME, "endian problem: received image data does not match host");

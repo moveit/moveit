@@ -97,7 +97,7 @@ RobotTrajCont CommandListManager::solve(const planning_scene::PlanningSceneConst
   plan_comp_builder_.reset();
   for (MotionResponseCont::size_type i = 0; i < resp_cont.size(); ++i)
   {
-    plan_comp_builder_.append(resp_cont.at(i).trajectory_,
+    plan_comp_builder_.append(planning_scene, resp_cont.at(i).trajectory_,
                               // The blend radii has to be "attached" to
                               // the second part of a blend trajectory,
                               // therefore: "i-1".
@@ -239,7 +239,7 @@ CommandListManager::solveSequenceItems(const planning_scene::PlanningSceneConstP
     if (res.error_code_.val != res.error_code_.SUCCESS)
     {
       std::ostringstream os;
-      os << "Could not solve request\n---\n" << req << "\n---\n";
+      os << "Could not solve request\n";
       throw PlanningPipelineException(os.str(), res.error_code_.val);
     }
     motion_plan_responses.emplace_back(res);

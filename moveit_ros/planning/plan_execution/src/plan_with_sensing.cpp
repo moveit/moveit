@@ -53,11 +53,11 @@ public:
     : owner_(owner), dynamic_reconfigure_server_(ros::NodeHandle("~/sense_for_plan"))
   {
     dynamic_reconfigure_server_.setCallback(
-        boost::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this, _1, _2));
+        [this](const auto& config, uint32_t level) { dynamicReconfigureCallback(config, level); });
   }
 
 private:
-  void dynamicReconfigureCallback(SenseForPlanDynamicReconfigureConfig& config, uint32_t /*level*/)
+  void dynamicReconfigureCallback(const SenseForPlanDynamicReconfigureConfig& config, uint32_t /*level*/)
   {
     owner_->setMaxSafePathCost(config.max_safe_path_cost);
     owner_->setMaxCostSources(config.max_cost_sources);
@@ -88,8 +88,8 @@ plan_execution::PlanWithSensing::PlanWithSensing(
   {
     try
     {
-      sensor_manager_loader_.reset(new pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager>(
-          "moveit_core", "moveit_sensor_manager::MoveItSensorManager"));
+      sensor_manager_loader_ = std::make_unique<pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager>>(
+          "moveit_core", "moveit_sensor_manager::MoveItSensorManager");
     }
     catch (pluginlib::PluginlibException& ex)
     {
@@ -150,7 +150,7 @@ bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan& plan,
   unsigned int look_attempts = 0;
 
   // this flag is set to true when all conditions for looking around are met, and the command is sent.
-  // the intention is for the planning looop not to terminate when having just looked around
+  // the intention is for the planning loop not to terminate when having just looked around
   bool just_looked_around = false;
 
   // this flag indicates whether the last lookAt() operation failed. If this operation fails once, we assume that
@@ -212,7 +212,7 @@ bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan& plan,
 
       bool looked_at_result = lookAt(cost_sources, plan.planning_scene_->getPlanningFrame());
       if (looked_at_result)
-        ROS_INFO("Sensor was succesfully actuated. Attempting to recompute a motion plan.");
+        ROS_INFO("Sensor was successfully actuated. Attempting to recompute a motion plan.");
       else
       {
         if (look_around_failed)

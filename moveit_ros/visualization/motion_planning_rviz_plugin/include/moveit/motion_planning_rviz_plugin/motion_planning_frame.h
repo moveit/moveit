@@ -105,6 +105,7 @@ public:
   MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::DisplayContext* context, QWidget* parent = nullptr);
   ~MotionPlanningFrame() override;
 
+  void clearRobotModel();
   void changePlanningGroup();
   void enable();
   void disable();
@@ -114,6 +115,7 @@ protected:
   static const int ITEM_TYPE_SCENE = 1;
   static const int ITEM_TYPE_QUERY = 2;
 
+  void initFromMoveGroupNS();
   void constructPlanningRequest(moveit_msgs::MotionPlanRequest& mreq);
 
   void updateSceneMarkers(float wall_dt, float ros_dt);
@@ -138,6 +140,8 @@ protected:
   typedef std::map<std::string, moveit_msgs::RobotState> RobotStateMap;
   typedef std::pair<std::string, moveit_msgs::RobotState> RobotStatePair;
   RobotStateMap robot_states_;
+  std::string default_planning_pipeline_;
+  std::vector<moveit_msgs::PlannerInterfaceDescription> planner_descriptions_;
 
 Q_SIGNALS:
   void planningFinished();
@@ -147,6 +151,7 @@ private Q_SLOTS:
 
   // Context tab
   void databaseConnectButtonClicked();
+  void planningPipelineIndexChanged(int index);
   void planningAlgorithmIndexChanged(int index);
   void resetDbButtonClicked();
   void approximateIKChanged(int state);
@@ -179,12 +184,12 @@ private Q_SLOTS:
   void sceneScaleEndChange();
   void shapesComboBoxChanged(const QString& text);
   void addSceneObject();
-  void removeSceneObject();
-  void selectedCollisionObjectChanged();
+  void removeSceneObjects();
+  void currentCollisionObjectChanged();
   void objectPoseValueChanged(double value);
   void collisionObjectChanged(QListWidgetItem* item);
   void imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback& feedback);
-  void copySelectedCollisionObject();
+  void copySelectedCollisionObjects();
   void exportGeometryAsTextButtonClicked();
   void importGeometryFromTextButtonClicked();
 
@@ -223,7 +228,8 @@ private:
   void computeDatabaseConnectButtonClicked();
   void computeDatabaseConnectButtonClickedHelper(int mode);
   void computeResetDbButtonClicked(const std::string& db);
-  void populatePlannersList(const moveit_msgs::PlannerInterfaceDescription& desc);
+  void populatePlannersList(const std::vector<moveit_msgs::PlannerInterfaceDescription>& desc);
+  void populatePlannerDescription(const moveit_msgs::PlannerInterfaceDescription& desc);
 
   // Planning tab
   void computePlanButtonClicked();
@@ -247,7 +253,8 @@ private:
   void createSceneInteractiveMarker();
   void renameCollisionObject(QListWidgetItem* item);
   void attachDetachCollisionObject(QListWidgetItem* item);
-  void populateCollisionObjectsList();
+  QListWidgetItem* addCollisionObjectToList(const std::string& name, int row, bool attached);
+  void populateCollisionObjectsList(planning_scene_monitor::LockedPlanningSceneRO* pps = nullptr);
   void computeImportGeometryFromText(const std::string& path);
   void computeExportGeometryAsText(const std::string& path);
   visualization_msgs::InteractiveMarker
@@ -289,8 +296,7 @@ private:
   std::unique_ptr<actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction> >
       object_recognition_client_;
   template <typename T>
-  void waitForAction(const T& action, const ros::NodeHandle& node_handle, const ros::Duration& wait_for_server,
-                     const std::string& name);
+  void waitForAction(const T& action, const ros::Duration& wait_for_server, const std::string& name);
   void listenDetectedObjects(const object_recognition_msgs::RecognizedObjectArrayPtr& msg);
   ros::Subscriber object_recognition_subscriber_;
 
@@ -314,14 +320,13 @@ private:
   void remoteUpdateCustomStartStateCallback(const moveit_msgs::RobotStateConstPtr& msg);
   void remoteUpdateCustomGoalStateCallback(const moveit_msgs::RobotStateConstPtr& msg);
 
-  /* Selects or unselects a item in a list by the item name */
-  void setItemSelectionInList(const std::string& item_name, bool selection, QListWidget* list);
-
-  ros::NodeHandle nh_;
+  ros::NodeHandle nh_;  // node handle with the namespace of the connected move_group node
   ros::Publisher planning_scene_publisher_;
   ros::Publisher planning_scene_world_publisher_;
 
   collision_detection::CollisionEnv::ObjectConstPtr scaled_object_;
+  moveit::core::FixedTransformsMap scaled_object_subframes_;
+  EigenSTL::vector_Isometry3d scaled_object_shape_poses_;
 
   std::vector<std::pair<std::string, bool> > known_collision_objects_;
   long unsigned int known_collision_objects_version_;
@@ -331,8 +336,7 @@ private:
 
 // \todo THIS IS REALLY BAD. NEED TO MOVE THIS AND RELATED FUNCTIONALITY OUT OF HERE
 template <typename T>
-void MotionPlanningFrame::waitForAction(const T& action, const ros::NodeHandle& node_handle,
-                                        const ros::Duration& wait_for_server, const std::string& name)
+void MotionPlanningFrame::waitForAction(const T& action, const ros::Duration& wait_for_server, const std::string& name)
 {
   ROS_DEBUG("Waiting for MoveGroup action server (%s)...", name.c_str());
 
@@ -348,7 +352,7 @@ void MotionPlanningFrame::waitForAction(const T& action, const ros::NodeHandle& 
   if (wait_for_server == ros::Duration(0, 0))
   {
     // wait forever until action server connects
-    while (node_handle.ok() && !action->isServerConnected())
+    while (ros::ok() && !action->isServerConnected())
     {
       ros::WallDuration(0.02).sleep();
       ros::spinOnce();
@@ -358,7 +362,7 @@ void MotionPlanningFrame::waitForAction(const T& action, const ros::NodeHandle& 
   {
     // wait for a limited amount of non-simulated time
     ros::WallTime final_time = ros::WallTime::now() + ros::WallDuration(wait_for_server.toSec());
-    while (node_handle.ok() && !action->isServerConnected() && final_time > ros::WallTime::now())
+    while (ros::ok() && !action->isServerConnected() && final_time > ros::WallTime::now())
     {
       ros::WallDuration(0.02).sleep();
       ros::spinOnce();

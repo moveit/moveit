@@ -44,8 +44,8 @@
 
 namespace collision_detection
 {
-MOVEIT_STRUCT_FORWARD(GroupStateRepresentation)
-MOVEIT_STRUCT_FORWARD(DistanceFieldCacheEntry)
+MOVEIT_STRUCT_FORWARD(GroupStateRepresentation);
+MOVEIT_STRUCT_FORWARD(DistanceFieldCacheEntry);
 
 /** collision volume representation for a particular pose and link group
  *
@@ -65,7 +65,8 @@ struct GroupStateRepresentation
     {
       if (gsr.link_body_decompositions_[i])
       {
-        link_body_decompositions_[i].reset(new PosedBodySphereDecomposition(*gsr.link_body_decompositions_[i]));
+        link_body_decompositions_[i] =
+            std::make_shared<PosedBodySphereDecomposition>(*gsr.link_body_decompositions_[i]);
       }
     }
 

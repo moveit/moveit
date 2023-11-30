@@ -135,7 +135,7 @@ public:
   //                                 collision_detection::AllowedCollisionMatrix
   //                                 &acm) const;
 
-  MOVEIT_STRUCT_FORWARD(DistanceFieldCacheEntryWorld)
+  MOVEIT_STRUCT_FORWARD(DistanceFieldCacheEntryWorld);
   struct DistanceFieldCacheEntryWorld
   {
     std::map<std::string, std::vector<PosedBodyPointDecompositionPtr>> posed_body_point_decompositions_;
@@ -280,7 +280,7 @@ protected:
   bool getEnvironmentProximityGradients(const distance_field::DistanceFieldConstPtr& env_distance_field,
                                         GroupStateRepresentationPtr& gsr) const;
 
-  static void notifyObjectChange(CollisionEnvDistanceField* self, const ObjectConstPtr& obj, World::Action action);
+  void notifyObjectChange(const ObjectConstPtr& obj, World::Action action);
 
   Eigen::Vector3d size_;
   Eigen::Vector3d origin_;

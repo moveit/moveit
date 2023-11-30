@@ -2,6 +2,68 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+
+1.1.12 (2023-05-13)
+-------------------
+* MeshFilter: handle both, 32FC1 and 16UC1 encodings of depth images (`#3387 <https://github.com/ros-planning/moveit/issues/3387>`_)
+* Fix memory leak in mesh filter (`#3371 <https://github.com/ros-planning/moveit/issues/3371>`_)
+* Drop lib/ prefix from plugin paths (`#3305 <https://github.com/ros-planning/moveit/issues/3305>`_)
+* Contributors: Berke Algül, Jochen Sprickerhof, Rui Luo
+
+1.1.11 (2022-12-21)
+-------------------
+
+1.1.10 (2022-09-13)
+-------------------
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Contributors: Michael Görner, Robert Haschke
+
+1.1.9 (2022-03-06)
+------------------
+* Use GLEW::GLEW link target (`#3079 <https://github.com/ros-planning/moveit/issues/3079>`_)
+* Fix use of std::bind (`#3048 <https://github.com/ros-planning/moveit/issues/3048>`_)
+* Contributors: Michael Görner, Tobias Fischer
+
+1.1.8 (2022-01-30)
+------------------
+
+1.1.7 (2021-12-31)
+------------------
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* Add ns for depth image & pointcloud octomap updaters (`#2916 <https://github.com/ros-planning/moveit/issues/2916>`_)
+* Contributors: Jochen Sprickerhof, Tim Redick
+
+1.1.6 (2021-11-06)
+------------------
+* Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``
+* Fix clipping of points: only considered points up to ``max_range`` (`#2848 <https://github.com/ros-planning/moveit/issues/2848>`_)
+* clang-tidy: modernize-make-shared, modernize-make-unique (`#2762 <https://github.com/ros-planning/moveit/issues/2762>`_)
+* Move ``OccMapTree`` to ``moveit_core/collision_detection`` (`#2684 <https://github.com/ros-planning/moveit/issues/2684>`_)
+* Contributors: Michael Görner, Robert Haschke, Simon Schmeisser, Tyler Weaver, pvanlaar
+
+1.1.5 (2021-05-23)
+------------------
+* Revert "Lock the octomap/octree while collision checking (`#2683 <https://github.com/ros-planning/moveit/issues/2683>`_)
+* Contributors: Michael Görner
+
+1.1.4 (2021-05-12)
+------------------
+* Lock the octomap/octree while collision checking (`#2596 <https://github.com/ros-planning/moveit/issues/2596>`_)
+* Contributors: Simon Schmeisser
+
+1.1.3 (2021-04-29)
+------------------
+* Document solution in ROS_ERROR on failed self-filtering (`#2627 <https://github.com/ros-planning/moveit/issues/2627>`_)
+* Contributors: Michael Görner
+
+1.1.2 (2021-04-08)
+------------------
+* Fixed flood of errors on startup for `mesh_filter` (`#2550 <https://github.com/ros-planning/moveit/issues/2550>`_)
+* Enable mesh filter (`#2448 <https://github.com/ros-planning/moveit/issues/2448>`_)
+* Contributors: Jafar Abdi, John Stechschulte
+
 1.1.1 (2020-10-13)
 ------------------
 * [fix] various issues with Noetic build (`#2327 <https://github.com/ros-planning/moveit/issues/2327>`_)

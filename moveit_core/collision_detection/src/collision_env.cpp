@@ -275,7 +275,7 @@ void CollisionEnv::getScale(std::vector<moveit_msgs::LinkScale>& scale) const
   }
 }
 
-void CollisionEnv::updatedPaddingOrScaling(const std::vector<std::string>& links)
+void CollisionEnv::updatedPaddingOrScaling(const std::vector<std::string>& /*links*/)
 {
 }
 
@@ -283,7 +283,7 @@ void CollisionEnv::setWorld(const WorldPtr& world)
 {
   world_ = world;
   if (!world_)
-    world_.reset(new World());
+    world_ = std::make_shared<World>();
 
   world_const_ = world;
 }

@@ -46,6 +46,6 @@ class CollisionDetectorAllocatorDistanceField
   : public CollisionDetectorAllocatorTemplate<CollisionEnvDistanceField, CollisionDetectorAllocatorDistanceField>
 {
 public:
-  static const std::string NAME;  // defined in collision_env_distance_field.cpp
+  const std::string& getName() const override;
 };
 }  // namespace collision_detection

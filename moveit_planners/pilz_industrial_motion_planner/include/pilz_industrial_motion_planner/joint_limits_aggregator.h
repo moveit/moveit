@@ -120,11 +120,7 @@ protected:
   static void checkVelocityBoundsThrowing(const moveit::core::JointModel* joint_model, const JointLimit& joint_limit);
 };
 
-/**
- * @class AggregationException
- * @brief A base class for all aggregation exceptions inheriting from
- * std::runtime_exception
- */
+/** A base class for all aggregation exceptions inheriting from std::runtime_exception */
 class AggregationException : public std::runtime_error
 {
 public:
@@ -133,12 +129,7 @@ public:
   }
 };
 
-/**
- * @class AggregationJointMissingException
- * @brief Thrown the limits from the parameter server are weaker(forbidden) than
- * the ones defined in the urdf
- *
- */
+/** Thrown the limits from the parameter server are weaker(forbidden) than the ones defined in the urdf */
 class AggregationBoundsViolationException : public AggregationException
 {
 public:

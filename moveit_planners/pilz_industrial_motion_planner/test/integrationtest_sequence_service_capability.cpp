@@ -88,7 +88,7 @@ void IntegrationTestSequenceService::SetUp()
   robot_model_loader::RobotModelLoader model_loader;
   robot_model_ = model_loader.getModel();
 
-  data_loader_.reset(new XmlTestdataLoader(test_data_file_name_, robot_model_));
+  data_loader_ = std::make_unique<XmlTestdataLoader>(test_data_file_name_, robot_model_);
   ASSERT_NE(nullptr, data_loader_) << "Failed to load test data by provider.";
 
   ASSERT_TRUE(ros::service::waitForService(pilz_industrial_motion_planner::SEQUENCE_SERVICE_NAME, ros::Duration(10)))
@@ -248,7 +248,7 @@ TEST_F(IntegrationTestSequenceService, TestSecondTrajInvalidStartState)
 
   // Set start state
   using std::placeholders::_1;
-  JointConfiguration config{ "MyGroupName", { -1., 2., -3., 4., -5., 0. }, std::bind(&createJointName, _1) };
+  JointConfiguration config{ "MyGroupName", { -1., 2., -3., 4., -5., 0. }, [](size_t n) { return createJointName(n); } };
   req_list.items[1].req.start_state.joint_state = config.toSensorMsg();
 
   moveit_msgs::GetMotionSequence srv;

@@ -113,7 +113,7 @@ void IntegrationTestSequenceAction::SetUp()
 
   robot_model_ = model_loader_.getModel();
 
-  data_loader_.reset(new XmlTestdataLoader(test_data_file_name_, robot_model_));
+  data_loader_ = std::make_unique<XmlTestdataLoader>(test_data_file_name_, robot_model_);
   ASSERT_NE(nullptr, data_loader_) << "Failed to load test data by provider.";
 
   // wait for action server
@@ -390,9 +390,9 @@ TEST_F(IntegrationTestSequenceAction, TestActionServerCallbacks)
   }
 
   // send goal using mocked callback methods
-  ac_.sendGoal(seq_goal, std::bind(&IntegrationTestSequenceAction::done_callback, this, ph::_1, ph::_2),
-               std::bind(&IntegrationTestSequenceAction::active_callback, this),
-               std::bind(&IntegrationTestSequenceAction::feedback_callback, this, ph::_1));
+  ac_.sendGoal(
+      seq_goal, [this](const auto& state, const auto& result) { done_callback(state, result); },
+      [this] { active_callback(); }, [this](const auto& feedback) { feedback_callback(feedback); });
 
   // wait for the ecpected events
   BARRIER({ GOAL_SUCCEEDED_EVENT, SERVER_IDLE_EVENT });

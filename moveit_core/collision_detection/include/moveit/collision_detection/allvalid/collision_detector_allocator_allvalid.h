@@ -46,6 +46,6 @@ class CollisionDetectorAllocatorAllValid
   : public CollisionDetectorAllocatorTemplate<CollisionEnvAllValid, CollisionDetectorAllocatorAllValid>
 {
 public:
-  static const std::string NAME;  // defined in collision_env_allvalid.cpp
+  const std::string& getName() const override;
 };
 }  // namespace collision_detection

@@ -1,0 +1,3 @@
+<launch>
+    <test test-name="current_state_monitor_test" pkg="moveit_ros_planning" type="current_state_monitor_test" />
+</launch>

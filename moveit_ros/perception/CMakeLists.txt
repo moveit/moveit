@@ -1,17 +1,7 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(moveit_ros_perception)
 
-if(NOT "${CMAKE_CXX_STANDARD}")
-  set(CMAKE_CXX_STANDARD 14)
-endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 option(WITH_OPENGL "Build the parts that depend on OpenGL" ON)
-
-if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
 
 find_package(Boost REQUIRED thread)
 
@@ -49,11 +39,28 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   moveit_msgs
   moveit_ros_occupancy_map_monitor
+  moveit_ros_planning
+  nodelet
 )
+moveit_build_options()
 
 find_package(Eigen3 REQUIRED)
 find_package(OpenMP REQUIRED)
 find_package(OpenCV)
+
+set(PACKAGE_LIBRARIES
+  moveit_lazy_free_space_updater
+  moveit_point_containment_filter
+  moveit_pointcloud_octomap_updater_core
+  moveit_semantic_world
+)
+
+if (WITH_OPENGL)
+  list(APPEND PACKAGE_LIBRARIES
+          moveit_mesh_filter
+          moveit_depth_self_filter
+          moveit_depth_image_octomap_updater)
+endif(WITH_OPENGL)
 
 catkin_package(
   INCLUDE_DIRS
@@ -63,15 +70,14 @@ catkin_package(
     semantic_world/include
     ${perception_GL_INCLUDE_DIRS}
   LIBRARIES
-    moveit_lazy_free_space_updater
-    moveit_point_containment_filter
-    moveit_pointcloud_octomap_updater_core
-    moveit_semantic_world
+    ${PACKAGE_LIBRARIES}
   CATKIN_DEPENDS
     image_transport
     moveit_core
     moveit_msgs
     moveit_ros_occupancy_map_monitor
+    moveit_ros_planning
+    nodelet
     object_recognition_msgs
     roscpp
     sensor_msgs
@@ -109,5 +115,6 @@ install(
   FILES
     pointcloud_octomap_updater_plugin_description.xml
     depth_image_octomap_updater_plugin_description.xml
+    moveit_depth_self_filter.xml
   DESTINATION
     ${CATKIN_PACKAGE_SHARE_DESTINATION})

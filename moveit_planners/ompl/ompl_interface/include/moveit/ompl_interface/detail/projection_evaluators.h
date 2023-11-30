@@ -51,8 +51,7 @@ namespace ompl_interface
 {
 class ModelBasedPlanningContext;
 
-/** @class ProjectionEvaluatorLinkPose
-    @brief */
+/** ProjectionEvaluatorLinkPose */
 class ProjectionEvaluatorLinkPose : public ompl::base::ProjectionEvaluator
 {
 public:
@@ -68,8 +67,7 @@ private:
   TSStateStorage tss_;
 };
 
-/** @class ProjectionEvaluatorJointValue
-    @brief */
+/** ProjectionEvaluatorJointValue */
 class ProjectionEvaluatorJointValue : public ompl::base::ProjectionEvaluator
 {
 public:

@@ -39,7 +39,10 @@
 
 namespace collision_detection
 {
-const std::string collision_detection::CollisionDetectorAllocatorHybrid::NAME("HYBRID");
+namespace
+{
+static const std::string NAME = "HYBRID";
+}  // namespace
 
 CollisionEnvHybrid::CollisionEnvHybrid(
     const moveit::core::RobotModelConstPtr& robot_model,
@@ -181,4 +184,10 @@ void CollisionEnvHybrid::getAllCollisions(const CollisionRequest& req, Collision
 {
   cenv_distance_->getAllCollisions(req, res, state, acm, gsr);
 }
+
+const std::string& CollisionDetectorAllocatorHybrid::getName() const
+{
+  return NAME;
+}
+
 }  // namespace collision_detection

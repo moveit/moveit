@@ -37,7 +37,7 @@
 #pragma once
 
 #include <moveit/macros/class_forward.h>
-#include <moveit/occupancy_map_monitor/occupancy_map.h>
+#include <moveit/collision_detection/occupancy_map.h>
 #include <geometric_shapes/shapes.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -98,7 +98,7 @@ public:
 protected:
   OccupancyMapMonitor* monitor_;
   std::string type_;
-  OccMapTreePtr tree_;
+  collision_detection::OccMapTreePtr tree_;
   TransformCacheProvider transform_provider_callback_;
   ShapeTransformCache transform_cache_;
   bool debug_info_;

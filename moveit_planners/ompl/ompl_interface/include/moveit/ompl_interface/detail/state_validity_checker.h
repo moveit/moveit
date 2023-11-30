@@ -44,8 +44,7 @@ namespace ompl_interface
 {
 class ModelBasedPlanningContext;
 
-/** @class StateValidityChecker
-    @brief An interface for a OMPL state validity checker*/
+/** @brief An interface for a OMPL state validity checker */
 class StateValidityChecker : public ompl::base::StateValidityChecker
 {
 public:
@@ -57,6 +56,12 @@ public:
   }
 
   bool isValid(const ompl::base::State* state, double& dist) const override
+  {
+    return isValid(state, dist, verbose_);
+  }
+
+  bool isValid(const ompl::base::State* state, double& dist, ompl::base::State* /*validState*/,
+               bool& /*validStateAvailable*/) const override
   {
     return isValid(state, dist, verbose_);
   }

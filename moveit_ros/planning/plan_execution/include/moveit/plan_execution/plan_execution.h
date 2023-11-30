@@ -44,6 +44,8 @@
 #include <moveit/sensor_manager/sensor_manager.h>
 #include <pluginlib/class_loader.hpp>
 
+#include <atomic>
+
 /** \brief This namespace includes functionality specific to the execution and monitoring of motion plans */
 namespace plan_execution
 {
@@ -133,11 +135,9 @@ public:
 
       In case there is no \e planning_scene or \e planning_scene_monitor set in the \e plan they will be set at the
       start of the method. They are then used to monitor the execution. */
-  moveit_msgs::MoveItErrorCodes executeAndMonitor(ExecutableMotionPlan& plan);
+  moveit_msgs::MoveItErrorCodes executeAndMonitor(ExecutableMotionPlan& plan, bool reset_preempted = true);
 
   void stop();
-
-  std::string getErrorCodeString(const moveit_msgs::MoveItErrorCodes& error_code);
 
 private:
   void planAndExecuteHelper(ExecutableMotionPlan& plan, const Options& opt);
@@ -145,7 +145,7 @@ private:
 
   void planningSceneUpdatedCallback(const planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
   void doneWithTrajectoryExecution(const moveit_controller_manager::ExecutionStatus& status);
-  void successfulTrajectorySegmentExecution(const ExecutableMotionPlan* plan, std::size_t index);
+  void successfulTrajectorySegmentExecution(const ExecutableMotionPlan& plan, std::size_t index);
 
   ros::NodeHandle node_handle_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
@@ -154,7 +154,25 @@ private:
 
   unsigned int default_max_replan_attempts_;
 
-  bool preempt_requested_;
+  class
+  {
+  private:
+    std::atomic<bool> preemption_requested{ false };
+
+  public:
+    /** \brief check *and clear* the preemption flag
+
+        A true return value has to trigger full execution stop, as it consumes the request */
+    inline bool checkAndClear()
+    {
+      return preemption_requested.exchange(false);
+    }
+    inline void request()
+    {
+      preemption_requested.store(true);
+    }
+  } preempt_;
+
   bool new_scene_update_;
 
   bool execution_complete_;

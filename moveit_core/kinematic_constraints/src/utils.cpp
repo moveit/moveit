@@ -39,7 +39,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <moveit/utils/xmlrpc_casts.h>
 #include <moveit/utils/message_checks.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 using namespace moveit::core;
 
@@ -145,8 +145,8 @@ moveit_msgs::Constraints constructGoalConstraints(const moveit::core::RobotState
   {
     goal.joint_constraints[i].joint_name = jmg->getVariableNames()[i];
     goal.joint_constraints[i].position = vals[i];
-    goal.joint_constraints[i].tolerance_above = tolerance_below;
-    goal.joint_constraints[i].tolerance_below = tolerance_above;
+    goal.joint_constraints[i].tolerance_above = tolerance_above;
+    goal.joint_constraints[i].tolerance_below = tolerance_below;
     goal.joint_constraints[i].weight = 1.0;
   }
 
@@ -528,10 +528,8 @@ bool constructConstraints(XmlRpc::XmlRpcValue& params, moveit_msgs::Constraints&
   constraints.name = static_cast<std::string>(params["name"]);
   return collectConstraints(params["constraints"], constraints);
 }
-}  // namespace kinematic_constraints
 
-bool kinematic_constraints::resolveConstraintFrames(const moveit::core::RobotState& state,
-                                                    moveit_msgs::Constraints& constraints)
+bool resolveConstraintFrames(const moveit::core::RobotState& state, moveit_msgs::Constraints& constraints)
 {
   for (auto& c : constraints.position_constraints)
   {
@@ -550,7 +548,7 @@ bool kinematic_constraints::resolveConstraintFrames(const moveit::core::RobotSta
       Eigen::Vector3d offset_robot_link = robot_link_to_link_name * offset_link_name;
 
       c.link_name = robot_link->getName();
-      tf::vectorEigenToMsg(offset_robot_link, c.target_point_offset);
+      tf2::toMsg(offset_robot_link, c.target_point_offset);
     }
   }
 
@@ -571,9 +569,10 @@ bool kinematic_constraints::resolveConstraintFrames(const moveit::core::RobotSta
       Eigen::Quaterniond link_name_to_robot_link(transform.linear().transpose() *
                                                  state.getGlobalLinkTransform(robot_link).linear());
       Eigen::Quaterniond quat_target;
-      tf::quaternionMsgToEigen(c.orientation, quat_target);
-      tf::quaternionEigenToMsg(quat_target * link_name_to_robot_link, c.orientation);
+      tf2::fromMsg(c.orientation, quat_target);
+      c.orientation = tf2::toMsg(quat_target * link_name_to_robot_link);
     }
   }
   return true;
 }
+}  // namespace kinematic_constraints

@@ -42,6 +42,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <thread>
+#include <atomic>
 
 // ROS
 #include <control_msgs/JointJog.h>
@@ -104,6 +105,9 @@ public:
    */
   void changeRobotLinkCommandFrame(const std::string& new_command_frame);
 
+  // Give test access to private/protected methods
+  friend class ServoFixture;
+
 private:
   /** \brief Run the main calculation loop */
   void mainCalcLoop();
@@ -144,7 +148,7 @@ private:
   void enforceVelLimits(Eigen::ArrayXd& delta_theta);
 
   /** \brief Avoid overshooting joint limits */
-  bool enforcePositionLimits();
+  bool enforcePositionLimits(sensor_msgs::JointState& joint_state);
 
   /** \brief Possibly calculate a velocity scaling factor, due to proximity of
    * singularity and direction of motion
@@ -279,7 +283,7 @@ private:
 
   // Status
   StatusCode status_ = StatusCode::NO_WARNING;
-  bool paused_ = false;
+  std::atomic<bool> paused_;
   bool twist_command_is_stale_ = false;
   bool joint_command_is_stale_ = false;
   bool ok_to_publish_ = false;

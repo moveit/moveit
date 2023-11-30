@@ -34,6 +34,7 @@
 
 /* Author: Chittaranjan Srinivas Swaminathan */
 
+#include <memory>
 #include <chomp_interface/chomp_planning_context.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
 #include <moveit/robot_state/conversions.h>
@@ -41,10 +42,10 @@
 namespace chomp_interface
 {
 CHOMPPlanningContext::CHOMPPlanningContext(const std::string& name, const std::string& group,
-                                           const moveit::core::RobotModelConstPtr& model)
+                                           const moveit::core::RobotModelConstPtr& model, ros::NodeHandle& nh)
   : planning_interface::PlanningContext(name, group), robot_model_(model)
 {
-  chomp_interface_ = CHOMPInterfacePtr(new CHOMPInterface());
+  chomp_interface_ = std::make_shared<CHOMPInterface>(nh);
 }
 
 bool CHOMPPlanningContext::solve(planning_interface::MotionPlanDetailedResponse& res)

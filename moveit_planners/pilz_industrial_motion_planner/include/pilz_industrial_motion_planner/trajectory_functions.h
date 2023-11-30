@@ -35,23 +35,24 @@
 #pragma once
 
 #include <Eigen/Geometry>
-#include <eigen_conversions/eigen_kdl.h>
-#include <eigen_conversions/eigen_msg.h>
 #include <kdl/trajectory.hpp>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <tf2/transform_datatypes.h>
 #include <trajectory_msgs/MultiDOFJointTrajectory.h>
+#include <moveit/planning_scene/planning_scene.h>
 
 #include "pilz_industrial_motion_planner/cartesian_trajectory.h"
 #include "pilz_industrial_motion_planner/limits_container.h"
+#include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"
 
 namespace pilz_industrial_motion_planner
 {
 /**
  * @brief compute the inverse kinematics of a given pose, also check robot self
  * collision
+ * @param scene: planning scene
  * @param robot_model: kinematic model of the robot
  * @param group_name: name of planning group
  * @param link_name: name of target link
@@ -61,31 +62,32 @@ namespace pilz_industrial_motion_planner
  * @param solution: solution of IK
  * @param check_self_collision: true to enable self collision checking after IK
  * computation
- * @param max_attempt: maximal attempts of IK
+ * @param timeout: timeout for IK, if not set the default solver timeout is used
  * @return true if succeed
  */
-bool computePoseIK(const robot_model::RobotModelConstPtr& robot_model, const std::string& group_name,
+bool computePoseIK(const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name,
                    const std::string& link_name, const Eigen::Isometry3d& pose, const std::string& frame_id,
                    const std::map<std::string, double>& seed, std::map<std::string, double>& solution,
-                   bool check_self_collision = true, const double timeout = 0.1);
+                   bool check_self_collision = true, const double timeout = 0.0);
 
-bool computePoseIK(const robot_model::RobotModelConstPtr& robot_model, const std::string& group_name,
-                   const std::string& link_name, const geometry_msgs::Pose& pose, const std::string& frame_id,
-                   const std::map<std::string, double>& seed, std::map<std::string, double>& solution,
-                   bool check_self_collision = true, const double timeout = 0.1);
+bool computePoseIK(const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name,
+                   const std::string& link_name, const Eigen::Translation3d& offset, const geometry_msgs::Pose& pose,
+                   const std::string& frame_id, const std::map<std::string, double>& seed,
+                   std::map<std::string, double>& solution, bool check_self_collision = true,
+                   const double timeout = 0.0);
 
 /**
- * @brief compute the pose of a link at give robot state
- * @param robot_model: kinematic model of the robot
+ * @brief compute the pose of a link at given robot state
+ * @param robot_state: an arbitrary robot state (with collision objects attached)
  * @param link_name: target link name
  * @param joint_state: joint positons of this group
  * @param pose: pose of the link in base frame of robot model
  * @return true if succeed
  */
-bool computeLinkFK(const robot_model::RobotModelConstPtr& robot_model, const std::string& link_name,
+bool computeLinkFK(robot_state::RobotState& robot_state, const std::string& link_name,
                    const std::map<std::string, double>& joint_state, Eigen::Isometry3d& pose);
 
-bool computeLinkFK(const robot_model::RobotModelConstPtr& robot_model, const std::string& link_name,
+bool computeLinkFK(robot_state::RobotState& robot_state, const std::string& link_name,
                    const std::vector<std::string>& joint_names, const std::vector<double>& joint_positions,
                    Eigen::Isometry3d& pose);
 
@@ -109,11 +111,13 @@ bool verifySampleJointLimits(const std::map<std::string, double>& position_last,
 
 /**
  * @brief Generate joint trajectory from a KDL Cartesian trajectory
+ * @param scene: planning scene
  * @param robot_model: robot kinematics model
  * @param joint_limits: joint limits
  * @param trajectory: KDL Cartesian trajectory
  * @param group_name: name of the planning group
  * @param link_name: name of the target robot link
+ * @param offset: (inverse) offset from link name to IK solver frame
  * @param initial_joint_position: initial joint positions, needed for selecting
  * the ik solution
  * @param sampling_time: sampling time of the generated trajectory
@@ -124,15 +128,17 @@ bool verifySampleJointLimits(const std::map<std::string, double>& position_last,
  * @param check_self_collision: check for self collision during creation
  * @return true if succeed
  */
-bool generateJointTrajectory(const robot_model::RobotModelConstPtr& robot_model,
+bool generateJointTrajectory(const planning_scene::PlanningSceneConstPtr& scene,
                              const JointLimitsContainer& joint_limits, const KDL::Trajectory& trajectory,
                              const std::string& group_name, const std::string& link_name,
+                             const Eigen::Translation3d& offset,
                              const std::map<std::string, double>& initial_joint_position, const double& sampling_time,
                              trajectory_msgs::JointTrajectory& joint_trajectory,
                              moveit_msgs::MoveItErrorCodes& error_code, bool check_self_collision = false);
 
 /**
  * @brief Generate joint trajectory from a MultiDOFJointTrajectory
+ * @param scene: planning scene
  * @param trajectory: Cartesian trajectory
  * @param info: motion plan information
  * @param sampling_time
@@ -140,10 +146,11 @@ bool generateJointTrajectory(const robot_model::RobotModelConstPtr& robot_model,
  * @param error_code
  * @return true if succeed
  */
-bool generateJointTrajectory(const robot_model::RobotModelConstPtr& robot_model,
+bool generateJointTrajectory(const planning_scene::PlanningSceneConstPtr& scene,
                              const JointLimitsContainer& joint_limits,
                              const pilz_industrial_motion_planner::CartesianTrajectory& trajectory,
                              const std::string& group_name, const std::string& link_name,
+                             const Eigen::Translation3d& offset,
                              const std::map<std::string, double>& initial_joint_position,
                              const std::map<std::string, double>& initial_joint_velocity,
                              trajectory_msgs::JointTrajectory& joint_trajectory,
@@ -204,6 +211,7 @@ bool intersectionFound(const Eigen::Vector3d& p_center, const Eigen::Vector3d& p
 
 /**
  * @brief Checks if current robot state is in self collision.
+ * @param scene: planning scene.
  * @param test_for_self_collision Flag to deactivate this check during IK.
  * @param robot_model: robot kinematics model.
  * @param state Robot state instance used for .
@@ -211,9 +219,23 @@ bool intersectionFound(const Eigen::Vector3d& p_center, const Eigen::Vector3d& p
  * @param ik_solution
  * @return
  */
-bool isStateColliding(const bool test_for_self_collision, const moveit::core::RobotModelConstPtr& robot_model,
-                      robot_state::RobotState* state, const robot_state::JointModelGroup* const group,
-                      const double* const ik_solution);
+bool isStateColliding(const planning_scene::PlanningSceneConstPtr& scene, robot_state::RobotState* state,
+                      const robot_state::JointModelGroup* const group, const double* const ik_solution);
 }  // namespace pilz_industrial_motion_planner
 
 void normalizeQuaternion(geometry_msgs::Quaternion& quat);
+
+/**
+ * @brief Compose pose from position and orientation
+ * @param position
+ * @param orientation
+ * @return pose
+ */
+Eigen::Isometry3d getPose(const geometry_msgs::Point& position, const geometry_msgs::Quaternion& orientation);
+
+/**
+ * @brief Conviencency method, passing args from a goal constraint
+ * @param goal goal constraint
+ * @return pose
+ */
+Eigen::Isometry3d getPose(const moveit_msgs::Constraints& goal);

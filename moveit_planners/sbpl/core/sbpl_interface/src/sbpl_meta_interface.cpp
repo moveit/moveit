@@ -40,8 +40,8 @@ namespace sbpl_interface
 {
 SBPLMetaInterface::SBPLMetaInterface(const planning_models::RobotModelConstPtr& robot_model)
 {
-  sbpl_interface_first_.reset(new sbpl_interface::SBPLInterface(robot_model));
-  sbpl_interface_second_.reset(new sbpl_interface::SBPLInterface(robot_model));
+  sbpl_interface_first_ = std::make_shared<sbpl_interface::SBPLInterface>(robot_model);
+  sbpl_interface_second_ = std::make_shared<sbpl_interface::SBPLInterface>(robot_model);
 }
 
 bool SBPLMetaInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
@@ -57,10 +57,10 @@ bool SBPLMetaInterface::solve(const planning_scene::PlanningSceneConstPtr& plann
   PlanningParameters param_no_bfs;
   param_no_bfs.use_bfs_ = false;
   moveit_msgs::GetMotionPlan::Response res1, res2;
-  boost::thread thread1(boost::bind(&SBPLMetaInterface::runSolver, this, true, boost::cref(planning_scene),
-                                    boost::cref(req), boost::ref(res1), param_bfs));
-  boost::thread thread2(boost::bind(&SBPLMetaInterface::runSolver, this, false, boost::cref(planning_scene),
-                                    boost::cref(req), boost::ref(res2), param_no_bfs));
+  boost::thread thread1(
+      [this, &planning_scene, &req, &res1, param_bfs] { runSolver(true, planning_scene, req, res1, param_bfs); });
+  boost::thread thread2(
+      [this, &planning_scene, &req, &res1, param_bfs] { runSolver(false, planning_scene, req, res2, param_no_bfs); });
   boost::mutex::scoped_lock lock(planner_done_mutex_);
   planner_done_condition_.wait(lock);
 

@@ -50,7 +50,7 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
   , loop_rate_(DEFAULT_LOOP_RATE)
   , transform_listener_(transform_buffer_)
   , stop_requested_(false)
-  , angular_error_(0)
+  , angular_error_(boost::none)
 {
   readROSParams();
 
@@ -79,6 +79,8 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
 PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance,
                                                 const double angular_tolerance, const double target_pose_timeout)
 {
+  // Reset stop requested flag before starting motions
+  stop_requested_ = false;
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves (in a callback function).
   const ros::Time start_time = ros::Time::now();
@@ -128,6 +130,11 @@ PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positiona
 
     // Compute servo command from PID controller output and send it to the Servo object, for execution
     twist_stamped_pub_.publish(calculateTwistCommand());
+
+    if (!loop_rate_.sleep())
+    {
+      ROS_WARN_STREAM_THROTTLE_NAMED(1, LOGNAME, "Target control rate was missed");
+    }
   }
 
   doPostMotionReset();
@@ -136,13 +143,7 @@ PoseTrackingStatusCode PoseTracking::moveToPose(const Eigen::Vector3d& positiona
 
 void PoseTracking::readROSParams()
 {
-  // Optional parameter sub-namespace specified in the launch file. All other parameters will be read from this namespace.
-  std::string parameter_ns;
-  ros::param::get("~parameter_ns", parameter_ns);
-
-  // If parameters have been loaded into sub-namespace within the node namespace, append the parameter namespace
-  // to load the parameters correctly.
-  ros::NodeHandle nh = parameter_ns.empty() ? nh_ : ros::NodeHandle(nh_, parameter_ns);
+  ros::NodeHandle nh("~");
 
   // Wait for ROS parameters to load
   ros::Time begin = ros::Time::now();
@@ -221,8 +222,12 @@ bool PoseTracking::satisfiesPoseTolerance(const Eigen::Vector3d& positional_tole
   double y_error = target_pose_.pose.position.y - command_frame_transform_.translation()(1);
   double z_error = target_pose_.pose.position.z - command_frame_transform_.translation()(2);
 
+  // If uninitialized, likely haven't received the target pose yet.
+  if (!angular_error_)
+    return false;
+
   return ((std::abs(x_error) < positional_tolerance(0)) && (std::abs(y_error) < positional_tolerance(1)) &&
-          (std::abs(z_error) < positional_tolerance(2)) && (std::abs(angular_error_) < angular_tolerance));
+          (std::abs(z_error) < positional_tolerance(2)) && (std::abs(*angular_error_) < angular_tolerance));
 }
 
 void PoseTracking::targetPoseCallback(const geometry_msgs::PoseStampedConstPtr& msg)
@@ -288,7 +293,7 @@ geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
   // Cache the angular error, for rotation tolerance checking
   angular_error_ = axis_angle.angle();
   double ang_vel_magnitude =
-      cartesian_orientation_pids_[0].computeCommand(angular_error_, loop_rate_.expectedCycleTime());
+      cartesian_orientation_pids_[0].computeCommand(*angular_error_, loop_rate_.expectedCycleTime());
   twist.angular.x = ang_vel_magnitude * axis_angle.axis()[0];
   twist.angular.y = ang_vel_magnitude * axis_angle.axis()[1];
   twist.angular.z = ang_vel_magnitude * axis_angle.axis()[2];
@@ -298,10 +303,25 @@ geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
   return msg;
 }
 
+void PoseTracking::stopMotion()
+{
+  stop_requested_ = true;
+
+  // Send a 0 command to Servo to halt arm motion
+  auto msg = moveit::util::make_shared_from_pool<geometry_msgs::TwistStamped>();
+  {
+    std::lock_guard<std::mutex> lock(target_pose_mtx_);
+    msg->header.frame_id = target_pose_.header.frame_id;
+  }
+  msg->header.stamp = ros::Time::now();
+  twist_stamped_pub_.publish(msg);
+}
+
 void PoseTracking::doPostMotionReset()
 {
+  stopMotion();
   stop_requested_ = false;
-  angular_error_ = 0;
+  angular_error_ = boost::none;
 
   // Reset error integrals and previous errors of PID controllers
   cartesian_position_pids_[0].reset();

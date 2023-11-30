@@ -1,12 +1,6 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(moveit_ros_control_interface)
 
-if(NOT "${CMAKE_CXX_STANDARD}")
-  set(CMAKE_CXX_STANDARD 14)
-endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 find_package(catkin REQUIRED COMPONENTS
   actionlib
   controller_manager_msgs
@@ -15,6 +9,8 @@ find_package(catkin REQUIRED COMPONENTS
   pluginlib
   trajectory_msgs
 )
+moveit_build_options()
+
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS system thread)
 

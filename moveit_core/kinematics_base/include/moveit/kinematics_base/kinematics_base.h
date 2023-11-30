@@ -44,13 +44,15 @@
 #include <boost/function.hpp>
 #include <string>
 
+#include <moveit/moveit_kinematics_base_export.h>
+
 namespace moveit
 {
 namespace core
 {
-MOVEIT_CLASS_FORWARD(JointModelGroup)
-MOVEIT_CLASS_FORWARD(RobotState)
-MOVEIT_CLASS_FORWARD(RobotModel)
+MOVEIT_CLASS_FORWARD(JointModelGroup);
+MOVEIT_CLASS_FORWARD(RobotState);
+MOVEIT_CLASS_FORWARD(RobotModel);
 }  // namespace core
 }  // namespace moveit
 
@@ -138,14 +140,13 @@ struct KinematicsResult
 MOVEIT_CLASS_FORWARD(KinematicsBase);  // Defines KinematicsBasePtr, ConstPtr, WeakPtr... etc
 
 /**
- * @class KinematicsBase
  * @brief Provides an interface for kinematics solvers.
  */
 class KinematicsBase
 {
 public:
-  static const double DEFAULT_SEARCH_DISCRETIZATION; /* = 0.1 */
-  static const double DEFAULT_TIMEOUT;               /* = 1.0 */
+  static MOVEIT_KINEMATICS_BASE_EXPORT const double DEFAULT_SEARCH_DISCRETIZATION; /* = 0.1 */
+  static MOVEIT_KINEMATICS_BASE_EXPORT const double DEFAULT_TIMEOUT;               /* = 1.0 */
 
   /** @brief Signature for a callback to validate an IK solution. Typically used for collision checking. */
   using IKCallbackFn =
@@ -605,10 +606,10 @@ protected:
    * for the private namespace and inside 'robot_description_kinematics'.
    * Parameters are searched in the following locations and order
    *
-   * ~/<group_name>/<param>
-   * ~/<param>
-   * robot_description_kinematics/<group_name>/<param>
-   * robot_description_kinematics/<param>
+   * - `~/<group_name>/<param>`
+   * - `~/<param>`
+   * - `robot_description_kinematics/<group_name>/<param>`
+   * - `robot_description_kinematics/<param>`
    *
    * This order maintains default behavior by keeping the private namespace
    * as the predominant configuration but also allows groupwise specifications.

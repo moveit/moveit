@@ -47,7 +47,7 @@
 
 namespace pilz_industrial_motion_planner
 {
-MOVEIT_CLASS_FORWARD(PlanningContext)
+MOVEIT_CLASS_FORWARD(PlanningContext);
 
 /**
  * @brief PlanningContext for obtaining LIN trajectories

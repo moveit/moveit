@@ -1,16 +1,6 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(moveit_ros_planning_interface)
 
-if(NOT "${CMAKE_CXX_STANDARD}")
-  set(CMAKE_CXX_STANDARD 14)
-endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
-
 find_package(catkin REQUIRED COMPONENTS
   moveit_msgs
   moveit_ros_planning
@@ -27,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   rosconsole
 )
+moveit_build_options()
 
 find_package(PythonInterp REQUIRED)
 find_package(PythonLibs "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" REQUIRED)
@@ -54,7 +45,6 @@ set(THIS_PACKAGE_INCLUDE_DIRS
   common_planning_interface_objects/include
   planning_scene_interface/include
   move_group_interface/include
-  moveit_cpp/include
 )
 
 catkin_python_setup()
@@ -64,7 +54,6 @@ catkin_package(
     moveit_common_planning_interface_objects
     moveit_planning_scene_interface
     moveit_move_group_interface
-    moveit_cpp
     moveit_py_bindings_tools
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
@@ -96,4 +85,3 @@ add_subdirectory(planning_scene_interface)
 add_subdirectory(move_group_interface)
 add_subdirectory(robot_interface)
 add_subdirectory(test)
-add_subdirectory(moveit_cpp)

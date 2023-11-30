@@ -35,12 +35,15 @@
 /* Author: Dave Coleman */
 
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
+#include <moveit/move_group_interface/move_group_interface.h>
+
 // Reading/Writing Files
 #include <iostream>  // For writing yaml and launch files
 #include <fstream>
 #include <boost/filesystem/path.hpp>        // for creating folders/files
 #include <boost/filesystem/operations.hpp>  // is_regular_file, is_directory, etc.
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 // ROS
 #include <ros/console.h>
@@ -60,8 +63,8 @@ namespace fs = boost::filesystem;
 MoveItConfigData::MoveItConfigData() : config_pkg_generated_timestamp_(0)
 {
   // Create an instance of SRDF writer and URDF model for all widgets to share
-  srdf_.reset(new srdf::SRDFWriter());
-  urdf_model_.reset(new urdf::Model());
+  srdf_ = std::make_shared<srdf::SRDFWriter>();
+  urdf_model_ = std::make_shared<urdf::Model>();
 
   // Not in debug mode
   debug_ = false;
@@ -95,7 +98,7 @@ moveit::core::RobotModelConstPtr MoveItConfigData::getRobotModel()
   if (!robot_model_)
   {
     // Initialize with a URDF Model Interface and a SRDF Model
-    robot_model_.reset(new moveit::core::RobotModel(urdf_model_, srdf_->srdf_model_));
+    robot_model_ = std::make_shared<moveit::core::RobotModel>(urdf_model_, srdf_->srdf_model_);
   }
 
   return robot_model_;
@@ -112,7 +115,7 @@ void MoveItConfigData::updateRobotModel()
   srdf_->updateSRDFModel(*urdf_model_);
 
   // Create new kin model
-  robot_model_.reset(new moveit::core::RobotModel(urdf_model_, srdf_->srdf_model_));
+  robot_model_ = std::make_shared<moveit::core::RobotModel>(urdf_model_, srdf_->srdf_model_);
 
   // Reset the planning scene
   planning_scene_.reset();
@@ -129,7 +132,7 @@ planning_scene::PlanningScenePtr MoveItConfigData::getPlanningScene()
     getRobotModel();
 
     // Allocate an empty planning scene
-    planning_scene_.reset(new planning_scene::PlanningScene(robot_model_));
+    planning_scene_ = std::make_shared<planning_scene::PlanningScene>(robot_model_);
   }
   return planning_scene_;
 }
@@ -137,16 +140,19 @@ planning_scene::PlanningScenePtr MoveItConfigData::getPlanningScene()
 // ******************************************************************************************
 // Load the allowed collision matrix from the SRDF's list of link pairs
 // ******************************************************************************************
-void MoveItConfigData::loadAllowedCollisionMatrix()
+void MoveItConfigData::loadAllowedCollisionMatrix(const srdf::SRDFWriter& srdf)
 {
-  // Clear the allowed collision matrix
   allowed_collision_matrix_.clear();
 
-  // Update the allowed collision matrix, in case there has been a change
-  for (const auto& disabled_collision : srdf_->disabled_collisions_)
-  {
-    allowed_collision_matrix_.setEntry(disabled_collision.link1_, disabled_collision.link2_, true);
-  }
+  // load collision defaults
+  for (const std::string& name : srdf.no_default_collision_links_)
+    allowed_collision_matrix_.setDefaultEntry(name, collision_detection::AllowedCollision::ALWAYS);
+  // re-enable specific collision pairs
+  for (auto const& collision : srdf.enabled_collision_pairs_)
+    allowed_collision_matrix_.setEntry(collision.link1_, collision.link2_, false);
+  // *finally* disable selected collision pairs
+  for (auto const& collision : srdf.disabled_collision_pairs_)
+    allowed_collision_matrix_.setEntry(collision.link1_, collision.link2_, true);
 }
 
 // ******************************************************************************************
@@ -181,7 +187,8 @@ bool MoveItConfigData::outputSetupAssistantFile(const std::string& file_path)
   emitter << YAML::Value << YAML::BeginMap;
   emitter << YAML::Key << "author_name" << YAML::Value << author_name_;
   emitter << YAML::Key << "author_email" << YAML::Value << author_email_;
-  emitter << YAML::Key << "generated_timestamp" << YAML::Value << std::time(nullptr);  // TODO: is this cross-platform?
+  auto cur_time = std::time(nullptr);
+  emitter << YAML::Key << "generated_timestamp" << YAML::Value << cur_time;  // TODO: is this cross-platform?
   emitter << YAML::EndMap;
 
   emitter << YAML::EndMap;
@@ -196,7 +203,29 @@ bool MoveItConfigData::outputSetupAssistantFile(const std::string& file_path)
   output_stream << emitter.c_str();
   output_stream.close();
 
+  /// Update the parsed setup_assistant timestamp
+  // NOTE: Needed for when people run the MSA generator multiple times in a row.
+  config_pkg_generated_timestamp_ = cur_time;
+
   return true;  // file created successfully
+}
+
+// ******************************************************************************************
+// Output Gazebo URDF file
+// ******************************************************************************************
+bool MoveItConfigData::outputGazeboURDFFile(const std::string& file_path)
+{
+  std::ofstream os(file_path.c_str(), std::ios_base::trunc);
+  if (!os.good())
+  {
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
+    return false;
+  }
+
+  os << gazebo_urdf_string_ << std::endl;
+  os.close();
+
+  return true;
 }
 
 // ******************************************************************************************
@@ -280,31 +309,133 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
 }
 
 // ******************************************************************************************
-// Output CHOMP Planning config files
+// Output STOMP Planning config files
 // ******************************************************************************************
-bool MoveItConfigData::outputCHOMPPlanningYAML(const std::string& file_path)
+bool MoveItConfigData::outputSTOMPPlanningYAML(const std::string& file_path)
 {
   YAML::Emitter emitter;
+  emitter << YAML::BeginMap;
 
-  emitter << YAML::Value << YAML::BeginMap;
-  emitter << YAML::Key << "planning_time_limit" << YAML::Value << "10.0";
-  emitter << YAML::Key << "max_iterations" << YAML::Value << "200";
-  emitter << YAML::Key << "max_iterations_after_collision_free" << YAML::Value << "5";
-  emitter << YAML::Key << "smoothness_cost_weight" << YAML::Value << "0.1";
-  emitter << YAML::Key << "obstacle_cost_weight" << YAML::Value << "1.0";
-  emitter << YAML::Key << "learning_rate" << YAML::Value << "0.01";
-  emitter << YAML::Key << "smoothness_cost_velocity" << YAML::Value << "0.0";
-  emitter << YAML::Key << "smoothness_cost_acceleration" << YAML::Value << "1.0";
-  emitter << YAML::Key << "smoothness_cost_jerk" << YAML::Value << "0.0";
-  emitter << YAML::Key << "ridge_factor" << YAML::Value << "0.01";
-  emitter << YAML::Key << "use_pseudo_inverse" << YAML::Value << "false";
-  emitter << YAML::Key << "pseudo_inverse_ridge_factor" << YAML::Value << "1e-4";
-  emitter << YAML::Key << "joint_update_limit" << YAML::Value << "0.1";
-  emitter << YAML::Key << "collision_clearence" << YAML::Value << "0.2";
-  emitter << YAML::Key << "collision_threshold" << YAML::Value << "0.07";
-  emitter << YAML::Key << "use_stochastic_descent" << YAML::Value << "true";
-  emitter << YAML::Key << "enable_failure_recovery" << YAML::Value << "true";
-  emitter << YAML::Key << "max_recovery_attempts" << YAML::Value << "5";
+  // Add STOMP default for every group
+  for (srdf::Model::Group& group : srdf_->groups_)
+  {
+    emitter << YAML::Key << "stomp/" + group.name_;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "group_name";
+    emitter << YAML::Value << group.name_;
+
+    emitter << YAML::Key << "optimization";
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "num_timesteps";
+    emitter << YAML::Value << "60";
+    emitter << YAML::Key << "num_iterations";
+    emitter << YAML::Value << "40";
+    emitter << YAML::Key << "num_iterations_after_valid";
+    emitter << YAML::Value << "0";
+    emitter << YAML::Key << "num_rollouts";
+    emitter << YAML::Value << "30";
+    emitter << YAML::Key << "max_rollouts";
+    emitter << YAML::Value << "30";
+    emitter << YAML::Key << "initialization_method";
+    emitter << YAML::Value << "1";
+    emitter << YAML::Comment("[1 : LINEAR_INTERPOLATION, 2 : CUBIC_POLYNOMIAL, 3 : MININUM_CONTROL_COST]");
+    emitter << YAML::Key << "control_cost_weight";
+    emitter << YAML::Value << "0.0";
+    emitter << YAML::EndMap;
+
+    emitter << YAML::Key << "task";
+    emitter << YAML::BeginMap;
+
+    emitter << YAML::Key << "noise_generator";
+    emitter << YAML::BeginSeq;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "class";
+    emitter << YAML::Value << "stomp_moveit/NormalDistributionSampling";
+    emitter << YAML::Key << "stddev";
+    emitter << YAML::Flow;
+    const moveit::core::JointModelGroup* joint_model_group = getRobotModel()->getJointModelGroup(group.name_);
+    const std::vector<const moveit::core::JointModel*>& joint_models = joint_model_group->getActiveJointModels();
+    std::vector<float> stddev(joint_models.size(), 0.05);
+    emitter << YAML::Value << stddev;
+    emitter << YAML::EndMap;
+    emitter << YAML::EndSeq;
+
+    emitter << YAML::Key << "cost_functions";
+    emitter << YAML::BeginSeq;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "class";
+    emitter << YAML::Value << "stomp_moveit/CollisionCheck";
+    emitter << YAML::Key << "collision_penalty";
+    emitter << YAML::Value << "1.0";
+    emitter << YAML::Key << "cost_weight";
+    emitter << YAML::Value << "1.0";
+    emitter << YAML::Key << "kernel_window_percentage";
+    emitter << YAML::Value << "0.2";
+    emitter << YAML::Key << "longest_valid_joint_move";
+    emitter << YAML::Value << "0.05";
+    emitter << YAML::EndMap;
+    emitter << YAML::EndSeq;
+
+    emitter << YAML::Key << "noisy_filters";
+    emitter << YAML::BeginSeq;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "class";
+    emitter << YAML::Value << "stomp_moveit/JointLimits";
+    emitter << YAML::Key << "lock_start";
+    emitter << YAML::Value << "True";
+    emitter << YAML::Key << "lock_goal";
+    emitter << YAML::Value << "True";
+    emitter << YAML::EndMap;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "class";
+    emitter << YAML::Value << "stomp_moveit/MultiTrajectoryVisualization";
+    emitter << YAML::Key << "line_width";
+    emitter << YAML::Value << "0.02";
+    emitter << YAML::Key << "rgb";
+    emitter << YAML::Flow;
+    std::vector<float> noisy_filters_rgb{ 255, 255, 0 };
+    emitter << YAML::Value << noisy_filters_rgb;
+    emitter << YAML::Key << "marker_array_topic";
+    emitter << YAML::Value << "stomp_trajectories";
+    emitter << YAML::Key << "marker_namespace";
+    emitter << YAML::Value << "noisy";
+    emitter << YAML::EndMap;
+    emitter << YAML::EndSeq;
+
+    emitter << YAML::Key << "update_filters";
+    emitter << YAML::BeginSeq;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "class";
+    emitter << YAML::Value << "stomp_moveit/PolynomialSmoother";
+    emitter << YAML::Key << "poly_order";
+    emitter << YAML::Value << "6";
+    emitter << YAML::EndMap;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "class";
+    emitter << YAML::Value << "stomp_moveit/TrajectoryVisualization";
+    emitter << YAML::Key << "line_width";
+    emitter << YAML::Value << "0.05";
+    emitter << YAML::Key << "rgb";
+    emitter << YAML::Flow;
+    std::vector<float> update_filters_rgb{ 0, 191, 255 };
+    emitter << YAML::Value << update_filters_rgb;
+    emitter << YAML::Key << "error_rgb";
+    emitter << YAML::Flow;
+    std::vector<float> update_filters_error_rgb{ 255, 0, 0 };
+    emitter << YAML::Value << update_filters_error_rgb;
+    emitter << YAML::Key << "publish_intermediate";
+    emitter << YAML::Value << "True";
+    emitter << YAML::Key << "marker_topic";
+    emitter << YAML::Value << "stomp_trajectory";
+    emitter << YAML::Key << "marker_namespace";
+    emitter << YAML::Value << "optimized";
+    emitter << YAML::EndMap;
+    emitter << YAML::EndSeq;
+
+    emitter << YAML::EndMap;
+    emitter << YAML::EndMap;
+  }
+
   emitter << YAML::EndMap;
 
   std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
@@ -351,6 +482,18 @@ bool MoveItConfigData::outputKinematicsYAML(const std::string& file_path)
     emitter << YAML::Key << "kinematics_solver_timeout";
     emitter << YAML::Value << group_meta_data_[group.name_].kinematics_solver_timeout_;
 
+    // Goal joint tolerance
+    emitter << YAML::Key << "goal_joint_tolerance";
+    emitter << YAML::Value << group_meta_data_[group.name_].goal_joint_tolerance_;
+
+    // Goal position tolerance
+    emitter << YAML::Key << "goal_position_tolerance";
+    emitter << YAML::Value << group_meta_data_[group.name_].goal_position_tolerance_;
+
+    // Goal orientation tolerance
+    emitter << YAML::Key << "goal_orientation_tolerance";
+    emitter << YAML::Value << group_meta_data_[group.name_].goal_orientation_tolerance_;
+
     emitter << YAML::EndMap;
   }
 
@@ -374,7 +517,7 @@ bool MoveItConfigData::outputKinematicsYAML(const std::string& file_path)
 // ******************************************************************************************
 std::string MoveItConfigData::getJointHardwareInterface(const std::string& joint_name)
 {
-  for (ROSControlConfig& ros_control_config : ros_controllers_config_)
+  for (ControllerConfig& ros_control_config : controller_configs_)
   {
     std::vector<std::string>::iterator joint_it =
         std::find(ros_control_config.joints_.begin(), ros_control_config.joints_.end(), joint_name);
@@ -391,112 +534,6 @@ std::string MoveItConfigData::getJointHardwareInterface(const std::string& joint
   }
   // If the joint was not found in any controller return EffortJointInterface
   return "hardware_interface/EffortJointInterface";
-}
-
-// ******************************************************************************************
-// Writes a Gazebo compatible robot URDF to gazebo_compatible_urdf_string_
-// ******************************************************************************************
-std::string MoveItConfigData::getGazeboCompatibleURDF()
-{
-  bool new_urdf_needed = false;
-  TiXmlDocument urdf_document;
-
-  // Used to convert XmlDocument to std string
-  TiXmlPrinter printer;
-  urdf_document.Parse((const char*)urdf_string_.c_str(), nullptr, TIXML_ENCODING_UTF8);
-  try
-  {
-    for (TiXmlElement* doc_element = urdf_document.RootElement()->FirstChildElement(); doc_element != nullptr;
-         doc_element = doc_element->NextSiblingElement())
-    {
-      if (static_cast<std::string>(doc_element->Value()).find("link") != std::string::npos)
-      {
-        // Before adding inertial elements, make sure there is none and the link has collision element
-        if (doc_element->FirstChildElement("inertial") == nullptr &&
-            doc_element->FirstChildElement("collision") != nullptr)
-        {
-          new_urdf_needed = true;
-          TiXmlElement inertia_link("inertial");
-          TiXmlElement mass("mass");
-          TiXmlElement inertia_joint("inertia");
-
-          mass.SetAttribute("value", "0.1");
-
-          inertia_joint.SetAttribute("ixx", "0.03");
-          inertia_joint.SetAttribute("iyy", "0.03");
-          inertia_joint.SetAttribute("izz", "0.03");
-          inertia_joint.SetAttribute("ixy", "0.0");
-          inertia_joint.SetAttribute("ixz", "0.0");
-          inertia_joint.SetAttribute("iyz", "0.0");
-
-          inertia_link.InsertEndChild(mass);
-          inertia_link.InsertEndChild(inertia_joint);
-
-          doc_element->InsertEndChild(inertia_link);
-        }
-      }
-      else if (static_cast<std::string>(doc_element->Value()).find("joint") != std::string::npos)
-      {
-        // Before adding a transmission element, make sure there the joint is not fixed
-        if (static_cast<std::string>(doc_element->Attribute("type")) != "fixed")
-        {
-          new_urdf_needed = true;
-          std::string joint_name = static_cast<std::string>(doc_element->Attribute("name"));
-          TiXmlElement transmission("transmission");
-          TiXmlElement type("type");
-          TiXmlElement joint("joint");
-          TiXmlElement hardware_interface("hardwareInterface");
-          TiXmlElement actuator("actuator");
-          TiXmlElement mechanical_reduction("mechanicalReduction");
-
-          transmission.SetAttribute("name", std::string("trans_") + joint_name);
-          joint.SetAttribute("name", joint_name);
-          actuator.SetAttribute("name", joint_name + std::string("_motor"));
-
-          type.InsertEndChild(TiXmlText("transmission_interface/SimpleTransmission"));
-          transmission.InsertEndChild(type);
-
-          hardware_interface.InsertEndChild(TiXmlText(getJointHardwareInterface(joint_name).c_str()));
-          joint.InsertEndChild(hardware_interface);
-          transmission.InsertEndChild(joint);
-
-          mechanical_reduction.InsertEndChild(TiXmlText("1"));
-          actuator.InsertEndChild(hardware_interface);
-          actuator.InsertEndChild(mechanical_reduction);
-          transmission.InsertEndChild(actuator);
-
-          urdf_document.RootElement()->InsertEndChild(transmission);
-        }
-      }
-    }
-
-    // Add gazebo_ros_control plugin which reads the transmission tags
-    TiXmlElement gazebo("gazebo");
-    TiXmlElement plugin("plugin");
-    TiXmlElement robot_namespace("robotNamespace");
-
-    plugin.SetAttribute("name", "gazebo_ros_control");
-    plugin.SetAttribute("filename", "libgazebo_ros_control.so");
-    robot_namespace.InsertEndChild(TiXmlText(std::string("/")));
-
-    plugin.InsertEndChild(robot_namespace);
-    gazebo.InsertEndChild(plugin);
-
-    urdf_document.RootElement()->InsertEndChild(gazebo);
-  }
-  catch (YAML::ParserException& e)  // Catch errors
-  {
-    ROS_ERROR_STREAM_NAMED("moveit_config_data", e.what());
-    return std::string("");
-  }
-
-  if (new_urdf_needed)
-  {
-    urdf_document.Accept(&printer);
-    return std::string(printer.CStr());
-  }
-
-  return std::string("");
 }
 
 bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
@@ -517,7 +554,7 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
     emitter << YAML::Key << "name";
     emitter << YAML::Value << "fake_" + group.name_ + "_controller";
     emitter << YAML::Key << "type";
-    emitter << YAML::Value << "$(arg execution_type)";
+    emitter << YAML::Value << "$(arg fake_execution_type)";
     emitter << YAML::Key << "joints";
     emitter << YAML::Value << YAML::BeginSeq;
 
@@ -535,7 +572,7 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
   emitter << YAML::EndSeq;
 
   // Add an initial pose for each group
-  emitter << YAML::Key << "initial" << YAML::Comment("Define initial robot poses.");
+  emitter << YAML::Key << "initial" << YAML::Comment("Define initial robot poses per group");
 
   bool poses_found = false;
   std::string default_group_name;
@@ -593,7 +630,29 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
   return true;  // file created successfully
 }
 
-std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
+std::map<std::string, double> MoveItConfigData::getInitialJoints() const
+{
+  std::map<std::string, double> joints;
+  for (const srdf::Model::Group& group : srdf_->groups_)
+  {
+    // use first pose of each group as initial pose
+    for (const srdf::Model::GroupState& group_state : srdf_->group_states_)
+    {
+      if (group.name_ != group_state.group_)
+        continue;
+      for (const auto& pair : group_state.joint_values_)
+      {
+        if (pair.second.size() != 1)
+          continue;  // only handle simple joints here
+        joints[pair.first] = pair.second.front();
+      }
+      break;
+    }
+  }
+  return joints;
+}
+
+std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
 {
   std::vector<OMPLPlannerDescription> planner_des;
 
@@ -680,10 +739,10 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
   trrt.addParameter("temp_change_factor", "2.0", "how much to increase or decrease temp. default: 2.0");
   trrt.addParameter("min_temperature", "10e-10", "lower limit of temp change. default: 10e-10");
   trrt.addParameter("init_temperature", "10e-6", "initial temperature. default: 10e-6");
-  trrt.addParameter("frountier_threshold", "0.0",
+  trrt.addParameter("frontier_threshold", "0.0",
                     "dist new state to nearest neighbor to disqualify as frontier. "
                     "default: 0.0 set in setup()");
-  trrt.addParameter("frountierNodeRatio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
+  trrt.addParameter("frontier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
   trrt.addParameter("k_constant", "0.0", "value used to normalize expresssion. default: 0.0 set in setup()");
   planner_des.push_back(trrt);
 
@@ -754,10 +813,10 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
                        "setup()");
   bi_trrt.addParameter("temp_change_factor", "0.1", "how much to increase or decrease temp. default: 0.1");
   bi_trrt.addParameter("init_temperature", "100", "initial temperature. default: 100");
-  bi_trrt.addParameter("frountier_threshold", "0.0",
+  bi_trrt.addParameter("frontier_threshold", "0.0",
                        "dist new state to nearest neighbor to disqualify as frontier. "
                        "default: 0.0 set in setup()");
-  bi_trrt.addParameter("frountier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
+  bi_trrt.addParameter("frontier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
   bi_trrt.addParameter("cost_threshold", "1e300",
                        "the cost threshold. Any motion cost that is not better will not be "
                        "expanded. default: inf");
@@ -817,67 +876,133 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
   spar_stwo.addParameter("max_failures", "5000", "maximum consecutive failure limit. default: 5000");
   planner_des.push_back(spar_stwo);
 
+// TODO: remove when ROS Melodic and older are no longer supported
+#if OMPL_VERSION_VALUE >= 1005000
+  OMPLPlannerDescription aitstar("AITstar", "geometric");
+  aitstar.addParameter("use_k_nearest", "1",
+                       "whether to use a k-nearest RGG connection model (1) or an r-disc model (0). Default: 1");
+  aitstar.addParameter("rewire_factor", "1.001",
+                       "rewire factor of the RGG. Valid values: [1.0:0.01:3.0]. Default: 1.001");
+  aitstar.addParameter("samples_per_batch", "100", "batch size. Valid values: [1:1:1000]. Default: 100");
+  aitstar.addParameter("use_graph_pruning", "1", "enable graph pruning (1) or not (0). Default: 1");
+  aitstar.addParameter("find_approximate_solutions", "0", "track approximate solutions (1) or not (0). Default: 0");
+  aitstar.addParameter("set_max_num_goals", "1",
+                       "maximum number of goals sampled from sampleable goal regions. "
+                       "Valid values: [1:1:1000]. Default: 1");
+  planner_des.push_back(aitstar);
+
+  OMPLPlannerDescription abitstar("ABITstar", "geometric");
+  abitstar.addParameter("use_k_nearest", "1",
+                        "whether to use a k-nearest RGG connection model (1) or an r-disc model (0). Default: 1");
+  abitstar.addParameter("rewire_factor", "1.001",
+                        "rewire factor of the RGG. Valid values: [1.0:0.01:3.0]. Default: 1.001");
+  abitstar.addParameter("samples_per_batch", "100", "batch size. Valid values: [1:1:1000]. Default: 100");
+  abitstar.addParameter("use_graph_pruning", "1", "enable graph pruning (1) or not (0). Default: 1");
+  abitstar.addParameter(
+      "prune_threshold_as_fractional_cost_change", "0.1",
+      "fractional change in the solution cost AND problem measure necessary for pruning to occur. Default: 0.1");
+  abitstar.addParameter("delay_rewiring_to_first_solution", "0",
+                        "delay (1) or not (0) rewiring until a solution is found. Default: 0");
+  abitstar.addParameter("use_just_in_time_sampling", "0",
+                        "delay the generation of samples until they are * necessary. Only works with r-disc connection "
+                        "and path length minimization. Default: 0");
+  abitstar.addParameter("drop_unconnected_samples_on_prune", "0",
+                        "drop unconnected samples when pruning, regardless of their heuristic value. Default: 0");
+  abitstar.addParameter("stop_on_each_solution_improvement", "0",
+                        "stop the planner each time a solution improvement is found. Useful for debugging. Default: 0");
+  abitstar.addParameter("use_strict_queue_ordering", "0",
+                        "sort edges in the queue at the end of the batch (0) or after each rewiring (1). Default: 0");
+  abitstar.addParameter("find_approximate_solutions", "0", "track approximate solutions (1) or not (0). Default: 0");
+  abitstar.addParameter(
+      "initial_inflation_factor", "1000000",
+      "inflation factor for the initial search. Valid values: [1.0:0.01:1000000.0]. Default: 1000000");
+  abitstar.addParameter(
+      "inflation_scaling_parameter", "10",
+      "scaling parameter for the inflation factor update policy. Valid values: [1.0:0.01:1000000.0]. Default: 0");
+  abitstar.addParameter(
+      "truncation_scaling_parameter", "5.0",
+      "scaling parameter for the truncation factor update policy. Valid values: [1.0:0.01:1000000.0]. Default: 0");
+  planner_des.push_back(abitstar);
+
+  OMPLPlannerDescription bitstar("BITstar", "geometric");
+  bitstar.addParameter("use_k_nearest", "1",
+                       "whether to use a k-nearest RGG connection model (1) or an r-disc model (0). Default: 1");
+  bitstar.addParameter("rewire_factor", "1.001",
+                       "rewire factor of the RGG. Valid values: [1.0:0.01:3.0]. Default: 1.001");
+  bitstar.addParameter("samples_per_batch", "100", "batch size. Valid values: [1:1:1000]. Default: 100");
+  bitstar.addParameter("use_graph_pruning", "1", "enable graph pruning (1) or not (0). Default: 1");
+  bitstar.addParameter(
+      "prune_threshold_as_fractional_cost_change", "0.1",
+      "fractional change in the solution cost AND problem measure necessary for pruning to occur. Default: 0.1");
+  bitstar.addParameter("delay_rewiring_to_first_solution", "0",
+                       "delay (1) or not (0) rewiring until a solution is found. Default: 0");
+  bitstar.addParameter("use_just_in_time_sampling", "0",
+                       "delay the generation of samples until they are * necessary. Only works with r-disc connection "
+                       "and path length minimization. Default: 0");
+  bitstar.addParameter("drop_unconnected_samples_on_prune", "0",
+                       "drop unconnected samples when pruning, regardless of their heuristic value. Default: 0");
+  bitstar.addParameter("stop_on_each_solution_improvement", "0",
+                       "stop the planner each time a solution improvement is found. Useful for debugging. Default: 0");
+  bitstar.addParameter("use_strict_queue_ordering", "0",
+                       "sort edges in the queue at the end of the batch (0) or after each rewiring (1). Default: 0");
+  bitstar.addParameter("find_approximate_solutions", "0", "track approximate solutions (1) or not (0). Default: 0");
+  planner_des.push_back(bitstar);
+#endif
+
   return planner_des;
 }
 
 // ******************************************************************************************
-// Helper function to write the FollowJointTrajectory for each planning group to ros_controller.yaml,
-// and erases the controller that have been written, to avoid mixing between FollowJointTrajectory
-// which are published under the namespace of 'controller_list' and other types of controllers.
+// Generate simple_moveit_controllers.yaml config file
 // ******************************************************************************************
-void MoveItConfigData::outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
-                                                       std::vector<ROSControlConfig>& ros_controllers_config_output)
+bool MoveItConfigData::outputSimpleControllersYAML(const std::string& file_path)
 {
-  // Write default controllers
+  YAML::Emitter emitter;
+  emitter << YAML::BeginMap;
   emitter << YAML::Key << "controller_list";
   emitter << YAML::Value << YAML::BeginSeq;
+  for (const auto& controller : controller_configs_)
   {
-    for (std::vector<ROSControlConfig>::iterator controller_it = ros_controllers_config_output.begin();
-         controller_it != ros_controllers_config_output.end();)
+    // Only process FollowJointTrajectory types
+    std::string type = controller.type_;
+    if (boost::ends_with(type, "/JointTrajectoryController"))
+      type = "FollowJointTrajectory";
+    if (type == "FollowJointTrajectory" || type == "GripperCommand")
     {
-      // Depending on the controller type, fill the required data
-      if (controller_it->type_ == "FollowJointTrajectory")
-      {
-        emitter << YAML::BeginMap;
-        emitter << YAML::Key << "name";
-        emitter << YAML::Value << controller_it->name_;
-        emitter << YAML::Key << "action_ns";
-        emitter << YAML::Value << "follow_joint_trajectory";
-        emitter << YAML::Key << "default";
-        emitter << YAML::Value << "True";
-        emitter << YAML::Key << "type";
-        emitter << YAML::Value << controller_it->type_;
-        // Write joints
-        emitter << YAML::Key << "joints";
-        {
-          if (controller_it->joints_.size() != 1)
-          {
-            emitter << YAML::Value << YAML::BeginSeq;
+      emitter << YAML::BeginMap;
+      emitter << YAML::Key << "name";
+      emitter << YAML::Value << controller.name_;
+      emitter << YAML::Key << "action_ns";
+      emitter << YAML::Value << (type == "FollowJointTrajectory" ? "follow_joint_trajectory" : "gripper_action");
+      emitter << YAML::Key << "type";
+      emitter << YAML::Value << type;
+      emitter << YAML::Key << "default";
+      emitter << YAML::Value << "True";
 
-            // Iterate through the joints
-            for (std::string& joint : controller_it->joints_)
-            {
-              emitter << joint;
-            }
-            emitter << YAML::EndSeq;
-          }
-          else
-          {
-            emitter << YAML::Value << YAML::BeginMap;
-            emitter << controller_it->joints_[0];
-            emitter << YAML::EndMap;
-          }
-        }
-        controller_it = ros_controllers_config_output.erase(controller_it);
-        emitter << YAML::EndMap;
-      }
-      else
-      {
-        controller_it++;
-      }
+      // Write joints
+      emitter << YAML::Key << "joints";
+      emitter << YAML::Value << YAML::BeginSeq;
+      // Iterate through the joints
+      for (const std::string& joint : controller.joints_)
+        emitter << joint;
+      emitter << YAML::EndSeq;
+
+      emitter << YAML::EndMap;
     }
-    emitter << YAML::EndSeq;
   }
+  emitter << YAML::EndSeq;
+  emitter << YAML::EndMap;
+
+  std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
+  if (!output_stream.good())
+  {
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
+    return false;
+  }
+  output_stream << emitter.c_str();
+  output_stream.close();
+
+  return true;  // file created successfully
 }
 
 // ******************************************************************************************
@@ -892,21 +1017,18 @@ srdf::Model::GroupState MoveItConfigData::getDefaultStartPose()
 }
 
 // ******************************************************************************************
-// Output controllers config files
+// Generate ros_controllers.yaml config file
 // ******************************************************************************************
 bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
 {
-  // Copy ros_control_config_ to a new vector to avoid modifying it
-  std::vector<ROSControlConfig> ros_controllers_config_output(ros_controllers_config_);
-
   // Cache the joints' names.
   std::vector<std::vector<std::string>> planning_groups;
-  std::vector<std::string> group_joints;
 
   // We are going to write the joints names many times.
   // Loop through groups to store the joints names in group_joints vector and reuse is.
   for (srdf::Model::Group& group : srdf_->groups_)
   {
+    std::vector<std::string> group_joints;
     // Get list of associated joints
     const moveit::core::JointModelGroup* joint_model_group = getRobotModel()->getJointModelGroup(group.name_);
     const std::vector<const moveit::core::JointModel*>& joint_models = joint_model_group->getActiveJointModels();
@@ -920,13 +1042,14 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
     }
     // Push all the group joints into planning_groups vector.
     planning_groups.push_back(group_joints);
-    group_joints.clear();
   }
 
   YAML::Emitter emitter;
   emitter << YAML::BeginMap;
 
   {
+#if 0  // TODO: This is only for fake ROS controllers, which should go into a separate file
+    // Also replace moveit_sim_controllers with http://wiki.ros.org/fake_joint
     emitter << YAML::Comment("Simulation settings for using moveit_sim_controllers");
     emitter << YAML::Key << "moveit_sim_hw_interface" << YAML::Value << YAML::BeginMap;
     // MoveIt Simulation Controller settings for setting initial pose
@@ -990,23 +1113,12 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
       emitter << YAML::Newline;
       emitter << YAML::EndMap;
     }
-    // Joint State Controller
-    emitter << YAML::Comment("Publish all joint states");
-    emitter << YAML::Newline << YAML::Comment("Creates the /joint_states topic necessary in ROS");
-    emitter << YAML::Key << "joint_state_controller" << YAML::Value << YAML::BeginMap;
+#endif
+    for (const auto& controller : controller_configs_)
     {
-      emitter << YAML::Key << "type";
-      emitter << YAML::Value << "joint_state_controller/JointStateController";
-      emitter << YAML::Key << "publish_rate";
-      emitter << YAML::Value << "50";
-      emitter << YAML::EndMap;
-    }
+      if (controller.type_ == "FollowJointTrajectory" || controller.type_ == "GripperCommand")
+        continue;  // these are handled by outputSimpleControllersYAML()
 
-    // Writes Follow Joint Trajectory ROS controllers to ros_controller.yaml
-    outputFollowJointTrajectoryYAML(emitter, ros_controllers_config_output);
-
-    for (const auto& controller : ros_controllers_config_output)
-    {
       emitter << YAML::Key << controller.name_;
       emitter << YAML::Value << YAML::BeginMap;
       emitter << YAML::Key << "type";
@@ -1014,25 +1126,12 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
 
       // Write joints
       emitter << YAML::Key << "joints";
-      {
-        if (controller.joints_.size() != 1)
-        {
-          emitter << YAML::Value << YAML::BeginSeq;
+      emitter << YAML::Value << YAML::BeginSeq;
+      // Iterate through the joints
+      for (const std::string& joint : controller.joints_)
+        emitter << joint;
+      emitter << YAML::EndSeq;
 
-          // Iterate through the joints
-          for (const std::string& joint : controller.joints_)
-          {
-            emitter << joint;
-          }
-          emitter << YAML::EndSeq;
-        }
-        else
-        {
-          emitter << YAML::Value << YAML::BeginMap;
-          emitter << controller.joints_[0];
-          emitter << YAML::EndMap;
-        }
-      }
       // Write gains as they are required for vel and effort controllers
       emitter << YAML::Key << "gains";
       emitter << YAML::Value << YAML::BeginMap;
@@ -1074,26 +1173,22 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
 bool MoveItConfigData::output3DSensorPluginYAML(const std::string& file_path)
 {
   YAML::Emitter emitter;
-  emitter << YAML::BeginMap;
 
-  emitter << YAML::Comment("The name of this file shouldn't be changed, or else the Setup Assistant won't detect it");
+  emitter << YAML::BeginMap;
   emitter << YAML::Key << "sensors";
   emitter << YAML::Value << YAML::BeginSeq;
 
-  // Can we have more than one plugin config?
-  emitter << YAML::BeginMap;
-
-  // Make sure sensors_plugin_config_parameter_list_ is not empty
-  if (!sensors_plugin_config_parameter_list_.empty())
+  for (auto& sensors_plugin_config : sensors_plugin_config_parameter_list_)
   {
-    for (auto& parameter : sensors_plugin_config_parameter_list_[0])
+    emitter << YAML::BeginMap;
+
+    for (auto& parameter : sensors_plugin_config)
     {
       emitter << YAML::Key << parameter.first;
       emitter << YAML::Value << parameter.second.getValue();
     }
+    emitter << YAML::EndMap;
   }
-
-  emitter << YAML::EndMap;
 
   emitter << YAML::EndSeq;
 
@@ -1210,59 +1305,6 @@ bool MoveItConfigData::outputJointLimitsYAML(const std::string& file_path)
 }
 
 // ******************************************************************************************
-// Set list of collision link pairs in SRDF; sorted; with optional filter
-// ******************************************************************************************
-
-class SortableDisabledCollision
-{
-public:
-  SortableDisabledCollision(const srdf::Model::DisabledCollision& dc)
-    : dc_(dc), key_(dc.link1_ < dc.link2_ ? (dc.link1_ + "|" + dc.link2_) : (dc.link2_ + "|" + dc.link1_))
-  {
-  }
-  operator const srdf::Model::DisabledCollision &() const
-  {
-    return dc_;
-  }
-  bool operator<(const SortableDisabledCollision& other) const
-  {
-    return key_ < other.key_;
-  }
-
-private:
-  const srdf::Model::DisabledCollision dc_;
-  const std::string key_;
-};
-
-void MoveItConfigData::setCollisionLinkPairs(const moveit_setup_assistant::LinkPairMap& link_pairs, size_t skip_mask)
-{
-  // Create temp disabled collision
-  srdf::Model::DisabledCollision dc;
-
-  std::set<SortableDisabledCollision> disabled_collisions;
-  disabled_collisions.insert(srdf_->disabled_collisions_.begin(), srdf_->disabled_collisions_.end());
-
-  // copy the data in this class's LinkPairMap datastructure to srdf::Model::DisabledCollision format
-  for (const std::pair<const std::pair<std::string, std::string>, LinkPairData>& link_pair : link_pairs)
-  {
-    // Only copy those that are actually disabled
-    if (link_pair.second.disable_check)
-    {
-      if ((1 << link_pair.second.reason) & skip_mask)
-        continue;
-
-      dc.link1_ = link_pair.first.first;
-      dc.link2_ = link_pair.first.second;
-      dc.reason_ = moveit_setup_assistant::disabledReasonToString(link_pair.second.reason);
-
-      disabled_collisions.insert(SortableDisabledCollision(dc));
-    }
-  }
-
-  srdf_->disabled_collisions_.assign(disabled_collisions.begin(), disabled_collisions.end());
-}
-
-// ******************************************************************************************
 // Decide the best two joints to be used for the projection evaluator
 // ******************************************************************************************
 std::string MoveItConfigData::decideProjectionJoints(const std::string& planning_group)
@@ -1300,7 +1342,7 @@ template <typename T>
 bool parse(const YAML::Node& node, const std::string& key, T& storage, const T& default_value = T())
 {
   const YAML::Node& n = node[key];
-  bool valid = n;
+  bool valid = n.IsDefined();
   storage = valid ? n.as<T>() : default_value;
   return valid;
 }
@@ -1372,7 +1414,7 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
     for (YAML::const_iterator group_it = doc.begin(); group_it != doc.end(); ++group_it)
     {
       const std::string& group_name = group_it->first.as<std::string>();
-      const YAML::Node& group = group_it->second;
+      const YAML::Node group = group_it->second;
 
       // Create new meta data
       GroupMetaData meta_data;
@@ -1381,9 +1423,15 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
       parse(group, "kinematics_solver_search_resolution", meta_data.kinematics_solver_search_resolution_,
             DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION);
       parse(group, "kinematics_solver_timeout", meta_data.kinematics_solver_timeout_, DEFAULT_KIN_SOLVER_TIMEOUT);
+      parse(group, "goal_joint_tolerance", meta_data.goal_joint_tolerance_,
+            moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_JOINT_TOLERANCE);
+      parse(group, "goal_position_tolerance", meta_data.goal_position_tolerance_,
+            moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_POSITION_TOLERANCE);
+      parse(group, "goal_orientation_tolerance", meta_data.goal_orientation_tolerance_,
+            moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_ORIENTATION_TOLERANCE);
 
       // Assign meta data to vector
-      group_meta_data_[group_name] = meta_data;
+      group_meta_data_[group_name] = std::move(meta_data);
     }
   }
   catch (YAML::ParserException& e)  // Catch errors
@@ -1410,7 +1458,8 @@ bool MoveItConfigData::inputPlanningContextLaunch(const std::string& file_path)
   // find the kinematics section
   TiXmlHandle doc(&launch_document);
   TiXmlElement* kinematics_group = doc.FirstChild("launch").FirstChild("group").ToElement();
-  while (kinematics_group && kinematics_group->Attribute("ns") != std::string("$(arg robot_description)_kinematics"))
+  while (kinematics_group && kinematics_group->Attribute("ns") &&
+         kinematics_group->Attribute("ns") != std::string("$(arg robot_description)_kinematics"))
   {
     kinematics_group = kinematics_group->NextSiblingElement("group");
   }
@@ -1441,7 +1490,7 @@ bool MoveItConfigData::inputPlanningContextLaunch(const std::string& file_path)
 bool MoveItConfigData::parseROSController(const YAML::Node& controller)
 {
   // Used in parsing ROS controllers
-  ROSControlConfig control_setting;
+  ControllerConfig control_setting;
 
   if (const YAML::Node& trajectory_controllers = controller)
   {
@@ -1468,7 +1517,7 @@ bool MoveItConfigData::parseROSController(const YAML::Node& controller)
             return false;
           }
           // All required fields were parsed correctly
-          ros_controllers_config_.push_back(control_setting);
+          controller_configs_.push_back(control_setting);
         }
         else
         {
@@ -1487,7 +1536,7 @@ bool MoveItConfigData::parseROSController(const YAML::Node& controller)
 bool MoveItConfigData::processROSControllers(std::ifstream& input_stream)
 {
   // Used in parsing ROS controllers
-  ROSControlConfig control_setting;
+  ControllerConfig control_setting;
   YAML::Node controllers = YAML::Load(input_stream);
 
   // Loop through all controllers
@@ -1528,7 +1577,7 @@ bool MoveItConfigData::processROSControllers(std::ifstream& input_stream)
         {
           control_setting.type_ = controller_it->second["type"].as<std::string>();
           control_setting.name_ = controller_name;
-          ros_controllers_config_.push_back(control_setting);
+          controller_configs_.push_back(control_setting);
           control_setting.joints_.clear();
         }
       }
@@ -1567,14 +1616,14 @@ bool MoveItConfigData::inputROSControllersYAML(const std::string& file_path)
 // ******************************************************************************************
 // Add a Follow Joint Trajectory action Controller for each Planning Group
 // ******************************************************************************************
-bool MoveItConfigData::addDefaultControllers()
+bool MoveItConfigData::addDefaultControllers(const std::string& controller_type)
 {
   if (srdf_->srdf_model_->getGroups().empty())
     return false;
   // Loop through groups
   for (const srdf::Model::Group& group_it : srdf_->srdf_model_->getGroups())
   {
-    ROSControlConfig group_controller;
+    ControllerConfig group_controller;
     // Get list of associated joints
     const moveit::core::JointModelGroup* joint_model_group = getRobotModel()->getJointModelGroup(group_it.name_);
     const std::vector<const moveit::core::JointModel*>& joint_models = joint_model_group->getActiveJointModels();
@@ -1589,8 +1638,8 @@ bool MoveItConfigData::addDefaultControllers()
     if (!group_controller.joints_.empty())
     {
       group_controller.name_ = group_it.name_ + "_controller";
-      group_controller.type_ = "FollowJointTrajectory";
-      addROSController(group_controller);
+      group_controller.type_ = controller_type;
+      addController(group_controller);
     }
   }
   return true;
@@ -1778,66 +1827,28 @@ bool MoveItConfigData::inputSetupAssistantYAML(const std::string& file_path)
 // ******************************************************************************************
 // Input sensors_3d yaml file
 // ******************************************************************************************
-bool MoveItConfigData::input3DSensorsYAML(const std::string& default_file_path, const std::string& file_path)
+void MoveItConfigData::input3DSensorsYAML(const std::string& file_path)
 {
-  // Load default parameters file
-  std::ifstream default_input_stream(default_file_path.c_str());
-  if (!default_input_stream.good())
-  {
-    ROS_ERROR_STREAM_NAMED("sensors_3d.yaml", "Unable to open file for reading " << default_file_path);
-    return false;
-  }
+  sensors_plugin_config_parameter_list_ = load3DSensorsYAML(file_path);
+}
 
-  // Parse default parameters values
-  try
-  {
-    const YAML::Node& doc = YAML::Load(default_input_stream);
-
-    // Get sensors node
-    if (const YAML::Node& sensors_node = doc["sensors"])
-    {
-      // Make sue that the sensors are written as a sequence
-      if (sensors_node.IsSequence())
-      {
-        GenericParameter sensor_param;
-        std::map<std::string, GenericParameter> sensor_map;
-
-        // Loop over the sensors available in the file
-        for (const YAML::Node& sensor : sensors_node)
-        {
-          if (const YAML::Node& sensor_node = sensor)
-          {
-            for (YAML::const_iterator sensor_it = sensor_node.begin(); sensor_it != sensor_node.end(); ++sensor_it)
-            {
-              sensor_param.setName(sensor_it->first.as<std::string>());
-              sensor_param.setValue(sensor_it->second.as<std::string>());
-
-              // Set the key as the parameter name to make accessing it easier
-              sensor_map[sensor_it->first.as<std::string>()] = sensor_param;
-            }
-            sensors_plugin_config_parameter_list_.push_back(sensor_map);
-          }
-        }
-      }
-    }
-  }
-  catch (YAML::ParserException& e)  // Catch errors
-  {
-    ROS_ERROR_STREAM("Error parsing default sensors yaml: " << e.what());
-  }
+// ******************************************************************************************
+// Load sensors_3d.yaml file
+// ******************************************************************************************
+std::vector<std::map<std::string, GenericParameter>> MoveItConfigData::load3DSensorsYAML(const std::string& file_path)
+{
+  std::vector<std::map<std::string, GenericParameter>> config;
 
   // Is there a sensors config in the package?
   if (file_path.empty())
-  {
-    return true;
-  }
+    return config;
 
   // Load file
   std::ifstream input_stream(file_path.c_str());
   if (!input_stream.good())
   {
     ROS_ERROR_STREAM_NAMED("sensors_3d.yaml", "Unable to open file for reading " << file_path);
-    return false;
+    return config;
   }
 
   // Begin parsing
@@ -1850,38 +1861,33 @@ bool MoveItConfigData::input3DSensorsYAML(const std::string& default_file_path, 
     // Make sure that the sensors are written as a sequence
     if (sensors_node && sensors_node.IsSequence())
     {
-      GenericParameter sensor_param;
-      std::map<std::string, GenericParameter> sensor_map;
-      bool empty_node = true;
-
       // Loop over the sensors available in the file
       for (const YAML::Node& sensor : sensors_node)
       {
-        if (const YAML::Node& sensor_node = sensor)
+        std::map<std::string, GenericParameter> sensor_map;
+        bool empty_node = true;
+        for (YAML::const_iterator sensor_it = sensor.begin(); sensor_it != sensor.end(); ++sensor_it)
         {
-          for (YAML::const_iterator sensor_it = sensor_node.begin(); sensor_it != sensor_node.end(); ++sensor_it)
-          {
-            empty_node = false;
-            sensor_param.setName(sensor_it->first.as<std::string>());
-            sensor_param.setValue(sensor_it->second.as<std::string>());
+          empty_node = false;
+          GenericParameter sensor_param;
+          sensor_param.setName(sensor_it->first.as<std::string>());
+          sensor_param.setValue(sensor_it->second.as<std::string>());
 
-            // Set the key as the parameter name to make accessing it easier
-            sensor_map[sensor_it->first.as<std::string>()] = sensor_param;
-          }
-          // Don't push empty nodes
-          if (!empty_node)
-            sensors_plugin_config_parameter_list_.push_back(sensor_map);
+          // Set the key as the parameter name to make accessing it easier
+          sensor_map[sensor_it->first.as<std::string>()] = sensor_param;
         }
+        // Don't push empty nodes
+        if (!empty_node)
+          config.push_back(sensor_map);
       }
     }
-    return true;
   }
   catch (YAML::ParserException& e)  // Catch errors
   {
     ROS_ERROR_STREAM("Error parsing sensors yaml: " << e.what());
   }
 
-  return false;  // if it gets to this point an error has occured
+  return config;
 }
 
 // ******************************************************************************************
@@ -1918,36 +1924,31 @@ srdf::Model::Group* MoveItConfigData::findGroupByName(const std::string& name)
 }
 
 // ******************************************************************************************
-// Find ROS controller by name
+// Find a controller by name
 // ******************************************************************************************
-ROSControlConfig* MoveItConfigData::findROSControllerByName(const std::string& controller_name)
+ControllerConfig* MoveItConfigData::findControllerByName(const std::string& controller_name)
 {
-  // Find the ROSController we are editing based on the ROSController name string
-  ROSControlConfig* searched_ros_controller = nullptr;  // used for holding our search results
-
-  for (ROSControlConfig& ros_control_config : ros_controllers_config_)
+  // Find the controller we are editing based on its name
+  for (ControllerConfig& controller : controller_configs_)
   {
-    if (ros_control_config.name_ == controller_name)  // string match
-    {
-      searched_ros_controller = &ros_control_config;  // convert to pointer from iterator
-      break;                                          // we are done searching
-    }
+    if (controller.name_ == controller_name)  // string match
+      return &controller;                     // convert to pointer from iterator
   }
 
-  return searched_ros_controller;
+  return nullptr;  // not found
 }
 
 // ******************************************************************************************
-// Deletes a ROS controller by name
+// Deletes a controller by name
 // ******************************************************************************************
-bool MoveItConfigData::deleteROSController(const std::string& controller_name)
+bool MoveItConfigData::deleteController(const std::string& controller_name)
 {
-  for (std::vector<ROSControlConfig>::iterator controller_it = ros_controllers_config_.begin();
-       controller_it != ros_controllers_config_.end(); ++controller_it)
+  for (std::vector<ControllerConfig>::iterator controller_it = controller_configs_.begin();
+       controller_it != controller_configs_.end(); ++controller_it)
   {
     if (controller_it->name_ == controller_name)  // string match
     {
-      ros_controllers_config_.erase(controller_it);
+      controller_configs_.erase(controller_it);
       // we are done searching
       return true;
     }
@@ -1956,29 +1957,18 @@ bool MoveItConfigData::deleteROSController(const std::string& controller_name)
 }
 
 // ******************************************************************************************
-// Adds a ROS controller to ros_controllers_config_ vector
+// Adds a controller to controller_configs_ vector
 // ******************************************************************************************
-bool MoveItConfigData::addROSController(const ROSControlConfig& new_controller)
+bool MoveItConfigData::addController(const ControllerConfig& new_controller)
 {
-  // Used for holding our search results
-  ROSControlConfig* searched_ros_controller = nullptr;
-
   // Find if there is an existing controller with the same name
-  searched_ros_controller = findROSControllerByName(new_controller.name_);
+  ControllerConfig* controller = findControllerByName(new_controller.name_);
 
-  if (searched_ros_controller && searched_ros_controller->type_ == new_controller.type_)
+  if (controller && controller->type_ == new_controller.type_)
     return false;
 
-  ros_controllers_config_.push_back(new_controller);
+  controller_configs_.push_back(new_controller);
   return true;
-}
-
-// ******************************************************************************************
-// Gets ros_controllers_config_ vector
-// ******************************************************************************************
-std::vector<ROSControlConfig>& MoveItConfigData::getROSControllers()
-{
-  return ros_controllers_config_;
 }
 
 // ******************************************************************************************
@@ -1991,15 +1981,8 @@ void MoveItConfigData::addGenericParameterToSensorPluginConfig(const std::string
   GenericParameter new_parameter;
   new_parameter.setName(name);
   new_parameter.setValue(value);
+  sensors_plugin_config_parameter_list_.resize(1);
   sensors_plugin_config_parameter_list_[0][name] = new_parameter;
-}
-
-// ******************************************************************************************
-// Used to get sensor plugin configuration parameter list
-// ******************************************************************************************
-std::vector<std::map<std::string, GenericParameter>> MoveItConfigData::getSensorPluginConfig()
-{
-  return sensors_plugin_config_parameter_list_;
 }
 
 // ******************************************************************************************
@@ -2007,10 +1990,7 @@ std::vector<std::map<std::string, GenericParameter>> MoveItConfigData::getSensor
 // ******************************************************************************************
 void MoveItConfigData::clearSensorPluginConfig()
 {
-  for (std::map<std::string, GenericParameter>& param_id : sensors_plugin_config_parameter_list_)
-  {
-    param_id.clear();
-  }
+  sensors_plugin_config_parameter_list_.clear();
 }
 
 }  // namespace moveit_setup_assistant

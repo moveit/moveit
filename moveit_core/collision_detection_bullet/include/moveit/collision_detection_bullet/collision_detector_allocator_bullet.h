@@ -46,6 +46,6 @@ class CollisionDetectorAllocatorBullet
   : public CollisionDetectorAllocatorTemplate<CollisionEnvBullet, CollisionDetectorAllocatorBullet>
 {
 public:
-  static const std::string NAME;  // defined in collision_env_bullet.cpp
+  const std::string& getName() const override;
 };
 }  // namespace collision_detection

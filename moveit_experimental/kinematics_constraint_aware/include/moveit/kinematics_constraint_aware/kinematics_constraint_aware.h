@@ -63,9 +63,7 @@ class KinematicsConstraintAware;
 typedef std::shared_ptr<KinematicsConstraintAware> KinematicsConstraintAwarePtr;
 typedef std::shared_ptr<const KinematicsConstraintAware> KinematicsConstraintAwareConstPtr;
 
-/**
- * @class A kinematics solver that can be used with multiple arms
- */
+/** A kinematics solver that can be used with multiple arms */
 class KinematicsConstraintAware
 {
 public:

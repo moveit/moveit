@@ -60,17 +60,25 @@ public:
 
   bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
                     const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
-                    std::vector<std::size_t>& /*added_path_index*/) const override
+                    std::vector<std::size_t>& added_path_index) const override
   {
     bool result = planner(planning_scene, req, res);
     if (result && res.trajectory_)
     {
       ROS_DEBUG("Running '%s'", getDescription().c_str());
+      std::size_t trajectory_size_before = res.trajectory_->getWayPointCount();
       if (!time_param_.computeTimeStamps(*res.trajectory_, req.max_velocity_scaling_factor,
                                          req.max_acceleration_scaling_factor))
       {
         ROS_ERROR("Time parametrization for the solution path failed.");
         result = false;
+      }
+
+      // IterativeSplineParameterization add waypoints after the first and before the last.
+      if (trajectory_size_before + 2 == res.trajectory_->getWayPointCount())
+      {
+        added_path_index.push_back(1);
+        added_path_index.push_back(res.trajectory_->getWayPointCount() - 2);
       }
     }
 

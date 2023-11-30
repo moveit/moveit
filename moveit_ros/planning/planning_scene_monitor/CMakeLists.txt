@@ -10,9 +10,17 @@ target_link_libraries(${MOVEIT_LIB_NAME}
   moveit_collision_plugin_loader
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES})
+add_dependencies(${MOVEIT_LIB_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS}) # don't build until necessary msgs are available
 
 add_executable(demo_scene demos/demo_scene.cpp)
 target_link_libraries(demo_scene ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+if (CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
+
+  add_rostest_gtest(current_state_monitor_test test/current_state_monitor.test test/current_state_monitor_test.cpp)
+  target_link_libraries(current_state_monitor_test ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES})
+endif()
 
 install(TARGETS ${MOVEIT_LIB_NAME}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

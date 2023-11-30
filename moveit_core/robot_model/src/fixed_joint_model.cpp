@@ -50,42 +50,44 @@ unsigned int FixedJointModel::getStateSpaceDimension() const
   return 0;
 }
 
-void FixedJointModel::getVariableDefaultPositions(double* values, const Bounds& bounds) const
+void FixedJointModel::getVariableDefaultPositions(double* /*values*/, const Bounds& /*bounds*/) const
 {
 }
 
-void FixedJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng, double* values,
-                                                 const Bounds& bounds) const
+void FixedJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& /*rng*/, double* /*values*/,
+                                                 const Bounds& /*bounds*/) const
 {
 }
 
-void FixedJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
-                                                       const Bounds& bounds, const double* near,
-                                                       const double distance) const
+void FixedJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& /*rng*/,
+                                                       double* /*values*/, const Bounds& /*bounds*/,
+                                                       const double* /*seed*/, const double /*distance*/) const
 {
 }
 
-bool FixedJointModel::enforcePositionBounds(double* values, const Bounds& bounds) const
+bool FixedJointModel::enforcePositionBounds(double* /*values*/, const Bounds& /*bounds*/) const
 {
   return false;
 }
 
-bool FixedJointModel::satisfiesPositionBounds(const double* values, const Bounds& bounds, double margin) const
+bool FixedJointModel::satisfiesPositionBounds(const double* /*values*/, const Bounds& /*bounds*/,
+                                              double /*margin*/) const
 {
   return true;
 }
 
-double FixedJointModel::distance(const double* values1, const double* values2) const
+double FixedJointModel::distance(const double* /*values1*/, const double* /*values2*/) const
 {
   return 0.0;
 }
 
-double FixedJointModel::getMaximumExtent(const Bounds& other_bounds) const
+double FixedJointModel::getMaximumExtent(const Bounds& /*other_bounds*/) const
 {
   return 0.0;
 }
 
-void FixedJointModel::interpolate(const double* from, const double* to, const double t, double* state) const
+void FixedJointModel::interpolate(const double* /*from*/, const double* /*to*/, const double /*t*/,
+                                  double* /*state*/) const
 {
 }
 

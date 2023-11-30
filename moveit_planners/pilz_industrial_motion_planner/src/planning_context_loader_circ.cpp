@@ -37,7 +37,7 @@
 #include "pilz_industrial_motion_planner/planning_context_base.h"
 #include "pilz_industrial_motion_planner/planning_context_circ.h"
 
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 
 pilz_industrial_motion_planner::PlanningContextLoaderCIRC::PlanningContextLoaderCIRC()
 {
@@ -53,7 +53,7 @@ bool pilz_industrial_motion_planner::PlanningContextLoaderCIRC::loadContext(
 {
   if (limits_set_ && model_set_)
   {
-    planning_context.reset(new PlanningContextCIRC(name, group, model_, limits_));
+    planning_context = std::make_shared<PlanningContextCIRC>(name, group, model_, limits_);
     return true;
   }
   else

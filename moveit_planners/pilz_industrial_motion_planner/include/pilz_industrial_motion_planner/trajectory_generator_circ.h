@@ -37,6 +37,7 @@
 #include <eigen3/Eigen/Eigen>
 #include <kdl/path.hpp>
 #include <kdl/velocityprofile.hpp>
+#include <moveit/planning_scene/planning_scene.h>
 
 #include "pilz_industrial_motion_planner/trajectory_generator.h"
 
@@ -54,7 +55,6 @@ CREATE_MOVEIT_ERROR_CODE_EXCEPTION(NoPrimitivePose, moveit_msgs::MoveItErrorCode
 
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(UnknownLinkNameOfAuxiliaryPoint, moveit_msgs::MoveItErrorCodes::INVALID_LINK_NAME);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(NumberOfConstraintsMismatch, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
-CREATE_MOVEIT_ERROR_CODE_EXCEPTION(CircJointMissingInStartState, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(CircInverseForGoalIncalculable, moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION);
 
 /**
@@ -78,15 +78,18 @@ public:
    *
    */
   TrajectoryGeneratorCIRC(const robot_model::RobotModelConstPtr& robot_model,
-                          const pilz_industrial_motion_planner::LimitsContainer& planner_limits);
+                          const pilz_industrial_motion_planner::LimitsContainer& planner_limits,
+                          const std::string& group_name);
 
 private:
   void cmdSpecificRequestValidation(const planning_interface::MotionPlanRequest& req) const override;
 
-  void extractMotionPlanInfo(const planning_interface::MotionPlanRequest& req, MotionPlanInfo& info) const final;
+  void extractMotionPlanInfo(const planning_scene::PlanningSceneConstPtr& scene,
+                             const planning_interface::MotionPlanRequest& req, MotionPlanInfo& info) const final;
 
-  void plan(const planning_interface::MotionPlanRequest& req, const MotionPlanInfo& plan_info,
-            const double& sampling_time, trajectory_msgs::JointTrajectory& joint_trajectory) override;
+  void plan(const planning_scene::PlanningSceneConstPtr& scene, const planning_interface::MotionPlanRequest& req,
+            const MotionPlanInfo& plan_info, const double& sampling_time,
+            trajectory_msgs::JointTrajectory& joint_trajectory) override;
 
   /**
    * @brief Construct a KDL::Path object for a Cartesian path of an arc.

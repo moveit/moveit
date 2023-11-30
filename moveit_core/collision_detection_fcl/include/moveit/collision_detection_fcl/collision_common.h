@@ -233,7 +233,7 @@ struct FCLGeometry
     if (!newType && collision_geometry_data_)
       if (collision_geometry_data_->ptr.raw == reinterpret_cast<const void*>(data))
         return;
-    collision_geometry_data_.reset(new CollisionGeometryData(data, shape_index));
+    collision_geometry_data_ = std::make_shared<CollisionGeometryData>(data, shape_index);
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
@@ -273,7 +273,7 @@ struct FCLManager
  *
  *   \param o1 First FCL collision object
  *   \param o2 Second FCL collision object
- *   \data General pointer to arbitrary data which is used during the callback
+ *   \param data General pointer to arbitrary data which is used during the callback
  *   \return True terminates the collision check, false continues it to the next pair of objects */
 bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data);
 
@@ -282,7 +282,7 @@ bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, voi
  *
  *   \param o1 First FCL collision object
  *   \param o2 Second FCL collision object
- *   \data General pointer to arbitrary data which is used during the callback
+ *   \param data General pointer to arbitrary data which is used during the callback
  *   \return True terminates the distance check, false continues it to the next pair of objects */
 bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& min_dist);
 

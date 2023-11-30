@@ -61,14 +61,13 @@ void MoveGroupSequenceAction::initialize()
 {
   // start the move action server
   ROS_INFO_STREAM("initialize move group sequence action");
-  move_action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupSequenceAction>(
-      root_node_handle_, "sequence_move_group",
-      boost::bind(&MoveGroupSequenceAction::executeSequenceCallback, this, _1), false));
-  move_action_server_->registerPreemptCallback(boost::bind(&MoveGroupSequenceAction::preemptMoveCallback, this));
+  move_action_server_ = std::make_unique<actionlib::SimpleActionServer<moveit_msgs::MoveGroupSequenceAction>>(
+      root_node_handle_, "sequence_move_group", [this](const auto& goal) { executeSequenceCallback(goal); }, false);
+  move_action_server_->registerPreemptCallback([this] { preemptMoveCallback(); });
   move_action_server_->start();
 
-  command_list_manager_.reset(new pilz_industrial_motion_planner::CommandListManager(
-      ros::NodeHandle("~"), context_->planning_scene_monitor_->getRobotModel()));
+  command_list_manager_ = std::make_unique<pilz_industrial_motion_planner::CommandListManager>(
+      ros::NodeHandle("~"), context_->planning_scene_monitor_->getRobotModel());
 }
 
 void MoveGroupSequenceAction::executeSequenceCallback(const moveit_msgs::MoveGroupSequenceGoalConstPtr& goal)
@@ -137,10 +136,11 @@ void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(
   opt.replan_ = goal->planning_options.replan;
   opt.replan_attempts_ = goal->planning_options.replan_attempts;
   opt.replan_delay_ = goal->planning_options.replan_delay;
-  opt.before_execution_callback_ = boost::bind(&MoveGroupSequenceAction::startMoveExecutionCallback, this);
+  opt.before_execution_callback_ = [this] { startMoveExecutionCallback(); };
 
-  opt.plan_callback_ =
-      boost::bind(&MoveGroupSequenceAction::planUsingSequenceManager, this, boost::cref(goal->request), _1);
+  opt.plan_callback_ = [this, &request = goal->request](plan_execution::ExecutableMotionPlan& plan) {
+    return planUsingSequenceManager(request, plan);
+  };
 
   if (goal->planning_options.look_around && context_->plan_with_sensing_)
   {
@@ -194,7 +194,18 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const moveit_msgs::Mov
   RobotTrajCont traj_vec;
   try
   {
-    traj_vec = command_list_manager_->solve(the_scene, context_->planning_pipeline_, goal->request);
+    // Select planning_pipeline to handle request
+    // All motions in the SequenceRequest need to use the same planning pipeline (but can use different planners)
+    const planning_pipeline::PlanningPipelinePtr planning_pipeline =
+        resolvePlanningPipeline(goal->request.items[0].req.pipeline_id);
+    if (!planning_pipeline)
+    {
+      ROS_ERROR_STREAM("Could not load planning pipeline " << goal->request.items[0].req.pipeline_id);
+      res.response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+      return;
+    }
+
+    traj_vec = command_list_manager_->solve(the_scene, planning_pipeline, goal->request);
   }
   catch (const MoveItErrorCodeException& ex)
   {
@@ -241,7 +252,17 @@ bool MoveGroupSequenceAction::planUsingSequenceManager(const moveit_msgs::Motion
   RobotTrajCont traj_vec;
   try
   {
-    traj_vec = command_list_manager_->solve(plan.planning_scene_, context_->planning_pipeline_, req);
+    // Select planning_pipeline to handle request
+    // All motions in the SequenceRequest need to use the same planning pipeline (but can use different planners)
+    const planning_pipeline::PlanningPipelinePtr planning_pipeline =
+        resolvePlanningPipeline(req.items[0].req.pipeline_id);
+    if (!planning_pipeline)
+    {
+      ROS_ERROR_STREAM("Could not load planning pipeline " << req.items[0].req.pipeline_id);
+      return false;
+    }
+
+    traj_vec = command_list_manager_->solve(plan.planning_scene_, planning_pipeline, req);
   }
   catch (const MoveItErrorCodeException& ex)
   {
@@ -249,7 +270,7 @@ bool MoveGroupSequenceAction::planUsingSequenceManager(const moveit_msgs::Motion
     plan.error_code_.val = ex.getErrorCode();
     return false;
   }
-  // LCOV_EXCL_START // Keep moveit up even if lower parts throw
+  // LCOV_EXCL_START // Keep MoveIt up even if lower parts throw
   catch (const std::exception& ex)
   {
     ROS_ERROR_STREAM("Planning pipeline threw an exception: " << ex.what());
@@ -290,5 +311,5 @@ void MoveGroupSequenceAction::setMoveState(move_group::MoveGroupState state)
 
 }  // namespace pilz_industrial_motion_planner
 
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 PLUGINLIB_EXPORT_CLASS(pilz_industrial_motion_planner::MoveGroupSequenceAction, move_group::MoveGroupCapability)

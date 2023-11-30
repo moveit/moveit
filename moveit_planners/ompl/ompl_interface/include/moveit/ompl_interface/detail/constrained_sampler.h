@@ -43,8 +43,7 @@ namespace ompl_interface
 {
 class ModelBasedPlanningContext;
 
-/** @class ConstrainedSampler
- *  This class defines a sampler that tries to find a sample that satisfies the constraints*/
+/** This class defines a sampler that tries to find a sample that satisfies the constraints */
 class ConstrainedSampler : public ompl::base::StateSampler
 {
 public:
@@ -54,10 +53,10 @@ public:
    */
   ConstrainedSampler(const ModelBasedPlanningContext* pc, constraint_samplers::ConstraintSamplerPtr cs);
 
-  /** @brief Sample a state (uniformly)*/
+  /** @brief Sample a state (uniformly) */
   void sampleUniform(ompl::base::State* state) override;
 
-  /** @brief Sample a state (uniformly) within a certain distance of another state*/
+  /** @brief Sample a state (uniformly) within a certain distance of another state */
   void sampleUniformNear(ompl::base::State* state, const ompl::base::State* near, const double distance) override;
 
   /** @brief Sample a state using the specified Gaussian*/

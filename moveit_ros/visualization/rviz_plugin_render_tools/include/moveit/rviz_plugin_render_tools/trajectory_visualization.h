@@ -85,10 +85,11 @@ public:
 
   ~TrajectoryVisualization() override;
 
-  virtual void update(float wall_dt, float ros_dt);
+  virtual void update(float wall_dt, float sim_dt);
   virtual void reset();
 
   void onInitialize(Ogre::SceneNode* scene_node, rviz::DisplayContext* context, const ros::NodeHandle& update_nh);
+  void clearRobotModel();
   void onRobotModelLoaded(const moveit::core::RobotModelConstPtr& robot_model);
   void onEnable();
   void onDisable();
@@ -122,6 +123,11 @@ protected:
    * \brief ROS callback for an incoming path message
    */
   void incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg);
+  /**
+   * \brief get time to show each single robot state
+   * \return Positive values indicate a fixed time per state
+   *         Negative values indicate a realtime-factor
+   */
   float getStateDisplayTime();
   void clearTrajectoryTrail();
 
@@ -146,7 +152,7 @@ protected:
   moveit::core::RobotModelConstPtr robot_model_;
   moveit::core::RobotStatePtr robot_state_;
 
-  // Pointers from parent display taht we save
+  // Pointers from parent display that we save
   rviz::Display* display_;  // the parent display that this class populates
   rviz::Property* widget_;
   Ogre::SceneNode* scene_node_;
@@ -162,6 +168,7 @@ protected:
   rviz::RosTopicProperty* trajectory_topic_property_;
   rviz::FloatProperty* robot_path_alpha_property_;
   rviz::BoolProperty* loop_display_property_;
+  rviz::BoolProperty* use_sim_time_property_;
   rviz::BoolProperty* trail_display_property_;
   rviz::BoolProperty* interrupt_display_property_;
   rviz::ColorProperty* robot_color_property_;

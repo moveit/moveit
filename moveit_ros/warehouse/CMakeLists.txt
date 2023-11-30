@@ -1,16 +1,6 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(moveit_ros_warehouse)
 
-if(NOT "${CMAKE_CXX_STANDARD}")
-  set(CMAKE_CXX_STANDARD 14)
-endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
-
 find_package(Boost REQUIRED thread system filesystem regex date_time program_options)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -21,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_eigen
   tf2_ros
 )
+moveit_build_options()
 
 catkin_package(
   LIBRARIES

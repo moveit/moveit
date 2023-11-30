@@ -81,23 +81,23 @@ public:
   }
 
 private:
-  inline double getPotential(double field_distance, double radius, double clearence)
+  inline double getPotential(double field_distance, double radius, double clearance)
   {
     double d = field_distance - radius;
 
-    if (d >= clearence)  // everything is fine
+    if (d >= clearance)  // everything is fine
     {
       return 0.0;
     }
     else if (d >= 0.0)  // transition phase, no collision yet
     {
-      const double diff = (d - clearence);
-      const double gradient_magnitude = diff / clearence;
+      const double diff = (d - clearance);
+      const double gradient_magnitude = diff / clearance;
       return 0.5 * gradient_magnitude * diff;  // 0.5 * (d - clearance)^2 / clearance
     }
     else  // d < 0.0: collision
     {
-      return -d + 0.5 * clearence;  // linearly increase, starting from 0.5 * clearance
+      return -d + 0.5 * clearance;  // linearly increase, starting from 0.5 * clearance
     }
   }
   template <typename Derived>

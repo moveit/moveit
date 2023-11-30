@@ -52,7 +52,7 @@ public:
   void getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng, double* values,
                                   const Bounds& other_bounds) const override;
   void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
-                                        const Bounds& other_bounds, const double* near,
+                                        const Bounds& other_bounds, const double* seed,
                                         const double distance) const override;
   bool enforcePositionBounds(double* values, const Bounds& other_bounds) const override;
   bool satisfiesPositionBounds(const double* values, const Bounds& other_bounds, double margin) const override;

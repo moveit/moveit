@@ -2,6 +2,59 @@
 Changelog for package moveit_ros_occupancy_map_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+
+1.1.12 (2023-05-13)
+-------------------
+
+1.1.11 (2022-12-21)
+-------------------
+
+1.1.10 (2022-09-13)
+-------------------
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Contributors: Michael Görner
+
+1.1.9 (2022-03-06)
+------------------
+
+1.1.8 (2022-01-30)
+------------------
+
+1.1.7 (2021-12-31)
+------------------
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* Contributors: Jochen Sprickerhof
+
+1.1.6 (2021-11-06)
+------------------
+* Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``
+* Prefer ``std::make_shared`` over ``new`` operator (`#2756 <https://github.com/ros-planning/moveit/issues/2756>`_)
+* Add missing ``OCTOMAP_INCLUDE_DIRS`` (`#2671 <https://github.com/ros-planning/moveit/issues/2671>`_)
+* Move ``OccMapTree`` to ``moveit_core/collision_detection`` (`#2684 <https://github.com/ros-planning/moveit/issues/2684>`_)
+* Contributors: 0Nel, Michael Görner, Robert Haschke, Simon Schmeisser, Tyler Weaver
+
+1.1.5 (2021-05-23)
+------------------
+* Revert "Lock the octomap/octree while collision checking (`#2683 <https://github.com/ros-planning/moveit/issues/2683>`_)
+* Contributors: Michael Görner
+
+1.1.4 (2021-05-12)
+------------------
+* Lock the octomap/octree while collision checking (`#2596 <https://github.com/ros-planning/moveit/issues/2596>`_)
+* Contributors: Simon Schmeisser
+
+1.1.3 (2021-04-29)
+------------------
+* Document solution in ROS_ERROR on failed self-filtering (`#2627 <https://github.com/ros-planning/moveit/issues/2627>`_)
+* Contributors: Michael Görner
+
+1.1.2 (2021-04-08)
+------------------
+* It's not an error not to define a plugin (`#2521 <https://github.com/ros-planning/moveit/issues/2521>`_)
+* Contributors: Michael Görner
+
 1.1.1 (2020-10-13)
 ------------------
 * [fix] clang-tidy issues on Travis (`#2337 <https://github.com/ros-planning/moveit/issues/2337>`_)

@@ -88,6 +88,11 @@ OcTreeRender::~OcTreeRender()
   {
     delete cloud_[i];
   }
+  if (scene_node_->getParentSceneNode())
+  {  // when parent scene was already removed, there is no need for this cleanup
+    scene_node_->getParentSceneNode()->removeChild(scene_node_);
+    delete scene_node_;
+  }
 }
 
 void OcTreeRender::setPosition(const Ogre::Vector3& position)
@@ -161,7 +166,6 @@ void OcTreeRender::octreeDecoding(const std::shared_ptr<const octomap::OcTree>& 
 
   unsigned int render_mode_mask = static_cast<unsigned int>(octree_voxel_rendering);
 
-  size_t point_count = 0;
   {
     int step_size = 1 << (octree->getTreeDepth() - octree_depth_);  // for pruning of occluded voxels
 
@@ -244,8 +248,6 @@ void OcTreeRender::octreeDecoding(const std::shared_ptr<const octomap::OcTree>& 
         // push to point vectors
         unsigned int depth = it.getDepth();
         point_buf[depth - 1].push_back(new_point);
-
-        ++point_count;
       }
     }
   }

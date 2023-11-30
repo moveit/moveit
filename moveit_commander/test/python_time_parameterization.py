@@ -59,34 +59,52 @@ class PythonTimeParameterizationTest(unittest.TestCase):
         start_pose = self.group.get_current_pose().pose
         goal_pose = self.group.get_current_pose().pose
         goal_pose.position.z -= 0.1
-        (plan, fraction) = self.group.compute_cartesian_path([start_pose, goal_pose], 0.005, 0.0)
+        (plan, fraction) = self.group.compute_cartesian_path(
+            [start_pose, goal_pose], 0.005, 0.0
+        )
         self.assertEqual(fraction, 1.0, "Cartesian path plan failed")
         return plan
 
     def time_parameterization(self, plan, algorithm):
         ref_state = self.commander.get_current_state()
         retimed_plan = self.group.retime_trajectory(
-            ref_state, plan,
+            ref_state,
+            plan,
             velocity_scaling_factor=0.1,
             acceleration_scaling_factor=0.1,
-            algorithm=algorithm)
+            algorithm=algorithm,
+        )
         return retimed_plan
-
 
     def test_plan_and_time_parameterization(self):
         plan = self.plan()
-        retimed_plan = self.time_parameterization(plan, "iterative_time_parameterization")
-        self.assertTrue(len(retimed_plan.joint_trajectory.points) > 0, "Retimed plan is invalid")
-        retimed_plan = self.time_parameterization(plan, "iterative_spline_parameterization")
-        self.assertTrue(len(retimed_plan.joint_trajectory.points) > 0, "Retimed plan is invalid")
-        retimed_plan = self.time_parameterization(plan, "time_optimal_trajectory_generation")
-        self.assertTrue(len(retimed_plan.joint_trajectory.points) > 0, "Retimed plan is invalid")
+        retimed_plan = self.time_parameterization(
+            plan, "iterative_time_parameterization"
+        )
+        self.assertTrue(
+            len(retimed_plan.joint_trajectory.points) > 0, "Retimed plan is invalid"
+        )
+        retimed_plan = self.time_parameterization(
+            plan, "iterative_spline_parameterization"
+        )
+        self.assertTrue(
+            len(retimed_plan.joint_trajectory.points) > 0, "Retimed plan is invalid"
+        )
+        retimed_plan = self.time_parameterization(
+            plan, "time_optimal_trajectory_generation"
+        )
+        self.assertTrue(
+            len(retimed_plan.joint_trajectory.points) > 0, "Retimed plan is invalid"
+        )
         retimed_plan = self.time_parameterization(plan, "")
-        self.assertTrue(len(retimed_plan.joint_trajectory.points) == 0, "Invalid retime algorithm")
+        self.assertTrue(
+            len(retimed_plan.joint_trajectory.points) == 0, "Invalid retime algorithm"
+        )
 
-if __name__ == '__main__':
-    PKGNAME = 'moveit_ros_planning_interface'
-    NODENAME = 'moveit_test_python_time_parameterization'
+
+if __name__ == "__main__":
+    PKGNAME = "moveit_ros_planning_interface"
+    NODENAME = "moveit_test_python_time_parameterization"
     rospy.init_node(NODENAME)
     rostest.rosrun(PKGNAME, NODENAME, PythonTimeParameterizationTest)
 

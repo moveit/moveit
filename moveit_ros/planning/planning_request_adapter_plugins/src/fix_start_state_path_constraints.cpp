@@ -119,10 +119,10 @@ public:
       }
       else
       {
-        ROS_WARN("Unable to plan to path constraints. Running usual motion plan.");
-        bool result = planner(planning_scene, req, res);
-        res.planning_time_ += res2.planning_time_;
-        return result;
+        ROS_WARN("Unable to plan to path constraints.");
+        res.error_code_.val = moveit_msgs::MoveItErrorCodes::START_STATE_VIOLATES_PATH_CONSTRAINTS;
+        res.planning_time_ = res2.planning_time_;
+        return false;
       }
     }
     else

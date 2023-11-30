@@ -47,7 +47,6 @@
 #include <Eigen/Geometry>
 #include <tf2_kdl/tf2_kdl.h>
 #include <tf2_eigen/tf2_eigen.h>
-#include <eigen_conversions/eigen_kdl.h>
 
 using namespace moveit::core;
 
@@ -194,9 +193,7 @@ class IKFastKinematicsPlugin : public kinematics::KinematicsBase
   }
 
 public:
-  /** @class
-   *  @brief Interface for an IKFast kinematics plugin
-   */
+  /** @brief Interface for an IKFast kinematics plugin */
   IKFastKinematicsPlugin() : num_joints_(GetNumJoints()), initialized_(false)
   {
     srand(time(nullptr));
@@ -377,7 +374,7 @@ bool IKFastKinematicsPlugin::computeRelativeTransform(const std::string& from, c
                                                       Eigen::Isometry3d& transform, bool& differs_from_identity)
 {
   RobotStatePtr robot_state;
-  robot_state.reset(new RobotState(robot_model_));
+  robot_state = std::make_shared<RobotState>(robot_model_);
   robot_state->setToDefaultValues();
 
   bool has_link;  // to suppress ROS_ERRORs for non-existent frames
@@ -1387,7 +1384,7 @@ void IKFastKinematicsPlugin::transformToChainFrame(const geometry_msgs::Pose& ik
     if (base_transform_required_)
       ik_eigen_pose = chain_base_to_group_base_ * ik_eigen_pose;
 
-    tf::transformEigenToKDL(ik_eigen_pose, ik_pose_chain);
+    tf2::fromMsg(tf2::toMsg(ik_eigen_pose), ik_pose_chain);
   }
   else
   {
