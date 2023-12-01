@@ -127,11 +127,13 @@ void RobotState::initTransforms()
       1 + robot_model_->getJointModelCount() / (sizeof(double) / sizeof(unsigned char));
   memset(dirty_joint_transforms_, 1, sizeof(double) * nr_doubles_for_dirty_joint_transforms);
 
-  // initialize last row of transformation matrices, which will not be modified by transform updates anymore
+  // initialize all transforms to identity.
+  // The last row will not be modified by transform updates anymore, and the transforms for fixed
+  // joint won't be updated at all.
   for (size_t i = 0, end = robot_model_->getJointModelCount() + robot_model_->getLinkModelCount() +
                            robot_model_->getLinkGeometryCount();
        i != end; ++i)
-    variable_joint_transforms_[i].makeAffine();
+    variable_joint_transforms_[i] = Eigen::Isometry3d::Identity();
 }
 
 RobotState& RobotState::operator=(const RobotState& other)
