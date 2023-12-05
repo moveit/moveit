@@ -2241,6 +2241,9 @@ void RobotState::printTransforms(std::ostream& out) const
   const std::vector<const JointModel*>& jm = robot_model_->getJointModels();
   for (const JointModel* joint : jm)
   {
+    if (joint->getType() == JointModel::FIXED)
+      continue;
+
     out << "  " << joint->getName();
     const int idx = joint->getJointIndex();
     if (dirty_joint_transforms_[idx])
