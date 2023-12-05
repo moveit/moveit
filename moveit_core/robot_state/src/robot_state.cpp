@@ -133,7 +133,7 @@ void RobotState::initTransforms()
   for (size_t i = 0, end = robot_model_->getJointModelCount() + robot_model_->getLinkModelCount() +
                            robot_model_->getLinkGeometryCount();
        i != end; ++i)
-    variable_joint_transforms_[i] = Eigen::Isometry3d::Identity();
+    variable_joint_transforms_[i].setIdentity();
 }
 
 RobotState& RobotState::operator=(const RobotState& other)
