@@ -182,6 +182,52 @@ TEST(LoadingAndFK, SimpleRobot)
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("base_link").translation(), Eigen::Vector3d(5, 4, 0));
 }
 
+TEST(Init, FixedJoints)
+{
+  char const* const URDF = R"(
+<robot name="minibot">
+    <link name="root"/>
+    <link name="link1"/>
+    <link name="link2"/>
+
+    <joint name="link1_joint" type="prismatic">
+        <parent link="root"/>
+        <child link="link1"/>
+        <limit effort="1" velocity="1" lower="0" upper="1"/>
+    </joint>
+
+    <joint name="link2_joint" type="fixed">
+        <parent link="link1"/>
+        <child link="link2"/>
+    </joint>
+</robot>
+)";
+
+  char const* const SRDF = R"(
+<robot name="minibot">
+    <virtual_joint name="world_to_root" type="fixed" parent_frame="world" child_link="root"/>
+</robot>
+)";
+
+  auto urdf = std::make_shared<urdf::Model>();
+  ASSERT_TRUE(urdf->initString(URDF));
+  auto srdf = std::make_shared<srdf::Model>();
+  ASSERT_TRUE(srdf->initString(*urdf, SRDF));
+  moveit::core::RobotModelConstPtr model = std::make_shared<moveit::core::RobotModel>(urdf, srdf);
+  moveit::core::RobotState state{ model };
+  state.setJointPositions("link1_joint", { 4.2 });
+  state.update();
+
+  const auto& cstate = state;
+  EXPECT_NEAR_TRACED(cstate.getGlobalLinkTransform("link1").translation(), Eigen::Vector3d(4.2, 0, 0));
+  EXPECT_NEAR_TRACED(cstate.getGlobalLinkTransform("link2").translation(), Eigen::Vector3d(4.2, 0, 0));
+  EXPECT_NEAR_TRACED(cstate.getJointTransform("link1_joint").translation(), Eigen::Vector3d(4.2, 0, 0));
+  EXPECT_FALSE(cstate.dirtyJointTransform(model->getJointModel("link1_joint")));
+  EXPECT_FALSE(cstate.dirtyJointTransform(model->getJointModel("link2_joint")));
+  EXPECT_NEAR_TRACED(cstate.getJointTransform("link2_joint").translation(), Eigen::Vector3d(0, 0, 0));
+  std::cout << cstate << std::endl;
+}
+
 class OneRobot : public testing::Test
 {
 protected:
