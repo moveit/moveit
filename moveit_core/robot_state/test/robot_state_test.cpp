@@ -184,7 +184,7 @@ TEST(LoadingAndFK, SimpleRobot)
 
 TEST(Init, FixedJoints)
 {
-  char const* const URDF = R"(
+  char const* const urdf_description = R"(
 <robot name="minibot">
     <link name="root"/>
     <link name="link1"/>
@@ -203,16 +203,16 @@ TEST(Init, FixedJoints)
 </robot>
 )";
 
-  char const* const SRDF = R"(
+  char const* const srdf_description = R"(
 <robot name="minibot">
     <virtual_joint name="world_to_root" type="fixed" parent_frame="world" child_link="root"/>
 </robot>
 )";
 
   auto urdf = std::make_shared<urdf::Model>();
-  ASSERT_TRUE(urdf->initString(URDF));
+  ASSERT_TRUE(urdf->initString(urdf_description));
   auto srdf = std::make_shared<srdf::Model>();
-  ASSERT_TRUE(srdf->initString(*urdf, SRDF));
+  ASSERT_TRUE(srdf->initString(*urdf, srdf_description));
   moveit::core::RobotModelConstPtr model = std::make_shared<moveit::core::RobotModel>(urdf, srdf);
   moveit::core::RobotState state{ model };
   state.setJointPositions("link1_joint", { 4.2 });
