@@ -132,6 +132,11 @@ void RobotState::initTransforms()
                            robot_model_->getLinkGeometryCount();
        i != end; ++i)
     variable_joint_transforms_[i].makeAffine();
+
+  // Initialize fixed joints because they are not computed later by update().
+  for (const JointModel* joint : robot_model_->getJointModels())
+    if (joint->getType() == JointModel::FIXED)
+      getJointTransform(joint);
 }
 
 RobotState& RobotState::operator=(const RobotState& other)
@@ -2236,6 +2241,9 @@ void RobotState::printTransforms(std::ostream& out) const
   const std::vector<const JointModel*>& jm = robot_model_->getJointModels();
   for (const JointModel* joint : jm)
   {
+    if (joint->getType() == JointModel::FIXED)
+      continue;
+
     out << "  " << joint->getName();
     const int idx = joint->getJointIndex();
     if (dirty_joint_transforms_[idx])
