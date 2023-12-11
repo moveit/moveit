@@ -590,12 +590,19 @@ bool JointsWidgetEventFilter::eventFilter(QObject* /*target*/, QEvent* event)
   else if (event->type() == QEvent::KeyPress)
   {
     QKeyEvent* key_event = static_cast<QKeyEvent*>(event);
-    if (key_event->key() != Qt::Key_Left && key_event->key() != Qt::Key_Right)
-      return false;  // only react to KeyLeft / KeyRight events
+
+    if (key_event->key() != Qt::Key_Left && key_event->key() != Qt::Key_Right && key_event->key() != Qt::Key_Return)
+      return false;  // only react to these events
 
     QAbstractItemView* view = qobject_cast<QAbstractItemView*>(parent());
     QModelIndex index = view->currentIndex();
     index = index.sibling(index.row(), 1);
+
+    if (key_event->key() == Qt::Key_Return)
+    {
+      view->edit(index);
+      return false;
+    }
 
     if (key_event->type() == QEvent::KeyPress && key_event->modifiers() == Qt::NoModifier &&
         index.flags() & Qt::ItemIsEditable)
