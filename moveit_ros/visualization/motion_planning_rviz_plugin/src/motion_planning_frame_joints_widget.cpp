@@ -510,7 +510,20 @@ QWidget* ProgressBarDelegate::createEditor(QWidget* parent, const QStyleOptionVi
       spinbox->setSingleStep(0.001);
     }
   }
+  connect(editor, &QObject::destroyed, this, &ProgressBarDelegate::onEditorDestroyed);
+  ++editor_open_count_;
   return editor;
+}
+
+void ProgressBarDelegate::onEditorDestroyed(QObject* /* editor */) const
+{
+  if (editor_open_count_ > 0)
+    --editor_open_count_;
+}
+
+bool ProgressBarDelegate::isEditing() const
+{
+  return editor_open_count_ > 0;
 }
 
 void ProgressBarDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
@@ -568,7 +581,9 @@ bool JointsWidgetEventFilter::eventFilter(QObject* /*target*/, QEvent* event)
         return false;
       if (!vbounds.isValid())
       {
-        view->edit(index);
+        ProgressBarDelegate* delegate = qobject_cast<ProgressBarDelegate*>(view->itemDelegateForColumn(1));
+        if (delegate && !delegate->isEditing())
+          view->edit(index);
         return false;
       }
 
@@ -600,7 +615,9 @@ bool JointsWidgetEventFilter::eventFilter(QObject* /*target*/, QEvent* event)
 
     if (key_event->key() == Qt::Key_Return)
     {
-      view->edit(index);
+      ProgressBarDelegate* delegate = qobject_cast<ProgressBarDelegate*>(view->itemDelegateForColumn(1));
+      if (delegate && !delegate->isEditing())
+        view->edit(index);
       return false;
     }
 

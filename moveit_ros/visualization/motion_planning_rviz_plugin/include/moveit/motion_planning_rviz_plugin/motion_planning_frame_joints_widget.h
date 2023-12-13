@@ -194,10 +194,17 @@ public:
   }
   void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
   QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
+  bool isEditing() const;
   void setEditorData(QWidget* editor, const QModelIndex& index) const override;
   void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override;
 
   RevoluteUnit unit_;
+
+protected Q_SLOTS:
+  void onEditorDestroyed(QObject* /* editor */) const;
+
+private:
+  mutable int editor_open_count_ = 0;
 };
 
 /// Slider that jumps back to zero
