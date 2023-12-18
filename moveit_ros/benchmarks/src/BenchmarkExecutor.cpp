@@ -40,16 +40,10 @@
 #include <tf2_eigen/tf2_eigen.h>
 
 #include <boost/regex.hpp>
-
-#if __has_include(<boost/timer/progress_display.hpp>)
-#include <boost/timer/progress_display.hpp>
-#else
-// boost < 1.72
-#define BOOST_TIMER_ENABLE_DEPRECATED 1
+// TODO: Remove if boost >= 1.72 (https://github.com/boostorg/timer/issues/12)
+#define BOOST_ALLOW_DEPRECATED_HEADERS 1
 #include <boost/progress.hpp>
-#undef BOOST_TIMER_ENABLE_DEPRECATED
-#endif
-
+#undef BOOST_ALLOW_DEPRECATED_HEADERS
 #include <boost/math/constants/constants.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
