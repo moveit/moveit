@@ -742,10 +742,12 @@ TEST_F(OneRobot, rigidlyConnectedParent)
 
   // the last /-separated component of an object might be a subframe
   state.attachBody(std::make_unique<moveit::core::AttachedBody>(
-      link_with_slash, "object", Eigen::Isometry3d(Eigen::Translation3d(1, 0, 0)), std::vector<shapes::ShapeConstPtr>{},
-      EigenSTL::vector_Isometry3d{}, std::set<std::string>{}, trajectory_msgs::JointTrajectory{},
-      moveit::core::FixedTransformsMap{ { "subframe", Eigen::Isometry3d(Eigen::Translation3d(0, 0, 1)) } }));
-  const moveit::core::LinkModel* rigid_parent_of_object = state.getRigidlyConnectedParentLinkModel("object/subframe");
+      link_with_slash, "object/with/slash", Eigen::Isometry3d(Eigen::Translation3d(1, 0, 0)),
+      std::vector<shapes::ShapeConstPtr>{}, EigenSTL::vector_Isometry3d{}, std::set<std::string>{},
+      trajectory_msgs::JointTrajectory{},
+      moveit::core::FixedTransformsMap{ { "sub/frame", Eigen::Isometry3d(Eigen::Translation3d(0, 0, 1)) } }));
+  const moveit::core::LinkModel* rigid_parent_of_object =
+      state.getRigidlyConnectedParentLinkModel("object/with/slash/sub/frame");
   ASSERT_TRUE(rigid_parent_of_object);
   EXPECT_EQ(rigid_parent_of_link_with_slash, rigid_parent_of_object);
 }
