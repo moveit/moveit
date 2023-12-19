@@ -375,6 +375,12 @@ soft_upper_limit="0.089"/>
     </geometry>
   </visual>
 </link>
+<link name="link/with/slash" />
+<joint name="joint_link_with_slash" type="fixed">
+  <parent link="base_link"/>
+  <child link="link/with/slash"/>
+  <origin rpy="0 0 0" xyz="0 0 0"/>
+</joint>
 </robot>
 )";
     static const std::string SMODEL2 = R"(
@@ -468,9 +474,9 @@ TEST_F(OneRobot, FK)
   EXPECT_EQ(jmn[3], "joint_c");
 
   // but they should have the same links to be updated
-  ASSERT_EQ(g_one->getUpdatedLinkModels().size(), 6u);
-  ASSERT_EQ(g_two->getUpdatedLinkModels().size(), 6u);
-  ASSERT_EQ(g_three->getUpdatedLinkModels().size(), 6u);
+  ASSERT_EQ(g_one->getUpdatedLinkModels().size(), 7u);
+  ASSERT_EQ(g_two->getUpdatedLinkModels().size(), 7u);
+  ASSERT_EQ(g_three->getUpdatedLinkModels().size(), 7u);
 
   EXPECT_EQ(g_one->getUpdatedLinkModels()[0]->getName(), "base_link");
   EXPECT_EQ(g_one->getUpdatedLinkModels()[1]->getName(), "link_a");
@@ -733,6 +739,7 @@ TEST_F(OneRobot, rigidlyConnectedParent)
   EXPECT_EQ(robot_model_->getRigidlyConnectedParentLinkModel(link_b), link_a);
 
   moveit::core::RobotState state(robot_model_);
+  state.setToDefaultValues();
 
   Eigen::Isometry3d a_to_b;
   EXPECT_EQ(state.getRigidlyConnectedParentLinkModel("link_b", &a_to_b), link_a);
@@ -758,6 +765,23 @@ TEST_F(OneRobot, rigidlyConnectedParent)
   EXPECT_EQ(nullptr, state.getRigidlyConnectedParentLinkModel(""));
   EXPECT_EQ(nullptr, state.getRigidlyConnectedParentLinkModel("object/"));
   EXPECT_EQ(nullptr, state.getRigidlyConnectedParentLinkModel("/"));
+
+  // link names with '/' should still work as before
+  const moveit::core::LinkModel* link_with_slash{ robot_model_->getLinkModel("link/with/slash") };
+  EXPECT_TRUE(link_with_slash);
+  const moveit::core::LinkModel* rigid_parent_of_link_with_slash =
+      state.getRigidlyConnectedParentLinkModel("link/with/slash");
+  ASSERT_TRUE(rigid_parent_of_link_with_slash);
+  EXPECT_EQ("base_link", rigid_parent_of_link_with_slash->getName());
+
+  // the last /-separated component of an object might be a subframe
+  state.attachBody(std::make_unique<moveit::core::AttachedBody>(
+      link_with_slash, "object", Eigen::Isometry3d(Eigen::Translation3d(1, 0, 0)), std::vector<shapes::ShapeConstPtr>{},
+      EigenSTL::vector_Isometry3d{}, std::set<std::string>{}, trajectory_msgs::JointTrajectory{},
+      moveit::core::FixedTransformsMap{ { "subframe", Eigen::Isometry3d(Eigen::Translation3d(0, 0, 1)) } }));
+  const moveit::core::LinkModel* rigid_parent_of_object = state.getRigidlyConnectedParentLinkModel("object/subframe");
+  ASSERT_TRUE(rigid_parent_of_object);
+  EXPECT_EQ(rigid_parent_of_link_with_slash, rigid_parent_of_object);
 }
 
 int main(int argc, char** argv)
