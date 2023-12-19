@@ -39,6 +39,7 @@
 #include <urdf_parser/urdf_parser.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <gtest/gtest.h>
+#include <gmock/gmock-matchers.h>
 #include <sstream>
 #include <algorithm>
 #include <limits>
@@ -444,60 +445,25 @@ TEST_F(OneRobot, FK)
   ASSERT_TRUE(g_three != nullptr);
   ASSERT_TRUE(g_four == nullptr);
 
-  // joint_b is a fixed joint, so no one should have it
-  ASSERT_EQ(g_one->getJointModelNames().size(), 3u);
-  ASSERT_EQ(g_two->getJointModelNames().size(), 3u);
-  ASSERT_EQ(g_three->getJointModelNames().size(), 4u);
-  ASSERT_EQ(g_mim->getJointModelNames().size(), 2u);
+  EXPECT_THAT(g_one->getJointModelNames(), ::testing::ElementsAreArray({ "base_joint", "joint_a", "joint_c" }));
+  EXPECT_THAT(g_two->getJointModelNames(), ::testing::ElementsAreArray({ "base_joint", "joint_a", "joint_b" }));
+  EXPECT_THAT(g_three->getJointModelNames(),
+              ::testing::ElementsAreArray({ "base_joint", "joint_a", "joint_b", "joint_c" }));
+  EXPECT_THAT(g_mim->getJointModelNames(), ::testing::ElementsAreArray({ "mim_f", "joint_f" }));
 
-  // only the links in between the joints, and the children of the leafs
-  ASSERT_EQ(g_one->getLinkModelNames().size(), 3u);
-  // g_two only has three links
-  ASSERT_EQ(g_two->getLinkModelNames().size(), 3u);
-  ASSERT_EQ(g_three->getLinkModelNames().size(), 4u);
-
-  std::vector<std::string> jmn = g_one->getJointModelNames();
-  std::sort(jmn.begin(), jmn.end());
-  EXPECT_EQ(jmn[0], "base_joint");
-  EXPECT_EQ(jmn[1], "joint_a");
-  EXPECT_EQ(jmn[2], "joint_c");
-  jmn = g_two->getJointModelNames();
-  std::sort(jmn.begin(), jmn.end());
-  EXPECT_EQ(jmn[0], "base_joint");
-  EXPECT_EQ(jmn[1], "joint_a");
-  EXPECT_EQ(jmn[2], "joint_b");
-  jmn = g_three->getJointModelNames();
-  std::sort(jmn.begin(), jmn.end());
-  EXPECT_EQ(jmn[0], "base_joint");
-  EXPECT_EQ(jmn[1], "joint_a");
-  EXPECT_EQ(jmn[2], "joint_b");
-  EXPECT_EQ(jmn[3], "joint_c");
+  EXPECT_THAT(g_one->getLinkModelNames(), ::testing::ElementsAreArray({ "base_link", "link_a", "link_c" }));
+  EXPECT_THAT(g_two->getLinkModelNames(), ::testing::ElementsAreArray({ "base_link", "link_a", "link_b" }));
+  EXPECT_THAT(g_three->getLinkModelNames(), ::testing::ElementsAreArray({ "base_link", "link_a", "link_b", "link_c" }));
 
   // but they should have the same links to be updated
-  ASSERT_EQ(g_one->getUpdatedLinkModels().size(), 7u);
-  ASSERT_EQ(g_two->getUpdatedLinkModels().size(), 7u);
-  ASSERT_EQ(g_three->getUpdatedLinkModels().size(), 7u);
-
-  EXPECT_EQ(g_one->getUpdatedLinkModels()[0]->getName(), "base_link");
-  EXPECT_EQ(g_one->getUpdatedLinkModels()[1]->getName(), "link_a");
-  EXPECT_EQ(g_one->getUpdatedLinkModels()[2]->getName(), "link_b");
-  EXPECT_EQ(g_one->getUpdatedLinkModels()[3]->getName(), "link_c");
-
-  EXPECT_EQ(g_two->getUpdatedLinkModels()[0]->getName(), "base_link");
-  EXPECT_EQ(g_two->getUpdatedLinkModels()[1]->getName(), "link_a");
-  EXPECT_EQ(g_two->getUpdatedLinkModels()[2]->getName(), "link_b");
-  EXPECT_EQ(g_two->getUpdatedLinkModels()[3]->getName(), "link_c");
-
-  EXPECT_EQ(g_three->getUpdatedLinkModels()[0]->getName(), "base_link");
-  EXPECT_EQ(g_three->getUpdatedLinkModels()[1]->getName(), "link_a");
-  EXPECT_EQ(g_three->getUpdatedLinkModels()[2]->getName(), "link_b");
-  EXPECT_EQ(g_three->getUpdatedLinkModels()[3]->getName(), "link_c");
-
-  // bracketing so the state gets destroyed before we bring down the model
+  auto updated_link_model_names = { "base_link", "link_a", "link_b", "link_c", "link_d", "link_e", "link/with/slash" };
+  EXPECT_THAT(g_one->getUpdatedLinkModelNames(), ::testing::ElementsAreArray(updated_link_model_names));
+  EXPECT_THAT(g_two->getUpdatedLinkModelNames(), ::testing::ElementsAreArray(updated_link_model_names));
+  EXPECT_THAT(g_three->getUpdatedLinkModelNames(), ::testing::ElementsAreArray(updated_link_model_names));
 
   moveit::core::RobotState state(model);
 
-  EXPECT_EQ((unsigned int)7, state.getVariableCount());
+  EXPECT_EQ(state.getVariableCount(), 7u);
 
   state.setToDefaultValues();
 
