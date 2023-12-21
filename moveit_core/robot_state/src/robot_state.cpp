@@ -694,8 +694,8 @@ void RobotState::updateCollisionBodyTransforms()
         if (ot_id[j])
           global_collision_body_transforms_[index_co + j] = global_link_transforms_[index_l];
         else
-          global_collision_body_transforms_[index_co + j].affine().noalias() =
-              global_link_transforms_[index_l].affine() * ot[j].matrix();
+          global_collision_body_transforms_[index_co + j].matrix().noalias() =
+              global_link_transforms_[index_l].matrix() * ot[j].matrix();
       }
     }
   }
@@ -725,16 +725,16 @@ void RobotState::updateLinkTransformsInternal(const JointModel* start)
     {
       int idx_parent = parent->getLinkIndex();
       if (link->parentJointIsFixed())  // fixed joint
-        global_link_transforms_[idx_link].affine().noalias() =
-            global_link_transforms_[idx_parent].affine() * link->getJointOriginTransform().matrix();
+        global_link_transforms_[idx_link].matrix().noalias() =
+            global_link_transforms_[idx_parent].matrix() * link->getJointOriginTransform().matrix();
       else  // non-fixed joint
       {
         if (link->jointOriginTransformIsIdentity())  // Link has identity transform
-          global_link_transforms_[idx_link].affine().noalias() =
-              global_link_transforms_[idx_parent].affine() * getJointTransform(link->getParentJointModel()).matrix();
+          global_link_transforms_[idx_link].matrix().noalias() =
+              global_link_transforms_[idx_parent].matrix() * getJointTransform(link->getParentJointModel()).matrix();
         else  // Link has non-identity transform
-          global_link_transforms_[idx_link].affine().noalias() =
-              global_link_transforms_[idx_parent].affine() * link->getJointOriginTransform().matrix() *
+          global_link_transforms_[idx_link].matrix().noalias() =
+              global_link_transforms_[idx_parent].matrix() * link->getJointOriginTransform().matrix() *
               getJointTransform(link->getParentJointModel()).matrix();
       }
     }
@@ -743,8 +743,8 @@ void RobotState::updateLinkTransformsInternal(const JointModel* start)
       if (link->jointOriginTransformIsIdentity())
         global_link_transforms_[idx_link] = getJointTransform(link->getParentJointModel());
       else
-        global_link_transforms_[idx_link].affine().noalias() =
-            link->getJointOriginTransform().affine() * getJointTransform(link->getParentJointModel()).matrix();
+        global_link_transforms_[idx_link].matrix().noalias() =
+            link->getJointOriginTransform().matrix() * getJointTransform(link->getParentJointModel()).matrix();
     }
   }
 
