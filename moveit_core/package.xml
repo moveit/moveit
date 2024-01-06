@@ -31,6 +31,7 @@
   <depend condition="$ROS_DISTRO == noetic">fcl</depend>
   <depend version_gte="0.5.2">geometric_shapes</depend>
   <depend>geometry_msgs</depend>
+  <depend>hpp-fcl</depend>
   <depend>kdl_parser</depend>
   <depend>libconsole-bridge-dev</depend>
   <depend>urdf</depend>
@@ -70,5 +71,6 @@
   <export>
     <moveit_core plugin="${prefix}/collision_detector_fcl_description.xml"/>
     <moveit_core plugin="${prefix}/collision_detector_bullet_description.xml"/>
+    <moveit_core plugin="${prefix}/collision_detector_hpp_fcl_description.xml"/>
   </export>
 </package>
