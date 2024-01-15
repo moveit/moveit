@@ -22,6 +22,10 @@ find_package(catkin REQUIRED COMPONENTS
 moveit_build_options()
 
 find_package(ompl REQUIRED)
+if(TARGET ompl::ompl)
+  moveit_get_include_and_libs_from_target(OMPL ompl::ompl)
+endif()
+
 include_directories(SYSTEM ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${OMPL_INCLUDE_DIRS})
 include_directories(include)
 
