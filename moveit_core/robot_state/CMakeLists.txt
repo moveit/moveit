@@ -23,7 +23,7 @@ if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
 
   catkin_add_gtest(test_robot_state test/robot_state_test.cpp)
-  target_link_libraries(test_robot_state ${MOVEIT_LIB_NAME} moveit_test_utils)
+  target_link_libraries(test_robot_state ${MOVEIT_LIB_NAME} moveit_test_utils gmock_main)
 
   catkin_add_gtest(test_planar_joint_jacobian test/test_planar_joint_jacobian.cpp)
   target_link_libraries(test_planar_joint_jacobian ${MOVEIT_LIB_NAME} moveit_test_utils)
