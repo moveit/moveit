@@ -264,8 +264,7 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
 
       if (time_iter != time_samples.begin() && time_iter != time_samples.end() - 1)
       {
-        double joint_velocity =
-            (ik_solution.at(joint_name) - ik_solution_last.at(joint_name)) / duration_current_sample;
+        double joint_velocity = (ik_solution.at(joint_name) - ik_solution_last.at(joint_name)) / actual_sampling_time;
         point.velocities.push_back(joint_velocity);
         point.accelerations.push_back((joint_velocity - joint_velocity_last.at(joint_name)) / actual_sampling_time * 4);
         joint_velocity_last[joint_name] = joint_velocity;
