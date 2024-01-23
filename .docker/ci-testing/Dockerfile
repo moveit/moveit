@@ -3,13 +3,15 @@
 
 ARG IMAGE=noetic
 FROM moveit/moveit:${IMAGE}-ci
-MAINTAINER Robert Haschke rhaschke@techfak.uni-bielefeld.de
+LABEL org.opencontainers.image.authors="Robert Haschke <rhaschke@techfak.uni-bielefeld.de>"
 
 # Switch to ros-testing
-RUN echo "deb http://packages.ros.org/ros-testing/ubuntu `lsb_release -cs` main" | tee /etc/apt/sources.list.d/ros1-latest.list
-
-# Upgrade packages to ros-testing and clean apt-cache within one RUN command
-RUN apt-get -qq update && \
+RUN apt-get update && \
+    apt-get install curl && \
+    curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros-testing/ubuntu `lsb_release -cs` main" | tee /etc/apt/sources.list.d/ros1-latest.list && \
+    # Upgrade packages to ros-testing and clean apt-cache within one RUN command
+    apt-get update && \
     apt-get -qq -y dist-upgrade && \
     #
     # Clear apt-cache to reduce image size

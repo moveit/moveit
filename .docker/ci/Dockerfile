@@ -3,7 +3,7 @@
 
 ARG ROS_DISTRO=noetic
 FROM ros:${ROS_DISTRO}-ros-base
-MAINTAINER Dave Coleman dave@picknik.ai
+LABEL org.opencontainers.image.authors="Robert Haschke <rhaschke@techfak.uni-bielefeld.de>"
 
 ENV TERM xterm
 
