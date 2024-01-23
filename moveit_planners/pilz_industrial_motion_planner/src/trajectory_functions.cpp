@@ -199,15 +199,11 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
 
   // generate the time samples
   std::vector<double> time_samples = { 0.0 };
-  double actual_sampling_time = sampling_time;
-  if (trajectory.Duration() > 10e-06)
+  const unsigned num_segments = std::ceil(trajectory.Duration() / sampling_time);
+  sampling_time = trajectory.Duration() / num_segments;
+  for (unsigned i = 1; i <= num_segments; ++i)
   {
-    unsigned num_segments = std::ceil(trajectory.Duration() / sampling_time);
-    actual_sampling_time = trajectory.Duration() / num_segments;
-    for (unsigned i = 1; i <= num_segments; ++i)
-    {
-      time_samples.push_back(i * actual_sampling_time);
-    }
+    time_samples.push_back(i * sampling_time);
   }
 
   // sample the trajectory and solve the inverse kinematics
@@ -236,9 +232,8 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
 
     // check the joint limits
     // skip the first sample with zero time from start for limits checking
-    if (time_iter != time_samples.begin() &&
-        !verifySampleJointLimits(ik_solution_last, joint_velocity_last, ik_solution, actual_sampling_time,
-                                 actual_sampling_time, joint_limits))
+    if (time_iter != time_samples.begin() && !verifySampleJointLimits(ik_solution_last, joint_velocity_last, ik_solution,
+                                                                      sampling_time, sampling_time, joint_limits))
     {
       ROS_ERROR_STREAM("Inverse kinematics solution at "
                        << *time_iter << "s violates the joint velocity/acceleration/deceleration limits.");
@@ -264,9 +259,9 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
 
       if (time_iter != time_samples.begin() && time_iter != time_samples.end() - 1)
       {
-        double joint_velocity = (ik_solution.at(joint_name) - ik_solution_last.at(joint_name)) / actual_sampling_time;
+        double joint_velocity = (ik_solution.at(joint_name) - ik_solution_last.at(joint_name)) / sampling_time;
         point.velocities.push_back(joint_velocity);
-        point.accelerations.push_back((joint_velocity - joint_velocity_last.at(joint_name)) / actual_sampling_time);
+        point.accelerations.push_back((joint_velocity - joint_velocity_last.at(joint_name)) / sampling_time);
         joint_velocity_last[joint_name] = joint_velocity;
       }
       else
