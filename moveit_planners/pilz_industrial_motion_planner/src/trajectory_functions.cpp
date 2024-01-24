@@ -198,10 +198,10 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
   ros::Time generation_begin = ros::Time::now();
 
   // generate the time samples
-  std::vector<double> time_samples = { 0.0 };
+  std::vector<double> time_samples;
   const unsigned num_segments = std::ceil(trajectory.Duration() / sampling_time);
   sampling_time = trajectory.Duration() / num_segments;
-  for (unsigned i = 1; i <= num_segments; ++i)
+  for (unsigned i = 0; i <= num_segments; ++i)
   {
     time_samples.push_back(i * sampling_time);
   }
