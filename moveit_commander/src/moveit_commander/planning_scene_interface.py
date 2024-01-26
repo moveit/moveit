@@ -137,8 +137,7 @@ class PlanningSceneInterface(object):
             object = AttachedCollisionObject(object=object)
 
         object.link_name = link
-        if touch_links is not None:
-            object.touch_links = touch_links if touch_links is not None else [link]
+        object.touch_links = touch_links if touch_links is not None else [link]
 
         self.__submit(object, attach=True)
 
