@@ -1696,11 +1696,11 @@ bool MoveItConfigData::extractPackageNameFromPath(const std::string& path, std::
       ROS_DEBUG_STREAM("Found package.xml in " << sub_path.make_preferred().string());
       package_found = true;
       relative_filepath = relative_path.string();
-      package_name = sub_path.leaf().string();
+      package_name = sub_path.filename().string();
       break;
     }
-    relative_path = sub_path.leaf() / relative_path;
-    sub_path.remove_leaf();
+    relative_path = sub_path.filename() / relative_path;
+    sub_path.remove_filename();
   }
 
   // Assign data to moveit_config_data
