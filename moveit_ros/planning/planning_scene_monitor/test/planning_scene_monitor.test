@@ -1,0 +1,7 @@
+<launch>
+    <include file="$(find moveit_resources_fanuc_moveit_config)/launch/planning_context.launch">
+      <arg name="load_robot_description" value="true"/>
+    </include>
+
+    <test test-name="planning_scene_monitor_test" pkg="moveit_ros_planning" type="planning_scene_monitor_test" />
+</launch>
