@@ -560,7 +560,9 @@ size_t IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<d
   KDL::Rotation mult;
   KDL::Vector direction;
 
-  switch (GetIkType())
+  IkParameterizationType ik_type = static_cast<IkParameterizationType>(GetIkType());
+
+  switch (ik_type)
   {
     case IKP_Transform6D:
     case IKP_Translation3D:
@@ -589,7 +591,10 @@ size_t IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<d
       // For **Direction3D**, **Ray4D**, and **TranslationDirection5D**, the first 3 values represent the target
       // direction.
 
-      direction = pose_frame.M * KDL::Vector(0, 0, 1);
+      direction = pose_frame.M * KDL::Vector(_EEF_DIRECTION_);
+      // Making sure the resulting "direction" has a unit length, as users might pass in an unnormalized input through
+      // the input argument "--eef_direction"
+      direction.Normalize();
       ComputeIk(trans, direction.data, vfree.size() > 0 ? &vfree[0] : nullptr, solutions);
       return solutions.GetNumSolutions();
 
@@ -610,35 +615,53 @@ size_t IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<d
       return 0;
 
     case IKP_TranslationXAxisAngle4D:
-    // For *TranslationXAxisAngle4D*, *TranslationYAxisAngle4D*, *TranslationZAxisAngle4D* - end effector origin
-    // reaches desired 3D translation, manipulator direction makes a specific angle with x/y/z-axis (defined in the
-    // manipulator base link's coordinate system)
-    case IKP_TranslationXAxisAngleZNorm4D:
-      double roll, pitch, yaw;
-      // For **TranslationXAxisAngleZNorm4D** - end effector origin reaches desired 3D translation, manipulator
-      // direction needs to be orthogonal to z axis and be rotated at a certain angle starting from the x axis (defined
-      // in the manipulator base link’s coordinate system)
-      pose_frame.M.GetRPY(roll, pitch, yaw);
-      ComputeIk(trans, &yaw, vfree.size() > 0 ? &vfree[0] : nullptr, solutions);
-      return solutions.GetNumSolutions();
-
     case IKP_TranslationYAxisAngle4D:
-    case IKP_TranslationYAxisAngleXNorm4D:
-      // For **TranslationYAxisAngleXNorm4D** - end effector origin reaches desired 3D translation, manipulator
-      // direction needs to be orthogonal to x axis and be rotated at a certain angle starting from the y axis (defined
-      // in the manipulator base link’s coordinate system)
-      pose_frame.M.GetRPY(roll, pitch, yaw);
-      ComputeIk(trans, &roll, vfree.size() > 0 ? &vfree[0] : nullptr, solutions);
-      return solutions.GetNumSolutions();
-
     case IKP_TranslationZAxisAngle4D:
+      // For *TranslationXAxisAngle4D*, *TranslationYAxisAngle4D*, *TranslationZAxisAngle4D* - end effector origin
+      // reaches desired 3D translation; manipulator direction makes a specific angle with x/y/z-axis (defined in the
+      // manipulator base link's coordinate system)
+    case IKP_TranslationXAxisAngleZNorm4D:
+    case IKP_TranslationYAxisAngleXNorm4D:
     case IKP_TranslationZAxisAngleYNorm4D:
-      // For **TranslationZAxisAngleYNorm4D** - end effector origin reaches desired 3D translation, manipulator
-      // direction needs to be orthogonal to y axis and be rotated at a certain angle starting from the z axis (defined
-      // in the manipulator base link’s coordinate system)
-      pose_frame.M.GetRPY(roll, pitch, yaw);
-      ComputeIk(trans, &pitch, vfree.size() > 0 ? &vfree[0] : nullptr, solutions);
-      return solutions.GetNumSolutions();
+      // For **TranslationXAxisAngleZNorm4D**, **TranslationYAxisAngleXNorm4D**, **TranslationZAxisAngleYNorm4D** -
+      // end effector origin reaches desired 3D translation;
+      // manipulator direction needs to be orthogonal to z/x/y-axis and be rotated at a certain angle
+      // starting from the x/y/z-axis (defined in the manipulator base link’s coordinate system)
+      {
+        double angle = 0;
+        direction = pose_frame.M * KDL::Vector(_EEF_DIRECTION_);
+        // Making sure the resulting "direction" has a unit length, as users might pass in an unnormalized input through
+        // the input argument "--eef_direction"
+        direction.Normalize();
+
+        switch (ik_type)  // inner switch case
+        {
+          case IKP_TranslationXAxisAngle4D:
+            angle = std::acos(direction.x());
+            break;
+          case IKP_TranslationYAxisAngle4D:
+            angle = std::acos(direction.y());
+            break;
+          case IKP_TranslationZAxisAngle4D:
+            angle = std::acos(direction.z());
+            break;
+          case IKP_TranslationXAxisAngleZNorm4D:
+            angle = std::atan2(direction.y(), direction.x());
+            break;
+          case IKP_TranslationYAxisAngleXNorm4D:
+            angle = std::atan2(direction.z(), direction.y());
+            break;
+          case IKP_TranslationZAxisAngleYNorm4D:
+            angle = std::atan2(direction.x(), direction.z());
+            break;
+          default:
+            ROS_ERROR_STREAM_NAMED(name_, "An impossible case was reached with ik_type = " << ik_type);
+            return 0;
+        }
+
+        ComputeIk(trans, &angle, vfree.size() > 0 ? &vfree[0] : nullptr, solutions);
+        return solutions.GetNumSolutions();
+      }
 
     default:
       ROS_ERROR_NAMED(name_, "Unknown IkParameterizationType! "

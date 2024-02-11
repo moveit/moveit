@@ -92,6 +92,8 @@ class SharedData
   int num_ik_tests_;
   int num_ik_multiple_tests_;
   int num_nearest_ik_tests_;
+  bool plugin_fk_support_;
+  bool position_only_check_;
 
   SharedData(SharedData const&) = delete;  // this is a singleton
   SharedData()
@@ -133,6 +135,12 @@ class SharedData
     ASSERT_TRUE(robot_model_->hasJointModelGroup(group_name_));
     ASSERT_TRUE(robot_model_->hasLinkModel(root_link_));
     ASSERT_TRUE(robot_model_->hasLinkModel(tip_link_));
+
+    if (!getParam("plugin_fk_support", plugin_fk_support_))
+      plugin_fk_support_ = true;
+
+    if (!getParam("position_only_check", position_only_check_))
+      position_only_check_ = false;
   }
 
 public:
@@ -173,6 +181,8 @@ protected:
     num_ik_tests_ = data.num_ik_tests_;
     num_ik_multiple_tests_ = data.num_ik_multiple_tests_;
     num_nearest_ik_tests_ = data.num_nearest_ik_tests_;
+    plugin_fk_support_ = data.plugin_fk_support_;
+    position_only_check_ = data.position_only_check_;
   }
 
   void SetUp() override
@@ -252,20 +262,24 @@ public:
                            val2[i].position, abs_error),
                     GTEST_NONFATAL_FAILURE_);
 
-      ss.str("");
-      ss << "[" << i << "].orientation";
-      GTEST_ASSERT_(isNear((expr1 + ss.str()).c_str(), (expr2 + ss.str()).c_str(), abs_error_expr, val1[i].orientation,
-                           val2[i].orientation, abs_error),
-                    GTEST_NONFATAL_FAILURE_);
+      if (!position_only_check_)
+      {
+        ss.str("");
+        ss << "[" << i << "].orientation";
+        GTEST_ASSERT_(isNear((expr1 + ss.str()).c_str(), (expr2 + ss.str()).c_str(), abs_error_expr,
+                             val1[i].orientation, val2[i].orientation, abs_error),
+                      GTEST_NONFATAL_FAILURE_);
+      }
     }
     return testing::AssertionSuccess();
   }
 
-  void searchIKCallback(const std::vector<double>& joint_state, moveit_msgs::MoveItErrorCodes& error_code)
+  void searchIKCallback(const std::vector<double>& joint_state, moveit_msgs::MoveItErrorCodes& error_code,
+                        moveit::core::RobotState& robot_state)
   {
     std::vector<std::string> link_names = { tip_link_ };
     std::vector<geometry_msgs::Pose> poses;
-    if (!kinematics_solver_->getPositionFK(link_names, joint_state, poses))
+    if (!getPositionFK(link_names, joint_state, poses, robot_state))
     {
       error_code.val = error_code.PLANNING_FAILED;
       return;
@@ -276,6 +290,38 @@ public:
       error_code.val = error_code.SUCCESS;
     else
       error_code.val = error_code.PLANNING_FAILED;
+  }
+
+  bool getPositionFK(const std::vector<std::string>& link_names, const std::vector<double>& joint_state,
+                     std::vector<geometry_msgs::Pose>& poses, moveit::core::RobotState& robot_state)
+  {
+    // There are some cases, e.g. testing a IKFast plugin targeting a robot of dof < 6, where
+    // kinematics_solver_->getPositionFK() will always return false, and that will render the entire test process
+    // useless as every test is doomed to fail due to calls to getPositionFK().
+    //
+    // When plugin_fk_support_ is set to false, the FK pass will be done by updating robot_state with the given joints
+    // and calling moveit::core::RobotState::getGlobalLinkTransform(); therefore the lack of support in
+    // kinematics_solver_->getPositionFK() is circumvented, and tests for IK functionality can still be run to perform
+    // meaningful checks
+
+    if (plugin_fk_support_)
+      return kinematics_solver_->getPositionFK(link_names, joint_state, poses);
+    else
+    {
+      std::vector<double> joint_state_backup;
+      robot_state.copyJointGroupPositions(jmg_, joint_state_backup);
+      robot_state.setJointGroupPositions(jmg_, joint_state);
+      robot_state.updateLinkTransforms();
+
+      poses.clear();
+      poses.reserve(link_names.size());
+      for (const std::string& link_name : link_names)
+        poses.emplace_back(tf2::toMsg(robot_state.getGlobalLinkTransform(link_name)));
+
+      robot_state.setJointGroupPositions(jmg_, joint_state_backup);
+      robot_state.updateLinkTransforms();
+      return true;
+    }
   }
 
 public:
@@ -296,6 +342,8 @@ public:
   unsigned int num_ik_tests_;
   unsigned int num_ik_multiple_tests_;
   unsigned int num_nearest_ik_tests_;
+  bool plugin_fk_support_;
+  bool position_only_check_;
 };
 
 #define EXPECT_NEAR_POSES(lhs, rhs, near)                                                                              \
@@ -314,7 +362,7 @@ TEST_F(KinematicsTest, getFK)
     robot_state.setToRandomPositions(jmg_, this->rng_);
     robot_state.copyJointGroupPositions(jmg_, joints);
     std::vector<geometry_msgs::Pose> fk_poses;
-    EXPECT_TRUE(kinematics_solver_->getPositionFK(tip_frames, joints, fk_poses));
+    EXPECT_TRUE(getPositionFK(tip_frames, joints, fk_poses, robot_state));
 
     robot_state.updateLinkTransforms();
     std::vector<geometry_msgs::Pose> model_poses;
@@ -357,7 +405,7 @@ TEST_F(KinematicsTest, randomWalkIK)
     robot_state.copyJointGroupPositions(jmg_, goal);
     // compute target tip_frames
     std::vector<geometry_msgs::Pose> poses;
-    ASSERT_TRUE(kinematics_solver_->getPositionFK(tip_frames, goal, poses));
+    ASSERT_TRUE(getPositionFK(tip_frames, goal, poses, robot_state));
 
     // compute IK
     moveit_msgs::MoveItErrorCodes error_code;
@@ -370,16 +418,21 @@ TEST_F(KinematicsTest, randomWalkIK)
 
     // on success: validate reached poses
     std::vector<geometry_msgs::Pose> reached_poses;
-    kinematics_solver_->getPositionFK(tip_frames, solution, reached_poses);
+    getPositionFK(tip_frames, solution, reached_poses, robot_state);
     EXPECT_NEAR_POSES(poses, reached_poses, tolerance_);
 
-    // validate closeness of solution pose to goal
-    auto diff = Eigen::Map<Eigen::ArrayXd>(solution.data(), solution.size()) -
-                Eigen::Map<Eigen::ArrayXd>(goal.data(), goal.size());
-    if (!diff.isZero(1.05 * NEAR_JOINT))
+    // The following joint state check is skipped when position_only_check_ is true,
+    // because matching two sets of joint states would imply fully matching the two corresponding poses
+    if (!position_only_check_)
     {
-      ++failures;
-      ROS_WARN_STREAM("jump in [" << i << "]: " << diff.transpose());
+      // validate closeness of solution pose to goal
+      auto diff = Eigen::Map<Eigen::ArrayXd>(solution.data(), solution.size()) -
+                  Eigen::Map<Eigen::ArrayXd>(goal.data(), goal.size());
+      if (!diff.isZero(1.05 * NEAR_JOINT))
+      {
+        ++failures;
+        ROS_WARN_STREAM("jump in [" << i << "]: " << diff.transpose());
+      }
     }
 
     // update robot state to found pose
@@ -475,7 +528,7 @@ TEST_F(KinematicsTest, unitIK)
 
   // compute initial end-effector pose
   std::vector<geometry_msgs::Pose> poses;
-  ASSERT_TRUE(kinematics_solver_->getPositionFK(tip_frames, seed, poses));
+  ASSERT_TRUE(getPositionFK(tip_frames, seed, poses, robot_state));
   Eigen::Isometry3d initial, goal;
   tf2::fromMsg(poses[0], initial);
 
@@ -488,7 +541,7 @@ TEST_F(KinematicsTest, unitIK)
 
     // validate reached poses
     std::vector<geometry_msgs::Pose> reached_poses;
-    kinematics_solver_->getPositionFK(tip_frames, sol, reached_poses);
+    getPositionFK(tip_frames, sol, reached_poses, robot_state);
     EXPECT_NEAR_POSES({ goal }, reached_poses, tolerance_);
 
     // validate ground truth
@@ -549,7 +602,7 @@ TEST_F(KinematicsTest, searchIK)
     robot_state.setToRandomPositions(jmg_, this->rng_);
     robot_state.copyJointGroupPositions(jmg_, fk_values);
     std::vector<geometry_msgs::Pose> poses;
-    ASSERT_TRUE(kinematics_solver_->getPositionFK(fk_names, fk_values, poses));
+    ASSERT_TRUE(getPositionFK(fk_names, fk_values, poses, robot_state));
 
     kinematics_solver_->searchPositionIK(poses[0], seed, timeout_, solution, error_code);
     if (error_code.val == error_code.SUCCESS)
@@ -558,7 +611,7 @@ TEST_F(KinematicsTest, searchIK)
       continue;
 
     std::vector<geometry_msgs::Pose> reached_poses;
-    kinematics_solver_->getPositionFK(fk_names, solution, reached_poses);
+    getPositionFK(fk_names, solution, reached_poses, robot_state);
     EXPECT_NEAR_POSES(poses, reached_poses, tolerance_);
   }
 
@@ -583,7 +636,7 @@ TEST_F(KinematicsTest, searchIKWithCallback)
     robot_state.setToRandomPositions(jmg_, this->rng_);
     robot_state.copyJointGroupPositions(jmg_, fk_values);
     std::vector<geometry_msgs::Pose> poses;
-    ASSERT_TRUE(kinematics_solver_->getPositionFK(fk_names, fk_values, poses));
+    ASSERT_TRUE(getPositionFK(fk_names, fk_values, poses, robot_state));
     if (poses[0].position.z <= 0.0f)
     {
       --i;  // draw a new random state
@@ -592,8 +645,10 @@ TEST_F(KinematicsTest, searchIKWithCallback)
 
     kinematics_solver_->searchPositionIK(
         poses[0], fk_values, timeout_, solution,
-        [this](const geometry_msgs::Pose& /*unused*/, const std::vector<double>& joints,
-               moveit_msgs::MoveItErrorCodes& error_code) { searchIKCallback(joints, error_code); },
+        [this, &robot_state](const geometry_msgs::Pose& /*unused*/, const std::vector<double>& joints,
+                             moveit_msgs::MoveItErrorCodes& error_code) {
+          searchIKCallback(joints, error_code, robot_state);
+        },
         error_code);
     if (error_code.val == error_code.SUCCESS)
       success++;
@@ -601,7 +656,7 @@ TEST_F(KinematicsTest, searchIKWithCallback)
       continue;
 
     std::vector<geometry_msgs::Pose> reached_poses;
-    kinematics_solver_->getPositionFK(fk_names, solution, reached_poses);
+    getPositionFK(fk_names, solution, reached_poses, robot_state);
     EXPECT_NEAR_POSES(poses, reached_poses, tolerance_);
   }
 
@@ -623,16 +678,27 @@ TEST_F(KinematicsTest, getIK)
     fk_values.resize(kinematics_solver_->getJointNames().size(), 0.0);
     robot_state.setToRandomPositions(jmg_, this->rng_);
     robot_state.copyJointGroupPositions(jmg_, fk_values);
-    std::vector<geometry_msgs::Pose> poses;
+    std::vector<geometry_msgs::Pose> poses, poses_from_ik;
 
-    ASSERT_TRUE(kinematics_solver_->getPositionFK(fk_names, fk_values, poses));
+    ASSERT_TRUE(getPositionFK(fk_names, fk_values, poses, robot_state));
     kinematics_solver_->getPositionIK(poses[0], fk_values, solution, error_code);
-    // starting from the correct solution, should yield the same pose
     EXPECT_EQ(error_code.val, error_code.SUCCESS);
 
-    Eigen::Map<Eigen::ArrayXd> sol(solution.data(), solution.size());
-    Eigen::Map<Eigen::ArrayXd> truth(fk_values.data(), fk_values.size());
-    EXPECT_TRUE(sol.isApprox(truth, tolerance_)) << sol.transpose() << std::endl << truth.transpose() << std::endl;
+    if (position_only_check_)
+    {
+      // The joint state check is skipped when position_only_check_ is true,
+      // because matching two sets of joint states would imply fully matching the two corresponding poses.
+      // Instead we only check if the derived position from the solution is close enough to the original one.
+      ASSERT_TRUE(getPositionFK(fk_names, solution, poses_from_ik, robot_state));
+      EXPECT_NEAR_POSES(poses, poses_from_ik, tolerance_);
+    }
+    else
+    {
+      // starting from the correct solution, should yield the same pose
+      Eigen::Map<Eigen::ArrayXd> sol(solution.data(), solution.size());
+      Eigen::Map<Eigen::ArrayXd> truth(fk_values.data(), fk_values.size());
+      EXPECT_TRUE(sol.isApprox(truth, tolerance_)) << sol.transpose() << std::endl << truth.transpose() << std::endl;
+    }
   }
 }
 
@@ -655,7 +721,7 @@ TEST_F(KinematicsTest, getIKMultipleSolutions)
     robot_state.setToRandomPositions(jmg_, this->rng_);
     robot_state.copyJointGroupPositions(jmg_, fk_values);
     std::vector<geometry_msgs::Pose> poses;
-    ASSERT_TRUE(kinematics_solver_->getPositionFK(fk_names, fk_values, poses));
+    ASSERT_TRUE(getPositionFK(fk_names, fk_values, poses, robot_state));
 
     solutions.clear();
     kinematics_solver_->getPositionIK(poses, fk_values, solutions, result, options);
@@ -668,7 +734,7 @@ TEST_F(KinematicsTest, getIKMultipleSolutions)
     std::vector<geometry_msgs::Pose> reached_poses;
     for (const auto& s : solutions)
     {
-      kinematics_solver_->getPositionFK(fk_names, s, reached_poses);
+      getPositionFK(fk_names, s, reached_poses, robot_state);
       EXPECT_NEAR_POSES(poses, reached_poses, tolerance_);
     }
   }
@@ -695,7 +761,7 @@ TEST_F(KinematicsTest, getNearestIKSolution)
     robot_state.setToRandomPositions(jmg_, this->rng_);
     robot_state.copyJointGroupPositions(jmg_, fk_values);
     std::vector<geometry_msgs::Pose> poses;
-    ASSERT_TRUE(kinematics_solver_->getPositionFK(fk_names, fk_values, poses));
+    ASSERT_TRUE(getPositionFK(fk_names, fk_values, poses, robot_state));
 
     // sample seed vector
     robot_state.setToRandomPositions(jmg_, this->rng_);
