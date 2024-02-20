@@ -81,7 +81,7 @@ jobs:
           # free up a lot of stuff from /usr/local
           sudo rm -rf /usr/local
           df -h
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Cache upstream workspace
         uses: rhaschke/cache@main
         with:
@@ -135,7 +135,7 @@ jobs:
         env: ${{ matrix.env }}
 
       - name: Upload test artifacts (on failure)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure() && (steps.ici.outputs.run_target_test || steps.ici.outputs.target_test_results)
         with:
           name: test-results-${{ matrix.env.IMAGE }}
@@ -174,7 +174,7 @@ jobs:
     permissions:
       contents: write # allow pushing
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Fast-forward noetic-devel to sync with master
         run: |
           # Configure push user+url
