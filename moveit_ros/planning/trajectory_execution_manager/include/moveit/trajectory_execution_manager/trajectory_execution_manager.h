@@ -272,7 +272,6 @@ private:
   planning_scene_monitor::CurrentStateMonitorPtr csm_;
   ros::NodeHandle node_handle_;
   ros::NodeHandle root_node_handle_;
-  ros::NodeHandle trajectory_execution_node_handle_;
   ros::Subscriber event_topic_subscriber_;
 
   std::map<std::string, ControllerInformation> known_controllers_;

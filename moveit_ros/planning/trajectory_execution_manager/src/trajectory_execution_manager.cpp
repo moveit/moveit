@@ -84,7 +84,7 @@ private:
 
 TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& robot_model,
                                                        const planning_scene_monitor::CurrentStateMonitorPtr& csm)
-  : robot_model_(robot_model), csm_(csm), node_handle_("~"), trajectory_execution_node_handle_("~/trajectory_execution")
+  : robot_model_(robot_model), csm_(csm), node_handle_("~")
 {
   if (!node_handle_.getParam("moveit_manage_controllers", manage_controllers_))
     manage_controllers_ = false;
@@ -95,11 +95,7 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::Robot
 TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& robot_model,
                                                        const planning_scene_monitor::CurrentStateMonitorPtr& csm,
                                                        bool manage_controllers)
-  : robot_model_(robot_model)
-  , csm_(csm)
-  , node_handle_("~")
-  , trajectory_execution_node_handle_("~/trajectory_execution")
-  , manage_controllers_(manage_controllers)
+  : robot_model_(robot_model), csm_(csm), node_handle_("~"), manage_controllers_(manage_controllers)
 {
   initialize();
 }
@@ -765,7 +761,7 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
         // normalize positions and compare
         jm->enforcePositionBounds(&cur_position);
         jm->enforcePositionBounds(&traj_position);
-        if (jm->distance(&cur_position, &traj_position) > joint_start_tolerance)
+        if (joint_start_tolerance != 0 && jm->distance(&cur_position, &traj_position) > joint_start_tolerance)
         {
           ROS_ERROR_NAMED(LOGNAME,
                           "\nInvalid Trajectory: start point deviates from current robot state more than %g"
@@ -807,7 +803,8 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
         Eigen::Vector3d offset = cur_transform.translation() - start_transform.translation();
         Eigen::AngleAxisd rotation;
         rotation.fromRotationMatrix(cur_transform.linear().transpose() * start_transform.linear());
-        if ((offset.array() > allowed_start_tolerance_).any() || rotation.angle() > allowed_start_tolerance_)
+        if (allowed_start_tolerance_ != 0 &&
+            ((offset.array() > allowed_start_tolerance_).any() || rotation.angle() > allowed_start_tolerance_))
         {
           ROS_ERROR_STREAM_NAMED(LOGNAME,
                                  "\nInvalid Trajectory: start point deviates from current robot state more than "
@@ -1570,22 +1567,14 @@ void TrajectoryExecutionManager::loadControllerParams()
 double TrajectoryExecutionManager::getJointAllowedStartTolerance(std::string const& jointName) const
 {
   auto start_tolerance_it = joints_allowed_start_tolerance_.find(jointName);
-  return start_tolerance_it != joints_allowed_start_tolerance_.end() && start_tolerance_it->second > 0 ?
-             start_tolerance_it->second :
-             allowed_start_tolerance_;
+  return start_tolerance_it != joints_allowed_start_tolerance_.end() ? start_tolerance_it->second :
+                                                                       allowed_start_tolerance_;
 }
 
 void TrajectoryExecutionManager::updateJointsAllowedStartTolerance()
 {
-  trajectory_execution_node_handle_.getParam("joints_allowed_start_tolerance", joints_allowed_start_tolerance_);
-
-  for (auto it = joints_allowed_start_tolerance_.begin(); it != joints_allowed_start_tolerance_.end();)
-  {
-    if (it->second <= 0)
-      it = joints_allowed_start_tolerance_.erase(it);
-    else
-      ++it;
-  }
+  joints_allowed_start_tolerance_.clear();
+  node_handle_.getParam("trajectory_execution/joints_allowed_start_tolerance", joints_allowed_start_tolerance_);
 }
 
 }  // namespace trajectory_execution_manager
