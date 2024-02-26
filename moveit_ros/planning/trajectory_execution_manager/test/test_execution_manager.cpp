@@ -152,7 +152,6 @@ TEST_F(MoveItCppTest, DoNotValidateJointStartToleranceZero)
   last_execution_status = trajectory_execution_manager_ptr->executeAndWait();
   ASSERT_EQ(last_execution_status, moveit_controller_manager::ExecutionStatus::ABORTED);
 
-  trajectory_execution_manager_ptr->setAllowedStartTolerance(0.1);
   ros::param::set("~/trajectory_execution/joints_allowed_start_tolerance/panda_joint1", 0);
   ASSERT_TRUE(trajectory_execution_manager_ptr->push(traj));
   last_execution_status = trajectory_execution_manager_ptr->executeAndWait();
