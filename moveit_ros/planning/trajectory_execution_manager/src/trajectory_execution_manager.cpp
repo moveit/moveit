@@ -1575,6 +1575,15 @@ void TrajectoryExecutionManager::updateJointsAllowedStartTolerance()
 {
   joints_allowed_start_tolerance_.clear();
   node_handle_.getParam("trajectory_execution/joints_allowed_start_tolerance", joints_allowed_start_tolerance_);
+
+  // remove negative values
+  for (auto it = joints_allowed_start_tolerance_.begin(); it != joints_allowed_start_tolerance_.end();)
+  {
+    if (it->second < 0)
+      it = joints_allowed_start_tolerance_.erase(it);
+    else
+      ++it;
+  }
 }
 
 }  // namespace trajectory_execution_manager
