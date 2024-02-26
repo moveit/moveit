@@ -803,12 +803,13 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
         Eigen::Vector3d offset = cur_transform.translation() - start_transform.translation();
         Eigen::AngleAxisd rotation;
         rotation.fromRotationMatrix(cur_transform.linear().transpose() * start_transform.linear());
-        if (allowed_start_tolerance_ != 0 &&
-            ((offset.array() > allowed_start_tolerance_).any() || rotation.angle() > allowed_start_tolerance_))
+        double joint_start_tolerance = getJointAllowedStartTolerance(joint_names[i]);
+        if (joint_start_tolerance != 0 &&
+            ((offset.array() > joint_start_tolerance).any() || rotation.angle() > joint_start_tolerance))
         {
           ROS_ERROR_STREAM_NAMED(LOGNAME,
                                  "\nInvalid Trajectory: start point deviates from current robot state more than "
-                                     << allowed_start_tolerance_ << "\nmulti-dof joint '" << joint_names[i]
+                                     << joint_start_tolerance << "\nmulti-dof joint '" << joint_names[i]
                                      << "': pos delta: " << offset.transpose() << " rot delta: " << rotation.angle());
           return false;
         }
@@ -1362,7 +1363,6 @@ bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionCon
           continue;  // joint vanished from robot state (shouldn't happen), but we don't care
 
         double joint_tolerance = getJointAllowedStartTolerance(joint_names[i]);
-
         if (fabs(cur_state->getJointPositions(jm)[0] - prev_state->getJointPositions(jm)[0]) > joint_tolerance)
         {
           moved = true;
