@@ -60,15 +60,19 @@ public:
     trajectory_execution_manager_ptr = moveit_cpp_ptr->getTrajectoryExecutionManagerNonConst();
 
     traj1.joint_trajectory.joint_names.push_back("panda_joint1");
-    traj1.joint_trajectory.points.resize(1);
+    traj1.joint_trajectory.points.resize(2);
     traj1.joint_trajectory.points[0].positions.push_back(0.0);
+    traj1.joint_trajectory.points[1].positions.push_back(0.5);
+    traj1.joint_trajectory.points[1].time_from_start.fromSec(0.5);
 
     traj2 = traj1;
     traj2.joint_trajectory.joint_names.push_back("panda_joint2");
     traj2.joint_trajectory.points[0].positions.push_back(1.0);
+    traj2.joint_trajectory.points[1].positions.push_back(1.5);
     traj2.multi_dof_joint_trajectory.joint_names.push_back("panda_joint3");
-    traj2.multi_dof_joint_trajectory.points.resize(1);
+    traj2.multi_dof_joint_trajectory.points.resize(2);
     traj2.multi_dof_joint_trajectory.points[0].transforms.resize(1);
+    traj2.multi_dof_joint_trajectory.points[1].transforms.resize(1);
   }
 
 protected:
