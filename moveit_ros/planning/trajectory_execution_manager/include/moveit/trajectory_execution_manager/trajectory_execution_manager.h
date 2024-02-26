@@ -265,6 +265,9 @@ private:
 
   void loadControllerParams();
 
+  double getJointAllowedStartTolerance(std::string const& jointName) const;
+  void updateJointsAllowedStartTolerance();
+
   moveit::core::RobotModelConstPtr robot_model_;
   planning_scene_monitor::CurrentStateMonitorPtr csm_;
   ros::NodeHandle node_handle_;
@@ -310,6 +313,8 @@ private:
   std::map<std::string, double> controller_allowed_goal_duration_margin_;
 
   double allowed_start_tolerance_;  // joint tolerance for validate(): radians for revolute joints
+  // tolerance per joint, overrides global allowed_start_tolerance_.
+  std::map<std::string, double> joints_allowed_start_tolerance_;
   double execution_velocity_scaling_;
   bool wait_for_trajectory_completion_;
 };
