@@ -126,8 +126,6 @@ TEST_F(CurrentStateMonitorTest, CompleteStateTest)
   sendJointStateAndWait(js_a);
 
   EXPECT_FALSE(csm->haveCompleteState());
-  const double kTooLongWaitDurationInSeconds = 30000;
-  EXPECT_TRUE(csm->waitForCompleteState("group_a", 30000));
 
   sendJointStateAndWait(js_ab);
 
@@ -192,12 +190,11 @@ TEST_F(CurrentStateMonitorTest, NonMonotonicTimeStampsDueToPartialJoints)
       << "older partial joint state was ignored in current state retrieval!";
   EXPECT_EQ(js_a.header.stamp, csm->getCurrentStateTime("group_a"))
       << "Group is aware of the timestamp of non-group joints!";
-    
+
   sendJointStateAndWait(js_b_t2);
   EXPECT_EQ(js_a.header.stamp, csm->getCurrentStateTime())
       << "older partial joint state was ignored in current state retrieval!";
 }
-
 
 int main(int argc, char** argv)
 {

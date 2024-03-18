@@ -40,6 +40,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include <limits>
+#include <numeric>
 
 constexpr char LOGNAME[] = "current_state_monitor";
 
@@ -89,7 +90,7 @@ ros::Time CurrentStateMonitor::getCurrentStateTime(const std::string& group) con
     }
     else
     {
-      ROS_ERROR_NAMED(LOGNAME, "There is no group with the name '%s'!", group);
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "There is no group with the name " << std::quoted(group) << "!");
       return ros::Time(0.0);
     }
   }
@@ -103,14 +104,18 @@ ros::Time CurrentStateMonitor::getCurrentStateTime(const std::string& group) con
     }
     else
     {
-      if (oldest_state_time) {
+      if (oldest_state_time)
+      {
         *oldest_state_time = std::min(*oldest_state_time, it->second);
-      } else {
+      }
+      else
+      {
         oldest_state_time = it->second;
       }
     }
   }
-  if (oldest_state_time) {
+  if (oldest_state_time)
+  {
     return *oldest_state_time;
   }
   return ros::Time(0.0);
@@ -219,12 +224,28 @@ std::string CurrentStateMonitor::getMonitoredTopic() const
     return "";
 }
 
-bool CurrentStateMonitor::haveCompleteStateHelper(const ros::Time& oldest_allowed_update_time,
-                                                  std::vector<std::string>* missing_joints) const
+std::vector<std::string> CurrentStateMonitor::haveCompleteStateHelper(const ros::Time& oldest_allowed_update_time,
+                                                                      const std::string& group) const
 {
-  const std::vector<const moveit::core::JointModel*>& active_joints = robot_model_->getActiveJointModels();
+  std::vector<std::string> missing_joints;
+  const std::vector<const moveit::core::JointModel*>* active_joints = &robot_model_->getActiveJointModels();
+  if (!group.empty())
+  {
+    const moveit::core::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
+    if (jmg)
+    {
+      active_joints = &jmg->getActiveJointModels();
+    }
+    else
+    {
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "There is no group with the name "
+                                          << std::quoted(group)
+                                          << ". All joints of the group are considered to be missing!");
+      return robot_model_->getActiveJointModelNames();
+    }
+  }
   boost::mutex::scoped_lock slock(state_update_lock_);
-  for (const moveit::core::JointModel* joint : active_joints)
+  for (const moveit::core::JointModel* joint : *active_joints)
   {
     std::map<const moveit::core::JointModel*, ros::Time>::const_iterator it = joint_time_.find(joint);
     if (it == joint_time_.end())
@@ -238,13 +259,9 @@ bool CurrentStateMonitor::haveCompleteStateHelper(const ros::Time& oldest_allowe
     }
     else
       continue;
-
-    if (missing_joints)
-      missing_joints->push_back(joint->getName());
-    else
-      return false;
+    missing_joints.push_back(joint->getName());
   }
-  return (missing_joints == nullptr) || missing_joints->empty();
+  return missing_joints;
 }
 
 bool CurrentStateMonitor::waitForCurrentState(const ros::Time t, double wait_time) const
@@ -285,29 +302,25 @@ bool CurrentStateMonitor::waitForCompleteState(double wait_time) const
 
 bool CurrentStateMonitor::waitForCompleteState(const std::string& group, double wait_time) const
 {
-  if (waitForCompleteState(wait_time))
-    return true;
-  bool ok = true;
-
-  // check to see if we have a fully known state for the joints we want to record
-  std::vector<std::string> missing_joints;
-  if (!haveCompleteState(missing_joints))
+  double slept_time = 0.0;
+  double sleep_step_s = std::min(0.05, wait_time / 10.0);
+  ros::Duration sleep_step(sleep_step_s);
+  while (!haveCompleteState(group) && slept_time < wait_time)
   {
-    const moveit::core::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
-    if (jmg)
-    {
-      std::set<std::string> mj;
-      mj.insert(missing_joints.begin(), missing_joints.end());
-      const std::vector<std::string>& names = jmg->getJointModelNames();
-      bool ok = true;
-      for (std::size_t i = 0; ok && i < names.size(); ++i)
-        if (mj.find(names[i]) != mj.end())
-          ok = false;
-    }
-    else
-      ok = false;
+    sleep_step.sleep();
+    slept_time += sleep_step_s;
   }
-  return ok;
+  std::vector<std::string> missing_joints;
+  if (!haveCompleteState(missing_joints, group))
+  {
+    ROS_ERROR_STREAM_NAMED(
+        LOGNAME, std::quoted(group)
+                     << " have missing joints: "
+                     << std::accumulate(missing_joints.begin(), missing_joints.end(), std::string(),
+                                        [](const std::string& a, const std::string& b) { return a + ", " + b; }););
+    return false;
+  }
+  return true;
 }
 
 void CurrentStateMonitor::jointStateCallback(const sensor_msgs::JointStateConstPtr& joint_state)
