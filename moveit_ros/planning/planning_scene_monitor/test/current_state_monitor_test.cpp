@@ -147,11 +147,22 @@ TEST_F(CurrentStateMonitorTest, StateUpdateTest)
 
 TEST_F(CurrentStateMonitorTest, IncrementalTimeStamps)
 {
-  sendJointStateAndWait(js_a);
-  EXPECT_EQ(js_a.header.stamp, csm->getCurrentStateTime());
+  sensor_msgs::JointState js_b_new;
+  js_b_new.name = { "b-c-joint" };
+  js_b_new.position = { 0.25 };
+  js_b_new.velocity = { 0.25 };
+  js_b_new.header.stamp = ros::Time{ 10.5 };
 
   sendJointStateAndWait(js_b);
-  EXPECT_EQ(js_a.header.stamp, csm->getCurrentStateTime()) << "older stamp made csm jump backwards in time";
+  EXPECT_EQ(js_b.header.stamp, csm->getCurrentStateTime());
+
+  sendJointStateAndWait(js_a);
+  EXPECT_EQ(js_b.header.stamp, csm->getCurrentStateTime())
+      << "older partial joint state was ignored in current state retrieval!";
+
+  sendJointStateAndWait(js_b_new);
+  EXPECT_EQ(js_a.header.stamp, csm->getCurrentStateTime())
+      << "older partial joint state was ignored in current state retrieval!";
 
   sendJointStateAndWait(js_ab);
   EXPECT_EQ(js_ab.header.stamp, csm->getCurrentStateTime()) << "newer stamp did not update csm";
@@ -164,6 +175,29 @@ TEST_F(CurrentStateMonitorTest, IncrementalTimeStamps)
       << "jumping back for a known joint did not reset state time";
   EXPECT_EQ(js_a_old.position[0], csm->getCurrentState()->getVariablePosition("a-b-joint"));
 }
+
+TEST_F(CurrentStateMonitorTest, NonMonotonicTimeStampsDueToPartialJoints)
+{
+  sensor_msgs::JointState js_b_t2;
+  js_b_t2.name = { "b-c-joint" };
+  js_b_t2.position = { 0.25 };
+  js_b_t2.velocity = { 0.25 };
+  js_b_t2.header.stamp = ros::Time{ 13.0 };
+
+  sendJointStateAndWait(js_a);
+  EXPECT_EQ(js_a.header.stamp, csm->getCurrentStateTime());
+
+  sendJointStateAndWait(js_b);
+  EXPECT_EQ(js_b.header.stamp, csm->getCurrentStateTime())
+      << "older partial joint state was ignored in current state retrieval!";
+  EXPECT_EQ(js_a.header.stamp, csm->getCurrentStateTime("group_a"))
+      << "Group is aware of the timestamp of non-group joints!";
+    
+  sendJointStateAndWait(js_b_t2);
+  EXPECT_EQ(js_a.header.stamp, csm->getCurrentStateTime())
+      << "older partial joint state was ignored in current state retrieval!";
+}
+
 
 int main(int argc, char** argv)
 {

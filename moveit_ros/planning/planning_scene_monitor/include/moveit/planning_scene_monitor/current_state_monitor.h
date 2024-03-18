@@ -156,12 +156,21 @@ public:
   /** @brief Set the state \e upd to the current state maintained by this class. */
   void setToCurrentState(moveit::core::RobotState& upd) const;
 
-  /** @brief Get the time stamp for the current state */
-  ros::Time getCurrentStateTime() const;
+  /** @brief Get the time stamp for the current state
+   *  @param group The name of the joint group whose current state is asked, defaults to empty string, which means all
+   * the active joints.
+   *  @note If there are multiple joint sources, then the oldest joint's timestamp is retrieved for the particular group
+   *  @return The current state timestamp related with group
+   */
+  ros::Time getCurrentStateTime(const std::string& group = "") const;
 
   /** @brief Get the current state and its time stamp
+   *  @param group The name of the joint group whose current state is asked, defaults to empty string, which means all
+   * the active joints.
+   *  @note If there are multiple sources of the constituent joints, then the oldest joint's timestamp is retrieved for
+   * the particular group
    *  @return Returns a pair of the current state and its time stamp */
-  std::pair<moveit::core::RobotStatePtr, ros::Time> getCurrentStateAndTime() const;
+  std::pair<moveit::core::RobotStatePtr, ros::Time> getCurrentStateAndTime(const std::string& group = "") const;
 
   /** @brief Get the current state values as a map from joint names to joint state values
    *  @return Returns the map from joint names to joint state values*/
@@ -235,7 +244,6 @@ private:
   ros::Time monitor_start_time_;
   double error_;
   ros::Subscriber joint_state_subscriber_;
-  ros::Time current_state_time_;
 
   mutable boost::mutex state_update_lock_;
   mutable boost::condition_variable state_update_condition_;

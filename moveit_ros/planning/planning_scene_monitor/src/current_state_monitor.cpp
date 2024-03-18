@@ -76,17 +76,52 @@ moveit::core::RobotStatePtr CurrentStateMonitor::getCurrentState() const
   return moveit::core::RobotStatePtr(result);
 }
 
-ros::Time CurrentStateMonitor::getCurrentStateTime() const
+ros::Time CurrentStateMonitor::getCurrentStateTime(const std::string& group) const
 {
   boost::mutex::scoped_lock slock(state_update_lock_);
-  return current_state_time_;
+  const std::vector<const moveit::core::JointModel*>* active_joints = &robot_model_->getActiveJointModels();
+  if (!group.empty())
+  {
+    const moveit::core::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
+    if (jmg)
+    {
+      active_joints = &jmg->getActiveJointModels();
+    }
+    else
+    {
+      ROS_ERROR_NAMED(LOGNAME, "There is no group with the name '%s'!", group);
+      return ros::Time(0.0);
+    }
+  }
+  std::optional<ros::Time> oldest_state_time = std::nullopt;
+  for (const moveit::core::JointModel* joint : *active_joints)
+  {
+    std::map<const moveit::core::JointModel*, ros::Time>::const_iterator it = joint_time_.find(joint);
+    if (it == joint_time_.end())
+    {
+      ROS_DEBUG_NAMED(LOGNAME, "Joint '%s' has never been updated", joint->getName().c_str());
+    }
+    else
+    {
+      if (oldest_state_time) {
+        *oldest_state_time = std::min(*oldest_state_time, it->second);
+      } else {
+        oldest_state_time = it->second;
+      }
+    }
+  }
+  if (oldest_state_time) {
+    return *oldest_state_time;
+  }
+  return ros::Time(0.0);
 }
 
-std::pair<moveit::core::RobotStatePtr, ros::Time> CurrentStateMonitor::getCurrentStateAndTime() const
+std::pair<moveit::core::RobotStatePtr, ros::Time>
+CurrentStateMonitor::getCurrentStateAndTime(const std::string& group) const
 {
   boost::mutex::scoped_lock slock(state_update_lock_);
   moveit::core::RobotState* result = new moveit::core::RobotState(robot_state_);
-  return std::make_pair(moveit::core::RobotStatePtr(result), current_state_time_);
+  return std::make_pair(moveit::core::RobotStatePtr(result), getCurrentStateTime(group));
 }
 
 std::map<std::string, double> CurrentStateMonitor::getCurrentStateValues() const
@@ -219,7 +254,7 @@ bool CurrentStateMonitor::waitForCurrentState(const ros::Time t, double wait_tim
   ros::WallDuration timeout(wait_time);
 
   boost::mutex::scoped_lock lock(state_update_lock_);
-  while (current_state_time_ < t)
+  while (getCurrentStateTime() < t)
   {
     state_update_condition_.wait_for(lock, boost::chrono::nanoseconds((timeout - elapsed).toNSec()));
     elapsed = ros::WallTime::now() - start;
@@ -291,7 +326,6 @@ void CurrentStateMonitor::jointStateCallback(const sensor_msgs::JointStateConstP
     boost::mutex::scoped_lock _(state_update_lock_);
     // read the received values, and update their time stamps
     std::size_t n = joint_state->name.size();
-    current_state_time_ = std::max(current_state_time_, joint_state->header.stamp);
     for (std::size_t i = 0; i < n; ++i)
     {
       const moveit::core::JointModel* jm = robot_model_->getJointModel(joint_state->name[i]);
@@ -312,7 +346,6 @@ void CurrentStateMonitor::jointStateCallback(const sensor_msgs::JointStateConstP
                                            << "' is not newer than the previous state. Assuming your rosbag looped.");
         joint_time_.clear();
         joint_time_[jm] = joint_state->header.stamp;
-        current_state_time_ = joint_state->header.stamp;
       }
 
       if (robot_state_.getJointPositions(jm)[0] != joint_state->position[i])
