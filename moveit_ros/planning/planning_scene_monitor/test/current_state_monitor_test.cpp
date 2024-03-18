@@ -126,6 +126,8 @@ TEST_F(CurrentStateMonitorTest, CompleteStateTest)
   sendJointStateAndWait(js_a);
 
   EXPECT_FALSE(csm->haveCompleteState());
+  const double kTooLongWaitDurationInSeconds = 30000;
+  EXPECT_TRUE(csm->waitForCompleteState("group_a", 30000));
 
   sendJointStateAndWait(js_ab);
 
