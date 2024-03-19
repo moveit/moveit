@@ -151,13 +151,13 @@ int main(int argc, char** argv)
   node.param<float>("warehouse_db_connection_timeout", connection_timeout, 5.0);
   node.param<int>("warehouse_db_connection_retries", connection_retries, 5);
 
-  std::unique_ptr<warehouse_ros::DatabaseLoader> dbLoader;
+  std::unique_ptr<warehouse_ros::DatabaseLoader> db_loader;
   warehouse_ros::DatabaseConnection::Ptr conn;
 
   try
   {
-    dbLoader = std::make_unique<warehouse_ros::DatabaseLoader>();
-    conn = dbLoader->loadDatabase();
+    db_loader = std::make_unique<warehouse_ros::DatabaseLoader>();
+    conn = db_loader->loadDatabase();
     conn->setParams(host, port, connection_timeout);
 
     ROS_INFO("Connecting to warehouse on %s:%d", host.c_str(), port);

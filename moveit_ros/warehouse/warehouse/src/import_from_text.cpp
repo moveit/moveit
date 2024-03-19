@@ -224,8 +224,8 @@ int main(int argc, char** argv)
     return 1;
   }
   // Set up db
-  auto dbLoader = std::make_unique<warehouse_ros::DatabaseLoader>();
-  warehouse_ros::DatabaseConnection::Ptr conn = dbLoader->loadDatabase();
+  auto db_loader = std::make_unique<warehouse_ros::DatabaseLoader>();
+  warehouse_ros::DatabaseConnection::Ptr conn = db_loader->loadDatabase();
   if (vm.count("host") && vm.count("port"))
     conn->setParams(vm["host"].as<std::string>(), vm["port"].as<std::size_t>());
   if (!conn->connect())

@@ -63,10 +63,10 @@ void moveit_warehouse::MoveItMessageStorage::filterNames(const std::string& rege
 
 typename warehouse_ros::DatabaseConnection::Ptr moveit_warehouse::loadDatabase()
 {
-  static std::unique_ptr<warehouse_ros::DatabaseLoader> DBLOADER;
-  if (!DBLOADER)
+  static std::unique_ptr<warehouse_ros::DatabaseLoader> db_loader;
+  if (!db_loader)
   {
-    DBLOADER = std::make_unique<warehouse_ros::DatabaseLoader>();
+    db_loader = std::make_unique<warehouse_ros::DatabaseLoader>();
   }
-  return DBLOADER->loadDatabase();
+  return db_loader->loadDatabase();
 }
