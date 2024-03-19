@@ -232,6 +232,10 @@ public:
   }
 
 private:
+  /**
+   * Lock-free method that is used by @ref getCurrentStateTime and @ref getCurrentStateAndTime methods.
+   */
+  ros::Time getCurrentStateTimeHelper(const std::string& group = "") const;
   std::vector<std::string> haveCompleteStateHelper(const ros::Time& oldest_allowed_update_time,
                                                    const std::string& group) const;
 

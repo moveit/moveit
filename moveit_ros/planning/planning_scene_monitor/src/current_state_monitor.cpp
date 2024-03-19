@@ -77,9 +77,8 @@ moveit::core::RobotStatePtr CurrentStateMonitor::getCurrentState() const
   return moveit::core::RobotStatePtr(result);
 }
 
-ros::Time CurrentStateMonitor::getCurrentStateTime(const std::string& group) const
+ros::Time CurrentStateMonitor::getCurrentStateTimeHelper(const std::string& group) const
 {
-  boost::mutex::scoped_lock slock(state_update_lock_);
   const std::vector<const moveit::core::JointModel*>* active_joints = &robot_model_->getActiveJointModels();
   if (!group.empty())
   {
@@ -121,12 +120,18 @@ ros::Time CurrentStateMonitor::getCurrentStateTime(const std::string& group) con
   return ros::Time(0.0);
 }
 
+ros::Time CurrentStateMonitor::getCurrentStateTime(const std::string& group) const
+{
+  boost::mutex::scoped_lock slock(state_update_lock_);
+  return getCurrentStateTimeHelper(group);
+}
+
 std::pair<moveit::core::RobotStatePtr, ros::Time>
 CurrentStateMonitor::getCurrentStateAndTime(const std::string& group) const
 {
   boost::mutex::scoped_lock slock(state_update_lock_);
   moveit::core::RobotState* result = new moveit::core::RobotState(robot_state_);
-  return std::make_pair(moveit::core::RobotStatePtr(result), getCurrentStateTime(group));
+  return std::make_pair(moveit::core::RobotStatePtr(result), getCurrentStateTimeHelper(group));
 }
 
 std::map<std::string, double> CurrentStateMonitor::getCurrentStateValues() const
@@ -270,9 +275,9 @@ bool CurrentStateMonitor::waitForCurrentState(const ros::Time t, double wait_tim
   ros::WallDuration elapsed(0, 0);
   ros::WallDuration timeout(wait_time);
 
-  boost::mutex::scoped_lock lock(state_update_lock_);
   while (getCurrentStateTime() < t)
   {
+    boost::mutex::scoped_lock lock(state_update_lock_);
     state_update_condition_.wait_for(lock, boost::chrono::nanoseconds((timeout - elapsed).toNSec()));
     elapsed = ros::WallTime::now() - start;
     if (elapsed > timeout)
