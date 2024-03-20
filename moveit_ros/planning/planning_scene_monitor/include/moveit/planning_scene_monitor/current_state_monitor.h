@@ -98,7 +98,7 @@ public:
    */
   inline bool haveCompleteState(const std::string& group = "") const
   {
-    return haveCompleteStateHelper(ros::Time(0), group).empty();
+    return haveCompleteStateHelper(ros::Time(0), nullptr, group);
   }
 
   /** @brief Query whether we have joint state information for all DOFs in the kinematic model
@@ -107,7 +107,7 @@ public:
    *  information is more than \e age old*/
   inline bool haveCompleteState(const ros::Time& oldest_allowed_update_time, const std::string& group = "") const
   {
-    return haveCompleteStateHelper(oldest_allowed_update_time, group).empty();
+    return haveCompleteStateHelper(oldest_allowed_update_time, nullptr, group);
   }
 
   /** @brief Query whether we have joint state information for all DOFs in the kinematic model
@@ -117,7 +117,7 @@ public:
    */
   inline bool haveCompleteState(const ros::Duration& age, const std::string& group = "") const
   {
-    return haveCompleteStateHelper(ros::Time::now() - age, group).empty();
+    return haveCompleteStateHelper(ros::Time::now() - age, nullptr, group);
   }
 
   /** @brief Query whether we have joint state information for all DOFs in the kinematic model
@@ -126,8 +126,7 @@ public:
    */
   inline bool haveCompleteState(std::vector<std::string>& missing_joints, const std::string& group = "") const
   {
-    missing_joints = haveCompleteStateHelper(ros::Time(0), group);
-    return missing_joints.empty();
+    return haveCompleteStateHelper(ros::Time(0), &missing_joints, group);
   }
 
   /** @brief Query whether we have joint state information for all DOFs in the kinematic model
@@ -138,8 +137,7 @@ public:
   inline bool haveCompleteState(const ros::Time& oldest_allowed_update_time, std::vector<std::string>& missing_joints,
                                 const std::string& group = "") const
   {
-    missing_joints = haveCompleteStateHelper(oldest_allowed_update_time, group);
-    return missing_joints.empty();
+    return haveCompleteStateHelper(oldest_allowed_update_time, &missing_joints, group);
   }
 
   /** @brief Query whether we have joint state information for all DOFs in the kinematic model
@@ -149,8 +147,7 @@ public:
   inline bool haveCompleteState(const ros::Duration& age, std::vector<std::string>& missing_joints,
                                 const std::string& group = "") const
   {
-    missing_joints = haveCompleteStateHelper(ros::Time::now() - age, group);
-    return missing_joints.empty();
+    return haveCompleteStateHelper(ros::Time::now() - age, &missing_joints, group);
   }
 
   /** @brief Get the current state
@@ -236,8 +233,8 @@ private:
    * Lock-free method that is used by @ref getCurrentStateTime and @ref getCurrentStateAndTime methods.
    */
   ros::Time getCurrentStateTimeHelper(const std::string& group = "") const;
-  std::vector<std::string> haveCompleteStateHelper(const ros::Time& oldest_allowed_update_time,
-                                                   const std::string& group) const;
+  bool haveCompleteStateHelper(const ros::Time& oldest_allowed_update_time, std::vector<std::string>* missing_joints,
+                               const std::string& group) const;
 
   void jointStateCallback(const sensor_msgs::JointStateConstPtr& joint_state);
   void tfCallback();

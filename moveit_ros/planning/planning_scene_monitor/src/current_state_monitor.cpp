@@ -36,11 +36,10 @@
 
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
 
+#include <boost/algorithm/string/join.hpp>
+#include <limits>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-
-#include <limits>
-#include <numeric>
 
 constexpr char LOGNAME[] = "current_state_monitor";
 
@@ -93,19 +92,19 @@ ros::Time CurrentStateMonitor::getCurrentStateTimeHelper(const std::string& grou
       return ros::Time(0.0);
     }
   }
-  std::optional<ros::Time> oldest_state_time = std::nullopt;
+  auto oldest_state_time = ros::Time();
   for (const moveit::core::JointModel* joint : *active_joints)
   {
-    std::map<const moveit::core::JointModel*, ros::Time>::const_iterator it = joint_time_.find(joint);
+    auto it = joint_time_.find(joint);
     if (it == joint_time_.end())
     {
       ROS_DEBUG_NAMED(LOGNAME, "Joint '%s' has never been updated", joint->getName().c_str());
     }
     else
     {
-      if (oldest_state_time)
+      if (!oldest_state_time.isZero())
       {
-        *oldest_state_time = std::min(*oldest_state_time, it->second);
+        oldest_state_time = std::min(oldest_state_time, it->second);
       }
       else
       {
@@ -113,11 +112,7 @@ ros::Time CurrentStateMonitor::getCurrentStateTimeHelper(const std::string& grou
       }
     }
   }
-  if (oldest_state_time)
-  {
-    return *oldest_state_time;
-  }
-  return ros::Time(0.0);
+  return oldest_state_time;
 }
 
 ros::Time CurrentStateMonitor::getCurrentStateTime(const std::string& group) const
@@ -229,10 +224,10 @@ std::string CurrentStateMonitor::getMonitoredTopic() const
     return "";
 }
 
-std::vector<std::string> CurrentStateMonitor::haveCompleteStateHelper(const ros::Time& oldest_allowed_update_time,
-                                                                      const std::string& group) const
+bool CurrentStateMonitor::haveCompleteStateHelper(const ros::Time& oldest_allowed_update_time,
+                                                  std::vector<std::string>* missing_joints,
+                                                  const std::string& group) const
 {
-  std::vector<std::string> missing_joints;
   const std::vector<const moveit::core::JointModel*>* active_joints = &robot_model_->getActiveJointModels();
   if (!group.empty())
   {
@@ -246,7 +241,9 @@ std::vector<std::string> CurrentStateMonitor::haveCompleteStateHelper(const ros:
       ROS_ERROR_STREAM_NAMED(LOGNAME, "There is no group with the name "
                                           << std::quoted(group)
                                           << ". All joints of the group are considered to be missing!");
-      return robot_model_->getActiveJointModelNames();
+      if (missing_joints)
+        *missing_joints = robot_model_->getActiveJointModelNames();
+      return false;
     }
   }
   boost::mutex::scoped_lock slock(state_update_lock_);
@@ -264,9 +261,12 @@ std::vector<std::string> CurrentStateMonitor::haveCompleteStateHelper(const ros:
     }
     else
       continue;
-    missing_joints.push_back(joint->getName());
+    if (missing_joints)
+      missing_joints->push_back(joint->getName());
+    else
+      return false;
   }
-  return missing_joints;
+  return (missing_joints == nullptr) || missing_joints->empty();
 }
 
 bool CurrentStateMonitor::waitForCurrentState(const ros::Time t, double wait_time) const
@@ -274,10 +274,9 @@ bool CurrentStateMonitor::waitForCurrentState(const ros::Time t, double wait_tim
   ros::WallTime start = ros::WallTime::now();
   ros::WallDuration elapsed(0, 0);
   ros::WallDuration timeout(wait_time);
-
-  while (getCurrentStateTime() < t)
+  boost::mutex::scoped_lock lock(state_update_lock_);
+  while (getCurrentStateTimeHelper() < t)
   {
-    boost::mutex::scoped_lock lock(state_update_lock_);
     state_update_condition_.wait_for(lock, boost::chrono::nanoseconds((timeout - elapsed).toNSec()));
     elapsed = ros::WallTime::now() - start;
     if (elapsed > timeout)
@@ -318,11 +317,7 @@ bool CurrentStateMonitor::waitForCompleteState(const std::string& group, double 
   std::vector<std::string> missing_joints;
   if (!haveCompleteState(missing_joints, group))
   {
-    ROS_ERROR_STREAM_NAMED(
-        LOGNAME, std::quoted(group)
-                     << " have missing joints: "
-                     << std::accumulate(missing_joints.begin(), missing_joints.end(), std::string(),
-                                        [](const std::string& a, const std::string& b) { return a + ", " + b; }););
+    ROS_ERROR_STREAM_NAMED(LOGNAME, std::quoted(group) << " has missing joints: " << boost::join(missing_joints, ","));
     return false;
   }
   return true;
