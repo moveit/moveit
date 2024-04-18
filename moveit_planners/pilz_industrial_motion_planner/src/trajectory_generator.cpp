@@ -349,22 +349,13 @@ bool TrajectoryGenerator::generate(const planning_scene::PlanningSceneConstPtr& 
 TrajectoryGenerator::MotionPlanInfo::MotionPlanInfo(const planning_scene::PlanningSceneConstPtr& scene,
                                                     const planning_interface::MotionPlanRequest& req)
 {
-  auto ps = scene->diff();
-  auto& start_state = ps->getCurrentStateNonConst();
-  const auto& rs = req.start_state;
-  if (!rs.joint_state.name.empty() || !rs.multi_dof_joint_state.joint_names.empty())
-    // update start state from request's start state
-    moveit::core::robotStateMsgToRobotState(scene->getTransforms(), req.start_state, start_state);
-  start_state.update();
-  start_scene = std::move(ps);
-
+  start_scene = std::move(scene->diff());
+  auto jmg = start_scene->getCurrentState().getRobotModel()->getJointModelGroup(req.group_name);
   // initialize info.start_joint_position with active joint values from start_state
-  const double* positions = start_state.getVariablePositions();
-  for (const auto* jm : start_state.getRobotModel()->getJointModelGroup(req.group_name)->getActiveJointModels())
-  {
+  for (const auto* jm : jmg->getActiveJointModels()) {
     const auto& names = jm->getVariableNames();
     for (std::size_t i = 0, j = jm->getFirstVariableIndex(); i < jm->getVariableCount(); ++i, ++j)
-      start_joint_position[names[i]] = positions[j];
+      start_joint_position[names[i]] = req.start_state.joint_state.position[j];
   }
 }
 
