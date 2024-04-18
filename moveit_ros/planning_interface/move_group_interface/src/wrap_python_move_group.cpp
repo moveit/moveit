@@ -39,8 +39,8 @@
 #endif
 
 #include <moveit/move_group_interface/move_group_interface.h>
-#include <moveit/py_bindings_tools/roscpp_initializer.h>
-#include <moveit/py_bindings_tools/ros_msg_typecasters.h>
+#include <py_binding_tools/roscpp_initializer.h>
+#include <py_binding_tools/ros_msg_typecasters.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
@@ -60,19 +60,19 @@
 
 namespace py = pybind11;
 
-using moveit::python::throwDeserializationError;
+using py_binding_tools::throwDeserializationError;
 
 namespace moveit
 {
 namespace planning_interface
 {
-class MoveGroupInterfaceWrapper : protected py_bindings_tools::ROScppInitializer, public MoveGroupInterface
+class MoveGroupInterfaceWrapper : protected py_binding_tools::ROScppInitializer, public MoveGroupInterface
 {
 public:
   // ROSInitializer is constructed first, and ensures ros::init() was called, if needed
   MoveGroupInterfaceWrapper(const std::string& group_name, const std::string& robot_description, const std::string& ns,
                             double wait_for_servers)
-    : py_bindings_tools::ROScppInitializer()
+    : py_binding_tools::ROScppInitializer()
     , MoveGroupInterface(Options(group_name, robot_description, ros::NodeHandle(ns)),
                          std::shared_ptr<tf2_ros::Buffer>(), ros::WallDuration(wait_for_servers))
   {

@@ -41,8 +41,8 @@
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/robot_state/conversions.h>
-#include <moveit/py_bindings_tools/roscpp_initializer.h>
-#include <moveit/py_bindings_tools/ros_msg_typecasters.h>
+#include <py_binding_tools/roscpp_initializer.h>
+#include <py_binding_tools/ros_msg_typecasters.h>
 #include <moveit_msgs/RobotState.h>
 #include <visualization_msgs/MarkerArray.h>
 
@@ -54,13 +54,13 @@
 namespace py = pybind11;
 namespace pi = moveit::planning_interface;
 
-using moveit::python::throwDeserializationError;
+using py_binding_tools::throwDeserializationError;
 
-class RobotInterfacePython : protected moveit::py_bindings_tools::ROScppInitializer
+class RobotInterfacePython : protected py_binding_tools::ROScppInitializer
 {
 public:
   RobotInterfacePython(const std::string& robot_description, const std::string& ns = "")
-    : moveit::py_bindings_tools::ROScppInitializer()
+    : py_binding_tools::ROScppInitializer()
   {
     robot_model_ = pi::getSharedRobotModel(robot_description);
     if (!robot_model_)

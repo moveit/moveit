@@ -24,6 +24,10 @@ RUN --mount=type=cache,target=/root/.ccache/ \
     PATH=/usr/lib/ccache:$PATH && \
     # Fetch required upstream sources for building
     wstool init --shallow src src/moveit/.github/workflows/upstream.rosinstall && \
+    if [ -r "src/moveit/.github/workflows/upstream_${ROS_DISTRO}.rosinstall" ] ; then \
+        wstool merge  -t src "src/moveit/.github/workflows/upstream_${ROS_DISTRO}.rosinstall"; \
+        wstool update -t src; \
+    fi && \
     git clone --depth 1 --branch master https://github.com/ros-planning/moveit_resources src/moveit_resources && \
     #
     catkin config --extend /opt/ros/$ROS_DISTRO --install --cmake-args -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON && \

@@ -2,13 +2,14 @@ cmake_minimum_required(VERSION 3.1.3)
 project(moveit_ros_planning_interface)
 
 find_package(catkin REQUIRED COMPONENTS
+  pybind11_catkin
   moveit_msgs
   moveit_ros_planning
   moveit_ros_warehouse
   moveit_ros_manipulation
   moveit_ros_move_group
   geometry_msgs
-  pybind11_catkin
+  py_binding_tools
   tf2
   tf2_eigen
   tf2_geometry_msgs

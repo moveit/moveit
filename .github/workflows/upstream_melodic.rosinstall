@@ -1,0 +1,4 @@
+- git:
+    local-name: py_binding_tools
+    uri: https://github.com/ros-planning/py_binding_tools.git
+    version: main

@@ -34,11 +34,10 @@
   <depend>tf2_eigen</depend>
   <depend>tf2_geometry_msgs</depend>
   <depend>tf2_ros</depend>
-  <depend condition="$ROS_PYTHON_VERSION == 2">python</depend>
-  <depend condition="$ROS_PYTHON_VERSION == 3">python3</depend>
 
   <build_depend>eigen</build_depend>
   <build_depend>pybind11_catkin</build_depend>
+  <build_depend>py_binding_tools</build_depend>
 
   <test_depend>moveit_resources_fanuc_moveit_config</test_depend>
   <test_depend>moveit_resources_panda_moveit_config</test_depend>

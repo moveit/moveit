@@ -39,8 +39,8 @@
 #endif
 
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
-#include <moveit/py_bindings_tools/roscpp_initializer.h>
-#include <moveit/py_bindings_tools/ros_msg_typecasters.h>
+#include <py_binding_tools/roscpp_initializer.h>
+#include <py_binding_tools/ros_msg_typecasters.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -53,12 +53,12 @@ namespace moveit
 {
 namespace planning_interface
 {
-class PlanningSceneInterfaceWrapper : protected py_bindings_tools::ROScppInitializer, public PlanningSceneInterface
+class PlanningSceneInterfaceWrapper : protected py_binding_tools::ROScppInitializer, public PlanningSceneInterface
 {
 public:
   // ROSInitializer is constructed first, and ensures ros::init() was called, if needed
   PlanningSceneInterfaceWrapper(const std::string& ns = "")
-    : py_bindings_tools::ROScppInitializer(), PlanningSceneInterface(ns)
+    : py_binding_tools::ROScppInitializer(), PlanningSceneInterface(ns)
   {
   }
 };
