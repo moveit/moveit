@@ -66,6 +66,7 @@
   <test_depend condition="$ROS_DISTRO != melodic">liborocos-kdl-dev</test_depend>
   <test_depend>rosunit</test_depend>
   <test_depend>rostest</test_depend>
+  <test_depend>benchmark</test_depend>
 
   <export>
     <moveit_core plugin="${prefix}/collision_detector_fcl_description.xml"/>
