@@ -70,6 +70,9 @@ struct GroupMetaData
   std::string kinematics_solver_;               // Name of kinematics plugin to use
   double kinematics_solver_search_resolution_;  // resolution to use with solver
   double kinematics_solver_timeout_;            // solver timeout
+  double goal_joint_tolerance_;                 // joint tolerance for goal constraints
+  double goal_position_tolerance_;              // position tolerance for goal constraints
+  double goal_orientation_tolerance_;           // orientation tolerance for goal constraints
   std::string kinematics_parameters_file_;      // file for additional kinematics parameters
   std::string default_planner_;                 // Name of the default planner to use
 };

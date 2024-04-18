@@ -87,7 +87,7 @@ rdf_loader::RDFLoader::RDFLoader(const std::string& robot_description)
     return;
   }
 
-  srdf::ModelSharedPtr srdf(new srdf::Model());
+  auto srdf = std::make_shared<srdf::Model>();
   if (!srdf->initString(*urdf_, scontent))
   {
     ROS_ERROR_NAMED("rdf_loader", "Unable to parse SRDF from parameter '%s'", srdf_description.c_str());

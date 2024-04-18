@@ -57,18 +57,24 @@ public:
   {
     nh_ = ros::NodeHandle();
     moveit_cpp_ptr = std::make_shared<MoveItCpp>(nh_);
-    trajectory_execution_manager_ptr = moveit_cpp_ptr->getTrajectoryExecutionManager();
+    trajectory_execution_manager_ptr = moveit_cpp_ptr->getTrajectoryExecutionManagerNonConst();
 
     traj1.joint_trajectory.joint_names.push_back("panda_joint1");
-    traj1.joint_trajectory.points.resize(1);
+    traj1.joint_trajectory.points.resize(2);
     traj1.joint_trajectory.points[0].positions.push_back(0.0);
+    traj1.joint_trajectory.points[1].positions.push_back(0.5);
+    traj1.joint_trajectory.points[1].time_from_start.fromSec(0.5);
 
     traj2 = traj1;
     traj2.joint_trajectory.joint_names.push_back("panda_joint2");
     traj2.joint_trajectory.points[0].positions.push_back(1.0);
+    traj2.joint_trajectory.points[1].positions.push_back(1.5);
     traj2.multi_dof_joint_trajectory.joint_names.push_back("panda_joint3");
-    traj2.multi_dof_joint_trajectory.points.resize(1);
+    traj2.multi_dof_joint_trajectory.points.resize(2);
     traj2.multi_dof_joint_trajectory.points[0].transforms.resize(1);
+    traj2.multi_dof_joint_trajectory.points[1].transforms.resize(1);
+
+    ros::param::del("~/trajectory_execution/joints_allowed_start_tolerance");
   }
 
 protected:
@@ -105,6 +111,50 @@ TEST_F(MoveItCppTest, PushExecuteAndWaitTest)
   traj1.multi_dof_joint_trajectory = traj2.multi_dof_joint_trajectory;
   ASSERT_TRUE(trajectory_execution_manager_ptr->push(traj1));
   auto last_execution_status = trajectory_execution_manager_ptr->executeAndWait();
+  ASSERT_EQ(last_execution_status, moveit_controller_manager::ExecutionStatus::SUCCEEDED);
+}
+
+TEST_F(MoveItCppTest, RejectTooFarFromStart)
+{
+  moveit_msgs::RobotTrajectory traj = traj1;
+  traj.joint_trajectory.points[0].positions[0] = 0.3;
+
+  trajectory_execution_manager_ptr->setAllowedStartTolerance(0.01);
+  ASSERT_TRUE(trajectory_execution_manager_ptr->push(traj));
+  auto last_execution_status = trajectory_execution_manager_ptr->executeAndWait();
+  ASSERT_EQ(last_execution_status, moveit_controller_manager::ExecutionStatus::ABORTED);
+}
+
+TEST_F(MoveItCppTest, AcceptAllowedJointStartTolerance)
+{
+  moveit_msgs::RobotTrajectory traj = traj1;
+  traj.joint_trajectory.points[0].positions[0] = 0.3;
+
+  trajectory_execution_manager_ptr->setAllowedStartTolerance(0.01);
+  ros::param::set("~/trajectory_execution/joints_allowed_start_tolerance/panda_joint1", 0.5);
+  ASSERT_TRUE(trajectory_execution_manager_ptr->push(traj));
+  auto last_execution_status = trajectory_execution_manager_ptr->executeAndWait();
+  ASSERT_EQ(last_execution_status, moveit_controller_manager::ExecutionStatus::SUCCEEDED);
+}
+
+TEST_F(MoveItCppTest, DoNotValidateJointStartToleranceZero)
+{
+  moveit_msgs::RobotTrajectory traj = traj1;
+  traj.joint_trajectory.points[0].positions[0] = 0.3;
+
+  trajectory_execution_manager_ptr->setAllowedStartTolerance(0);
+  ASSERT_TRUE(trajectory_execution_manager_ptr->push(traj));
+  auto last_execution_status = trajectory_execution_manager_ptr->executeAndWait();
+  ASSERT_EQ(last_execution_status, moveit_controller_manager::ExecutionStatus::SUCCEEDED);
+
+  trajectory_execution_manager_ptr->setAllowedStartTolerance(0.1);
+  ASSERT_TRUE(trajectory_execution_manager_ptr->push(traj));
+  last_execution_status = trajectory_execution_manager_ptr->executeAndWait();
+  ASSERT_EQ(last_execution_status, moveit_controller_manager::ExecutionStatus::ABORTED);
+
+  ros::param::set("~/trajectory_execution/joints_allowed_start_tolerance/panda_joint1", 0);
+  ASSERT_TRUE(trajectory_execution_manager_ptr->push(traj));
+  last_execution_status = trajectory_execution_manager_ptr->executeAndWait();
   ASSERT_EQ(last_execution_status, moveit_controller_manager::ExecutionStatus::SUCCEEDED);
 }
 

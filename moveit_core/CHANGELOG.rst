@@ -2,6 +2,41 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+* Avoid global transforms in ``getRigidlyConnectedParentLinkModel()`` (`#3470 <https://github.com/ros-planning/moveit/issues/3470>`_)
+
+  * RobotState::setFromIK: ensure up-to-date state before calling IK solver
+  * Remove unimplemented RobotState::getSubframeTransformInLinkFrame()
+
+* Add missing include (`#3451 <https://github.com/ros-planning/moveit/issues/3451>`_)
+* Fix Jacobian calculation for planar joint (`#3439 <https://github.com/ros-planning/moveit/issues/3439>`_)
+* Silent "empty quaternion" warning from poseMsgToEigen() (`#3435 <https://github.com/ros-planning/moveit/issues/3435>`_)
+* Contributors: Cong Liu, Ivo Vatavuk, Robert Haschke
+
+1.1.12 (2023-05-13)
+-------------------
+* Generalize RobotState::setFromIK() (`<https://github.com/ros-planning/moveit/issues/3388>`_)
+* Time parameterization with torque limits, based on TOTG (`#3412 <https://github.com/ros-planning/moveit/issues/3412>`_, `#3427 <https://github.com/ros-planning/moveit/issues/3427>`_)
+* Make XmlRpcValue arguments const references (`#3419 <https://github.com/ros-planning/moveit/issues/3419>`_)
+* Differential drive for planar Joints (`#3359 <https://github.com/ros-planning/moveit/issues/3359>`_)
+* Fix deprecation warnings in Debian bookworm (`#3397 <https://github.com/ros-planning/moveit/issues/3397>`_)
+* Add JointModel::satisfiesAccelerationBounds() (`#3396 <https://github.com/ros-planning/moveit/issues/3396>`_)
+* Add CSM tests (`#3395 <https://github.com/ros-planning/moveit/issues/3395>`_)
+* Fix TOTG: could return vels/accels greater than the limits (`#3394 <https://github.com/ros-planning/moveit/issues/3394>`_)
+* Propagate "clear octomap" actions to monitoring planning scenes (`#3134 <https://github.com/ros-planning/moveit/issues/3134>`_)
+* Fix (some) doxygen warnings (`#3315 <https://github.com/ros-planning/moveit/issues/3315>`_)
+* Switch master build to C++17 (`#3313 <https://github.com/ros-planning/moveit/issues/3313>`_)
+* Drop lib/ prefix from plugin paths (`#3305 <https://github.com/ros-planning/moveit/issues/3305>`_)
+* Improve Ruckig time parameterization
+
+  * Check for a Ruckig jerk limit parameter (`#3375 <https://github.com/ros-planning/moveit/issues/3375>`_)
+  * Optionally mitigate Ruckig overshoot
+  * Reduce number of duration extensions
+  * Fix termination condition (`#3348 <https://github.com/ros-planning/moveit/issues/3348>`_)
+  * Fix tests (`#3300 <https://github.com/ros-planning/moveit/issues/3300>`_)
+* Contributors: Andy Zelenak, Filip Sund, Jochen Sprickerhof, Michael Görner, Robert Haschke, Scott Chow, Tobias Fischer
+
 1.1.11 (2022-12-21)
 -------------------
 * Fix some consistency issues in PlanningScene handling (`#3298 <https://github.com/ros-planning/moveit/issues/3298>`_)

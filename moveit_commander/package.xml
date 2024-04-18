@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>moveit_commander</name>
-  <version>1.1.11</version>
+  <version>1.1.13</version>
   <description>Python interfaces to MoveIt</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>

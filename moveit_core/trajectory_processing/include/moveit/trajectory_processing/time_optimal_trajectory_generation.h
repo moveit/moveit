@@ -42,6 +42,7 @@
 #include <list>
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/trajectory_processing/time_parameterization.h>
+#include <unordered_map>
 
 namespace trajectory_processing
 {
@@ -79,7 +80,15 @@ public:
   Eigen::VectorXd getConfig(double s) const;
   Eigen::VectorXd getTangent(double s) const;
   Eigen::VectorXd getCurvature(double s) const;
+
+  /** @brief Get the next switching point.
+   *  @param[in] s Arc length traveled so far
+   *  @param[out] discontinuity True if this switching point is a discontinuity
+   *  @return arc length to the switching point
+   **/
   double getNextSwitchingPoint(double s, bool& discontinuity) const;
+
+  /// @brief Return a list of all switching points as a pair (arc length to switching point, discontinuity)
   std::list<std::pair<double, bool>> getSwitchingPoints() const;
 
 private:
@@ -167,10 +176,60 @@ public:
   TimeOptimalTrajectoryGeneration(const double path_tolerance = 0.1, const double resample_dt = 0.1,
                                   const double min_angle_change = 0.001);
 
+  /**
+   * \brief Compute a trajectory with waypoints spaced equally in time (according to resample_dt_).
+   * Resampling the trajectory doesn't change the start and goal point,
+   * and all re-sampled waypoints will be on the path of the original trajectory (within path_tolerance_).
+   * However, controller execution is separate from MoveIt and may deviate from the intended path between waypoints.
+   * path_tolerance_ is defined in configuration space, so the unit is rad for revolute joints,
+   * meters for prismatic joints.
+   * \param[in,out] trajectory A path which needs time-parameterization. It's OK if this path has already been
+   * time-parameterized; this function will re-time-parameterize it.
+   * \param max_velocity_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
+   * \param max_acceleration_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
+   */
   bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory, const double max_velocity_scaling_factor = 1.0,
-                         const double max_acceleration_scaling_factor = 1.0) const override;
+                         const double max_acceleration_scaling_factor = 1.0) const override
+  {
+    std::unordered_map<std::string, double> empty;
+    return computeTimeStamps(trajectory, empty, empty, max_velocity_scaling_factor, max_acceleration_scaling_factor);
+  }
+
+  /**
+   * \brief Compute a trajectory with waypoints spaced equally in time (according to resample_dt_).
+   * Resampling the trajectory doesn't change the start and goal point,
+   * and all re-sampled waypoints will be on the path of the original trajectory (within path_tolerance_).
+   * However, controller execution is separate from MoveIt and may deviate from the intended path between waypoints.
+   * path_tolerance_ is defined in configuration space, so the unit is rad for revolute joints,
+   * meters for prismatic joints.
+   * \param[in,out] trajectory A path which needs time-parameterization. It's OK if this path has already been
+   * time-parameterized; this function will re-time-parameterize it.
+   * \param velocity_limits Joint names and velocity limits in rad/s
+   * \param acceleration_limits Joint names and acceleration limits in rad/s^2
+   * \param max_velocity_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
+   * \param max_acceleration_scaling_factor A factor in the range [0,1] which can slow down the trajectory.
+   */
+  bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
+                         const std::unordered_map<std::string, double>& velocity_limits,
+                         const std::unordered_map<std::string, double>& acceleration_limits,
+                         const double max_velocity_scaling_factor = 1.0,
+                         const double max_acceleration_scaling_factor = 1.0) const;
 
 private:
+  /**
+   * @brief Check if a combination of revolute and prismatic joints is used. path_tolerance_ is not valid, if so.
+   * \param group The JointModelGroup to check.
+   * \return true if there are mixed joints.
+   */
+  bool hasMixedJointTypes(const moveit::core::JointModelGroup* group) const;
+
+  /**
+   * @brief Check if the requested scaling factor is valid and if not, return 1.0.
+   * \param requested_scaling_factor The desired maximum scaling factor to apply to the velocity or acceleration limits
+   * \return The user requested scaling factor, if it is valid. Otherwise, return 1.0.
+   */
+  double verifyScalingFactor(const double requested_scaling_factor) const;
+
   const double path_tolerance_;
   const double resample_dt_;
   const double min_angle_change_;

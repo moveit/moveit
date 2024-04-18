@@ -105,9 +105,19 @@ QVariant JMGItemModel::data(const QModelIndex& index, int role) const
       {
         case Qt::DisplayRole:
           return value;
+        case ProgressBarDelegate::JointRangeFractionRole:
+          if (jm)
+          {
+            const moveit::core::VariableBounds* bounds = getVariableBounds(jm, index);
+            if (bounds)
+            {
+              return (value - bounds->min_position_) / (bounds->max_position_ - bounds->min_position_);
+            }
+          }
+          break;
         case Qt::EditRole:
           if (jm)
-            return jm->getType() == moveit::core::JointModel::REVOLUTE ? value * 180 / M_PI : value;
+            return value;
           break;
         case ProgressBarDelegate::JointTypeRole:
           if (jm)
@@ -134,7 +144,7 @@ QVariant JMGItemModel::headerData(int section, Qt::Orientation orientation, int 
 
 bool JMGItemModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
-  if (index.column() != 1 || role != Qt::EditRole)
+  if (index.column() != 1 || (role != Qt::EditRole && role != ProgressBarDelegate::JointRangeFractionRole))
     return false;
 
   int var_idx = jmg_ ? jmg_->getVariableIndexList()[index.row()] : index.row();
@@ -147,9 +157,13 @@ bool JMGItemModel::setData(const QModelIndex& index, const QVariant& value, int 
   if (!ok)
     return false;
 
-  // for revolute joints, we convert degrees to radians
-  if (jm && jm->getType() == moveit::core::JointModel::REVOLUTE)
-    v *= M_PI / 180;
+  if (role == ProgressBarDelegate::JointRangeFractionRole)
+  {
+    const moveit::core::VariableBounds* bounds = getVariableBounds(jm, index);
+    if (!bounds)
+      return false;
+    v = bounds->min_position_ + v * (bounds->max_position_ - bounds->min_position_);
+  }
 
   robot_state_.setVariablePosition(var_idx, v);
   jm->enforcePositionBounds(robot_state_.getVariablePositions() + jm->getFirstVariableIndex());
@@ -192,13 +206,38 @@ MotionPlanningFrameJointsWidget::MotionPlanningFrameJointsWidget(MotionPlanningD
   ui_->joints_view_->viewport()->installEventFilter(new JointsWidgetEventFilter(ui_->joints_view_));
   // intercept keyboard events delivered to joints_view_ to operate joints directly
   ui_->joints_view_->installEventFilter(new JointsWidgetEventFilter(ui_->joints_view_));
-  ui_->joints_view_->setItemDelegateForColumn(1, new ProgressBarDelegate(this));
+
+  auto delegate = new ProgressBarDelegate(this);
+  ui_->button_group_units_->setId(ui_->radio_degree_, ProgressBarDelegate::DEGREES);
+  ui_->button_group_units_->setId(ui_->radio_radian_, ProgressBarDelegate::RADIANS);
+  connect(ui_->button_group_units_, QOverload<QAbstractButton*, bool>::of(&QButtonGroup::buttonToggled),
+          ui_->joints_view_, [delegate, this](QAbstractButton* button, bool checked) {
+            if (checked)
+            {
+              delegate->setUnit(static_cast<ProgressBarDelegate::RevoluteUnit>(ui_->button_group_units_->id(button)));
+              // trigger repaint of joint values
+              auto model = ui_->joints_view_->model();
+              if (model)  // during initial loading, the model is not yet set
+                ui_->joints_view_->dataChanged(model->index(0, 1), model->index(model->rowCount() - 1, 1));
+              Q_EMIT configChanged();
+            }
+          });
+  ui_->joints_view_->setItemDelegateForColumn(1, delegate);
   svd_.setThreshold(0.001);
 }
 
 MotionPlanningFrameJointsWidget::~MotionPlanningFrameJointsWidget()
 {
   delete ui_;
+}
+
+bool MotionPlanningFrameJointsWidget::useRadians() const
+{
+  return ui_->radio_radian_->isChecked();
+}
+void MotionPlanningFrameJointsWidget::setUseRadians(bool use_radians)
+{
+  ui_->radio_radian_->setChecked(use_radians);
 }
 
 void MotionPlanningFrameJointsWidget::clearRobotModel()
@@ -386,14 +425,13 @@ void MotionPlanningFrameJointsWidget::jogNullspace(double value)
 
 namespace
 {
-void paintProgressBar(QPainter* painter, QStyle* style, const QString& text, float value, float min, float max,
-                      const QRect& rect)
+void paintProgressBar(QPainter* painter, QStyle* style, const QString& text, float value, const QRect& rect)
 {
   QStyleOptionProgressBar opt;
   opt.rect = rect;
   opt.minimum = 0;
   opt.maximum = 1000;
-  opt.progress = 1000. * (value - min) / (max - min);
+  opt.progress = 1000. * value;
   opt.text = text;
   opt.textAlignment = Qt::AlignCenter;
   opt.textVisible = true;
@@ -417,7 +455,10 @@ void ProgressBarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
       switch (joint_type.toInt())
       {
         case moveit::core::JointModel::REVOLUTE:
-          style_option.text = option.locale.toString(value * 180 / M_PI, 'f', 0).append("°");
+          if (unit_ == RADIANS)
+            style_option.text = option.locale.toString(value, 'f', 3);
+          else
+            style_option.text = option.locale.toString(value * 180 / M_PI, 'f', 0).append("°");
           break;
         case moveit::core::JointModel::PRISMATIC:
           style_option.text = option.locale.toString(value, 'f', 3).append("m");
@@ -430,10 +471,8 @@ void ProgressBarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
     QVariant vbounds = index.data(VariableBoundsRole);
     if (vbounds.isValid())
     {
-      QPointF bounds = vbounds.toPointF();
-      const float min = bounds.x();
-      const float max = bounds.y();
-      paintProgressBar(painter, style, style_option.text, value, min, max, style_option.rect);
+      const double progressbar_fraction{ index.data(ProgressBarDelegate::JointRangeFractionRole).toDouble() };
+      paintProgressBar(painter, style, style_option.text, progressbar_fraction, style_option.rect);
       return;
     }
   }
@@ -449,9 +488,78 @@ QWidget* ProgressBarDelegate::createEditor(QWidget* parent, const QStyleOptionVi
   if (auto spinbox = qobject_cast<QDoubleSpinBox*>(editor))
   {
     bool is_revolute = (index.data(ProgressBarDelegate::JointTypeRole).toInt() == moveit::core::JointModel::REVOLUTE);
-    spinbox->setSuffix(is_revolute ? "°" : "m");
+    if (is_revolute)
+    {
+      if (unit_ == RADIANS)
+      {
+        spinbox->setSuffix("");
+        spinbox->setDecimals(3);
+        spinbox->setSingleStep(0.01);
+      }
+      else
+      {
+        spinbox->setSuffix("°");
+        spinbox->setDecimals(0);
+        spinbox->setSingleStep(1);
+      }
+    }
+    else
+    {
+      spinbox->setSuffix("m");
+      spinbox->setDecimals(3);
+      spinbox->setSingleStep(0.001);
+    }
   }
+  connect(editor, &QObject::destroyed, this, &ProgressBarDelegate::onEditorDestroyed);
+  ++editor_open_count_;
   return editor;
+}
+
+void ProgressBarDelegate::onEditorDestroyed(QObject* /* editor */) const
+{
+  if (editor_open_count_ > 0)
+    --editor_open_count_;
+}
+
+bool ProgressBarDelegate::isEditing() const
+{
+  return editor_open_count_ > 0;
+}
+
+void ProgressBarDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
+{
+  if (auto spinbox = qobject_cast<QDoubleSpinBox*>(editor))
+  {
+    if (index.data(ProgressBarDelegate::JointTypeRole).toInt() == moveit::core::JointModel::REVOLUTE)
+    {
+      if (unit_ == RADIANS)
+        spinbox->setValue(index.data().toDouble());
+      else
+        spinbox->setValue(index.data().toDouble() * 180 / M_PI);
+    }
+    else
+      spinbox->setValue(index.data().toDouble());
+  }
+  else
+    QStyledItemDelegate::setEditorData(editor, index);
+}
+
+void ProgressBarDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
+{
+  if (auto spinbox = qobject_cast<QDoubleSpinBox*>(editor))
+  {
+    if (index.data(ProgressBarDelegate::JointTypeRole).toInt() == moveit::core::JointModel::REVOLUTE)
+    {
+      if (unit_ == RADIANS)
+        model->setData(index, spinbox->value(), Qt::EditRole);
+      else
+        model->setData(index, spinbox->value() * M_PI / 180, Qt::EditRole);
+    }
+    else
+      model->setData(index, spinbox->value(), Qt::EditRole);
+  }
+  else
+    QStyledItemDelegate::setModelData(editor, model, index);
 }
 
 JointsWidgetEventFilter::JointsWidgetEventFilter(QAbstractItemView* view) : QObject(view)
@@ -473,7 +581,9 @@ bool JointsWidgetEventFilter::eventFilter(QObject* /*target*/, QEvent* event)
         return false;
       if (!vbounds.isValid())
       {
-        view->edit(index);
+        ProgressBarDelegate* delegate = qobject_cast<ProgressBarDelegate*>(view->itemDelegateForColumn(1));
+        if (delegate && !delegate->isEditing())
+          view->edit(index);
         return false;
       }
 
@@ -481,24 +591,12 @@ bool JointsWidgetEventFilter::eventFilter(QObject* /*target*/, QEvent* event)
       const QRect& rect = view->visualRect(active_);
       pmin_ = rect.x();
       pmax_ = rect.x() + rect.width();
-      if (vbounds.isValid())
-      {
-        QPointF bounds = vbounds.toPointF();
-        jmin_ = bounds.x();
-        jmax_ = bounds.y();
-      }
-      bool is_revolute = (index.data(ProgressBarDelegate::JointTypeRole).toInt() == moveit::core::JointModel::REVOLUTE);
-      if (is_revolute)
-      {
-        jmin_ *= 180. / M_PI;
-        jmax_ *= 180. / M_PI;
-      }
     }
     else if (!active_.isValid())
       return false;
 
-    float v = jmin_ + (static_cast<QMouseEvent*>(event)->x() - pmin_) * (jmax_ - jmin_) / (pmax_ - pmin_);
-    view->model()->setData(active_, v, Qt::EditRole);
+    float v = static_cast<float>(static_cast<QMouseEvent*>(event)->x() - pmin_) / (pmax_ - pmin_);
+    view->model()->setData(active_, v, ProgressBarDelegate::JointRangeFractionRole);
     return true;  // event handled
   }
   else if (event->type() == QEvent::MouseButtonRelease && static_cast<QMouseEvent*>(event)->button() == Qt::LeftButton)
@@ -507,21 +605,28 @@ bool JointsWidgetEventFilter::eventFilter(QObject* /*target*/, QEvent* event)
   else if (event->type() == QEvent::KeyPress)
   {
     QKeyEvent* key_event = static_cast<QKeyEvent*>(event);
-    if (key_event->key() != Qt::Key_Left && key_event->key() != Qt::Key_Right)
-      return false;  // only react to KeyLeft / KeyRight events
+
+    if (key_event->key() != Qt::Key_Left && key_event->key() != Qt::Key_Right && key_event->key() != Qt::Key_Return)
+      return false;  // only react to these events
 
     QAbstractItemView* view = qobject_cast<QAbstractItemView*>(parent());
     QModelIndex index = view->currentIndex();
     index = index.sibling(index.row(), 1);
+
+    if (key_event->key() == Qt::Key_Return)
+    {
+      ProgressBarDelegate* delegate = qobject_cast<ProgressBarDelegate*>(view->itemDelegateForColumn(1));
+      if (delegate && !delegate->isEditing())
+        view->edit(index);
+      return false;
+    }
 
     if (key_event->type() == QEvent::KeyPress && key_event->modifiers() == Qt::NoModifier &&
         index.flags() & Qt::ItemIsEditable)
     {
       if (!key_event->isAutoRepeat())  // first key press: initialize delta_ from joint type and direction
       {
-        delta_ = key_event->key() == Qt::Key_Left ? -0.1f : 0.1f;
-        if (index.data(ProgressBarDelegate::JointTypeRole).toInt() == moveit::core::JointModel::PRISMATIC)
-          delta_ *= 0.01;
+        delta_ = key_event->key() == Qt::Key_Left ? -0.002f : 0.002f;
       }
       else  // increase delta in a multiplicative fashion when holding down the key
       {
@@ -529,8 +634,8 @@ bool JointsWidgetEventFilter::eventFilter(QObject* /*target*/, QEvent* event)
       }
     }
 
-    float current = index.data(Qt::EditRole).toFloat();
-    view->model()->setData(index, current + delta_, Qt::EditRole);
+    float current = index.data(ProgressBarDelegate::JointRangeFractionRole).toFloat();
+    view->model()->setData(index, current + delta_, ProgressBarDelegate::JointRangeFractionRole);
     return true;
   }
   return false;

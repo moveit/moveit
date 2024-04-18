@@ -44,6 +44,8 @@
 #include <string>
 #include <boost/filesystem/path.hpp>
 #include <ros/package.h>
+#include <octomap_msgs/conversions.h>
+#include <octomap/octomap.h>
 
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection/collision_plugin_cache.h>
@@ -51,7 +53,7 @@
 TEST(PlanningScene, LoadRestore)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   planning_scene::PlanningScene ps(urdf_model, srdf_model);
   moveit_msgs::PlanningScene ps_msg;
   ps.getPlanningSceneMsg(ps_msg);
@@ -62,10 +64,63 @@ TEST(PlanningScene, LoadRestore)
   EXPECT_EQ(ps.getRobotModel()->getName(), ps_msg.robot_model_name);
 }
 
+TEST(PlanningScene, LoadOctomap)
+{
+  urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
+  auto srdf_model = std::make_shared<srdf::Model>();
+  planning_scene::PlanningScene ps(urdf_model, srdf_model);
+
+  {  // check octomap before doing any operations on it
+    octomap_msgs::OctomapWithPose msg;
+    ps.getOctomapMsg(msg);
+    EXPECT_TRUE(msg.octomap.id.empty());
+    EXPECT_TRUE(msg.octomap.data.empty());
+  }
+
+  {  // fill PlanningScene's octomap
+    octomap::OcTree octomap(0.1);
+    octomap::point3d origin(0, 0, 0);
+    octomap::point3d end(0, 1, 2);
+    octomap.insertRay(origin, end);
+
+    // populate PlanningScene with octomap
+    moveit_msgs::PlanningScene msg;
+    msg.is_diff = true;
+    octomap_msgs::fullMapToMsg(octomap, msg.world.octomap.octomap);
+    ps.setPlanningSceneDiffMsg(msg);
+
+    // validate octomap message
+    octomap_msgs::OctomapWithPose octomap_msg;
+    ps.getOctomapMsg(octomap_msg);
+    EXPECT_EQ(octomap_msg.octomap.id, "OcTree");
+    EXPECT_EQ(octomap_msg.octomap.data.size(), msg.world.octomap.octomap.data.size());
+  }
+
+  {  // verify that a PlanningScene msg with an empty octomap id does not modify the octomap
+    // create planning scene
+    moveit_msgs::PlanningScene msg;
+    msg.is_diff = true;
+    ps.setPlanningSceneDiffMsg(msg);
+
+    octomap_msgs::OctomapWithPose octomap_msg;
+    ps.getOctomapMsg(octomap_msg);
+    EXPECT_EQ(octomap_msg.octomap.id, "OcTree");
+    EXPECT_FALSE(octomap_msg.octomap.data.empty());
+  }
+
+  {  // check that a non-empty octomap id, but empty octomap will clear the octomap
+    moveit_msgs::PlanningScene msg;
+    msg.is_diff = true;
+    msg.world.octomap.octomap.id = "xxx";
+    ps.setPlanningSceneDiffMsg(msg);
+    EXPECT_FALSE(static_cast<bool>(ps.getWorld()->getObject(planning_scene::PlanningScene::OCTOMAP_NS)));
+  }
+}
+
 TEST(PlanningScene, LoadRestoreDiff)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   auto ps = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
 
   collision_detection::World& world = *ps->getWorldNonConst();
@@ -125,7 +180,7 @@ TEST(PlanningScene, LoadRestoreDiff)
 TEST(PlanningScene, MakeAttachedDiff)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   auto ps = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
 
   /* add a single object to ps's world */
@@ -266,7 +321,7 @@ TEST_P(CollisionDetectorTests, ClearDiff)
   SCOPED_TRACE(plugin_name);
 
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   // create parent scene
   planning_scene::PlanningScenePtr parent = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
 

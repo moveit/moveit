@@ -107,14 +107,14 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
                               SLOT(changedSceneColor()), this);
 
   octree_render_property_ = new rviz::EnumProperty("Voxel Rendering", "Occupied Voxels", "Select voxel type.",
-                                                   scene_category_, SLOT(changedOctreeRenderMode()), this);
+                                                   scene_category_, SLOT(changedOctreeRendering()), this);
 
   octree_render_property_->addOption("Occupied Voxels", OCTOMAP_OCCUPIED_VOXELS);
   octree_render_property_->addOption("Free Voxels", OCTOMAP_FREE_VOXELS);
   octree_render_property_->addOption("All Voxels", OCTOMAP_FREE_VOXELS | OCTOMAP_OCCUPIED_VOXELS);
 
   octree_coloring_property_ = new rviz::EnumProperty("Voxel Coloring", "Z-Axis", "Select voxel coloring mode",
-                                                     scene_category_, SLOT(changedOctreeColorMode()), this);
+                                                     scene_category_, SLOT(changedOctreeRendering()), this);
 
   octree_coloring_property_->addOption("Z-Axis", OCTOMAP_Z_AXIS_COLOR);
   octree_coloring_property_->addOption("Cell Probability", OCTOMAP_PROBABLILTY_COLOR);
@@ -397,12 +397,9 @@ void PlanningSceneDisplay::changedSceneDisplayTime()
 {
 }
 
-void PlanningSceneDisplay::changedOctreeRenderMode()
+void PlanningSceneDisplay::changedOctreeRendering()
 {
-}
-
-void PlanningSceneDisplay::changedOctreeColorMode()
-{
+  planning_scene_needs_render_ = true;
 }
 
 void PlanningSceneDisplay::changedSceneRobotVisualEnabled()
@@ -538,7 +535,7 @@ void PlanningSceneDisplay::loadRobotModel()
     planning_scene_monitor_.swap(psm);
     planning_scene_monitor_->addUpdateCallback(
         [this](planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType type) {
-          sceneMonitorReceivedUpdate(type);
+          onSceneMonitorReceivedUpdate(type);
         });
     addMainLoopJob([this] { onRobotModelLoaded(); });
     waitForAllMainLoopJobs();
@@ -574,12 +571,6 @@ void PlanningSceneDisplay::onRobotModelLoaded()
 
 void PlanningSceneDisplay::onNewPlanningSceneState()
 {
-}
-
-void PlanningSceneDisplay::sceneMonitorReceivedUpdate(
-    planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
-{
-  onSceneMonitorReceivedUpdate(update_type);
 }
 
 void PlanningSceneDisplay::onSceneMonitorReceivedUpdate(

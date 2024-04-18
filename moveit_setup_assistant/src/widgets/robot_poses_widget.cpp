@@ -494,7 +494,6 @@ void RobotPosesWidget::loadJointSliders(const QString& selected)
   const auto& robot_state = config_data_->getPlanningScene()->getCurrentState();
 
   // Iterate through the joints
-  int num_joints = 0;
   for (const moveit::core::JointModel* joint_model : joint_model_group->getJointModels())
   {
     if (joint_model->getVariableCount() != 1 ||  // only consider 1-variable joints
@@ -511,8 +510,6 @@ void RobotPosesWidget::loadJointSliders(const QString& selected)
     // Connect value change event
     connect(sw, SIGNAL(jointValueChanged(const std::string&, double)), this,
             SLOT(updateRobotModel(const std::string&, double)));
-
-    ++num_joints;
   }
 
   // Update the robot model in Rviz with newly selected joint values

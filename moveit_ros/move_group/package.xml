@@ -1,6 +1,6 @@
 <package format="2">
   <name>moveit_ros_move_group</name>
-  <version>1.1.11</version>
+  <version>1.1.13</version>
   <description>The move_group node for MoveIt</description>
   <author email="isucan@google.com">Ioan Sucan</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>

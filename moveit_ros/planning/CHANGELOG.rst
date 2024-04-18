@@ -2,6 +2,21 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+
+1.1.12 (2023-05-13)
+-------------------
+* Add CSM tests (`#3395 <https://github.com/ros-planning/moveit/issues/3395>`_)
+* CSM: do not jump back in time (`#3393 <https://github.com/ros-planning/moveit/issues/3393>`_)
+* Fix MoveItCpp issues (`#3369 <https://github.com/ros-planning/moveit/issues/3369>`_)
+* Skip executing zero-duration trajectories (`#3362 <https://github.com/ros-planning/moveit/issues/3362>`_)
+* Drop unnecessary cmake dependency on moveit_resources (`#3343 <https://github.com/ros-planning/moveit/issues/3343>`_)
+* Fix (some) doxygen warnings (`#3315 <https://github.com/ros-planning/moveit/issues/3315>`_)
+* Switch master build to C++17 (`#3313 <https://github.com/ros-planning/moveit/issues/3313>`_)
+* Drop lib/ prefix from plugin paths (`#3305 <https://github.com/ros-planning/moveit/issues/3305>`_)
+* Contributors: Jochen Sprickerhof, Michael Görner, Robert Haschke
+
 1.1.11 (2022-12-21)
 -------------------
 * Backport ruckig trajectory_processing plugin (`#2902 <https://github.com/ros-planning/moveit/issues/2902>`_)

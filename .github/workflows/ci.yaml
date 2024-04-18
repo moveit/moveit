@@ -81,7 +81,7 @@ jobs:
           # free up a lot of stuff from /usr/local
           sudo rm -rf /usr/local
           df -h
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Cache upstream workspace
         uses: rhaschke/cache@main
         with:
@@ -127,13 +127,15 @@ jobs:
       - name: Generate ikfast packages
         if: matrix.env.IKFAST_TEST
         run: moveit_kinematics/test/test_ikfast_plugins.sh
+        env:
+          ROS_DISTRO: noetic
       - id: ici
         name: Run industrial_ci
         uses: ros-industrial/industrial_ci@master
         env: ${{ matrix.env }}
 
       - name: Upload test artifacts (on failure)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure() && (steps.ici.outputs.run_target_test || steps.ici.outputs.target_test_results)
         with:
           name: test-results-${{ matrix.env.IMAGE }}
@@ -146,7 +148,7 @@ jobs:
           workdir: ${{ env.BASEDIR }}/target_ws
           ignore: '"*/target_ws/build/*" "*/target_ws/install/*" "*/test/*"'
       - name: Upload codecov report
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         if: always() && matrix.env.CCOV && steps.ici.outputs.target_test_results == '0'
         with:
           files: ${{ env.BASEDIR }}/target_ws/coverage.info
@@ -172,7 +174,7 @@ jobs:
     permissions:
       contents: write # allow pushing
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Fast-forward noetic-devel to sync with master
         run: |
           # Configure push user+url

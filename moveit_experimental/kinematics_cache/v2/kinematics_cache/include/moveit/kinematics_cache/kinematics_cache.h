@@ -56,8 +56,7 @@ public:
     unsigned int max_solutions_per_grid_location;
   };
 
-  /** @class
-   *  @brief An implementation of a cache for fast kinematics lookups. initialize needs to be called on this class
+  /** @brief An implementation of a cache for fast kinematics lookups. initialize needs to be called on this class
    * before it can be used.
    */
   KinematicsCache();

@@ -83,7 +83,9 @@ PYBIND11_MODULE(pymoveit_planning_scene_interface, m)
       .def("get_objects", &PlanningSceneInterface::getObjects, py::arg("object_ids") = std::vector<std::string>{})
       .def("get_attached_objects", &PlanningSceneInterface::getAttachedObjects,
            py::arg("object_ids") = std::vector<std::string>{})
+      .def("get_planning_scene", &PlanningSceneInterfaceWrapper::getPlanningSceneMsg)
       .def("apply_planning_scene", &PlanningSceneInterface::applyPlanningScene, py::arg("planning_scene"))
+      .def("clear", &PlanningSceneInterfaceWrapper::clear)
       // keep semicolon on next line
       ;
 }

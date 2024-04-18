@@ -90,8 +90,8 @@ bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::blend(
   moveit_msgs::MoveItErrorCodes error_code;
 
   if (!generateJointTrajectory(planning_scene, limits_.getJointLimitContainer(), blend_trajectory_cartesian,
-                               req.group_name, req.link_name, initial_joint_position, initial_joint_velocity,
-                               blend_joint_trajectory, error_code, true))
+                               req.group_name, req.link_name, Eigen::Translation3d::Identity(), initial_joint_position,
+                               initial_joint_velocity, blend_joint_trajectory, error_code))
   {
     // LCOV_EXCL_START
     ROS_INFO("Failed to generate joint trajectory for blending trajectory.");
@@ -167,7 +167,8 @@ bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::validate
   if (!pilz_industrial_motion_planner::isRobotStateEqual(
           req.first_trajectory->getLastWayPoint(), req.second_trajectory->getFirstWayPoint(), req.group_name, EPSILON))
   {
-    ROS_ERROR_STREAM("During blending the last point of the preceding and the first point of the succeding trajectory");
+    ROS_ERROR_STREAM(
+        "During blending the last point of the preceding and the first point of the succeding trajectory differ");
     error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
     return false;
   }

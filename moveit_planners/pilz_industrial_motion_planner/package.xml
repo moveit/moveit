@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>pilz_industrial_motion_planner</name>
-  <version>1.1.11</version>
+  <version>1.1.13</version>
   <description>MoveIt plugin to generate industrial trajectories PTP, LIN, CIRC and sequences thereof.</description>
 
   <maintainer email="a.gutenkunst@pilz.de">Alexander Gutenkunst</maintainer>
@@ -24,8 +24,8 @@
   <depend>moveit_core</depend>
   <depend>moveit_ros_planning</depend> <!-- RobotModelLoader -->
   <depend>moveit_ros_move_group</depend> <!-- move_group capability -->
-  <depend condition="$ROS_DISTRO != noetic">orocos_kdl</depend>
-  <depend condition="$ROS_DISTRO == noetic">liborocos-kdl-dev</depend>
+  <depend condition="$ROS_DISTRO == melodic">orocos_kdl</depend>
+  <depend condition="$ROS_DISTRO != melodic">liborocos-kdl-dev</depend>
   <depend>pluginlib</depend>
   <depend>roscpp</depend>
   <depend>tf2</depend>

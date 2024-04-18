@@ -44,9 +44,7 @@ namespace rdf_loader
 {
 MOVEIT_CLASS_FORWARD(RDFLoader);  // Defines RDFLoaderPtr, ConstPtr, WeakPtr... etc
 
-/** @class RDFLoader
- *  @brief Default constructor
- *  @param robot_description The string name corresponding to the ROS param where the URDF is loaded*/
+/** Loader for .urdf and .srdf descriptions */
 class RDFLoader
 {
 public:

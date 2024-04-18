@@ -1109,7 +1109,6 @@ public:
    * @param twist a Cartesian velocity on the 'tip' frame
    * @param tip the frame for which the twist is given
    * @param dt a time interval (seconds)
-   * @param st a secondary task computation function
    */
   bool setFromDiffIK(const JointModelGroup* group, const Eigen::VectorXd& twist, const std::string& tip, double dt,
                      const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn());
@@ -1119,7 +1118,6 @@ public:
    * @param twist a Cartesian velocity on the 'tip' frame
    * @param tip the frame for which the twist is given
    * @param dt a time interval (seconds)
-   * @param st a secondary task computation function
    */
   bool setFromDiffIK(const JointModelGroup* group, const geometry_msgs::Twist& twist, const std::string& tip, double dt,
                      const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn());
@@ -1301,6 +1299,10 @@ public:
   /** \brief Set all joints to random values.  Values will be within default bounds. */
   void setToRandomPositions();
 
+  /** \brief Set all joints to random values using the specified random number generator.
+      Values will be within default bounds. */
+  void setToRandomPositions(random_numbers::RandomNumberGenerator& rng);
+
   /** \brief Set all joints in \e group to random values.  Values will be within default bounds. */
   void setToRandomPositions(const JointModelGroup* group);
 
@@ -1310,14 +1312,14 @@ public:
 
   /** \brief Set all joints in \e group to random values near the value in \e seed.
    *  \e distance is the maximum amount each joint value will vary from the
-   *  corresponding value in \e seed.  \distance represents meters for
+   *  corresponding value in \e seed.  \e distance represents meters for
    *  prismatic/postitional joints and radians for revolute/orientation joints.
    *  Resulting values are clamped within default bounds. */
   void setToRandomPositionsNearBy(const JointModelGroup* group, const RobotState& seed, double distance);
 
   /** \brief Set all joints in \e group to random values near the value in \e seed, using a specified random number generator.
    *  \e distance is the maximum amount each joint value will vary from the
-   *  corresponding value in \e seed.  \distance represents meters for
+   *  corresponding value in \e seed.  \e distance represents meters for
    *  prismatic/postitional joints and radians for revolute/orientation joints.
    *  Resulting values are clamped within default bounds. */
   void setToRandomPositionsNearBy(const JointModelGroup* group, const RobotState& seed, double distance,
@@ -1327,7 +1329,7 @@ public:
    *  \e distances \b MUST have the same size as \c
    *  group.getActiveJointModels().  Each value in \e distances is the maximum
    *  amount the corresponding active joint in \e group will vary from the
-   *  corresponding value in \e seed.  \distance represents meters for
+   *  corresponding value in \e seed.  \e distance represents meters for
    *  prismatic/postitional joints and radians for revolute/orientation joints.
    *  Resulting values are clamped within default bounds. */
   void setToRandomPositionsNearBy(const JointModelGroup* group, const RobotState& seed,
@@ -1337,7 +1339,7 @@ public:
    *  \e distances \b MUST have the same size as \c
    *  group.getActiveJointModels().  Each value in \e distances is the maximum
    *  amount the corresponding active joint in \e group will vary from the
-   *  corresponding value in \e seed.  \distance represents meters for
+   *  corresponding value in \e seed.  \e distance represents meters for
    *  prismatic/postitional joints and radians for revolute/orientation joints.
    *  Resulting values are clamped within default bounds. */
   void setToRandomPositionsNearBy(const JointModelGroup* group, const RobotState& seed,
@@ -1380,8 +1382,12 @@ public:
    *
    * This behaves the same as RobotModel::getRigidlyConnectedParentLinkModel,
    * but can additionally resolve parents for attached objects / subframes.
+   *
+   * If transform is specified, return the (fixed) relative transform from the returned parent link to frame.
    */
-  const moveit::core::LinkModel* getRigidlyConnectedParentLinkModel(const std::string& frame) const;
+  const moveit::core::LinkModel*
+  getRigidlyConnectedParentLinkModel(const std::string& frame, Eigen::Isometry3d* transform = nullptr,
+                                     const moveit::core::JointModelGroup* jmg = nullptr) const;
 
   /** \brief Get the link transform w.r.t. the root link (model frame) of the RobotModel.
    *   This is typically the root link of the URDF unless a virtual joint is present.

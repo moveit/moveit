@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>moveit_ros_control_interface</name>
-  <version>1.1.11</version>
+  <version>1.1.13</version>
   <description>ros_control controller manager interface for MoveIt</description>
 
   <author email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</author>

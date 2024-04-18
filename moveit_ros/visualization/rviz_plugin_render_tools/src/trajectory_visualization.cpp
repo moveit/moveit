@@ -105,7 +105,7 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
   use_sim_time_property_ = new rviz::BoolProperty("Use Sim Time", false,
                                                   "Indicates whether simulation time or wall-time is "
                                                   "used for state display timing.",
-                                                  widget, nullptr, this);
+                                                  widget);
 
   loop_display_property_ = new rviz::BoolProperty("Loop Animation", false,
                                                   "Indicates whether the last received path "
@@ -252,6 +252,15 @@ void TrajectoryVisualization::changedShowTrail()
     if (enable_robot_color_property_->getBool())
       setRobotColor(&(r->getRobot()), robot_color_property_->getColor());
     r->setVisible(display_->isEnabled() && (!animating_path_ || waypoint_i <= current_state_));
+    const auto& robot_path_links = display_path_robot_->getRobot().getLinks();
+    for (const auto& [link_name, robot_link] : robot_path_links)
+    {
+      rviz::RobotLink* l = r->getRobot().getLink(link_name);
+      rviz::Property* link_property = robot_link->getLinkProperty();
+      l->getLinkProperty()->setValue(link_property->getValue());
+      connect(link_property, &rviz::Property::changed, l,
+              [l, link_property]() { l->getLinkProperty()->setValue(link_property->getValue()); });
+    }
     trajectory_trail_[i] = std::move(r);
   }
 }

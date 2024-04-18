@@ -52,9 +52,7 @@
 
 namespace kinematics_constraint_aware
 {
-/**
- * @class A kinematics request
- */
+/** A kinematics request */
 class KinematicsRequest
 {
 public:
@@ -81,9 +79,7 @@ public:
   moveit::core::StateValidityCallbackFn constraint_callback_;
 };
 
-/**
- * @class A kinematics response
- */
+/** A kinematics response */
 class KinematicsResponse
 {
 public:

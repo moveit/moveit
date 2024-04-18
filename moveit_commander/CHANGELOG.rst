@@ -2,6 +2,16 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+
+1.1.12 (2023-05-13)
+-------------------
+* Rename argument of execute() to trajectory (`#3392 <https://github.com/ros-planning/moveit/issues/3392>`_)
+* Disentangle joint name methods, add group_state (`#3345 <https://github.com/ros-planning/moveit/issues/3345>`_)
+* Fix plan() and add corresponding unit tests (`#3302 <https://github.com/ros-planning/moveit/issues/3302>`_)
+* Contributors: Michael Görner, Robert Haschke
+
 1.1.11 (2022-12-21)
 -------------------
 * Fix some consistency issues in PlanningScene handling (`#3298 <https://github.com/ros-planning/moveit/issues/3298>`_)

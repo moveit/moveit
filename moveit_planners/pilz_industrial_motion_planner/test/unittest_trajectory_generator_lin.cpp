@@ -187,11 +187,6 @@ TEST(TrajectoryGeneratorLINTest, TestExceptionErrorCodeMapping)
   }
 
   {
-    std::shared_ptr<LinJointMissingInStartState> ljmiss_ex{ new LinJointMissingInStartState("") };
-    EXPECT_EQ(ljmiss_ex->getErrorCode(), moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
-  }
-
-  {
     std::shared_ptr<LinInverseForGoalIncalculable> lifgi_ex{ new LinInverseForGoalIncalculable("") };
     EXPECT_EQ(lifgi_ex->getErrorCode(), moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION);
   }
@@ -420,24 +415,6 @@ TEST_P(TrajectoryGeneratorLINTest, IncorrectJointNumber)
   planning_interface::MotionPlanResponse res;
   ASSERT_FALSE(lin_->generate(planning_scene_, lin_joint_req, res));
   EXPECT_TRUE(res.error_code_.val == moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
-}
-
-/**
- * @brief test invalid motion plan request with incomplete start state and
- * cartesian goal
- */
-TEST_P(TrajectoryGeneratorLINTest, cartGoalIncompleteStartState)
-{
-  // construct motion plan request
-  moveit_msgs::MotionPlanRequest lin_cart_req{ tdp_->getLinCart("lin2").toRequest() };
-  EXPECT_GT(lin_cart_req.start_state.joint_state.name.size(), 1u);
-  lin_cart_req.start_state.joint_state.name.resize(1);
-  lin_cart_req.start_state.joint_state.position.resize(1);  // prevent failing check for equal sizes
-
-  // generate lin trajectory
-  planning_interface::MotionPlanResponse res;
-  EXPECT_FALSE(lin_->generate(planning_scene_, lin_cart_req, res));
-  EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
 }
 
 /**

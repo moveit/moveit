@@ -59,7 +59,7 @@ public:
                                       const moveit::core::RobotModelConstPtr& robot_model) const = 0;
 
   /** create a new CollisionWorld by copying an existing CollisionWorld of the same type.s
-   * The world must be either the same world as used by \orig or a copy of that world which has not yet been modified.
+   * The world must be either the same world as used by \e orig or a copy of that world which has not yet been modified.
    */
   virtual CollisionEnvPtr allocateEnv(const CollisionEnvConstPtr& orig, const WorldPtr& world) const = 0;
 

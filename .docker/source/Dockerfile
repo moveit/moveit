@@ -5,7 +5,7 @@
 
 ARG IMAGE=noetic
 FROM moveit/moveit:${IMAGE}-ci-testing
-MAINTAINER Robert Haschke rhaschke@techfak.uni-bielefeld.de
+LABEL org.opencontainers.image.authors="Robert Haschke <rhaschke@techfak.uni-bielefeld.de>"
 
 ENV PYTHONIOENCODING UTF-8
 # Export ROS_UNDERLAY for downstream docker containers

@@ -39,6 +39,7 @@
 #include <gtest/gtest.h>
 #include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
 #include <moveit/utils/robot_model_test_utils.h>
+#include <urdf_parser/urdf_parser.h>
 
 using trajectory_processing::Path;
 using trajectory_processing::TimeOptimalTrajectoryGeneration;
@@ -74,6 +75,11 @@ TEST(time_optimal_trajectory_generation, test1)
   EXPECT_DOUBLE_EQ(985.000244140625, trajectory.getPosition(trajectory.getDuration())[1]);
   EXPECT_DOUBLE_EQ(2126.0, trajectory.getPosition(trajectory.getDuration())[2]);
   EXPECT_DOUBLE_EQ(0.0, trajectory.getPosition(trajectory.getDuration())[3]);
+
+  // Start at rest and end at rest
+  const double traj_duration = trajectory.getDuration();
+  EXPECT_NEAR(0.0, trajectory.getVelocity(0.0)[0], 0.1);
+  EXPECT_NEAR(0.0, trajectory.getVelocity(traj_duration)[0], 0.1);
 }
 
 TEST(time_optimal_trajectory_generation, test2)
@@ -112,6 +118,11 @@ TEST(time_optimal_trajectory_generation, test2)
   EXPECT_DOUBLE_EQ(533.0, trajectory.getPosition(trajectory.getDuration())[1]);
   EXPECT_DOUBLE_EQ(951.0, trajectory.getPosition(trajectory.getDuration())[2]);
   EXPECT_DOUBLE_EQ(90.0, trajectory.getPosition(trajectory.getDuration())[3]);
+
+  // Start at rest and end at rest
+  const double traj_duration = trajectory.getDuration();
+  EXPECT_NEAR(0.0, trajectory.getVelocity(0.0)[0], 0.1);
+  EXPECT_NEAR(0.0, trajectory.getVelocity(traj_duration)[0], 0.1);
 }
 
 TEST(time_optimal_trajectory_generation, test3)
@@ -150,6 +161,11 @@ TEST(time_optimal_trajectory_generation, test3)
   EXPECT_DOUBLE_EQ(533.0, trajectory.getPosition(trajectory.getDuration())[1]);
   EXPECT_DOUBLE_EQ(951.0, trajectory.getPosition(trajectory.getDuration())[2]);
   EXPECT_DOUBLE_EQ(90.0, trajectory.getPosition(trajectory.getDuration())[3]);
+
+  // Start at rest and end at rest
+  const double traj_duration = trajectory.getDuration();
+  EXPECT_NEAR(0.0, trajectory.getVelocity(0.0)[0], 0.1);
+  EXPECT_NEAR(0.0, trajectory.getVelocity(traj_duration)[0], 0.1);
 }
 
 // Test that totg algorithm doesn't give large acceleration
@@ -346,6 +362,105 @@ TEST(time_optimal_trajectory_generation, testPluginAPI)
 
   // Make sure trajectories produce equal waypoints independent of TOTG instances
   ASSERT_EQ(first_trajectory_msg_end, third_trajectory_msg_end);
+}
+
+TEST(time_optimal_trajectory_generation, testSingleDofDiscontinuity)
+{
+  // Test a (prior) specific failure case
+  Eigen::VectorXd waypoint(1);
+  std::list<Eigen::VectorXd> waypoints;
+
+  const double start_position = 1.881943;
+  waypoint << start_position;
+  waypoints.push_back(waypoint);
+  waypoint << 2.600542;
+  waypoints.push_back(waypoint);
+
+  Eigen::VectorXd max_velocities(1);
+  max_velocities << 4.54;
+  Eigen::VectorXd max_accelerations(1);
+  max_accelerations << 28.0;
+
+  Trajectory trajectory(Path(waypoints, 0.1 /* path tolerance */), max_velocities, max_accelerations,
+                        0.001 /* timestep */);
+  EXPECT_TRUE(trajectory.isValid());
+
+  EXPECT_GT(trajectory.getDuration(), 0.0);
+  const double traj_duration = trajectory.getDuration();
+  EXPECT_NEAR(0.320681, traj_duration, 1e-3);
+
+  // Start matches
+  EXPECT_DOUBLE_EQ(start_position, trajectory.getPosition(0.0)[0]);
+  // Start at rest and end at rest
+  EXPECT_NEAR(0.0, trajectory.getVelocity(0.0)[0], 0.1);
+  EXPECT_NEAR(0.0, trajectory.getVelocity(traj_duration)[0], 0.1);
+
+  // Check vels and accels at all points
+  for (double time = 0; time < traj_duration; time += 0.01)
+  {
+    // This trajectory has a single switching point
+    double t_switch = 0.1603407;
+    if (time < t_switch)
+    {
+      EXPECT_NEAR(trajectory.getAcceleration(time)[0], max_accelerations[0], 1e-3) << "Time: " << time;
+    }
+    else if (time > t_switch)
+    {
+      EXPECT_NEAR(trajectory.getAcceleration(time)[0], -max_accelerations[0], 1e-3) << "Time: " << time;
+    }
+  }
+}
+
+TEST(time_optimal_trajectory_generation, testMimicJoint)
+{
+  const std::string urdf = R"(<?xml version="1.0" ?>
+      <robot name="one_robot">
+      <link name="base_link"/>
+      <link name="link_a"/>
+      <link name="link_b"/>
+      <joint name="joint_a" type="continuous">
+        <axis xyz="0 1 0"/>
+        <parent link="base_link"/>
+        <child link="link_a"/>
+        <limit effort="3" velocity="3"/>
+      </joint>
+      <joint name="joint_b" type="continuous">
+        <axis xyz="1 0 0"/>
+        <parent link="link_a"/>
+        <child link="link_b"/>
+        <mimic joint="joint_a" multiplier="2" />
+        <limit effort="3" velocity="3"/>
+      </joint>
+      </robot>)";
+
+  const std::string srdf = R"(<?xml version="1.0" ?>
+      <robot name="one_robot">
+        <virtual_joint name="base_joint" child_link="base_link" parent_frame="odom_combined" type="planar"/>
+        <group name="group">
+          <joint name="joint_a"/>
+          <joint name="joint_b"/>
+        </group>
+      </robot>)";
+
+  urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDF(urdf);
+  srdf::ModelSharedPtr srdf_model = std::make_shared<srdf::Model>();
+  srdf_model->initString(*urdf_model, srdf);
+  auto robot_model = std::make_shared<moveit::core::RobotModel>(urdf_model, srdf_model);
+  ASSERT_TRUE((bool)robot_model) << "Failed to load robot model";
+
+  auto group = robot_model->getJointModelGroup("group");
+  ASSERT_TRUE((bool)group) << "Failed to load joint model group ";
+  moveit::core::RobotState waypoint_state(robot_model);
+  waypoint_state.setToDefaultValues();
+
+  robot_trajectory::RobotTrajectory trajectory(robot_model, group);
+  waypoint_state.setJointGroupActivePositions(group, std::vector<double>{ -0.5 });
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+  waypoint_state.setJointGroupActivePositions(group, std::vector<double>{ 100.0 });
+  trajectory.addSuffixWayPoint(waypoint_state, 0.1);
+
+  TimeOptimalTrajectoryGeneration totg;
+  ASSERT_TRUE(totg.computeTimeStamps(trajectory)) << "Failed to compute time stamps";
 }
 
 int main(int argc, char** argv)

@@ -63,8 +63,7 @@ MoveItCpp::MoveItCpp(const Options& options, const ros::NodeHandle& nh,
     throw std::runtime_error(error);
   }
 
-  robot_model_ = planning_scene_monitor_->getRobotModel();
-  if (!robot_model_)
+  if (!getRobotModel())
   {
     const std::string error = "Unable to construct robot model. Please make sure all needed information is on the "
                               "parameter server.";
@@ -82,7 +81,7 @@ MoveItCpp::MoveItCpp(const Options& options, const ros::NodeHandle& nh,
 
   // TODO(henningkayser): configure trajectory execution manager
   trajectory_execution_manager_ = std::make_shared<trajectory_execution_manager::TrajectoryExecutionManager>(
-      robot_model_, planning_scene_monitor_->getStateMonitor());
+      getRobotModel(), planning_scene_monitor_->getStateMonitor());
 
   ROS_DEBUG_NAMED(LOGNAME, "MoveItCpp running");
 }
@@ -90,7 +89,6 @@ MoveItCpp::MoveItCpp(const Options& options, const ros::NodeHandle& nh,
 MoveItCpp::~MoveItCpp()
 {
   ROS_INFO_NAMED(LOGNAME, "Deleting MoveItCpp");
-  clearContents();
 }
 
 bool MoveItCpp::loadPlanningSceneMonitor(const PlanningSceneMonitorOptions& options)
@@ -141,16 +139,22 @@ bool MoveItCpp::loadPlanningPipelines(const PlanningPipelineOptions& options)
     }
     ROS_INFO_NAMED(LOGNAME, "Loading planning pipeline '%s'", planning_pipeline_name.c_str());
     ros::NodeHandle child_nh(node_handle, planning_pipeline_name);
-    planning_pipeline::PlanningPipelinePtr pipeline;
-    pipeline = std::make_shared<planning_pipeline::PlanningPipeline>(robot_model_, child_nh, PLANNING_PLUGIN_PARAM);
 
-    if (!pipeline->getPlannerManager())
+    try
     {
-      ROS_ERROR_NAMED(LOGNAME, "Failed to initialize planning pipeline '%s'.", planning_pipeline_name.c_str());
-      continue;
-    }
+      auto pipeline =
+          std::make_shared<planning_pipeline::PlanningPipeline>(getRobotModel(), child_nh, PLANNING_PLUGIN_PARAM);
 
-    planning_pipelines_[planning_pipeline_name] = pipeline;
+      if (!pipeline->getPlannerManager())
+        throw std::runtime_error("Invalid planner manager");
+
+      planning_pipelines_[planning_pipeline_name] = pipeline;
+    }
+    catch (std::exception& ex)
+    {
+      ROS_ERROR_NAMED(LOGNAME, "Failed to initialize planning pipeline '%s':\n%s", planning_pipeline_name.c_str(),
+                      ex.what());
+    }
   }
 
   if (planning_pipelines_.empty())
@@ -164,7 +168,7 @@ bool MoveItCpp::loadPlanningPipelines(const PlanningPipelineOptions& options)
 
 moveit::core::RobotModelConstPtr MoveItCpp::getRobotModel() const
 {
-  return robot_model_;
+  return planning_scene_monitor_->getRobotModel();
 }
 
 const ros::NodeHandle& MoveItCpp::getNodeHandle() const
@@ -199,7 +203,7 @@ const std::map<std::string, planning_pipeline::PlanningPipelinePtr>& MoveItCpp::
   return planning_pipelines_;
 }
 
-const planning_scene_monitor::PlanningSceneMonitorPtr& MoveItCpp::getPlanningSceneMonitor() const
+planning_scene_monitor::PlanningSceneMonitorConstPtr MoveItCpp::getPlanningSceneMonitor() const
 {
   return planning_scene_monitor_;
 }
@@ -209,7 +213,7 @@ planning_scene_monitor::PlanningSceneMonitorPtr MoveItCpp::getPlanningSceneMonit
   return planning_scene_monitor_;
 }
 
-const trajectory_execution_manager::TrajectoryExecutionManagerPtr& MoveItCpp::getTrajectoryExecutionManager() const
+trajectory_execution_manager::TrajectoryExecutionManagerConstPtr MoveItCpp::getTrajectoryExecutionManager() const
 {
   return trajectory_execution_manager_;
 }
@@ -268,17 +272,13 @@ bool MoveItCpp::terminatePlanningPipeline(std::string const& pipeline_name)
   }
 }
 
-const std::shared_ptr<tf2_ros::Buffer>& MoveItCpp::getTFBuffer() const
+std::shared_ptr<const tf2_ros::Buffer> MoveItCpp::getTFBuffer() const
+{
+  return tf_buffer_;
+}
+std::shared_ptr<tf2_ros::Buffer> MoveItCpp::getTFBuffer()
 {
   return tf_buffer_;
 }
 
-void MoveItCpp::clearContents()
-{
-  tf_listener_.reset();
-  tf_buffer_.reset();
-  planning_scene_monitor_.reset();
-  robot_model_.reset();
-  planning_pipelines_.clear();
-}
 }  // namespace moveit_cpp

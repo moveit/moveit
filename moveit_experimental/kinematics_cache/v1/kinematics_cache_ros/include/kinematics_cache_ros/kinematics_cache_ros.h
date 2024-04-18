@@ -46,8 +46,7 @@ namespace kinematics_cache_ros
 class KinematicsCacheROS : public kinematics_cache::KinematicsCache
 {
 public:
-  /** @class
-   *  @brief An implementation of a cache for fast kinematics lookups
+  /** @brief An implementation of a cache for fast kinematics lookups
    *  This class inherits from KinematicsCache and provides an easy way of initializing the cache using ROS
    */
   KinematicsCacheROS(){};

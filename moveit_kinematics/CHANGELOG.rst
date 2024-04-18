@@ -2,6 +2,22 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+* Improvements to create_ikfast_moveit_plugin.py (`#3449 <https://github.com/ros-planning/moveit/issues/3449>`_)
+  * Make SRDF sanity checks optional
+  * Provide hint how to change kinematics.yaml if automatic adaption fails
+  * Modernize string formatting to Python 3.x
+  * Create new planning group entry in kinematics.yaml if needed
+* Contributors: Robert Haschke
+
+1.1.12 (2023-05-13)
+-------------------
+* Fix deprecation warnings in Debian bookworm (`#3397 <https://github.com/ros-planning/moveit/issues/3397>`_)
+* Fix (some) doxygen warnings (`#3315 <https://github.com/ros-planning/moveit/issues/3315>`_)
+* Drop lib/ prefix from plugin paths (`#3305 <https://github.com/ros-planning/moveit/issues/3305>`_)
+* Contributors: Jochen Sprickerhof, Michael Görner, Robert Haschke
+
 1.1.11 (2022-12-21)
 -------------------
 * kinematics: add ``program_options`` as required boost component (`#3269 <https://github.com/ros-planning/moveit/issues/3269>`_)

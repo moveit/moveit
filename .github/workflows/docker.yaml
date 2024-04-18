@@ -27,7 +27,7 @@ jobs:
       IMAGE: moveit/moveit:${{ matrix.ROS_DISTRO }}-${{ github.job }}
 
     steps:
-      - uses: addnab/docker-run-action@v3
+      - uses: rhaschke/docker-run-action@v5
         name: Check for apt updates
         continue-on-error: true
         id: apt
@@ -38,15 +38,15 @@ jobs:
             have_updates=$(apt-get --simulate upgrade | grep -q "^0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.$" && echo false || echo true)
             echo "no_cache=$have_updates" >> "$GITHUB_OUTPUT"
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name != 'schedule' || steps.apt.outputs.no_cache }}
       - name: Login to Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and Push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name != 'schedule' || steps.apt.outputs.no_cache }}
         with:
           file: .docker/${{ github.job }}/Dockerfile
@@ -71,7 +71,7 @@ jobs:
       ROS_DISTRO: ${{ matrix.IMAGE == 'master' && 'melodic' || 'noetic' }}
 
     steps:
-      - uses: addnab/docker-run-action@v3
+      - uses: rhaschke/docker-run-action@v5
         name: Check for apt updates
         continue-on-error: true
         id: apt
@@ -82,15 +82,15 @@ jobs:
             have_updates=$(apt-get --simulate upgrade | grep -q "^0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.$" && echo false || echo true)
             echo "no_cache=$have_updates" >> "$GITHUB_OUTPUT"
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name != 'schedule' || steps.apt.outputs.no_cache }}
       - name: Login to Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and Push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name != 'schedule' || steps.apt.outputs.no_cache }}
         with:
           file: .docker/${{ github.job }}/Dockerfile
@@ -99,14 +99,16 @@ jobs:
           no-cache: ${{ steps.apt.outputs.no_cache || github.event_name == 'workflow_dispatch' }}
           cache-from: type=registry,ref=${{ env.IMAGE }}
           cache-to: type=inline
-          tags: ${{ env.IMAGE }}
+          tags: |
+            ${{ env.IMAGE }}
+            ${{ matrix.IMAGE == 'master' && 'moveit/moveit:master-ci-testing' || '' }}
 
   ci-testing:
     needs: ci
     strategy:
       fail-fast: false
       matrix:
-        IMAGE: [noetic, master]
+        IMAGE: [noetic]
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -115,7 +117,7 @@ jobs:
       IMAGE: moveit/moveit:${{ matrix.IMAGE }}-${{ github.job }}
 
     steps:
-      - uses: addnab/docker-run-action@v3
+      - uses: rhaschke/docker-run-action@v5
         name: Check for apt updates
         continue-on-error: true
         id: apt
@@ -126,15 +128,15 @@ jobs:
             have_updates=$(apt-get --simulate upgrade | grep -q "^0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.$" && echo false || echo true)
             echo "no_cache=$have_updates" >> "$GITHUB_OUTPUT"
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name != 'schedule' || steps.apt.outputs.no_cache }}
       - name: Login to Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and Push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name != 'schedule' || steps.apt.outputs.no_cache }}
         with:
           file: .docker/${{ github.job }}/Dockerfile
@@ -161,18 +163,18 @@ jobs:
       IMAGE: moveit/moveit:${{ matrix.IMAGE }}-${{ github.job }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
       - name: Login to Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: "Remove .dockerignore"
         run: rm .dockerignore  # enforce full source context
       - name: Build and Push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: .docker/${{ github.job }}/Dockerfile

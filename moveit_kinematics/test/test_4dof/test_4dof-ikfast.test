@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<launch>
+  <group ns="test_4dof">
+    <include file="$(find _ROBOT_CONFIG_)/launch/planning_context.launch">
+      <arg name="load_robot_description" value="true"/>
+    </include>
+
+    <param name="root_link" value="_BASE_LINK_"/>
+    <param name="tip_link" value="_EEF_LINK_"/>
+    <param name="group" value="_PLANNING_GROUP_"/>
+    <param name="ik_timeout" value="0.2"/>
+    <rosparam param="joint_names">[_JOINT_NAMES_]</rosparam>
+
+    <!-- IKFast solver parameters -->
+    <param name="ik_plugin_name" value="_IK_PLUGIN_NAME_"/>
+
+    <!-- A IKFast solver dealing with dof < 6 can only produce part of pose information in the FK pass,
+    and in that case the current implementation of getPositionFK() in the plugin template will always return false
+    for this case to indicate failure; so we need to skip calls to plugin's getPositionFK() during testing by setting
+    plugin_fk_support to false, otherwise all tests will fail. -->
+    <param name="plugin_fk_support" value="false"/>
+
+    <!-- A IKFast solver dealing with dof < 6 does not consume all pose information given for IK calculation,
+    and therefore a solution can only guarantee a pose that matches the given one up to a certain extent;
+    that implies there might be no solution (approximately) equal to the joint states leading to the given pose.
+
+    So for evaluating solutions in cases like Translation*AxisAngle4D or Translation*AxisAngle*Norm4D,
+    we can only verify the information that is available and expected to stay unchanged bewteen the FK/IK passes,
+    such as positions -->
+    <param name="position_only_check" value="true"/>
+
+    <!-- by default disable all tests: enable selectively with private parameters -->
+    <param name="num_fk_tests" value="0"/>
+    <param name="num_ik_tests" value="0"/>
+    <param name="num_ik_cb_tests" value="0"/>
+    <param name="num_ik_multiple_tests" value="0"/>
+    <param name="num_nearest_ik_tests" value="0"/>
+
+    <test test-name="_TEST_NAME_" pkg="moveit_kinematics" type="test_kinematics_plugin" time-limit="180">
+      <!-- Enabling basic IK tests only, as FK tests will always succeed when plugin_fk_support is set to false -->
+      <param name="num_ik_tests" value="500"/>
+    </test>
+
+  </group>
+</launch>

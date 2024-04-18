@@ -2,7 +2,7 @@
   <name>moveit_planners_chomp</name>
   <description>The interface for using CHOMP within MoveIt</description>
 
-  <version>1.1.11</version>
+  <version>1.1.13</version>
   <author email="gjones@willowgarage.com">Gil Jones</author>
 
   <maintainer email="chitt@live.in">Chittaranjan Srinivas Swaminathan</maintainer>

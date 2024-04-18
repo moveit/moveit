@@ -38,6 +38,7 @@
 #include <moveit/move_group/capability_names.h>
 #include <moveit_msgs/GetPlanningScene.h>
 #include <moveit_msgs/ApplyPlanningScene.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <ros/ros.h>
 #include <algorithm>
 
@@ -114,22 +115,40 @@ public:
         continue;
       if (collision_object.mesh_poses.empty() && collision_object.primitive_poses.empty())
         continue;
+
+      // Compose mesh and primitive poses with the object pose before checking inclusion in the ROI
+      geometry_msgs::Pose pose_tf;
+      geometry_msgs::TransformStamped tf;
+      tf.header = collision_object.header;
+      tf.transform.translation.x = collision_object.pose.position.x;
+      tf.transform.translation.y = collision_object.pose.position.y;
+      tf.transform.translation.z = collision_object.pose.position.z;
+      tf.transform.rotation.x = collision_object.pose.orientation.x;
+      tf.transform.rotation.y = collision_object.pose.orientation.y;
+      tf.transform.rotation.z = collision_object.pose.orientation.z;
+      tf.transform.rotation.w = collision_object.pose.orientation.w;
+
       bool good = true;
       for (const geometry_msgs::Pose& mesh_pose : collision_object.mesh_poses)
-        if (!(mesh_pose.position.x >= minx && mesh_pose.position.x <= maxx && mesh_pose.position.y >= miny &&
-              mesh_pose.position.y <= maxy && mesh_pose.position.z >= minz && mesh_pose.position.z <= maxz))
+      {
+        tf2::doTransform(mesh_pose, pose_tf, tf);
+        if (!(pose_tf.position.x >= minx && pose_tf.position.x <= maxx && pose_tf.position.y >= miny &&
+              pose_tf.position.y <= maxy && pose_tf.position.z >= minz && pose_tf.position.z <= maxz))
         {
           good = false;
           break;
         }
+      }
       for (const geometry_msgs::Pose& primitive_pose : collision_object.primitive_poses)
-        if (!(primitive_pose.position.x >= minx && primitive_pose.position.x <= maxx &&
-              primitive_pose.position.y >= miny && primitive_pose.position.y <= maxy &&
-              primitive_pose.position.z >= minz && primitive_pose.position.z <= maxz))
+      {
+        tf2::doTransform(primitive_pose, pose_tf, tf);
+        if (!(pose_tf.position.x >= minx && pose_tf.position.x <= maxx && pose_tf.position.y >= miny &&
+              pose_tf.position.y <= maxy && pose_tf.position.z >= minz && pose_tf.position.z <= maxz))
         {
           good = false;
           break;
         }
+      }
       if (good)
       {
         result.push_back(collision_object.id);
@@ -209,6 +228,19 @@ public:
     return result;
   }
 
+  moveit_msgs::PlanningScene getPlanningSceneMsg(uint32_t components)
+  {
+    moveit_msgs::GetPlanningScene::Request request;
+    moveit_msgs::GetPlanningScene::Response response;
+    request.components.components = components;
+    if (!planning_scene_service_.call(request, response))
+    {
+      ROS_WARN_NAMED(LOGNAME, "Could not call planning scene service");
+      return moveit_msgs::PlanningScene();
+    }
+    return response.scene;
+  }
+
   bool applyPlanningScene(const moveit_msgs::PlanningScene& planning_scene)
   {
     moveit_msgs::ApplyPlanningScene::Request request;
@@ -253,6 +285,19 @@ public:
     }
     planning_scene.is_diff = true;
     planning_scene_diff_publisher_.publish(planning_scene);
+  }
+
+  bool clear()
+  {
+    moveit_msgs::PlanningScene clear_scene;
+    clear_scene.is_diff = true;
+    clear_scene.robot_state.is_diff = true;
+    clear_scene.robot_state.attached_collision_objects.resize(1);
+    clear_scene.robot_state.attached_collision_objects[0].object.operation = moveit_msgs::CollisionObject::REMOVE;
+    clear_scene.world.collision_objects.resize(1);
+    clear_scene.world.collision_objects[0].operation = moveit_msgs::CollisionObject::REMOVE;
+
+    return applyPlanningScene(clear_scene);
   }
 
 private:
@@ -380,6 +425,11 @@ bool PlanningSceneInterface::applyAttachedCollisionObjects(
   return applyPlanningScene(ps);
 }
 
+moveit_msgs::PlanningScene PlanningSceneInterface::getPlanningSceneMsg(uint32_t components)
+{
+  return impl_->getPlanningSceneMsg(components);
+}
+
 bool PlanningSceneInterface::applyPlanningScene(const moveit_msgs::PlanningScene& ps)
 {
   return impl_->applyPlanningScene(ps);
@@ -395,5 +445,11 @@ void PlanningSceneInterface::removeCollisionObjects(const std::vector<std::strin
 {
   impl_->removeCollisionObjects(object_ids);
 }
+
+bool PlanningSceneInterface::clear()
+{
+  return impl_->clear();
+}
+
 }  // namespace planning_interface
 }  // namespace moveit

@@ -38,7 +38,7 @@
 
 namespace ompl_interface
 {
-/** @class GoalSampleableRegionMux*/
+/** GoalSampleableRegionMux */
 class GoalSampleableRegionMux : public ompl::base::GoalSampleableRegion
 {
 public:

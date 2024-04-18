@@ -219,12 +219,14 @@ double CartesianInterpolator::checkJointSpaceJump(const JointModelGroup* group, 
     return percentage_solved;
 
   if (jump_threshold.factor > 0.0)
-    percentage_solved *= checkRelativeJointSpaceJump(group, traj, jump_threshold.factor);
+    percentage_solved = checkRelativeJointSpaceJump(group, traj, jump_threshold.factor);
 
+  double percentage_solved_absolute = 1.0;
   if (jump_threshold.revolute > 0.0 || jump_threshold.prismatic > 0.0)
-    percentage_solved *= checkAbsoluteJointSpaceJump(group, traj, jump_threshold.revolute, jump_threshold.prismatic);
+    percentage_solved_absolute =
+        checkAbsoluteJointSpaceJump(group, traj, jump_threshold.revolute, jump_threshold.prismatic);
 
-  return percentage_solved;
+  return std::min(percentage_solved, percentage_solved_absolute);
 }
 
 double CartesianInterpolator::checkRelativeJointSpaceJump(const JointModelGroup* group,

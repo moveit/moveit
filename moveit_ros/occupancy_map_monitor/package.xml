@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>moveit_ros_occupancy_map_monitor</name>
-  <version>1.1.11</version>
+  <version>1.1.13</version>
   <description>Components of MoveIt connecting to occupancy map</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>

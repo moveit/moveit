@@ -45,7 +45,7 @@ move_group::MoveGroupContext::MoveGroupContext(const moveit_cpp::MoveItCppPtr& m
                                                const std::string& default_planning_pipeline,
                                                bool allow_trajectory_execution, bool debug)
   : moveit_cpp_(moveit_cpp)
-  , planning_scene_monitor_(moveit_cpp->getPlanningSceneMonitor())
+  , planning_scene_monitor_(moveit_cpp->getPlanningSceneMonitorNonConst())
   , allow_trajectory_execution_(allow_trajectory_execution)
   , debug_(debug)
 {
@@ -72,7 +72,7 @@ move_group::MoveGroupContext::MoveGroupContext(const moveit_cpp::MoveItCppPtr& m
 
   if (allow_trajectory_execution_)
   {
-    trajectory_execution_manager_ = moveit_cpp_->getTrajectoryExecutionManager();
+    trajectory_execution_manager_ = moveit_cpp_->getTrajectoryExecutionManagerNonConst();
     plan_execution_ =
         std::make_shared<plan_execution::PlanExecution>(planning_scene_monitor_, trajectory_execution_manager_);
     plan_with_sensing_ = std::make_shared<plan_execution::PlanWithSensing>(trajectory_execution_manager_);
@@ -92,6 +92,11 @@ move_group::MoveGroupContext::~MoveGroupContext()
 
 bool move_group::MoveGroupContext::status() const
 {
+  if (!planning_pipeline_)
+  {
+    ROS_ERROR("No planning pipeline initialized.");
+    return false;
+  }
   const planning_interface::PlannerManagerPtr& planner_interface = planning_pipeline_->getPlannerManager();
   if (planner_interface)
   {

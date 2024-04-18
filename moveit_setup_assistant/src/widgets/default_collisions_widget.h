@@ -45,6 +45,7 @@ class QHeaderView;
 class QItemSelection;
 class QItemSelectionModel;
 class QLabel;
+class QSpinBox;
 class QLineEdit;
 class QProgressBar;
 class QPushButton;
@@ -106,12 +107,16 @@ private Q_SLOTS:
    * \brief finish generating collision matrix after worker thread has finished
    */
   void finishGeneratingCollisionTable();
+  /**
+   * \brief interrupt generating collision matrix
+   */
+  void interruptGeneratingCollisionTable();
 
   /**
-   * \brief GUI func for showing sampling density amount
-   * \param value Sampling density
+   * \brief GUI func for showing number of samples. value will be rounded in 1000s.
+   * \param value Number of samples
    */
-  void changeDensityLabel(int value);
+  void changeNumSamples(int value);
 
   /**
    * \brief Update view and data model for the link_pairs data structure
@@ -163,11 +168,12 @@ private:
   QAbstractItemModel* model_;
   QItemSelectionModel* selection_model_;
   QVBoxLayout* layout_;
-  QLabel* density_value_label_;
-  QSlider* density_slider_;
+  QSpinBox* sample_spinbox_;
+  QSlider* sample_slider_;
   QPushButton* btn_generate_;
   QGroupBox* controls_box_;
   QProgressBar* progress_bar_;
+  QPushButton* btn_interrupt_;
   QLabel* progress_label_;
   QLineEdit* link_name_filter_;
   QCheckBox* collision_checkbox_;

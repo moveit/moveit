@@ -56,14 +56,14 @@ public:
   /** @brief Constructor
    *  @param model A robot model to construct the collision robot from
    *  @param padding The padding to use for all objects/links on the robot
-   *  @scale scale A common scaling to use for all objects/links on the robot
+   *  @param scale A common scaling to use for all objects/links on the robot
    */
   CollisionEnv(const moveit::core::RobotModelConstPtr& model, double padding = 0.0, double scale = 1.0);
 
   /** @brief Constructor
    *  @param model A robot model to construct the collision robot from
    *  @param padding The padding to use for all objects/links on the robot
-   *  @scale scale A common scaling to use for all objects/links on the robot
+   *  @param scale A common scaling to use for all objects/links on the robot
    */
   CollisionEnv(const moveit::core::RobotModelConstPtr& model, const WorldPtr& world, double padding = 0.0,
                double scale = 1.0);
@@ -114,7 +114,7 @@ public:
    *  and the world are considered. Self collisions are not checked.
    *  @param req A CollisionRequest object that encapsulates the collision request
    *  @param res A CollisionResult object that encapsulates the collision result
-   *  @robot robot The collision model for the robot
+   *  @param robot The collision model for the robot
    *  @param state The kinematic state for which checks are being made
    */
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
@@ -124,7 +124,7 @@ public:
    *  Allowed collisions are ignored. Self collisions are not checked.
    *  @param req A CollisionRequest object that encapsulates the collision request
    *  @param res A CollisionResult object that encapsulates the collision result
-   *  @robot robot The collision model for the robot
+   *  @param robot The collision model for the robot
    *  @param state The kinematic state for which checks are being made
    *  @param acm The allowed collision matrix.*/
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
@@ -135,7 +135,6 @@ public:
    *  Allowed collisions are ignored. Self collisions are not checked.
    *  @param req A CollisionRequest object that encapsulates the collision request
    *  @param res A CollisionResult object that encapsulates the collision result
-   *  @robot robot The collision model for the robot
    *  @param state1 The kinematic state at the start of the segment for which checks are being made
    *  @param state2 The kinematic state at the end of the segment for which checks are being made
    *  @param acm The allowed collision matrix.*/
@@ -148,10 +147,9 @@ public:
    *  Allowed collisions are ignored. Self collisions are not checked.
    *  @param req A CollisionRequest object that encapsulates the collision request
    *  @param res A CollisionResult object that encapsulates the collision result
-   *  @robot robot The collision model for the robot
    *  @param state1 The kinematic state at the start of the segment for which checks are being made
    *  @param state2 The kinematic state at the end of the segment for which checks are being made
-   *  @param acm The allowed collision matrix.*/
+   */
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                    const moveit::core::RobotState& state1,
                                    const moveit::core::RobotState& state2) const = 0;
@@ -175,7 +173,7 @@ public:
   }
 
   /** \brief The distance to self-collision given the robot is at state \e state, ignoring
-      the distances between links that are allowed to always collide (as specified by \e acm) */
+      the distances between links that are allowed to always collide (as specified by \param acm) */
   inline double distanceSelf(const moveit::core::RobotState& state, const AllowedCollisionMatrix& acm) const
   {
     DistanceRequest req;
@@ -190,13 +188,11 @@ public:
   /** \brief Compute the distance between a robot and the world
    *  @param req A DistanceRequest object that encapsulates the distance request
    *  @param res A DistanceResult object that encapsulates the distance result
-   *  @param robot The robot to check distance for
    *  @param state The state for the robot to check distances from */
   virtual void distanceRobot(const DistanceRequest& req, DistanceResult& res,
                              const moveit::core::RobotState& state) const = 0;
 
   /** \brief Compute the shortest distance between a robot and the world
-   *  @param robot The robot to check distance for
    *  @param state The state for the robot to check distances from
    *  @param verbose Output debug information about distance checks */
   inline double distanceRobot(const moveit::core::RobotState& state, bool verbose = false) const
@@ -212,7 +208,6 @@ public:
   }
 
   /** \brief Compute the shortest distance between a robot and the world
-   *  @param robot The robot to check distance for
    *  @param state The state for the robot to check distances from
    *  @param acm Using an allowed collision matrix has the effect of ignoring distances from links that are always
    * allowed to be in collision.

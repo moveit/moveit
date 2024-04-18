@@ -35,6 +35,7 @@
 /* Author: Dave Coleman */
 
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
+#include <moveit/move_group_interface/move_group_interface.h>
 
 // Reading/Writing Files
 #include <iostream>  // For writing yaml and launch files
@@ -481,6 +482,18 @@ bool MoveItConfigData::outputKinematicsYAML(const std::string& file_path)
     emitter << YAML::Key << "kinematics_solver_timeout";
     emitter << YAML::Value << group_meta_data_[group.name_].kinematics_solver_timeout_;
 
+    // Goal joint tolerance
+    emitter << YAML::Key << "goal_joint_tolerance";
+    emitter << YAML::Value << group_meta_data_[group.name_].goal_joint_tolerance_;
+
+    // Goal position tolerance
+    emitter << YAML::Key << "goal_position_tolerance";
+    emitter << YAML::Value << group_meta_data_[group.name_].goal_position_tolerance_;
+
+    // Goal orientation tolerance
+    emitter << YAML::Key << "goal_orientation_tolerance";
+    emitter << YAML::Value << group_meta_data_[group.name_].goal_orientation_tolerance_;
+
     emitter << YAML::EndMap;
   }
 
@@ -726,10 +739,10 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
   trrt.addParameter("temp_change_factor", "2.0", "how much to increase or decrease temp. default: 2.0");
   trrt.addParameter("min_temperature", "10e-10", "lower limit of temp change. default: 10e-10");
   trrt.addParameter("init_temperature", "10e-6", "initial temperature. default: 10e-6");
-  trrt.addParameter("frountier_threshold", "0.0",
+  trrt.addParameter("frontier_threshold", "0.0",
                     "dist new state to nearest neighbor to disqualify as frontier. "
                     "default: 0.0 set in setup()");
-  trrt.addParameter("frountierNodeRatio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
+  trrt.addParameter("frontier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
   trrt.addParameter("k_constant", "0.0", "value used to normalize expresssion. default: 0.0 set in setup()");
   planner_des.push_back(trrt);
 
@@ -800,10 +813,10 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
                        "setup()");
   bi_trrt.addParameter("temp_change_factor", "0.1", "how much to increase or decrease temp. default: 0.1");
   bi_trrt.addParameter("init_temperature", "100", "initial temperature. default: 100");
-  bi_trrt.addParameter("frountier_threshold", "0.0",
+  bi_trrt.addParameter("frontier_threshold", "0.0",
                        "dist new state to nearest neighbor to disqualify as frontier. "
                        "default: 0.0 set in setup()");
-  bi_trrt.addParameter("frountier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
+  bi_trrt.addParameter("frontier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
   bi_trrt.addParameter("cost_threshold", "1e300",
                        "the cost threshold. Any motion cost that is not better will not be "
                        "expanded. default: inf");
@@ -862,6 +875,79 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
   spar_stwo.addParameter("dense_delta_fraction", "0.001", "delta fraction for interface detection. default: 0.001");
   spar_stwo.addParameter("max_failures", "5000", "maximum consecutive failure limit. default: 5000");
   planner_des.push_back(spar_stwo);
+
+// TODO: remove when ROS Melodic and older are no longer supported
+#if OMPL_VERSION_VALUE >= 1005000
+  OMPLPlannerDescription aitstar("AITstar", "geometric");
+  aitstar.addParameter("use_k_nearest", "1",
+                       "whether to use a k-nearest RGG connection model (1) or an r-disc model (0). Default: 1");
+  aitstar.addParameter("rewire_factor", "1.001",
+                       "rewire factor of the RGG. Valid values: [1.0:0.01:3.0]. Default: 1.001");
+  aitstar.addParameter("samples_per_batch", "100", "batch size. Valid values: [1:1:1000]. Default: 100");
+  aitstar.addParameter("use_graph_pruning", "1", "enable graph pruning (1) or not (0). Default: 1");
+  aitstar.addParameter("find_approximate_solutions", "0", "track approximate solutions (1) or not (0). Default: 0");
+  aitstar.addParameter("set_max_num_goals", "1",
+                       "maximum number of goals sampled from sampleable goal regions. "
+                       "Valid values: [1:1:1000]. Default: 1");
+  planner_des.push_back(aitstar);
+
+  OMPLPlannerDescription abitstar("ABITstar", "geometric");
+  abitstar.addParameter("use_k_nearest", "1",
+                        "whether to use a k-nearest RGG connection model (1) or an r-disc model (0). Default: 1");
+  abitstar.addParameter("rewire_factor", "1.001",
+                        "rewire factor of the RGG. Valid values: [1.0:0.01:3.0]. Default: 1.001");
+  abitstar.addParameter("samples_per_batch", "100", "batch size. Valid values: [1:1:1000]. Default: 100");
+  abitstar.addParameter("use_graph_pruning", "1", "enable graph pruning (1) or not (0). Default: 1");
+  abitstar.addParameter(
+      "prune_threshold_as_fractional_cost_change", "0.1",
+      "fractional change in the solution cost AND problem measure necessary for pruning to occur. Default: 0.1");
+  abitstar.addParameter("delay_rewiring_to_first_solution", "0",
+                        "delay (1) or not (0) rewiring until a solution is found. Default: 0");
+  abitstar.addParameter("use_just_in_time_sampling", "0",
+                        "delay the generation of samples until they are * necessary. Only works with r-disc connection "
+                        "and path length minimization. Default: 0");
+  abitstar.addParameter("drop_unconnected_samples_on_prune", "0",
+                        "drop unconnected samples when pruning, regardless of their heuristic value. Default: 0");
+  abitstar.addParameter("stop_on_each_solution_improvement", "0",
+                        "stop the planner each time a solution improvement is found. Useful for debugging. Default: 0");
+  abitstar.addParameter("use_strict_queue_ordering", "0",
+                        "sort edges in the queue at the end of the batch (0) or after each rewiring (1). Default: 0");
+  abitstar.addParameter("find_approximate_solutions", "0", "track approximate solutions (1) or not (0). Default: 0");
+  abitstar.addParameter(
+      "initial_inflation_factor", "1000000",
+      "inflation factor for the initial search. Valid values: [1.0:0.01:1000000.0]. Default: 1000000");
+  abitstar.addParameter(
+      "inflation_scaling_parameter", "10",
+      "scaling parameter for the inflation factor update policy. Valid values: [1.0:0.01:1000000.0]. Default: 0");
+  abitstar.addParameter(
+      "truncation_scaling_parameter", "5.0",
+      "scaling parameter for the truncation factor update policy. Valid values: [1.0:0.01:1000000.0]. Default: 0");
+  planner_des.push_back(abitstar);
+
+  OMPLPlannerDescription bitstar("BITstar", "geometric");
+  bitstar.addParameter("use_k_nearest", "1",
+                       "whether to use a k-nearest RGG connection model (1) or an r-disc model (0). Default: 1");
+  bitstar.addParameter("rewire_factor", "1.001",
+                       "rewire factor of the RGG. Valid values: [1.0:0.01:3.0]. Default: 1.001");
+  bitstar.addParameter("samples_per_batch", "100", "batch size. Valid values: [1:1:1000]. Default: 100");
+  bitstar.addParameter("use_graph_pruning", "1", "enable graph pruning (1) or not (0). Default: 1");
+  bitstar.addParameter(
+      "prune_threshold_as_fractional_cost_change", "0.1",
+      "fractional change in the solution cost AND problem measure necessary for pruning to occur. Default: 0.1");
+  bitstar.addParameter("delay_rewiring_to_first_solution", "0",
+                       "delay (1) or not (0) rewiring until a solution is found. Default: 0");
+  bitstar.addParameter("use_just_in_time_sampling", "0",
+                       "delay the generation of samples until they are * necessary. Only works with r-disc connection "
+                       "and path length minimization. Default: 0");
+  bitstar.addParameter("drop_unconnected_samples_on_prune", "0",
+                       "drop unconnected samples when pruning, regardless of their heuristic value. Default: 0");
+  bitstar.addParameter("stop_on_each_solution_improvement", "0",
+                       "stop the planner each time a solution improvement is found. Useful for debugging. Default: 0");
+  bitstar.addParameter("use_strict_queue_ordering", "0",
+                       "sort edges in the queue at the end of the batch (0) or after each rewiring (1). Default: 0");
+  bitstar.addParameter("find_approximate_solutions", "0", "track approximate solutions (1) or not (0). Default: 0");
+  planner_des.push_back(bitstar);
+#endif
 
   return planner_des;
 }
@@ -1337,6 +1423,12 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
       parse(group, "kinematics_solver_search_resolution", meta_data.kinematics_solver_search_resolution_,
             DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION);
       parse(group, "kinematics_solver_timeout", meta_data.kinematics_solver_timeout_, DEFAULT_KIN_SOLVER_TIMEOUT);
+      parse(group, "goal_joint_tolerance", meta_data.goal_joint_tolerance_,
+            moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_JOINT_TOLERANCE);
+      parse(group, "goal_position_tolerance", meta_data.goal_position_tolerance_,
+            moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_POSITION_TOLERANCE);
+      parse(group, "goal_orientation_tolerance", meta_data.goal_orientation_tolerance_,
+            moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_ORIENTATION_TOLERANCE);
 
       // Assign meta data to vector
       group_meta_data_[group_name] = std::move(meta_data);
@@ -1604,11 +1696,11 @@ bool MoveItConfigData::extractPackageNameFromPath(const std::string& path, std::
       ROS_DEBUG_STREAM("Found package.xml in " << sub_path.make_preferred().string());
       package_found = true;
       relative_filepath = relative_path.string();
-      package_name = sub_path.leaf().string();
+      package_name = sub_path.filename().string();
       break;
     }
-    relative_path = sub_path.leaf() / relative_path;
-    sub_path.remove_leaf();
+    relative_path = sub_path.filename() / relative_path;
+    sub_path.remove_filename();
   }
 
   // Assign data to moveit_config_data
@@ -1889,6 +1981,7 @@ void MoveItConfigData::addGenericParameterToSensorPluginConfig(const std::string
   GenericParameter new_parameter;
   new_parameter.setName(name);
   new_parameter.setValue(value);
+  sensors_plugin_config_parameter_list_.resize(1);
   sensors_plugin_config_parameter_list_[0][name] = new_parameter;
 }
 

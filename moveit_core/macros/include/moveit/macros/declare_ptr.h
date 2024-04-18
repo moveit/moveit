@@ -37,7 +37,7 @@
 #include <memory>
 
 /**
- * \def MOVEIT_DELCARE_PTR
+ * \def MOVEIT_DECLARE_PTR
  * Macro that given a Name and a Type declares the following types:
  * - ${Name}Ptr            = shared_ptr<${Type}>
  * - ${Name}ConstPtr       = shared_ptr<const ${Type}>
@@ -60,7 +60,7 @@
   typedef std::unique_ptr<const Type> Name##ConstUniquePtr
 
 /**
- * \def MOVEIT_DELCARE_PTR_MEMBER
+ * \def MOVEIT_DECLARE_PTR_MEMBER
  * The macro defines the same typedefs as MOVEIT_DECLARE_PTR, but shortens the new names to their suffix.
  *
  * This can be used to create `Classname::Ptr` style names, but in most situations in MoveIt's codebase,

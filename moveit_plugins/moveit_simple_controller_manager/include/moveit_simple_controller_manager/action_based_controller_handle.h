@@ -75,25 +75,15 @@ public:
     : ActionBasedControllerHandleBase(name), nh_("~"), done_(true), namespace_(ns)
   {
     controller_action_client_ = std::make_shared<actionlib::SimpleActionClient<T>>(getActionName(), true);
-    unsigned int attempts = 0;
     double timeout;
     nh_.param("trajectory_execution/controller_connection_timeout", timeout, 15.0);
 
-    if (timeout == 0.0)
+    ros::WallTime end_time = ros::WallTime::now() + ros::WallDuration(timeout);
+    while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(5.0)))
     {
-      while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(5.0)))
-      {
-        ROS_WARN_STREAM_NAMED("ActionBasedController", "Waiting for " << getActionName() << " to come up");
-        ros::Duration(1).sleep();
-      }
-    }
-    else
-    {
-      while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(timeout / 3)) && ++attempts < 3)
-      {
-        ROS_WARN_STREAM_NAMED("ActionBasedController", "Waiting for " << getActionName() << " to come up");
-        ros::Duration(1).sleep();
-      }
+      if (timeout != 0.0 && ros::WallTime::now() >= end_time)
+        break;
+      ROS_WARN_STREAM_NAMED("ActionBasedController", "Waiting for " << getActionName() << " to come up...");
     }
     if (!controller_action_client_->isServerConnected())
     {

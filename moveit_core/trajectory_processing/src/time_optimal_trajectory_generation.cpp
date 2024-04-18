@@ -48,6 +48,9 @@ namespace trajectory_processing
 {
 const std::string LOGNAME = "trajectory_processing.time_optimal_trajectory_generation";
 constexpr double EPS = 0.000001;
+constexpr double DEFAULT_VELOCITY_LIMIT = 1.0;
+constexpr double DEFAULT_ACCELERATION_LIMIT = 1.0;
+
 class LinearPathSegment : public PathSegment
 {
 public:
@@ -826,7 +829,6 @@ Eigen::VectorXd Trajectory::getVelocity(double time) const
   const double acceleration =
       2.0 * (it->path_pos_ - previous->path_pos_ - time_step * previous->path_vel_) / (time_step * time_step);
 
-  time_step = time - previous->time_;
   const double path_pos =
       previous->path_pos_ + time_step * previous->path_vel_ + 0.5 * time_step * time_step * acceleration;
   const double path_vel = previous->path_vel_ + time_step * acceleration;
@@ -844,7 +846,6 @@ Eigen::VectorXd Trajectory::getAcceleration(double time) const
   const double acceleration =
       2.0 * (it->path_pos_ - previous->path_pos_ - time_step * previous->path_vel_) / (time_step * time_step);
 
-  time_step = time - previous->time_;
   const double path_pos =
       previous->path_pos_ + time_step * previous->path_vel_ + 0.5 * time_step * time_step * acceleration;
   const double path_vel = previous->path_vel_ + time_step * acceleration;
@@ -861,9 +862,10 @@ TimeOptimalTrajectoryGeneration::TimeOptimalTrajectoryGeneration(const double pa
 {
 }
 
-bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
-                                                        const double max_velocity_scaling_factor,
-                                                        const double max_acceleration_scaling_factor) const
+bool TimeOptimalTrajectoryGeneration::computeTimeStamps(
+    robot_trajectory::RobotTrajectory& trajectory, const std::unordered_map<std::string, double>& velocity_limits,
+    const std::unordered_map<std::string, double>& acceleration_limits, const double max_velocity_scaling_factor,
+    const double max_acceleration_scaling_factor) const
 {
   if (trajectory.empty())
     return true;
@@ -876,85 +878,92 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
   }
 
   // Validate scaling
-  double velocity_scaling_factor = 1.0;
-  if (max_velocity_scaling_factor > 0.0 && max_velocity_scaling_factor <= 1.0)
-  {
-    velocity_scaling_factor = max_velocity_scaling_factor;
-  }
-  else if (max_velocity_scaling_factor == 0.0)
-  {
-    ROS_DEBUG_NAMED(LOGNAME, "A max_velocity_scaling_factor of 0.0 was specified, defaulting to %f instead.",
-                    velocity_scaling_factor);
-  }
-  else
-  {
-    ROS_WARN_NAMED(LOGNAME, "Invalid max_velocity_scaling_factor %f specified, defaulting to %f instead.",
-                   max_velocity_scaling_factor, velocity_scaling_factor);
-  }
+  double velocity_scaling_factor = verifyScalingFactor(max_velocity_scaling_factor);
+  double acceleration_scaling_factor = verifyScalingFactor(max_acceleration_scaling_factor);
 
-  double acceleration_scaling_factor = 1.0;
-  if (max_acceleration_scaling_factor > 0.0 && max_acceleration_scaling_factor <= 1.0)
+  // limits need to be positive, otherwise we never exit
+  auto validate_limit = [](const char* type, double value, const std::string& name) {
+    if (value <= std::numeric_limits<double>::epsilon())
+    {
+      ROS_ERROR_NAMED(LOGNAME, "Invalid %s limit %f for joint '%s'. Must be greater than zero!", type, value,
+                      name.c_str());
+      return false;
+    }
+    return true;
+  };
+
+  // Get the velocity and acceleration limits for all joint variables
+  const moveit::core::RobotModel& rmodel = group->getParentModel();
+  const std::vector<std::string>& vars = group->getVariableNames();
+  const auto num_joints = group->getVariableCount();
+  Eigen::VectorXd max_velocity(num_joints);
+  Eigen::VectorXd max_acceleration(num_joints);
+  for (size_t j = 0; j < num_joints; ++j)
   {
-    acceleration_scaling_factor = max_acceleration_scaling_factor;
-  }
-  else if (max_acceleration_scaling_factor == 0.0)
-  {
-    ROS_DEBUG_NAMED(LOGNAME, "A max_acceleration_scaling_factor of 0.0 was specified, defaulting to %f instead.",
-                    acceleration_scaling_factor);
-  }
-  else
-  {
-    ROS_WARN_NAMED(LOGNAME, "Invalid max_acceleration_scaling_factor %f specified, defaulting to %f instead.",
-                   max_acceleration_scaling_factor, acceleration_scaling_factor);
+    const auto& name = vars[j];
+    const moveit::core::VariableBounds& bounds = rmodel.getVariableBounds(name);
+
+    // VELOCITY LIMIT
+    auto it = velocity_limits.find(name);  // check for a custom limit
+    if (it != velocity_limits.end())
+    {
+      if (!validate_limit("velocity", it->second, name))
+        return false;
+      max_velocity[j] = it->second * velocity_scaling_factor;
+    }
+    else if (bounds.velocity_bounded_)  // resort to the limit from the robot model
+    {
+      if (!validate_limit("velocity", bounds.max_velocity_, name))
+        return false;
+      max_velocity[j] =
+          std::min(std::fabs(bounds.max_velocity_), std::fabs(bounds.min_velocity_)) * velocity_scaling_factor;
+    }
+    else  // default limit
+    {
+      max_velocity[j] = DEFAULT_VELOCITY_LIMIT;
+      ROS_WARN_ONCE_NAMED(LOGNAME, "No velocity limits defined for '%s'! Define them in URDF or joint_limits.yaml",
+                          name.c_str());
+    }
+
+    // ACCELERATION LIMIT
+    it = acceleration_limits.find(name);  // check for a custom limit
+    if (it != acceleration_limits.end())
+    {
+      if (!validate_limit("acceleration", it->second, name))
+        return false;
+      max_acceleration[j] = it->second * acceleration_scaling_factor;
+    }
+
+    else if (bounds.acceleration_bounded_)  // resort to the limit from the robot model
+    {
+      if (!validate_limit("acceleration", bounds.max_acceleration_, name))
+        return false;
+      max_acceleration[j] = std::min(std::fabs(bounds.max_acceleration_), std::fabs(bounds.min_acceleration_)) *
+                            acceleration_scaling_factor;
+    }
+    else  // default limit
+    {
+      max_acceleration[j] = DEFAULT_ACCELERATION_LIMIT;
+      ROS_WARN_ONCE_NAMED(LOGNAME, "No acceleration limits defined for '%s'! Define them in joint_limits.yaml",
+                          name.c_str());
+    }
   }
 
   // This lib does not actually work properly when angles wrap around, so we need to unwind the path first
   trajectory.unwind();
 
-  // This is pretty much copied from IterativeParabolicTimeParameterization::applyVelocityConstraints
-  const std::vector<std::string>& vars = group->getVariableNames();
-  const std::vector<int>& idx = group->getVariableIndexList();
-  const moveit::core::RobotModel& rmodel = group->getParentModel();
-  const unsigned num_joints = group->getVariableCount();
-  const unsigned num_points = trajectory.getWayPointCount();
-
-  // Get the limits (we do this at same time, unlike IterativeParabolicTimeParameterization)
-  Eigen::VectorXd max_velocity(num_joints);
-  Eigen::VectorXd max_acceleration(num_joints);
-  for (size_t j = 0; j < num_joints; ++j)
+  if (hasMixedJointTypes(group))
   {
-    const moveit::core::VariableBounds& bounds = rmodel.getVariableBounds(vars[j]);
-
-    // Limits need to be non-zero, otherwise we never exit
-    max_velocity[j] = 1.0;
-    if (bounds.velocity_bounded_)
-    {
-      if (bounds.max_velocity_ < std::numeric_limits<double>::epsilon())
-      {
-        ROS_ERROR_NAMED(LOGNAME, "Invalid max_velocity %f specified for '%s', must be greater than 0.0",
-                        bounds.max_velocity_, vars[j].c_str());
-        return false;
-      }
-      max_velocity[j] =
-          std::min(std::fabs(bounds.max_velocity_), std::fabs(bounds.min_velocity_)) * velocity_scaling_factor;
-    }
-
-    max_acceleration[j] = 1.0;
-    if (bounds.acceleration_bounded_)
-    {
-      if (bounds.max_acceleration_ < std::numeric_limits<double>::epsilon())
-      {
-        ROS_ERROR_NAMED(LOGNAME, "Invalid max_acceleration %f specified for '%s', must be greater than 0.0",
-                        bounds.max_acceleration_, vars[j].c_str());
-        return false;
-      }
-      max_acceleration[j] = std::min(std::fabs(bounds.max_acceleration_), std::fabs(bounds.min_acceleration_)) *
-                            acceleration_scaling_factor;
-    }
+    ROS_WARN_ONCE_NAMED(LOGNAME,
+                        "There is a combination of revolute and prismatic joints in the robot model. "
+                        "TOTG's `path_tolerance` parameter is applied to both types ignoring their different units.");
   }
 
+  const unsigned num_points = trajectory.getWayPointCount();
+  const std::vector<int>& idx = group->getVariableIndexList();
+
   // Have to convert into Eigen data structs and remove repeated points
-  //  (https://github.com/tobiaskunz/trajectories/issues/3)
+  // (https://github.com/tobiaskunz/trajectories/issues/3)
   std::list<Eigen::VectorXd> points;
   for (size_t p = 0; p < num_points; ++p)
   {
@@ -974,14 +983,20 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
     }
 
     if (diverse_point)
+    {
       points.push_back(new_point);
+      // If the last point is not a diverse_point we replace the last added point with it to make sure to always have
+      // the input end point as the last point
+    }
+    else if (p == num_points - 1)
+    {
+      points.back() = new_point;
+    }
   }
 
   // Return trajectory with only the first waypoint if there are not multiple diverse points
   if (points.size() == 1)
   {
-    ROS_DEBUG_NAMED(LOGNAME,
-                    "Trajectory is parameterized with 0.0 dynamics since it only contains a single distinct waypoint.");
     moveit::core::RobotState waypoint = moveit::core::RobotState(trajectory.getWayPoint(0));
     waypoint.zeroVelocities();
     waypoint.zeroAccelerations();
@@ -991,7 +1006,8 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
   }
 
   // Now actually call the algorithm
-  Trajectory parameterized(Path(points, path_tolerance_), max_velocity, max_acceleration, 0.001);
+  // We use a smaller timestep for better accuracy
+  Trajectory parameterized(Path(points, path_tolerance_), max_velocity, max_acceleration, 0.1 * resample_dt_);
   if (!parameterized.isValid())
   {
     ROS_ERROR_NAMED(LOGNAME, "Unable to parameterize trajectory.");
@@ -1025,5 +1041,33 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
   }
 
   return true;
+}
+
+bool TimeOptimalTrajectoryGeneration::hasMixedJointTypes(const moveit::core::JointModelGroup* group) const
+{
+  const std::vector<const moveit::core::JointModel*>& joint_models = group->getActiveJointModels();
+
+  bool have_prismatic =
+      std::any_of(joint_models.cbegin(), joint_models.cend(), [](const moveit::core::JointModel* joint_model) {
+        return joint_model->getType() == moveit::core::JointModel::JointType::PRISMATIC;
+      });
+
+  bool have_revolute =
+      std::any_of(joint_models.cbegin(), joint_models.cend(), [](const moveit::core::JointModel* joint_model) {
+        return joint_model->getType() == moveit::core::JointModel::JointType::REVOLUTE;
+      });
+
+  return have_prismatic && have_revolute;
+}
+
+double TimeOptimalTrajectoryGeneration::verifyScalingFactor(const double requested_scaling_factor) const
+{
+  double scaling_factor = std::clamp(requested_scaling_factor, 1e-7, 1.0);
+  if (requested_scaling_factor != scaling_factor)
+  {
+    ROS_WARN_NAMED(LOGNAME, "Invalid max_scaling_factor specified: %f, reverting to %f instead.",
+                   requested_scaling_factor, scaling_factor);
+  }
+  return scaling_factor;
 }
 }  // namespace trajectory_processing

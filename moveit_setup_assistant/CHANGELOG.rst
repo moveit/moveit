@@ -2,6 +2,19 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+* Fix OMPL's TRRT parameter names (`#3461 <https://github.com/ros-planning/moveit/issues/3461>`_)
+* Contributors: VideoSystemsTech
+
+1.1.12 (2023-05-13)
+-------------------
+* Add AITstar, BITstar and ABITstar planners from OMPL >= 1.5 (`#3347 <https://github.com/ros-planning/moveit/issues/3347>`_)
+* Allow configuration of goal tolerances in kinematics.yaml (`#3409 <https://github.com/ros-planning/moveit/issues/3409>`_)
+* MSA: Fix 3D Perception widget (`#3399 <https://github.com/ros-planning/moveit/issues/3399>`_)
+* Fix deprecation warnings in Debian bookworm (`#3397 <https://github.com/ros-planning/moveit/issues/3397>`_)
+* Contributors: Michael Görner, Robert Haschke, alaflaquiere
+
 1.1.11 (2022-12-21)
 -------------------
 * MSA: Cleanup SimulationWidget (`#3281 <https://github.com/ros-planning/moveit/issues/3281>`_)

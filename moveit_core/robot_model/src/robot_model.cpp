@@ -818,8 +818,20 @@ JointModel* RobotModel::buildRecursive(LinkModel* parent, const urdf::Link* urdf
   link->setParentJointModel(joint);
 
   // recursively build child links (and joints)
-  for (const urdf::LinkSharedPtr& child_link : urdf_link->child_links)
+  for (unsigned int i = 0; i < urdf_link->child_links.size(); ++i)
   {
+    const urdf::LinkSharedPtr& child_link{ urdf_link->child_links[i] };
+    const urdf::JointSharedPtr& child_joint{ urdf_link->child_joints[i] };
+
+    if (child_link->parent_joint->name != child_joint->name)
+    {
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "Found link '" << child_link->name << "' with multiple parent joints '"
+                                                     << child_link->parent_joint->name << "' and '" << child_joint->name
+                                                     << "'. Ignoring the latter joint because cycles in the kinematic "
+                                                        "structure are not supported.");
+      continue;
+    }
+
     JointModel* jm = buildRecursive(link, child_link.get(), srdf_model);
     if (jm)
       link->addChildJointModel(jm);
@@ -968,12 +980,101 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
   {
     new_joint_model->setDistanceFactor(new_joint_model->getStateSpaceDimension());
     const std::vector<srdf::Model::PassiveJoint>& pjoints = srdf_model.getPassiveJoints();
+    const std::string& joint_name = new_joint_model->getName();
     for (const srdf::Model::PassiveJoint& pjoint : pjoints)
     {
-      if (new_joint_model->getName() == pjoint.name_)
+      if (joint_name == pjoint.name_)
       {
         new_joint_model->setPassive(true);
         break;
+      }
+    }
+
+    // parse a joint property string as a double with error handling
+    // if the property was successfully parsed,
+    // stores the resulting property value in prop_value and returns true
+    // otherwise logs a ROS_ERROR and returns false
+    auto parse_property_double = [&joint_name](auto& prop_name, auto& prop_value_str, double& prop_value) -> bool {
+      try
+      {
+        prop_value = moveit::core::toDouble(prop_value_str);
+        return true;
+      }
+      catch (const std::runtime_error& e)
+      {
+        ROS_ERROR_STREAM_NAMED(LOGNAME, "Unable to parse property " << prop_name << " for joint " << joint_name
+                                                                    << " as double: '" << prop_value_str << "'");
+      }
+      return false;
+    };
+
+    for (const auto& [property_name, property_value_str] : srdf_model.getJointProperties(joint_name))
+    {
+      if (property_name == "angular_distance_weight")
+      {
+        double angular_distance_weight;
+        if (parse_property_double(property_name, property_value_str, angular_distance_weight))
+        {
+          if (new_joint_model->getType() == JointModel::JointType::PLANAR)
+          {
+            ((PlanarJointModel*)new_joint_model)->setAngularDistanceWeight(angular_distance_weight);
+          }
+          else if (new_joint_model->getType() == JointModel::JointType::FLOATING)
+          {
+            ((FloatingJointModel*)new_joint_model)->setAngularDistanceWeight(angular_distance_weight);
+          }
+          else
+          {
+            ROS_ERROR_NAMED(LOGNAME, "Cannot apply property %s to joint type: %s", property_name.c_str(),
+                            new_joint_model->getTypeName().c_str());
+          }
+        }
+      }
+      else if (property_name == "motion_model")
+      {
+        if (new_joint_model->getType() != JointModel::JointType::PLANAR)
+        {
+          ROS_ERROR_NAMED(LOGNAME, "Cannot apply property %s to joint type: %s", property_name.c_str(),
+                          new_joint_model->getTypeName().c_str());
+          continue;
+        }
+
+        PlanarJointModel::MotionModel motion_model;
+        if (property_value_str == "holonomic")
+        {
+          motion_model = PlanarJointModel::MotionModel::HOLONOMIC;
+        }
+        else if (property_value_str == "diff_drive")
+        {
+          motion_model = PlanarJointModel::MotionModel::DIFF_DRIVE;
+        }
+        else
+        {
+          ROS_ERROR_STREAM_NAMED(LOGNAME, "Unknown value for property " << property_name << " (" << joint_name << "): '"
+                                                                        << property_value_str << "'");
+          ROS_ERROR_NAMED(LOGNAME, "Valid values are 'holonomic' and 'diff_drive'");
+          continue;
+        }
+
+        ((PlanarJointModel*)new_joint_model)->setMotionModel(motion_model);
+      }
+      else if (property_name == "min_translational_distance")
+      {
+        if (new_joint_model->getType() != JointModel::JointType::PLANAR)
+        {
+          ROS_ERROR_NAMED(LOGNAME, "Cannot apply property %s to joint type: %s", property_name.c_str(),
+                          new_joint_model->getTypeName().c_str());
+          continue;
+        }
+        double min_translational_distance;
+        if (parse_property_double(property_name, property_value_str, min_translational_distance))
+        {
+          ((PlanarJointModel*)new_joint_model)->setMinTranslationalDistance(min_translational_distance);
+        }
+      }
+      else
+      {
+        ROS_ERROR_NAMED(LOGNAME, "Unknown joint property: %s", property_name.c_str());
       }
     }
   }
@@ -1176,15 +1277,34 @@ LinkModel* RobotModel::getLinkModel(const std::string& name, bool* has_link)
   return nullptr;
 }
 
-const LinkModel* RobotModel::getRigidlyConnectedParentLinkModel(const LinkModel* link)
+const LinkModel* RobotModel::getRigidlyConnectedParentLinkModel(const LinkModel* link, Eigen::Isometry3d& transform,
+                                                                const JointModelGroup* jmg)
 {
   if (!link)
     return link;
+
+  transform.setIdentity();
   const moveit::core::LinkModel* parent_link = link->getParentLinkModel();
   const moveit::core::JointModel* joint = link->getParentJointModel();
-
-  while (parent_link && joint->getType() == moveit::core::JointModel::FIXED)
+  decltype(jmg->getJointModels().cbegin()) begin{}, end{};
+  if (jmg)
   {
+    begin = jmg->getJointModels().cbegin();
+    end = jmg->getJointModels().cend();
+  }
+
+  auto is_fixed_or_not_in_jmg = [begin, end](const moveit::core::JointModel* joint) {
+    if (joint->getType() == moveit::core::JointModel::FIXED)
+      return true;
+    if (begin != end &&                       // we do have a non-empty jmg
+        std::find(begin, end, joint) == end)  // joint does not belong to jmg
+      return true;
+    return false;
+  };
+
+  while (parent_link && is_fixed_or_not_in_jmg(joint))
+  {
+    transform = link->getJointOriginTransform() * transform;
     link = parent_link;
     joint = link->getParentJointModel();
     parent_link = joint->getParentLinkModel();

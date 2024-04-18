@@ -306,8 +306,9 @@ PYBIND11_MODULE(pymoveit_move_group_interface, m)
              return msg;
            })
 
-      .def("get_active_joints", &MoveGroupInterfaceWrapper::getActiveJoints)
       .def("get_joints", &MoveGroupInterfaceWrapper::getJoints)
+      .def("get_active_joints", &MoveGroupInterfaceWrapper::getActiveJoints)
+      .def("get_variables", &MoveGroupInterfaceWrapper::getVariableNames)
       .def("get_variable_count", &MoveGroupInterfaceWrapper::getVariableCount)
       .def("allow_looking", &MoveGroupInterfaceWrapper::allowLooking, py::arg("flag"))
       .def("allow_replanning", &MoveGroupInterfaceWrapper::allowReplanning, py::arg("flag"))

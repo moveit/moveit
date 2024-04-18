@@ -682,7 +682,12 @@ void PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_ms
     for (const std::pair<const std::string, collision_detection::World::Action>& it : *world_diff_)
     {
       if (it.first == OCTOMAP_NS)
-        do_omap = true;
+      {
+        if (it.second == collision_detection::World::DESTROY)
+          scene_msg.world.octomap.octomap.id = "cleared";  // indicate cleared octomap
+        else
+          do_omap = true;
+      }
       else if (it.second == collision_detection::World::DESTROY)
       {
         // if object became attached, it should not be recorded as removed here
@@ -1305,7 +1310,7 @@ bool PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene& sc
     result &= processCollisionObjectMsg(collision_object);
 
   // if an octomap was specified, replace the one we have with that one
-  if (!scene_msg.world.octomap.octomap.data.empty())
+  if (!scene_msg.world.octomap.octomap.id.empty())
     processOctomapMsg(scene_msg.world.octomap);
 
   return result;
@@ -1750,15 +1755,15 @@ bool PlanningScene::shapesAndPosesFromCollisionObjectMessage(const moveit_msgs::
   shapes.reserve(num_shapes);
   shape_poses.reserve(num_shapes);
 
-  PlanningScene::poseMsgToEigen(object.pose, object_pose);
-
   bool switch_object_pose_and_shape_pose = false;
-  if (num_shapes == 1)
-    if (moveit::core::isEmpty(object.pose))
-    {
-      switch_object_pose_and_shape_pose = true;  // If the object pose is not set but the shape pose is,
-                                                 // use the shape's pose as the object pose.
-    }
+  if (num_shapes == 1 && moveit::core::isEmpty(object.pose))
+  {
+    // If the object pose is not set but the shape pose is, use the shape's pose as the object pose.
+    switch_object_pose_and_shape_pose = true;
+    object_pose.setIdentity();
+  }
+  else
+    PlanningScene::poseMsgToEigen(object.pose, object_pose);
 
   auto append = [&object_pose, &shapes, &shape_poses,
                  &switch_object_pose_and_shape_pose](shapes::Shape* s, const geometry_msgs::Pose& pose_msg) {

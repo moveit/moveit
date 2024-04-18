@@ -84,6 +84,43 @@ bool moveToCartPose(const geometry_msgs::PoseStamped& pose, moveit::planning_int
   return false;
 }
 
+// similar to MoveToCartPose, but tries to plan a cartesian path with a subframe link
+bool moveCartesianPath(const geometry_msgs::PoseStamped& pose, moveit::planning_interface::MoveGroupInterface& group,
+                       const std::string& end_effector_link)
+{
+  group.clearPoseTargets();
+  group.setEndEffectorLink(end_effector_link);
+  group.setStartStateToCurrentState();
+  std::vector<double> initial_joint_position({ 0, -TAU / 8, 0, -3 * TAU / 8, 0, TAU / 4, TAU / 8 });
+  group.setJointValueTarget(initial_joint_position);
+  moveit::planning_interface::MoveGroupInterface::Plan myplan;
+  if (!group.plan(myplan) || !group.execute(myplan))
+  {
+    ROS_WARN("Failed to move to initial joint positions");
+    return false;
+  }
+
+  std::vector<geometry_msgs::Pose> waypoints;
+  waypoints.push_back(pose.pose);
+  moveit_msgs::RobotTrajectory trajectory;
+  double percent = group.computeCartesianPath(waypoints, 0.01, 0, trajectory, true);
+  if (percent == 1.0)
+  {
+    group.execute(trajectory);
+    return true;
+  }
+
+  if (percent == -1.0)
+  {
+    ROS_WARN("Failed to compute cartesian path");
+  }
+  else
+  {
+    ROS_WARN_STREAM("Computed only " << percent * 100.0 << "% of path");
+  }
+  return false;
+}
+
 // Function copied from subframes tutorial
 // This helper function creates two objects and publishes them to the PlanningScene: a box and a cylinder.
 // The box spawns in front of the gripper, the cylinder at the tip of the gripper, as if it had been grasped.
@@ -169,7 +206,7 @@ TEST(TestPlanUsingSubframes, SubframesTests)
   target_pose_stamped.pose.orientation = tf2::toMsg(target_orientation);
   target_pose_stamped.pose.position.z = Z_OFFSET;
 
-  ROS_INFO_STREAM_NAMED(log_name, "Moving to bottom of box with cylinder tip");
+  ROS_INFO_STREAM_NAMED(log_name, "Moving to bottom of box with cylinder tip, and then away");
   target_pose_stamped.header.frame_id = "box/bottom";
   ASSERT_TRUE(moveToCartPose(target_pose_stamped, group, "cylinder/tip"));
   planning_scene_monitor->requestPlanningSceneState();
@@ -196,6 +233,64 @@ TEST(TestPlanUsingSubframes, SubframesTests)
     ss.str("");
     ss << "panda link frame: \n" << panda_link.matrix() << "\nexpected pose: \n" << expected_pose.matrix();
     EXPECT_TRUE(panda_link.isApprox(expected_pose, EPSILON)) << ss.str();
+  }
+  att_coll_object.object.operation = att_coll_object.object.REMOVE;
+  planning_scene_interface.applyAttachedCollisionObject(att_coll_object);
+  moveit_msgs::CollisionObject coll_object1, coll_object2;
+  coll_object1.id = "cylinder";
+  coll_object1.operation = moveit_msgs::CollisionObject::REMOVE;
+  coll_object2.id = "box";
+  coll_object2.operation = moveit_msgs::CollisionObject::REMOVE;
+  planning_scene_interface.applyCollisionObject(coll_object1);
+  planning_scene_interface.applyCollisionObject(coll_object2);
+}
+
+TEST(TestPlanUsingSubframes, SubframesCartesianPathTests)
+{
+  const std::string log_name = "test_cartesian_path_using_subframes";
+  ros::NodeHandle nh(log_name);
+
+  auto planning_scene_monitor = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
+  moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+  moveit::planning_interface::MoveGroupInterface group("panda_arm");
+  group.setPlanningTime(PLANNING_TIME_S);
+
+  spawnCollisionObjects(planning_scene_interface);
+  moveit_msgs::CollisionObject coll_object2;
+  coll_object2.id = "box";
+  coll_object2.operation = moveit_msgs::CollisionObject::REMOVE;
+  planning_scene_interface.applyCollisionObject(coll_object2);
+
+  moveit_msgs::AttachedCollisionObject att_coll_object;
+  att_coll_object.object.id = "cylinder";
+  att_coll_object.link_name = "panda_hand";
+  att_coll_object.object.operation = att_coll_object.object.ADD;
+  att_coll_object.object.pose.orientation.w = 1.0;
+  planning_scene_interface.applyAttachedCollisionObject(att_coll_object);
+
+  // Move to where panda_hand is at when it graps cylinder
+  geometry_msgs::PoseStamped target_pose_stamped;
+  target_pose_stamped = group.getCurrentPose("panda_hand");
+  tf2::Quaternion orientation;
+  orientation.setRPY(TAU / 2, -TAU / 4.0, 0);
+  target_pose_stamped.pose.orientation = tf2::toMsg(orientation);
+
+  ROS_INFO_STREAM_NAMED(log_name, "Moving hand in cartesian path to hand grasping location");
+  ASSERT_TRUE(moveCartesianPath(target_pose_stamped, group, "cylinder/tip"));
+  planning_scene_monitor->requestPlanningSceneState();
+  {
+    planning_scene_monitor::LockedPlanningSceneRO planning_scene(planning_scene_monitor);
+
+    // get the tip and base frames
+    Eigen::Isometry3d cyl_tip = planning_scene->getFrameTransform("cylinder/tip");
+    Eigen::Isometry3d base = planning_scene->getFrameTransform(target_pose_stamped.header.frame_id);
+    Eigen::Isometry3d target_pose;
+    tf2::fromMsg(target_pose_stamped.pose, target_pose);
+
+    // expect that they are identical
+    std::stringstream ss;
+    ss << "target frame: \n" << (base * target_pose).matrix() << "\ncylinder frame: \n" << cyl_tip.matrix();
+    EXPECT_TRUE(cyl_tip.isApprox(base * target_pose, EPSILON)) << ss.str();
   }
 }
 

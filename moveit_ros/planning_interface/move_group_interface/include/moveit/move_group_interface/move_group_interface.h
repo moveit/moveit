@@ -73,6 +73,24 @@ MOVEIT_CLASS_FORWARD(MoveGroupInterface);  // Defines MoveGroupInterfacePtr, Con
 class MoveGroupInterface
 {
 public:
+  /** \brief Default goal joint tolerance (0.1mm) if not specified with {robot description name}_kinematics/{joint model
+   * group name}/goal_joint_tolerance */
+  static constexpr double DEFAULT_GOAL_JOINT_TOLERANCE = 1e-4;
+
+  /** \brief Default goal position tolerance (0.1mm) if not specified with {robot description name}_kinematics/{joint
+   * model group name}/goal_position_tolerance */
+  static constexpr double DEFAULT_GOAL_POSITION_TOLERANCE = 1e-4;
+
+  /** \brief Default goal orientation tolerance (~0.1deg) if not specified with {robot description
+   * name}_kinematics/{joint model group name}/goal_orientation_tolerance */
+  static constexpr double DEFAULT_GOAL_ORIENTATION_TOLERANCE = 1e-3;
+
+  /** \brief Default allowed planning time (seconds) */
+  static constexpr double DEFAULT_ALLOWED_PLANNING_TIME = 5.0;
+
+  /** \brief Default number of planning attempts */
+  static constexpr int DEFAULT_NUM_PLANNING_ATTEMPTS = 1;
+
   /** \brief Default ROS parameter name from where to read the robot's URDF. Set to 'robot_description' */
   static const std::string ROBOT_DESCRIPTION;
 
@@ -172,20 +190,40 @@ public:
   /** \brief Get the available planning group names */
   const std::vector<std::string>& getJointModelGroupNames() const;
 
-  /** \brief Get vector of names of joints available in move group */
-  const std::vector<std::string>& getJointNames() const;
-
   /** \brief Get vector of names of links available in move group */
   const std::vector<std::string>& getLinkNames() const;
 
   /** \brief Get the joint angles for targets specified by name */
   std::map<std::string, double> getNamedTargetValues(const std::string& name) const;
 
-  /** \brief Get only the active (actuated) joints this instance operates on */
-  const std::vector<std::string>& getActiveJoints() const;
+  /** \brief Get names of all the joints in this group
 
-  /** \brief Get all the joints this instance operates on (including fixed joints)*/
+      The list includes fixed joints, so not all joints in the list can move.
+      This complete list is mainly useful when considering relative transforms. */
   const std::vector<std::string>& getJoints() const;
+
+  [[deprecated("use getVariableNames")]] const std::vector<std::string>& getJointNames() const
+  {
+    return getVariableNames();
+  }
+
+  /** \brief Get names of degrees of freedom in this group
+
+      This list does not include fixed joints, but does include mimic and passive joints.
+      Multi-DOF joints are represented as multiple separate entries.
+      It corresponds to the double vectors representing a robot state in the RobotState class.
+      The joints in this list define all information necessary to recreate a complete robot state
+      without additional knowledge. */
+  const std::vector<std::string>& getVariableNames() const;
+
+  /** \brief Get names of joints with an active (actuated) DOF in this group
+
+      This list includes *only* joints that MoveIt can actuate through a controller.
+      Mimic joints are excluded, but can be recomputed with the robot model.
+      Passive joints explicitly excluded and cannot be recomputed from this set of joints.
+
+      This list is primarily useful to process trajectories meant for execution. */
+  const std::vector<std::string>& getActiveJoints() const;
 
   /** \brief Get the number of variables used to describe the state of this group. This is larger or equal to the number
    * of DOF. */

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>moveit_core</name>
-  <version>1.1.11</version>
+  <version>1.1.13</version>
   <description>Core libraries used by MoveIt</description>
   <author email="isucan@google.com">Ioan Sucan</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
@@ -55,17 +55,18 @@
   <depend>visualization_msgs</depend>
   <depend>xmlrpcpp</depend>
   <depend>pluginlib</depend>
+  <build_depend>angles</build_depend>
 
   <doc_depend>python3-sphinx-rtd-theme</doc_depend>
 
   <test_depend>moveit_resources_panda_moveit_config</test_depend>
   <test_depend>moveit_resources_pr2_description</test_depend>
-  <test_depend>angles</test_depend>
   <test_depend>tf2_kdl</test_depend>
-  <test_depend condition="$ROS_DISTRO != noetic">orocos_kdl</test_depend>
-  <test_depend condition="$ROS_DISTRO == noetic">liborocos-kdl-dev</test_depend>
+  <test_depend condition="$ROS_DISTRO == melodic">orocos_kdl</test_depend>
+  <test_depend condition="$ROS_DISTRO != melodic">liborocos-kdl-dev</test_depend>
   <test_depend>rosunit</test_depend>
   <test_depend>rostest</test_depend>
+  <test_depend>benchmark</test_depend>
 
   <export>
     <moveit_core plugin="${prefix}/collision_detector_fcl_description.xml"/>

@@ -2,6 +2,16 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+
+1.1.12 (2023-05-13)
+-------------------
+* Generalize RobotState::setFromIK() (`<https://github.com/ros-planning/moveit/issues/3388>`_)
+* Resolve subframe in cartesian_path_service capability
+* Fix MoveItCpp issues (`#3369 <https://github.com/ros-planning/moveit/issues/3369>`_)
+* Contributors: Robert Haschke
+
 1.1.11 (2022-12-21)
 -------------------
 * Merge PR `#3262 <https://github.com/ros-planning/moveit/issues/3262>`_: Short-circuit planning adapters

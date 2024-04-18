@@ -49,7 +49,7 @@
 #include <rviz/properties/bool_property.h>
 #include <rviz/properties/float_property.h>
 #include <rviz/properties/ros_topic_property.h>
-#include <rviz/properties/editable_enum_property.h>
+#include <rviz/properties/enum_property.h>
 #include <rviz/properties/color_property.h>
 #include <rviz/display_context.h>
 #include <rviz/frame_manager.h>
@@ -124,9 +124,9 @@ MotionPlanningDisplay::MotionPlanningDisplay()
   // Planning request category -----------------------------------------------------------------------------------------
 
   planning_group_property_ =
-      new rviz::EditableEnumProperty("Planning Group", "",
-                                     "The name of the group of links to plan for (from the ones defined in the SRDF)",
-                                     plan_category_, SLOT(changedPlanningGroup()), this);
+      new rviz::EnumProperty("Planning Group", "",
+                             "The name of the group of links to plan for (from the ones defined in the SRDF)",
+                             plan_category_, SLOT(changedPlanningGroup()), this);
   show_workspace_property_ = new rviz::BoolProperty("Show Workspace", false,
                                                     "Shows the axis-aligned bounding box for "
                                                     "the workspace allowed for planning",
@@ -1142,8 +1142,11 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   PlanningSceneDisplay::onRobotModelLoaded();
   trajectory_visual_->onRobotModelLoaded(getRobotModel());
 
-  robot_interaction_ =
-      std::make_shared<robot_interaction::RobotInteraction>(getRobotModel(), "rviz_moveit_motion_planning_display");
+  std::string ns = "rviz_moveit_motion_planning_display";
+  std::string robot_desc_ns = ros::names::parentNamespace(robot_description_property_->getStdString());
+  if (!robot_desc_ns.empty())
+    ns = ros::names::append(robot_desc_ns, ns);
+  robot_interaction_ = std::make_shared<robot_interaction::RobotInteraction>(getRobotModel(), ns);
   robot_interaction::KinematicOptions o;
   o.state_validity_callback_ = [this](moveit::core::RobotState* robot_state,
                                       const moveit::core::JointModelGroup* joint_group,
@@ -1242,14 +1245,16 @@ void MotionPlanningDisplay::updateQueryStates(const moveit::core::RobotState& cu
   {
     moveit::core::RobotState start = *getQueryStartState();
     updateStateExceptModified(start, current_state);
-    setQueryStartState(start);
+    if (query_start_state_property_->getBool())
+      setQueryStartState(start);
   }
 
   if (query_goal_state_)
   {
     moveit::core::RobotState goal = *getQueryGoalState();
     updateStateExceptModified(goal, current_state);
-    setQueryGoalState(goal);
+    if (query_goal_state_property_->getBool())
+      setQueryGoalState(goal);
   }
 }
 
@@ -1356,6 +1361,8 @@ void MotionPlanningDisplay::load(const rviz::Config& config)
       frame_->ui_->collision_aware_ik->setChecked(b);
     if (config.mapGetBool("MoveIt_Allow_Approximate_IK", &b))
       frame_->ui_->approximate_ik->setChecked(b);
+    if (config.mapGetBool("JointsTab_Use_Radians", &b))
+      frame_->joints_tab_->setUseRadians(true);
 
     rviz::Config workspace = config.mapGetChild("MoveIt_Workspace");
     rviz::Config ws_center = workspace.mapGetChild("Center");
@@ -1408,6 +1415,7 @@ void MotionPlanningDisplay::save(rviz::Config config) const
     config.mapSetValue("MoveIt_Use_Cartesian_Path", frame_->ui_->use_cartesian_path->isChecked());
     config.mapSetValue("MoveIt_Use_Constraint_Aware_IK", frame_->ui_->collision_aware_ik->isChecked());
     config.mapSetValue("MoveIt_Allow_Approximate_IK", frame_->ui_->approximate_ik->isChecked());
+    config.mapSetValue("JointsTab_Use_Radians", frame_->joints_tab_->useRadians());
 
     rviz::Config workspace = config.mapMakeChild("MoveIt_Workspace");
     rviz::Config ws_center = workspace.mapMakeChild("Center");

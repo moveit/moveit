@@ -127,28 +127,33 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, const MoveItCo
   slider_layout->addWidget(density_left_label);
 
   // Slider
-  density_slider_ = new QSlider(this);
-  density_slider_->setTickPosition(QSlider::TicksBelow);
-  density_slider_->setMinimum(0);
-  density_slider_->setMaximum(99);
-  density_slider_->setSingleStep(10);
-  density_slider_->setPageStep(50);
-  density_slider_->setSliderPosition(9);  // 10,000 is default
-  density_slider_->setTickInterval(10);
-  density_slider_->setOrientation(Qt::Horizontal);
-  slider_layout->addWidget(density_slider_);
-  connect(density_slider_, SIGNAL(valueChanged(int)), this, SLOT(changeDensityLabel(int)));
+  sample_slider_ = new QSlider(this);
+  sample_slider_->setTickPosition(QSlider::TicksBelow);
+  sample_slider_->setMinimum(1000);
+  sample_slider_->setMaximum(100000);
+  sample_slider_->setSingleStep(1000);
+  sample_slider_->setPageStep(10000);
+  sample_slider_->setSliderPosition(10000);  // 10,000 is default
+  sample_slider_->setTickInterval(10000);
+  sample_slider_->setOrientation(Qt::Horizontal);
+  slider_layout->addWidget(sample_slider_);
+  connect(sample_slider_, SIGNAL(valueChanged(int)), this, SLOT(changeNumSamples(int)));
 
   // Slider Right Label
   QLabel* density_right_label = new QLabel(this);
   density_right_label->setText("High   ");
   slider_layout->addWidget(density_right_label);
 
-  // Slider Value Label
-  density_value_label_ = new QLabel(this);
-  density_value_label_->setMinimumWidth(50);
-  slider_layout->addWidget(density_value_label_);
-  changeDensityLabel(density_slider_->value());  // initialize label with value
+  // Spinbox Value Label
+  sample_spinbox_ = new QSpinBox(this);
+  sample_spinbox_->setMinimumWidth(70);
+  sample_spinbox_->setMinimum(1000);
+  sample_spinbox_->setMaximum(100000000);
+  sample_spinbox_->setSingleStep(1000);
+  sample_spinbox_->setEnabled(true);
+  slider_layout->addWidget(sample_spinbox_);
+  changeNumSamples(sample_slider_->value());  // initialize label with value
+  connect(sample_spinbox_, SIGNAL(valueChanged(int)), this, SLOT(changeNumSamples(int)));
 
   QHBoxLayout* buttons_layout = new QHBoxLayout();
   buttons_layout->setAlignment(Qt::AlignRight);
@@ -186,6 +191,13 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, const MoveItCo
   progress_bar_->setMinimum(0);
   progress_bar_->hide();  // only show when computation begins
   layout_->addWidget(progress_bar_);
+
+  // Interrupt Button
+  btn_interrupt_ = new QPushButton(this);
+  btn_interrupt_->setText("Interrupt");
+  btn_interrupt_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+  connect(btn_interrupt_, SIGNAL(clicked()), this, SLOT(interruptGeneratingCollisionTable()));
+  layout_->addWidget(btn_interrupt_);
 
   // Table Area --------------------------------------------
 
@@ -276,20 +288,37 @@ void DefaultCollisionsWidget::startGeneratingCollisionTable()
 }
 
 // ******************************************************************************************
+// interrupt generating the collision table
+// ******************************************************************************************
+void DefaultCollisionsWidget::interruptGeneratingCollisionTable()
+{
+  if (QMessageBox::No == QMessageBox::question(this, "Collision Matrix Generation",
+                                               "Collision Matrix Generation is still active. Cancel computation?",
+                                               QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
+    return;
+
+  if (worker_)
+  {
+    worker_->cancel();
+    worker_->wait();
+  }
+}
+
+// ******************************************************************************************
 // cleanup after worker_ thread has finished
 // ******************************************************************************************
 void DefaultCollisionsWidget::finishGeneratingCollisionTable()
 {
-  if (worker_->canceled())
-    return;
+  if (!worker_->canceled())
+  {
+    // Load the results into the GUI
+    loadCollisionTable();
 
-  // Load the results into the GUI
-  loadCollisionTable();
+    config_data_->changes |= MoveItConfigData::COLLISIONS;
+  }
+  disableControls(false);  // enable controls, hide interrupt button + progress bar
+  progress_bar_->show();   // make progress bar visislbe again
 
-  // Hide the progress bar
-  disableControls(false);  // enable everything else
-
-  config_data_->changes |= MoveItConfigData::COLLISIONS;
   worker_->deleteLater();
   worker_ = nullptr;
 }
@@ -299,7 +328,8 @@ void DefaultCollisionsWidget::finishGeneratingCollisionTable()
 // ******************************************************************************************
 void DefaultCollisionsWidget::generateCollisionTable(unsigned int* collision_progress)
 {
-  unsigned int num_trials = density_slider_->value() * 1000 + 1000;  // scale to trials amount
+  unsigned int num_trials = (sample_spinbox_->value() / 1000.0) * 1000;  // round the value in 1000s
+  num_trials = num_trials < 1000 ? 1000 : num_trials;                    // make sure that num_trials >= 1000
   double min_frac = (double)fraction_spinbox_->value() / 100.0;
 
   const bool verbose = true;  // Output benchmarking and statistics
@@ -315,8 +345,9 @@ void DefaultCollisionsWidget::generateCollisionTable(unsigned int* collision_pro
   // Update collision_matrix for robot pose's use
   config_data_->loadAllowedCollisionMatrix(*wip_srdf_);
 
-  // End the progress bar loop
-  *collision_progress = 100;
+  // Indicate end the progress bar loop (MonitorThread::run())
+  if (worker_ && !worker_->canceled())
+    *collision_progress = 100;
 
   ROS_INFO_STREAM("Thread complete " << link_pairs.size());
 }
@@ -677,11 +708,22 @@ void DefaultCollisionsWidget::toggleSelection(QItemSelection selection)
 }
 
 // ******************************************************************************************
-// GUI func for showing sampling density amount
+// GUI func for updating number of samples
 // ******************************************************************************************
-void DefaultCollisionsWidget::changeDensityLabel(int value)
+void DefaultCollisionsWidget::changeNumSamples(int value)
 {
-  density_value_label_->setText(QString::number(value * 1000 + 1000));  //.append(" samples") );
+  sample_spinbox_->blockSignals(true);
+  sample_slider_->blockSignals(true);
+
+  int rounded_value = round(value / 1000.0) * 1000;
+  if (!sample_spinbox_->hasFocus())
+  {
+    sample_spinbox_->setValue(rounded_value);
+  }
+  sample_slider_->setValue(rounded_value);
+
+  sample_spinbox_->blockSignals(false);
+  sample_slider_->blockSignals(false);
 }
 
 // ******************************************************************************************
@@ -696,11 +738,13 @@ void DefaultCollisionsWidget::disableControls(bool disable)
   {
     progress_bar_->show();  // only show when computation begins
     progress_label_->show();
+    btn_interrupt_->show();
   }
   else
   {
-    progress_label_->hide();
     progress_bar_->hide();
+    progress_label_->hide();
+    btn_interrupt_->hide();
   }
 
   QApplication::processEvents();  // allow the progress bar to be shown
@@ -786,8 +830,11 @@ bool DefaultCollisionsWidget::focusLost()
                                                  "Collision Matrix Generation is still active. Cancel computation?",
                                                  QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
       return false;
-    worker_->cancel();
-    worker_->wait();
+    if (worker_)
+    {
+      worker_->cancel();
+      worker_->wait();
+    }
   }
   *config_data_->srdf_ = *wip_srdf_;
 
@@ -820,7 +867,6 @@ void moveit_setup_assistant::MonitorThread::run()
 
   worker_.join();
 
-  progress_ = 100;
   Q_EMIT progress(progress_);
 }
 

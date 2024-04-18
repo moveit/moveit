@@ -110,20 +110,8 @@ public:
 
   /**@brief Add a collision object to the checker
    *
-   * All objects are added should initially be added as static objects. Use the setContactRequest method of defining
-   * which collision objects are moving.
-   *
-   * @param name            The name of the object, must be unique.
-   * @param mask_id         User defined id which gets stored in the results structure.
-   * @param shapes          A vector of shapes that make up the collision object.
-   * @param shape_poses     A vector of poses for each shape, must be same length as shapes
-   * @param shape_types     A vector of shape types for encode the collision object. If the vector is of length 1 it is
-   * used for all shapes.
-   * @param collision_object_types A int identifying a conversion mode for the object. (ex. convert meshes to convex
-   * hulls)
-   * @param enabled         Indicate if the object is enabled for collision checking.
-   * @return true if successfully added, otherwise false. */
-  /**@brief Add a tesseract collision object to the manager
+   * All objects are added as static objects initially.
+   * Use the setContactRequest method for defining which collision objects are moving.
    * @param cow The tesseract bullet collision object */
   virtual void addCollisionObject(const CollisionObjectWrapperPtr& cow) = 0;
 

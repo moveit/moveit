@@ -36,10 +36,7 @@
 
 #pragma once
 
-/** \file empty_msgs.h
- *  \brief Checks for empty MoveIt-related messages
- *
- */
+/** \brief Checks for empty MoveIt-related messages */
 
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit_msgs/PlanningSceneWorld.h>

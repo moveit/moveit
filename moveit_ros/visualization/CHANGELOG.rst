@@ -2,6 +2,20 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2023-07-28)
+-------------------
+* Avoid costly updates of invisible RobotInteractions on query state changes (`#3478 <https://github.com/ros-planning/moveit/issues/3478>`_)
+* Contributors: Robert Haschke
+
+1.1.12 (2023-05-13)
+-------------------
+* MPD: Resolve namespace ambiguity in RobotInteraction (`#3403 <https://github.com/ros-planning/moveit/issues/3403>`_)
+* Disallow custom string for planning group property in RViz Display (`#3346 <https://github.com/ros-planning/moveit/issues/3346>`_)
+* Fixes to octomap display in PSD (`#3385 <https://github.com/ros-planning/moveit/issues/3385>`_)
+* MPD: maintain current item when updating object list
+* TrajectoryDisplay: sync visibility of links in trail with main robot (`#3337 <https://github.com/ros-planning/moveit/issues/3337>`_)
+* Contributors: Robert Haschke, Simon Schmeisser, Tejal Ashwini Barnwal
+
 1.1.11 (2022-12-21)
 -------------------
 * Fix some consistency issues in PlanningScene handling (`#3298 <https://github.com/ros-planning/moveit/issues/3298>`_)
