@@ -352,7 +352,8 @@ TrajectoryGenerator::MotionPlanInfo::MotionPlanInfo(const planning_scene::Planni
   start_scene = std::move(scene->diff());
   auto jmg = start_scene->getCurrentState().getRobotModel()->getJointModelGroup(req.group_name);
   // initialize info.start_joint_position with active joint values from start_state
-  for (const auto* jm : jmg->getActiveJointModels()) {
+  for (const auto* jm : jmg->getActiveJointModels())
+  {
     const auto& names = jm->getVariableNames();
     for (std::size_t i = 0, j = jm->getFirstVariableIndex(); i < jm->getVariableCount(); ++i, ++j)
       start_joint_position[names[i]] = req.start_state.joint_state.position[j];
