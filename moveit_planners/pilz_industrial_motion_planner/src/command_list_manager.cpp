@@ -172,7 +172,7 @@ void CommandListManager::setStartState(const MotionResponseCont& motion_plan_res
   RobotState_OptRef rob_state_op{ getPreviousEndState(motion_plan_responses, group_name) };
   if (rob_state_op)
   {
-    moveit::core::robotStateToRobotStateMsg(rob_state_op.value(), start_state);
+    moveit::core::robotStateToRobotStateMsg(rob_state_op.value(), start_state, false);
   }
 }
 
