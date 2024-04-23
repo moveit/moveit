@@ -949,7 +949,7 @@ public:
 
     if (considered_start_state_)
       req.start_state = considered_start_state_;
-    else 
+    else
     {
       // If there is no considered start state, this is an empty diff
       // i.e. the current state will be used.
@@ -1108,7 +1108,7 @@ public:
       // i.e. the current state will be used.
       request.start_state.is_diff = true;
     }
-      
+
     if (active_target_ == JOINT)
     {
       request.goal_constraints.resize(1);
