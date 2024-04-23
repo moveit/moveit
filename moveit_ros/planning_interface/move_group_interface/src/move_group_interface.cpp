@@ -948,7 +948,7 @@ public:
     moveit_msgs::GetCartesianPath::Response res;
 
     if (considered_start_state_)
-      req.start_state = considered_start_state_;
+      req.start_state = *considered_start_state_;
     else
     {
       // If there is no considered start state, this is an empty diff
@@ -1101,7 +1101,7 @@ public:
     request.workspace_parameters = workspace_parameters_;
 
     if (considered_start_state_)
-      request.start_state = considered_start_state_;
+      request.start_state = *considered_start_state_;
     else
     {
       // If there is no considered start state, this is an empty diff
