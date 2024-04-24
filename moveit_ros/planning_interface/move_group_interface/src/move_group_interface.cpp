@@ -461,7 +461,9 @@ public:
 
   void setStartStateToCurrentState()
   {
+    // set message to empty diff
     considered_start_state_ = moveit_msgs::RobotState();
+    considered_start_state_.is_diff = true;
   }
 
   moveit::core::RobotStatePtr getStartState()
