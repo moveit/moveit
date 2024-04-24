@@ -466,7 +466,8 @@ public:
 
   moveit::core::RobotStatePtr getStartState()
   {
-    moveit::core::RobotStatePtr s = getCurrentState();
+    moveit::core::RobotStatePtr s;
+    getCurrentState(s);
     moveit::core::robotStateMsgToRobotState(considered_start_state_, *s, true);
     return s;
   }
