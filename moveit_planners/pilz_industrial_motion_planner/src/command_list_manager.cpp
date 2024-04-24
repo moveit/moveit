@@ -173,6 +173,7 @@ void CommandListManager::setStartState(const MotionResponseCont& motion_plan_res
   if (rob_state_op)
   {
     moveit::core::robotStateToRobotStateMsg(rob_state_op.value(), start_state, false);
+    start_state.is_diff = true;
   }
 }
 
