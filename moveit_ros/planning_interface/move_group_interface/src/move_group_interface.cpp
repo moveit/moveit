@@ -456,21 +456,21 @@ public:
   void setStartState(const moveit::core::RobotState& start_state)
   {
     considered_start_state_ = moveit_msgs::RobotState();
-    moveit::core::robotStateToRobotStateMsg(start_state, *considered_start_state_, true);
+    moveit::core::robotStateToRobotStateMsg(start_state, considered_start_state_, true);
   }
 
   void setStartStateToCurrentState()
   {
-    considered_start_state_ = std::nullopt;
+    // set message to empty diff
+    considered_start_state_ = moveit_msgs::RobotState();
+    considered_start_state_.is_diff = true;
   }
 
   moveit::core::RobotStatePtr getStartState()
   {
     moveit::core::RobotStatePtr s;
-    if (considered_start_state_)
-      moveit::core::robotStateMsgToRobotState(*considered_start_state_, *s, true);
-    else
-      getCurrentState(s);
+    getCurrentState(s);
+    moveit::core::robotStateMsgToRobotState(considered_start_state_, *s, true);
     return s;
   }
 
@@ -947,15 +947,7 @@ public:
     moveit_msgs::GetCartesianPath::Request req;
     moveit_msgs::GetCartesianPath::Response res;
 
-    if (considered_start_state_)
-      req.start_state = *considered_start_state_;
-    else
-    {
-      // If there is no considered start state, this is an empty diff
-      // i.e. the current state will be used.
-      req.start_state.is_diff = true;
-    }
-
+    req.start_state = considered_start_state_;
     req.group_name = opt_.group_name_;
     req.header.frame_id = getPoseReferenceFrame();
     req.header.stamp = ros::Time::now();
@@ -1099,15 +1091,7 @@ public:
     request.pipeline_id = planning_pipeline_id_;
     request.planner_id = planner_id_;
     request.workspace_parameters = workspace_parameters_;
-
-    if (considered_start_state_)
-      request.start_state = *considered_start_state_;
-    else
-    {
-      // If there is no considered start state, this is an empty diff
-      // i.e. the current state will be used.
-      request.start_state.is_diff = true;
-    }
+    request.start_state = considered_start_state_;
 
     if (active_target_ == JOINT)
     {
@@ -1330,7 +1314,7 @@ private:
   std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::PlaceAction>> place_action_client_;
 
   // general planning params
-  std::optional<moveit_msgs::RobotState> considered_start_state_;
+  moveit_msgs::RobotState considered_start_state_;
   moveit_msgs::WorkspaceParameters workspace_parameters_;
   double allowed_planning_time_;
   std::string planning_pipeline_id_;
