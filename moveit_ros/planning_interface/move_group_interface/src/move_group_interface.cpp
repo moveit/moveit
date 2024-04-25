@@ -117,6 +117,7 @@ public:
 
     joint_model_group_ = getRobotModel()->getJointModelGroup(opt.group_name_);
 
+    setStartStateToCurrentState();
     joint_state_target_ = std::make_shared<moveit::core::RobotState>(getRobotModel());
     joint_state_target_->setToDefaultValues();
     active_target_ = JOINT;
