@@ -106,7 +106,7 @@ public:
       const planning_scene::PlanningSceneConstPtr& planning_scene,
       const planning_pipeline::PlanningPipelinePtr& planning_pipeline,
       const moveit_msgs::MotionSequenceRequest& req_list,
-      const ItemPlannedCallback& on_item_planned = [](const planning_interface::MotionPlanResponse&) {});
+      const ItemPlannedCallback& on_item_planned = [](const planning_interface::MotionPlanResponse& /*unused*/) {});
 
 private:
   using MotionResponseCont = std::vector<planning_interface::MotionPlanResponse>;
@@ -139,7 +139,8 @@ private:
       const planning_scene::PlanningSceneConstPtr& planning_scene,
       const planning_pipeline::PlanningPipelinePtr& planning_pipeline,
       const moveit_msgs::MotionSequenceRequest& req_list,
-      const ItemPlannedCallback& on_item_planned = [](const planning_interface::MotionPlanResponse&) {}) const;
+      const ItemPlannedCallback& on_item_planned = [](const planning_interface::MotionPlanResponse& /*unused*/) {
+      }) const;
 
   /**
    * @return TRUE if the blending radii of specified trajectories overlap,
