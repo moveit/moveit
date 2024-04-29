@@ -359,7 +359,7 @@ TEST_F(IntegrationTestCommandListManager, blendTwoSegments)
 TEST_F(IntegrationTestCommandListManager, runCallbackForEachItem)
 {
   int n_items_planned{ 0 };
-  ItemPlannedCallback callback{ [&](const moveit_msgs::MotionSequenceItem&) { ++n_items_planned; } };
+  ItemPlannedCallback callback{ [&](const planning_interface::MotionPlanResponse&) { ++n_items_planned; } };
   Sequence seq{ data_loader_->getSequence("SimpleSequence") };
   ASSERT_EQ(seq.size(), 2u);
   moveit_msgs::MotionSequenceRequest req{ seq.toRequest() };
