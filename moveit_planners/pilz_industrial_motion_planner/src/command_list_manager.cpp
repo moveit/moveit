@@ -78,7 +78,7 @@ CommandListManager::CommandListManager(const ros::NodeHandle& nh, const moveit::
 RobotTrajCont CommandListManager::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                         const planning_pipeline::PlanningPipelinePtr& planning_pipeline,
                                         const moveit_msgs::MotionSequenceRequest& req_list,
-                                        ItemPlannedCallback on_item_planned)
+                                        const ItemPlannedCallback& on_item_planned)
 {
   if (req_list.items.empty())
   {
@@ -227,7 +227,7 @@ CommandListManager::MotionResponseCont
 CommandListManager::solveSequenceItems(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                        const planning_pipeline::PlanningPipelinePtr& planning_pipeline,
                                        const moveit_msgs::MotionSequenceRequest& req_list,
-                                       ItemPlannedCallback on_item_planned) const
+                                       const ItemPlannedCallback& on_item_planned) const
 {
   MotionResponseCont motion_plan_responses;
   size_t curr_req_index{ 0 };
