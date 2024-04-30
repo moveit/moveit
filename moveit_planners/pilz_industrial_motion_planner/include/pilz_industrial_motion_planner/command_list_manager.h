@@ -51,7 +51,7 @@
 namespace pilz_industrial_motion_planner
 {
 using RobotTrajCont = std::vector<robot_trajectory::RobotTrajectoryPtr>;
-using ItemPlannedCallback = boost::function<void(const planning_interface::MotionPlanResponse&)>;
+using ItemPlannedCallback = std::function<void(const planning_interface::MotionPlanResponse&)>;
 
 // List of exceptions which can be thrown by the CommandListManager class.
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(NegativeBlendRadiusException, moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN);
