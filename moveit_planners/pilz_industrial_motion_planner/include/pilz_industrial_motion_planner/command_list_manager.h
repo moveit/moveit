@@ -37,7 +37,6 @@
 #include <string>
 
 #include <boost/optional.hpp>
-#include <boost/function.hpp>
 
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
