@@ -251,9 +251,8 @@ bool World::moveShapesInObject(const std::string& object_id, const EigenSTL::vec
         ASSERT_ISOMETRY(shape_poses[i])  // unsanitized input, could contain a non-isometry
         it->second->shape_poses_[i] = shape_poses[i];
         it->second->global_shape_poses_[i] = it->second->pose_ * shape_poses[i];
-
-        notify(it->second, MOVE_SHAPE);
       }
+      notify(it->second, MOVE_SHAPE);
       return true;
     }
   }
