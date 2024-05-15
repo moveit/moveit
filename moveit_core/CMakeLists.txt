@@ -58,6 +58,7 @@ find_package(catkin REQUIRED
 COMPONENTS
   # pybind needs to be found earlier in Ubuntu 22.04 and similar https://github.com/pybind/pybind11/issues/3996
   pybind11_catkin
+  py_binding_tools
   tf2_eigen
   tf2_geometry_msgs
   eigen_stl_containers
@@ -115,7 +116,6 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     planning_request_adapter/include
     planning_scene/include
     profiler/include
-    python/tools/include
     sensor_manager/include
     trajectory_processing/include
     utils/include
@@ -141,7 +141,6 @@ catkin_package(
     moveit_constraint_samplers
     moveit_planning_request_adapter
     moveit_profiler
-    moveit_python_tools
     moveit_trajectory_processing
     moveit_distance_field
     moveit_collision_distance_field
@@ -224,12 +223,10 @@ add_subdirectory(collision_distance_field)
 add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
 
-add_subdirectory(python)
 set(pymoveit_libs
   moveit_collision_detection
   moveit_kinematic_constraints
   moveit_planning_scene
-  moveit_python_tools
   moveit_robot_model
   moveit_robot_state
   moveit_transforms

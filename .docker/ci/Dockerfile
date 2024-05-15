@@ -31,6 +31,10 @@ RUN \
     #
     # Download MoveIt sources, so that we can fetch all necessary dependencies
     wstool init --shallow src src/moveit/.github/workflows/upstream.rosinstall && \
+    if [ -r "src/moveit/.github/workflows/upstream_${ROS_DISTRO}.rosinstall" ] ; then \
+        wstool merge  -t src "src/moveit/.github/workflows/upstream_${ROS_DISTRO}.rosinstall"; \
+        wstool update -t src; \
+    fi && \
     git clone --depth 1 --branch master https://github.com/ros-planning/moveit_resources src/moveit_resources && \
     #
     # Download all dependencies of MoveIt

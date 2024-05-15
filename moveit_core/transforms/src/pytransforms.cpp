@@ -36,7 +36,7 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <moveit/python/pybind_rosmsg_typecasters.h>
+#include <py_binding_tools/ros_msg_typecasters.h>
 
 #include <moveit/transforms/transforms.h>
 
