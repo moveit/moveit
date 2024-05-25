@@ -53,7 +53,7 @@ except:
     except:
         pyassimp = False
         print(
-            "Failed to import pyassimp, see https://github.com/ros-planning/moveit/issues/86 for more info"
+            "Failed to import pyassimp, see https://github.com/moveit/moveit/issues/86 for more info"
         )
 
 

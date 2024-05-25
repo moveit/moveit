@@ -31,7 +31,7 @@ RUN \
     #
     # Download MoveIt sources, so that we can fetch all necessary dependencies
     wstool init --shallow src src/moveit/.github/workflows/upstream.rosinstall && \
-    git clone --depth 1 --branch master https://github.com/ros-planning/moveit_resources src/moveit_resources && \
+    git clone --depth 1 --branch master https://github.com/moveit/moveit_resources src/moveit_resources && \
     #
     # Download all dependencies of MoveIt
     rosdep update $(test "${ROS_DISTRO}" = "melodic" && echo "--include-eol-distros") && \

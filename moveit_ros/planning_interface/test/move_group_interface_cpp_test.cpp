@@ -36,7 +36,7 @@
 /* Author: Tyler Weaver, Boston Cleek */
 
 /* These integration tests are based on the tutorials for using move_group:
- * https://ros-planning.github.io/moveit_tutorials/doc/move_group_interface/move_group_interface_tutorial.html
+ * https://moveit.github.io/moveit_tutorials/doc/move_group_interface/move_group_interface_tutorial.html
  */
 
 // C++
