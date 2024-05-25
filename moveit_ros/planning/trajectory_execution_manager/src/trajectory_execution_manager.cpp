@@ -830,7 +830,7 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
   // zero-duration trajectory (start-time stamp + overall duration == 0) causes controller issues
   if ((trajectory.joint_trajectory.header.stamp + trajectory.joint_trajectory.points.back().time_from_start).isZero())
   {
-    // https://github.com/ros-planning/moveit/pull/3362
+    // https://github.com/moveit/moveit/pull/3362
     ROS_DEBUG_STREAM_NAMED(LOGNAME, "Skipping zero-duration trajectory");
     return true;
   }

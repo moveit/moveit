@@ -18,7 +18,7 @@ We're interested in helping you take the first step, and can answer questions an
 
 We know that creating a pull request is the biggest barrier for new contributors. This issue is for you 💝
 
-If you have contributed before, **consider leaving this PR for someone new**, and looking through our general [bug](https://github.com/ros-planning/moveit/labels/bug) issues. Thanks!
+If you have contributed before, **consider leaving this PR for someone new**, and looking through our general [bug](https://github.com/moveit/moveit/labels/bug) issues. Thanks!
 
 ### 🤔 What you will need to know.
 
