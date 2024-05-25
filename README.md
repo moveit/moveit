@@ -74,4 +74,4 @@ moveit_tutorials |  |  | [![Build Status](https://build.ros.org/buildStatus/icon
 
 ## Stargazers over time
 
-[![Stargazers over time](https://starchart.cc/ros-planning/moveit.svg)](https://starchart.cc/ros-planning/moveit)
+[![Stargazers over time](https://starchart.cc/moveit/moveit.svg)](https://starchart.cc/moveit/moveit)
