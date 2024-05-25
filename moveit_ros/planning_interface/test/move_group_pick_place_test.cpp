@@ -36,7 +36,7 @@
 /* Author: Tyler Weaver */
 
 /* These integration tests are based on the tutorials for using move_group to do a pick and place:
- * https://ros-planning.github.io/moveit_tutorials/doc/pick_place/pick_place_tutorial.html
+ * https://moveit.github.io/moveit_tutorials/doc/pick_place/pick_place_tutorial.html
  */
 
 // C++

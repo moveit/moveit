@@ -62,7 +62,7 @@ Don’t hesitate to ask questions or to get help if you feel like you are gettin
 
 Furthermore, you find helpful resources here:
 * [MoveIt FAQ](https://moveit.ros.org/documentation/faqs/)
-* [MoveIt Tutorials](https://ros-planning.github.io/moveit_tutorials/)
+* [MoveIt Tutorials](https://moveit.github.io/moveit_tutorials/)
 * [MoveIt contribution guide](https://moveit.ros.org/documentation/contributing/)
 * [ROS Tutorials](https://wiki.ros.org/ROS/Tutorials)
 * [ROS Answers](https://answers.ros.org/questions/)
