@@ -2,6 +2,17 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.14 (2024-05-27)
+-------------------
+* MSA: Add missing filename attribute to gazebo plugin tag (`#3572 <https://github.com/ros-planning/moveit/issues/3572>`_)
+* [ROS-O] update Boost API (melodic compatible) (`#3564 <https://github.com/ros-planning/moveit/issues/3564>`_)
+* Cleanup const-ref arguments to double+int (`#3560 <https://github.com/ros-planning/moveit/issues/3560>`_)
+* Support ompl::ompl cmake target (`#3549 <https://github.com/ros-planning/moveit/issues/3549>`_)
+* Enable higher number of self-collision checking samples (`#3529 <https://github.com/ros-planning/moveit/issues/3529>`_)
+* MSA ControllerWidget: allow digits in controller names (`#3528 <https://github.com/ros-planning/moveit/issues/3528>`_)
+* Remove unused variables (`#3507 <https://github.com/ros-planning/moveit/issues/3507>`_)
+* Contributors: Abe Maclean, Michael Görner, Robert Haschke, Salih Marangoz
+
 1.1.13 (2023-07-28)
 -------------------
 * Fix OMPL's TRRT parameter names (`#3461 <https://github.com/ros-planning/moveit/issues/3461>`_)

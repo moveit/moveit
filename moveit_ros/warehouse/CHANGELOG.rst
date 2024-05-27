@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_warehouse
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.14 (2024-05-27)
+-------------------
+* Fix warehouse database destruction (`#3581 <https://github.com/ros-planning/moveit/issues/3581>`_)
+* Contributors: Robert Haschke
+
 1.1.13 (2023-07-28)
 -------------------
 

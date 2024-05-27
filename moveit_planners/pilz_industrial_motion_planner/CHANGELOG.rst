@@ -2,6 +2,19 @@
 Changelog for package pilz_industrial_motion_planner
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.14 (2024-05-27)
+-------------------
+* Don't copy attached collision objects in CommandListManager::setStartState (`#3590 <https://github.com/ros-planning/moveit/issues/3590>`_)
+* [ROS-O] Fix Pilz unit tests (`#3561 <https://github.com/ros-planning/moveit/issues/3561>`_)
+* Add Pilz unit tests, defining goal poses w.r.t. frame_id != planning frame (`#3525 <https://github.com/ros-planning/moveit/issues/3525>`_)
+* Fix Pilz planner: consider link_name's offset during IK computation (`#3523 <https://github.com/ros-planning/moveit/issues/3523>`_)
+* Pilz: Tranform goal pose and center point w.r.t. planning frame (`#3522 <https://github.com/ros-planning/moveit/issues/3522>`_)
+* Silent error msg: Found empty JointState message
+* Replace Eigen::Affine3D -> Eigen::Isometry3D
+* Fix Pilz planners to consider and plan Cartesian motions w.r.t. subframes (`#3519 <https://github.com/ros-planning/moveit/issues/3519>`_)
+* Constrain orocos_kdl to ROS Melodic
+* Contributors: Captain Yoshi, Robert Haschke, Tom Noble
+
 1.1.13 (2023-07-28)
 -------------------
 
