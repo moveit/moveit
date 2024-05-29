@@ -453,7 +453,18 @@ void CollisionEnvFCL::notifyObjectChange(const ObjectConstPtr& obj, World::Actio
     }
 
     for (std::size_t i = 0; i < it->second.collision_objects_.size(); ++i)
+    {
       it->second.collision_objects_[i]->setTransform(transform2fcl(obj->global_shape_poses_[i]));
+
+      // compute AABB, order matters
+      it->second.collision_geometry_[i]->collision_geometry_->computeLocalAABB();
+      it->second.collision_objects_[i]->computeAABB();
+    }
+
+    // update AABB in the FCL broadphase manager tree
+    // see https://github.com/moveit/moveit/pull/3601 for benchmarks
+    it->second.unregisterFrom(manager_.get());
+    it->second.registerTo(manager_.get());
   }
   else
   {
