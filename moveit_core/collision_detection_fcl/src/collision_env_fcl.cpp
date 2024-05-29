@@ -437,20 +437,23 @@ void CollisionEnvFCL::notifyObjectChange(const ObjectConstPtr& obj, World::Actio
   else if (action == World::MOVE_SHAPE)
   {
     auto it = fcl_objs_.find(obj->id_);
-    if (it != fcl_objs_.end())
+    if (it == fcl_objs_.end())
     {
-      if (obj->global_shape_poses_.size() == it->second.collision_objects_.size())
-      {
-        for (std::size_t i = 0; i < it->second.collision_objects_.size(); ++i)
-          it->second.collision_objects_[i]->setTransform(transform2fcl(obj->global_shape_poses_[i]));
-        return;
-      }
+      ROS_ERROR_NAMED(LOGNAME, "Cannot move shapes of unknown FCL object: '%s'", obj->id_.c_str());
+      return;
+    }
+
+    if (obj->global_shape_poses_.size() != it->second.collision_objects_.size())
+    {
       ROS_ERROR_NAMED(LOGNAME,
                       "Cannot move shapes, shape size mismatch between FCL object and world object: '%s'. Respectively "
                       "%zu and %zu.",
                       obj->id_.c_str(), it->second.collision_objects_.size(), it->second.collision_objects_.size());
+      return;
     }
-    ROS_ERROR_NAMED(LOGNAME, "Cannot move shapes of unknown FCL object: '%s'", obj->id_.c_str());
+
+    for (std::size_t i = 0; i < it->second.collision_objects_.size(); ++i)
+      it->second.collision_objects_[i]->setTransform(transform2fcl(obj->global_shape_poses_[i]));
   }
   else
   {
