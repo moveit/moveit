@@ -37,7 +37,7 @@ jobs:
       CLANG_TIDY_ARGS: --fix --fix-errors --format-style=file
       DOCKER_IMAGE: moveit/moveit:${{ matrix.env.IMAGE }}
       UPSTREAM_WORKSPACE: .github/workflows/upstream.rosinstall
-      TARGET_WORKSPACE: $TARGET_REPO_PATH github:ros-planning/moveit_resources#master
+      TARGET_WORKSPACE: $TARGET_REPO_PATH github:moveit/moveit_resources#master
       DOWNSTREAM_WORKSPACE: .github/workflows/downstream.rosinstall
       # Pull any updates to the upstream workspace (after restoring it from cache)
       AFTER_SETUP_UPSTREAM_WORKSPACE: vcs pull $BASEDIR/upstream_ws/src
@@ -170,7 +170,7 @@ jobs:
   sync-noetic-devel:
     runs-on: ubuntu-latest
     needs: default # only trigger on success of default build job
-    if: github.event_name == 'push' && github.repository_owner == 'ros-planning' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.repository_owner == 'moveit' && github.ref == 'refs/heads/master'
     permissions:
       contents: write # allow pushing
     steps:

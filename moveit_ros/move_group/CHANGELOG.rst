@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.14 (2024-05-27)
+-------------------
+* Gracefully handle exceptions thrown by planning pipelines (`#3481 <https://github.com/ros-planning/moveit/issues/3481>`_)
+* Contributors: Robert Haschke
+
 1.1.13 (2023-07-28)
 -------------------
 

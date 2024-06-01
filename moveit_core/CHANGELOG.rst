@@ -2,6 +2,29 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.14 (2024-05-27)
+-------------------
+* Allow moving of all shapes of an object in one go (`#3599 <https://github.com/ros-planning/moveit/issues/3599>`_)
+* Add benchmark dependency in moveit_core's package.xml
+* Benchmarking with Google benchmark (`#3565 <https://github.com/ros-planning/moveit/issues/3565>`_)
+* Cleanup const-ref arguments to double+int (`#3560 <https://github.com/ros-planning/moveit/issues/3560>`_)
+* Use min instead of multiplication to combine relative and absolute check (`#3556 <https://github.com/ros-planning/moveit/issues/3556>`_)
+* Find pybind11_catkin early (`#3552 <https://github.com/ros-planning/moveit/issues/3552>`_)
+* Allow links with slashes again (`#3539 <https://github.com/ros-planning/moveit/issues/3539>`_)
+* Support ompl::ompl cmake target (`#3549 <https://github.com/ros-planning/moveit/issues/3549>`_)
+* RobotState: Initialize joint transforms of fixed joints (`#3541 <https://github.com/ros-planning/moveit/issues/3541>`_)
+* Pass more distance information out from FCL collision check (`#3531 <https://github.com/ros-planning/moveit/issues/3531>`_)
+* Fix segfault when planning with differential drive planar joints (`#3457 <https://github.com/ros-planning/moveit/issues/3457>`_)
+* Consider distance field padding for spheres (`#3506 <https://github.com/ros-planning/moveit/issues/3506>`_)
+* Remove unused variables (`#3507 <https://github.com/ros-planning/moveit/issues/3507>`_)
+* Gracefully handle zero-size bodies in determineCollisionSpheres() (`#3504 <https://github.com/ros-planning/moveit/issues/3504>`_)
+* Use new API for providing RNG to make some test results more consistant (`#3501 <https://github.com/ros-planning/moveit/issues/3501>`_)
+* More URDF validation (`#3499 <https://github.com/ros-planning/moveit/issues/3499>`_)
+* PlanningRequestAdapterChain: Fix added_path_index vector (`#3464 <https://github.com/ros-planning/moveit/issues/3464>`_)
+* Constrain orocos_kdl to ROS melodic
+* moveit_core: make angles a build_depend rather than a test_depend (`#3483 <https://github.com/ros-planning/moveit/issues/3483>`_)
+* Contributors: Ben Wolsieffer, Captain Yoshi, Hugal31, Lucas Walter, Michael Görner, Robert Haschke, SchneiderC1, Scott Chow, Simon Schmeisser, Stephanie Eng
+
 1.1.13 (2023-07-28)
 -------------------
 * Avoid global transforms in ``getRigidlyConnectedParentLinkModel()`` (`#3470 <https://github.com/ros-planning/moveit/issues/3470>`_)

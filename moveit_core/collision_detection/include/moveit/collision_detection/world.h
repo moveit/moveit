@@ -218,6 +218,9 @@ public:
   bool moveShapeInObject(const std::string& object_id, const shapes::ShapeConstPtr& shape,
                          const Eigen::Isometry3d& shape_pose);
 
+  /** \brief Update the pose of all shapes in an object. Shape size is verified. Returns true on success. */
+  bool moveShapesInObject(const std::string& object_id, const EigenSTL::vector_Isometry3d& shape_poses);
+
   /** \brief Move the object pose (thus moving all shapes and subframes in the object)
    * according to the given transform specified in world frame.
    * The transform is relative to and changes the object pose. It does not replace it.
