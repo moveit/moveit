@@ -40,10 +40,18 @@
 #include <tf2_eigen/tf2_eigen.h>
 
 #include <boost/regex.hpp>
-// TODO: Remove if boost >= 1.72 (https://github.com/boostorg/timer/issues/12)
-#define BOOST_ALLOW_DEPRECATED_HEADERS 1
+
+#if __has_include(<boost/timer/progress_display.hpp>)
+#include <boost/timer/progress_display.hpp>
+using boost_progress_display = boost::timer::progress_display;
+#else
+// boost < 1.72
+#define BOOST_TIMER_ENABLE_DEPRECATED 1
 #include <boost/progress.hpp>
-#undef BOOST_ALLOW_DEPRECATED_HEADERS
+#undef BOOST_TIMER_ENABLE_DEPRECATED
+using boost_progress_display = boost::progress_display;
+#endif
+
 #include <boost/math/constants/constants.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -756,7 +764,7 @@ void BenchmarkExecutor::runBenchmark(moveit_msgs::MotionPlanRequest request,
   for (const std::pair<const std::string, std::vector<std::string>>& pipeline_entry : pipeline_map)
     num_planners += pipeline_entry.second.size();
 
-  boost::progress_display progress(num_planners * runs, std::cout);
+  boost_progress_display progress(num_planners * runs, std::cout);
 
   // Iterate through all planning pipelines
   for (const std::pair<const std::string, std::vector<std::string>>& pipeline_entry : pipeline_map)

@@ -37,7 +37,7 @@ jobs:
       CLANG_TIDY_ARGS: --fix --fix-errors --format-style=file
       DOCKER_IMAGE: moveit/moveit:${{ matrix.env.IMAGE }}
       UPSTREAM_WORKSPACE: .github/workflows/upstream.rosinstall
-      TARGET_WORKSPACE: $TARGET_REPO_PATH github:ros-planning/moveit_resources#master
+      TARGET_WORKSPACE: $TARGET_REPO_PATH github:moveit/moveit_resources#master
       DOWNSTREAM_WORKSPACE: .github/workflows/downstream.rosinstall
       # Pull any updates to the upstream workspace (after restoring it from cache)
       AFTER_SETUP_UPSTREAM_WORKSPACE: vcs pull $BASEDIR/upstream_ws/src
@@ -81,7 +81,7 @@ jobs:
           # free up a lot of stuff from /usr/local
           sudo rm -rf /usr/local
           df -h
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Cache upstream workspace
         uses: rhaschke/cache@main
         with:
@@ -135,7 +135,7 @@ jobs:
         env: ${{ matrix.env }}
 
       - name: Upload test artifacts (on failure)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure() && (steps.ici.outputs.run_target_test || steps.ici.outputs.target_test_results)
         with:
           name: test-results-${{ matrix.env.IMAGE }}
@@ -148,7 +148,7 @@ jobs:
           workdir: ${{ env.BASEDIR }}/target_ws
           ignore: '"*/target_ws/build/*" "*/target_ws/install/*" "*/test/*"'
       - name: Upload codecov report
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         if: always() && matrix.env.CCOV && steps.ici.outputs.target_test_results == '0'
         with:
           files: ${{ env.BASEDIR }}/target_ws/coverage.info
@@ -170,11 +170,11 @@ jobs:
   sync-noetic-devel:
     runs-on: ubuntu-latest
     needs: default # only trigger on success of default build job
-    if: github.event_name == 'push' && github.repository_owner == 'ros-planning' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.repository_owner == 'moveit' && github.ref == 'refs/heads/master'
     permissions:
       contents: write # allow pushing
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Fast-forward noetic-devel to sync with master
         run: |
           # Configure push user+url

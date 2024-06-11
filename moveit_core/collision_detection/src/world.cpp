@@ -239,6 +239,26 @@ bool World::moveShapeInObject(const std::string& object_id, const shapes::ShapeC
   return false;
 }
 
+bool World::moveShapesInObject(const std::string& object_id, const EigenSTL::vector_Isometry3d& shape_poses)
+{
+  auto it = objects_.find(object_id);
+  if (it != objects_.end())
+  {
+    if (shape_poses.size() == it->second->shapes_.size())
+    {
+      for (std::size_t i = 0; i < shape_poses.size(); ++i)
+      {
+        ASSERT_ISOMETRY(shape_poses[i])  // unsanitized input, could contain a non-isometry
+        it->second->shape_poses_[i] = shape_poses[i];
+        it->second->global_shape_poses_[i] = it->second->pose_ * shape_poses[i];
+      }
+      notify(it->second, MOVE_SHAPE);
+      return true;
+    }
+  }
+  return false;
+}
+
 bool World::moveObject(const std::string& object_id, const Eigen::Isometry3d& transform)
 {
   auto it = objects_.find(object_id);

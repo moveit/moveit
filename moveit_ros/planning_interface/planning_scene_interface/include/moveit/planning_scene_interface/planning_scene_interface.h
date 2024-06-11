@@ -123,6 +123,9 @@ public:
   bool
   applyAttachedCollisionObjects(const std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objects);
 
+  /** \brief Get given components from move_group's PlanningScene */
+  moveit_msgs::PlanningScene getPlanningSceneMsg(uint32_t components);
+
   /** \brief Update the planning_scene of the move_group node with the given ps synchronously.
       Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
   bool applyPlanningScene(const moveit_msgs::PlanningScene& ps);

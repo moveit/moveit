@@ -228,6 +228,19 @@ public:
     return result;
   }
 
+  moveit_msgs::PlanningScene getPlanningSceneMsg(uint32_t components)
+  {
+    moveit_msgs::GetPlanningScene::Request request;
+    moveit_msgs::GetPlanningScene::Response response;
+    request.components.components = components;
+    if (!planning_scene_service_.call(request, response))
+    {
+      ROS_WARN_NAMED(LOGNAME, "Could not call planning scene service");
+      return moveit_msgs::PlanningScene();
+    }
+    return response.scene;
+  }
+
   bool applyPlanningScene(const moveit_msgs::PlanningScene& planning_scene)
   {
     moveit_msgs::ApplyPlanningScene::Request request;
@@ -410,6 +423,11 @@ bool PlanningSceneInterface::applyAttachedCollisionObjects(
   ps.is_diff = true;
   ps.robot_state.attached_collision_objects = collision_objects;
   return applyPlanningScene(ps);
+}
+
+moveit_msgs::PlanningScene PlanningSceneInterface::getPlanningSceneMsg(uint32_t components)
+{
+  return impl_->getPlanningSceneMsg(components);
 }
 
 bool PlanningSceneInterface::applyPlanningScene(const moveit_msgs::PlanningScene& ps)

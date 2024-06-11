@@ -188,7 +188,7 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(
     const planning_scene::PlanningSceneConstPtr& scene,
     const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits, const KDL::Trajectory& trajectory,
     const std::string& group_name, const std::string& link_name, const Eigen::Translation3d& offset,
-    const std::map<std::string, double>& initial_joint_position, const double& sampling_time,
+    const std::map<std::string, double>& initial_joint_position, double sampling_time,
     trajectory_msgs::JointTrajectory& joint_trajectory, moveit_msgs::MoveItErrorCodes& error_code,
     bool check_self_collision)
 {
@@ -509,7 +509,7 @@ bool pilz_industrial_motion_planner::isRobotStateStationary(const moveit::core::
 
 bool pilz_industrial_motion_planner::linearSearchIntersectionPoint(const std::string& link_name,
                                                                    const Eigen::Vector3d& center_position,
-                                                                   const double& r,
+                                                                   const double r,
                                                                    const robot_trajectory::RobotTrajectoryPtr& traj,
                                                                    bool inverseOrder, std::size_t& index)
 {
@@ -547,7 +547,7 @@ bool pilz_industrial_motion_planner::linearSearchIntersectionPoint(const std::st
 
 bool pilz_industrial_motion_planner::intersectionFound(const Eigen::Vector3d& p_center,
                                                        const Eigen::Vector3d& p_current, const Eigen::Vector3d& p_next,
-                                                       const double& r)
+                                                       const double r)
 {
   return ((p_current - p_center).norm() <= r) && ((p_next - p_center).norm() >= r);
 }

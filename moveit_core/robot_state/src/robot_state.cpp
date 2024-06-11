@@ -132,6 +132,11 @@ void RobotState::initTransforms()
                            robot_model_->getLinkGeometryCount();
        i != end; ++i)
     variable_joint_transforms_[i].makeAffine();
+
+  // Initialize fixed joints because they are not computed later by update().
+  for (const JointModel* joint : robot_model_->getJointModels())
+    if (joint->getType() == JointModel::FIXED)
+      getJointTransform(joint);
 }
 
 RobotState& RobotState::operator=(const RobotState& other)
@@ -806,39 +811,38 @@ const LinkModel* RobotState::getRigidlyConnectedParentLinkModel(const std::strin
 {
   const moveit::core::LinkModel* link{ nullptr };
 
-  size_t idx = 0;
-  if ((idx = frame.find('/')) != std::string::npos)
-  {  // resolve sub frame
-    std::string object{ frame.substr(0, idx) };
-    if (!hasAttachedBody(object))
-      return nullptr;
-    auto body{ getAttachedBody(object) };
-    bool found = false;
-    if (transform)
-      *transform = body->getSubframeTransform(frame, &found);
-    else
-      body->getSubframeTransform(frame, &found);
-    if (!found)
-      return nullptr;
-    if (transform)  // prepend the body transform
-      *transform = body->getPose() * *transform;
-    link = body->getAttachedLink();
-  }
-  else if (hasAttachedBody(frame))
-  {
-    auto body{ getAttachedBody(frame) };
-    if (transform)
-      *transform = body->getPose();
-    link = body->getAttachedLink();
-  }
-  else if (getRobotModel()->hasLinkModel(frame))
+  if (getRobotModel()->hasLinkModel(frame))
   {
     link = getLinkModel(frame);
     if (transform)
       transform->setIdentity();
-    if (!link)
+  }
+  else if (const auto it = attached_body_map_.find(frame); it != attached_body_map_.end())
+  {
+    const auto& body{ it->second };
+    link = body->getAttachedLink();
+    if (transform)
+      *transform = body->getPose();
+  }
+  else
+  {
+    bool found = false;
+    for (const auto& it : attached_body_map_)
+    {
+      const auto& body{ it.second };
+      const Eigen::Isometry3d& subframe = body->getSubframeTransform(frame, &found);
+      if (found)
+      {
+        if (transform)  // prepend the body transform
+          *transform = body->getPose() * subframe;
+        link = body->getAttachedLink();
+        break;
+      }
+    }
+    if (!found)
       return nullptr;
   }
+
   // link is valid and transform describes pose of frame w.r.t. global frame
   Eigen::Isometry3d link_transform;
   auto* parent = getRobotModel()->getRigidlyConnectedParentLinkModel(link, link_transform, jmg);
@@ -2236,6 +2240,9 @@ void RobotState::printTransforms(std::ostream& out) const
   const std::vector<const JointModel*>& jm = robot_model_->getJointModels();
   for (const JointModel* joint : jm)
   {
+    if (joint->getType() == JointModel::FIXED)
+      continue;
+
     out << "  " << joint->getName();
     const int idx = joint->getJointIndex();
     if (dirty_joint_transforms_[idx])

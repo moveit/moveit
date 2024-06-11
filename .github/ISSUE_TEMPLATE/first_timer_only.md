@@ -18,7 +18,7 @@ We're interested in helping you take the first step, and can answer questions an
 
 We know that creating a pull request is the biggest barrier for new contributors. This issue is for you 💝
 
-If you have contributed before, **consider leaving this PR for someone new**, and looking through our general [bug](https://github.com/ros-planning/moveit/labels/bug) issues. Thanks!
+If you have contributed before, **consider leaving this PR for someone new**, and looking through our general [bug](https://github.com/moveit/moveit/labels/bug) issues. Thanks!
 
 ### 🤔 What you will need to know.
 
@@ -62,7 +62,7 @@ Don’t hesitate to ask questions or to get help if you feel like you are gettin
 
 Furthermore, you find helpful resources here:
 * [MoveIt FAQ](https://moveit.ros.org/documentation/faqs/)
-* [MoveIt Tutorials](https://ros-planning.github.io/moveit_tutorials/)
+* [MoveIt Tutorials](https://moveit.github.io/moveit_tutorials/)
 * [MoveIt contribution guide](https://moveit.ros.org/documentation/contributing/)
 * [ROS Tutorials](https://wiki.ros.org/ROS/Tutorials)
 * [ROS Answers](https://answers.ros.org/questions/)

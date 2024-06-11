@@ -924,7 +924,7 @@ bool testutils::checkBlendingCartSpaceContinuity(const pilz_industrial_motion_pl
   return true;
 }
 
-bool testutils::checkThatPointsInRadius(const std::string& link_name, const double& r, Eigen::Isometry3d& circ_pose,
+bool testutils::checkThatPointsInRadius(const std::string& link_name, const double r, Eigen::Isometry3d& circ_pose,
                                         const pilz_industrial_motion_planner::TrajectoryBlendResponse& res)
 {
   bool result = true;
@@ -1038,9 +1038,9 @@ bool testutils::getBlendTestData(const ros::NodeHandle& nh, const size_t& datase
 bool testutils::generateTrajFromBlendTestData(
     const planning_scene::PlanningSceneConstPtr& scene,
     const std::shared_ptr<pilz_industrial_motion_planner::TrajectoryGenerator>& tg, const std::string& group_name,
-    const std::string& link_name, const testutils::BlendTestData& data, const double& sampling_time_1,
-    const double& sampling_time_2, planning_interface::MotionPlanResponse& res_1,
-    planning_interface::MotionPlanResponse& res_2, double& dis_1, double& dis_2)
+    const std::string& link_name, const testutils::BlendTestData& data, double sampling_time_1, double sampling_time_2,
+    planning_interface::MotionPlanResponse& res_1, planning_interface::MotionPlanResponse& res_2, double& dis_1,
+    double& dis_2)
 {
   const robot_model::RobotModelConstPtr robot_model = scene->getRobotModel();
 

@@ -2,7 +2,7 @@
 
 ARG ROS_DISTRO=noetic
 FROM ros:${ROS_DISTRO}-ros-base
-MAINTAINER Dave Coleman dave@picknik.ai
+LABEL org.opencontainers.image.authors="Robert Haschke <rhaschke@techfak.uni-bielefeld.de>"
 
 # Commands are combined in single RUN statement with "apt/lists" folder removal to reduce image size
 RUN apt-get update -q && \

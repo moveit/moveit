@@ -88,7 +88,7 @@ void NavigationWidget::setNavs(const QList<QString>& navs)
   setModel(model_);
 }
 
-void NavigationWidget::setEnabled(const int& index, bool enabled)
+void NavigationWidget::setEnabled(const int index, bool enabled)
 {
   if (enabled)
     model_->item(index)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsDragEnabled |
@@ -97,7 +97,7 @@ void NavigationWidget::setEnabled(const int& index, bool enabled)
     model_->item(index)->setFlags(Qt::NoItemFlags);
 }
 
-void NavigationWidget::setSelected(const int& index)
+void NavigationWidget::setSelected(const int index)
 {
   // First make sure item is enabled
   setEnabled(index, true);

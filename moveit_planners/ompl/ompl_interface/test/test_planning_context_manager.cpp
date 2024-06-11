@@ -46,7 +46,7 @@
  * TODO(jeroendm) I also tried something similar with position constraints, but get a segmentation fault
  * that occurs in the 'geometric_shapes' package, in the method 'useDimensions' in 'bodies.h'.
  * git permalink:
- * https://github.com/ros-planning/geometric_shapes/blob/df0478870b8592ce789ee1919f3124058c4327d7/include/geometric_shapes/bodies.h#L196
+ * https://github.com/moveit/geometric_shapes/blob/df0478870b8592ce789ee1919f3124058c4327d7/include/geometric_shapes/bodies.h#L196
  *
  **/
 
