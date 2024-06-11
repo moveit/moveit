@@ -2,6 +2,12 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.14 (2024-05-27)
+-------------------
+* Addressing discrepancies in angle parameter definition between IKFast solvers and the plugin template (`#3489 <https://github.com/ros-planning/moveit/issues/3489>`_)
+* Constrain orocos_kdl to ROS Melodic
+* Contributors: Michael Görner, Robert Haschke, nothingstopsme
+
 1.1.13 (2023-07-28)
 -------------------
 * Improvements to create_ikfast_moveit_plugin.py (`#3449 <https://github.com/ros-planning/moveit/issues/3449>`_)

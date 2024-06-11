@@ -108,9 +108,9 @@ private:
 class JointsWidgetEventFilter : public QObject
 {
   Q_OBJECT
-  QModelIndex active_;               // joint index being operated on
-  float jmin_, jmax_, pmin_, pmax_;  // joint and pixel min/max values
-  float delta_ = 0.0f;               // speed of joint value changes from keyboard interaction
+  QModelIndex active_;  // joint index being operated on
+  int pmin_, pmax_;     // pixel min/max values
+  float delta_ = 0.0f;  // speed of joint value changes from keyboard interaction
 
 public:
   JointsWidgetEventFilter(QAbstractItemView* view);
@@ -175,7 +175,8 @@ public:
   enum CustomRole
   {
     JointTypeRole = Qt::UserRole,  // NOLINT(readability-identifier-naming)
-    VariableBoundsRole             // NOLINT(readability-identifier-naming)
+    VariableBoundsRole,            // NOLINT(readability-identifier-naming)
+    JointRangeFractionRole,        // NOLINT(readability-identifier-naming)
   };
   enum RevoluteUnit
   {
@@ -193,8 +194,17 @@ public:
   }
   void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
   QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
+  bool isEditing() const;
+  void setEditorData(QWidget* editor, const QModelIndex& index) const override;
+  void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override;
 
   RevoluteUnit unit_;
+
+protected Q_SLOTS:
+  void onEditorDestroyed(QObject* /* editor */) const;
+
+private:
+  mutable int editor_open_count_ = 0;
 };
 
 /// Slider that jumps back to zero

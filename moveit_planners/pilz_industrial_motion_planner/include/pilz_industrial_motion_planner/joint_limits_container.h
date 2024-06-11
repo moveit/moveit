@@ -130,7 +130,7 @@ public:
    * @param joint_position
    * @return
    */
-  bool verifyVelocityLimit(const std::string& joint_name, const double& joint_velocity) const;
+  bool verifyVelocityLimit(const std::string& joint_name, const double joint_velocity) const;
 
   /**
    * @brief verify position limit of single joint
@@ -138,7 +138,7 @@ public:
    * @param joint_position
    * @return
    */
-  bool verifyPositionLimit(const std::string& joint_name, const double& joint_position) const;
+  bool verifyPositionLimit(const std::string& joint_name, const double joint_position) const;
 
 private:
   /**

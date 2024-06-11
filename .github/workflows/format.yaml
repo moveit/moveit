@@ -16,11 +16,11 @@ jobs:
     name: pre-commit
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install clang-format-10
         run: sudo apt-get install clang-format-10
       - uses: rhaschke/install-catkin_lint-action@v1.0
-      - uses: pre-commit/action@v3.0.0
+      - uses: pre-commit/action@v3.0.1
         id: precommit
       - name: Upload pre-commit changes
         if: failure() && steps.precommit.outcome == 'failure'

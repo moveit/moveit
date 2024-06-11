@@ -112,6 +112,14 @@ def create_parser():
         "--moveit_config_pkg",
         help="The robot moveit_config package. Defaults to <robot_name>_moveit_config",
     )
+    parser.add_argument(
+        "--eef_direction",
+        type=float,
+        nargs=3,
+        metavar=("X", "Y", "Z"),
+        default=[0, 0, 1],
+        help="The end effector's direction vector defined in its own frame, which is used to generate necessary parameters to a IKFast solver of one of the following types: Direction3D, Ray4D, TranslationDirection5D, Translation*AxisAngle4D, and Translation*AxisAngle*Norm4D. When not specified, a unit-z vector, i.e. 0 0 1, is adopted as default",
+    )
     return parser
 
 
@@ -136,6 +144,9 @@ def print_args(args):
     print(f" srdf_filename:        {args.srdf_filename}")
     print(f" robot_name_in_srdf:   {args.robot_name_in_srdf}")
     print(f" moveit_config_pkg:    {args.moveit_config_pkg}")
+    print(
+        f" eef_direction:        {args.eef_direction[0]:g} {args.eef_direction[1]:g} {args.eef_direction[2]:g}"
+    )
     print("")
 
 
@@ -262,6 +273,7 @@ def update_ikfast_package(args):
         _BASE_LINK_=args.base_link_name,
         _PACKAGE_NAME_=args.ikfast_plugin_pkg,
         _NAMESPACE_=args.namespace,
+        _EEF_DIRECTION_=f"{args.eef_direction[0]:g}, {args.eef_direction[1]:g}, {args.eef_direction[2]:g}",
     )
 
     # Copy ikfast header file
@@ -392,12 +404,16 @@ def update_ikfast_package(args):
             + "\n"
             + "ikfast_output_path="
             + args.ikfast_output_path
+            + "\n"
+            + "eef_direction="
+            + f'"{args.eef_direction[0]:g} {args.eef_direction[1]:g} {args.eef_direction[2]:g}"'
             + "\n\n"
             + "rosrun moveit_kinematics create_ikfast_moveit_plugin.py\\\n"
             + "  --search_mode=$search_mode\\\n"
             + "  --srdf_filename=$srdf_filename\\\n"
             + "  --robot_name_in_srdf=$robot_name_in_srdf\\\n"
             + "  --moveit_config_pkg=$moveit_config_pkg\\\n"
+            + "  --eef_direction $eef_direction\\\n"
             + "  $robot_name\\\n"
             + "  $planning_group_name\\\n"
             + "  $ikfast_plugin_pkg\\\n"

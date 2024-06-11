@@ -125,7 +125,7 @@ def get_first_folder(path):
 
 def populate_package_data(path, package):
     output = (
-        "<td><a href='https://github.com/ros-planning/"
+        "<td><a href='https://github.com/moveit/"
         + get_first_folder(path)
         + "'>"
         + package.name

@@ -14,6 +14,9 @@ find_package(catkin REQUIRED COMPONENTS
 moveit_build_options()
 
 find_package(ompl REQUIRED)
+if(TARGET ompl::ompl)
+  moveit_get_include_and_libs_from_target(OMPL ompl::ompl)
+endif()
 
 generate_dynamic_reconfigure_options("ompl_interface/cfg/OMPLDynamicReconfigure.cfg")
 

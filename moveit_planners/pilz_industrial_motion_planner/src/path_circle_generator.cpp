@@ -65,8 +65,10 @@ std::unique_ptr<KDL::Path> PathCircleGenerator::circleFromCenter(const KDL::Fram
   }
   catch (KDL::Error_MotionPlanning&)
   {
-    delete rot_interpo;  // in case we could not construct the Path object, avoid
-                         // a memory leak
+#if KDL_VERSION < ((1 << 16) | (4 << 8) | 1)  // older than 1.4.1 ?
+    delete rot_interpo;                       // in case we could not construct the Path object,
+                                              // avoid a memory leak
+#endif
     KDL::epsilon = old_kdl_epsilon;
     throw;  // and pass the exception on to the caller
   }
@@ -132,9 +134,11 @@ std::unique_ptr<KDL::Path> PathCircleGenerator::circleFromInterim(const KDL::Fra
                                       // above,
                                       // we keep these lines to be safe
   {
-    delete rot_interpo;  // in case we could not construct the Path object, avoid
-                         // a memory leak
-    throw;               // and pass the exception on to the caller
+#if KDL_VERSION < ((1 << 16) | (4 << 8) | 1)  // older than 1.4.1 ?
+    delete rot_interpo;                       // in case we could not construct the Path object,
+                                              // avoid a memory leak
+#endif
+    throw;  // and pass the exception on to the caller
     // LCOV_EXCL_STOP
   }
 }

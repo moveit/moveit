@@ -2,6 +2,11 @@
 Changelog for package moveit_simple_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.14 (2024-05-27)
+-------------------
+* Simplify code waiting for ActionBasedController, fix timeout to 5s
+* Contributors: Robert Haschke
+
 1.1.13 (2023-07-28)
 -------------------
 

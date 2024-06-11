@@ -26,3 +26,13 @@ macro(moveit_build_options)
     endif()
   endif()
 endmacro()
+
+# catkin_package DEPENDS does not consider INTERFACE_* of imported targets.
+# this macro makes them explicit in ${namespace}_INCLUDE_DIRS and ${namespace}_LIBRARIES
+# so that catkin-generated cmake files include them for downstream packages
+macro(moveit_get_include_and_libs_from_target namespace tgt)
+  get_target_property(${namespace}_INCLUDE_DIRS ${tgt} INTERFACE_INCLUDE_DIRECTORIES)
+
+  get_target_property(${namespace}_INTERFACE_LINK_LIBRARIES ${tgt} INTERFACE_LINK_LIBRARIES)
+  set(${namespace}_LIBRARIES ${tgt} ${${namespace}_INTERFACE_LINK_LIBRARIES})
+endmacro()

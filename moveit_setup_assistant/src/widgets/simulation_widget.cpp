@@ -311,7 +311,8 @@ std::string SimulationWidget::generateGazeboCompatibleURDF() const
 
   // Add gazebo_ros_control plugin which reads the transmission tags
   TiXmlElement* gazebo = uniqueInsert(*root, "gazebo");
-  TiXmlElement* plugin = uniqueInsert(*gazebo, "plugin", { { "name", "gazebo_ros_control", true } });
+  TiXmlElement* plugin = uniqueInsert(
+      *gazebo, "plugin", { { "name", "gazebo_ros_control", true }, { "filename", "libgazebo_ros_control.so", true } });
   uniqueInsert(*plugin, "robotNamespace", {}, "/");
 
   // generate new URDF

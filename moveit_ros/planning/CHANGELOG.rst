@@ -2,6 +2,18 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.14 (2024-05-27)
+-------------------
+* Allow waiting for joint model group states and retrieval of group-specific timestamps (`#3580 <https://github.com/ros-planning/moveit/issues/3580>`_)
+* Add joints_allowed_start_tolerance parameter for joint-specific start tolerances for TrajectoryExecutionManager (`#3287 <https://github.com/ros-planning/moveit/issues/3287>`_)
+* PSM: keep references to scene\_ valid upon receiving full scenes (`#3538 <https://github.com/ros-planning/moveit/issues/3538>`_)
+* Warn if trajectory becomes invalid during execution (`#3536 <https://github.com/ros-planning/moveit/issues/3536>`_)
+* Consider distance field padding for spheres (`#3506 <https://github.com/ros-planning/moveit/issues/3506>`_)
+* Inform planning pipeline about waypoints added by AddIterativeSplineParameterization (`#3466 <https://github.com/ros-planning/moveit/issues/3466>`_)
+* Add missing RUNTIME DESTINATION for moveit_cpp (`#3494 <https://github.com/ros-planning/moveit/issues/3494>`_)
+* Gracefully handle exceptions thrown by planning pipelines (`#3481 <https://github.com/ros-planning/moveit/issues/3481>`_)
+* Contributors: Hugal31, Michael Görner, Robert Haschke, Silvio Traversaro
+
 1.1.13 (2023-07-28)
 -------------------
 

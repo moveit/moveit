@@ -141,50 +141,14 @@ struct CostSource
   }
 };
 
-/** \brief Representation of a collision checking result */
-struct CollisionResult
-{
-  CollisionResult() : collision(false), distance(std::numeric_limits<double>::max()), contact_count(0)
-  {
-  }
-  using ContactMap = std::map<std::pair<std::string, std::string>, std::vector<Contact> >;
-
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  /** \brief Clear a previously stored result */
-  void clear()
-  {
-    collision = false;
-    distance = std::numeric_limits<double>::max();
-    contact_count = 0;
-    contacts.clear();
-    cost_sources.clear();
-  }
-
-  /** \brief Throttled warning printing the first collision pair, if any. All collisions are logged at DEBUG level */
-  void print() const;
-
-  /** \brief True if collision was found, false otherwise */
-  bool collision;
-
-  /** \brief Closest distance between two bodies */
-  double distance;
-
-  /** \brief Number of contacts returned */
-  std::size_t contact_count;
-
-  /** \brief A map returning the pairs of body ids in contact, plus their contact details */
-  ContactMap contacts;
-
-  /** \brief These are the individual cost sources when costs are computed */
-  std::set<CostSource> cost_sources;
-};
+struct CollisionResult;
 
 /** \brief Representation of a collision checking request */
 struct CollisionRequest
 {
   CollisionRequest()
     : distance(false)
+    , detailed_distance(false)
     , cost(false)
     , contacts(false)
     , max_contacts(1)
@@ -202,6 +166,9 @@ struct CollisionRequest
 
   /** \brief If true, compute proximity distance */
   bool distance;
+
+  /** \brief If true, return detailed distance information. Distance must be set to true as well */
+  bool detailed_distance;
 
   /** \brief If true, a collision cost is computed */
   bool cost;
@@ -377,5 +344,48 @@ struct DistanceResult
     minimum_distance.clear();
     distances.clear();
   }
+};
+
+/** \brief Representation of a collision checking result */
+struct CollisionResult
+{
+  CollisionResult() : collision(false), distance(std::numeric_limits<double>::max()), contact_count(0)
+  {
+  }
+  using ContactMap = std::map<std::pair<std::string, std::string>, std::vector<Contact> >;
+
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+  /** \brief Clear a previously stored result */
+  void clear()
+  {
+    collision = false;
+    distance = std::numeric_limits<double>::max();
+    distance_result.clear();
+    contact_count = 0;
+    contacts.clear();
+    cost_sources.clear();
+  }
+
+  /** \brief Throttled warning printing the first collision pair, if any. All collisions are logged at DEBUG level */
+  void print() const;
+
+  /** \brief True if collision was found, false otherwise */
+  bool collision;
+
+  /** \brief Closest distance between two bodies */
+  double distance;
+
+  /** \brief Distance data for each link */
+  DistanceResult distance_result;
+
+  /** \brief Number of contacts returned */
+  std::size_t contact_count;
+
+  /** \brief A map returning the pairs of body ids in contact, plus their contact details */
+  ContactMap contacts;
+
+  /** \brief These are the individual cost sources when costs are computed */
+  std::set<CostSource> cost_sources;
 };
 }  // namespace collision_detection

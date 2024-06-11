@@ -36,7 +36,7 @@
 /* Author: Felix von Drigalski, Jacob Aas, Tyler Weaver, Boston Cleek */
 
 /* This integration test is based on the tutorial for using subframes
- * https://ros-planning.github.io/moveit_tutorials/doc/subframes/subframes_tutorial.html
+ * https://moveit.github.io/moveit_tutorials/doc/subframes/subframes_tutorial.html
  */
 
 // C++
