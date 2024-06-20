@@ -1264,7 +1264,6 @@ void PlanningScene::decoupleParent()
 
 bool PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene& scene_msg)
 {
-  assert(scene_msg.is_diff == true);
   bool result = true;
 
   ROS_DEBUG_NAMED(LOGNAME, "Adding planning scene diff");
