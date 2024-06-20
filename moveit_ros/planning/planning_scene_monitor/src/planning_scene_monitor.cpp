@@ -592,7 +592,7 @@ bool PlanningSceneMonitor::newPlanningSceneMessage(const moveit_msgs::PlanningSc
     }
     else
     {
-      result = scene_->setPlanningSceneDiffMsg(scene);
+      result = scene_->usePlanningSceneMsg(scene);
     }
 
     if (octomap_monitor_)
