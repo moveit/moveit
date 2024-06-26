@@ -388,7 +388,10 @@ cleanup:
 
   // hide remaining sliders
   for (; i < ns_sliders_.size(); ++i)
+  {
+    ns_sliders_[i]->setValue(0);
     ns_sliders_[i]->hide();
+  }
 }
 
 QSlider* MotionPlanningFrameJointsWidget::createNSSlider(int i)
