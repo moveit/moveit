@@ -50,8 +50,6 @@ const std::string ompl_interface::PoseModelStateSpace::PARAMETERIZATION_TYPE = "
 ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSpaceSpecification& spec)
   : ModelBasedStateSpace(spec)
 {
-  jump_factor_ = 3;  // \todo make this a param
-
   if (spec.joint_model_group_->getGroupKinematics().first)
     poses_.emplace_back(spec.joint_model_group_, spec.joint_model_group_->getGroupKinematics().first);
   else if (!spec.joint_model_group_->getGroupKinematics().second.empty())
@@ -128,42 +126,11 @@ void ompl_interface::PoseModelStateSpace::sanityChecks() const
 void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State* from, const ompl::base::State* to,
                                                       const double t, ompl::base::State* state) const
 {
-  //  moveit::Profiler::ScopedBlock sblock("interpolate");
-
-  // we want to interpolate in Cartesian space; we do not have a guarantee that from and to
-  // have their poses computed, but this is very unlikely to happen (depends how the planner gets its input states)
+  // moveit::Profiler::ScopedBlock sblock("interpolate");
 
   // interpolate in joint space
   ModelBasedStateSpace::interpolate(from, to, t, state);
-
-  // interpolate SE3 components
-  for (std::size_t i = 0; i < poses_.size(); ++i)
-    poses_[i].state_space_->interpolate(from->as<StateType>()->poses[i], to->as<StateType>()->poses[i], t,
-                                        state->as<StateType>()->poses[i]);
-
-  // the call above may reset all flags for state; but we know the pose we want flag should be set
-  state->as<StateType>()->setPoseComputed(true);
-
-  /*
-  std::cout << "*********** interpolate\n";
-  printState(from, std::cout);
-  printState(to, std::cout);
-  printState(state, std::cout);
-  std::cout << "\n\n";
-  */
-
-  // after interpolation we cannot be sure about the joint values (we use them as seed only)
-  // so we recompute IK if needed
-  if (computeStateIK(state))
-  {
-    double dj = jump_factor_ * ModelBasedStateSpace::distance(from, to);
-    double d_from = ModelBasedStateSpace::distance(from, state);
-    double d_to = ModelBasedStateSpace::distance(state, to);
-
-    // if the joint value jumped too much
-    if (d_from + d_to > std::max(0.2, dj))  // \todo make 0.2 a param
-      state->as<StateType>()->markInvalid();
-  }
+  computeStateFK(state);
 }
 
 void ompl_interface::PoseModelStateSpace::setPlanningVolume(double minX, double maxX, double minY, double maxY,
