@@ -300,6 +300,8 @@ void MotionPlanningFrameJointsWidget::queryGoalStateChanged()
 
 void MotionPlanningFrameJointsWidget::setActiveModel(JMGItemModel* model)
 {
+  if (ui_->joints_view_->model() == model)
+    return;
   ui_->joints_view_->setModel(model);
   ui_->joints_view_label_->setText(
       QString("Group joints of %1 state").arg(model == start_state_model_.get() ? "start" : "goal"));

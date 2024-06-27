@@ -253,10 +253,9 @@ void MotionPlanningFrame::onFinishedExecution(bool success)
   if (ui_->start_state_combo_box->currentText() == "<current>")
     startStateTextChanged(ui_->start_state_combo_box->currentText());
 
-  // auto-update goal to stored previous state (but only on success)
-  // on failure, the user must update the goal to the previous state himself
-  if (ui_->goal_state_combo_box->currentText() == "<previous>")
-    goalStateTextChanged(ui_->goal_state_combo_box->currentText());
+  // update query goal state (from previous or to current)
+  // also ensures that joints tab shows goal state model
+  goalStateTextChanged(ui_->goal_state_combo_box->currentText());
 }
 
 void MotionPlanningFrame::onNewPlanningSceneState()
