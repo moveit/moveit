@@ -221,18 +221,18 @@ bool JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
         joint_position_ = bounds.min_position_;
         joint_tolerance_above_ = std::numeric_limits<double>::epsilon();
         ROS_WARN_NAMED("kinematic_constraints",
-                       "Joint %s is constrained to be below the minimum bounds. "
+                       "Joint %s is constrained to be below the minimum bound %g. "
                        "Assuming minimum bounds instead.",
-                       jc.joint_name.c_str());
+                       jc.joint_name.c_str(), bounds.min_position_);
       }
       else if (bounds.max_position_ < joint_position_ - joint_tolerance_below_)
       {
         joint_position_ = bounds.max_position_;
         joint_tolerance_below_ = std::numeric_limits<double>::epsilon();
         ROS_WARN_NAMED("kinematic_constraints",
-                       "Joint %s is constrained to be above the maximum bounds. "
+                       "Joint %s is constrained to be above the maximum bounds %g. "
                        "Assuming maximum bounds instead.",
-                       jc.joint_name.c_str());
+                       jc.joint_name.c_str(), bounds.max_position_);
       }
     }
 
