@@ -71,10 +71,7 @@ ompl_interface::PoseModelStateSpace::~PoseModelStateSpace() = default;
 double ompl_interface::PoseModelStateSpace::distance(const ompl::base::State* state1,
                                                      const ompl::base::State* state2) const
 {
-  double total = 0;
-  for (std::size_t i = 0; i < poses_.size(); ++i)
-    total += poses_[i].state_space_->distance(state1->as<StateType>()->poses[i], state2->as<StateType>()->poses[i]);
-  return total;
+  return ModelBasedStateSpace::distance(state1, state2);
 }
 
 double ompl_interface::PoseModelStateSpace::getMaximumExtent() const
