@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2017, Heriot-Watt University, Edinburgh Centre for Robotics
+ *  Copyright (c) 2024, Sherbrooke University
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/// \author Bence Magyar
+/// \author Captain Yoshi
 
 #include <ros/ros.h>
 #include <gtest/gtest.h>
@@ -47,68 +47,29 @@ public:
   moveit::planning_interface::MoveGroupInterface::Plan my_plan_;
 
 public:
-  CHOMPMoveitTest() : move_group_("arm")
+  CHOMPMoveitTest() : move_group_("hand")
   {
   }
 };
 
 // TEST CASES
+
+// https://github.com/moveit/moveit/issues/2542
 TEST_F(CHOMPMoveitTest, jointSpaceGoodGoal)
 {
   move_group_.setStartState(*(move_group_.getCurrentState()));
-  move_group_.setJointValueTarget(std::vector<double>({ 1.0, 1.0 }));
+  move_group_.setJointValueTarget(std::vector<double>({ 0.0, 0.0 }));
+  move_group_.setPlanningTime(5.0);
 
   moveit::core::MoveItErrorCode error_code = move_group_.plan(my_plan_);
   EXPECT_GT(my_plan_.trajectory_.joint_trajectory.points.size(), 0u);
   EXPECT_EQ(error_code.val, moveit::core::MoveItErrorCode::SUCCESS);
 }
 
-TEST_F(CHOMPMoveitTest, jointSpaceBadGoal)
-{
-  move_group_.setStartState(*(move_group_.getCurrentState()));
-  // joint2 is limited to [-PI/2, PI/2]
-  move_group_.setJointValueTarget(std::vector<double>({ 100.0, 2 * M_PI / 3.0 }));
-
-  moveit::core::MoveItErrorCode error_code = move_group_.plan(my_plan_);
-  EXPECT_EQ(error_code.val, moveit::core::MoveItErrorCode::INVALID_ROBOT_STATE);
-}
-
-TEST_F(CHOMPMoveitTest, cartesianGoal)
-{
-  move_group_.setStartState(*(move_group_.getCurrentState()));
-  geometry_msgs::Pose target_pose1;
-  target_pose1.orientation.w = 1.0;
-  target_pose1.position.x = 10000.;
-  target_pose1.position.y = 10000.;
-  target_pose1.position.z = 10000.;
-  move_group_.setPoseTarget(target_pose1);
-
-  moveit::core::MoveItErrorCode error_code = move_group_.plan(my_plan_);
-  // CHOMP doesn't support Cartesian-space goals at the moment
-  EXPECT_EQ(error_code.val, moveit::core::MoveItErrorCode::INVALID_GOAL_CONSTRAINTS);
-}
-
-TEST_F(CHOMPMoveitTest, noStartState)
-{
-  move_group_.setJointValueTarget(std::vector<double>({ 0.2, 0.2 }));
-
-  moveit::core::MoveItErrorCode error_code = move_group_.plan(my_plan_);
-  EXPECT_EQ(error_code.val, moveit::core::MoveItErrorCode::SUCCESS);
-}
-
-TEST_F(CHOMPMoveitTest, collisionAtEndOfPath)
-{
-  move_group_.setStartState(*(move_group_.getCurrentState()));
-  move_group_.setJointValueTarget(std::vector<double>({ M_PI / 2.0, 0 }));
-
-  moveit::core::MoveItErrorCode error_code = move_group_.plan(my_plan_);
-  EXPECT_EQ(error_code.val, moveit::core::MoveItErrorCode::INVALID_MOTION_PLAN);
-}
-
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
-  ros::init(argc, argv, "chomp_moveit_test");
+  ros::init(argc, argv, "chomp_moveit_test_panda");
 
   ros::AsyncSpinner spinner(1);
   spinner.start();
