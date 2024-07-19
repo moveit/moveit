@@ -998,7 +998,7 @@ void ChompOptimizer::setRobotStateFromPoint(ChompTrajectory& group_trajectory, i
   for (size_t j = 0; j < group_trajectory.getNumJoints(); j++)
     joint_states.emplace_back(point(0, j));
 
-  state_.setJointGroupPositions(planning_group_, joint_states);
+  state_.setJointGroupActivePositions(planning_group_, joint_states);
   state_.update();
 }
 
