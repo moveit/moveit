@@ -33,6 +33,7 @@
  *********************************************************************/
 
 #include "pilz_industrial_motion_planner/trajectory_generator_lin.h"
+#include <pilz_industrial_motion_planner/tip_frame_getter.h>
 
 #include <cassert>
 #include <ros/ros.h>
@@ -74,13 +75,7 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_scene::Plannin
   // goal given in joint space
   if (!req.goal_constraints.front().joint_constraints.empty())
   {
-    auto solver = robot_model_->getJointModelGroup(req.group_name)->getSolverInstance();
-    if (!solver)
-    {
-      ROS_ERROR_STREAM("No IK solver defined for group '" << req.group_name << "'");
-      return;
-    }
-    info.link_name = solver->getTipFrame();
+    info.link_name = getSolverTipFrame(robot_model_->getJointModelGroup(req.group_name));
 
     if (req.goal_constraints.front().joint_constraints.size() !=
         robot_model_->getJointModelGroup(req.group_name)->getActiveJointModelNames().size())
