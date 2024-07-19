@@ -74,7 +74,13 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_scene::Plannin
   // goal given in joint space
   if (!req.goal_constraints.front().joint_constraints.empty())
   {
-    info.link_name = robot_model_->getJointModelGroup(req.group_name)->getSolverInstance()->getTipFrame();
+    auto solver = robot_model_->getJointModelGroup(req.group_name)->getSolverInstance();
+    if (!solver)
+    {
+      ROS_ERROR_STREAM("No IK solver defined for group '" << req.group_name << "'");
+      return;
+    }
+    info.link_name = solver->getTipFrame();
 
     if (req.goal_constraints.front().joint_constraints.size() !=
         robot_model_->getJointModelGroup(req.group_name)->getActiveJointModelNames().size())
