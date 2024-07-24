@@ -56,8 +56,9 @@ public:
     \param ns. Namespace in which all MoveIt related topics and services are discovered
     \param wait. Wait for services if they are not announced in ROS.
     If this is false, the constructor throws std::runtime_error instead.
+    \param persistent_connections. Create persistent connection for the get planning scene and apply planning scene services.
   */
-  explicit PlanningSceneInterface(const std::string& ns = "", bool wait = true);
+  explicit PlanningSceneInterface(const std::string& ns = "", bool wait = true, bool persistent_connections = false);
   ~PlanningSceneInterface();
 
   /**
