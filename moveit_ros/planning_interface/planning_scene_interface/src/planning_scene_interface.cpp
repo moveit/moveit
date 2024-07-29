@@ -355,7 +355,7 @@ private:
     }
 
     planning_scene_service_ = node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(
-        move_group::GET_PLANNING_SCENE_SERVICE_NAME,persistent_connections_);
+        move_group::GET_PLANNING_SCENE_SERVICE_NAME, persistent_connections_);
 
     if (wait_)
     {
@@ -378,7 +378,7 @@ private:
     }
 
     apply_planning_scene_service_ = node_handle_.serviceClient<moveit_msgs::ApplyPlanningScene>(
-        move_group::APPLY_PLANNING_SCENE_SERVICE_NAME,persistent_connections_);
+        move_group::APPLY_PLANNING_SCENE_SERVICE_NAME, persistent_connections_);
 
     if (wait_)
     {
