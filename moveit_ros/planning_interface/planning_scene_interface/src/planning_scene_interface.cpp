@@ -51,16 +51,23 @@ static const std::string LOGNAME = "planning_scene_interface";
 class PlanningSceneInterface::PlanningSceneInterfaceImpl
 {
 public:
-  explicit PlanningSceneInterfaceImpl(const std::string& ns = "", bool wait = true)
+  explicit PlanningSceneInterfaceImpl(const std::string& ns = "", bool wait = true, bool persistent_connections = false)
   {
+    wait_ = wait;
+    persistent_connections_ = persistent_connections;
     node_handle_ = ros::NodeHandle(ns);
     planning_scene_diff_publisher_ = node_handle_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
-    planning_scene_service_ =
-        node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
-    apply_planning_scene_service_ =
-        node_handle_.serviceClient<moveit_msgs::ApplyPlanningScene>(move_group::APPLY_PLANNING_SCENE_SERVICE_NAME);
 
-    if (wait)
+    if (persistent_connections_ && !wait_)
+    {
+      ROS_WARN_NAMED(LOGNAME, "To create persistent service clients, wait is set to true");
+      wait_ = true;
+    }
+
+    connectGetPlanningSceneService();
+    connectApplyPlanningSceneService();
+
+    if (wait_)
     {
       waitForService(planning_scene_service_);
       waitForService(apply_planning_scene_service_);
@@ -80,6 +87,10 @@ public:
     moveit_msgs::GetPlanningScene::Response response;
     std::vector<std::string> result;
     request.components.components = request.components.WORLD_OBJECT_NAMES;
+
+    if (!planning_scene_service_.isValid())
+      connectGetPlanningSceneService();
+
     if (!planning_scene_service_.call(request, response))
       return result;
     if (with_type)
@@ -103,6 +114,10 @@ public:
     moveit_msgs::GetPlanningScene::Response response;
     std::vector<std::string> result;
     request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
+
+    if (!planning_scene_service_.isValid())
+      connectGetPlanningSceneService();
+
     if (!planning_scene_service_.call(request, response))
     {
       ROS_WARN_NAMED(LOGNAME, "Could not call planning scene service to get object names");
@@ -165,6 +180,10 @@ public:
     moveit_msgs::GetPlanningScene::Response response;
     std::map<std::string, geometry_msgs::Pose> result;
     request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
+
+    if (!planning_scene_service_.isValid())
+      connectGetPlanningSceneService();
+
     if (!planning_scene_service_.call(request, response))
     {
       ROS_WARN_NAMED(LOGNAME, "Could not call planning scene service to get object names");
@@ -187,6 +206,10 @@ public:
     moveit_msgs::GetPlanningScene::Response response;
     std::map<std::string, moveit_msgs::CollisionObject> result;
     request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
+
+    if (!planning_scene_service_.isValid())
+      connectGetPlanningSceneService();
+
     if (!planning_scene_service_.call(request, response))
     {
       ROS_WARN_NAMED(LOGNAME, "Could not call planning scene service to get object geometries");
@@ -210,6 +233,10 @@ public:
     moveit_msgs::GetPlanningScene::Response response;
     std::map<std::string, moveit_msgs::AttachedCollisionObject> result;
     request.components.components = request.components.ROBOT_STATE_ATTACHED_OBJECTS;
+
+    if (!planning_scene_service_.isValid())
+      connectGetPlanningSceneService();
+
     if (!planning_scene_service_.call(request, response))
     {
       ROS_WARN_NAMED(LOGNAME, "Could not call planning scene service to get attached object geometries");
@@ -233,6 +260,10 @@ public:
     moveit_msgs::GetPlanningScene::Request request;
     moveit_msgs::GetPlanningScene::Response response;
     request.components.components = components;
+
+    if (!planning_scene_service_.isValid())
+      connectGetPlanningSceneService();
+
     if (!planning_scene_service_.call(request, response))
     {
       ROS_WARN_NAMED(LOGNAME, "Could not call planning scene service");
@@ -246,6 +277,10 @@ public:
     moveit_msgs::ApplyPlanningScene::Request request;
     moveit_msgs::ApplyPlanningScene::Response response;
     request.scene = planning_scene;
+
+    if (!apply_planning_scene_service_.isValid())
+      connectApplyPlanningSceneService();
+
     if (!apply_planning_scene_service_.call(request, response))
     {
       ROS_WARN_NAMED(LOGNAME, "Failed to call ApplyPlanningScene service");
@@ -312,6 +347,55 @@ private:
     }
   }
 
+  void connectGetPlanningSceneService()
+  {
+    if (persistent_connections_)
+    {
+      ros::service::waitForService(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
+    }
+
+    planning_scene_service_ = node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(
+        move_group::GET_PLANNING_SCENE_SERVICE_NAME, persistent_connections_);
+
+    if (wait_)
+    {
+      waitForService(planning_scene_service_);
+    }
+    else
+    {
+      if (!planning_scene_service_.exists())
+      {
+        throw std::runtime_error("ROS service not available");
+      }
+    }
+  }
+
+  void connectApplyPlanningSceneService()
+  {
+    if (persistent_connections_)
+    {
+      ros::service::waitForService(move_group::APPLY_PLANNING_SCENE_SERVICE_NAME);
+    }
+
+    apply_planning_scene_service_ = node_handle_.serviceClient<moveit_msgs::ApplyPlanningScene>(
+        move_group::APPLY_PLANNING_SCENE_SERVICE_NAME, persistent_connections_);
+
+    if (wait_)
+    {
+      waitForService(apply_planning_scene_service_);
+    }
+    else
+    {
+      if (!apply_planning_scene_service_.exists())
+      {
+        throw std::runtime_error("ROS service not available");
+      }
+    }
+  }
+
+  bool wait_;
+  bool persistent_connections_;
+
   ros::NodeHandle node_handle_;
   ros::ServiceClient planning_scene_service_;
   ros::ServiceClient apply_planning_scene_service_;
@@ -319,9 +403,9 @@ private:
   moveit::core::RobotModelConstPtr robot_model_;
 };
 
-PlanningSceneInterface::PlanningSceneInterface(const std::string& ns, bool wait)
+PlanningSceneInterface::PlanningSceneInterface(const std::string& ns, bool wait, bool persistent_connections)
 {
-  impl_ = new PlanningSceneInterfaceImpl(ns, wait);
+  impl_ = new PlanningSceneInterfaceImpl(ns, wait, persistent_connections);
 }
 
 PlanningSceneInterface::~PlanningSceneInterface()
