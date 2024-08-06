@@ -49,9 +49,9 @@ namespace core
 /** Struct defining linear and rotational precision */
 struct CartesianPrecision
 {
-  double translational = 0.001;
-  double rotational = 0.01;
-  double max_resolution = 1e-5;
+  double translational = 0.001;  //< max deviation in translation (meters)
+  double rotational = 0.01;      //< max deviation in rotation (radians)
+  double max_resolution = 1e-5;  //< max resolution for waypoints (fraction of total path)
 };
 
 /** \brief Struct for containing jump_threshold.
@@ -119,7 +119,7 @@ public:
      The struct CartesianPrecision specifies the precision to which the path should follow the Cartesian straight line.
      If the deviation at the mid point of two consecutive waypoints is larger than the specified precision, another waypoint
      will be inserted at that mid point. The precision is specified separately for translation and rotation.
-     The maximal resolution to consider (in percentage of the total path length) is specified by max_resolution.
+     The maximal resolution to consider (as fraction of the total path length) is specified by max_resolution.
   */
   static double
   computeCartesianPath(const RobotState* start_state, const JointModelGroup* group,
