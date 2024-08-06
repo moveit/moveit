@@ -779,7 +779,14 @@ public:
       Return a value that is between 0.0 and 1.0 indicating the fraction of the path achieved as described by the
      waypoints.
       Return -1.0 in case of error. */
-  double computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step, double jump_threshold,
+  [[deprecated("Drop jump_threshold")]] double  //
+  computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step, double /*jump_threshold*/,
+                       moveit_msgs::RobotTrajectory& trajectory, bool avoid_collisions = true,
+                       moveit_msgs::MoveItErrorCodes* error_code = nullptr)
+  {
+    return computeCartesianPath(waypoints, eef_step, trajectory, avoid_collisions, error_code);
+  }
+  double computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step,
                               moveit_msgs::RobotTrajectory& trajectory, bool avoid_collisions = true,
                               moveit_msgs::MoveItErrorCodes* error_code = nullptr);
 
@@ -795,7 +802,14 @@ public:
       Return a value that is between 0.0 and 1.0 indicating the fraction of the path achieved as described by the
      waypoints.
       Return -1.0 in case of error. */
-  double computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step, double jump_threshold,
+  [[deprecated("Drop jump_threshold")]] double  //
+  computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step, double /*jump_threshold*/,
+                       moveit_msgs::RobotTrajectory& trajectory, const moveit_msgs::Constraints& path_constraints,
+                       bool avoid_collisions = true, moveit_msgs::MoveItErrorCodes* error_code = nullptr)
+  {
+    return computeCartesianPath(waypoints, eef_step, trajectory, path_constraints, avoid_collisions, error_code);
+  }
+  double computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step,
                               moveit_msgs::RobotTrajectory& trajectory,
                               const moveit_msgs::Constraints& path_constraints, bool avoid_collisions = true,
                               moveit_msgs::MoveItErrorCodes* error_code = nullptr);
