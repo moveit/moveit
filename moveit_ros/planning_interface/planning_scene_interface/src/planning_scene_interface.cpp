@@ -88,10 +88,7 @@ public:
     std::vector<std::string> result;
     request.components.components = request.components.WORLD_OBJECT_NAMES;
 
-    if (!planning_scene_service_.isValid())
-      connectGetPlanningSceneService();
-
-    if (!planning_scene_service_.call(request, response))
+    if (!getPlanningSceneServiceCall(request, response))
       return result;
     if (with_type)
     {
@@ -115,10 +112,7 @@ public:
     std::vector<std::string> result;
     request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
 
-    if (!planning_scene_service_.isValid())
-      connectGetPlanningSceneService();
-
-    if (!planning_scene_service_.call(request, response))
+    if (!getPlanningSceneServiceCall(request, response))
     {
       ROS_WARN_NAMED(LOGNAME, "Could not call planning scene service to get object names");
       return result;
@@ -181,10 +175,7 @@ public:
     std::map<std::string, geometry_msgs::Pose> result;
     request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
 
-    if (!planning_scene_service_.isValid())
-      connectGetPlanningSceneService();
-
-    if (!planning_scene_service_.call(request, response))
+    if (!getPlanningSceneServiceCall(request, response))
     {
       ROS_WARN_NAMED(LOGNAME, "Could not call planning scene service to get object names");
       return result;
@@ -207,10 +198,7 @@ public:
     std::map<std::string, moveit_msgs::CollisionObject> result;
     request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
 
-    if (!planning_scene_service_.isValid())
-      connectGetPlanningSceneService();
-
-    if (!planning_scene_service_.call(request, response))
+    if (!getPlanningSceneServiceCall(request, response))
     {
       ROS_WARN_NAMED(LOGNAME, "Could not call planning scene service to get object geometries");
       return result;
@@ -234,10 +222,7 @@ public:
     std::map<std::string, moveit_msgs::AttachedCollisionObject> result;
     request.components.components = request.components.ROBOT_STATE_ATTACHED_OBJECTS;
 
-    if (!planning_scene_service_.isValid())
-      connectGetPlanningSceneService();
-
-    if (!planning_scene_service_.call(request, response))
+    if (!getPlanningSceneServiceCall(request, response))
     {
       ROS_WARN_NAMED(LOGNAME, "Could not call planning scene service to get attached object geometries");
       return result;
@@ -261,10 +246,7 @@ public:
     moveit_msgs::GetPlanningScene::Response response;
     request.components.components = components;
 
-    if (!planning_scene_service_.isValid())
-      connectGetPlanningSceneService();
-
-    if (!planning_scene_service_.call(request, response))
+    if (!getPlanningSceneServiceCall(request, response))
     {
       ROS_WARN_NAMED(LOGNAME, "Could not call planning scene service");
       return moveit_msgs::PlanningScene();
@@ -278,10 +260,7 @@ public:
     moveit_msgs::ApplyPlanningScene::Response response;
     request.scene = planning_scene;
 
-    if (!apply_planning_scene_service_.isValid())
-      connectApplyPlanningSceneService();
-
-    if (!apply_planning_scene_service_.call(request, response))
+    if (!applyPlanningSceneServiceCall(request, response))
     {
       ROS_WARN_NAMED(LOGNAME, "Failed to call ApplyPlanningScene service");
       return false;
@@ -391,6 +370,24 @@ private:
         throw std::runtime_error("ROS service not available");
       }
     }
+  }
+
+  bool getPlanningSceneServiceCall(const moveit_msgs::GetPlanningScene::Request& request,
+                                   moveit_msgs::GetPlanningScene::Response& response)
+  {
+    if (!planning_scene_service_.isValid())
+        connectGetPlanningSceneService();
+
+    return planning_scene_service_.call(request, response);
+  }
+
+  bool applyPlanningSceneServiceCall(const moveit_msgs::ApplyPlanningScene::Request& request,
+                                     moveit_msgs::ApplyPlanningScene::Response& response)
+  {
+    if (!apply_planning_scene_service_.isValid())
+        connectApplyPlanningSceneService();
+
+    return apply_planning_scene_service_.call(request, response);
   }
 
   bool wait_;
