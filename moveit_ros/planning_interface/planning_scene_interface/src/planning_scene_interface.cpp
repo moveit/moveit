@@ -363,7 +363,7 @@ private:
                                    moveit_msgs::GetPlanningScene::Response& response)
   {
     if (!planning_scene_service_.isValid())
-        connectGetPlanningSceneService();
+      connectGetPlanningSceneService();
 
     return planning_scene_service_.call(request, response);
   }
@@ -372,7 +372,7 @@ private:
                                      moveit_msgs::ApplyPlanningScene::Response& response)
   {
     if (!apply_planning_scene_service_.isValid())
-        connectApplyPlanningSceneService();
+      connectApplyPlanningSceneService();
 
     return apply_planning_scene_service_.call(request, response);
   }
