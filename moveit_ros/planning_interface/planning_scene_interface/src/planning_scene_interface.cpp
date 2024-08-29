@@ -66,19 +66,6 @@ public:
 
     connectGetPlanningSceneService();
     connectApplyPlanningSceneService();
-
-    if (wait_)
-    {
-      waitForService(planning_scene_service_);
-      waitForService(apply_planning_scene_service_);
-    }
-    else
-    {
-      if (!planning_scene_service_.exists() || !apply_planning_scene_service_.exists())
-      {
-        throw std::runtime_error("ROS services not available");
-      }
-    }
   }
 
   std::vector<std::string> getKnownObjectNames(bool with_type)
