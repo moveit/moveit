@@ -62,11 +62,11 @@ bool FollowJointTrajectoryControllerHandle::sendTrajectory(const moveit_msgs::Ro
 
   control_msgs::FollowJointTrajectoryGoal goal = goal_template_;
   goal.trajectory = trajectory.joint_trajectory;
+  done_ = false;
+  last_exec_ = moveit_controller_manager::ExecutionStatus::RUNNING;
   controller_action_client_->sendGoal(
       goal, [this](const auto& state, const auto& result) { controllerDoneCallback(state, result); },
       [this] { controllerActiveCallback(); }, [this](const auto& feedback) { controllerFeedbackCallback(feedback); });
-  done_ = false;
-  last_exec_ = moveit_controller_manager::ExecutionStatus::RUNNING;
   return true;
 }
 
