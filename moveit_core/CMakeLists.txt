@@ -50,9 +50,8 @@ find_package(ruckig REQUIRED)
 # in include_directories below because the target is correctly imported here.
 get_target_property(ruckig_INCLUDE_DIRS ruckig::ruckig INTERFACE_INCLUDE_DIRECTORIES)
 set(ruckig_LIBRARIES "ruckig::ruckig")
-# ruckig built with cloud client (default) does not automatically pull in nlohmann_json
-# and MoveIt can fail to build in install workspaces because of this.
-# Remove the WITH_CLOUD_CLIENT definition because we don't use it anyway.
+# Remove the WITH_CLOUD_CLIENT definition because we don't use it and it causes build issues in some configurations
+# See https://github.com/moveit/moveit/pull/3636
 get_target_property(ruckig_defs ruckig::ruckig INTERFACE_COMPILE_DEFINITIONS)
 if(ruckig_defs)
   list(REMOVE_ITEM ruckig_defs "WITH_CLOUD_CLIENT")
