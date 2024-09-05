@@ -78,8 +78,8 @@ CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_servo::ServoPar
   worst_case_stop_time_sub_ =
       internal_nh.subscribe("worst_case_stop_time", ROS_QUEUE_SIZE, &CollisionCheck::worstCaseStopTimeCB, this);
 
+  // initialize current state buffer
   current_state_ = planning_scene_monitor_->getStateMonitor()->getCurrentState();
-  acm_ = getLockedPlanningSceneRO()->getAllowedCollisionMatrix();
 }
 
 planning_scene_monitor::LockedPlanningSceneRO CollisionCheck::getLockedPlanningSceneRO() const
@@ -107,26 +107,29 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
     return;
   }
 
-  // Update to the latest current state
-  current_state_ = planning_scene_monitor_->getStateMonitor()->getCurrentState();
+  // Get the latest current state (bypassing scene update throttling)
+  planning_scene_monitor_->getStateMonitor()->setToCurrentState(*current_state_);
   current_state_->updateCollisionBodyTransforms();
   collision_detected_ = false;
 
-  // Do a timer-safe distance-based collision detection
-  collision_result_.clear();
-  getLockedPlanningSceneRO()->getCollisionEnv()->checkRobotCollision(collision_request_, collision_result_,
-                                                                     *current_state_);
-  scene_collision_distance_ = collision_result_.distance;
-  collision_detected_ |= collision_result_.collision;
-  collision_result_.print();
+  {
+    auto scene = getLockedPlanningSceneRO();
+    auto& acm = scene->getAllowedCollisionMatrix();
 
-  collision_result_.clear();
-  // Self-collisions and scene collisions are checked separately so different thresholds can be used
-  getLockedPlanningSceneRO()->getCollisionEnvUnpadded()->checkSelfCollision(collision_request_, collision_result_,
-                                                                            *current_state_, acm_);
-  self_collision_distance_ = collision_result_.distance;
-  collision_detected_ |= collision_result_.collision;
-  collision_result_.print();
+    // Do a timer-safe distance-based collision detection
+    collision_result_.clear();
+    scene->getCollisionEnv()->checkRobotCollision(collision_request_, collision_result_, *current_state_, acm);
+    scene_collision_distance_ = collision_result_.distance;
+    collision_detected_ |= collision_result_.collision;
+    collision_result_.print();
+
+    // Self-collisions and scene collisions are checked separately so different thresholds can be used
+    collision_result_.clear();
+    scene->getCollisionEnvUnpadded()->checkSelfCollision(collision_request_, collision_result_, *current_state_, acm);
+    self_collision_distance_ = collision_result_.distance;
+    collision_detected_ |= collision_result_.collision;
+    collision_result_.print();
+  }
 
   velocity_scale_ = 1;
   // If we're definitely in collision, stop immediately
