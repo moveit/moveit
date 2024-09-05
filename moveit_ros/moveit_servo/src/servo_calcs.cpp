@@ -351,11 +351,19 @@ void ServoCalcs::calculateSingleIteration()
   else
   {
     // Joint trajectory is not populated with anything, so set it to the last positions and 0 velocity
-    *joint_trajectory = *last_sent_command_;
+    joint_trajectory->header = last_sent_command_->header;
+    trajectory_msgs::JointTrajectoryPoint point;
+    point.time_from_start = ros::Duration(parameters_.publish_period);
+
+    current_state_->copyJointGroupPositions(joint_model_group_, point.positions);
     for (auto& point : joint_trajectory->points)
     {
       point.velocities.assign(point.velocities.size(), 0);
+      point.accelerations.assign(point.accelerations.size(), 0);
     }
+
+    joint_trajectory->points.clear();
+    joint_trajectory->points.push_back(point);
   }
 
   // Print a warning to the user if both are stale
