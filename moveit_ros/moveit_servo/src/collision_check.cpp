@@ -112,6 +112,9 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
   current_state_->updateCollisionBodyTransforms();
   collision_detected_ = false;
 
+  // Update acm so it is updated for checkRobotCollision() 
+  acm_ = getLockedPlanningSceneRO()->getAllowedCollisionMatrix();
+
   // Do a timer-safe distance-based collision detection
   collision_result_.clear();
   getLockedPlanningSceneRO()->getCollisionEnv()->checkRobotCollision(collision_request_, collision_result_,
