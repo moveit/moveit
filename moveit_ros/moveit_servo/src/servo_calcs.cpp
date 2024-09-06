@@ -351,7 +351,7 @@ void ServoCalcs::calculateSingleIteration()
   else
   {
     // Joint trajectory is not populated with anything, so set it to the last positions and 0 velocity
-    joint_trajectory = last_sent_command_;
+    *joint_trajectory = *last_sent_command_;
     for (auto& point : joint_trajectory->points)
     {
       current_state_->copyJointGroupPositions(joint_model_group_, point.positions);
