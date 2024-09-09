@@ -2,6 +2,15 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.15 (2024-09-09)
+-------------------
+* Disable ruckig's webclient support in MoveIt build (`#3636 <https://github.com/ros-planning/moveit/issues/3636>`_)
+* New implementation for computeCartesianPath (`#3618 <https://github.com/ros-planning/moveit/issues/3618>`_)
+* Optimize MOVE_SHAPE operations for FCL (`#3601 <https://github.com/ros-planning/moveit/issues/3601>`_)
+* Provide violated bounds for a JointConstraint
+* PSM: Correctly handle full planning scene message (`#3610 <https://github.com/ros-planning/moveit/issues/3610>`_)
+* Contributors: Captain Yoshi, Michael Görner, Robert Haschke
+
 1.1.14 (2024-05-27)
 -------------------
 * Allow moving of all shapes of an object in one go (`#3599 <https://github.com/ros-planning/moveit/issues/3599>`_)

@@ -2,6 +2,11 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.15 (2024-09-09)
+-------------------
+* Fix formatting of boost option definitions
+* Contributors: Robert Haschke
+
 1.1.14 (2024-05-27)
 -------------------
 * MSA: Add missing filename attribute to gazebo plugin tag (`#3572 <https://github.com/ros-planning/moveit/issues/3572>`_)

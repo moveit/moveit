@@ -2,6 +2,11 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.15 (2024-09-09)
+-------------------
+* New implementation for computeCartesianPath (`#3618 <https://github.com/ros-planning/moveit/issues/3618>`_)
+* Contributors: Robert Haschke
+
 1.1.14 (2024-05-27)
 -------------------
 * Fixed order of return values in doc string of compute_cartesian_path() (`#3574 <https://github.com/ros-planning/moveit/issues/3574>`_)

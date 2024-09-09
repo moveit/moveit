@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.15 (2024-09-09)
+-------------------
+* PSM: Correctly handle full planning scene message (`#3610 <https://github.com/ros-planning/moveit/issues/3610>`_)
+* Contributors: Robert Haschke
+
 1.1.14 (2024-05-27)
 -------------------
 * Allow waiting for joint model group states and retrieval of group-specific timestamps (`#3580 <https://github.com/ros-planning/moveit/issues/3580>`_)

@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.15 (2024-09-09)
+-------------------
+* PSI: allow persistent connections for [get|apply]_planning_scene services (`#3628 <https://github.com/ros-planning/moveit/issues/3628>`_)
+* New implementation for computeCartesianPath (`#3618 <https://github.com/ros-planning/moveit/issues/3618>`_)
+* Contributors: Cesare Tonola, Robert Haschke
+
 1.1.14 (2024-05-27)
 -------------------
 * MoveGroupInterface: allow RobotState diffs as start state (`#3592 <https://github.com/ros-planning/moveit/issues/3592>`_)

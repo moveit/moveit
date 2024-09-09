@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.15 (2024-09-09)
+-------------------
+* New implementation for computeCartesianPath (`#3618 <https://github.com/ros-planning/moveit/issues/3618>`_)
+* rviz joints tab: show goal state model onFinishedExecution()
+* nullspace exploration: reset sliders to zero before hiding (`#3613 <https://github.com/ros-planning/moveit/issues/3613>`_)
+* Contributors: Robert Haschke
+
 1.1.14 (2024-05-27)
 -------------------
 * Radian/Degree joint value edits in RViz (`#3542 <https://github.com/ros-planning/moveit/issues/3542>`_)

@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.15 (2024-09-09)
+-------------------
+
 1.1.14 (2024-05-27)
 -------------------
 * Use boost::timer::progress_display if available (`#3547 <https://github.com/ros-planning/moveit/issues/3547>`_)

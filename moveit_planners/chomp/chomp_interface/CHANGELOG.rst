@@ -2,6 +2,11 @@
 Changelog for package chomp_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.15 (2024-09-09)
+-------------------
+* Fix CHOMP segfault (`#3621 <https://github.com/ros-planning/moveit/issues/3621>`_)
+* Contributors: Robert Haschke, Captain Yoshi
+
 1.1.14 (2024-05-27)
 -------------------
 
