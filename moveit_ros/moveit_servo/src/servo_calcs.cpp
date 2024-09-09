@@ -354,7 +354,9 @@ void ServoCalcs::calculateSingleIteration()
     *joint_trajectory = *last_sent_command_;
     for (auto& point : joint_trajectory->points)
     {
+      current_state_->copyJointGroupPositions(joint_model_group_, point.positions);
       point.velocities.assign(point.velocities.size(), 0);
+      point.accelerations.assign(point.accelerations.size(), 0);
     }
   }
 
