@@ -7,12 +7,12 @@ ARG IMAGE=noetic
 FROM moveit/moveit:${IMAGE}-ci-testing
 LABEL org.opencontainers.image.authors="Robert Haschke <rhaschke@techfak.uni-bielefeld.de>"
 
-ENV PYTHONIOENCODING UTF-8
+ENV PYTHONIOENCODING=UTF-8
 # Export ROS_UNDERLAY for downstream docker containers
-ENV ROS_UNDERLAY /root/ws_moveit/install
+ENV ROS_UNDERLAY=/root/ws_moveit/install
 # Environment variable used in instructions on moveit.ros.org website for running clang-tidy
-ENV CATKIN_WS $(realpath $ROS_UNDERLAY/..)
-WORKDIR $ROS_UNDERLAY/..
+ENV CATKIN_WS=$ROS_UNDERLAY/..
+WORKDIR $CATKIN_WS
 
 # Copy MoveIt sources from docker context
 COPY . src/moveit

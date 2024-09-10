@@ -5,7 +5,7 @@ ARG ROS_DISTRO=noetic
 FROM ros:${ROS_DISTRO}-ros-base
 LABEL org.opencontainers.image.authors="Robert Haschke <rhaschke@techfak.uni-bielefeld.de>"
 
-ENV TERM xterm
+ENV TERM=xterm
 
 # Setup (temporary) ROS workspace
 WORKDIR /root/ws_moveit
@@ -47,4 +47,4 @@ RUN \
     git config --global --add safe.directory "*"
 
 # Continous Integration Setting
-ENV IN_DOCKER 1
+ENV IN_DOCKER=1
