@@ -664,7 +664,7 @@ class MoveGroupCommander(object):
             else:
                 raise MoveItCommanderException(
                     "Unable to set path constraints, unknown constraint type "
-                    + type(path_constraints)
+                    + str(type(path_constraints))
                 )
             (ser_path, fraction) = self._g.compute_cartesian_path(
                 [conversions.pose_to_list(p) for p in waypoints],
