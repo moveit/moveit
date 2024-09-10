@@ -1476,8 +1476,8 @@ void PlanningSceneMonitor::configureDefaultPadding()
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Loaded " << default_robot_link_scale_.size() << " default link scales");
 }
 
-bool PlanningSceneMonitor::checkFrameIgnored(const std::string& frame) {
-
+bool PlanningSceneMonitor::checkFrameIgnored(const std::string& frame)
+{
   return (ignored_frames_.find(frame) != ignored_frames_.end());
 }
 }  // namespace planning_scene_monitor
