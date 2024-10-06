@@ -210,6 +210,7 @@ double CartesianInterpolator::computeCartesianPath(
       percentage_solved += wp_percentage_solved / (double)waypoints.size();
       break;
     }
+    start_state = traj.back().get();
   }
 
   return percentage_solved;
