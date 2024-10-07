@@ -6,6 +6,9 @@ planning_scene_monitor_options:
   publish_planning_scene_topic: "/publish_planning_scene"
   monitored_planning_scene_topic: "/monitored_planning_scene"
   wait_for_initial_state_timeout: 10.0
+  # ignored_frames:
+  #   - ignored_frame_1
+  #   - ignored_frame_2
 
 planning_pipelines:
   pipeline_names:

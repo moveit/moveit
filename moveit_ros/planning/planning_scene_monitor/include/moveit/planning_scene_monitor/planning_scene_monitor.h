@@ -585,6 +585,9 @@ private:
 
   class DynamicReconfigureImpl;
   DynamicReconfigureImpl* reconfigure_impl_;
+
+  std::set<std::string> ignored_frames_;
+  bool checkFrameIgnored(const std::string& frame);
 };
 
 /** \brief This is a convenience class for obtaining access to an

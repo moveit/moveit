@@ -259,6 +259,10 @@ void PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr& sc
                                             false);  // do not start the timer yet
 
   reconfigure_impl_ = new DynamicReconfigureImpl(this);
+
+  std::vector<std::string> ignored_frames_vector;
+  nh_.param("planning_scene_monitor_options/ignored_frames", ignored_frames_vector, std::vector<std::string>());
+  ignored_frames_ = std::set<std::string>(ignored_frames_vector.begin(), ignored_frames_vector.end());
 }
 
 void PlanningSceneMonitor::monitorDiffs(bool flag)
@@ -1336,7 +1340,7 @@ void PlanningSceneMonitor::getUpdatedFrameTransforms(std::vector<geometry_msgs::
   tf_buffer_->_getFrameStrings(all_frame_names);
   for (const std::string& all_frame_name : all_frame_names)
   {
-    if (all_frame_name == target || getRobotModel()->hasLinkModel(all_frame_name))
+    if (all_frame_name == target || getRobotModel()->hasLinkModel(all_frame_name) || checkFrameIgnored(all_frame_name))
       continue;
 
     geometry_msgs::TransformStamped f;
@@ -1470,5 +1474,10 @@ void PlanningSceneMonitor::configureDefaultPadding()
 
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Loaded " << default_robot_link_padd_.size() << " default link paddings");
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Loaded " << default_robot_link_scale_.size() << " default link scales");
+}
+
+bool PlanningSceneMonitor::checkFrameIgnored(const std::string& frame)
+{
+  return (ignored_frames_.find(frame) != ignored_frames_.end());
 }
 }  // namespace planning_scene_monitor
