@@ -2,6 +2,9 @@
 Changelog for package chomp_motion_planner
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.16 (2024-10-07)
+-------------------
+
 1.1.15 (2024-09-09)
 -------------------
 * CHOMP: Fix handling of mimic joints (`#3625 <https://github.com/ros-planning/moveit/issues/3625>`_)

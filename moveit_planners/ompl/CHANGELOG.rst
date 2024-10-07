@@ -2,6 +2,9 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.16 (2024-10-07)
+-------------------
+
 1.1.15 (2024-09-09)
 -------------------
 * Fix constrained-based planning / PoseModelStateSpace (`#3615 <https://github.com/ros-planning/moveit/issues/3615>`_)

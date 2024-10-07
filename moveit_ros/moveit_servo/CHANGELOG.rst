@@ -2,6 +2,9 @@
 Changelog for package moveit_servo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.16 (2024-10-07)
+-------------------
+
 1.1.15 (2024-09-09)
 -------------------
 * Init joint trajectory with actual robot pose (`#3642 <https://github.com/ros-planning/moveit/issues/3642>`_)

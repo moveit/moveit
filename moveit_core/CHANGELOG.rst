@@ -2,6 +2,11 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.16 (2024-10-07)
+-------------------
+* Fix Cartesian interpolation: for multiple waypoints continue from latest RobotState (`#3652 <https://github.com/ros-planning/moveit/issues/3652>`_)
+* Contributors: Robert Haschke
+
 1.1.15 (2024-09-09)
 -------------------
 * Disable ruckig's webclient support in MoveIt build (`#3636 <https://github.com/ros-planning/moveit/issues/3636>`_)

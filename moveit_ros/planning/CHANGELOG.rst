@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.16 (2024-10-07)
+-------------------
+* Allow links to be ignored in PSM updates (`#3645 <https://github.com/ros-planning/moveit/issues/3645>`_)
+* Contributors: Davide Torielli
+
 1.1.15 (2024-09-09)
 -------------------
 * PSM: Correctly handle full planning scene message (`#3610 <https://github.com/ros-planning/moveit/issues/3610>`_)
