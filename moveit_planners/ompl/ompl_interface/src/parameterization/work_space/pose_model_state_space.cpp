@@ -125,9 +125,22 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State* f
 {
   // moveit::Profiler::ScopedBlock sblock("interpolate");
 
-  // interpolate in joint space
-  ModelBasedStateSpace::interpolate(from, to, t, state);
-  computeStateFK(state);
+  // we want to interpolate in Cartesian space to avoid rejection of path constraints
+
+  // seed IK from start state
+  memcpy(state->as<StateType>()->values, from->as<StateType>()->values, state_values_size_);
+  state->as<StateType>()->setJointsComputed(false);
+
+  // interpolate SE3 components
+  for (std::size_t i = 0; i < poses_.size(); ++i)
+    poses_[i].state_space_->interpolate(from->as<StateType>()->poses[i], to->as<StateType>()->poses[i], t,
+                                        state->as<StateType>()->poses[i]);
+
+  // the call above may reset all flags for state; but we know the pose we want flag should be set
+  state->as<StateType>()->setPoseComputed(true);
+
+  // compute IK for interpolated Cartesian state
+  computeStateIK(state);
 }
 
 void ompl_interface::PoseModelStateSpace::setPlanningVolume(double minX, double maxX, double minY, double maxY,
