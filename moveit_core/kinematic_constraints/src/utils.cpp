@@ -565,12 +565,27 @@ bool resolveConstraintFrames(const moveit::core::RobotState& state, moveit_msgs:
     // the constraint needs to be expressed in the frame of a robot link.
     if (c.link_name != robot_link->getName())
     {
+      if (c.parameterization == moveit_msgs::OrientationConstraint::XYZ_EULER_ANGLES)
+      {
+        ROS_ERROR_NAMED(
+            LOGNAME, "Euler angles parameterization is not supported for non-link frames in orientation constraints. \n"
+                     "Switch to rotation vector parameterization.");
+        return false;
+      }
       c.link_name = robot_link->getName();
       Eigen::Quaterniond link_name_to_robot_link(transform.linear().transpose() *
                                                  state.getGlobalLinkTransform(robot_link).linear());
+      // adapt goal orientation
       Eigen::Quaterniond quat_target;
       tf2::fromMsg(c.orientation, quat_target);
       c.orientation = tf2::toMsg(quat_target * link_name_to_robot_link);
+
+      // adapt tolerance vector
+      Eigen::Vector3d tol(c.absolute_x_axis_tolerance, c.absolute_y_axis_tolerance, c.absolute_z_axis_tolerance);
+      tol = (link_name_to_robot_link.conjugate() * tol).cwiseAbs();
+      c.absolute_x_axis_tolerance = tol.x();
+      c.absolute_y_axis_tolerance = tol.y();
+      c.absolute_z_axis_tolerance = tol.z();
     }
   }
   return true;
