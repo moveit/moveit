@@ -50,6 +50,8 @@ const std::string ompl_interface::PoseModelStateSpace::PARAMETERIZATION_TYPE = "
 ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSpaceSpecification& spec)
   : ModelBasedStateSpace(spec)
 {
+  jump_factor_ = 1.5;  // \todo make this a param
+
   if (spec.joint_model_group_->getGroupKinematics().first)
     poses_.emplace_back(spec.joint_model_group_, spec.joint_model_group_->getGroupKinematics().first);
   else if (!spec.joint_model_group_->getGroupKinematics().second.empty())
@@ -129,6 +131,7 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State* f
 
   // interpolate in joint space to find a suitable seed for IK
   ModelBasedStateSpace::interpolate(from, to, t, state);
+  double d_joint = ModelBasedStateSpace::distance(from, state);
 
   // interpolate SE3 components
   for (std::size_t i = 0; i < poses_.size(); ++i)
@@ -139,7 +142,14 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State* f
   state->as<StateType>()->setPoseComputed(true);
 
   // compute IK for interpolated Cartesian state
-  computeStateIK(state);
+  if (computeStateIK(state))
+  {
+    double d_cart = ModelBasedStateSpace::distance(from, state);
+
+    // reject if Cartesian interpolation yields much larger distance than joint interpolation
+    if (d_cart > jump_factor_ * d_joint)
+      state->as<StateType>()->markInvalid();
+  }
 }
 
 void ompl_interface::PoseModelStateSpace::setPlanningVolume(double minX, double maxX, double minY, double maxY,
