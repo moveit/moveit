@@ -127,9 +127,13 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State* f
 
   // we want to interpolate in Cartesian space to avoid rejection of path constraints
 
+  ModelBasedStateSpace::interpolate(from, to, t, state);
+  double d_joint = ModelBasedStateSpace::distance(from, state);
+
   // seed IK from start state
   memcpy(state->as<StateType>()->values, from->as<StateType>()->values, state_values_size_);
   state->as<StateType>()->setJointsComputed(false);
+  state->as<StateType>()->tag = -1;
 
   // interpolate SE3 components
   for (std::size_t i = 0; i < poses_.size(); ++i)
@@ -140,7 +144,14 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State* f
   state->as<StateType>()->setPoseComputed(true);
 
   // compute IK for interpolated Cartesian state
-  computeStateIK(state);
+  if (computeStateIK(state))
+  {
+    double d_cart = ModelBasedStateSpace::distance(from, state);
+
+    // reject if Cartesian interpolation yields much larger distance than joint interpolation
+    if (d_cart > 1.1 * d_joint)
+      state->as<StateType>()->markInvalid();
+  }
 }
 
 void ompl_interface::PoseModelStateSpace::setPlanningVolume(double minX, double maxX, double minY, double maxY,
