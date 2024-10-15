@@ -497,6 +497,9 @@ bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& q
              moveit_msgs::OrientationConstraint::ROTATION_VECTOR)
     {
       Eigen::Vector3d rotation_vector(angle_x, angle_y, angle_z);
+      // convert rotation vector from frame_id to target frame
+      rotation_vector =
+          sampling_pose_.orientation_constraint_->getDesiredRotationMatrixInRefFrame().transpose() * rotation_vector;
       diff = Eigen::Isometry3d(Eigen::AngleAxisd(rotation_vector.norm(), rotation_vector.normalized()));
     }
     else

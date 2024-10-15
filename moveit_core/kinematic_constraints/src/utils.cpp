@@ -579,13 +579,6 @@ bool resolveConstraintFrames(const moveit::core::RobotState& state, moveit_msgs:
       Eigen::Quaterniond quat_target;
       tf2::fromMsg(c.orientation, quat_target);
       c.orientation = tf2::toMsg(quat_target * link_name_to_robot_link);
-
-      // adapt tolerance vector
-      Eigen::Vector3d tol(c.absolute_x_axis_tolerance, c.absolute_y_axis_tolerance, c.absolute_z_axis_tolerance);
-      tol = (link_name_to_robot_link.conjugate() * tol).cwiseAbs();
-      c.absolute_x_axis_tolerance = tol.x();
-      c.absolute_y_axis_tolerance = tol.y();
-      c.absolute_z_axis_tolerance = tol.z();
     }
   }
   return true;

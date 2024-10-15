@@ -576,6 +576,7 @@ bool OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& 
     ROS_WARN_NAMED("kinematic_constraints", "No frame specified for position constraint on link '%s'!",
                    oc.link_name.c_str());
 
+  desired_R_in_frame_id_ = Eigen::Quaterniond(q);  // desired rotation wrt. frame_id
   if (tf.isFixedFrame(oc.header.frame_id))
   {
     tf.transformQuaternion(oc.header.frame_id, q, q);
@@ -709,10 +710,8 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
   else if (parameterization_type_ == moveit_msgs::OrientationConstraint::ROTATION_VECTOR)
   {
     Eigen::AngleAxisd aa(diff.linear());
-    xyz_rotation = aa.axis() * aa.angle();
-    xyz_rotation(0) = fabs(xyz_rotation(0));
-    xyz_rotation(1) = fabs(xyz_rotation(1));
-    xyz_rotation(2) = fabs(xyz_rotation(2));
+    // transform rotation vector from target frame to frame_id and take absolute values
+    xyz_rotation = (desired_R_in_frame_id_ * (aa.axis() * aa.angle())).cwiseAbs();
   }
   else
   {

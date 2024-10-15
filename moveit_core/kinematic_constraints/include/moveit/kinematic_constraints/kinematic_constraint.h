@@ -440,6 +440,19 @@ public:
    *
    * The returned matrix is always a valid rotation matrix.
    */
+  const Eigen::Matrix3d& getDesiredRotationMatrixInRefFrame() const
+  {
+    // validity of the rotation matrix is enforced in configure()
+    return desired_R_in_frame_id_;
+  }
+
+  /**
+   * \brief The rotation target in the reference or tf frame.
+   *
+   * @return The target rotation.
+   *
+   * The returned matrix is always a valid rotation matrix.
+   */
   const Eigen::Matrix3d& getDesiredRotationMatrix() const
   {
     // validity of the rotation matrix is enforced in configure()
@@ -486,6 +499,7 @@ public:
 
 protected:
   const moveit::core::LinkModel* link_model_;   /**< \brief The target link model */
+  Eigen::Matrix3d desired_R_in_frame_id_;       /**< Desired rotation matrix in frame_id */
   Eigen::Matrix3d desired_rotation_matrix_;     /**< \brief The desired rotation matrix in the tf frame. Guaranteed to
                                                  * be valid rotation matrix. */
   Eigen::Matrix3d desired_rotation_matrix_inv_; /**< \brief The inverse of the desired rotation matrix, precomputed for
