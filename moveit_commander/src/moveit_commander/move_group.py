@@ -653,7 +653,6 @@ class MoveGroupCommander(object):
     ):
         """Compute a sequence of waypoints that make the end-effector move in straight line segments that follow the poses specified as waypoints.
         Configurations are computed for every eef_step meters.
-        The jump_threshold specifies the maximum distance in configuration space between consecutive points in the resultingpath.
         Kinematic constraints for the path given by path_constraints will be met for every point along the trajectory.
         If the Kinematic constraints are not met, a partial solution will be returned.
         The return value is a tuple: the actual RobotTrajectory and the fraction of how much of the path was followed.
