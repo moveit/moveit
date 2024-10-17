@@ -337,12 +337,19 @@ MOVEIT_CLASS_FORWARD(OrientationConstraint);  // Defines OrientationConstraintPt
 /**
  * \brief Class for constraints on the orientation of a link
  *
- * This class expresses an orientation constraint on a particular
- * link.  The constraint is specified in terms of a quaternion, with
- * tolerances on X,Y, and Z axes.  The rotation difference is computed
- * based on the XYZ Euler angle formulation (intrinsic rotations) or as a rotation vector. This depends on the
- * `Parameterization` type. The header on the quaternion can be specified in terms of either a fixed or a mobile
- * frame.  The type value will return ORIENTATION_CONSTRAINT.
+ * This class expresses an orientation constraint on a particular link.
+ * The constraint specifies a target orientation via a quaternion as well as
+ * tolerances on X,Y, and Z rotation axes.
+ * The rotation difference between the target and actual link orientation is expressed
+ * either as XYZ Euler angles or as a rotation vector (depending on the `parameterization` type).
+ * The latter is highly recommended, because it supports resolution of subframes and attached bodies.
+ * Also, rotation vector representation allows to interpret the tolerances always w.r.t. the given reference frame.
+ * Euler angles are much more restricted and exhibit singularities.
+ *
+ * For efficiency, if the target orientation is expressed w.r.t. to a fixed frame (relative to the planning frame),
+ * some stuff is precomputed. However, mobile reference frames are supported as well.
+ *
+ * The type value will return ORIENTATION_CONSTRAINT.
  *
  */
 class OrientationConstraint : public KinematicConstraint
