@@ -183,6 +183,7 @@ moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name, 
 
   goal.orientation_constraints.resize(1);
   moveit_msgs::OrientationConstraint& ocm = goal.orientation_constraints[0];
+  ocm.parameterization = moveit_msgs::OrientationConstraint::ROTATION_VECTOR;
   ocm.link_name = link_name;
   ocm.header = pose.header;
   ocm.orientation = pose.pose.orientation;
