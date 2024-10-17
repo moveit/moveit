@@ -498,17 +498,15 @@ public:
   }
 
 protected:
-  const moveit::core::LinkModel* link_model_;   /**< \brief The target link model */
+  const moveit::core::LinkModel* link_model_;   /**< The target link model */
   Eigen::Matrix3d desired_R_in_frame_id_;       /**< Desired rotation matrix in frame_id */
-  Eigen::Matrix3d desired_rotation_matrix_;     /**< \brief The desired rotation matrix in the tf frame. Guaranteed to
-                                                 * be valid rotation matrix. */
-  Eigen::Matrix3d desired_rotation_matrix_inv_; /**< \brief The inverse of the desired rotation matrix, precomputed for
-                                                 * efficiency. Guaranteed to be valid rotation matrix. */
-  std::string desired_rotation_frame_id_;       /**< \brief The target frame of the transform tree */
-  bool mobile_frame_;                           /**< \brief Whether or not the header frame is mobile or fixed */
-  int parameterization_type_;                   /**< \brief Parameterization type for orientation tolerance. */
+  Eigen::Matrix3d desired_rotation_matrix_;     /**< The desired rotation matrix in the tf frame */
+  Eigen::Matrix3d desired_rotation_matrix_inv_; /**< The inverse of desired_rotation_matrix_ (for efficiency) */
+  std::string desired_rotation_frame_id_;       /**< The target frame of the transform tree */
+  bool mobile_frame_;                           /**< Whether or not the header frame is mobile or fixed */
+  int parameterization_type_;                   /**< Parameterization type for orientation tolerance */
   double absolute_x_axis_tolerance_, absolute_y_axis_tolerance_,
-      absolute_z_axis_tolerance_; /**< \brief Storage for the tolerances */
+      absolute_z_axis_tolerance_; /**< Storage for the tolerances */
 };
 
 MOVEIT_CLASS_FORWARD(PositionConstraint);  // Defines PositionConstraintPtr, ConstPtr, WeakPtr... etc
