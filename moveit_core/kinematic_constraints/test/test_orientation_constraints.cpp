@@ -450,7 +450,7 @@ TEST_F(FloatingJointRobot, OrientationConstraintsParameterization)
     EXPECT_TRUE(oc_rotvec.decide(robot_state).satisfied);
   }
 
-  // and now some simple test cases where whe change the nominal orientation of the constraints,
+  // and now some simple test cases where we change the nominal orientation of the constraints,
   // instead of changing the orientation of the robot
   robot_state.setToDefaultValues();
   robot_state.update();
@@ -472,6 +472,42 @@ TEST_F(FloatingJointRobot, OrientationConstraintsParameterization)
   ocm.orientation = tf2::toMsg(rotation_vector_to_quat(0.1, 0.2, -0.6));
   EXPECT_TRUE(oc_rotvec.configure(ocm, tf));
   EXPECT_FALSE(oc_rotvec.decide(robot_state).satisfied);
+}
+
+TEST_F(FloatingJointRobot, ToleranceInRefFrame)
+{
+  moveit::core::RobotState robot_state(robot_model_);
+  robot_state.setToDefaultValues();
+  auto base = rotation_vector_to_quat(M_PI / 2.0, 0, 0);  // base rotation: 90° about x
+  setRobotEndEffectorOrientation(robot_state, base);
+  robot_state.update();
+
+  moveit::core::Transforms tf(robot_model_->getModelFrame());
+
+  // create message to configure orientation constraints
+  moveit_msgs::OrientationConstraint ocm;
+  ocm.link_name = "ee";
+  ocm.header.frame_id = robot_model_->getModelFrame();
+  ocm.parameterization = moveit_msgs::OrientationConstraint::ROTATION_VECTOR;
+  ocm.orientation = tf2::toMsg(base);
+  ocm.absolute_x_axis_tolerance = 0.2;
+  ocm.absolute_y_axis_tolerance = 0.2;
+  ocm.absolute_z_axis_tolerance = 1.0;
+  ocm.weight = 1.0;
+
+  kinematic_constraints::OrientationConstraint oc(robot_model_);
+  EXPECT_TRUE(oc.configure(ocm, tf));
+
+  EXPECT_TRUE(oc.decide(robot_state).satisfied);  // link and target are perfectly aligned
+
+  // strong rotation w.r.t. base frame is ok
+  auto delta = rotation_vector_to_quat(0.1, 0.1, 0.9);
+  setRobotEndEffectorOrientation(robot_state, delta * base);
+  EXPECT_TRUE(oc.decide(robot_state).satisfied);
+
+  // strong rotation w.r.t. link frame is not ok
+  setRobotEndEffectorOrientation(robot_state, base * delta);
+  EXPECT_FALSE(oc.decide(robot_state).satisfied);  // link and target are perfectly aligned
 }
 
 int main(int argc, char** argv)
