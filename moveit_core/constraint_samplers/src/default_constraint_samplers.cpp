@@ -497,6 +497,9 @@ bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& q
              moveit_msgs::OrientationConstraint::ROTATION_VECTOR)
     {
       Eigen::Vector3d rotation_vector(angle_x, angle_y, angle_z);
+      // convert rotation vector from frame_id to target frame
+      rotation_vector =
+          sampling_pose_.orientation_constraint_->getDesiredRotationMatrixInRefFrame().transpose() * rotation_vector;
       diff = Eigen::Isometry3d(Eigen::AngleAxisd(rotation_vector.norm(), rotation_vector.normalized()));
     }
     else
@@ -506,14 +509,9 @@ bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& q
                              "The parameterization type for the orientation constraints is invalid.");
     }
 
-    // diff is isometry by construction
-    // getDesiredRotationMatrix() returns a valid rotation matrix by contract
-    // reqr has thus to be a valid isometry
-    Eigen::Isometry3d reqr(sampling_pose_.orientation_constraint_->getDesiredRotationMatrix() * diff.linear());
-    quat = Eigen::Quaterniond(reqr.linear());  // reqr is isometry, so quat has to be normalized
+    quat = Eigen::Quaterniond(sampling_pose_.orientation_constraint_->getDesiredRotationMatrix() * diff.linear());
 
-    // if this constraint is with respect a mobile frame, we need to convert this rotation to the root frame of the
-    // model
+    // if this constraint is with respect to a mobile frame, we need to convert this rotation to the root frame of the model
     if (sampling_pose_.orientation_constraint_->mobileReferenceFrame())
     {
       // getFrameTransform() returns a valid isometry by contract

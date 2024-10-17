@@ -337,12 +337,19 @@ MOVEIT_CLASS_FORWARD(OrientationConstraint);  // Defines OrientationConstraintPt
 /**
  * \brief Class for constraints on the orientation of a link
  *
- * This class expresses an orientation constraint on a particular
- * link.  The constraint is specified in terms of a quaternion, with
- * tolerances on X,Y, and Z axes.  The rotation difference is computed
- * based on the XYZ Euler angle formulation (intrinsic rotations) or as a rotation vector. This depends on the
- * `Parameterization` type. The header on the quaternion can be specified in terms of either a fixed or a mobile
- * frame.  The type value will return ORIENTATION_CONSTRAINT.
+ * This class expresses an orientation constraint on a particular link.
+ * The constraint specifies a target orientation via a quaternion as well as
+ * tolerances on X,Y, and Z rotation axes.
+ * The rotation difference between the target and actual link orientation is expressed
+ * either as XYZ Euler angles or as a rotation vector (depending on the `parameterization` type).
+ * The latter is highly recommended, because it supports resolution of subframes and attached bodies.
+ * Also, rotation vector representation allows to interpret the tolerances always w.r.t. the given reference frame.
+ * Euler angles are much more restricted and exhibit singularities.
+ *
+ * For efficiency, if the target orientation is expressed w.r.t. to a fixed frame (relative to the planning frame),
+ * some stuff is precomputed. However, mobile reference frames are supported as well.
+ *
+ * The type value will return ORIENTATION_CONSTRAINT.
  *
  */
 class OrientationConstraint : public KinematicConstraint
@@ -440,6 +447,19 @@ public:
    *
    * The returned matrix is always a valid rotation matrix.
    */
+  const Eigen::Matrix3d& getDesiredRotationMatrixInRefFrame() const
+  {
+    // validity of the rotation matrix is enforced in configure()
+    return desired_R_in_frame_id_;
+  }
+
+  /**
+   * \brief The rotation target in the reference or tf frame.
+   *
+   * @return The target rotation.
+   *
+   * The returned matrix is always a valid rotation matrix.
+   */
   const Eigen::Matrix3d& getDesiredRotationMatrix() const
   {
     // validity of the rotation matrix is enforced in configure()
@@ -485,16 +505,15 @@ public:
   }
 
 protected:
-  const moveit::core::LinkModel* link_model_;   /**< \brief The target link model */
-  Eigen::Matrix3d desired_rotation_matrix_;     /**< \brief The desired rotation matrix in the tf frame. Guaranteed to
-                                                 * be valid rotation matrix. */
-  Eigen::Matrix3d desired_rotation_matrix_inv_; /**< \brief The inverse of the desired rotation matrix, precomputed for
-                                                 * efficiency. Guaranteed to be valid rotation matrix. */
-  std::string desired_rotation_frame_id_;       /**< \brief The target frame of the transform tree */
-  bool mobile_frame_;                           /**< \brief Whether or not the header frame is mobile or fixed */
-  int parameterization_type_;                   /**< \brief Parameterization type for orientation tolerance. */
+  const moveit::core::LinkModel* link_model_;   /**< The target link model */
+  Eigen::Matrix3d desired_R_in_frame_id_;       /**< Desired rotation matrix in frame_id */
+  Eigen::Matrix3d desired_rotation_matrix_;     /**< The desired rotation matrix in the tf frame */
+  Eigen::Matrix3d desired_rotation_matrix_inv_; /**< The inverse of desired_rotation_matrix_ (for efficiency) */
+  std::string desired_rotation_frame_id_;       /**< The target frame of the transform tree */
+  bool mobile_frame_;                           /**< Whether or not the header frame is mobile or fixed */
+  int parameterization_type_;                   /**< Parameterization type for orientation tolerance */
   double absolute_x_axis_tolerance_, absolute_y_axis_tolerance_,
-      absolute_z_axis_tolerance_; /**< \brief Storage for the tolerances */
+      absolute_z_axis_tolerance_; /**< Storage for the tolerances */
 };
 
 MOVEIT_CLASS_FORWARD(PositionConstraint);  // Defines PositionConstraintPtr, ConstPtr, WeakPtr... etc

@@ -34,6 +34,7 @@
 
 /* Author: Ioan Sucan */
 
+#include <moveit/kinematic_constraints/utils.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/collision_detection/collision_tools.h>
@@ -277,8 +278,11 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
       m.action = visualization_msgs::Marker::DELETEALL;
       arr.markers.push_back(m);
 
+      auto path_constraints_resolved = req.path_constraints;
+      kinematic_constraints::resolveConstraintFrames(res.trajectory_->getFirstWayPoint(), path_constraints_resolved);
+
       std::vector<std::size_t> index;
-      if (!planning_scene->isPathValid(*res.trajectory_, req.path_constraints, req.group_name, false, &index))
+      if (!planning_scene->isPathValid(*res.trajectory_, path_constraints_resolved, req.group_name, false, &index))
       {
         // check to see if there is any problem with the states that are found to be invalid
         // they are considered ok if they were added by a planning request adapter
