@@ -115,14 +115,14 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
               octree->begin_leafs_bbx(bbx_min, bbx_max);
           octomap::OcTreeBaseImpl<octomap::OcTreeNode, octomap::AbstractOccupancyOcTree>::leaf_bbx_iterator leafs_end =
               octree->end_leafs_bbx();
-          int count = 0;
+          // int count = 0;
           for (; it != leafs_end; ++it)
           {
             octomap::point3d pt = it.getCoordinate();
             // double prob = it->getOccupancy();
             if (octree->isNodeOccupied(*it))  // magic number!
             {
-              count++;
+              // count++;
               node_centers.push_back(pt);
               // ROS_INFO_NAMED("collision_detection", "Adding point %d with prob %.3f at [%.3f, %.3f, %.3f]",
               //                          count, prob, pt.x(), pt.y(), pt.z());
@@ -246,11 +246,8 @@ bool sampleCloud(const octomap::point3d_list& cloud, const double& spacing, cons
   double a = 0, b = 0, c = 0, r2 = 0, r4 = 0, r6 = 0, a1 = 0, b1 = 0, c1 = 0, a2 = 0, b2 = 0, c2 = 0;
   bool wyvill = true;
 
-  octomap::point3d_list::const_iterator it;
-  for (it = cloud.begin(); it != cloud.end(); ++it)
+  for (const octomath::Vector3& v : cloud)
   {
-    octomath::Vector3 v = (*it);
-
     if (wyvill)
     {
       r2 = r * r;

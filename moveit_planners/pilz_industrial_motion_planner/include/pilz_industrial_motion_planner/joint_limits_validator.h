@@ -96,11 +96,7 @@ private:
   static bool decelerationEqual(const JointLimit& lhs, const JointLimit& rhs);
 };
 
-/**
- * @class ValidationException
- * @brief A base class for all validations exceptions inheriting from
- * std::runtime_exception
- */
+/** A base class for all validations exceptions inheriting from std::runtime_exception */
 class ValidationException : public std::runtime_error
 {
 public:
@@ -109,12 +105,7 @@ public:
   }
 };
 
-/**
- * @class ValidationJointMissingException
- * @brief Thrown the limits for a joint are defined in the urdf but not on the
- * parameter server (loaded from yaml)
- *
- */
+/** Thrown when the limits for a joint are defined in the urdf but not on the parameter server (loaded from yaml) */
 class ValidationJointMissingException : public ValidationException
 {
 public:
@@ -123,11 +114,7 @@ public:
   }
 };
 
-/**
- * @class ValidationDifferentLimitsException
- * @brief Thrown when the limits differ
- *
- */
+/** Thrown when the limits differ */
 class ValidationDifferentLimitsException : public ValidationException
 {
 public:
@@ -136,12 +123,7 @@ public:
   }
 };
 
-/**
- * @class ValidationBoundsViolationException
- * @brief Thrown when the limits from the param server are weaker than the ones
- * obtained from the urdf
- *
- */
+/** Thrown when the limits from the param server are weaker than the ones obtained from the urdf */
 class ValidationBoundsViolationException : public ValidationException
 {
 public:

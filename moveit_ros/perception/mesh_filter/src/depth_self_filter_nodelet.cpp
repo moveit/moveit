@@ -45,6 +45,7 @@
 #include <cv_bridge/cv_bridge.h>
 
 namespace enc = sensor_msgs::image_encodings;
+static const std::string LOGNAME = "depth_self_filter_nodelet";
 
 mesh_filter::DepthSelfFiltering::~DepthSelfFiltering()
 {
@@ -72,8 +73,8 @@ void mesh_filter::DepthSelfFiltering::onInit()
   private_nh.param("tf_update_rate", tf_update_rate, 30.0);
   transform_provider_.setUpdateRate(tf_update_rate);
 
-  image_transport::SubscriberStatusCallback itssc = std::bind(&DepthSelfFiltering::connectCb, this);
-  ros::SubscriberStatusCallback rssc = std::bind(&DepthSelfFiltering::connectCb, this);
+  image_transport::SubscriberStatusCallback itssc = [this](auto&& /*unused*/) { connectCb(); };
+  ros::SubscriberStatusCallback rssc = [this](auto&& /*unused*/) { connectCb(); };
 
   std::lock_guard<std::mutex> lock(connect_mutex_);
   pub_filtered_depth_image_ =
@@ -91,7 +92,9 @@ void mesh_filter::DepthSelfFiltering::onInit()
   model_label_ptr_ = std::make_shared<cv_bridge::CvImage>();
 
   mesh_filter_ = std::make_shared<MeshFilter<StereoCameraModel>>(
-      bind(&TransformProvider::getTransform, &transform_provider_, std::placeholders::_1, std::placeholders::_2),
+      [&tfp = transform_provider_](mesh_filter::MeshHandle mesh, Eigen::Isometry3d& tf) {
+        return tfp.getTransform(mesh, tf);
+      },
       mesh_filter::StereoCameraModel::REGISTERED_PSDK_PARAMS);
   mesh_filter_->parameters().setDepthRange(near_clipping_plane_distance_, far_clipping_plane_distance_);
   mesh_filter_->setShadowThreshold(shadow_threshold_);
@@ -111,20 +114,22 @@ void mesh_filter::DepthSelfFiltering::filter(const sensor_msgs::ImageConstPtr& d
   params.setCameraParameters(info_msg->K[0], info_msg->K[4], info_msg->K[2], info_msg->K[5]);
   params.setImageSize(depth_msg->width, depth_msg->height);
 
-  const float* src = (const float*)&depth_msg->data[0];
-  //*
-  static unsigned data_size = 0;
-  static unsigned short* data = nullptr;
-  if (data_size < depth_msg->width * depth_msg->height)
-    data = new unsigned short[depth_msg->width * depth_msg->height];
-  for (unsigned idx = 0; idx < depth_msg->width * depth_msg->height; ++idx)
-    data[idx] = (unsigned short)(src[idx] * 1000.0);
+  // Handling of two possible encodings of a depth image: 16UC1 and 32FC1
+  if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1)
+  {
+    ROS_WARN_STREAM_ONCE_NAMED(LOGNAME,
+                               "The input depth image uses a 16UC1 encoding. Consider converting the publisher to "
+                               "generate the canonical 32FC1 encoding instead according to ROS REP-118.");
+    mesh_filter_->filter(depth_msg->data.data(), GL_UNSIGNED_SHORT);
+  }
+  else if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_32FC1)
+    mesh_filter_->filter(reinterpret_cast<const float*>(depth_msg->data.data()), GL_FLOAT);
+  else
+  {
+    ROS_WARN_STREAM_THROTTLE_NAMED(1.0, LOGNAME, "Unsupported encoding of depth image: " << depth_msg->encoding);
+    return;
+  }
 
-  mesh_filter_->filter(data, GL_UNSIGNED_SHORT);
-  // delete[] data;
-  /*/
-  mesh_filter_->filter ((void*) &depth_msg->data[0], GL_FLOAT);
-  //*/
   if (pub_filtered_depth_image_.getNumSubscribers() > 0)
   {
     filtered_depth_ptr_->encoding = sensor_msgs::image_encodings::TYPE_32FC1;

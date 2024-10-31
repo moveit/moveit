@@ -13,9 +13,13 @@ if (CATKIN_ENABLE_TESTING)
   add_rostest_gtest(subframes_test subframes_test.test subframes_test.cpp)
   target_link_libraries(subframes_test moveit_move_group_interface ${catkin_LIBRARIES})
 
+  add_rostest_gtest(planning_scene_interface_test planning_scene_interface.test planning_scene_interface.cpp)
+  target_link_libraries(planning_scene_interface_test moveit_move_group_interface ${catkin_LIBRARIES})
+
   add_rostest(python_move_group.test)
   add_rostest(python_move_group_ns.test)
   add_rostest(robot_state_update.test)
+  add_rostest(dual_arm_robot_state_update.test)
   add_rostest(cleanup.test)
 
   SET(HELPER_LIB moveit_planning_interface_test_serialize_msg_cpp_helper)

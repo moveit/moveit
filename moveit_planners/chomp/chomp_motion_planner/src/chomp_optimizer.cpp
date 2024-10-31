@@ -208,26 +208,15 @@ void ChompOptimizer::initialize()
   {
     if (fixed_link_resolution_map.find(link->getParentJointModel()->getName()) == fixed_link_resolution_map.end())
     {
-      const moveit::core::JointModel* parent_model = nullptr;
-      bool found_root = false;
-
-      while (!found_root)
+      const moveit::core::JointModel* parent_model = link->getParentJointModel();
+      while (true)  // traverse up the tree until we find a joint we know about in joint_names_
       {
-        if (parent_model == nullptr)
-        {
-          parent_model = link->getParentJointModel();
-        }
-        else
-        {
-          parent_model = parent_model->getParentLinkModel()->getParentJointModel();
-          for (const std::string& joint_name : joint_names_)
-          {
-            if (parent_model->getName() == joint_name)
-            {
-              found_root = true;
-            }
-          }
-        }
+        if (parent_model->getParentLinkModel() == nullptr)
+          break;
+
+        parent_model = parent_model->getParentLinkModel()->getParentJointModel();
+        if (std::find(joint_names_.begin(), joint_names_.end(), parent_model->getName()) != joint_names_.end())
+          break;
       }
       fixed_link_resolution_map[link->getParentJointModel()->getName()] = parent_model->getName();
     }
@@ -1009,7 +998,7 @@ void ChompOptimizer::setRobotStateFromPoint(ChompTrajectory& group_trajectory, i
   for (size_t j = 0; j < group_trajectory.getNumJoints(); j++)
     joint_states.emplace_back(point(0, j));
 
-  state_.setJointGroupPositions(planning_group_, joint_states);
+  state_.setJointGroupActivePositions(planning_group_, joint_states);
   state_.update();
 }
 

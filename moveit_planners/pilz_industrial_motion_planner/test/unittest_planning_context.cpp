@@ -119,7 +119,7 @@ protected:
     planning_scene::PlanningScenePtr scene(new planning_scene::PlanningScene(robot_model_));
     robot_state::RobotState current_state(robot_model_);
     current_state.setToDefaultValues();
-    current_state.setJointGroupPositions(planning_group_, { 0, 1.57, 1.57, 0, 0.2, 0 });
+    current_state.setJointGroupPositions(planning_group_, std::vector<double>{ 0, 1.57, 1.57, 0, 0.2, 0 });
     scene->setCurrentState(current_state);
     planning_context_->setPlanningScene(scene);  // TODO Check what happens if this is missing
   }
@@ -143,8 +143,9 @@ protected:
     // state state in joint space, used as initial positions, since IK does not
     // work at zero positions
     rstate.setJointGroupPositions(this->planning_group_,
-                                  { 4.430233957464225e-12, 0.007881892504574495, -1.8157263253868452,
-                                    1.1801525390026025e-11, 1.8236082178909834, 8.591793942969161e-12 });
+                                  std::vector<double>{ 4.430233957464225e-12, 0.007881892504574495, -1.8157263253868452,
+                                                       1.1801525390026025e-11, 1.8236082178909834,
+                                                       8.591793942969161e-12 });
     Eigen::Isometry3d start_pose(Eigen::Isometry3d::Identity());
     start_pose.translation() = Eigen::Vector3d(0.3, 0, 0.65);
     rstate.setFromIK(this->robot_model_->getJointModelGroup(this->planning_group_), start_pose);

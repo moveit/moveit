@@ -70,7 +70,7 @@ RobotInteraction::RobotInteraction(const moveit::core::RobotModelConstPtr& robot
 
   // spin a thread that will process feedback events
   run_processing_thread_ = true;
-  processing_thread_ = std::make_unique<boost::thread>(std::bind(&RobotInteraction::processingThread, this));
+  processing_thread_ = std::make_unique<boost::thread>([this] { processingThread(); });
 }
 
 RobotInteraction::~RobotInteraction()
@@ -280,56 +280,56 @@ void RobotInteraction::decideActiveEndEffectors(const std::string& group, Intera
   const std::pair<moveit::core::JointModelGroup::KinematicsSolver, moveit::core::JointModelGroup::KinematicsSolverMap>&
       smap = jmg->getGroupKinematics();
 
-  // if we have an IK solver for the selected group, we check if there are any end effectors attached to this group
-  if (smap.first)
-  {
+  auto add_active_end_effectors_for_single_group = [&](const moveit::core::JointModelGroup* single_group) {
+    bool found_eef{ false };
     for (const srdf::Model::EndEffector& eef : eefs)
-      if ((jmg->hasLinkModel(eef.parent_link_) || jmg->getName() == eef.parent_group_) &&
-          jmg->canSetStateFromIK(eef.parent_link_))
+    {
+      if (single_group->hasLinkModel(eef.parent_link_) &&
+          (eef.parent_group_.empty() || single_group->getName() == eef.parent_group_) &&
+          single_group->canSetStateFromIK(eef.parent_link_))
       {
         // We found an end-effector whose parent is the group.
         EndEffectorInteraction ee;
-        ee.parent_group = group;
+        ee.parent_group = single_group->getName();
         ee.parent_link = eef.parent_link_;
         ee.eef_group = eef.component_group_;
         ee.interaction = style;
         active_eef_.push_back(ee);
+        found_eef = true;
       }
-
-    // No end effectors found.  Use last link in group as the "end effector".
-    if (active_eef_.empty() && !jmg->getLinkModelNames().empty())
-    {
-      EndEffectorInteraction ee;
-      ee.parent_group = group;
-      ee.parent_link = jmg->getLinkModelNames().back();
-      ee.eef_group = group;
-      ee.interaction = style;
-      active_eef_.push_back(ee);
     }
+
+    // No end effectors found. Use last link in group as the "end effector".
+    if (!found_eef && !single_group->getLinkModelNames().empty())
+    {
+      std::string last_link{ single_group->getLinkModelNames().back() };
+
+      if (single_group->canSetStateFromIK(last_link))
+      {
+        EndEffectorInteraction ee;
+        ee.parent_group = single_group->getName();
+        ee.parent_link = last_link;
+        ee.eef_group = single_group->getName();
+        ee.interaction = style;
+        active_eef_.push_back(ee);
+      }
+    }
+  };
+
+  // if we have an IK solver for the selected group, we check if there are any end effectors attached to this group
+  if (smap.first)
+  {
+    add_active_end_effectors_for_single_group(jmg);
   }
+  // if the group contains subgroups with IK, add markers for them individually
   else if (!smap.second.empty())
   {
     for (const std::pair<const moveit::core::JointModelGroup* const, moveit::core::JointModelGroup::KinematicsSolver>&
              it : smap.second)
-    {
-      for (const srdf::Model::EndEffector& eef : eefs)
-      {
-        if ((it.first->hasLinkModel(eef.parent_link_) || jmg->getName() == eef.parent_group_) &&
-            it.first->canSetStateFromIK(eef.parent_link_))
-        {
-          // We found an end-effector whose parent is a subgroup of the group.  (May be more than one)
-          EndEffectorInteraction ee;
-          ee.parent_group = it.first->getName();
-          ee.parent_link = eef.parent_link_;
-          ee.eef_group = eef.component_group_;
-          ee.interaction = style;
-          active_eef_.push_back(ee);
-          break;
-        }
-      }
-    }
+      add_active_end_effectors_for_single_group(it.first);
   }
 
+  // lastly determine automatic marker sizes
   for (EndEffectorInteraction& eef : active_eef_)
   {
     // if we have a separate group for the eef, we compute the scale based on it;
@@ -402,9 +402,10 @@ void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr& handle
   marker_color.a = color[3];
 
   moveit::core::RobotStateConstPtr rstate = handler->getState();
-  const std::vector<std::string>& link_names = rstate->getJointModelGroup(eef.eef_group)->getLinkModelNames();
   visualization_msgs::MarkerArray marker_array;
-  rstate->getRobotMarkers(marker_array, link_names, marker_color, eef.eef_group, ros::Duration());
+  auto jmg = rstate->getJointModelGroup(eef.eef_group);
+  if (jmg)
+    rstate->getRobotMarkers(marker_array, jmg->getLinkModelNames(), marker_color, eef.eef_group, ros::Duration());
   tf2::Transform tf_root_to_link;
   tf2::fromMsg(tf2::toMsg(rstate->getGlobalLinkTransform(eef.parent_link)), tf_root_to_link);
   // Release the ptr count on the kinematic state
@@ -539,8 +540,8 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr& handle
   for (const visualization_msgs::InteractiveMarker& im : ims)
   {
     int_marker_server_->insert(im);
-    int_marker_server_->setCallback(im.name, std::bind(&RobotInteraction::processInteractiveMarkerFeedback, this,
-                                                       std::placeholders::_1));
+    int_marker_server_->setCallback(im.name,
+                                    [this](const auto& feedback) { processInteractiveMarkerFeedback(feedback); });
 
     // Add menu handler to all markers that this interaction handler creates.
     if (std::shared_ptr<interactive_markers::MenuHandler> mh = handler->getMenuHandler())
@@ -570,8 +571,9 @@ void RobotInteraction::toggleMoveInteractiveMarkerTopic(bool enable)
         std::string topic_name = int_marker_move_topics_[i];
         std::string marker_name = int_marker_names_[i];
         int_marker_move_subscribers_.push_back(nh.subscribe<geometry_msgs::PoseStamped>(
-            topic_name, 1,
-            std::bind(&RobotInteraction::moveInteractiveMarker, this, marker_name, std::placeholders::_1)));
+            topic_name, 1, [this, marker_name](const geometry_msgs::PoseStampedConstPtr& pose) {
+              moveInteractiveMarker(marker_name, *pose);
+            }));
       }
     }
   }
@@ -673,20 +675,20 @@ bool RobotInteraction::showingMarkers(const InteractionHandlerPtr& handler)
   return true;
 }
 
-void RobotInteraction::moveInteractiveMarker(const std::string& name, const geometry_msgs::PoseStampedConstPtr& msg)
+void RobotInteraction::moveInteractiveMarker(const std::string& name, const geometry_msgs::PoseStamped& msg)
 {
   std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(name);
   if (it != shown_markers_.end())
   {
-    visualization_msgs::InteractiveMarkerFeedback::Ptr feedback(new visualization_msgs::InteractiveMarkerFeedback);
-    feedback->header = msg->header;
+    auto feedback = boost::make_shared<visualization_msgs::InteractiveMarkerFeedback>();
+    feedback->header = msg.header;
     feedback->marker_name = name;
-    feedback->pose = msg->pose;
+    feedback->pose = msg.pose;
     feedback->event_type = visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE;
     processInteractiveMarkerFeedback(feedback);
     {
       boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
-      int_marker_server_->setPose(name, msg->pose, msg->header);  // move the interactive marker
+      int_marker_server_->setPose(name, msg.pose, msg.header);  // move the interactive marker
       int_marker_server_->applyChanges();
     }
   }

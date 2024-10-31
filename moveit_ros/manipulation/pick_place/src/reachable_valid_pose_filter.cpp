@@ -133,8 +133,11 @@ bool pick_place::ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr
     if (plan->goal_sampler_)
     {
       plan->goal_sampler_->setGroupStateValidityCallback(
-          std::bind(&isStateCollisionFree, planning_scene_.get(), collision_matrix_.get(), verbose_, plan.get(),
-                    std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+          [scene = planning_scene_.get(), acm = collision_matrix_.get(), verbose = verbose_,
+           p = plan.get()](moveit::core::RobotState* robot_state, const moveit::core::JointModelGroup* joint_group,
+                           const double* joint_group_variable_values) {
+            return isStateCollisionFree(scene, acm, verbose, p, robot_state, joint_group, joint_group_variable_values);
+          });
       plan->goal_sampler_->setVerbose(verbose_);
       if (plan->goal_sampler_->sample(*token_state, plan->shared_data_->max_goal_sampling_attempts_))
       {

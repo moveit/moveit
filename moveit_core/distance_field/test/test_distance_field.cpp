@@ -751,14 +751,12 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
                                     PERF_ORIGIN_Z, PERF_MAX_DIST, true);
 
   EigenSTL::vector_Vector3d bad_vec;
-  unsigned int count = 0;
   for (unsigned int z = UNIFORM_DISTANCE; z < worstdfu.getZNumCells() - UNIFORM_DISTANCE; z += UNIFORM_DISTANCE)
   {
     for (unsigned int x = UNIFORM_DISTANCE; x < worstdfu.getXNumCells() - UNIFORM_DISTANCE; x += UNIFORM_DISTANCE)
     {
       for (unsigned int y = UNIFORM_DISTANCE; y < worstdfu.getYNumCells() - UNIFORM_DISTANCE; y += UNIFORM_DISTANCE)
       {
-        count++;
         Eigen::Vector3d loc;
         bool valid = worstdfu.gridToWorld(x, y, z, loc.x(), loc.y(), loc.z());
 

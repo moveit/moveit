@@ -2,6 +2,86 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.16 (2024-10-07)
+-------------------
+* Allow links to be ignored in PSM updates (`#3645 <https://github.com/ros-planning/moveit/issues/3645>`_)
+* Contributors: Davide Torielli
+
+1.1.15 (2024-09-09)
+-------------------
+* PSM: Correctly handle full planning scene message (`#3610 <https://github.com/ros-planning/moveit/issues/3610>`_)
+* Contributors: Robert Haschke
+
+1.1.14 (2024-05-27)
+-------------------
+* Allow waiting for joint model group states and retrieval of group-specific timestamps (`#3580 <https://github.com/ros-planning/moveit/issues/3580>`_)
+* Add joints_allowed_start_tolerance parameter for joint-specific start tolerances for TrajectoryExecutionManager (`#3287 <https://github.com/ros-planning/moveit/issues/3287>`_)
+* PSM: keep references to scene\_ valid upon receiving full scenes (`#3538 <https://github.com/ros-planning/moveit/issues/3538>`_)
+* Warn if trajectory becomes invalid during execution (`#3536 <https://github.com/ros-planning/moveit/issues/3536>`_)
+* Consider distance field padding for spheres (`#3506 <https://github.com/ros-planning/moveit/issues/3506>`_)
+* Inform planning pipeline about waypoints added by AddIterativeSplineParameterization (`#3466 <https://github.com/ros-planning/moveit/issues/3466>`_)
+* Add missing RUNTIME DESTINATION for moveit_cpp (`#3494 <https://github.com/ros-planning/moveit/issues/3494>`_)
+* Gracefully handle exceptions thrown by planning pipelines (`#3481 <https://github.com/ros-planning/moveit/issues/3481>`_)
+* Contributors: Hugal31, Michael Görner, Robert Haschke, Silvio Traversaro
+
+1.1.13 (2023-07-28)
+-------------------
+
+1.1.12 (2023-05-13)
+-------------------
+* Add CSM tests (`#3395 <https://github.com/ros-planning/moveit/issues/3395>`_)
+* CSM: do not jump back in time (`#3393 <https://github.com/ros-planning/moveit/issues/3393>`_)
+* Fix MoveItCpp issues (`#3369 <https://github.com/ros-planning/moveit/issues/3369>`_)
+* Skip executing zero-duration trajectories (`#3362 <https://github.com/ros-planning/moveit/issues/3362>`_)
+* Drop unnecessary cmake dependency on moveit_resources (`#3343 <https://github.com/ros-planning/moveit/issues/3343>`_)
+* Fix (some) doxygen warnings (`#3315 <https://github.com/ros-planning/moveit/issues/3315>`_)
+* Switch master build to C++17 (`#3313 <https://github.com/ros-planning/moveit/issues/3313>`_)
+* Drop lib/ prefix from plugin paths (`#3305 <https://github.com/ros-planning/moveit/issues/3305>`_)
+* Contributors: Jochen Sprickerhof, Michael Görner, Robert Haschke
+
+1.1.11 (2022-12-21)
+-------------------
+* Backport ruckig trajectory_processing plugin (`#2902 <https://github.com/ros-planning/moveit/issues/2902>`_)
+* Allow planning with multiple pipelines in parallel with moveit_cpp (`#3244 <https://github.com/ros-planning/moveit/issues/3244>`_)
+* Merge PR `#3262 <https://github.com/ros-planning/moveit/issues/3262>`_: Short-circuit planning adapters
+
+  - Early return from failing planning adapters, namely FixStartStateCollision and FixStartStatePathConstraint
+  - Propagate the error code via `MotionPlanResponse::error_code\_`
+  - Add string translations for all error codes
+* Cleanup translation of MoveItErrorCode to string
+
+  - Move default code to moveit_core/utils
+  - Override defaults in existing getActionResultString()
+  - Provide translations for all error codes defined in moveit_msgs
+* Short-circuit planning request adapters
+* Contributors: Robert Haschke, Simon Schmeisser
+
+1.1.10 (2022-09-13)
+-------------------
+* Limit Cartesian speed for link(s) (`#2856 <https://github.com/ros-planning/moveit/issues/2856>`_)
+* trajectory execution manager: reactivate tests (`#3177 <https://github.com/ros-planning/moveit/issues/3177>`_)
+* Clean up TrajectoryExecutionManager API (`#3178 <https://github.com/ros-planning/moveit/issues/3178>`_)
+* MoveItCpp: Allow multiple pipelines (`#3131 <https://github.com/ros-planning/moveit/issues/3131>`_)
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Contributors: Jochen Sprickerhof, Michael Görner, Robert Haschke, cambel, v4hn
+
+1.1.9 (2022-03-06)
+------------------
+
+1.1.8 (2022-01-30)
+------------------
+* Fix deprecation warning in moveit_cpp (`#3019 <https://github.com/ros-planning/moveit/issues/3019>`_)
+* Contributors: Jeroen
+
+1.1.7 (2021-12-31)
+------------------
+* Move ``MoveItErrorCode`` class to ``moveit_core`` (`#3009 <https://github.com/ros-planning/moveit/issues/3009>`_)
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* ``MoveitCpp``: Added ability to set path constraints for ``PlanningComponent`` (`#2959 <https://github.com/ros-planning/moveit/issues/2959>`_)
+* ``RDFLoader``: clear buffer before reading content (`#2963 <https://github.com/ros-planning/moveit/issues/2963>`_)
+* Reset markers on ``display_contacts`` topic for a new planning attempt (`#2944 <https://github.com/ros-planning/moveit/issues/2944>`_)
+* Contributors: Colin Kohler, Jafar Abdi, Jochen Sprickerhof, Rick Staa, Robert Haschke
+
 1.1.6 (2021-11-06)
 ------------------
 * Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``

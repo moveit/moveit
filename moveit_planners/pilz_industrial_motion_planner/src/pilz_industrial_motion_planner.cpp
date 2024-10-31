@@ -44,9 +44,9 @@
 // Boost includes
 #include <boost/scoped_ptr.hpp>
 
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 
-#include <pluginlib/class_loader.h>
+#include <pluginlib/class_loader.hpp>
 
 namespace pilz_industrial_motion_planner
 {

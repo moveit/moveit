@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(moveit_kinematics)
 
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(Eigen3 REQUIRED)
 find_package(orocos_kdl REQUIRED)
 find_package(catkin REQUIRED COMPONENTS

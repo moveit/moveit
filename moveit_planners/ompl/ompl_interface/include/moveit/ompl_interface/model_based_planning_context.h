@@ -37,7 +37,6 @@
 #pragma once
 
 #include <moveit/ompl_interface/parameterization/model_based_state_space.h>
-#include <moveit/ompl_interface/detail/constrained_valid_state_sampler.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
 #include <moveit/planning_interface/planning_interface.h>
 
@@ -278,7 +277,7 @@ public:
      @param timeout The time to spend on solving
      @param count The number of runs to combine the paths of, in an attempt to generate better quality paths
   */
-  bool solve(double timeout, unsigned int count);
+  const moveit_msgs::MoveItErrorCodes solve(double timeout, unsigned int count);
 
   /* @brief Benchmark the planning problem. Return true on successful saving of benchmark results
      @param timeout The time to spend on solving
@@ -371,6 +370,9 @@ protected:
 
   void registerTerminationCondition(const ob::PlannerTerminationCondition& ptc);
   void unregisterTerminationCondition();
+
+  /** \brief Convert OMPL PlannerStatus to moveit_msgs::msg::MoveItErrorCode */
+  int32_t errorCode(const ompl::base::PlannerStatus& status);
 
   ModelBasedPlanningContextSpecification spec_;
 

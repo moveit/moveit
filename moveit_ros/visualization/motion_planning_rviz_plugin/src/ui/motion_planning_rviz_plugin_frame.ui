@@ -969,6 +969,9 @@ This is usually achieved by random seeding, which can flip the robot configurati
               <property name="editTriggers">
                <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
               </property>
+              <property name="selectionMode">
+               <enum>QAbstractItemView::ExtendedSelection</enum>
+              </property>
              </widget>
             </item>
            </layout>
@@ -2042,81 +2045,11 @@ This is usually achieved by random seeding, which can flip the robot configurati
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>5</height>
-      </size>
-     </property>
      <property name="maximumSize">
       <size>
        <width>16777215</width>
        <height>5</height>
       </size>
-     </property>
-     <property name="palette">
-      <palette>
-       <active>
-        <colorrole role="Highlight">
-         <brush brushstyle="SolidPattern">
-          <color alpha="255">
-           <red>255</red>
-           <green>255</green>
-           <blue>255</blue>
-          </color>
-         </brush>
-        </colorrole>
-        <colorrole role="HighlightedText">
-         <brush brushstyle="SolidPattern">
-          <color alpha="255">
-           <red>255</red>
-           <green>0</green>
-           <blue>0</blue>
-          </color>
-         </brush>
-        </colorrole>
-       </active>
-       <inactive>
-        <colorrole role="Highlight">
-         <brush brushstyle="SolidPattern">
-          <color alpha="255">
-           <red>255</red>
-           <green>255</green>
-           <blue>255</blue>
-          </color>
-         </brush>
-        </colorrole>
-        <colorrole role="HighlightedText">
-         <brush brushstyle="SolidPattern">
-          <color alpha="255">
-           <red>255</red>
-           <green>0</green>
-           <blue>0</blue>
-          </color>
-         </brush>
-        </colorrole>
-       </inactive>
-       <disabled>
-        <colorrole role="Highlight">
-         <brush brushstyle="SolidPattern">
-          <color alpha="255">
-           <red>240</red>
-           <green>240</green>
-           <blue>240</blue>
-          </color>
-         </brush>
-        </colorrole>
-        <colorrole role="HighlightedText">
-         <brush brushstyle="SolidPattern">
-          <color alpha="255">
-           <red>255</red>
-           <green>0</green>
-           <blue>0</blue>
-          </color>
-         </brush>
-        </colorrole>
-       </disabled>
-      </palette>
      </property>
      <property name="whatsThis">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Progress of background jobs&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -2154,6 +2087,8 @@ This is usually achieved by random seeding, which can flip the robot configurati
   </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>planning_pipeline_combo_box</tabstop>
   <tabstop>planning_algorithm_combo_box</tabstop>
   <tabstop>planner_param_treeview</tabstop>
   <tabstop>database_host</tabstop>
@@ -2198,8 +2133,8 @@ This is usually achieved by random seeding, which can flip the robot configurati
   <tabstop>roi_size_z</tabstop>
   <tabstop>collision_objects_list</tabstop>
   <tabstop>shape_size_x_spin_box</tabstop>
-  <tabstop>shape_size_z_spin_box</tabstop>
   <tabstop>shape_size_y_spin_box</tabstop>
+  <tabstop>shape_size_z_spin_box</tabstop>
   <tabstop>shapes_combo_box</tabstop>
   <tabstop>add_object_button</tabstop>
   <tabstop>remove_object_button</tabstop>
@@ -2230,7 +2165,6 @@ This is usually achieved by random seeding, which can flip the robot configurati
   <tabstop>save_start_state_button</tabstop>
   <tabstop>save_goal_state_button</tabstop>
   <tabstop>status_text</tabstop>
-  <tabstop>tabWidget</tabstop>
  </tabstops>
  <resources/>
  <connections/>

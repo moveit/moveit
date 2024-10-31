@@ -27,35 +27,44 @@ else()
 endif()
 
 find_package(fcl QUIET)
-if (fcl_FOUND)
-  # convert cmake target to variables for catkin_package DEPENDS
-  if(TARGET ${FCL_LIBRARIES})
-    get_target_property(LIBFCL_LOCATION ${FCL_LIBRARIES} LOCATION)
-    get_target_property(LIBFCL_INTERFACE_LINK_LIBRARIES ${FCL_LIBRARIES} INTERFACE_LINK_LIBRARIES)
-    get_target_property(LIBFCL_INCLUDE_DIRS ${FCL_LIBRARIES} INTERFACE_INCLUDE_DIRECTORIES)
-    set(LIBFCL_LIBRARIES ${LIBFCL_LOCATION} ${LIBFCL_INTERFACE_LINK_LIBRARIES})
-  else()
-    set(LIBFCL_LIBRARIES ${FCL_LIBRARIES})
-    set(LIBFCL_INCLUDE_DIRS ${FCL_INCLUDE_DIRS})
-  endif()
-else()
+if (TARGET fcl)
+  moveit_get_include_and_libs_from_target(fcl fcl)
+elseif(NOT DEFINED fcl_FOUND OR NOT fcl_FOUND)
+  # Ubuntu 18.04 / fcl 0.5.0
   find_package(PkgConfig REQUIRED)
-  pkg_check_modules(LIBFCL_PC REQUIRED fcl)
-  set(LIBFCL_INCLUDE_DIRS ${LIBFCL_PC_INCLUDE_DIRS})
-  # find *absolute* paths to LIBFCL_LIBRARIES
-  set(LIBFCL_LIBRARIES)
-  foreach(_lib ${LIBFCL_PC_LIBRARIES})
-    find_library(_lib_${_lib} ${_lib} HINTS ${LIBFCL_PC_LIBRARY_DIRS})
-    list(APPEND LIBFCL_LIBRARIES ${_lib_${_lib}})
+  pkg_check_modules(fcl_PC REQUIRED fcl)
+  set(fcl_INCLUDE_DIRS ${fcl_PC_INCLUDE_DIRS})
+  # find *absolute* paths for fcl_LIBRARIES
+  set(fcl_LIBRARIES)
+  foreach(_lib ${fcl_PC_LIBRARIES})
+    find_library(_lib_${_lib} ${_lib} HINTS ${fcl_PC_LIBRARY_DIRS})
+    list(APPEND fcl_LIBRARIES ${_lib_${_lib}})
   endforeach()
 endif()
 
 find_package(octomap REQUIRED)
+
+find_package(ruckig REQUIRED)
+# work around catkin_package not fetching the interface includes from the target
+# to forward to downstream dependencies. The includes do not need to be added
+# in include_directories below because the target is correctly imported here.
+get_target_property(ruckig_INCLUDE_DIRS ruckig::ruckig INTERFACE_INCLUDE_DIRECTORIES)
+set(ruckig_LIBRARIES "ruckig::ruckig")
+# Remove the WITH_CLOUD_CLIENT definition because we don't use it and it causes build issues in some configurations
+# See https://github.com/moveit/moveit/pull/3636
+get_target_property(ruckig_defs ruckig::ruckig INTERFACE_COMPILE_DEFINITIONS)
+if(ruckig_defs)
+  list(REMOVE_ITEM ruckig_defs "WITH_CLOUD_CLIENT")
+  set_target_properties(ruckig::ruckig PROPERTIES INTERFACE_COMPILE_DEFINITIONS "${ruckig_defs}")
+endif()
+
 find_package(urdfdom REQUIRED)
 find_package(urdfdom_headers REQUIRED)
 
 find_package(catkin REQUIRED
 COMPONENTS
+  # pybind needs to be found earlier in Ubuntu 22.04 and similar https://github.com/pybind/pybind11/issues/3996
+  pybind11_catkin
   tf2_eigen
   tf2_geometry_msgs
   eigen_stl_containers
@@ -76,8 +85,8 @@ COMPONENTS
   urdf
   visualization_msgs
   xmlrpcpp
-  pybind11_catkin
   pluginlib
+  angles
 )
 
 catkin_python_setup()
@@ -166,8 +175,9 @@ catkin_package(
   DEPENDS
     Boost
     EIGEN3
-    LIBFCL
+    fcl
     OCTOMAP
+    ruckig
     urdfdom
     urdfdom_headers
     ${BULLET_ENABLE}
@@ -185,7 +195,7 @@ include_directories(SYSTEM ${catkin_INCLUDE_DIRS}
                            ${EIGEN3_INCLUDE_DIRS}
                            ${urdfdom_INCLUDE_DIRS}
                            ${urdfdom_headers_INCLUDE_DIRS}
-                           ${LIBFCL_INCLUDE_DIRS}
+                           ${fcl_INCLUDE_DIRS}
                            ${BULLET_INCLUDE_DIRS}
                            ${OCTOMAP_INCLUDE_DIRS}
                     )
@@ -193,17 +203,6 @@ include_directories(SYSTEM ${catkin_INCLUDE_DIRS}
 #catkin_lint: ignore_once external_directory  (${VERSION_FILE_PATH})
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${VERSION_FILE_PATH})
-
-# Generate and install version.h
-string(REGEX REPLACE "^([0-9]+)\\..*" "\\1" MOVEIT_VERSION_MAJOR "${${PROJECT_NAME}_VERSION}")
-string(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" MOVEIT_VERSION_MINOR "${${PROJECT_NAME}_VERSION}")
-string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" MOVEIT_VERSION_PATCH "${${PROJECT_NAME}_VERSION}")
-set(MOVEIT_VERSION_EXTRA "Alpha")
-set(MOVEIT_VERSION "${MOVEIT_VERSION_MAJOR}.${MOVEIT_VERSION_MINOR}.${MOVEIT_VERSION_PATCH}-${MOVEIT_VERSION_EXTRA}")
-message(STATUS " *** Building MoveIt ${MOVEIT_VERSION} ***")
-configure_file("version/version.h.in" "${VERSION_FILE_PATH}/moveit/version.h")
-#catkin_lint: ignore_once external_file
-install(FILES "${VERSION_FILE_PATH}/moveit/version.h" DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
 
 add_subdirectory(version)
 add_subdirectory(macros)

@@ -1,6 +1,6 @@
-<img src="https://moveit.ros.org/assets/logo/moveit_logo-black.png" alt="MoveIt Logo" width="200"/>
+<img src="http://moveit.ros.org/assets/logo/moveit_logo-black.png" alt="MoveIt Logo" width="200"/>
 
-**The MoveIt Motion Planning Framework**
+The [MoveIt Motion Planning Framework for ROS](http://moveit.ros.org). For the ROS 2 repository see [MoveIt 2](https://github.com/moveit/moveit2). For the commercially supported version see [MoveIt Pro](http://picknik.ai/pro).
 
 *Easy-to-use open source robotics manipulation platform for developing commercial applications, prototyping designs, and benchmarking algorithms.*
 
@@ -14,7 +14,7 @@
 - We develop latest features on `master`.
 - The `*-devel` branches correspond to released and stable versions of MoveIt for specific distributions of ROS. `noetic-devel` is synced to `master` currently.
 - Bug fixes occasionally get backported to these released versions of MoveIt.
-- For MoveIt 2 development, see [moveit2](https://github.com/ros-planning/moveit2).
+- To facilitate compile-time switching, the patch version of `MOVEIT_VERSION` of a development branch will be incremented by 1 w.r.t. the package.xml's version number.
 
 ## MoveIt Status
 
@@ -22,10 +22,10 @@
 
 service    | Melodic | Master
 ---------- | ------- | ------
-GitHub | [![Format](https://github.com/ros-planning/moveit/actions/workflows/format.yaml/badge.svg?branch=melodic-devel)](https://github.com/ros-planning/moveit/actions/workflows/format.yaml?query=branch%3Amelodic-devel) [![CI](https://github.com/ros-planning/moveit/actions/workflows/ci.yaml/badge.svg?branch=melodic-devel)](https://github.com/ros-planning/moveit/actions/workflows/ci.yaml?query=branch%3Amelodic-devel) | [![Format](https://github.com/ros-planning/moveit/actions/workflows/format.yaml/badge.svg?branch=master)](https://github.com/ros-planning/moveit/actions/workflows/format.yaml?query=branch%3Amaster) [![CI](https://github.com/ros-planning/moveit/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/ros-planning/moveit/actions/workflows/ci.yaml?query=branch%3Amaster) |
-CodeCov | [![codecov](https://codecov.io/gh/ros-planning/moveit/branch/melodic-devel/graph/badge.svg?token=W7uHKcY0ly)](https://codecov.io/gh/ros-planning/moveit) | [![codecov](https://codecov.io/gh/ros-planning/moveit/branch/master/graph/badge.svg?token=W7uHKcY0ly)](https://codecov.io/gh/ros-planning/moveit) |
+GitHub | [![Format](https://github.com/moveit/moveit/actions/workflows/format.yaml/badge.svg?branch=melodic-devel)](https://github.com/moveit/moveit/actions/workflows/format.yaml?query=branch%3Amelodic-devel) [![CI](https://github.com/moveit/moveit/actions/workflows/ci.yaml/badge.svg?branch=melodic-devel)](https://github.com/moveit/moveit/actions/workflows/ci.yaml?query=branch%3Amelodic-devel) | [![Format](https://github.com/moveit/moveit/actions/workflows/format.yaml/badge.svg?branch=master)](https://github.com/moveit/moveit/actions/workflows/format.yaml?query=branch%3Amaster) [![CI](https://github.com/moveit/moveit/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/moveit/moveit/actions/workflows/ci.yaml?query=branch%3Amaster) |
+CodeCov | [![codecov](https://codecov.io/gh/moveit/moveit/branch/melodic-devel/graph/badge.svg?token=W7uHKcY0ly)](https://codecov.io/gh/moveit/moveit) | [![codecov](https://codecov.io/gh/moveit/moveit/branch/master/graph/badge.svg?token=W7uHKcY0ly)](https://codecov.io/gh/moveit/moveit) |
 build farm | [![Build Status](https://build.ros.org/buildStatus/icon?job=Mdev__moveit__ubuntu_bionic_amd64)](https://build.ros.org/job/Mdev__moveit__ubuntu_bionic_amd64) | [![Build Status](https://build.ros.org/buildStatus/icon?job=Ndev__moveit__ubuntu_focal_amd64)](https://build.ros.org/job/Ndev__moveit__ubuntu_focal_amd64/) |
-| [![Docker](https://img.shields.io/docker/stars/moveit/moveit.svg)](https://registry.hub.docker.com/moveit/moveit)<br>[![Pulls](https://img.shields.io/docker/pulls/moveit/moveit.svg?maxAge=2592000)](https://hub.docker.com/r/moveit/moveit) | [![automated build](https://img.shields.io/docker/automated/moveit/moveit.svg?maxAge=2592000)](https://hub.docker.com/r/moveit/moveit) | [![docker](https://github.com/ros-planning/moveit/actions/workflows/docker.yaml/badge.svg?branch=master)](https://github.com/ros-planning/moveit/actions/workflows/docker.yaml?query=branch%3Amaster) |
+| [![Docker](https://img.shields.io/docker/stars/moveit/moveit.svg)](https://registry.hub.docker.com/moveit/moveit)<br>[![Pulls](https://img.shields.io/docker/pulls/moveit/moveit.svg?maxAge=2592000)](https://hub.docker.com/r/moveit/moveit) | [![automated build](https://img.shields.io/docker/automated/moveit/moveit.svg?maxAge=2592000)](https://hub.docker.com/r/moveit/moveit) | [![docker](https://github.com/moveit/moveit/actions/workflows/docker.yaml/badge.svg?branch=master)](https://github.com/moveit/moveit/actions/workflows/docker.yaml?query=branch%3Amaster) |
 
 ### Licenses
 
@@ -74,4 +74,4 @@ moveit_tutorials |  |  | [![Build Status](https://build.ros.org/buildStatus/icon
 
 ## Stargazers over time
 
-[![Stargazers over time](https://starchart.cc/ros-planning/moveit.svg)](https://starchart.cc/ros-planning/moveit)
+[![Stargazers over time](https://starchart.cc/moveit/moveit.svg)](https://starchart.cc/moveit/moveit)

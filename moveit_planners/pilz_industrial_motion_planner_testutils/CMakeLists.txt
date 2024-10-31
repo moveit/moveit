@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(pilz_industrial_motion_planner_testutils)
 
-## Add support for C++11, supported in ROS Kinetic and newer
-add_definitions(-std=c++11)
-
 find_package(catkin REQUIRED COMPONENTS
   tf2_eigen
   moveit_core

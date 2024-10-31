@@ -2,6 +2,64 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.16 (2024-10-07)
+-------------------
+* Fix type error
+* Contributors: Robert Haschke
+
+1.1.15 (2024-09-09)
+-------------------
+* New implementation for computeCartesianPath (`#3618 <https://github.com/ros-planning/moveit/issues/3618>`_)
+* Contributors: Robert Haschke
+
+1.1.14 (2024-05-27)
+-------------------
+* Fixed order of return values in doc string of compute_cartesian_path() (`#3574 <https://github.com/ros-planning/moveit/issues/3574>`_)
+* Augment Python PlanningSceneInterface API (`#3534 <https://github.com/ros-planning/moveit/issues/3534>`_)
+* Add PlanningSceneInterface::clear() (`#3512 <https://github.com/ros-planning/moveit/issues/3512>`_)
+* Contributors: Aaryan Murgunde, IrvingF7, Robert Haschke
+
+1.1.13 (2023-07-28)
+-------------------
+
+1.1.12 (2023-05-13)
+-------------------
+* Rename argument of execute() to trajectory (`#3392 <https://github.com/ros-planning/moveit/issues/3392>`_)
+* Disentangle joint name methods, add group_state (`#3345 <https://github.com/ros-planning/moveit/issues/3345>`_)
+* Fix plan() and add corresponding unit tests (`#3302 <https://github.com/ros-planning/moveit/issues/3302>`_)
+* Contributors: Michael Görner, Robert Haschke
+
+1.1.11 (2022-12-21)
+-------------------
+* Fix some consistency issues in PlanningScene handling (`#3298 <https://github.com/ros-planning/moveit/issues/3298>`_)
+
+  * Allow Plane collision-object creation from rviz
+  * Allow to create cone collision-object from python PSI
+  * rviz: Visualize PLANE shapes as a large, thin box
+* Merge fixes+improvements to ``PlanningScene`` editing in rviz: `#3263 <https://github.com/ros-planning/moveit/issues/3263>`_, `#3264 <https://github.com/ros-planning/moveit/issues/3264>`_, `#3296 <https://github.com/ros-planning/moveit/issues/3296>`_
+* ``moveit_commander.PlanningSceneInterface``: use synchronous interface by default
+* Contributors: Robert Haschke
+
+1.1.10 (2022-09-13)
+-------------------
+* Limit Cartesian speed for link(s) (`#2856 <https://github.com/ros-planning/moveit/issues/2856>`_)
+* Validate JointState argument to `moveit_commander.set_joint_value_target` (`#3187 <https://github.com/ros-planning/moveit/issues/3187>`_)
+* Adjust python PSI to new CollisionObject.pose interface (`#3176 <https://github.com/ros-planning/moveit/issues/3176>`_)
+* moveit_commander: make current joint state copy-paste-able (`#3133 <https://github.com/ros-planning/moveit/issues/3133>`_)
+* Replace obsolete distutils.core with setuptools (`#3103 <https://github.com/ros-planning/moveit/issues/3103>`_)
+* Contributors: Filip Sund, Michael Görner, Stephanie Eng
+
+1.1.9 (2022-03-06)
+------------------
+* Fix move_group_commander.go(tuple(...)) (`#3066 <https://github.com/ros-planning/moveit/issues/3066>`_)
+* Contributors: Hongzhuo Liang, Michael Görner
+
+1.1.8 (2022-01-30)
+------------------
+
+1.1.7 (2021-12-31)
+------------------
+
 1.1.6 (2021-11-06)
 ------------------
 * Use relative imports (`#2912 <https://github.com/ros-planning/moveit/issues/2912>`_)

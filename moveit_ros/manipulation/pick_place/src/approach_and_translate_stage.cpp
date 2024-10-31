@@ -51,7 +51,6 @@ ApproachAndTranslateStage::ApproachAndTranslateStage(
   max_goal_count_ = GetGlobalPickPlaceParams().max_goal_count_;
   max_fail_ = GetGlobalPickPlaceParams().max_fail_;
   max_step_ = GetGlobalPickPlaceParams().max_step_;
-  jump_factor_ = GetGlobalPickPlaceParams().jump_factor_;
 }
 
 namespace
@@ -123,7 +122,7 @@ bool samplePossibleGoalStates(const ManipulationPlanPtr& plan, const moveit::cor
 // object
 bool executeAttachObject(const ManipulationPlanSharedDataConstPtr& shared_plan_data,
                          const trajectory_msgs::JointTrajectory& detach_posture,
-                         const plan_execution::ExecutableMotionPlan* motion_plan)
+                         const plan_execution::ExecutableMotionPlan& motion_plan)
 {
   if (shared_plan_data->diff_attached_object_.object.id.empty())
   {
@@ -135,14 +134,14 @@ bool executeAttachObject(const ManipulationPlanSharedDataConstPtr& shared_plan_d
                                   "object to end effector)");
   bool ok = false;
   {
-    planning_scene_monitor::LockedPlanningSceneRW ps(motion_plan->planning_scene_monitor_);
+    planning_scene_monitor::LockedPlanningSceneRW ps(motion_plan.planning_scene_monitor_);
     moveit_msgs::AttachedCollisionObject msg = shared_plan_data->diff_attached_object_;
     // remember the configuration of the gripper before the grasp;
     // this configuration will be set again when releasing the object
     msg.detach_posture = detach_posture;
     ok = ps->processAttachedCollisionObjectMsg(msg);
   }
-  motion_plan->planning_scene_monitor_->triggerSceneUpdateEvent(
+  motion_plan.planning_scene_monitor_->triggerSceneUpdateEvent(
       (planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType)(
           planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY +
           planning_scene_monitor::PlanningSceneMonitor::UPDATE_STATE));
@@ -181,8 +180,9 @@ void addGripperTrajectory(const ManipulationPlanPtr& plan,
     plan_execution::ExecutableTrajectory et(ee_closed_traj, name);
 
     // Add a callback to attach the object to the EE after closing the gripper
-    et.effect_on_success_ =
-        std::bind(&executeAttachObject, plan->shared_data_, plan->approach_posture_, std::placeholders::_1);
+    et.effect_on_success_ = [plan](const plan_execution::ExecutableMotionPlan* motion_plan) {
+      return executeAttachObject(plan->shared_data_, plan->approach_posture_, *motion_plan);
+    };
     et.allowed_collision_matrix_ = collision_matrix;
     plan->trajectories_.push_back(et);
   }
@@ -226,8 +226,13 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
 
   // state validity checking during the approach must ensure that the gripper posture is that for pre-grasping
   moveit::core::GroupStateValidityCallbackFn approach_valid_callback =
-      std::bind(&isStateCollisionFree, planning_scene_.get(), collision_matrix_.get(), verbose_,
-                &plan->approach_posture_, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+      [scene = planning_scene_.get(), acm = collision_matrix_.get(), verbose = this->verbose_,
+       approach_posture = &plan->approach_posture_](moveit::core::RobotState* robot_state,
+                                                    const moveit::core::JointModelGroup* joint_group,
+                                                    const double* joint_group_variable_values) {
+        return isStateCollisionFree(scene, acm, verbose, approach_posture, robot_state, joint_group,
+                                    joint_group_variable_values);
+      };
   plan->goal_sampler_->setVerbose(verbose_);
   std::size_t attempted_possible_goal_states = 0;
   do  // continously sample possible goal states
@@ -244,7 +249,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
         double d_close_up = moveit::core::CartesianInterpolator::computeCartesianPath(
             close_up_state.get(), plan->shared_data_->planning_group_, close_up_states, plan->shared_data_->ik_link_,
             approach_direction, approach_direction_is_global_frame, MAX_CLOSE_UP_DIST,
-            moveit::core::MaxEEFStep(max_step_), moveit::core::JumpThreshold(jump_factor_), approach_valid_callback);
+            moveit::core::MaxEEFStep(max_step_), moveit::core::CartesianPrecision{}, approach_valid_callback);
         // if progress towards the object was made, update the desired goal state
         if (d_close_up > 0.0 && close_up_states.size() > 1)
           *plan->possible_goal_states_[i] = *close_up_states[close_up_states.size() - 2];
@@ -257,8 +262,8 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
       double d_approach = moveit::core::CartesianInterpolator::computeCartesianPath(
           first_approach_state.get(), plan->shared_data_->planning_group_, approach_states,
           plan->shared_data_->ik_link_, -approach_direction, approach_direction_is_global_frame,
-          plan->approach_.desired_distance, moveit::core::MaxEEFStep(max_step_),
-          moveit::core::JumpThreshold(jump_factor_), approach_valid_callback);
+          plan->approach_.desired_distance, moveit::core::MaxEEFStep(max_step_), moveit::core::CartesianPrecision{},
+          approach_valid_callback);
 
       // if we were able to follow the approach direction for sufficient length, try to compute a retreat direction
       if (d_approach > plan->approach_.min_distance && !signal_stop_)
@@ -277,8 +282,13 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
           // state validity checking during the retreat after the grasp must ensure the gripper posture is that of the
           // actual grasp
           moveit::core::GroupStateValidityCallbackFn retreat_valid_callback =
-              std::bind(&isStateCollisionFree, planning_scene_after_approach.get(), collision_matrix_.get(), verbose_,
-                        &plan->retreat_posture_, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+              [scene = planning_scene_after_approach.get(), acm = collision_matrix_.get(), verbose = verbose_,
+               retreat_posture = &plan->retreat_posture_](moveit::core::RobotState* robot_state,
+                                                          const moveit::core::JointModelGroup* joint_group,
+                                                          const double* joint_group_variable_values) {
+                return isStateCollisionFree(scene, acm, verbose, retreat_posture, robot_state, joint_group,
+                                            joint_group_variable_values);
+              };
 
           // try to compute a straight line path that moves from the goal in a desired direction
           moveit::core::RobotStatePtr last_retreat_state(
@@ -287,8 +297,8 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
           double d_retreat = moveit::core::CartesianInterpolator::computeCartesianPath(
               last_retreat_state.get(), plan->shared_data_->planning_group_, retreat_states,
               plan->shared_data_->ik_link_, retreat_direction, retreat_direction_is_global_frame,
-              plan->retreat_.desired_distance, moveit::core::MaxEEFStep(max_step_),
-              moveit::core::JumpThreshold(jump_factor_), retreat_valid_callback);
+              plan->retreat_.desired_distance, moveit::core::MaxEEFStep(max_step_), moveit::core::CartesianPrecision{},
+              retreat_valid_callback);
 
           // if sufficient progress was made in the desired direction, we have a goal state that we can consider for
           // future stages

@@ -1,5 +1,5 @@
 <class_libraries>
-  <library path="lib/libmoveit_ros_control_interface_plugin">
+  <library path="libmoveit_ros_control_interface_plugin">
     <class type="moveit_ros_control_interface::MoveItControllerManager" base_class_type="moveit_controller_manager::MoveItControllerManager">
         <description>ros_control controller manager interface for MoveIt</description>
     </class>

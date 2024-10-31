@@ -130,7 +130,7 @@ protected:
     req_.max_acceleration_scaling_factor = 1.0;
     robot_state::RobotState rstate(robot_model_);
     rstate.setToDefaultValues();
-    rstate.setJointGroupPositions(planning_group_, { 0, M_PI / 2, 0, M_PI / 2, 0, 0 });
+    rstate.setJointGroupPositions(planning_group_, std::vector<double>{ 0, M_PI / 2, 0, M_PI / 2, 0, 0 });
     rstate.setVariableVelocities(std::vector<double>(rstate.getVariableCount(), 0.0));
     moveit::core::robotStateToRobotStateMsg(rstate, req_.start_state, false);
     moveit_msgs::Constraints goal_constraint;

@@ -53,7 +53,7 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const moveit::core::RobotM
                                                       const ros::NodeHandle& pipeline_nh,
                                                       const std::string& planner_plugin_param_name,
                                                       const std::string& adapter_plugins_param_name)
-  : pipeline_nh_(pipeline_nh), private_nh_("~"), robot_model_(model)
+  : active_{ false }, pipeline_nh_(pipeline_nh), private_nh_("~"), robot_model_(model)
 {
   std::string planner;
   if (pipeline_nh_.getParam(planner_plugin_param_name, planner))
@@ -75,7 +75,8 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const moveit::core::RobotM
                                                       const ros::NodeHandle& pipeline_nh,
                                                       const std::string& planner_plugin_name,
                                                       const std::vector<std::string>& adapter_plugin_names)
-  : pipeline_nh_(pipeline_nh)
+  : active_{ false }
+  , pipeline_nh_(pipeline_nh)
   , private_nh_("~")
   , planner_plugin_name_(planner_plugin_name)
   , adapter_plugin_names_(adapter_plugin_names)
@@ -220,6 +221,9 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
                                                        planning_interface::MotionPlanResponse& res,
                                                        std::vector<std::size_t>& adapter_added_state_index) const
 {
+  // Set planning pipeline active
+  active_ = true;
+
   // broadcast the request we are about to work on, if needed
   if (publish_received_requests_)
     received_request_publisher_.publish(req);
@@ -228,6 +232,8 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   if (!planner_instance_)
   {
     ROS_ERROR("No planning plugin loaded. Cannot plan.");
+    // Set planning pipeline to inactive
+    active_ = false;
     return false;
   }
 
@@ -262,6 +268,8 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   catch (std::exception& ex)
   {
     ROS_ERROR("Exception caught: '%s'", ex.what());
+    // Set planning pipeline to inactive
+    active_ = false;
     return false;
   }
   bool valid = true;
@@ -272,6 +280,11 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
     ROS_DEBUG_STREAM("Motion planner reported a solution path with " << state_count << " states");
     if (check_solution_paths_)
     {
+      visualization_msgs::MarkerArray arr;
+      visualization_msgs::Marker m;
+      m.action = visualization_msgs::Marker::DELETEALL;
+      arr.markers.push_back(m);
+
       std::vector<std::size_t> index;
       if (!planning_scene->isPathValid(*res.trajectory_, modified_req.path_constraints, modified_req.group_name, false,
                                        &index))
@@ -310,7 +323,6 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
                              << private_nh_.resolveName(MOTION_CONTACTS_TOPIC));
 
             // call validity checks in verbose mode for the problematic states
-            visualization_msgs::MarkerArray arr;
             for (std::size_t it : index)
             {
               // check validity with verbose on
@@ -334,8 +346,6 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
               }
             }
             ROS_ERROR_STREAM("Completed listing of explanations for invalid states.");
-            if (!arr.markers.empty())
-              contacts_publisher_.publish(arr);
           }
         }
         else
@@ -344,6 +354,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
       }
       else
         ROS_DEBUG("Planned path was found to be valid when rechecked");
+      contacts_publisher_.publish(arr);
     }
   }
 
@@ -375,7 +386,8 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
                "unusual. Are you using a move_group_interface and forgetting to call clearPoseTargets() or "
                "equivalent?");
   }
-
+  // Set planning pipeline to inactive
+  active_ = false;
   return solved && valid;
 }
 

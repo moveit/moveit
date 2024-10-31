@@ -48,6 +48,8 @@
 static const std::string ROBOT_DESCRIPTION =
     "robot_description";  // name of the robot description (a param name, so it can be changed externally)
 
+constexpr char LOGNAME[] = "move_group";
+
 namespace move_group
 {
 // These capabilities are loaded unless listed in disable_capabilities
@@ -106,7 +108,7 @@ public:
       }
     }
     else
-      ROS_ERROR("No MoveGroup context created. Nothing will work.");
+      ROS_ERROR_NAMED(LOGNAME, "No MoveGroup context created. Nothing will work.");
   }
 
 private:
@@ -119,7 +121,8 @@ private:
     }
     catch (pluginlib::PluginlibException& ex)
     {
-      ROS_FATAL_STREAM("Exception while creating plugin loader for move_group capabilities: " << ex.what());
+      ROS_FATAL_STREAM_NAMED(LOGNAME,
+                             "Exception while creating plugin loader for move_group capabilities: " << ex.what());
       return;
     }
 
@@ -173,7 +176,8 @@ private:
       }
       catch (pluginlib::PluginlibException& ex)
       {
-        ROS_ERROR_STREAM("Exception while loading move_group capability '" << capability << "': " << ex.what());
+        ROS_ERROR_STREAM_NAMED(LOGNAME,
+                               "Exception while loading move_group capability '" << capability << "': " << ex.what());
       }
     }
 
@@ -185,7 +189,7 @@ private:
     for (const MoveGroupCapabilityPtr& cap : capabilities_)
       ss << "*     - " << cap->getName() << std::endl;
     ss << "********************************************************" << std::endl;
-    ROS_INFO_STREAM(ss.str());
+    ROS_INFO_STREAM_NAMED(LOGNAME, ss.str());
   }
 
   ros::NodeHandle node_handle_;
@@ -213,14 +217,27 @@ int main(int argc, char** argv)
   {
     if (planning_pipeline_configs.getType() != XmlRpc::XmlRpcValue::TypeStruct)
     {
-      ROS_ERROR("Failed to read parameter 'move_group/planning_pipelines'");
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "Parameter '" << moveit_cpp_options.planning_pipeline_options.parent_namespace
+                                                    << "' is expected to be a dictionary of pipeline configurations.");
     }
     else
     {
       for (std::pair<const std::string, XmlRpc::XmlRpcValue>& config : planning_pipeline_configs)
       {
-        moveit_cpp_options.planning_pipeline_options.pipeline_names.push_back(config.first);
+        if (config.second.getType() != XmlRpc::XmlRpcValue::TypeStruct ||
+            std::find_if(config.second.begin(), config.second.end(),
+                         [](std::pair<const std::string, XmlRpc::XmlRpcValue>& item) {
+                           return item.first == "planning_plugin";
+                         }) == config.second.end())
+          ROS_ERROR_STREAM_NAMED(LOGNAME, "Planning pipeline parameter '~planning_pipelines/"
+                                              << config.first << "/planning_plugin' doesn't exist");
+        else
+          moveit_cpp_options.planning_pipeline_options.pipeline_names.push_back(config.first);
       }
+      if (planning_pipeline_configs.size() && moveit_cpp_options.planning_pipeline_options.pipeline_names.empty())
+        ROS_WARN_STREAM_NAMED(LOGNAME, "No valid planning pipelines found in "
+                                           << moveit_cpp_options.planning_pipeline_options.parent_namespace
+                                           << ". Did you use a namespace, e.g. planning_pipelines/ompl/ ?");
     }
   }
 
@@ -229,19 +246,21 @@ int main(int argc, char** argv)
   std::string default_planning_pipeline;
   if (pnh.getParam("default_planning_pipeline", default_planning_pipeline))
   {
-    // Ignore default_planning_pipeline if there is no known entry in pipeline_names
+    // Ignore default_planning_pipeline if there is no matching entry in pipeline_names
     if (std::find(pipeline_names.begin(), pipeline_names.end(), default_planning_pipeline) == pipeline_names.end())
     {
-      ROS_WARN("MoveGroup launched with ~default_planning_pipeline '%s' not configured in ~/planning_pipelines",
-               default_planning_pipeline.c_str());
+      ROS_WARN_NAMED(LOGNAME,
+                     "MoveGroup launched with ~default_planning_pipeline '%s' not configured in ~planning_pipelines",
+                     default_planning_pipeline.c_str());
       default_planning_pipeline = "";  // reset invalid pipeline id
     }
   }
-  else
+  else if (pipeline_names.size() > 1)  // only warn if there are multiple pipelines to choose from
   {
     // Handle deprecated move_group.launch
-    ROS_WARN("MoveGroup launched without ~default_planning_pipeline specifying the namespace for the default "
-             "planning pipeline configuration");
+    ROS_WARN_NAMED(LOGNAME,
+                   "MoveGroup launched without ~default_planning_pipeline specifying the namespace for the default "
+                   "planning pipeline configuration");
   }
 
   // If there is no valid default pipeline, either pick the first available one, or fall back to old behavior
@@ -249,12 +268,12 @@ int main(int argc, char** argv)
   {
     if (!pipeline_names.empty())
     {
-      ROS_WARN("Using default pipeline '%s'", pipeline_names[0].c_str());
+      ROS_WARN_NAMED(LOGNAME, "Using default pipeline '%s'", pipeline_names[0].c_str());
       default_planning_pipeline = pipeline_names[0];
     }
     else
     {
-      ROS_WARN("Falling back to using the the move_group node namespace (deprecated behavior).");
+      ROS_WARN_NAMED(LOGNAME, "Falling back to using the move_group node's namespace (deprecated Melodic behavior).");
       moveit_cpp_options.planning_pipeline_options.pipeline_names = { default_planning_pipeline };
       moveit_cpp_options.planning_pipeline_options.parent_namespace = pnh.getNamespace();
     }
@@ -266,7 +285,7 @@ int main(int argc, char** argv)
   // Initialize MoveItCpp
   const auto tf_buffer = std::make_shared<tf2_ros::Buffer>(ros::Duration(10.0));
   const auto moveit_cpp = std::make_shared<moveit_cpp::MoveItCpp>(moveit_cpp_options, pnh, tf_buffer);
-  const auto planning_scene_monitor = moveit_cpp->getPlanningSceneMonitor();
+  const auto planning_scene_monitor = moveit_cpp->getPlanningSceneMonitorNonConst();
 
   if (planning_scene_monitor->getPlanningScene())
   {
@@ -278,12 +297,17 @@ int main(int argc, char** argv)
         break;
       }
     if (debug)
-      ROS_INFO("MoveGroup debug mode is ON");
+      ROS_INFO_NAMED(LOGNAME, "MoveGroup debug mode is ON");
     else
-      ROS_INFO("MoveGroup debug mode is OFF");
+      ROS_INFO_NAMED(LOGNAME, "MoveGroup debug mode is OFF");
 
     move_group::MoveGroupExe mge(moveit_cpp, default_planning_pipeline, debug);
 
+    if (pnh.param<bool>("monitor_dynamics", false))
+    {
+      ROS_INFO_NAMED(LOGNAME, "MoveGroup monitors robot dynamics (higher load)");
+      planning_scene_monitor->getStateMonitor()->enableCopyDynamics(true);
+    }
     planning_scene_monitor->publishDebugInformation(debug);
 
     mge.status();
@@ -291,7 +315,7 @@ int main(int argc, char** argv)
     ros::waitForShutdown();
   }
   else
-    ROS_ERROR("Planning scene not configured");
+    ROS_ERROR_NAMED(LOGNAME, "Planning scene not configured");
 
   return 0;
 }

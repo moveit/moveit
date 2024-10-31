@@ -49,8 +49,7 @@
 /** \brief The MoveIt interface to OMPL */
 namespace ompl_interface
 {
-/** @class OMPLInterface
- *  This class defines the interface to the motion planners in OMPL*/
+/** This class defines the interface to the motion planners in OMPL */
 class OMPLInterface
 {
 public:

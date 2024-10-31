@@ -2,6 +2,41 @@
 Changelog for package moveit_servo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.16 (2024-10-07)
+-------------------
+
+1.1.15 (2024-09-09)
+-------------------
+* Init joint trajectory with actual robot pose (`#3642 <https://github.com/ros-planning/moveit/issues/3642>`_)
+* Use ACM consistently (`#3641 <https://github.com/ros-planning/moveit/issues/3641>`_)
+* Contributors: Davide Torielli, Michael Görner
+
+1.1.14 (2024-05-27)
+-------------------
+
+1.1.13 (2023-07-28)
+-------------------
+
+1.1.12 (2023-05-13)
+-------------------
+* Simplify servo config + reusable launch files (`#3326 <https://github.com/ros-planning/moveit/issues/3326>`_)
+* Contributors: Robert Haschke
+
+1.1.11 (2022-12-21)
+-------------------
+
+1.1.10 (2022-09-13)
+-------------------
+
+1.1.9 (2022-03-06)
+------------------
+
+1.1.8 (2022-01-30)
+------------------
+
+1.1.7 (2021-12-31)
+------------------
+
 1.1.6 (2021-11-06)
 ------------------
 * Backport position limit enforcement from MoveIt2 (`#2898 <https://github.com/ros-planning/moveit/issues/2898>`_)

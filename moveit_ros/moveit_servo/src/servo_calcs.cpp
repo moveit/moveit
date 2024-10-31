@@ -354,7 +354,9 @@ void ServoCalcs::calculateSingleIteration()
     *joint_trajectory = *last_sent_command_;
     for (auto& point : joint_trajectory->points)
     {
+      current_state_->copyJointGroupPositions(joint_model_group_, point.positions);
       point.velocities.assign(point.velocities.size(), 0);
+      point.accelerations.assign(point.accelerations.size(), 0);
     }
   }
 
@@ -721,9 +723,8 @@ double ServoCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& co
 
   Eigen::JacobiSVD<Eigen::MatrixXd> new_svd(new_jacobian);
   double new_condition = new_svd.singularValues()(0) / new_svd.singularValues()(new_svd.singularValues().size() - 1);
-  // If new_condition < ini_condition, the singular vector does point towards a
-  // singularity. Otherwise, flip its direction.
-  if (ini_condition >= new_condition)
+  // If new_condition < ini_condition, the singular vector points away from the singularity. If so, flip its direction.
+  if (new_condition < ini_condition)
   {
     vector_toward_singularity *= -1;
   }

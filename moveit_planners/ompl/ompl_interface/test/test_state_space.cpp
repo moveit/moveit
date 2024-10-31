@@ -184,6 +184,23 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
   joint_model_state_space.freeState(state);
 }
 
+// Run the OMPL sanity checks on the diff drive model
+TEST(TestDiffDrive, TestStateSpace)
+{
+  moveit::core::RobotModelBuilder builder("mobile_base", "base_link");
+  builder.addVirtualJoint("odom_combined", "base_link", "planar", "base_joint");
+  builder.addJointProperty("base_joint", "motion_model", "diff_drive");
+  builder.addGroup({}, { "base_joint" }, "base");
+  ASSERT_TRUE(builder.isValid());
+
+  auto robot_model = builder.build();
+  ompl_interface::ModelBasedStateSpaceSpecification spec(robot_model, "base");
+  ompl_interface::JointModelStateSpace ss(spec);
+  ss.setPlanningVolume(-2, 2, -2, 2, -2, 2);
+  ss.setup();
+  ss.sanityChecks();
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);

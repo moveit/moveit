@@ -44,6 +44,8 @@
 #include <string>
 #include <boost/filesystem/path.hpp>
 #include <ros/package.h>
+#include <octomap_msgs/conversions.h>
+#include <octomap/octomap.h>
 
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection/collision_plugin_cache.h>
@@ -51,7 +53,7 @@
 TEST(PlanningScene, LoadRestore)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   planning_scene::PlanningScene ps(urdf_model, srdf_model);
   moveit_msgs::PlanningScene ps_msg;
   ps.getPlanningSceneMsg(ps_msg);
@@ -62,10 +64,63 @@ TEST(PlanningScene, LoadRestore)
   EXPECT_EQ(ps.getRobotModel()->getName(), ps_msg.robot_model_name);
 }
 
+TEST(PlanningScene, LoadOctomap)
+{
+  urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
+  auto srdf_model = std::make_shared<srdf::Model>();
+  planning_scene::PlanningScene ps(urdf_model, srdf_model);
+
+  {  // check octomap before doing any operations on it
+    octomap_msgs::OctomapWithPose msg;
+    ps.getOctomapMsg(msg);
+    EXPECT_TRUE(msg.octomap.id.empty());
+    EXPECT_TRUE(msg.octomap.data.empty());
+  }
+
+  {  // fill PlanningScene's octomap
+    octomap::OcTree octomap(0.1);
+    octomap::point3d origin(0, 0, 0);
+    octomap::point3d end(0, 1, 2);
+    octomap.insertRay(origin, end);
+
+    // populate PlanningScene with octomap
+    moveit_msgs::PlanningScene msg;
+    msg.is_diff = true;
+    octomap_msgs::fullMapToMsg(octomap, msg.world.octomap.octomap);
+    ps.setPlanningSceneDiffMsg(msg);
+
+    // validate octomap message
+    octomap_msgs::OctomapWithPose octomap_msg;
+    ps.getOctomapMsg(octomap_msg);
+    EXPECT_EQ(octomap_msg.octomap.id, "OcTree");
+    EXPECT_EQ(octomap_msg.octomap.data.size(), msg.world.octomap.octomap.data.size());
+  }
+
+  {  // verify that a PlanningScene msg with an empty octomap id does not modify the octomap
+    // create planning scene
+    moveit_msgs::PlanningScene msg;
+    msg.is_diff = true;
+    ps.setPlanningSceneDiffMsg(msg);
+
+    octomap_msgs::OctomapWithPose octomap_msg;
+    ps.getOctomapMsg(octomap_msg);
+    EXPECT_EQ(octomap_msg.octomap.id, "OcTree");
+    EXPECT_FALSE(octomap_msg.octomap.data.empty());
+  }
+
+  {  // check that a non-empty octomap id, but empty octomap will clear the octomap
+    moveit_msgs::PlanningScene msg;
+    msg.is_diff = true;
+    msg.world.octomap.octomap.id = "xxx";
+    ps.setPlanningSceneDiffMsg(msg);
+    EXPECT_FALSE(static_cast<bool>(ps.getWorld()->getObject(planning_scene::PlanningScene::OCTOMAP_NS)));
+  }
+}
+
 TEST(PlanningScene, LoadRestoreDiff)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   auto ps = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
 
   collision_detection::World& world = *ps->getWorldNonConst();
@@ -125,7 +180,7 @@ TEST(PlanningScene, LoadRestoreDiff)
 TEST(PlanningScene, MakeAttachedDiff)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   auto ps = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
 
   /* add a single object to ps's world */
@@ -164,7 +219,7 @@ TEST(PlanningScene, isStateValid)
   }
 }
 
-TEST(PlanningScene, loadGoodSceneGeometry)
+TEST(PlanningScene, loadGoodSceneGeometryNewFormat)
 {
   moveit::core::RobotModelPtr robot_model = moveit::core::loadTestingRobotModel("pr2");
   auto ps = std::make_shared<planning_scene::PlanningScene>(robot_model->getURDF(), robot_model->getSRDF());
@@ -199,6 +254,32 @@ TEST(PlanningScene, loadGoodSceneGeometry)
   EXPECT_FALSE(ps->getWorld()->hasObject("baz"));  // Sanity check.
 }
 
+TEST(PlanningScene, loadGoodSceneGeometryOldFormat)
+{
+  moveit::core::RobotModelPtr robot_model = moveit::core::loadTestingRobotModel("pr2");
+  auto ps = std::make_shared<planning_scene::PlanningScene>(robot_model->getURDF(), robot_model->getSRDF());
+
+  std::istringstream good_scene_geometry;
+  good_scene_geometry.str("foobar_scene\n"
+                          "* foo\n"
+                          "2\n"
+                          "box\n"
+                          ".77 0.39 0.05\n"
+                          "0 0 0.025\n"
+                          "0 0 0 1\n"
+                          "0.82 0.75 0.60 1\n"
+                          "box\n"
+                          ".77 0.39 0.05\n"
+                          "0 0 1.445\n"
+                          "0 0 0 1\n"
+                          "0.82 0.75 0.60 1\n"
+                          ".\n");
+  EXPECT_TRUE(ps->loadGeometryFromStream(good_scene_geometry));
+  EXPECT_EQ(ps->getName(), "foobar_scene");
+  EXPECT_TRUE(ps->getWorld()->hasObject("foo"));
+  EXPECT_FALSE(ps->getWorld()->hasObject("baz"));  // Sanity check.
+}
+
 TEST(PlanningScene, loadBadSceneGeometry)
 {
   moveit::core::RobotModelPtr robot_model = moveit::core::loadTestingRobotModel("pr2");
@@ -211,6 +292,8 @@ TEST(PlanningScene, loadBadSceneGeometry)
   std::istringstream malformed_scene_geometry;
   malformed_scene_geometry.str("malformed_scene_geometry\n"
                                "* foo\n"
+                               "0 0 0\n"
+                               "0 0 0 1\n"
                                "1\n"
                                "box\n"
                                "2.58 1.36\n" /* Only two tokens; should be 3 */
@@ -219,6 +302,14 @@ TEST(PlanningScene, loadBadSceneGeometry)
                                "0 0 1 0.3\n"
                                ".\n");
   EXPECT_FALSE(ps->loadGeometryFromStream(malformed_scene_geometry));
+}
+
+TEST(PlanningScene, FailRetrievingNonExistentObject)
+{
+  moveit::core::RobotModelPtr robot_model = moveit::core::loadTestingRobotModel("pr2");
+  planning_scene::PlanningScene ps{ robot_model };
+  moveit_msgs::CollisionObject obj;
+  EXPECT_FALSE(ps.getCollisionObjectMsg(obj, "non_existent_object"));
 }
 
 class CollisionDetectorTests : public testing::TestWithParam<const char*>
@@ -230,7 +321,7 @@ TEST_P(CollisionDetectorTests, ClearDiff)
   SCOPED_TRACE(plugin_name);
 
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   // create parent scene
   planning_scene::PlanningScenePtr parent = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
 
@@ -307,6 +398,148 @@ TEST_P(CollisionDetectorTests, ClearDiff)
 
   child.reset();
   parent.reset();
+}
+
+// Returns a planning scene diff message
+moveit_msgs::PlanningScene create_planning_scene_diff(const planning_scene::PlanningScene& ps,
+                                                      const std::string& object_name, const int8_t operation,
+                                                      const bool attach_object = false, const bool create_object = true)
+{
+  // Helper function to create an object for RobotStateDiffBug
+  auto add_object = [](const std::string& object_name, const int8_t operation) {
+    moveit_msgs::CollisionObject co;
+    co.header.frame_id = "panda_link0";
+    co.id = object_name;
+    co.operation = operation;
+    co.primitives.push_back([] {
+      shape_msgs::SolidPrimitive primitive;
+      primitive.type = shape_msgs::SolidPrimitive::SPHERE;
+      primitive.dimensions.push_back(1.0);
+      return primitive;
+    }());
+    co.primitive_poses.push_back([] {
+      geometry_msgs::Pose pose;
+      pose.orientation.w = 1.0;
+      return pose;
+    }());
+    co.pose = co.primitive_poses[0];
+    return co;
+  };
+  // Helper function to create an attached object for RobotStateDiffBug
+  auto add_attached_object = [](const std::string& object_name, const int8_t operation) {
+    moveit_msgs::AttachedCollisionObject aco;
+    aco.object.operation = operation;
+    aco.object.id = object_name;
+    aco.link_name = "panda_link0";
+    return aco;
+  };
+
+  auto new_ps = ps.diff();
+  if ((operation == moveit_msgs::CollisionObject::REMOVE && !attach_object) ||
+      (operation == moveit_msgs::CollisionObject::ADD && create_object))
+    new_ps->processCollisionObjectMsg(add_object(object_name, operation));
+  if (attach_object)
+    new_ps->processAttachedCollisionObjectMsg(add_attached_object(object_name, operation));
+  moveit_msgs::PlanningScene scene_msg;
+  new_ps->getPlanningSceneDiffMsg(scene_msg);
+  return scene_msg;
+}
+
+// Returns collision objects names sorted alphabetically
+std::set<std::string> get_collision_objects_names(const planning_scene::PlanningScene& ps)
+{
+  std::vector<moveit_msgs::CollisionObject> collision_objects;
+  ps.getCollisionObjectMsgs(collision_objects);
+  std::set<std::string> collision_objects_names;
+  for (const auto& collision_object : collision_objects)
+    collision_objects_names.emplace(collision_object.id);
+  return collision_objects_names;
+}
+
+// Returns attached collision objects names sorted alphabetically
+std::set<std::string> get_attached_collision_objects_names(const planning_scene::PlanningScene& ps)
+{
+  std::vector<moveit_msgs::AttachedCollisionObject> collision_objects;
+  ps.getAttachedCollisionObjectMsgs(collision_objects);
+  std::set<std::string> collision_objects_names;
+  for (const auto& collision_object : collision_objects)
+    collision_objects_names.emplace(collision_object.object.id);
+  return collision_objects_names;
+}
+
+TEST(PlanningScene, RobotStateDiffBug)
+{
+  auto urdf_model = moveit::core::loadModelInterface("panda");
+  auto srdf_model = std::make_shared<srdf::Model>();
+  auto ps = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
+
+  // Adding collision objects incrementally
+  {
+    const auto ps1 = create_planning_scene_diff(*ps, "object1", moveit_msgs::CollisionObject::ADD);
+    const auto ps2 = create_planning_scene_diff(*ps, "object2", moveit_msgs::CollisionObject::ADD);
+
+    ps->usePlanningSceneMsg(ps1);
+    ps->usePlanningSceneMsg(ps2);
+    EXPECT_EQ(get_collision_objects_names(*ps), (std::set<std::string>{ "object1", "object2" }));
+  }
+
+  // Removing a collision object
+  {
+    const auto ps1 = create_planning_scene_diff(*ps, "object2", moveit_msgs::CollisionObject::REMOVE);
+
+    ps->usePlanningSceneMsg(ps1);
+    EXPECT_EQ(get_collision_objects_names(*ps), (std::set<std::string>{ "object1" }));
+  }
+
+  // Adding attached collision objects incrementally
+  ps = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
+  {
+    const auto ps1 = create_planning_scene_diff(*ps, "object1", moveit_msgs::CollisionObject::ADD, true);
+    const auto ps2 = create_planning_scene_diff(*ps, "object2", moveit_msgs::CollisionObject::ADD, true);
+
+    ps->usePlanningSceneMsg(ps1);
+    ps->usePlanningSceneMsg(ps2);
+    EXPECT_TRUE(get_collision_objects_names(*ps).empty());
+    EXPECT_EQ(get_attached_collision_objects_names(*ps), (std::set<std::string>{ "object1", "object2" }));
+  }
+
+  // Removing an attached collision object
+  {
+    const auto ps1 = create_planning_scene_diff(*ps, "object2", moveit_msgs::CollisionObject::REMOVE, true);
+    ps->usePlanningSceneMsg(ps1);
+
+    EXPECT_EQ(get_collision_objects_names(*ps), (std::set<std::string>{ "object2" }));
+    EXPECT_EQ(get_attached_collision_objects_names(*ps), (std::set<std::string>{ "object1" }));
+  }
+
+  // Turn an existing collision object into an attached object
+  {
+    const auto ps1 = create_planning_scene_diff(*ps, "object2", moveit_msgs::CollisionObject::ADD, true, false);
+    ps->usePlanningSceneMsg(ps1);
+
+    EXPECT_TRUE(get_collision_objects_names(*ps).empty());
+    EXPECT_EQ(get_attached_collision_objects_names(*ps), (std::set<std::string>{ "object1", "object2" }));
+  }
+
+  // Removing an attached collision object completely
+  {
+    auto ps1 = ps->diff();
+    moveit_msgs::CollisionObject co;
+    co.id = "object2";
+    co.operation = moveit_msgs::CollisionObject::REMOVE;
+    moveit_msgs::AttachedCollisionObject aco;
+    aco.object = co;
+
+    ps1->processAttachedCollisionObjectMsg(aco);  // detach
+    ps1->processCollisionObjectMsg(co);           // and eventually remove object
+
+    moveit_msgs::PlanningScene msg;
+    ps1->getPlanningSceneDiffMsg(msg);
+    ps->usePlanningSceneMsg(msg);
+
+    EXPECT_TRUE(get_collision_objects_names(*ps).empty());
+    EXPECT_EQ(get_attached_collision_objects_names(*ps), (std::set<std::string>{ "object1" }));
+  }
 }
 
 #ifndef INSTANTIATE_TEST_SUITE_P  // prior to gtest 1.10

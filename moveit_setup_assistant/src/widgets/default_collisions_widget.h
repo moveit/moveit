@@ -45,6 +45,7 @@ class QHeaderView;
 class QItemSelection;
 class QItemSelectionModel;
 class QLabel;
+class QSpinBox;
 class QLineEdit;
 class QProgressBar;
 class QPushButton;
@@ -58,6 +59,7 @@ class QVBoxLayout;
 #include <boost/thread/thread.hpp>
 #include <boost/function/function_fwd.hpp>
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
+#include <moveit/setup_assistant/tools/compute_default_collisions.h>
 #endif
 
 #include "setup_screen_widget.h"  // a base class for screens in the setup assistant
@@ -91,16 +93,6 @@ public:
   DefaultCollisionsWidget(QWidget* parent, const MoveItConfigDataPtr& config_data);
   ~DefaultCollisionsWidget() override;
 
-  /**
-   * \brief Output Link Pairs to SRDF Format
-   */
-  void linkPairsToSRDF();
-
-  /**
-   * \brief Load Link Pairs from SRDF Format
-   */
-  void linkPairsFromSRDF();
-
 private Q_SLOTS:
 
   // ******************************************************************************************
@@ -115,12 +107,16 @@ private Q_SLOTS:
    * \brief finish generating collision matrix after worker thread has finished
    */
   void finishGeneratingCollisionTable();
+  /**
+   * \brief interrupt generating collision matrix
+   */
+  void interruptGeneratingCollisionTable();
 
   /**
-   * \brief GUI func for showing sampling density amount
-   * \param value Sampling density
+   * \brief GUI func for showing number of samples. value will be rounded in 1000s.
+   * \param value Number of samples
    */
-  void changeDensityLabel(int value);
+  void changeNumSamples(int value);
 
   /**
    * \brief Update view and data model for the link_pairs data structure
@@ -172,11 +168,12 @@ private:
   QAbstractItemModel* model_;
   QItemSelectionModel* selection_model_;
   QVBoxLayout* layout_;
-  QLabel* density_value_label_;
-  QSlider* density_slider_;
+  QSpinBox* sample_spinbox_;
+  QSlider* sample_slider_;
   QPushButton* btn_generate_;
   QGroupBox* controls_box_;
   QProgressBar* progress_bar_;
+  QPushButton* btn_interrupt_;
   QLabel* progress_label_;
   QLineEdit* link_name_filter_;
   QCheckBox* collision_checkbox_;
@@ -194,11 +191,10 @@ private:
   // ******************************************************************************************
   MonitorThread* worker_;
 
-  /// main storage of link pair data
-  moveit_setup_assistant::LinkPairMap link_pairs_;
-
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
+  /// Working copy of SRDF config
+  srdf::SRDFWriterPtr wip_srdf_;
 
   // ******************************************************************************************
   // Private Functions
@@ -217,24 +213,23 @@ private:
    */
   void disableControls(bool disable);
 
-  /**
-   * \brief Allow toggling of all checkboxes in selection by filtering <space> keypresses
-   */
+  /** Allow toggling of all checkboxes in selection by filtering <space> keypresses */
   bool eventFilter(QObject* object, QEvent* event) override;
 
-  /**
-   * \brief Show header's sections in logicalIndexes and everything in between
-   */
+  /** Return list of selected sections */
+  QList<int> selectedSections(QHeaderView*& header) const;
+
+  /** Show header's sections in logicalIndexes and everything in between */
   void showSections(QHeaderView* header, const QList<int>& logicalIndexes);
-  /**
-   * \brief Toggle enabled status of selection
-   */
+
+  /** Enable/Disable selected sections by default */
+  void setDefaults(bool enabled);
+
+  /** Toggle enabled status of selection */
   void toggleSelection(QItemSelection selection);
 };
 
-/**
- * \brief QThread to monitor progress of a boost::thread
- */
+/** QThread to monitor progress of a boost::thread */
 class MonitorThread : public QThread
 {
   Q_OBJECT

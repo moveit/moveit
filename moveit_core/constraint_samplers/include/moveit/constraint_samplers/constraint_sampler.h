@@ -203,21 +203,6 @@ public:
   }
 
   /**
-   * \brief Project a sample given the constraints, updating the joint state
-   * group. The value DEFAULT_MAX_SAMPLING_ATTEMPTS will be passed in
-   * as the maximum number of attempts to make to project the sample.
-   *
-   * @param state The state which specifies the state to be projected, according to the constraints. Only values for
-   *        the group are written. The same state is used as reference if needed.
-   *
-   * @return True if a sample was successfully projected, false otherwise
-   */
-  bool project(moveit::core::RobotState& state)
-  {
-    return project(state, DEFAULT_MAX_SAMPLING_ATTEMPTS);
-  }
-
-  /**
    * \brief Samples given the constraints, populating \e state.
    * This function allows the parameter max_attempts to be set.
    *
@@ -230,19 +215,6 @@ public:
    */
   virtual bool sample(moveit::core::RobotState& state, const moveit::core::RobotState& reference_state,
                       unsigned int max_attempts) = 0;
-
-  /**
-   * \brief Project a sample given the constraints, updating the joint state
-   * group. This function allows the parameter max_attempts to be set.
-   *
-   * @param [out] state The state into which the values will be placed. Only values for the group are written.
-   * @param [in] max_attempts The maximum number of times to attempt to draw a sample.  If no sample has been drawn in
-   *this
-   *        number of attempts, false will be returned.
-   *
-   * @return True if a sample was successfully projected, false otherwise
-   */
-  virtual bool project(moveit::core::RobotState& state, unsigned int max_attempts) = 0;
 
   /**
    * \brief Returns whether or not the constraint sampler is valid or not.

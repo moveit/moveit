@@ -39,6 +39,7 @@
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/collision_detection/collision_tools.h>
 #include <moveit/utils/message_checks.h>
+#include <moveit/utils/moveit_error_code.h>
 #include <boost/algorithm/string/join.hpp>
 
 #include <dynamic_reconfigure/server.h>
@@ -54,12 +55,12 @@ public:
   DynamicReconfigureImpl(PlanExecution* owner)
     : owner_(owner), dynamic_reconfigure_server_(ros::NodeHandle("~/plan_execution"))
   {
-    dynamic_reconfigure_server_.setCallback(std::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this,
-                                                      std::placeholders::_1, std::placeholders::_2));
+    dynamic_reconfigure_server_.setCallback(
+        [this](const auto& config, uint32_t level) { dynamicReconfigureCallback(config, level); });
   }
 
 private:
-  void dynamicReconfigureCallback(PlanExecutionDynamicReconfigureConfig& config, uint32_t /*level*/)
+  void dynamicReconfigureCallback(const PlanExecutionDynamicReconfigureConfig& config, uint32_t /*level*/)
   {
     owner_->setMaxReplanAttempts(config.max_replan_attempts);
     owner_->setTrajectoryStateRecordingFrequency(config.record_trajectory_state_frequency);
@@ -86,8 +87,9 @@ plan_execution::PlanExecution::PlanExecution(
   new_scene_update_ = false;
 
   // we want to be notified when new information is available
-  planning_scene_monitor_->addUpdateCallback(
-      std::bind(&PlanExecution::planningSceneUpdatedCallback, this, std::placeholders::_1));
+  planning_scene_monitor_->addUpdateCallback([this](planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType type) {
+    planningSceneUpdatedCallback(type);
+  });
 
   // start the dynamic-reconfigure server
   reconfigure_impl_ = new DynamicReconfigureImpl(this);
@@ -101,35 +103,6 @@ plan_execution::PlanExecution::~PlanExecution()
 void plan_execution::PlanExecution::stop()
 {
   preempt_.request();
-}
-
-std::string plan_execution::PlanExecution::getErrorCodeString(const moveit_msgs::MoveItErrorCodes& error_code)
-{
-  if (error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
-    return "Success";
-  else if (error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME)
-    return "Invalid group name";
-  else if (error_code.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED)
-    return "Planning failed.";
-  else if (error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN)
-    return "Invalid motion plan";
-  else if (error_code.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA)
-    return "Unable to aquire sensor data";
-  else if (error_code.val == moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE)
-    return "Motion plan invalidated by environment change";
-  else if (error_code.val == moveit_msgs::MoveItErrorCodes::CONTROL_FAILED)
-    return "Controller failed during execution";
-  else if (error_code.val == moveit_msgs::MoveItErrorCodes::TIMED_OUT)
-    return "Timeout reached";
-  else if (error_code.val == moveit_msgs::MoveItErrorCodes::PREEMPTED)
-    return "Preempted";
-  else if (error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS)
-    return "Invalid goal constraints";
-  else if (error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_OBJECT_NAME)
-    return "Invalid object name";
-  else if (error_code.val == moveit_msgs::MoveItErrorCodes::FAILURE)
-    return "Catastrophic failure";
-  return "Unknown event";
 }
 
 void plan_execution::PlanExecution::planAndExecute(ExecutableMotionPlan& plan, const Options& opt)
@@ -266,7 +239,7 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan& p
     ROS_DEBUG_NAMED("plan_execution", "PlanExecution finished successfully.");
   else
     ROS_DEBUG_NAMED("plan_execution", "PlanExecution terminating with error code %d - '%s'", plan.error_code_.val,
-                    getErrorCodeString(plan.error_code_).c_str());
+                    moveit::core::MoveItErrorCode::toString(plan.error_code_));
 }
 
 bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionPlan& plan,
@@ -406,8 +379,8 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(E
 
   // start a trajectory execution thread
   trajectory_execution_manager_->execute(
-      std::bind(&PlanExecution::doneWithTrajectoryExecution, this, std::placeholders::_1),
-      std::bind(&PlanExecution::successfulTrajectorySegmentExecution, this, &plan, std::placeholders::_1));
+      [this](const moveit_controller_manager::ExecutionStatus& status) { doneWithTrajectoryExecution(status); },
+      [this, &plan](std::size_t index) { successfulTrajectorySegmentExecution(plan, index); });
   // wait for path to be done, while checking that the path does not become invalid
   ros::Rate r(100);
   path_became_invalid_ = false;
@@ -423,7 +396,7 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(E
       std::pair<int, int> current_index = trajectory_execution_manager_->getCurrentExpectedTrajectoryIndex();
       if (!isRemainingPathValid(plan, current_index))
       {
-        ROS_INFO_NAMED("plan_execution", "Trajectory component '%s' is invalid after scene update",
+        ROS_WARN_NAMED("plan_execution", "Trajectory component '%s' is invalid after scene update",
                        plan.plan_components_[current_index.first].description_.c_str());
         path_became_invalid_ = true;
         break;
@@ -501,19 +474,19 @@ void plan_execution::PlanExecution::doneWithTrajectoryExecution(
   execution_complete_ = true;
 }
 
-void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const ExecutableMotionPlan* plan,
+void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const ExecutableMotionPlan& plan,
                                                                          std::size_t index)
 {
-  if (plan->plan_components_.empty())
+  if (plan.plan_components_.empty())
   {
     ROS_WARN_NAMED("plan_execution", "Length of provided motion plan is zero.");
     return;
   }
 
   // if any side-effects are associated to the trajectory part that just completed, execute them
-  ROS_DEBUG_NAMED("plan_execution", "Completed '%s'", plan->plan_components_[index].description_.c_str());
-  if (plan->plan_components_[index].effect_on_success_)
-    if (!plan->plan_components_[index].effect_on_success_(plan))
+  ROS_DEBUG_NAMED("plan_execution", "Completed '%s'", plan.plan_components_[index].description_.c_str());
+  if (plan.plan_components_[index].effect_on_success_)
+    if (!plan.plan_components_[index].effect_on_success_(&plan))
     {
       // execution of side-effect failed
       ROS_ERROR_NAMED("plan_execution", "Execution of path-completion side-effect failed. Preempting.");
@@ -523,14 +496,14 @@ void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const E
 
   // if there is a next trajectory, check it for validity, before we start execution
   ++index;
-  if (index < plan->plan_components_.size() && plan->plan_components_[index].trajectory_ &&
-      !plan->plan_components_[index].trajectory_->empty())
+  if (index < plan.plan_components_.size() && plan.plan_components_[index].trajectory_ &&
+      !plan.plan_components_[index].trajectory_->empty())
   {
     std::pair<int, int> next_index(static_cast<int>(index), 0);
-    if (!isRemainingPathValid(*plan, next_index))
+    if (!isRemainingPathValid(plan, next_index))
     {
       ROS_INFO_NAMED("plan_execution", "Upcoming trajectory component '%s' is invalid",
-                     plan->plan_components_[next_index.first].description_.c_str());
+                     plan.plan_components_[next_index.first].description_.c_str());
       path_became_invalid_ = true;
     }
   }

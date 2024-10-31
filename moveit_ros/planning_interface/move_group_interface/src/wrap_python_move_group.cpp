@@ -165,6 +165,11 @@ public:
     return py_bindings_tools::listFromString(getJoints());
   }
 
+  bp::list getVariablesList() const
+  {
+    return py_bindings_tools::listFromString(getVariableNames());
+  }
+
   bp::list getCurrentJointValuesList()
   {
     return py_bindings_tools::listFromDouble(getCurrentJointValues());
@@ -263,7 +268,7 @@ public:
     msg.header.frame_id = getPoseReferenceFrame();
     msg.header.stamp = ros::Time::now();
     GILReleaser gr;
-    return place(object_name, msg, plan_only) == MoveItErrorCode::SUCCESS;
+    return place(object_name, msg, plan_only) == moveit::core::MoveItErrorCode::SUCCESS;
   }
 
   bool placePoses(const std::string& object_name, const bp::list& poses_list, bool plan_only = false)
@@ -273,7 +278,7 @@ public:
     for (int i = 0; i < l; ++i)
       py_bindings_tools::deserializeMsg(py_bindings_tools::ByteString(poses_list[i]), poses[i]);
     GILReleaser gr;
-    return place(object_name, poses, plan_only) == MoveItErrorCode::SUCCESS;
+    return place(object_name, poses, plan_only) == moveit::core::MoveItErrorCode::SUCCESS;
   }
 
   bool placeLocation(const std::string& object_name, const py_bindings_tools::ByteString& location_str,
@@ -282,7 +287,7 @@ public:
     std::vector<moveit_msgs::PlaceLocation> locations(1);
     py_bindings_tools::deserializeMsg(location_str, locations[0]);
     GILReleaser gr;
-    return place(object_name, std::move(locations), plan_only) == MoveItErrorCode::SUCCESS;
+    return place(object_name, std::move(locations), plan_only) == moveit::core::MoveItErrorCode::SUCCESS;
   }
 
   bool placeLocations(const std::string& object_name, const bp::list& location_list, bool plan_only = false)
@@ -292,13 +297,13 @@ public:
     for (int i = 0; i < l; ++i)
       py_bindings_tools::deserializeMsg(py_bindings_tools::ByteString(location_list[i]), locations[i]);
     GILReleaser gr;
-    return place(object_name, std::move(locations), plan_only) == MoveItErrorCode::SUCCESS;
+    return place(object_name, std::move(locations), plan_only) == moveit::core::MoveItErrorCode::SUCCESS;
   }
 
   bool placeAnywhere(const std::string& object_name, bool plan_only = false)
   {
     GILReleaser gr;
-    return place(object_name, plan_only) == MoveItErrorCode::SUCCESS;
+    return place(object_name, plan_only) == moveit::core::MoveItErrorCode::SUCCESS;
   }
 
   void convertListToArrayOfPoses(const bp::list& poses, std::vector<geometry_msgs::Pose>& msg)
@@ -441,12 +446,12 @@ public:
   bool movePython()
   {
     GILReleaser gr;
-    return move() == MoveItErrorCode::SUCCESS;
+    return move() == moveit::core::MoveItErrorCode::SUCCESS;
   }
 
   bool asyncMovePython()
   {
-    return asyncMove() == MoveItErrorCode::SUCCESS;
+    return asyncMove() == moveit::core::MoveItErrorCode::SUCCESS;
   }
 
   bool attachObjectPython(const std::string& object_name, const std::string& link_name, const bp::list& touch_links)
@@ -459,14 +464,14 @@ public:
     MoveGroupInterface::Plan plan;
     py_bindings_tools::deserializeMsg(plan_str, plan.trajectory_);
     GILReleaser gr;
-    return execute(plan) == MoveItErrorCode::SUCCESS;
+    return execute(plan) == moveit::core::MoveItErrorCode::SUCCESS;
   }
 
   bool asyncExecutePython(const py_bindings_tools::ByteString& plan_str)
   {
     MoveGroupInterface::Plan plan;
     py_bindings_tools::deserializeMsg(plan_str, plan.trajectory_);
-    return asyncExecute(plan) == MoveItErrorCode::SUCCESS;
+    return asyncExecute(plan) == moveit::core::MoveItErrorCode::SUCCESS;
   }
 
   bp::tuple planPython()
@@ -488,24 +493,22 @@ public:
     return py_bindings_tools::serializeMsg(request);
   }
 
-  bp::tuple computeCartesianPathPython(const bp::list& waypoints, double eef_step, double jump_threshold,
-                                       bool avoid_collisions)
+  bp::tuple computeCartesianPathPython(const bp::list& waypoints, double eef_step, bool avoid_collisions)
   {
     moveit_msgs::Constraints path_constraints_tmp;
-    return doComputeCartesianPathPython(waypoints, eef_step, jump_threshold, avoid_collisions, path_constraints_tmp);
+    return doComputeCartesianPathPython(waypoints, eef_step, avoid_collisions, path_constraints_tmp);
   }
 
-  bp::tuple computeCartesianPathConstrainedPython(const bp::list& waypoints, double eef_step, double jump_threshold,
-                                                  bool avoid_collisions,
+  bp::tuple computeCartesianPathConstrainedPython(const bp::list& waypoints, double eef_step, bool avoid_collisions,
                                                   const py_bindings_tools::ByteString& path_constraints_str)
   {
     moveit_msgs::Constraints path_constraints;
     py_bindings_tools::deserializeMsg(path_constraints_str, path_constraints);
-    return doComputeCartesianPathPython(waypoints, eef_step, jump_threshold, avoid_collisions, path_constraints);
+    return doComputeCartesianPathPython(waypoints, eef_step, avoid_collisions, path_constraints);
   }
 
-  bp::tuple doComputeCartesianPathPython(const bp::list& waypoints, double eef_step, double jump_threshold,
-                                         bool avoid_collisions, const moveit_msgs::Constraints& path_constraints)
+  bp::tuple doComputeCartesianPathPython(const bp::list& waypoints, double eef_step, bool avoid_collisions,
+                                         const moveit_msgs::Constraints& path_constraints)
   {
     std::vector<geometry_msgs::Pose> poses;
     convertListToArrayOfPoses(waypoints, poses);
@@ -513,7 +516,7 @@ public:
     double fraction;
     {
       GILReleaser gr;
-      fraction = computeCartesianPath(poses, eef_step, jump_threshold, trajectory, path_constraints, avoid_collisions);
+      fraction = computeCartesianPath(poses, eef_step, trajectory, path_constraints, avoid_collisions);
     }
     return bp::make_tuple(py_bindings_tools::serializeMsg(trajectory), fraction);
   }
@@ -668,7 +671,7 @@ static void wrap_move_group_interface()
   move_group_interface_class.def("move", &MoveGroupInterfaceWrapper::movePython);
   move_group_interface_class.def("execute", &MoveGroupInterfaceWrapper::executePython);
   move_group_interface_class.def("async_execute", &MoveGroupInterfaceWrapper::asyncExecutePython);
-  moveit::planning_interface::MoveItErrorCode (MoveGroupInterfaceWrapper::*pick_1)(const std::string&, bool) =
+  moveit::core::MoveItErrorCode (MoveGroupInterfaceWrapper::*pick_1)(const std::string&, bool) =
       &MoveGroupInterfaceWrapper::pick;
   move_group_interface_class.def("pick", pick_1);
   move_group_interface_class.def("pick", &MoveGroupInterfaceWrapper::pickGrasp);
@@ -684,8 +687,9 @@ static void wrap_move_group_interface()
   move_group_interface_class.def("get_planning_frame", &MoveGroupInterfaceWrapper::getPlanningFrameCStr);
   move_group_interface_class.def("get_interface_description", &MoveGroupInterfaceWrapper::getInterfaceDescriptionPython);
 
-  move_group_interface_class.def("get_active_joints", &MoveGroupInterfaceWrapper::getActiveJointsList);
   move_group_interface_class.def("get_joints", &MoveGroupInterfaceWrapper::getJointsList);
+  move_group_interface_class.def("get_variables", &MoveGroupInterfaceWrapper::getVariablesList);
+  move_group_interface_class.def("get_active_joints", &MoveGroupInterfaceWrapper::getActiveJointsList);
   move_group_interface_class.def("get_variable_count", &MoveGroupInterfaceWrapper::getVariableCount);
   move_group_interface_class.def("allow_looking", &MoveGroupInterfaceWrapper::allowLooking);
   move_group_interface_class.def("allow_replanning", &MoveGroupInterfaceWrapper::allowReplanning);
@@ -785,6 +789,10 @@ static void wrap_move_group_interface()
                                  &MoveGroupInterfaceWrapper::setMaxVelocityScalingFactor);
   move_group_interface_class.def("set_max_acceleration_scaling_factor",
                                  &MoveGroupInterfaceWrapper::setMaxAccelerationScalingFactor);
+  move_group_interface_class.def("limit_max_cartesian_link_speed",
+                                 &MoveGroupInterfaceWrapper::limitMaxCartesianLinkSpeed);
+  move_group_interface_class.def("clear_max_cartesian_link_speed",
+                                 &MoveGroupInterfaceWrapper::clearMaxCartesianLinkSpeed);
   move_group_interface_class.def("set_planner_id", &MoveGroupInterfaceWrapper::setPlannerId);
   move_group_interface_class.def("get_planner_id", &MoveGroupInterfaceWrapper::getPlannerIdCStr);
   move_group_interface_class.def("set_planning_pipeline_id", &MoveGroupInterfaceWrapper::setPlanningPipelineId);

@@ -50,7 +50,6 @@ namespace pilz_industrial_motion_planner
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(LinTrajectoryConversionFailure, moveit_msgs::MoveItErrorCodes::FAILURE);
 
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(JointNumberMismatch, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
-CREATE_MOVEIT_ERROR_CODE_EXCEPTION(LinJointMissingInStartState, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(LinInverseForGoalIncalculable, moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION);
 
 /**
@@ -76,14 +75,14 @@ private:
                              const planning_interface::MotionPlanRequest& req, MotionPlanInfo& info) const final;
 
   void plan(const planning_scene::PlanningSceneConstPtr& scene, const planning_interface::MotionPlanRequest& req,
-            const MotionPlanInfo& plan_info, const double& sampling_time,
+            const MotionPlanInfo& plan_info, double sampling_time,
             trajectory_msgs::JointTrajectory& joint_trajectory) override;
 
   /**
    * @brief construct a KDL::Path object for a Cartesian straight line
    * @return a unique pointer of the path object. null_ptr in case of an error.
    */
-  std::unique_ptr<KDL::Path> setPathLIN(const Eigen::Affine3d& start_pose, const Eigen::Affine3d& goal_pose) const;
+  std::unique_ptr<KDL::Path> setPathLIN(const Eigen::Isometry3d& start_pose, const Eigen::Isometry3d& goal_pose) const;
 };
 
 }  // namespace pilz_industrial_motion_planner

@@ -128,8 +128,7 @@ private Q_SLOTS:
   void changedSceneColor();
   void changedPlanningSceneTopic();
   void changedSceneDisplayTime();
-  void changedOctreeRenderMode();
-  void changedOctreeColorMode();
+  void changedOctreeRendering();
   void setSceneName(const QString& name);
 
 protected Q_SLOTS:
@@ -142,7 +141,7 @@ protected:
 
   /// This function is used by loadRobotModel() and should only be called in the MainLoop
   /// You probably should not call this function directly
-  void clearRobotModel();
+  virtual void clearRobotModel();
 
   /// This function constructs a new planning scene. Probably this should be called in a background thread
   /// as it may take some time to complete its execution
@@ -159,7 +158,6 @@ protected:
   void calculateOffsetPosition();
 
   void executeMainLoopJobs();
-  void sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
   void renderPlanningScene();
   void setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor& color);
   void unsetLinkColor(rviz::Robot* robot, const std::string& link_name);

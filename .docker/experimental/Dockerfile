@@ -14,8 +14,8 @@ RUN git clone -b 26compat https://github.com/mongodb/mongo-cxx-driver.git && \
     rm -rf /var/lib/apt/lists/*
 
 # Download warehouse source
-RUN wstool set -yu warehouse_ros_mongo --git https://github.com/ros-planning/warehouse_ros_mongo.git -v jade-devel && \
-    wstool set -yu warehouse_ros --git https://github.com/ros-planning/warehouse_ros.git -v jade-devel
+RUN wstool set -yu warehouse_ros_mongo --git https://github.com/moveit/warehouse_ros_mongo.git -v jade-devel && \
+    wstool set -yu warehouse_ros --git https://github.com/moveit/warehouse_ros.git -v jade-devel
 
 # build the workspace
 RUN catkin build --limit-status-rate 0.001 --no-notify

@@ -56,8 +56,9 @@ public:
     \param ns. Namespace in which all MoveIt related topics and services are discovered
     \param wait. Wait for services if they are not announced in ROS.
     If this is false, the constructor throws std::runtime_error instead.
+    \param persistent_connections. Create persistent connection for the get planning scene and apply planning scene services.
   */
-  explicit PlanningSceneInterface(const std::string& ns = "", bool wait = true);
+  explicit PlanningSceneInterface(const std::string& ns = "", bool wait = true, bool persistent_connections = false);
   ~PlanningSceneInterface();
 
   /**
@@ -123,6 +124,9 @@ public:
   bool
   applyAttachedCollisionObjects(const std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objects);
 
+  /** \brief Get given components from move_group's PlanningScene */
+  moveit_msgs::PlanningScene getPlanningSceneMsg(uint32_t components);
+
   /** \brief Update the planning_scene of the move_group node with the given ps synchronously.
       Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
   bool applyPlanningScene(const moveit_msgs::PlanningScene& ps);
@@ -141,6 +145,12 @@ public:
       The update runs asynchronously. If you need the objects to be removed *directly* after you called this function,
       consider using `applyCollisionObjects` instead. */
   void removeCollisionObjects(const std::vector<std::string>& object_ids) const;
+
+  /** \brief Remove all the collision and attached objects from the world via the planning scene of the move_group node
+     synchronously.
+
+      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
+  bool clear();
 
   /**@}*/
 

@@ -35,6 +35,8 @@
 /* Author: Dave Coleman */
 
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
+#include <moveit/move_group_interface/move_group_interface.h>
+
 // Reading/Writing Files
 #include <iostream>  // For writing yaml and launch files
 #include <fstream>
@@ -138,16 +140,19 @@ planning_scene::PlanningScenePtr MoveItConfigData::getPlanningScene()
 // ******************************************************************************************
 // Load the allowed collision matrix from the SRDF's list of link pairs
 // ******************************************************************************************
-void MoveItConfigData::loadAllowedCollisionMatrix()
+void MoveItConfigData::loadAllowedCollisionMatrix(const srdf::SRDFWriter& srdf)
 {
-  // Clear the allowed collision matrix
   allowed_collision_matrix_.clear();
 
-  // Update the allowed collision matrix, in case there has been a change
-  for (const auto& disabled_collision : srdf_->disabled_collisions_)
-  {
-    allowed_collision_matrix_.setEntry(disabled_collision.link1_, disabled_collision.link2_, true);
-  }
+  // load collision defaults
+  for (const std::string& name : srdf.no_default_collision_links_)
+    allowed_collision_matrix_.setDefaultEntry(name, collision_detection::AllowedCollision::ALWAYS);
+  // re-enable specific collision pairs
+  for (auto const& collision : srdf.enabled_collision_pairs_)
+    allowed_collision_matrix_.setEntry(collision.link1_, collision.link2_, false);
+  // *finally* disable selected collision pairs
+  for (auto const& collision : srdf.disabled_collision_pairs_)
+    allowed_collision_matrix_.setEntry(collision.link1_, collision.link2_, true);
 }
 
 // ******************************************************************************************
@@ -203,6 +208,24 @@ bool MoveItConfigData::outputSetupAssistantFile(const std::string& file_path)
   config_pkg_generated_timestamp_ = cur_time;
 
   return true;  // file created successfully
+}
+
+// ******************************************************************************************
+// Output Gazebo URDF file
+// ******************************************************************************************
+bool MoveItConfigData::outputGazeboURDFFile(const std::string& file_path)
+{
+  std::ofstream os(file_path.c_str(), std::ios_base::trunc);
+  if (!os.good())
+  {
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
+    return false;
+  }
+
+  os << gazebo_urdf_string_ << std::endl;
+  os.close();
+
+  return true;
 }
 
 // ******************************************************************************************
@@ -286,31 +309,133 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
 }
 
 // ******************************************************************************************
-// Output CHOMP Planning config files
+// Output STOMP Planning config files
 // ******************************************************************************************
-bool MoveItConfigData::outputCHOMPPlanningYAML(const std::string& file_path)
+bool MoveItConfigData::outputSTOMPPlanningYAML(const std::string& file_path)
 {
   YAML::Emitter emitter;
+  emitter << YAML::BeginMap;
 
-  emitter << YAML::Value << YAML::BeginMap;
-  emitter << YAML::Key << "planning_time_limit" << YAML::Value << "10.0";
-  emitter << YAML::Key << "max_iterations" << YAML::Value << "200";
-  emitter << YAML::Key << "max_iterations_after_collision_free" << YAML::Value << "5";
-  emitter << YAML::Key << "smoothness_cost_weight" << YAML::Value << "0.1";
-  emitter << YAML::Key << "obstacle_cost_weight" << YAML::Value << "1.0";
-  emitter << YAML::Key << "learning_rate" << YAML::Value << "0.01";
-  emitter << YAML::Key << "smoothness_cost_velocity" << YAML::Value << "0.0";
-  emitter << YAML::Key << "smoothness_cost_acceleration" << YAML::Value << "1.0";
-  emitter << YAML::Key << "smoothness_cost_jerk" << YAML::Value << "0.0";
-  emitter << YAML::Key << "ridge_factor" << YAML::Value << "0.01";
-  emitter << YAML::Key << "use_pseudo_inverse" << YAML::Value << "false";
-  emitter << YAML::Key << "pseudo_inverse_ridge_factor" << YAML::Value << "1e-4";
-  emitter << YAML::Key << "joint_update_limit" << YAML::Value << "0.1";
-  emitter << YAML::Key << "collision_clearance" << YAML::Value << "0.2";
-  emitter << YAML::Key << "collision_threshold" << YAML::Value << "0.07";
-  emitter << YAML::Key << "use_stochastic_descent" << YAML::Value << "true";
-  emitter << YAML::Key << "enable_failure_recovery" << YAML::Value << "true";
-  emitter << YAML::Key << "max_recovery_attempts" << YAML::Value << "5";
+  // Add STOMP default for every group
+  for (srdf::Model::Group& group : srdf_->groups_)
+  {
+    emitter << YAML::Key << "stomp/" + group.name_;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "group_name";
+    emitter << YAML::Value << group.name_;
+
+    emitter << YAML::Key << "optimization";
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "num_timesteps";
+    emitter << YAML::Value << "60";
+    emitter << YAML::Key << "num_iterations";
+    emitter << YAML::Value << "40";
+    emitter << YAML::Key << "num_iterations_after_valid";
+    emitter << YAML::Value << "0";
+    emitter << YAML::Key << "num_rollouts";
+    emitter << YAML::Value << "30";
+    emitter << YAML::Key << "max_rollouts";
+    emitter << YAML::Value << "30";
+    emitter << YAML::Key << "initialization_method";
+    emitter << YAML::Value << "1";
+    emitter << YAML::Comment("[1 : LINEAR_INTERPOLATION, 2 : CUBIC_POLYNOMIAL, 3 : MININUM_CONTROL_COST]");
+    emitter << YAML::Key << "control_cost_weight";
+    emitter << YAML::Value << "0.0";
+    emitter << YAML::EndMap;
+
+    emitter << YAML::Key << "task";
+    emitter << YAML::BeginMap;
+
+    emitter << YAML::Key << "noise_generator";
+    emitter << YAML::BeginSeq;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "class";
+    emitter << YAML::Value << "stomp_moveit/NormalDistributionSampling";
+    emitter << YAML::Key << "stddev";
+    emitter << YAML::Flow;
+    const moveit::core::JointModelGroup* joint_model_group = getRobotModel()->getJointModelGroup(group.name_);
+    const std::vector<const moveit::core::JointModel*>& joint_models = joint_model_group->getActiveJointModels();
+    std::vector<float> stddev(joint_models.size(), 0.05);
+    emitter << YAML::Value << stddev;
+    emitter << YAML::EndMap;
+    emitter << YAML::EndSeq;
+
+    emitter << YAML::Key << "cost_functions";
+    emitter << YAML::BeginSeq;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "class";
+    emitter << YAML::Value << "stomp_moveit/CollisionCheck";
+    emitter << YAML::Key << "collision_penalty";
+    emitter << YAML::Value << "1.0";
+    emitter << YAML::Key << "cost_weight";
+    emitter << YAML::Value << "1.0";
+    emitter << YAML::Key << "kernel_window_percentage";
+    emitter << YAML::Value << "0.2";
+    emitter << YAML::Key << "longest_valid_joint_move";
+    emitter << YAML::Value << "0.05";
+    emitter << YAML::EndMap;
+    emitter << YAML::EndSeq;
+
+    emitter << YAML::Key << "noisy_filters";
+    emitter << YAML::BeginSeq;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "class";
+    emitter << YAML::Value << "stomp_moveit/JointLimits";
+    emitter << YAML::Key << "lock_start";
+    emitter << YAML::Value << "True";
+    emitter << YAML::Key << "lock_goal";
+    emitter << YAML::Value << "True";
+    emitter << YAML::EndMap;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "class";
+    emitter << YAML::Value << "stomp_moveit/MultiTrajectoryVisualization";
+    emitter << YAML::Key << "line_width";
+    emitter << YAML::Value << "0.02";
+    emitter << YAML::Key << "rgb";
+    emitter << YAML::Flow;
+    std::vector<float> noisy_filters_rgb{ 255, 255, 0 };
+    emitter << YAML::Value << noisy_filters_rgb;
+    emitter << YAML::Key << "marker_array_topic";
+    emitter << YAML::Value << "stomp_trajectories";
+    emitter << YAML::Key << "marker_namespace";
+    emitter << YAML::Value << "noisy";
+    emitter << YAML::EndMap;
+    emitter << YAML::EndSeq;
+
+    emitter << YAML::Key << "update_filters";
+    emitter << YAML::BeginSeq;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "class";
+    emitter << YAML::Value << "stomp_moveit/PolynomialSmoother";
+    emitter << YAML::Key << "poly_order";
+    emitter << YAML::Value << "6";
+    emitter << YAML::EndMap;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "class";
+    emitter << YAML::Value << "stomp_moveit/TrajectoryVisualization";
+    emitter << YAML::Key << "line_width";
+    emitter << YAML::Value << "0.05";
+    emitter << YAML::Key << "rgb";
+    emitter << YAML::Flow;
+    std::vector<float> update_filters_rgb{ 0, 191, 255 };
+    emitter << YAML::Value << update_filters_rgb;
+    emitter << YAML::Key << "error_rgb";
+    emitter << YAML::Flow;
+    std::vector<float> update_filters_error_rgb{ 255, 0, 0 };
+    emitter << YAML::Value << update_filters_error_rgb;
+    emitter << YAML::Key << "publish_intermediate";
+    emitter << YAML::Value << "True";
+    emitter << YAML::Key << "marker_topic";
+    emitter << YAML::Value << "stomp_trajectory";
+    emitter << YAML::Key << "marker_namespace";
+    emitter << YAML::Value << "optimized";
+    emitter << YAML::EndMap;
+    emitter << YAML::EndSeq;
+
+    emitter << YAML::EndMap;
+    emitter << YAML::EndMap;
+  }
+
   emitter << YAML::EndMap;
 
   std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
@@ -357,6 +482,18 @@ bool MoveItConfigData::outputKinematicsYAML(const std::string& file_path)
     emitter << YAML::Key << "kinematics_solver_timeout";
     emitter << YAML::Value << group_meta_data_[group.name_].kinematics_solver_timeout_;
 
+    // Goal joint tolerance
+    emitter << YAML::Key << "goal_joint_tolerance";
+    emitter << YAML::Value << group_meta_data_[group.name_].goal_joint_tolerance_;
+
+    // Goal position tolerance
+    emitter << YAML::Key << "goal_position_tolerance";
+    emitter << YAML::Value << group_meta_data_[group.name_].goal_position_tolerance_;
+
+    // Goal orientation tolerance
+    emitter << YAML::Key << "goal_orientation_tolerance";
+    emitter << YAML::Value << group_meta_data_[group.name_].goal_orientation_tolerance_;
+
     emitter << YAML::EndMap;
   }
 
@@ -397,112 +534,6 @@ std::string MoveItConfigData::getJointHardwareInterface(const std::string& joint
   }
   // If the joint was not found in any controller return EffortJointInterface
   return "hardware_interface/EffortJointInterface";
-}
-
-// ******************************************************************************************
-// Writes a Gazebo compatible robot URDF to gazebo_compatible_urdf_string_
-// ******************************************************************************************
-std::string MoveItConfigData::getGazeboCompatibleURDF()
-{
-  bool new_urdf_needed = false;
-  TiXmlDocument urdf_document;
-
-  // Used to convert XmlDocument to std string
-  TiXmlPrinter printer;
-  urdf_document.Parse((const char*)urdf_string_.c_str(), nullptr, TIXML_ENCODING_UTF8);
-  try
-  {
-    for (TiXmlElement* doc_element = urdf_document.RootElement()->FirstChildElement(); doc_element != nullptr;
-         doc_element = doc_element->NextSiblingElement())
-    {
-      if (static_cast<std::string>(doc_element->Value()).find("link") != std::string::npos)
-      {
-        // Before adding inertial elements, make sure there is none and the link has collision element
-        if (doc_element->FirstChildElement("inertial") == nullptr &&
-            doc_element->FirstChildElement("collision") != nullptr)
-        {
-          new_urdf_needed = true;
-          TiXmlElement inertia_link("inertial");
-          TiXmlElement mass("mass");
-          TiXmlElement inertia_joint("inertia");
-
-          mass.SetAttribute("value", "0.1");
-
-          inertia_joint.SetAttribute("ixx", "0.03");
-          inertia_joint.SetAttribute("iyy", "0.03");
-          inertia_joint.SetAttribute("izz", "0.03");
-          inertia_joint.SetAttribute("ixy", "0.0");
-          inertia_joint.SetAttribute("ixz", "0.0");
-          inertia_joint.SetAttribute("iyz", "0.0");
-
-          inertia_link.InsertEndChild(mass);
-          inertia_link.InsertEndChild(inertia_joint);
-
-          doc_element->InsertEndChild(inertia_link);
-        }
-      }
-      else if (static_cast<std::string>(doc_element->Value()).find("joint") != std::string::npos)
-      {
-        // Before adding a transmission element, make sure there the joint is not fixed
-        if (static_cast<std::string>(doc_element->Attribute("type")) != "fixed")
-        {
-          new_urdf_needed = true;
-          std::string joint_name = static_cast<std::string>(doc_element->Attribute("name"));
-          TiXmlElement transmission("transmission");
-          TiXmlElement type("type");
-          TiXmlElement joint("joint");
-          TiXmlElement hardware_interface("hardwareInterface");
-          TiXmlElement actuator("actuator");
-          TiXmlElement mechanical_reduction("mechanicalReduction");
-
-          transmission.SetAttribute("name", std::string("trans_") + joint_name);
-          joint.SetAttribute("name", joint_name);
-          actuator.SetAttribute("name", joint_name + std::string("_motor"));
-
-          type.InsertEndChild(TiXmlText("transmission_interface/SimpleTransmission"));
-          transmission.InsertEndChild(type);
-
-          hardware_interface.InsertEndChild(TiXmlText(getJointHardwareInterface(joint_name).c_str()));
-          joint.InsertEndChild(hardware_interface);
-          transmission.InsertEndChild(joint);
-
-          mechanical_reduction.InsertEndChild(TiXmlText("1"));
-          actuator.InsertEndChild(hardware_interface);
-          actuator.InsertEndChild(mechanical_reduction);
-          transmission.InsertEndChild(actuator);
-
-          urdf_document.RootElement()->InsertEndChild(transmission);
-        }
-      }
-    }
-
-    // Add gazebo_ros_control plugin which reads the transmission tags
-    TiXmlElement gazebo("gazebo");
-    TiXmlElement plugin("plugin");
-    TiXmlElement robot_namespace("robotNamespace");
-
-    plugin.SetAttribute("name", "gazebo_ros_control");
-    plugin.SetAttribute("filename", "libgazebo_ros_control.so");
-    robot_namespace.InsertEndChild(TiXmlText(std::string("/")));
-
-    plugin.InsertEndChild(robot_namespace);
-    gazebo.InsertEndChild(plugin);
-
-    urdf_document.RootElement()->InsertEndChild(gazebo);
-  }
-  catch (YAML::ParserException& e)  // Catch errors
-  {
-    ROS_ERROR_STREAM_NAMED("moveit_config_data", e.what());
-    return std::string("");
-  }
-
-  if (new_urdf_needed)
-  {
-    urdf_document.Accept(&printer);
-    return std::string(printer.CStr());
-  }
-
-  return std::string("");
 }
 
 bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
@@ -708,10 +739,10 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
   trrt.addParameter("temp_change_factor", "2.0", "how much to increase or decrease temp. default: 2.0");
   trrt.addParameter("min_temperature", "10e-10", "lower limit of temp change. default: 10e-10");
   trrt.addParameter("init_temperature", "10e-6", "initial temperature. default: 10e-6");
-  trrt.addParameter("frountier_threshold", "0.0",
+  trrt.addParameter("frontier_threshold", "0.0",
                     "dist new state to nearest neighbor to disqualify as frontier. "
                     "default: 0.0 set in setup()");
-  trrt.addParameter("frountierNodeRatio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
+  trrt.addParameter("frontier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
   trrt.addParameter("k_constant", "0.0", "value used to normalize expresssion. default: 0.0 set in setup()");
   planner_des.push_back(trrt);
 
@@ -782,10 +813,10 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
                        "setup()");
   bi_trrt.addParameter("temp_change_factor", "0.1", "how much to increase or decrease temp. default: 0.1");
   bi_trrt.addParameter("init_temperature", "100", "initial temperature. default: 100");
-  bi_trrt.addParameter("frountier_threshold", "0.0",
+  bi_trrt.addParameter("frontier_threshold", "0.0",
                        "dist new state to nearest neighbor to disqualify as frontier. "
                        "default: 0.0 set in setup()");
-  bi_trrt.addParameter("frountier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
+  bi_trrt.addParameter("frontier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
   bi_trrt.addParameter("cost_threshold", "1e300",
                        "the cost threshold. Any motion cost that is not better will not be "
                        "expanded. default: inf");
@@ -844,6 +875,79 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
   spar_stwo.addParameter("dense_delta_fraction", "0.001", "delta fraction for interface detection. default: 0.001");
   spar_stwo.addParameter("max_failures", "5000", "maximum consecutive failure limit. default: 5000");
   planner_des.push_back(spar_stwo);
+
+// TODO: remove when ROS Melodic and older are no longer supported
+#if OMPL_VERSION_VALUE >= 1005000
+  OMPLPlannerDescription aitstar("AITstar", "geometric");
+  aitstar.addParameter("use_k_nearest", "1",
+                       "whether to use a k-nearest RGG connection model (1) or an r-disc model (0). Default: 1");
+  aitstar.addParameter("rewire_factor", "1.001",
+                       "rewire factor of the RGG. Valid values: [1.0:0.01:3.0]. Default: 1.001");
+  aitstar.addParameter("samples_per_batch", "100", "batch size. Valid values: [1:1:1000]. Default: 100");
+  aitstar.addParameter("use_graph_pruning", "1", "enable graph pruning (1) or not (0). Default: 1");
+  aitstar.addParameter("find_approximate_solutions", "0", "track approximate solutions (1) or not (0). Default: 0");
+  aitstar.addParameter("set_max_num_goals", "1",
+                       "maximum number of goals sampled from sampleable goal regions. "
+                       "Valid values: [1:1:1000]. Default: 1");
+  planner_des.push_back(aitstar);
+
+  OMPLPlannerDescription abitstar("ABITstar", "geometric");
+  abitstar.addParameter("use_k_nearest", "1",
+                        "whether to use a k-nearest RGG connection model (1) or an r-disc model (0). Default: 1");
+  abitstar.addParameter("rewire_factor", "1.001",
+                        "rewire factor of the RGG. Valid values: [1.0:0.01:3.0]. Default: 1.001");
+  abitstar.addParameter("samples_per_batch", "100", "batch size. Valid values: [1:1:1000]. Default: 100");
+  abitstar.addParameter("use_graph_pruning", "1", "enable graph pruning (1) or not (0). Default: 1");
+  abitstar.addParameter(
+      "prune_threshold_as_fractional_cost_change", "0.1",
+      "fractional change in the solution cost AND problem measure necessary for pruning to occur. Default: 0.1");
+  abitstar.addParameter("delay_rewiring_to_first_solution", "0",
+                        "delay (1) or not (0) rewiring until a solution is found. Default: 0");
+  abitstar.addParameter("use_just_in_time_sampling", "0",
+                        "delay the generation of samples until they are * necessary. Only works with r-disc connection "
+                        "and path length minimization. Default: 0");
+  abitstar.addParameter("drop_unconnected_samples_on_prune", "0",
+                        "drop unconnected samples when pruning, regardless of their heuristic value. Default: 0");
+  abitstar.addParameter("stop_on_each_solution_improvement", "0",
+                        "stop the planner each time a solution improvement is found. Useful for debugging. Default: 0");
+  abitstar.addParameter("use_strict_queue_ordering", "0",
+                        "sort edges in the queue at the end of the batch (0) or after each rewiring (1). Default: 0");
+  abitstar.addParameter("find_approximate_solutions", "0", "track approximate solutions (1) or not (0). Default: 0");
+  abitstar.addParameter(
+      "initial_inflation_factor", "1000000",
+      "inflation factor for the initial search. Valid values: [1.0:0.01:1000000.0]. Default: 1000000");
+  abitstar.addParameter(
+      "inflation_scaling_parameter", "10",
+      "scaling parameter for the inflation factor update policy. Valid values: [1.0:0.01:1000000.0]. Default: 0");
+  abitstar.addParameter(
+      "truncation_scaling_parameter", "5.0",
+      "scaling parameter for the truncation factor update policy. Valid values: [1.0:0.01:1000000.0]. Default: 0");
+  planner_des.push_back(abitstar);
+
+  OMPLPlannerDescription bitstar("BITstar", "geometric");
+  bitstar.addParameter("use_k_nearest", "1",
+                       "whether to use a k-nearest RGG connection model (1) or an r-disc model (0). Default: 1");
+  bitstar.addParameter("rewire_factor", "1.001",
+                       "rewire factor of the RGG. Valid values: [1.0:0.01:3.0]. Default: 1.001");
+  bitstar.addParameter("samples_per_batch", "100", "batch size. Valid values: [1:1:1000]. Default: 100");
+  bitstar.addParameter("use_graph_pruning", "1", "enable graph pruning (1) or not (0). Default: 1");
+  bitstar.addParameter(
+      "prune_threshold_as_fractional_cost_change", "0.1",
+      "fractional change in the solution cost AND problem measure necessary for pruning to occur. Default: 0.1");
+  bitstar.addParameter("delay_rewiring_to_first_solution", "0",
+                       "delay (1) or not (0) rewiring until a solution is found. Default: 0");
+  bitstar.addParameter("use_just_in_time_sampling", "0",
+                       "delay the generation of samples until they are * necessary. Only works with r-disc connection "
+                       "and path length minimization. Default: 0");
+  bitstar.addParameter("drop_unconnected_samples_on_prune", "0",
+                       "drop unconnected samples when pruning, regardless of their heuristic value. Default: 0");
+  bitstar.addParameter("stop_on_each_solution_improvement", "0",
+                       "stop the planner each time a solution improvement is found. Useful for debugging. Default: 0");
+  bitstar.addParameter("use_strict_queue_ordering", "0",
+                       "sort edges in the queue at the end of the batch (0) or after each rewiring (1). Default: 0");
+  bitstar.addParameter("find_approximate_solutions", "0", "track approximate solutions (1) or not (0). Default: 0");
+  planner_des.push_back(bitstar);
+#endif
 
   return planner_des;
 }
@@ -1201,59 +1305,6 @@ bool MoveItConfigData::outputJointLimitsYAML(const std::string& file_path)
 }
 
 // ******************************************************************************************
-// Set list of collision link pairs in SRDF; sorted; with optional filter
-// ******************************************************************************************
-
-class SortableDisabledCollision
-{
-public:
-  SortableDisabledCollision(const srdf::Model::DisabledCollision& dc)
-    : dc_(dc), key_(dc.link1_ < dc.link2_ ? (dc.link1_ + "|" + dc.link2_) : (dc.link2_ + "|" + dc.link1_))
-  {
-  }
-  operator const srdf::Model::DisabledCollision &() const
-  {
-    return dc_;
-  }
-  bool operator<(const SortableDisabledCollision& other) const
-  {
-    return key_ < other.key_;
-  }
-
-private:
-  const srdf::Model::DisabledCollision dc_;
-  const std::string key_;
-};
-
-void MoveItConfigData::setCollisionLinkPairs(const moveit_setup_assistant::LinkPairMap& link_pairs, size_t skip_mask)
-{
-  // Create temp disabled collision
-  srdf::Model::DisabledCollision dc;
-
-  std::set<SortableDisabledCollision> disabled_collisions;
-  disabled_collisions.insert(srdf_->disabled_collisions_.begin(), srdf_->disabled_collisions_.end());
-
-  // copy the data in this class's LinkPairMap datastructure to srdf::Model::DisabledCollision format
-  for (const std::pair<const std::pair<std::string, std::string>, LinkPairData>& link_pair : link_pairs)
-  {
-    // Only copy those that are actually disabled
-    if (link_pair.second.disable_check)
-    {
-      if ((1 << link_pair.second.reason) & skip_mask)
-        continue;
-
-      dc.link1_ = link_pair.first.first;
-      dc.link2_ = link_pair.first.second;
-      dc.reason_ = moveit_setup_assistant::disabledReasonToString(link_pair.second.reason);
-
-      disabled_collisions.insert(SortableDisabledCollision(dc));
-    }
-  }
-
-  srdf_->disabled_collisions_.assign(disabled_collisions.begin(), disabled_collisions.end());
-}
-
-// ******************************************************************************************
 // Decide the best two joints to be used for the projection evaluator
 // ******************************************************************************************
 std::string MoveItConfigData::decideProjectionJoints(const std::string& planning_group)
@@ -1291,7 +1342,7 @@ template <typename T>
 bool parse(const YAML::Node& node, const std::string& key, T& storage, const T& default_value = T())
 {
   const YAML::Node& n = node[key];
-  bool valid = n;
+  bool valid = n.IsDefined();
   storage = valid ? n.as<T>() : default_value;
   return valid;
 }
@@ -1363,7 +1414,7 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
     for (YAML::const_iterator group_it = doc.begin(); group_it != doc.end(); ++group_it)
     {
       const std::string& group_name = group_it->first.as<std::string>();
-      const YAML::Node& group = group_it->second;
+      const YAML::Node group = group_it->second;
 
       // Create new meta data
       GroupMetaData meta_data;
@@ -1372,9 +1423,15 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
       parse(group, "kinematics_solver_search_resolution", meta_data.kinematics_solver_search_resolution_,
             DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION);
       parse(group, "kinematics_solver_timeout", meta_data.kinematics_solver_timeout_, DEFAULT_KIN_SOLVER_TIMEOUT);
+      parse(group, "goal_joint_tolerance", meta_data.goal_joint_tolerance_,
+            moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_JOINT_TOLERANCE);
+      parse(group, "goal_position_tolerance", meta_data.goal_position_tolerance_,
+            moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_POSITION_TOLERANCE);
+      parse(group, "goal_orientation_tolerance", meta_data.goal_orientation_tolerance_,
+            moveit::planning_interface::MoveGroupInterface::DEFAULT_GOAL_ORIENTATION_TOLERANCE);
 
       // Assign meta data to vector
-      group_meta_data_[group_name] = meta_data;
+      group_meta_data_[group_name] = std::move(meta_data);
     }
   }
   catch (YAML::ParserException& e)  // Catch errors
@@ -1639,11 +1696,11 @@ bool MoveItConfigData::extractPackageNameFromPath(const std::string& path, std::
       ROS_DEBUG_STREAM("Found package.xml in " << sub_path.make_preferred().string());
       package_found = true;
       relative_filepath = relative_path.string();
-      package_name = sub_path.leaf().string();
+      package_name = sub_path.filename().string();
       break;
     }
-    relative_path = sub_path.leaf() / relative_path;
-    sub_path.remove_leaf();
+    relative_path = sub_path.filename() / relative_path;
+    sub_path.remove_filename();
   }
 
   // Assign data to moveit_config_data
@@ -1924,6 +1981,7 @@ void MoveItConfigData::addGenericParameterToSensorPluginConfig(const std::string
   GenericParameter new_parameter;
   new_parameter.setName(name);
   new_parameter.setValue(value);
+  sensors_plugin_config_parameter_list_.resize(1);
   sensors_plugin_config_parameter_list_[0][name] = new_parameter;
 }
 

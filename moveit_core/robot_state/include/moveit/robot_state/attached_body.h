@@ -175,20 +175,13 @@ public:
    * The returned transform is guaranteed to be a valid isometry. */
   const Eigen::Isometry3d& getSubframeTransform(const std::string& frame_name, bool* found = nullptr) const;
 
-  /** \brief Get the fixed transform to a named subframe on this body (relative to the robot link)
-   *
-   * The frame_name needs to have the object's name prepended (e.g. "screwdriver/tip" returns true if the object's
-   * name is "screwdriver"). Returns an identity transform if frame_name is unknown (and set found to false).
-   * The returned transform is guaranteed to be a valid isometry. */
-  const Eigen::Isometry3d& getSubframeTransformInLinkFrame(const std::string& frame_name, bool* found = nullptr) const;
-
   /** \brief Get the fixed transform to a named subframe on this body, relative to the world frame.
    * The frame_name needs to have the object's name prepended (e.g. "screwdriver/tip" returns true if the object's
    * name is "screwdriver"). Returns an identity transform if frame_name is unknown (and set found to false).
    * The returned transform is guaranteed to be a valid isometry. */
   const Eigen::Isometry3d& getGlobalSubframeTransform(const std::string& frame_name, bool* found = nullptr) const;
 
-  /** \brief Check whether a subframe of given @frame_name is present in this object.
+  /** \brief Check whether a subframe of given \param frame_name is present in this object.
    *
    * The frame_name needs to have the object's name prepended (e.g. "screwdriver/tip" returns true if the object's
    * name is "screwdriver"). */

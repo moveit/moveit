@@ -8,7 +8,7 @@
   </include>
 
   <!-- Load all planning pipelines that will be benchmarked -->
-  <include ns="moveit_run_benchmark/ompl" file="$(find moveit_resources_panda_moveit_config)/launch/planning_pipeline.launch.xml">
+  <include ns="moveit_run_benchmark" file="$(find moveit_resources_panda_moveit_config)/launch/planning_pipeline.launch.xml">
     <arg name="pipeline" value="ompl" />
   </include>
 

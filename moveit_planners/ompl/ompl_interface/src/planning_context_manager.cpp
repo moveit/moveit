@@ -39,6 +39,9 @@
 #include <moveit/profiler/profiler.h>
 #include <utility>
 
+// OMPL version
+#include <ompl/config.h>
+
 #include <ompl/geometric/planners/AnytimePathShortening.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/pRRT.h>
@@ -66,6 +69,12 @@
 #include <ompl/geometric/planners/prm/LazyPRMstar.h>
 #include <ompl/geometric/planners/prm/SPARS.h>
 #include <ompl/geometric/planners/prm/SPARStwo.h>
+// TODO: remove when ROS Melodic and older are no longer supported
+#if OMPL_VERSION_VALUE >= 1005000
+#include <ompl/geometric/planners/informedtrees/AITstar.h>
+#include <ompl/geometric/planners/informedtrees/ABITstar.h>
+#include <ompl/geometric/planners/informedtrees/BITstar.h>
+#endif
 
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
@@ -290,6 +299,12 @@ void ompl_interface::PlanningContextManager::registerDefaultPlanners()
   registerPlannerAllocatorHelper<og::SPARStwo>("geometric::SPARStwo");
   registerPlannerAllocatorHelper<og::STRIDE>("geometric::STRIDE");
   registerPlannerAllocatorHelper<og::TRRT>("geometric::TRRT");
+// TODO: remove when ROS Melodic and older are no longer supported
+#if OMPL_VERSION_VALUE >= 1005000
+  registerPlannerAllocatorHelper<og::AITstar>("geometric::AITstar");
+  registerPlannerAllocatorHelper<og::ABITstar>("geometric::ABITstar");
+  registerPlannerAllocatorHelper<og::BITstar>("geometric::BITstar");
+#endif
 }
 
 void ompl_interface::PlanningContextManager::registerDefaultStateSpaces()
@@ -300,7 +315,7 @@ void ompl_interface::PlanningContextManager::registerDefaultStateSpaces()
 
 ompl_interface::ConfiguredPlannerSelector ompl_interface::PlanningContextManager::getPlannerSelector() const
 {
-  return std::bind(&PlanningContextManager::plannerSelector, this, std::placeholders::_1);
+  return [this](const std::string& planner) { return plannerSelector(planner); };
 }
 
 void ompl_interface::PlanningContextManager::setPlannerConfigurations(
@@ -310,11 +325,8 @@ void ompl_interface::PlanningContextManager::setPlannerConfigurations(
 }
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
-    const planning_interface::PlannerConfigurationSettings& config,
-    const StateSpaceFactoryTypeSelector& factory_selector, const moveit_msgs::MotionPlanRequest& /*req*/) const
+    const planning_interface::PlannerConfigurationSettings& config, const ModelBasedStateSpaceFactoryPtr& factory) const
 {
-  const ompl_interface::ModelBasedStateSpaceFactoryPtr& factory = factory_selector(config.group);
-
   // Check for a cached planning context
   ModelBasedPlanningContextPtr context;
 
@@ -368,8 +380,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
 }
 
 const ompl_interface::ModelBasedStateSpaceFactoryPtr&
-ompl_interface::PlanningContextManager::getStateSpaceFactory1(const std::string& /* dummy */,
-                                                              const std::string& factory_type) const
+ompl_interface::PlanningContextManager::getStateSpaceFactory(const std::string& factory_type) const
 {
   auto f = factory_type.empty() ? state_space_factories_.begin() : state_space_factories_.find(factory_type);
   if (f != state_space_factories_.end())
@@ -383,8 +394,8 @@ ompl_interface::PlanningContextManager::getStateSpaceFactory1(const std::string&
 }
 
 const ompl_interface::ModelBasedStateSpaceFactoryPtr&
-ompl_interface::PlanningContextManager::getStateSpaceFactory2(const std::string& group,
-                                                              const moveit_msgs::MotionPlanRequest& req) const
+ompl_interface::PlanningContextManager::getStateSpaceFactory(const std::string& group,
+                                                             const moveit_msgs::MotionPlanRequest& req) const
 {
   // find the problem representation to use
   auto best = state_space_factories_.end();
@@ -462,16 +473,29 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   // However consecutive IK solutions are not checked for proximity at the moment and sometimes happen to be flipped,
   // leading to invalid trajectories. This workaround lets the user prevent this problem by forcing rejection sampling
   // in JointModelStateSpace.
-  StateSpaceFactoryTypeSelector factory_selector;
+  //
+  // Additionally, check if the requested planner is of the informed planner family (AITstar, ABITstar, BITstar) that
+  // does not support PoseModelStateSpace. If yes, force planning with JointModelStateSpace.
+  ModelBasedStateSpaceFactoryPtr factory;
   auto it = pc->second.config.find("enforce_joint_model_state_space");
 
-  if (it != pc->second.config.end() && boost::lexical_cast<bool>(it->second))
-    factory_selector = std::bind(&PlanningContextManager::getStateSpaceFactory1, this, std::placeholders::_1,
-                                 JointModelStateSpace::PARAMETERIZATION_TYPE);
-  else
-    factory_selector = std::bind(&PlanningContextManager::getStateSpaceFactory2, this, std::placeholders::_1, req);
+  auto type_it = pc->second.config.find("type");
+  std::string planner_type;
+  if (type_it != pc->second.config.end())
+    planner_type = type_it->second;
 
-  ModelBasedPlanningContextPtr context = getPlanningContext(pc->second, factory_selector, req);
+  if (it != pc->second.config.end() && boost::lexical_cast<bool>(it->second))
+    factory = getStateSpaceFactory(JointModelStateSpace::PARAMETERIZATION_TYPE);
+  else if (planner_type == "geometric::AITstar")
+    factory = getStateSpaceFactory(JointModelStateSpace::PARAMETERIZATION_TYPE);
+  else if (planner_type == "geometric::ABITstar")
+    factory = getStateSpaceFactory(JointModelStateSpace::PARAMETERIZATION_TYPE);
+  else if (planner_type == "geometric::BITstar")
+    factory = getStateSpaceFactory(JointModelStateSpace::PARAMETERIZATION_TYPE);
+  else
+    factory = getStateSpaceFactory(pc->second.group, req);
+
+  ModelBasedPlanningContextPtr context = getPlanningContext(pc->second, factory);
 
   if (context)
   {

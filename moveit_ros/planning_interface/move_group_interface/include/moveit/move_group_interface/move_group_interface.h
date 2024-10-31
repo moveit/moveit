@@ -39,6 +39,7 @@
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/robot_state/robot_state.h>
+#include <moveit/utils/moveit_error_code.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>
 #include <moveit_msgs/PlannerInterfaceDescription.h>
@@ -60,34 +61,7 @@ namespace moveit
 /** \brief Simple interface to MoveIt components */
 namespace planning_interface
 {
-class MoveItErrorCode : public moveit_msgs::MoveItErrorCodes
-{
-public:
-  MoveItErrorCode()
-  {
-    val = 0;
-  }
-  MoveItErrorCode(int code)
-  {
-    val = code;
-  }
-  MoveItErrorCode(const moveit_msgs::MoveItErrorCodes& code)
-  {
-    val = code.val;
-  }
-  explicit operator bool() const
-  {
-    return val == moveit_msgs::MoveItErrorCodes::SUCCESS;
-  }
-  bool operator==(const int c) const
-  {
-    return val == c;
-  }
-  bool operator!=(const int c) const
-  {
-    return val != c;
-  }
-};
+using MoveItErrorCode [[deprecated("Use moveit::core::MoveItErrorCode")]] = moveit::core::MoveItErrorCode;
 
 MOVEIT_CLASS_FORWARD(MoveGroupInterface);  // Defines MoveGroupInterfacePtr, ConstPtr, WeakPtr... etc
 
@@ -99,6 +73,24 @@ MOVEIT_CLASS_FORWARD(MoveGroupInterface);  // Defines MoveGroupInterfacePtr, Con
 class MoveGroupInterface
 {
 public:
+  /** \brief Default goal joint tolerance (0.1mm) if not specified with {robot description name}_kinematics/{joint model
+   * group name}/goal_joint_tolerance */
+  static constexpr double DEFAULT_GOAL_JOINT_TOLERANCE = 1e-4;
+
+  /** \brief Default goal position tolerance (0.1mm) if not specified with {robot description name}_kinematics/{joint
+   * model group name}/goal_position_tolerance */
+  static constexpr double DEFAULT_GOAL_POSITION_TOLERANCE = 1e-4;
+
+  /** \brief Default goal orientation tolerance (~0.1deg) if not specified with {robot description
+   * name}_kinematics/{joint model group name}/goal_orientation_tolerance */
+  static constexpr double DEFAULT_GOAL_ORIENTATION_TOLERANCE = 1e-3;
+
+  /** \brief Default allowed planning time (seconds) */
+  static constexpr double DEFAULT_ALLOWED_PLANNING_TIME = 5.0;
+
+  /** \brief Default number of planning attempts */
+  static constexpr int DEFAULT_NUM_PLANNING_ATTEMPTS = 1;
+
   /** \brief Default ROS parameter name from where to read the robot's URDF. Set to 'robot_description' */
   static const std::string ROBOT_DESCRIPTION;
 
@@ -198,20 +190,40 @@ public:
   /** \brief Get the available planning group names */
   const std::vector<std::string>& getJointModelGroupNames() const;
 
-  /** \brief Get vector of names of joints available in move group */
-  const std::vector<std::string>& getJointNames() const;
-
   /** \brief Get vector of names of links available in move group */
   const std::vector<std::string>& getLinkNames() const;
 
   /** \brief Get the joint angles for targets specified by name */
   std::map<std::string, double> getNamedTargetValues(const std::string& name) const;
 
-  /** \brief Get only the active (actuated) joints this instance operates on */
-  const std::vector<std::string>& getActiveJoints() const;
+  /** \brief Get names of all the joints in this group
 
-  /** \brief Get all the joints this instance operates on (including fixed joints)*/
+      The list includes fixed joints, so not all joints in the list can move.
+      This complete list is mainly useful when considering relative transforms. */
   const std::vector<std::string>& getJoints() const;
+
+  [[deprecated("use getVariableNames")]] const std::vector<std::string>& getJointNames() const
+  {
+    return getVariableNames();
+  }
+
+  /** \brief Get names of degrees of freedom in this group
+
+      This list does not include fixed joints, but does include mimic and passive joints.
+      Multi-DOF joints are represented as multiple separate entries.
+      It corresponds to the double vectors representing a robot state in the RobotState class.
+      The joints in this list define all information necessary to recreate a complete robot state
+      without additional knowledge. */
+  const std::vector<std::string>& getVariableNames() const;
+
+  /** \brief Get names of joints with an active (actuated) DOF in this group
+
+      This list includes *only* joints that MoveIt can actuate through a controller.
+      Mimic joints are excluded, but can be recomputed with the robot model.
+      Passive joints explicitly excluded and cannot be recomputed from this set of joints.
+
+      This list is primarily useful to process trajectories meant for execution. */
+  const std::vector<std::string>& getActiveJoints() const;
 
   /** \brief Get the number of variables used to describe the state of this group. This is larger or equal to the number
    * of DOF. */
@@ -268,6 +280,15 @@ public:
       the default value, which is defined in joint_limits.yaml of the moveit_config.
       If the value is greater than 1, it is set to 1.0. */
   void setMaxAccelerationScalingFactor(double max_acceleration_scaling_factor);
+
+  /** \brief Limit the maximum Cartesian speed for a given link.
+      The unit of the speed is meter per second and must be greater than 0.
+      The desired speed is a maximum bound. Slower parts of the trajectory will
+      be left unchanged. If no link_name is given, the first end effector tip will be assumed. */
+  void limitMaxCartesianLinkSpeed(const double max_speed, const std::string& link_name = "");
+
+  /** \brief Clear maximum Cartesian speed of the end effector. */
+  void clearMaxCartesianLinkSpeed();
 
   /** \brief Get the number of seconds set by setPlanningTime() */
   double getPlanningTime() const;
@@ -719,7 +740,7 @@ public:
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified
      target.
       This call is not blocking (does not wait for the execution of the trajectory to complete). */
-  MoveItErrorCode asyncMove();
+  moveit::core::MoveItErrorCode asyncMove();
 
   /** \brief Get the move_group action client used by the \e MoveGroupInterface.
       The client can be used for querying the execution state of the trajectory and abort trajectory execution
@@ -730,24 +751,24 @@ public:
      target.
       This call is always blocking (waits for the execution of the trajectory to complete) and requires an asynchronous
      spinner to be started.*/
-  MoveItErrorCode move();
+  moveit::core::MoveItErrorCode move();
 
   /** \brief Compute a motion plan that takes the group declared in the constructor from the current state to the
      specified
       target. No execution is performed. The resulting plan is stored in \e plan*/
-  MoveItErrorCode plan(Plan& plan);
+  moveit::core::MoveItErrorCode plan(Plan& plan);
 
   /** \brief Given a \e plan, execute it without waiting for completion. */
-  MoveItErrorCode asyncExecute(const Plan& plan);
+  moveit::core::MoveItErrorCode asyncExecute(const Plan& plan);
 
   /** \brief Given a \e robot trajectory, execute it without waiting for completion. */
-  MoveItErrorCode asyncExecute(const moveit_msgs::RobotTrajectory& trajectory);
+  moveit::core::MoveItErrorCode asyncExecute(const moveit_msgs::RobotTrajectory& trajectory);
 
   /** \brief Given a \e plan, execute it while waiting for completion. */
-  MoveItErrorCode execute(const Plan& plan);
+  moveit::core::MoveItErrorCode execute(const Plan& plan);
 
   /** \brief Given a \e robot trajectory, execute it while waiting for completion. */
-  MoveItErrorCode execute(const moveit_msgs::RobotTrajectory& trajectory);
+  moveit::core::MoveItErrorCode execute(const moveit_msgs::RobotTrajectory& trajectory);
 
   /** \brief Compute a Cartesian path that follows specified waypoints with a step size of at most \e eef_step meters
       between end effector configurations of consecutive points in the result \e trajectory. The reference frame for the
@@ -758,7 +779,14 @@ public:
       Return a value that is between 0.0 and 1.0 indicating the fraction of the path achieved as described by the
      waypoints.
       Return -1.0 in case of error. */
-  double computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step, double jump_threshold,
+  [[deprecated("Drop jump_threshold")]] double  //
+  computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step, double /*jump_threshold*/,
+                       moveit_msgs::RobotTrajectory& trajectory, bool avoid_collisions = true,
+                       moveit_msgs::MoveItErrorCodes* error_code = nullptr)
+  {
+    return computeCartesianPath(waypoints, eef_step, trajectory, avoid_collisions, error_code);
+  }
+  double computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step,
                               moveit_msgs::RobotTrajectory& trajectory, bool avoid_collisions = true,
                               moveit_msgs::MoveItErrorCodes* error_code = nullptr);
 
@@ -774,7 +802,14 @@ public:
       Return a value that is between 0.0 and 1.0 indicating the fraction of the path achieved as described by the
      waypoints.
       Return -1.0 in case of error. */
-  double computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step, double jump_threshold,
+  [[deprecated("Drop jump_threshold")]] double  //
+  computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step, double /*jump_threshold*/,
+                       moveit_msgs::RobotTrajectory& trajectory, const moveit_msgs::Constraints& path_constraints,
+                       bool avoid_collisions = true, moveit_msgs::MoveItErrorCodes* error_code = nullptr)
+  {
+    return computeCartesianPath(waypoints, eef_step, trajectory, path_constraints, avoid_collisions, error_code);
+  }
+  double computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step,
                               moveit_msgs::RobotTrajectory& trajectory,
                               const moveit_msgs::Constraints& path_constraints, bool avoid_collisions = true,
                               moveit_msgs::MoveItErrorCodes* error_code = nullptr);
@@ -824,19 +859,20 @@ public:
   /** \brief Pick up an object
 
       This applies a number of hard-coded default grasps */
-  MoveItErrorCode pick(const std::string& object, bool plan_only = false)
+  moveit::core::MoveItErrorCode pick(const std::string& object, bool plan_only = false)
   {
     return pick(constructPickupGoal(object, std::vector<moveit_msgs::Grasp>(), plan_only));
   }
 
   /** \brief Pick up an object given a grasp pose */
-  MoveItErrorCode pick(const std::string& object, const moveit_msgs::Grasp& grasp, bool plan_only = false)
+  moveit::core::MoveItErrorCode pick(const std::string& object, const moveit_msgs::Grasp& grasp, bool plan_only = false)
   {
     return pick(constructPickupGoal(object, { grasp }, plan_only));
   }
 
   /** \brief Pick up an object given possible grasp poses */
-  MoveItErrorCode pick(const std::string& object, std::vector<moveit_msgs::Grasp> grasps, bool plan_only = false)
+  moveit::core::MoveItErrorCode pick(const std::string& object, std::vector<moveit_msgs::Grasp> grasps,
+                                     bool plan_only = false)
   {
     return pick(constructPickupGoal(object, std::move(grasps), plan_only));
   }
@@ -845,40 +881,41 @@ public:
 
       Use as follows: first create the goal with constructPickupGoal(), then set \e possible_grasps and any other
       desired variable in the goal, and finally pass it on to this function */
-  MoveItErrorCode pick(const moveit_msgs::PickupGoal& goal);
+  moveit::core::MoveItErrorCode pick(const moveit_msgs::PickupGoal& goal);
 
   /** \brief Pick up an object
 
       calls the external moveit_msgs::GraspPlanning service "plan_grasps" to compute possible grasps */
-  MoveItErrorCode planGraspsAndPick(const std::string& object = "", bool plan_only = false);
+  moveit::core::MoveItErrorCode planGraspsAndPick(const std::string& object = "", bool plan_only = false);
 
   /** \brief Pick up an object
 
       calls the external moveit_msgs::GraspPlanning service "plan_grasps" to compute possible grasps */
-  MoveItErrorCode planGraspsAndPick(const moveit_msgs::CollisionObject& object, bool plan_only = false);
+  moveit::core::MoveItErrorCode planGraspsAndPick(const moveit_msgs::CollisionObject& object, bool plan_only = false);
 
   /** \brief Place an object somewhere safe in the world (a safe location will be detected) */
-  MoveItErrorCode place(const std::string& object, bool plan_only = false)
+  moveit::core::MoveItErrorCode place(const std::string& object, bool plan_only = false)
   {
     return place(constructPlaceGoal(object, std::vector<moveit_msgs::PlaceLocation>(), plan_only));
   }
 
   /** \brief Place an object at one of the specified possible locations */
-  MoveItErrorCode place(const std::string& object, std::vector<moveit_msgs::PlaceLocation> locations,
-                        bool plan_only = false)
+  moveit::core::MoveItErrorCode place(const std::string& object, std::vector<moveit_msgs::PlaceLocation> locations,
+                                      bool plan_only = false)
   {
     return place(constructPlaceGoal(object, std::move(locations), plan_only));
   }
 
   /** \brief Place an object at one of the specified possible locations */
-  MoveItErrorCode place(const std::string& object, const std::vector<geometry_msgs::PoseStamped>& poses,
-                        bool plan_only = false)
+  moveit::core::MoveItErrorCode place(const std::string& object, const std::vector<geometry_msgs::PoseStamped>& poses,
+                                      bool plan_only = false)
   {
     return place(constructPlaceGoal(object, posesToPlaceLocations(poses), plan_only));
   }
 
   /** \brief Place an object at one of the specified possible location */
-  MoveItErrorCode place(const std::string& object, const geometry_msgs::PoseStamped& pose, bool plan_only = false)
+  moveit::core::MoveItErrorCode place(const std::string& object, const geometry_msgs::PoseStamped& pose,
+                                      bool plan_only = false)
   {
     return place(constructPlaceGoal(object, posesToPlaceLocations({ pose }), plan_only));
   }
@@ -887,7 +924,7 @@ public:
 
       Use as follows: first create the goal with constructPlaceGoal(), then set \e place_locations and any other
       desired variable in the goal, and finally pass it on to this function */
-  MoveItErrorCode place(const moveit_msgs::PlaceGoal& goal);
+  moveit::core::MoveItErrorCode place(const moveit_msgs::PlaceGoal& goal);
 
   /** \brief Given the name of an object in the planning scene, make
       the object attached to a link of the robot.  If no link name is

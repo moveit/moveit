@@ -61,7 +61,7 @@ namespace testing
  * {
  *     EXPECT_CALL(*this, myMethod()).Times(1).WillOnce(ACTION_OPEN_BARRIER_VOID("myMethod"));
  *     const int timeout_ms {100};
- *     asyncCall(std::bind(&MyTest::myMethod, this));
+ *     asyncCall([this]{ myMethod(); });
  *     BARRIER("myMethod", timeout_ms) << "Timed-out waiting for myMethod call.";
  * }
  * \endcode

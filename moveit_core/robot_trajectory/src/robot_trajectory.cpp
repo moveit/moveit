@@ -439,7 +439,7 @@ RobotTrajectory& RobotTrajectory::setRobotTrajectoryMsg(const moveit::core::Robo
   return setRobotTrajectoryMsg(st, trajectory);
 }
 
-void RobotTrajectory::findWayPointIndicesForDurationAfterStart(const double& duration, int& before, int& after,
+void RobotTrajectory::findWayPointIndicesForDurationAfterStart(const double duration, int& before, int& after,
                                                                double& blend) const
 {
   if (duration < 0.0)
@@ -504,4 +504,15 @@ bool RobotTrajectory::getStateAtDurationFromStart(const double request_duration,
   return true;
 }
 
+double path_length(RobotTrajectory const& trajectory)
+{
+  auto trajectory_length = 0.0;
+  for (std::size_t index = 1; index < trajectory.getWayPointCount(); ++index)
+  {
+    auto const& first = trajectory.getWayPoint(index - 1);
+    auto const& second = trajectory.getWayPoint(index);
+    trajectory_length += first.distance(second);
+  }
+  return trajectory_length;
+}
 }  // end of namespace robot_trajectory

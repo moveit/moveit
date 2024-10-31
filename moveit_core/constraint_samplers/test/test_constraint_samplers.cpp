@@ -46,6 +46,7 @@
 #include <geometric_shapes/shape_operations.h>
 #include <visualization_msgs/MarkerArray.h>
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
@@ -82,8 +83,8 @@ protected:
     pr2_kinematics_plugin_left_arm_->initialize(*robot_model_, "left_arm", "torso_lift_link", { "l_wrist_roll_link" },
                                                 .01);
 
-    func_right_arm_ = std::bind(&LoadPlanningModelsPr2::getKinematicsSolverRightArm, this, std::placeholders::_1);
-    func_left_arm_ = std::bind(&LoadPlanningModelsPr2::getKinematicsSolverLeftArm, this, std::placeholders::_1);
+    func_right_arm_ = [this](const moveit::core::JointModelGroup* jmg) { return getKinematicsSolverRightArm(jmg); };
+    func_left_arm_ = [this](const moveit::core::JointModelGroup* jmg) { return getKinematicsSolverLeftArm(jmg); };
 
     std::map<std::string, moveit::core::SolverAllocatorFn> allocators;
     allocators["right_arm"] = func_right_arm_;
@@ -1123,9 +1124,120 @@ TEST_F(LoadPlanningModelsPr2, SubgroupPoseConstraintsSampler)
                  (double)succ / (double)NT);
 }
 
+TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSeeded)
+{
+  ros::param::set("~joint_constraint_sampler_random_seed", 12345);
+  constraint_samplers::JointConstraintSampler seeded_sampler1(ps_, "right_arm");
+  kinematic_constraints::JointConstraint jc(robot_model_);
+  moveit_msgs::JointConstraint jcm;
+  jcm.position = 0.42;
+  jcm.tolerance_above = 0.01;
+  jcm.tolerance_below = 0.05;
+  jcm.weight = 1.0;
+  jcm.joint_name = "r_shoulder_pan_joint";
+  EXPECT_TRUE(jc.configure(jcm));
+  std::vector<kinematic_constraints::JointConstraint> js;
+  js.push_back(jc);
+  EXPECT_TRUE(seeded_sampler1.configure(js));
+
+  moveit::core::RobotState ks(robot_model_);
+  ks.setToDefaultValues();
+  EXPECT_TRUE(seeded_sampler1.sample(ks, ks, 1));
+  const double* joint_positions = ks.getVariablePositions();
+  const std::vector<double> joint_positions_v(joint_positions, joint_positions + ks.getVariableCount());
+
+  constraint_samplers::JointConstraintSampler seeded_sampler2(ps_, "right_arm");
+  EXPECT_TRUE(seeded_sampler2.configure(js));
+  ks.setToDefaultValues();
+  EXPECT_TRUE(seeded_sampler2.sample(ks, ks, 1));
+  const double* joint_positions2 = ks.getVariablePositions();
+  const std::vector<double> joint_positions_v2(joint_positions2, joint_positions2 + ks.getVariableCount());
+  using namespace testing;
+  EXPECT_THAT(joint_positions_v, ContainerEq(joint_positions_v2));
+
+  ros::param::del("~joint_constraint_sampler_random_seed");
+  constraint_samplers::JointConstraintSampler seeded_sampler3(ps_, "right_arm");
+  EXPECT_TRUE(seeded_sampler3.configure(js));
+  ks.setToDefaultValues();
+  EXPECT_TRUE(seeded_sampler3.sample(ks, ks, 5));
+  const double* joint_positions3 = ks.getVariablePositions();
+  const std::vector<double> joint_positions_v3(joint_positions3, joint_positions3 + ks.getVariableCount());
+  EXPECT_THAT(joint_positions_v, Not(ContainerEq(joint_positions_v3)));
+  EXPECT_THAT(joint_positions_v2, Not(ContainerEq(joint_positions_v3)));
+}
+
+TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerSeeded)
+{
+  ros::param::set("~ik_constraint_sampler_random_seed", 12345);
+  kinematic_constraints::PositionConstraint pc(robot_model_);
+  moveit_msgs::PositionConstraint pcm;
+
+  pcm.link_name = "l_wrist_roll_link";
+  pcm.target_point_offset.x = 0;
+  pcm.target_point_offset.y = 0;
+  pcm.target_point_offset.z = 0;
+  pcm.constraint_region.primitives.resize(1);
+  pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
+  pcm.constraint_region.primitives[0].dimensions.resize(1);
+  pcm.constraint_region.primitives[0].dimensions[0] = 0.001;
+
+  pcm.constraint_region.primitive_poses.resize(1);
+  pcm.constraint_region.primitive_poses[0].position.x = 0.55;
+  pcm.constraint_region.primitive_poses[0].position.y = 0.2;
+  pcm.constraint_region.primitive_poses[0].position.z = 1.25;
+  pcm.constraint_region.primitive_poses[0].orientation.x = 0.0;
+  pcm.constraint_region.primitive_poses[0].orientation.y = 0.0;
+  pcm.constraint_region.primitive_poses[0].orientation.z = 0.0;
+  pcm.constraint_region.primitive_poses[0].orientation.w = 1.0;
+  pcm.weight = 1.0;
+
+  pcm.header.frame_id = robot_model_->getModelFrame();
+  moveit::core::Transforms& tf = ps_->getTransformsNonConst();
+  EXPECT_TRUE(pc.configure(pcm, tf));
+
+  constraint_samplers::IKConstraintSampler seeded_sampler1(ps_, "left_arm");
+  EXPECT_TRUE(seeded_sampler1.configure(constraint_samplers::IKSamplingPose(pc)));
+
+  moveit::core::RobotState ks(robot_model_);
+  ks.setToDefaultValues();
+  ks.update();
+
+  EXPECT_TRUE(seeded_sampler1.sample(ks, ks, 1));
+  ks.update();
+  bool found = false;
+  const Eigen::Isometry3d root_to_left_tool1 = ks.getFrameTransform("l_gripper_tool_frame", &found);
+  EXPECT_TRUE(found);
+
+  constraint_samplers::IKConstraintSampler seeded_sampler2(ps_, "left_arm");
+  EXPECT_TRUE(seeded_sampler2.configure(constraint_samplers::IKSamplingPose(pc)));
+  ks.setToDefaultValues();
+  ks.update();
+  EXPECT_TRUE(seeded_sampler2.sample(ks, ks, 1));
+  ks.update();
+  found = false;
+  const Eigen::Isometry3d root_to_left_tool2 = ks.getFrameTransform("l_gripper_tool_frame", &found);
+  EXPECT_TRUE(found);
+
+  ros::param::del("~ik_constraint_sampler_random_seed");
+  constraint_samplers::IKConstraintSampler seeded_sampler3(ps_, "left_arm");
+  EXPECT_TRUE(seeded_sampler3.configure(constraint_samplers::IKSamplingPose(pc)));
+  ks.setToDefaultValues();
+  ks.update();
+  EXPECT_TRUE(seeded_sampler3.sample(ks, ks, 5));
+  ks.update();
+  found = false;
+  const Eigen::Isometry3d root_to_left_tool3 = ks.getFrameTransform("l_gripper_tool_frame", &found);
+  EXPECT_TRUE(found);
+
+  EXPECT_TRUE((root_to_left_tool1 * root_to_left_tool2.inverse()).matrix().isIdentity(1e-7));
+  EXPECT_FALSE((root_to_left_tool1 * root_to_left_tool3.inverse()).matrix().isIdentity(1e-7));
+  EXPECT_FALSE((root_to_left_tool2 * root_to_left_tool3.inverse()).matrix().isIdentity(1e-7));
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
-  ros::Time::init();
+  ros::init(argc, argv, "test_constraint_samplers");
+  ros::NodeHandle nh;
   return RUN_ALL_TESTS();
 }

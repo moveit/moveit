@@ -37,7 +37,7 @@
                 " />
   -->
 
-  <arg name="load_robot_description" default="true" />
+  <arg name="load_robot_description" default="false" />
   <!-- load URDF, SRDF and joint_limits configuration -->
   <include file="$(dirname)/planning_context.launch">
     <arg name="load_robot_description" value="$(arg load_robot_description)" />
@@ -90,6 +90,10 @@
     <param name="default_planning_pipeline" value="$(arg pipeline)" />
     <param name="capabilities" value="$(arg capabilities)" />
     <param name="disable_capabilities" value="$(arg disable_capabilities)" />
+
+    <!-- do not copy dynamics information from /joint_states to internal robot monitoring
+         default to false, because almost nothing in move_group relies on this information -->
+    <param name="monitor_dynamics" value="false" />
 
     <!-- Publish the planning scene of the physical robot so that rviz plugin can know actual robot -->
     <param name="planning_scene_monitor/publish_planning_scene" value="$(arg publish_monitored_planning_scene)" />

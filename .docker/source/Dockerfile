@@ -5,14 +5,14 @@
 
 ARG IMAGE=noetic
 FROM moveit/moveit:${IMAGE}-ci-testing
-MAINTAINER Robert Haschke rhaschke@techfak.uni-bielefeld.de
+LABEL org.opencontainers.image.authors="Robert Haschke <rhaschke@techfak.uni-bielefeld.de>"
 
-ENV PYTHONIOENCODING UTF-8
+ENV PYTHONIOENCODING=UTF-8
 # Export ROS_UNDERLAY for downstream docker containers
-ENV ROS_UNDERLAY /root/ws_moveit/install
+ENV ROS_UNDERLAY=/root/ws_moveit/install
 # Environment variable used in instructions on moveit.ros.org website for running clang-tidy
-ENV CATKIN_WS $(realpath $ROS_UNDERLAY/..)
-WORKDIR $ROS_UNDERLAY/..
+ENV CATKIN_WS=$ROS_UNDERLAY/..
+WORKDIR $CATKIN_WS
 
 # Copy MoveIt sources from docker context
 COPY . src/moveit
@@ -24,7 +24,7 @@ RUN --mount=type=cache,target=/root/.ccache/ \
     PATH=/usr/lib/ccache:$PATH && \
     # Fetch required upstream sources for building
     wstool init --shallow src src/moveit/.github/workflows/upstream.rosinstall && \
-    git clone --depth 1 --branch master https://github.com/ros-planning/moveit_resources src/moveit_resources && \
+    git clone --depth 1 --branch master https://github.com/moveit/moveit_resources src/moveit_resources && \
     #
     catkin config --extend /opt/ros/$ROS_DISTRO --install --cmake-args -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON && \
     # Status rate is limited so that just enough info is shown to keep Docker from timing out,

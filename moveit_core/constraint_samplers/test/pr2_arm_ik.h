@@ -117,8 +117,7 @@ inline bool solveCosineEqn(const double& a, const double& b, const double& c, do
 class PR2ArmIK
 {
 public:
-  /** @class
-   *  @brief Inverse kinematics for the PR2 arm.
+  /** @brief Inverse kinematics for the PR2 arm.
    *  @author Sachin Chitta <sachinc@willowgarage.com>
    *
    */
@@ -127,35 +126,33 @@ public:
 
   /**
       @brief Initialize the solver by providing a urdf::Model and a root and tip name.
-      @param A urdf::Model representation of the PR2 robot model
-      @param The root joint name of the arm
-      @param The tip joint name of the arm
+      @param robot_model  A urdf::Model representation of the PR2 robot model
+      @param root_name    The root joint name of the arm
+      @param tip_name     The tip joint name of the arm
       @return true if initialization was successful, false otherwise.
   */
   bool init(const urdf::ModelInterface& robot_model, const std::string& root_name, const std::string& tip_name);
 
   /**
      @brief compute IK based on an initial guess for the shoulder pan angle.
-     @param Input pose for end-effector
-     @param Initial guess for shoulder pan angle
+     @param g_in                       Input pose for end-effector
+     @param shoulder_pan_initial_guess Initial guess for shoulder pan angle
   */
   void computeIKShoulderPan(const Eigen::Isometry3f& g_in, const double& shoulder_pan_initial_guess,
                             std::vector<std::vector<double> >& solution) const;
 
   /**
      @brief compute IK based on an initial guess for the shoulder roll angle.
-     h       @param Input pose for end-effector
-     @param Initial guess for shoulder roll angle
+     @param g_in                        Input pose for end-effector
+     @param shoulder_roll_initial_guess Initial guess for shoulder roll angle
   */
   void computeIKShoulderRoll(const Eigen::Isometry3f& g_in, const double& shoulder_roll_initial_guess,
                              std::vector<std::vector<double> >& solution) const;
 
-  //  std::vector<std::vector<double> > solution_ik_;/// a vector of ik solutions
-
   /**
      @brief get chain information about the arm. This populates the IK query response, filling in joint level
      information including names and joint limits.
-     @param The response structure to be filled in.
+     @param info The response structure to be filled in.
   */
   void getSolverInfo(moveit_msgs::KinematicSolverInfo& info);
 

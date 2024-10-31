@@ -2,6 +2,60 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.16 (2024-10-07)
+-------------------
+
+1.1.15 (2024-09-09)
+-------------------
+
+1.1.14 (2024-05-27)
+-------------------
+* Addressing discrepancies in angle parameter definition between IKFast solvers and the plugin template (`#3489 <https://github.com/ros-planning/moveit/issues/3489>`_)
+* Constrain orocos_kdl to ROS Melodic
+* Contributors: Michael Görner, Robert Haschke, nothingstopsme
+
+1.1.13 (2023-07-28)
+-------------------
+* Improvements to create_ikfast_moveit_plugin.py (`#3449 <https://github.com/ros-planning/moveit/issues/3449>`_)
+  * Make SRDF sanity checks optional
+  * Provide hint how to change kinematics.yaml if automatic adaption fails
+  * Modernize string formatting to Python 3.x
+  * Create new planning group entry in kinematics.yaml if needed
+* Contributors: Robert Haschke
+
+1.1.12 (2023-05-13)
+-------------------
+* Fix deprecation warnings in Debian bookworm (`#3397 <https://github.com/ros-planning/moveit/issues/3397>`_)
+* Fix (some) doxygen warnings (`#3315 <https://github.com/ros-planning/moveit/issues/3315>`_)
+* Drop lib/ prefix from plugin paths (`#3305 <https://github.com/ros-planning/moveit/issues/3305>`_)
+* Contributors: Jochen Sprickerhof, Michael Görner, Robert Haschke
+
+1.1.11 (2022-12-21)
+-------------------
+* kinematics: add ``program_options`` as required boost component (`#3269 <https://github.com/ros-planning/moveit/issues/3269>`_)
+* Contributors: Jochen Sprickerhof
+
+1.1.10 (2022-09-13)
+-------------------
+* Merge PR `#3172 <https://github.com/ros-planning/moveit/issues/3172>`_: Fix CI
+* Fix test_ikfast_plugins.sh
+* auto_create_ikfast_moveit_plugin.sh: allow xacro input
+* Switch to hpp headers of pluginlib
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Contributors: Jochen Sprickerhof, Michael Görner, Robert Haschke
+
+1.1.9 (2022-03-06)
+------------------
+
+1.1.8 (2022-01-30)
+------------------
+
+1.1.7 (2021-12-31)
+------------------
+* ``round_collada_numbers.py``: python 2/3 compatibility (`#2983 <https://github.com/ros-planning/moveit/issues/2983>`_)
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* Contributors: Jochen Sprickerhof, Tomislav Bazina
+
 1.1.6 (2021-11-06)
 ------------------
 * Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``

@@ -172,7 +172,8 @@ void CommandListManager::setStartState(const MotionResponseCont& motion_plan_res
   RobotState_OptRef rob_state_op{ getPreviousEndState(motion_plan_responses, group_name) };
   if (rob_state_op)
   {
-    moveit::core::robotStateToRobotStateMsg(rob_state_op.value(), start_state);
+    moveit::core::robotStateToRobotStateMsg(rob_state_op.value(), start_state, false);
+    start_state.is_diff = true;
   }
 }
 
@@ -239,7 +240,7 @@ CommandListManager::solveSequenceItems(const planning_scene::PlanningSceneConstP
     if (res.error_code_.val != res.error_code_.SUCCESS)
     {
       std::ostringstream os;
-      os << "Could not solve request\n---\n" << req << "\n---\n";
+      os << "Could not solve request\n";
       throw PlanningPipelineException(os.str(), res.error_code_.val);
     }
     motion_plan_responses.emplace_back(res);

@@ -41,6 +41,7 @@
 #include <pluginlib/class_loader.hpp>
 #include <ros/ros.h>
 
+#include <atomic>
 #include <memory>
 
 /** \brief Planning pipeline */
@@ -166,8 +167,17 @@ public:
     return robot_model_;
   }
 
+  /** \brief Get current status of the planning pipeline */
+  [[nodiscard]] bool isActive() const
+  {
+    return active_;
+  }
+
 private:
   void configure();
+
+  // Flag that indicates whether or not the planning pipeline is currently solving a planning problem
+  mutable std::atomic<bool> active_;
 
   // The NodeHandle to initialize the PlanningPipeline (parameters plugins) with
   ros::NodeHandle pipeline_nh_;

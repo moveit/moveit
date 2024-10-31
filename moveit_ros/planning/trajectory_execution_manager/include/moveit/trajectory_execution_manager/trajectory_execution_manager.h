@@ -165,40 +165,6 @@ public:
   /// waitForExecution()
   moveit_controller_manager::ExecutionStatus executeAndWait(bool auto_clear = true);
 
-  /// Add a trajectory for immediate execution. Optionally specify a controller to use for the trajectory. If no
-  /// controller is specified, a default is used. This call is non-blocking.
-  bool pushAndExecute(const moveit_msgs::RobotTrajectory& trajectory, const std::string& controller = "");
-
-  /// Add a trajectory for immediate execution. Optionally specify a controller to use for the trajectory. If no
-  /// controller is specified, a default is used. This call is non-blocking.
-  bool pushAndExecute(const trajectory_msgs::JointTrajectory& trajectory, const std::string& controller = "");
-
-  /// Add a trajectory that consists of a single state for immediate execution. Optionally specify a controller to use
-  /// for the trajectory.
-  /// If no controller is specified, a default is used. This call is non-blocking.
-  bool pushAndExecute(const sensor_msgs::JointState& state, const std::string& controller = "");
-
-  /// Add a trajectory for immediate execution. Optionally specify a set of controllers to consider using for the
-  /// trajectory. Multiple controllers can be used simultaneously
-  /// to execute the different parts of the trajectory. If multiple controllers can be used, preference is given to the
-  /// already loaded ones.
-  /// If no controller is specified, a default is used. This call is non-blocking.
-  bool pushAndExecute(const trajectory_msgs::JointTrajectory& trajectory, const std::vector<std::string>& controllers);
-
-  /// Add a trajectory for immediate execution. Optionally specify a set of controllers to consider using for the
-  /// trajectory. Multiple controllers can be used simultaneously
-  /// to execute the different parts of the trajectory. If multiple controllers can be used, preference is given to the
-  /// already loaded ones.
-  /// If no controller is specified, a default is used. This call is non-blocking.
-  bool pushAndExecute(const moveit_msgs::RobotTrajectory& trajectory, const std::vector<std::string>& controllers);
-
-  /// Add a trajectory that consists of a single state for immediate execution. Optionally specify a set of controllers
-  /// to consider using for the trajectory.
-  /// Multiple controllers can be used simultaneously to execute the different parts of the trajectory. If multiple
-  /// controllers can be used, preference
-  /// is given to the already loaded ones. If no controller is specified, a default is used. This call is non-blocking.
-  bool pushAndExecute(const sensor_msgs::JointState& state, const std::vector<std::string>& controllers);
-
   /// Wait until the execution is complete. This only works for executions started by execute().  If you call this after
   /// pushAndExecute(), it will immediately stop execution.
   moveit_controller_manager::ExecutionStatus waitForExecution();
@@ -292,7 +258,6 @@ private:
                      bool auto_clear);
   bool executePart(std::size_t part_index);
   bool waitForRobotToStop(const TrajectoryExecutionContext& context, double wait_time = 1.0);
-  void continuousExecutionThread();
 
   void stopExecutionInternal();
 
@@ -300,8 +265,8 @@ private:
 
   void loadControllerParams();
 
-  // Name of this class for logging
-  const std::string name_ = "trajectory_execution_manager";
+  double getJointAllowedStartTolerance(std::string const& jointName) const;
+  void updateJointsAllowedStartTolerance();
 
   moveit::core::RobotModelConstPtr robot_model_;
   planning_scene_monitor::CurrentStateMonitorPtr csm_;
@@ -315,14 +280,8 @@ private:
   // thread used to execute trajectories using the execute() command
   std::unique_ptr<boost::thread> execution_thread_;
 
-  // thread used to execute trajectories using pushAndExecute()
-  std::unique_ptr<boost::thread> continuous_execution_thread_;
-
   boost::mutex execution_state_mutex_;
-  boost::mutex continuous_execution_mutex_;
   boost::mutex execution_thread_mutex_;
-
-  boost::condition_variable continuous_execution_condition_;
 
   // this condition is used to notify the completion of execution for given trajectories
   boost::condition_variable execution_complete_condition_;
@@ -334,10 +293,7 @@ private:
   mutable boost::mutex time_index_mutex_;
   bool execution_complete_;
 
-  bool stop_continuous_execution_;
-  bool run_continuous_execution_thread_;
   std::vector<TrajectoryExecutionContext*> trajectories_;
-  std::deque<TrajectoryExecutionContext*> continuous_execution_queue_;
 
   std::unique_ptr<pluginlib::ClassLoader<moveit_controller_manager::MoveItControllerManager> > controller_manager_loader_;
   moveit_controller_manager::MoveItControllerManagerPtr controller_manager_;
@@ -357,6 +313,8 @@ private:
   std::map<std::string, double> controller_allowed_goal_duration_margin_;
 
   double allowed_start_tolerance_;  // joint tolerance for validate(): radians for revolute joints
+  // tolerance per joint, overrides global allowed_start_tolerance_.
+  std::map<std::string, double> joints_allowed_start_tolerance_;
   double execution_velocity_scaling_;
   bool wait_for_trajectory_completion_;
 };

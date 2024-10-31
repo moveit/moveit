@@ -37,11 +37,10 @@
 #pragma once
 
 #include <moveit/macros/class_forward.h>
-#include <moveit/planning_scene/planning_scene.h>                     // for getting kinematic model
-#include <moveit/setup_assistant/tools/compute_default_collisions.h>  // for LinkPairMap
-#include <yaml-cpp/yaml.h>                                            // outputing yaml config files
-#include <urdf/model.h>                                               // to share throughout app
-#include <srdfdom/srdf_writer.h>                                      // for writing srdf data
+#include <moveit/planning_scene/planning_scene.h>  // for getting kinematic model
+#include <yaml-cpp/yaml.h>                         // outputing yaml config files
+#include <urdf/model.h>                            // to share throughout app
+#include <srdfdom/srdf_writer.h>                   // for writing srdf data
 
 #include <utility>
 
@@ -71,6 +70,9 @@ struct GroupMetaData
   std::string kinematics_solver_;               // Name of kinematics plugin to use
   double kinematics_solver_search_resolution_;  // resolution to use with solver
   double kinematics_solver_timeout_;            // solver timeout
+  double goal_joint_tolerance_;                 // joint tolerance for goal constraints
+  double goal_position_tolerance_;              // position tolerance for goal constraints
+  double goal_orientation_tolerance_;           // orientation tolerance for goal constraints
   std::string kinematics_parameters_file_;      // file for additional kinematics parameters
   std::string default_planner_;                 // Name of the default planner to use
 };
@@ -199,8 +201,9 @@ public:
     POSES = 1 << 6,
     END_EFFECTORS = 1 << 7,
     PASSIVE_JOINTS = 1 << 8,
-    AUTHOR_INFO = 1 << 9,
-    SENSORS_CONFIG = 1 << 10,
+    SIMULATION = 1 << 9,
+    AUTHOR_INFO = 1 << 10,
+    SENSORS_CONFIG = 1 << 11,
     SRDF = COLLISIONS | VIRTUAL_JOINTS | GROUPS | GROUP_CONTENTS | POSES | END_EFFECTORS | PASSIVE_JOINTS
   };
   unsigned long changes;  // bitfield of changes (composed of InformationFields)
@@ -230,6 +233,10 @@ public:
 
   /// URDF robot model string
   std::string urdf_string_;
+
+  /// Gazebo URDF robot model string
+  // NOTE: Created when the robot urdf is not compatible with Gazebo.
+  std::string gazebo_urdf_string_;
 
   // ******************************************************************************************
   // SRDF Data
@@ -300,7 +307,7 @@ public:
   srdf::Model::Group* findGroupByName(const std::string& name);
 
   /// Load the allowed collision matrix from the SRDF's list of link pairs
-  void loadAllowedCollisionMatrix();
+  void loadAllowedCollisionMatrix(const srdf::SRDFWriter& srdf);
 
   // ******************************************************************************************
   // Public Functions for outputting configuration and setting files
@@ -308,8 +315,9 @@ public:
   std::vector<OMPLPlannerDescription> getOMPLPlanners() const;
   std::map<std::string, double> getInitialJoints() const;
   bool outputSetupAssistantFile(const std::string& file_path);
+  bool outputGazeboURDFFile(const std::string& file_path);
   bool outputOMPLPlanningYAML(const std::string& file_path);
-  bool outputCHOMPPlanningYAML(const std::string& file_path);
+  bool outputSTOMPPlanningYAML(const std::string& file_path);
   bool outputKinematicsYAML(const std::string& file_path);
   bool outputJointLimitsYAML(const std::string& file_path);
   bool outputFakeControllersYAML(const std::string& file_path);
@@ -322,20 +330,6 @@ public:
    * \return controller type
    */
   std::string getJointHardwareInterface(const std::string& joint_name);
-
-  /**
-   * \brief Parses the existing urdf and constructs a string from it with the elements required by gazebo simulator
-   * added
-   * \return gazebo compatible urdf or empty if error encountered
-   */
-  std::string getGazeboCompatibleURDF();
-
-  /**
-   * \brief Set list of collision link pairs in SRDF; sorted; with optional filter
-   * \param link_pairs list of collision link pairs
-   * \param skip_mask mask of shifted moveit_setup_assistant::DisabledReason values that will be skipped
-   */
-  void setCollisionLinkPairs(const moveit_setup_assistant::LinkPairMap& link_pairs, size_t skip_mask = 0);
 
   /**
    * \brief Decide the best two joints to be used for the projection evaluator

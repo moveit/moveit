@@ -2,6 +2,61 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.16 (2024-10-07)
+-------------------
+
+1.1.15 (2024-09-09)
+-------------------
+* PSI: allow persistent connections for [get|apply]_planning_scene services (`#3628 <https://github.com/ros-planning/moveit/issues/3628>`_)
+* New implementation for computeCartesianPath (`#3618 <https://github.com/ros-planning/moveit/issues/3618>`_)
+* Contributors: Cesare Tonola, Robert Haschke
+
+1.1.14 (2024-05-27)
+-------------------
+* MoveGroupInterface: allow RobotState diffs as start state (`#3592 <https://github.com/ros-planning/moveit/issues/3592>`_)
+* Augment Python PlanningSceneInterface API (`#3534 <https://github.com/ros-planning/moveit/issues/3534>`_)
+* Add PlanningSceneInterface::clear() (`#3512 <https://github.com/ros-planning/moveit/issues/3512>`_)
+* PSI::getKnownObjectNamesInROI: consider collision object's pose (`#3477 <https://github.com/ros-planning/moveit/issues/3477>`_)
+* Contributors: Aaryan Murgunde, Jorge Santos Simón, Robert Haschke, Tom Noble
+
+1.1.13 (2023-07-28)
+-------------------
+* Add unittest for `#3467 <https://github.com/ros-planning/moveit/issues/3467>`_ (`#3470 <https://github.com/ros-planning/moveit/issues/3470>`_)
+* Contributors: Robert Haschke
+
+1.1.12 (2023-05-13)
+-------------------
+* Generalize RobotState::setFromIK() (`<https://github.com/ros-planning/moveit/issues/3388>`_)
+* Allow configuration of goal tolerances in kinematics.yaml (`#3409 <https://github.com/ros-planning/moveit/issues/3409>`_)
+* Rename MGI::getJointNames() to getVariableNames() (`#3345 <https://github.com/ros-planning/moveit/issues/3345>`_)
+* Contributors: Erich Mielke, Michael Görner, Robert Haschke
+
+1.1.11 (2022-12-21)
+-------------------
+
+1.1.10 (2022-09-13)
+-------------------
+* Limit Cartesian speed for link(s) (`#2856 <https://github.com/ros-planning/moveit/issues/2856>`_)
+* Generalize computeCartesianPath() to consider a link_offset (`#3197 <https://github.com/ros-planning/moveit/issues/3197>`_)
+* Validate JointState argument to `moveit_commander.set_joint_value_target` (`#3187 <https://github.com/ros-planning/moveit/issues/3187>`_)
+* Add dual arm test (`#3119 <https://github.com/ros-planning/moveit/issues/3119>`_)
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Replace obsolete distutils.core with setuptools (`#3103 <https://github.com/ros-planning/moveit/issues/3103>`_)
+* Contributors: Filip Sund, Michael Görner, Robert Haschke, Stephanie Eng, cambel, v4hn
+
+1.1.9 (2022-03-06)
+------------------
+
+1.1.8 (2022-01-30)
+------------------
+
+1.1.7 (2021-12-31)
+------------------
+* Move ``MoveItErrorCode`` class to ``moveit_core`` (`#3009 <https://github.com/ros-planning/moveit/issues/3009>`_)
+* Fix uninitialized ``RobotState`` in ``MoveGroupInterface`` (`#3008 <https://github.com/ros-planning/moveit/issues/3008>`_)
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* Contributors: Captain Yoshi, Jafar Abdi, Jochen Sprickerhof
+
 1.1.6 (2021-11-06)
 ------------------
 * Use test_environment.launch in unittests (`#2949 <https://github.com/ros-planning/moveit/issues/2949>`_)

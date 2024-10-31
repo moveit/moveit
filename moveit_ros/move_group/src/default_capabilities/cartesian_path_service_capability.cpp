@@ -45,6 +45,7 @@
 #include <moveit/robot_state/cartesian_interpolator.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
+#include <moveit/trajectory_processing/limit_cartesian_speed.h>
 
 namespace
 {
@@ -136,22 +137,36 @@ bool MoveGroupCartesianPathService::computeService(moveit_msgs::GetCartesianPath
             ls = std::make_unique<planning_scene_monitor::LockedPlanningSceneRO>(context_->planning_scene_monitor_);
             kset = std::make_unique<kinematic_constraints::KinematicConstraintSet>((*ls)->getRobotModel());
             kset->add(req.path_constraints, (*ls)->getTransforms());
-            constraint_fn = std::bind(
-                &isStateValid,
-                req.avoid_collisions ? static_cast<const planning_scene::PlanningSceneConstPtr&>(*ls).get() : nullptr,
-                kset->empty() ? nullptr : kset.get(), std::placeholders::_1, std::placeholders::_2,
-                std::placeholders::_3);
+            constraint_fn = [scene = req.avoid_collisions ?
+                                         static_cast<const planning_scene::PlanningSceneConstPtr&>(*ls).get() :
+                                         nullptr,
+                             kset_ptr = kset.get()](moveit::core::RobotState* robot_state,
+                                                    const moveit::core::JointModelGroup* joint_group,
+                                                    const double* joint_group_variable_values) {
+              return isStateValid(scene, kset_ptr, robot_state, joint_group, joint_group_variable_values);
+            };
           }
+          // resolve link_name
           bool global_frame = !moveit::core::Transforms::sameFrame(link_name, req.header.frame_id);
+          const moveit::core::LinkModel* link_model = nullptr;
+          bool found = false;
+          const Eigen::Isometry3d frame_pose = start_state.getFrameInfo(link_name, link_model, found);
+          if (!found)
+          {
+            ROS_ERROR_STREAM_NAMED(getName(), "Unknown frame: " << link_name);
+            res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+          }
           ROS_INFO_NAMED(getName(),
                          "Attempting to follow %u waypoints for link '%s' using a step of %lf m "
-                         "and jump threshold %lf (in %s reference frame)",
-                         (unsigned int)waypoints.size(), link_name.c_str(), req.max_step, req.jump_threshold,
+                         "(in %s reference frame)",
+                         (unsigned int)waypoints.size(), link_name.c_str(), req.max_step,
                          global_frame ? "global" : "link");
+
           std::vector<moveit::core::RobotStatePtr> traj;
           res.fraction = moveit::core::CartesianInterpolator::computeCartesianPath(
-              &start_state, jmg, traj, start_state.getLinkModel(link_name), waypoints, global_frame,
-              moveit::core::MaxEEFStep(req.max_step), moveit::core::JumpThreshold(req.jump_threshold), constraint_fn);
+              &start_state, jmg, traj, link_model, waypoints, global_frame, moveit::core::MaxEEFStep(req.max_step),
+              moveit::core::CartesianPrecision{}, constraint_fn, kinematics::KinematicsQueryOptions(),
+              start_state.getGlobalLinkTransform(link_model).inverse() * frame_pose);
           moveit::core::robotStateToRobotStateMsg(start_state, res.start_state);
 
           robot_trajectory::RobotTrajectory rt(context_->planning_scene_monitor_->getRobotModel(), req.group_name);
@@ -159,9 +174,15 @@ bool MoveGroupCartesianPathService::computeService(moveit_msgs::GetCartesianPath
             rt.addSuffixWayPoint(traj_state, 0.0);
 
           // time trajectory
-          // \todo optionally compute timing to move the eef with constant speed
           trajectory_processing::IterativeParabolicTimeParameterization time_param;
           time_param.computeTimeStamps(rt, 1.0);
+
+          // optionally compute timing to move the eef with constant speed
+          if (req.max_cartesian_speed > 0.0)
+          {
+            trajectory_processing::limitMaxCartesianLinkSpeed(rt, req.max_cartesian_speed,
+                                                              req.cartesian_speed_limited_link);
+          }
 
           rt.getRobotTrajectoryMsg(res.solution);
           ROS_INFO_NAMED(getName(), "Computed Cartesian path with %u points (followed %lf%% of requested trajectory)",

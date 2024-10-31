@@ -101,7 +101,7 @@ class RobotCommander(object):
             (Editor's comment by @130s) I doubt there's a case where this method goes into
             "else" block, because get_current_joint_values always return a single list.
 
-            cf. getCurrentJointValues https://github.com/ros-planning/moveit_ros/blob/8e819dda2b19462b8d0c5aacc69706c8a9d8d883/planning_interface/robot_interface/src/wrap_python_robot_interface.cpp#L176
+            cf. getCurrentJointValues https://github.com/moveit/moveit_ros/blob/8e819dda2b19462b8d0c5aacc69706c8a9d8d883/planning_interface/robot_interface/src/wrap_python_robot_interface.cpp#L176
             """
             vals = self._robot._r.get_current_joint_values(self._name)
             if len(vals) == 1:
@@ -192,7 +192,7 @@ class RobotCommander(object):
         return mrkr
 
     def get_root_link(self):
-        """Get the name of the root link of the robot model """
+        """Get the name of the root link of the robot model"""
         return self._r.get_robot_root_link()
 
     def get_active_joint_names(self, group=None):
@@ -241,7 +241,7 @@ class RobotCommander(object):
         return self._r.get_group_names()
 
     def get_current_state(self):
-        """ Get a RobotState message describing the current state of the robot"""
+        """Get a RobotState message describing the current state of the robot"""
         s = RobotState()
         s.deserialize(self._r.get_current_state())
         return s

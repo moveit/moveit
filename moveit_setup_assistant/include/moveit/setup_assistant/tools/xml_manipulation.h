@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2011, Willow Garage, Inc.
+ *  Copyright (c) 2022, Bielefeld University, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
+ *   * Neither the name of Bielefeld University nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -32,40 +32,28 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Robert Haschke */
 
 #pragma once
+#include <tinyxml.h>
+#include <vector>
 
-#include <ompl/base/StateSampler.h>
-#include <ompl/base/ValidStateSampler.h>
-#include <moveit/constraint_samplers/constraint_sampler.h>
-#include <moveit/macros/class_forward.h>
-
-namespace ompl_interface
+namespace moveit_setup_assistant
 {
-class ModelBasedPlanningContext;
-
-MOVEIT_CLASS_FORWARD(ValidStateSampler);  // Defines ValidStateSamplerPtr, ConstPtr, WeakPtr... etc
-
-/** @class ValidConstrainedSampler
- *  This class defines a sampler that tries to find a valid sample that satisfies the specified constraints */
-class ValidConstrainedSampler : public ompl::base::ValidStateSampler
+struct Attribute
 {
-public:
-  ValidConstrainedSampler(const ModelBasedPlanningContext* pc, kinematic_constraints::KinematicConstraintSetPtr ks,
-                          constraint_samplers::ConstraintSamplerPtr cs = constraint_samplers::ConstraintSamplerPtr());
-
-  bool sample(ompl::base::State* state) override;
-  virtual bool project(ompl::base::State* state);
-  bool sampleNear(ompl::base::State* state, const ompl::base::State* near, const double distance) override;
-
-private:
-  const ModelBasedPlanningContext* planning_context_;
-  kinematic_constraints::KinematicConstraintSetPtr kinematic_constraint_set_;
-  constraint_samplers::ConstraintSamplerPtr constraint_sampler_;
-  ompl::base::StateSamplerPtr default_sampler_;
-  moveit::core::RobotState work_state_;
-  double inv_dim_;
-  ompl::RNG rng_;
+  const char* name;
+  const char* value;
+  bool required = false;
 };
-}  // namespace ompl_interface
+
+/** Insert a new XML element with given tag, attributes and text value
+ *
+ *  If a corresponding element already exists (and has required attribute values), it is just reused.
+ *  All attributes are created or overwritten with given values.
+ *  A text value is created or overwritten with given value (if not NULL).
+ *  The element is returned */
+TiXmlElement* uniqueInsert(TiXmlElement& element, const char* tag, const std::vector<Attribute>& attributes = {},
+                           const char* text = nullptr);
+
+}  // namespace moveit_setup_assistant

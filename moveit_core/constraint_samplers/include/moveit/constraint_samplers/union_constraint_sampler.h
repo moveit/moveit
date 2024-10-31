@@ -112,24 +112,26 @@ public:
    * \brief No-op, as the union constraint sampler is for already
    * configured samplers
    *
-   * @param [in] constr Constraint message
+   * @param [in] constraint Constraint message
    *
    * @return Always true
    */
-  bool configure(const moveit_msgs::Constraints& /*constr*/) override
+  bool configure(const moveit_msgs::Constraints& constraint) override
   {
+    (void)constraint;
     return true;
   }
 
   /**
    * \brief No-op, as the union constraint sampler can act on anything
    *
-   * @param [in] constr Constraint message
+   * @param [in] constraint Constraint message
    *
    * @return Always true
    */
-  virtual bool canService(const moveit_msgs::Constraints& /*constr*/) const
+  virtual bool canService(const moveit_msgs::Constraints& constraint) const
   {
+    (void)constraint;
     return true;
   }
 
@@ -150,8 +152,6 @@ public:
    */
   bool sample(moveit::core::RobotState& state, const moveit::core::RobotState& reference_state,
               unsigned int max_attempts) override;
-
-  bool project(moveit::core::RobotState& state, unsigned int max_attempts) override;
 
   /**
    * \brief Get the name of the constraint sampler, for debugging purposes

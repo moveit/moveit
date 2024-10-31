@@ -121,17 +121,7 @@ bool pilz_industrial_motion_planner::PlanningContextBase<GeneratorT>::solve(plan
 {
   if (!terminated_)
   {
-    // Use current state as start state if not set
-    if (request_.start_state.joint_state.name.empty())
-    {
-      moveit_msgs::RobotState current_state;
-      moveit::core::robotStateToRobotStateMsg(getPlanningScene()->getCurrentState(), current_state);
-      request_.start_state = current_state;
-    }
-    bool result = generator_.generate(getPlanningScene(), request_, res);
-    return result;
-    // res.error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
-    // return false; // TODO
+    return generator_.generate(getPlanningScene(), request_, res);
   }
 
   ROS_ERROR("Using solve on a terminated planning context!");
