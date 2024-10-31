@@ -217,7 +217,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
 }
 
 bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                       const planning_interface::MotionPlanRequest& req,
+                                                       const planning_interface::MotionPlanRequest& request,
                                                        planning_interface::MotionPlanResponse& res,
                                                        std::vector<std::size_t>& adapter_added_state_index) const
 {
@@ -226,7 +226,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
 
   // broadcast the request we are about to work on, if needed
   if (publish_received_requests_)
-    received_request_publisher_.publish(req);
+    received_request_publisher_.publish(request);
   adapter_added_state_index.clear();
 
   if (!planner_instance_)
@@ -238,9 +238,9 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   }
 
   // resolve constraint frames
-  planning_interface::MotionPlanRequest modified_req = req;
-  kinematic_constraints::resolveConstraintFrames(planning_scene->getCurrentState(), modified_req.path_constraints);
-  for (moveit_msgs::Constraints& constraint : modified_req.goal_constraints)
+  planning_interface::MotionPlanRequest req = request;
+  kinematic_constraints::resolveConstraintFrames(planning_scene->getCurrentState(), req.path_constraints);
+  for (moveit_msgs::Constraints& constraint : req.goal_constraints)
     kinematic_constraints::resolveConstraintFrames(planning_scene->getCurrentState(), constraint);
 
   bool solved = false;
@@ -248,8 +248,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   {
     if (adapter_chain_)
     {
-      solved =
-          adapter_chain_->adaptAndPlan(planner_instance_, planning_scene, modified_req, res, adapter_added_state_index);
+      solved = adapter_chain_->adaptAndPlan(planner_instance_, planning_scene, req, res, adapter_added_state_index);
       if (!adapter_added_state_index.empty())
       {
         std::stringstream ss;
@@ -286,8 +285,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
       arr.markers.push_back(m);
 
       std::vector<std::size_t> index;
-      if (!planning_scene->isPathValid(*res.trajectory_, modified_req.path_constraints, modified_req.group_name, false,
-                                       &index))
+      if (!planning_scene->isPathValid(*res.trajectory_, req.path_constraints, req.group_name, false, &index))
       {
         // check to see if there is any problem with the states that are found to be invalid
         // they are considered ok if they were added by a planning request adapter
@@ -327,7 +325,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
             {
               // check validity with verbose on
               const moveit::core::RobotState& robot_state = res.trajectory_->getWayPoint(it);
-              planning_scene->isStateValid(robot_state, modified_req.path_constraints, modified_req.group_name, true);
+              planning_scene->isStateValid(robot_state, req.path_constraints, req.group_name, true);
 
               // compute the contacts if any
               collision_detection::CollisionRequest c_req;
