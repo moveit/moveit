@@ -555,10 +555,11 @@ bool OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& 
   // clearing out any old data
   clear();
 
-  link_model_ = robot_model_->getLinkModel(oc.link_name);
+  bool found;
+  link_model_ = robot_model_->getLinkModel(oc.link_name, &found);
   if (!link_model_)
   {
-    ROS_WARN_NAMED("kinematic_constraints", "Could not find link model for link name %s", oc.link_name.c_str());
+    ROS_WARN_NAMED("kinematic_constraints", "Could not find link model for link name '%s'", oc.link_name.c_str());
     return false;
   }
   Eigen::Quaterniond q;
