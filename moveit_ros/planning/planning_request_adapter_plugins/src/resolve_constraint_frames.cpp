@@ -46,6 +46,7 @@ class ResolveConstraintFrames : public planning_request_adapter::PlanningRequest
 public:
   ResolveConstraintFrames() : planning_request_adapter::PlanningRequestAdapter()
   {
+    ROS_WARN("The planning adapter 'ResolveConstraintFrames' is obsolete and can be removed from your config.");
   }
 
   void initialize(const ros::NodeHandle& /*nh*/) override
@@ -61,12 +62,7 @@ public:
                     const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
                     std::vector<std::size_t>& /*added_path_index*/) const override
   {
-    ROS_DEBUG("Running '%s'", getDescription().c_str());
-    planning_interface::MotionPlanRequest modified = req;
-    kinematic_constraints::resolveConstraintFrames(planning_scene->getCurrentState(), modified.path_constraints);
-    for (moveit_msgs::Constraints& constraint : modified.goal_constraints)
-      kinematic_constraints::resolveConstraintFrames(planning_scene->getCurrentState(), constraint);
-    return planner(planning_scene, modified, res);
+    return planner(planning_scene, req, res);
   }
 };
 
