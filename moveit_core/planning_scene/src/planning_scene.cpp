@@ -1774,26 +1774,15 @@ bool PlanningScene::shapesAndPosesFromCollisionObjectMessage(const moveit_msgs::
                                        const auto& shape_poses_vector,  // std::vector<const geometry_msgs::Pose>
                                        const std::string& shape_type) {
     if (shape_vector.size() > shape_poses_vector.size())
-    {
       ROS_DEBUG_STREAM_NAMED(LOGNAME, "Number of " << shape_type
                                                    << " does not match number of poses "
                                                       "in collision object message. Assuming identity.");
-      for (std::size_t i = 0; i < shape_vector.size(); ++i)
-      {
-        if (i >= shape_poses_vector.size())
-        {
-          // Empty shape pose => Identity
-          geometry_msgs::Pose identity;
-          identity.orientation.w = 1.0;
-          append(shapes::constructShapeFromMsg(shape_vector[i]), identity);
-        }
-        else
-          append(shapes::constructShapeFromMsg(shape_vector[i]), shape_poses_vector[i]);
-      }
-    }
-    else
-      for (std::size_t i = 0; i < shape_vector.size(); ++i)
-        append(shapes::constructShapeFromMsg(shape_vector[i]), shape_poses_vector[i]);
+
+    geometry_msgs::Pose identity;
+    identity.orientation.w = 1.0;
+    for (std::size_t i = 0; i < shape_vector.size(); ++i)
+      append(shapes::constructShapeFromMsg(shape_vector[i]),
+             i >= shape_poses_vector.size() ? identity : shape_poses_vector[i]);
   };
 
   treat_shape_vectors(object.primitives, object.primitive_poses, std::string("primitive_poses"));
