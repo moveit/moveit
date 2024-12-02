@@ -92,7 +92,7 @@ ros::Time CurrentStateMonitor::getCurrentStateTimeHelper(const std::string& grou
       return ros::Time(0.0);
     }
   }
-  auto oldest_state_time = ros::Time();
+  auto oldest_state_time = ros::Time::now();
   for (const moveit::core::JointModel* joint : *active_joints)
   {
     auto it = joint_time_.find(joint);
@@ -100,16 +100,8 @@ ros::Time CurrentStateMonitor::getCurrentStateTimeHelper(const std::string& grou
     {
       ROS_DEBUG_NAMED(LOGNAME, "Joint '%s' has never been updated", joint->getName().c_str());
     }
-    else
-    {
-      if (!oldest_state_time.isZero())
-      {
+    else if(!it->second.isZero()) {
         oldest_state_time = std::min(oldest_state_time, it->second);
-      }
-      else
-      {
-        oldest_state_time = it->second;
-      }
     }
   }
   return oldest_state_time;
