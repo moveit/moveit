@@ -1761,7 +1761,7 @@ bool PlanningScene::shapesAndPosesFromCollisionObjectMessage(const moveit_msgs::
   else
     PlanningScene::poseMsgToEigen(object.pose, object_pose);
 
-  auto append = [&object_pose, &shapes, &shape_poses](shapes::Shape* s, const geometry_msgs::Pose& pose_msg) {
+  auto append = [&shapes, &shape_poses](shapes::Shape* s, const geometry_msgs::Pose& pose_msg) {
     if (!s)
       return;
     Eigen::Isometry3d pose;
