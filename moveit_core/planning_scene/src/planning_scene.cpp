@@ -1756,29 +1756,17 @@ bool PlanningScene::shapesAndPosesFromCollisionObjectMessage(const moveit_msgs::
   shapes.reserve(num_shapes);
   shape_poses.reserve(num_shapes);
 
-  bool switch_object_pose_and_shape_pose = false;
-  if (num_shapes == 1 && moveit::core::isEmpty(object.pose))
-  {
-    // If the object pose is not set but the shape pose is, use the shape's pose as the object pose.
-    switch_object_pose_and_shape_pose = true;
+  if (moveit::core::isEmpty(object.pose))
     object_pose.setIdentity();
-  }
   else
     PlanningScene::poseMsgToEigen(object.pose, object_pose);
 
-  auto append = [&object_pose, &shapes, &shape_poses,
-                 &switch_object_pose_and_shape_pose](shapes::Shape* s, const geometry_msgs::Pose& pose_msg) {
+  auto append = [&object_pose, &shapes, &shape_poses](shapes::Shape* s, const geometry_msgs::Pose& pose_msg) {
     if (!s)
       return;
     Eigen::Isometry3d pose;
     PlanningScene::poseMsgToEigen(pose_msg, pose);
-    if (!switch_object_pose_and_shape_pose)
-      shape_poses.emplace_back(std::move(pose));
-    else
-    {
-      shape_poses.emplace_back(std::move(object_pose));
-      object_pose = pose;
-    }
+    shape_poses.emplace_back(std::move(pose));
     shapes.emplace_back(shapes::ShapeConstPtr(s));
   };
 
