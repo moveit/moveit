@@ -196,35 +196,36 @@ void mesh_filter::DepthSelfFiltering::addMeshes(MeshFilter<StereoCameraModel>& m
         transform_provider_.addHandle(mesh_handle, link->getName());
       }
 
-      else if (shape->type == shapes::BOX) {
-        shapes::Mesh* mesh = shapes::createMeshFromShape(
-            static_cast<const shapes::Box&>(*shape));
+      else if (shape->type == shapes::BOX)
+      {
+        shapes::Mesh* mesh = shapes::createMeshFromShape(static_cast<const shapes::Box&>(*shape));
         MeshHandle mesh_handle = mesh_filter.addMesh(*mesh);
         transform_provider_.addHandle(mesh_handle, link->getName());
       }
 
-      else if (shape->type == shapes::CONE) {
-        shapes::Mesh* mesh = shapes::createMeshFromShape(
-            static_cast<const shapes::Cone&>(*shape));
+      else if (shape->type == shapes::CONE)
+      {
+        shapes::Mesh* mesh = shapes::createMeshFromShape(static_cast<const shapes::Cone&>(*shape));
         MeshHandle mesh_handle = mesh_filter.addMesh(*mesh);
         transform_provider_.addHandle(mesh_handle, link->getName());
       }
 
-      else if (shape->type == shapes::CYLINDER) {
-        shapes::Mesh* mesh = shapes::createMeshFromShape(
-            static_cast<const shapes::Cylinder&>(*shape));
+      else if (shape->type == shapes::CYLINDER)
+      {
+        shapes::Mesh* mesh = shapes::createMeshFromShape(static_cast<const shapes::Cylinder&>(*shape));
         MeshHandle mesh_handle = mesh_filter.addMesh(*mesh);
         transform_provider_.addHandle(mesh_handle, link->getName());
       }
 
-      else if (shape->type == shapes::SPHERE) {
-        shapes::Mesh* mesh = shapes::createMeshFromShape(
-            static_cast<const shapes::Sphere&>(*shape));
+      else if (shape->type == shapes::SPHERE)
+      {
+        shapes::Mesh* mesh = shapes::createMeshFromShape(static_cast<const shapes::Sphere&>(*shape));
         MeshHandle mesh_handle = mesh_filter.addMesh(*mesh);
         transform_provider_.addHandle(mesh_handle, link->getName());
       }
 
-      else {
+      else
+      {
         ROS_INFO_STREAM("Shape " << shape->type << " is not supported!");
       }
     }
