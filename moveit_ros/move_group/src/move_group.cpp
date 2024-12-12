@@ -203,7 +203,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, move_group::NODE_NAME);
 
-  ros::AsyncSpinner spinner(1);
+  ros::AsyncSpinner spinner(2);
   spinner.start();
 
   // Load MoveItCpp parameters and check for valid planning pipeline configuration
