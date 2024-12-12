@@ -43,15 +43,18 @@
 
 namespace move_group
 {
-MoveGroupExecuteTrajectoryAction::MoveGroupExecuteTrajectoryAction() : MoveGroupCapability("ExecuteTrajectoryAction")
+MoveGroupExecuteTrajectoryAction::MoveGroupExecuteTrajectoryAction()
+  : MoveGroupCapability("ExecuteTrajectoryAction"), spinner_(1, &queue_)
 {
+  nh_.setCallbackQueue(&queue_);
+  spinner_.start();
 }
 
 void MoveGroupExecuteTrajectoryAction::initialize()
 {
   // start the move action server
   execute_action_server_ = std::make_unique<actionlib::SimpleActionServer<moveit_msgs::ExecuteTrajectoryAction>>(
-      root_node_handle_, EXECUTE_ACTION_NAME, [this](const auto& goal) { executePathCallback(goal); }, false);
+      nh_, EXECUTE_ACTION_NAME, [this](const auto& goal) { executePathCallback(goal); }, false);
   execute_action_server_->registerPreemptCallback([this] { preemptExecuteTrajectoryCallback(); });
   execute_action_server_->start();
 }
