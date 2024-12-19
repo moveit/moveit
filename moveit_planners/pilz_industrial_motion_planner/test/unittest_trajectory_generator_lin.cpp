@@ -90,7 +90,8 @@ protected:
 protected:
   // ros stuff
   ros::NodeHandle ph_{ "~" };
-  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(GetParam()).getModel() };
+  robot_model_loader::RobotModelLoader robot_model_loader_{ GetParam() };
+  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader_.getModel() };
   planning_scene::PlanningSceneConstPtr planning_scene_{ new planning_scene::PlanningScene(robot_model_) };
 
   // lin trajectory generator using model without gripper
