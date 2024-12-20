@@ -661,14 +661,10 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
   aps.addParameter("hybridize", "true", "Compute hybrid solution trajectories");
   aps.addParameter("max_hybrid_paths", "24", "Number of hybrid paths generated per iteration");
   aps.addParameter("num_planners", "4", "The number of default planners to use for planning");
-// TODO: remove when ROS Melodic and older are no longer supported
-#if OMPL_VERSION_VALUE >= 1005000
-  // This parameter was added in OMPL 1.5.0
-  aps.addParameter("planners", "",
+  aps.addParameter("planners", "",  // added in OMPL 1.5.0
                    "A comma-separated list of planner types (e.g., \"PRM,EST,RRTConnect\""
                    "Optionally, planner parameters can be passed to change the default:"
                    "\"PRM[max_nearest_neighbors=5],EST[goal_bias=.5],RRT[range=10. goal_bias=.1]\"");
-#endif
   planner_des.push_back(aps);
 
   OMPLPlannerDescription sbl("SBL", "geometric");
@@ -876,8 +872,6 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
   spar_stwo.addParameter("max_failures", "5000", "maximum consecutive failure limit. default: 5000");
   planner_des.push_back(spar_stwo);
 
-// TODO: remove when ROS Melodic and older are no longer supported
-#if OMPL_VERSION_VALUE >= 1005000
   OMPLPlannerDescription aitstar("AITstar", "geometric");
   aitstar.addParameter("use_k_nearest", "1",
                        "whether to use a k-nearest RGG connection model (1) or an r-disc model (0). Default: 1");
@@ -947,7 +941,6 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
                        "sort edges in the queue at the end of the batch (0) or after each rewiring (1). Default: 0");
   bitstar.addParameter("find_approximate_solutions", "0", "track approximate solutions (1) or not (0). Default: 0");
   planner_des.push_back(bitstar);
-#endif
 
   return planner_des;
 }

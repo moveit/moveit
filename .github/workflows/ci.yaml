@@ -30,8 +30,6 @@ jobs:
             IKFAST_TEST: true
             CATKIN_LINT: true
             CLANG_TIDY: pedantic
-          - IMAGE: master-ci # ROS Melodic with all dependencies required for master
-            CATKIN_LINT: true
           - IMAGE: jammy-ci
           - IMAGE: noble-ci
     env:

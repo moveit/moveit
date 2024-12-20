@@ -61,14 +61,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        IMAGE: [noetic, master]
+        IMAGE: [noetic]
     runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
     env:
       IMAGE: moveit/moveit:${{ matrix.IMAGE }}-${{ github.job }}
-      ROS_DISTRO: ${{ matrix.IMAGE == 'master' && 'melodic' || 'noetic' }}
+      ROS_DISTRO: ${{ matrix.IMAGE }}
 
     steps:
       - uses: rhaschke/docker-run-action@v5

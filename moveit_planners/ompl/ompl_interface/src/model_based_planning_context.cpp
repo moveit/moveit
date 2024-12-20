@@ -55,15 +55,8 @@
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/datastructures/PDF.h>
-// TODO: remove when ROS Melodic and older are no longer supported
-#if OMPL_VERSION_VALUE < 1005000
-#include <ompl/base/PlannerTerminationCondition.h>
-#else
-// IterationTerminationCondition was moved to a separate file and
-// CostConvergenceTerminationCondition was added in OMPL 1.5.0.
 #include <ompl/base/terminationconditions/IterationTerminationCondition.h>
 #include <ompl/base/terminationconditions/CostConvergenceTerminationCondition.h>
-#endif
 
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/base/objectives/MechanicalWorkOptimizationObjective.h"
@@ -516,8 +509,6 @@ ompl_interface::ModelBasedPlanningContext::constructPlannerTerminationCondition(
     else
       ROS_ERROR_NAMED(LOGNAME, "Missing argument to Iteration termination condition");
   }
-// TODO: remove when ROS Melodic and older are no longer supported
-#if OMPL_VERSION_VALUE >= 1005000
   // Terminate if the cost has converged or a timeout occurs.
   // Only useful for anytime/optimizing planners.
   else if (termination_and_params[0] == "CostConvergence")
@@ -534,7 +525,6 @@ ompl_interface::ModelBasedPlanningContext::constructPlannerTerminationCondition(
         ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start)),
         ob::CostConvergenceTerminationCondition(ompl_simple_setup_->getProblemDefinition(), solutions_window, epsilon));
   }
-#endif
   // Terminate as soon as an exact solution is found or a timeout occurs.
   // This modifies the behavior of anytime/optimizing planners to terminate upon discovering
   // the first feasible solution.
@@ -562,8 +552,6 @@ void ompl_interface::ModelBasedPlanningContext::clear()
 {
   if (!multi_query_planning_enabled_)
     ompl_simple_setup_->clear();
-// TODO: remove when ROS Melodic and older are no longer supported
-#if OMPL_VERSION_VALUE >= 1005000
   else
   {
     // For LazyPRM and LazyPRMstar we assume that the environment *could* have changed
@@ -574,7 +562,6 @@ void ompl_interface::ModelBasedPlanningContext::clear()
     if (planner != nullptr)
       planner->clearValidity();
   }
-#endif
   ompl_simple_setup_->clearStartStates();
   ompl_simple_setup_->setGoal(ob::GoalPtr());
   ompl_simple_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr());

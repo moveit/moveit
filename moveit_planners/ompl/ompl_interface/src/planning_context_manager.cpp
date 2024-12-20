@@ -69,12 +69,9 @@
 #include <ompl/geometric/planners/prm/LazyPRMstar.h>
 #include <ompl/geometric/planners/prm/SPARS.h>
 #include <ompl/geometric/planners/prm/SPARStwo.h>
-// TODO: remove when ROS Melodic and older are no longer supported
-#if OMPL_VERSION_VALUE >= 1005000
 #include <ompl/geometric/planners/informedtrees/AITstar.h>
 #include <ompl/geometric/planners/informedtrees/ABITstar.h>
 #include <ompl/geometric/planners/informedtrees/BITstar.h>
-#endif
 
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
@@ -200,9 +197,7 @@ ompl_interface::MultiQueryPlannerAllocator::allocatePersistentPlanner(const ob::
 {
   return nullptr;
 };
-// TODO: remove when ROS Melodic and older are no longer supported
 // namespace is scoped instead of global because of GCC bug 56480
-#if OMPL_VERSION_VALUE >= 1005000
 namespace ompl_interface
 {
 template <>
@@ -230,7 +225,6 @@ MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::LazyPRMst
   return new og::LazyPRMstar(data);
 };
 }  // namespace ompl_interface
-#endif
 
 ompl_interface::PlanningContextManager::PlanningContextManager(moveit::core::RobotModelConstPtr robot_model,
                                                                constraint_samplers::ConstraintSamplerManagerPtr csm)
@@ -299,12 +293,9 @@ void ompl_interface::PlanningContextManager::registerDefaultPlanners()
   registerPlannerAllocatorHelper<og::SPARStwo>("geometric::SPARStwo");
   registerPlannerAllocatorHelper<og::STRIDE>("geometric::STRIDE");
   registerPlannerAllocatorHelper<og::TRRT>("geometric::TRRT");
-// TODO: remove when ROS Melodic and older are no longer supported
-#if OMPL_VERSION_VALUE >= 1005000
   registerPlannerAllocatorHelper<og::AITstar>("geometric::AITstar");
   registerPlannerAllocatorHelper<og::ABITstar>("geometric::ABITstar");
   registerPlannerAllocatorHelper<og::BITstar>("geometric::BITstar");
-#endif
 }
 
 void ompl_interface::PlanningContextManager::registerDefaultStateSpaces()
