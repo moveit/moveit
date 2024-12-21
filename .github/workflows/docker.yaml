@@ -61,14 +61,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        IMAGE: [noetic, master]
+        IMAGE: [noetic]
     runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
     env:
       IMAGE: moveit/moveit:${{ matrix.IMAGE }}-${{ github.job }}
-      ROS_DISTRO: ${{ matrix.IMAGE == 'master' && 'melodic' || 'noetic' }}
+      ROS_DISTRO: ${{ matrix.IMAGE }}
 
     steps:
       - uses: rhaschke/docker-run-action@v5
@@ -101,7 +101,6 @@ jobs:
           cache-to: type=inline
           tags: |
             ${{ env.IMAGE }}
-            ${{ matrix.IMAGE == 'master' && 'moveit/moveit:master-ci-testing' || '' }}
 
   ci-testing:
     needs: ci
@@ -154,7 +153,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        IMAGE: [noetic, master]
+        IMAGE: [noetic]
     runs-on: ubuntu-latest
     permissions:
       packages: write
