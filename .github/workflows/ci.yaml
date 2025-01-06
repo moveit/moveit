@@ -30,11 +30,12 @@ jobs:
             IKFAST_TEST: true
             CATKIN_LINT: true
             CLANG_TIDY: pedantic
-          - IMAGE: master-ci # ROS Melodic with all dependencies required for master
-            CATKIN_LINT: true
+          - IMAGE: jammy-ci
+          - IMAGE: noble-ci
     env:
       CXXFLAGS: -Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls
-      CLANG_TIDY_ARGS: --fix --fix-errors --format-style=file
+      CLANG_TIDY_ARGS: -quiet -export-fixes ${{ github.workspace }}/.work/clang-tidy-fixes.yaml
+
       DOCKER_IMAGE: moveit/moveit:${{ matrix.env.IMAGE }}
       UPSTREAM_WORKSPACE: .github/workflows/upstream.rosinstall
       TARGET_WORKSPACE: $TARGET_REPO_PATH github:moveit/moveit_resources#master
@@ -131,8 +132,7 @@ jobs:
           ROS_DISTRO: noetic
       - id: ici
         name: Run industrial_ci
-        uses: ros-industrial/industrial_ci@master
-        env: ${{ matrix.env }}
+        uses: rhaschke/industrial_ci@master
 
       - name: Upload test artifacts (on failure)
         uses: actions/upload-artifact@v4

@@ -200,18 +200,10 @@ TEST_F(SimpleRobot, checkRelativeJointSpaceJump)
   EXPECT_NEAR(1.0, fraction, 0.01);
 }
 
-// Gracefully handle gtest 1.8 (Melodic)
-#ifndef INSTANTIATE_TEST_SUITE_P
-#define _STATIC
-#define _OLD_GTEST
-#else
-#define _STATIC static
-#endif
-
 class PandaRobot : public testing::Test
 {
 protected:
-  _STATIC void SetUpTestSuite()  // setup resources shared between tests
+  static void SetUpTestSuite()  // setup resources shared between tests
   {
     robot_model_ = loadTestingRobotModel("panda");
     jmg_ = robot_model_->getJointModelGroup("panda_arm");
@@ -220,27 +212,17 @@ protected:
     loadIKPluginForGroup(jmg_, "panda_link0", link_->getName());
   }
 
-  _STATIC void TearDownTestSuite()
+  static void TearDownTestSuite()
   {
     robot_model_.reset();
   }
 
   void SetUp() override
   {
-#ifdef _OLD_GTEST
-    SetUpTestSuite();
-#endif
     start_state_ = std::make_shared<RobotState>(robot_model_);
     ASSERT_TRUE(start_state_->setToDefaultValues(jmg_, "ready"));
     start_pose_ = start_state_->getGlobalLinkTransform(link_);
   }
-
-#ifdef _OLD_GTEST
-  void TearDown() override
-  {
-    TearDownTestSuite();
-  }
-#endif
 
   double computeCartesianPath(std::vector<std::shared_ptr<RobotState>>& result, const Eigen::Vector3d& translation,
                               bool global)
@@ -260,20 +242,18 @@ protected:
   }
 
 protected:
-  _STATIC RobotModelPtr robot_model_;
-  _STATIC JointModelGroup* jmg_;
-  _STATIC const LinkModel* link_;
+  static RobotModelPtr robot_model_;
+  static JointModelGroup* jmg_;
+  static const LinkModel* link_;
 
   double prec_ = 1e-8;
   RobotStatePtr start_state_;
   Eigen::Isometry3d start_pose_;
   std::vector<std::shared_ptr<RobotState>> result_;
 };
-#ifndef _OLD_GTEST
 RobotModelPtr PandaRobot::robot_model_;
 JointModelGroup* PandaRobot::jmg_ = nullptr;
 const LinkModel* PandaRobot::link_ = nullptr;
-#endif
 
 TEST_F(PandaRobot, testVectorGlobal)
 {

@@ -89,28 +89,22 @@ ros::Time CurrentStateMonitor::getCurrentStateTimeHelper(const std::string& grou
     else
     {
       ROS_ERROR_STREAM_NAMED(LOGNAME, "There is no group with the name " << std::quoted(group) << "!");
-      return ros::Time(0.0);
+      return ros::Time();
     }
   }
-  auto oldest_state_time = ros::Time();
+  auto oldest_state_time = ros::Time::now();
   for (const moveit::core::JointModel* joint : *active_joints)
   {
     auto it = joint_time_.find(joint);
     if (it == joint_time_.end())
     {
-      ROS_DEBUG_NAMED(LOGNAME, "Joint '%s' has never been updated", joint->getName().c_str());
+      ROS_DEBUG_NAMED(LOGNAME, "Joint '%s' has never been updated (and possibly others as well)",
+                      joint->getName().c_str());
+      return ros::Time();  // return zero if any joint was never updated
     }
-    else
-    {
-      if (!oldest_state_time.isZero())
-      {
-        oldest_state_time = std::min(oldest_state_time, it->second);
-      }
-      else
-      {
-        oldest_state_time = it->second;
-      }
-    }
+    // update oldest_state_time for all joints except those updated via tf_static
+    else if (!it->second.isZero())
+      oldest_state_time = std::min(oldest_state_time, it->second);
   }
   return oldest_state_time;
 }

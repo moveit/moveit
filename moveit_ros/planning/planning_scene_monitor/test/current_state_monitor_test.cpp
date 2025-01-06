@@ -146,7 +146,7 @@ TEST_F(CurrentStateMonitorTest, StateUpdateTest)
 TEST_F(CurrentStateMonitorTest, IncrementalTimeStamps)
 {
   sendJointStateAndWait(js_a);
-  EXPECT_EQ(js_a.header.stamp, csm->getCurrentStateTime());
+  EXPECT_EQ(csm->getCurrentStateTime(), ros::Time()) << "incomplete state should have 0 time";
 
   sendJointStateAndWait(js_b);
   EXPECT_EQ(js_b.header.stamp, csm->getCurrentStateTime())
@@ -165,15 +165,14 @@ TEST_F(CurrentStateMonitorTest, IncrementalTimeStamps)
   sendJointStateAndWait(js_a_old);
   EXPECT_FALSE(csm->haveCompleteState())
       << "jumped back in time for a known joint, but csm still claims it knows all joints";
-  EXPECT_EQ(js_a_old.header.stamp, csm->getCurrentStateTime())
-      << "jumping back for a known joint did not reset state time";
+  EXPECT_EQ(csm->getCurrentStateTime(), ros::Time()) << "jumping back for a known joint did not reset state time";
   EXPECT_EQ(js_a_old.position[0], csm->getCurrentState()->getVariablePosition("a-b-joint"));
 }
 
 TEST_F(CurrentStateMonitorTest, NonMonotonicTimeStampsDueToPartialJoints)
 {
   sendJointStateAndWait(js_a);
-  EXPECT_EQ(js_a.header.stamp, csm->getCurrentStateTime());
+  EXPECT_EQ(csm->getCurrentStateTime(), ros::Time()) << "incomplete state should have 0 time";
 
   sendJointStateAndWait(js_b);
   EXPECT_EQ(js_b.header.stamp, csm->getCurrentStateTime())

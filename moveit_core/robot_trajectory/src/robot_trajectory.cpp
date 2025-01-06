@@ -112,7 +112,7 @@ RobotTrajectory& RobotTrajectory::append(const RobotTrajectory& source, double d
                                  std::next(source.duration_from_previous_.begin(), start_index),
                                  std::next(source.duration_from_previous_.begin(), end_index));
   if (duration_from_previous_.size() > index)
-    duration_from_previous_[index] += dt;
+    duration_from_previous_[index] = dt;
 
   return *this;
 }

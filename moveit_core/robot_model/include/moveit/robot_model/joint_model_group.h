@@ -133,10 +133,10 @@ public:
   /** \brief Check if a link is part of this group */
   bool hasLinkModel(const std::string& link) const;
 
-  /** \brief Get a joint by its name. Throw an exception if the joint is not part of this group. */
+  /** \brief Get a joint by its name. Return a null pointer if the joint is not part of this group. */
   const JointModel* getJointModel(const std::string& joint) const;
 
-  /** \brief Get a joint by its name. Throw an exception if the joint is not part of this group. */
+  /** \brief Get a link by its name. Return a null pointer if the joint is not part of this group. */
   const LinkModel* getLinkModel(const std::string& link) const;
 
   /** \brief Get all the joints in this group (including fixed and mimic joints). */
