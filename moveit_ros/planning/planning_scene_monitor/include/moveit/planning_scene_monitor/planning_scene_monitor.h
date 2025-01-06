@@ -313,7 +313,7 @@ public:
      only when updates from the CurrentStateMonitor are received at a higher frequency.
       In that case, the updates are throttled down, so that they do not exceed a maximum update frequency specified
      here.
-      @param hz the update frequency. By default this is 10Hz. */
+      @param hz the update frequency. By default this is 33Hz. */
   void setStateUpdateFrequency(double hz);
 
   /** @brief Get the maximum frequency (Hz) at which the current state of the planning scene is updated.*/
