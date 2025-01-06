@@ -1203,7 +1203,7 @@ void PlanningSceneMonitor::onStateUpdate(const sensor_msgs::JointStateConstPtr& 
   }
   // run the state update with state_pending_mutex_ unlocked
   if (update)
-    updateSceneWithCurrentState();
+    updateSceneWithCurrentState(true);
 }
 
 void PlanningSceneMonitor::stateUpdateTimerCallback(const ros::WallTimerEvent& /*unused*/)
@@ -1286,7 +1286,7 @@ void PlanningSceneMonitor::setStateUpdateFrequency(double hz)
     updateSceneWithCurrentState();
 }
 
-void PlanningSceneMonitor::updateSceneWithCurrentState()
+void PlanningSceneMonitor::updateSceneWithCurrentState(const bool skip_update_if_locked)
 {
   if (current_state_monitor_)
   {
@@ -1302,8 +1302,16 @@ void PlanningSceneMonitor::updateSceneWithCurrentState()
     {
       // Return if we can't lock scene_update_mutex rather than waiting,
       // so the current state monitor isn't blocked.
-      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_, boost::try_to_lock);
-      if (not ulock)
+      boost::unique_lock<boost::shared_mutex> ulock;
+      if (skip_update_if_locked)
+      {
+        ulock = boost::unique_lock<boost::shared_mutex>(scene_update_mutex_, boost::try_to_lock);
+      }
+      else
+      {
+        ulock = boost::unique_lock<boost::shared_mutex>(scene_update_mutex_);
+      }
+      if (!ulock)
       {
         return;
       }

@@ -50,6 +50,11 @@ MoveGroupExecuteTrajectoryAction::MoveGroupExecuteTrajectoryAction()
   spinner_.start();
 }
 
+~MoveGroupExecuteTrajectoryAction::MoveGroupExecuteTrajectoryAction()
+{
+  spinner_.stop();
+}
+
 void MoveGroupExecuteTrajectoryAction::initialize()
 {
   // start the move action server
