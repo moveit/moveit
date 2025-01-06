@@ -1300,20 +1300,20 @@ void PlanningSceneMonitor::updateSceneWithCurrentState(const bool skip_update_if
     }
 
     {
-      // Return if we can't lock scene_update_mutex rather than waiting,
-      // so the current state monitor isn't blocked.
       boost::unique_lock<boost::shared_mutex> ulock;
       if (skip_update_if_locked)
       {
+        // Return if we can't lock scene_update_mutex rather than waiting,
+        // so the current state monitor isn't blocked.
         ulock = boost::unique_lock<boost::shared_mutex>(scene_update_mutex_, boost::try_to_lock);
+        if (!ulock)
+        {
+          return;
+        }
       }
       else
       {
         ulock = boost::unique_lock<boost::shared_mutex>(scene_update_mutex_);
-      }
-      if (!ulock)
-      {
-        return;
       }
       last_update_time_ = last_robot_motion_time_ = current_state_monitor_->getCurrentStateTime();
       ROS_DEBUG_STREAM_NAMED(LOGNAME, "robot state update " << fmod(last_robot_motion_time_.toSec(), 10.));
