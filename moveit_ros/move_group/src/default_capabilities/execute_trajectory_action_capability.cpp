@@ -50,7 +50,7 @@ MoveGroupExecuteTrajectoryAction::MoveGroupExecuteTrajectoryAction()
   spinner_.start();
 }
 
-~MoveGroupExecuteTrajectoryAction::MoveGroupExecuteTrajectoryAction()
+MoveGroupExecuteTrajectoryAction::~MoveGroupExecuteTrajectoryAction()
 {
   spinner_.stop();
 }
