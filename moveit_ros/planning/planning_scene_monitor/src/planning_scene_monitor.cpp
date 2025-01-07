@@ -1179,15 +1179,16 @@ void PlanningSceneMonitor::stopStateMonitor()
 
 void PlanningSceneMonitor::onStateUpdate(const sensor_msgs::JointStateConstPtr& /* joint_state */)
 {
-  const ros::WallTime& n = ros::WallTime::now();
-  ros::WallDuration dt = n - last_robot_state_update_wall_time_;
+  bool update = false;
 
   {
     boost::mutex::scoped_lock lock(state_pending_mutex_);
     state_update_pending_ = true;
+    // only update every dt_state_update_ seconds
+    update = ros::WallTime::now() - last_robot_state_update_wall_time_ >= dt_state_update_;
   }
   // run the state update with state_pending_mutex_ unlocked
-  if (dt >= dt_state_update_)  // throttling condition
+  if (update)
     updateSceneWithCurrentState(true);
 }
 
