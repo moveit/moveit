@@ -23,6 +23,7 @@
   <depend>rosconsole</depend>
   <depend>urdf</depend>
   <depend>message_filters</depend>
+  <depend>geometric_shapes</depend>
   <depend version_gte="1.11.2">pluginlib</depend>
   <depend>image_transport</depend>
   <depend>glut</depend>

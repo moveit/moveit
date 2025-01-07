@@ -36,8 +36,6 @@
 
 #pragma once
 
-#include <geometric_shapes/mesh_operations.h>
-#include <geometric_shapes/shapes.h>
 #include <map>
 #include <moveit/macros/class_forward.h>
 #include <moveit/mesh_filter/gl_renderer.h>

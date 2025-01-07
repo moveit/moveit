@@ -43,6 +43,8 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
 #include <cv_bridge/cv_bridge.h>
+#include <geometric_shapes/mesh_operations.h>
+#include <geometric_shapes/shapes.h>
 
 namespace enc = sensor_msgs::image_encodings;
 static const std::string LOGNAME = "depth_self_filter_nodelet";
