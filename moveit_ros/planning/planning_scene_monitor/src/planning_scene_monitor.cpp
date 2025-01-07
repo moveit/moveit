@@ -587,7 +587,9 @@ bool PlanningSceneMonitor::newPlanningSceneMessage(const moveit_msgs::PlanningSc
 
     if (!scene.is_diff && parent_scene_)
     {
-      // clear maintained (diff) scene_ and set the full new scene in parent_scene_ instead
+      // If there is no new robot_state, transfer RobotState from current scene to parent scene
+      if (scene.robot_state.is_diff)
+        parent_scene_->setCurrentState(scene_->getCurrentState());
       scene_->clearDiffs();
       result = parent_scene_->setPlanningSceneMsg(scene);
       // There were no callbacks for individual object changes, so rebuild the octree masks
