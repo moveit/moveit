@@ -307,8 +307,9 @@ public:
   /** @brief Update the scene using the monitored state. This function is automatically called when an update to the
      current state is received (if startStateMonitor() has been called).
       The updates are throttled to a maximum update frequency however, which is set by setStateUpdateFrequency().
+      Returns false if the planning scene was not updated (only if skip_update_if_locked).
       @param skip_update_if_locked causes the update to be skipped if the planning scene is locked. */
-  void updateSceneWithCurrentState(const bool skip_update_if_locked = false);
+  bool updateSceneWithCurrentState(bool skip_update_if_locked = false);
 
   /** @brief Update the scene using the monitored state at a specified frequency, in Hz. This function has an effect
      only when updates from the CurrentStateMonitor are received at a higher frequency.
@@ -631,7 +632,7 @@ public:
     return planning_scene_monitor_ && planning_scene_monitor_->getPlanningScene();
   }
 
-  operator const planning_scene::PlanningSceneConstPtr &() const
+  operator const planning_scene::PlanningSceneConstPtr&() const
   {
     return static_cast<const PlanningSceneMonitor*>(planning_scene_monitor_.get())->getPlanningScene();
   }
@@ -712,7 +713,7 @@ public:
   {
   }
 
-  operator const planning_scene::PlanningScenePtr &()
+  operator const planning_scene::PlanningScenePtr&()
   {
     return planning_scene_monitor_->getPlanningScene();
   }

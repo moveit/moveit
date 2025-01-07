@@ -1190,20 +1190,20 @@ void PlanningSceneMonitor::onStateUpdate(const sensor_msgs::JointStateConstPtr& 
   {
     boost::mutex::scoped_lock lock(state_pending_mutex_);
 
-    if (dt < dt_state_update_)
-    {
-      state_update_pending_ = true;
-    }
-    else
-    {
-      state_update_pending_ = false;
-      last_robot_state_update_wall_time_ = n;
-      update = true;
-    }
+    state_update_pending_ = true;
+
+    update = dt >= dt_state_update_;
   }
   // run the state update with state_pending_mutex_ unlocked
   if (update)
-    updateSceneWithCurrentState(true);
+  {
+    bool updated = updateSceneWithCurrentState(true);
+    if (updated)
+    {
+      state_update_pending_ = false;
+      last_robot_state_update_wall_time_ = n;
+    }
+  }
 }
 
 void PlanningSceneMonitor::stateUpdateTimerCallback(const ros::WallTimerEvent& /*unused*/)
@@ -1286,7 +1286,7 @@ void PlanningSceneMonitor::setStateUpdateFrequency(double hz)
     updateSceneWithCurrentState();
 }
 
-void PlanningSceneMonitor::updateSceneWithCurrentState(const bool skip_update_if_locked)
+bool PlanningSceneMonitor::updateSceneWithCurrentState(bool skip_update_if_locked)
 {
   if (current_state_monitor_)
   {
@@ -1308,7 +1308,7 @@ void PlanningSceneMonitor::updateSceneWithCurrentState(const bool skip_update_if
         ulock = boost::unique_lock<boost::shared_mutex>(scene_update_mutex_, boost::try_to_lock);
         if (!ulock)
         {
-          return;
+          return false;
         }
       }
       else
@@ -1324,6 +1324,7 @@ void PlanningSceneMonitor::updateSceneWithCurrentState(const bool skip_update_if
   }
   else
     ROS_ERROR_THROTTLE_NAMED(1, LOGNAME, "State monitor is not active. Unable to set the planning scene state");
+  return true;
 }
 
 void PlanningSceneMonitor::addUpdateCallback(const boost::function<void(SceneUpdateType)>& fn)
