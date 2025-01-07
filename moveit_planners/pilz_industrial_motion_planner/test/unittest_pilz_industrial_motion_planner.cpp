@@ -104,7 +104,8 @@ protected:
 protected:
   // ros stuff
   ros::NodeHandle ph_{ "~" };
-  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(GetParam()).getModel() };
+  robot_model_loader::RobotModelLoader robot_model_loader_{ GetParam() };
+  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader_.getModel() };
 
   std::string planner_plugin_name_;
 

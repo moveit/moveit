@@ -97,7 +97,8 @@ protected:
 
 protected:
   ros::NodeHandle ph_{ "~" };
-  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(GetParam().back()).getModel() };
+  robot_model_loader::RobotModelLoader robot_model_loader_{ GetParam().back() };
+  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader_.getModel() };
 
   // Load the plugin
   std::unique_ptr<pluginlib::ClassLoader<pilz_industrial_motion_planner::PlanningContextLoader>>

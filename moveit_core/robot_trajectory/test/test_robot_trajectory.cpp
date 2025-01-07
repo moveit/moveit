@@ -198,6 +198,27 @@ TEST_F(RobotTrajectoryTestFixture, ChainEdits)
   EXPECT_EQ(trajectory.getWayPointCount(), initial_trajectory->getWayPointCount() * 2 + 3);
 }
 
+TEST_F(RobotTrajectoryTestFixture, Append)
+{
+  robot_trajectory::RobotTrajectoryPtr initial_trajectory;
+  initTestTrajectory(initial_trajectory);
+  EXPECT_EQ(initial_trajectory->getWayPointCount(), size_t(5));
+
+  // Append to the first
+  robot_trajectory::RobotTrajectoryPtr traj2;
+  initTestTrajectory(traj2);
+  EXPECT_EQ(traj2->getWayPointCount(), size_t(5));
+
+  // After append() we should have 10 waypoints, all with 0.1s duration
+  const double expected_duration = 0.1;
+  initial_trajectory->append(*traj2, expected_duration, 0, 5);
+  EXPECT_EQ(initial_trajectory->getWayPointCount(), size_t(10));
+
+  EXPECT_EQ(initial_trajectory->getWayPointDurationFromPrevious(4), expected_duration);
+  EXPECT_EQ(initial_trajectory->getWayPointDurationFromPrevious(5), expected_duration);
+  EXPECT_EQ(initial_trajectory->getWayPointDurationFromPrevious(6), expected_duration);
+}
+
 TEST_F(RobotTrajectoryTestFixture, RobotTrajectoryShallowCopy)
 {
   bool deepcopy = false;

@@ -144,10 +144,9 @@ protected:
 protected:
   // ros stuff
   ros::NodeHandle ph_{ "~" };
-  robot_model::RobotModelConstPtr robot_model_{
-    robot_model_loader::RobotModelLoader(!T::VALUE ? PARAM_MODEL_NO_GRIPPER_NAME : PARAM_MODEL_WITH_GRIPPER_NAME)
-        .getModel()
-  };
+  robot_model_loader::RobotModelLoader robot_model_loader_{ !T::VALUE ? PARAM_MODEL_NO_GRIPPER_NAME :
+                                                                        PARAM_MODEL_WITH_GRIPPER_NAME };
+  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader_.getModel() };
   planning_scene::PlanningSceneConstPtr planning_scene_{ new planning_scene::PlanningScene(robot_model_) };
 
   // trajectory generator
