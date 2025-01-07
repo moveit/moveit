@@ -1264,8 +1264,8 @@ void PlanningSceneMonitor::updateSceneWithCurrentState(bool skip_update_if_locke
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_, boost::defer_lock);
       if (!skip_update_if_locked)
         ulock.lock();
-      else if (!ulock.try_lock_for(boost::chrono::duration<double>(std::min(0.1, 0.1 * dt_state_update_.toSec()))))
-        // Return if we can't lock scene_update_mutex, thus not blocking CurrentStateMonitor
+      else if (!ulock.try_lock_for(boost::chrono::milliseconds(100)))
+        // Return if we can't lock scene_update_mutex within 100ms, thus not blocking CurrentStateMonitor too long
         return;
 
       last_update_time_ = last_robot_motion_time_ = current_state_monitor_->getCurrentStateTime();
