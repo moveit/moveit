@@ -62,10 +62,8 @@ private:
   void preemptExecuteTrajectoryCallback();
   void setExecuteTrajectoryState(MoveGroupState state);
 
-  // This Capability has its own callback queue, node handle and spinner,
-  // to allow it to run in parallel to other capabilities.
-  ros::CallbackQueue queue_;
-  ros::NodeHandle nh_;
+  // Use our own callback queue and spinner to allow execution parallel to other capabilities
+  ros::CallbackQueue callback_queue_;
   ros::AsyncSpinner spinner_;
   std::unique_ptr<actionlib::SimpleActionServer<moveit_msgs::ExecuteTrajectoryAction> > execute_action_server_;
 };
