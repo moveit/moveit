@@ -1275,10 +1275,11 @@ void PlanningSceneMonitor::updateSceneWithCurrentState(bool skip_update_if_locke
     }
 
     // Update state_pending_mutex_ and last_robot_state_update_wall_time_
-    boost::mutex::scoped_lock lock(state_pending_mutex_);
-    state_update_pending_ = false;
-    last_robot_state_update_wall_time_ = ros::WallTime::now();
-    lock.unlock();
+    {
+      boost::mutex::scoped_lock lock(state_pending_mutex_);
+      state_update_pending_ = false;
+      last_robot_state_update_wall_time_ = ros::WallTime::now();
+    }
 
     triggerSceneUpdateEvent(UPDATE_STATE);
   }
