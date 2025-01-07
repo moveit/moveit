@@ -306,8 +306,9 @@ public:
 
   /** @brief Update the scene using the monitored state. This function is automatically called when an update to the
      current state is received (if startStateMonitor() has been called).
-      The updates are throttled to a maximum update frequency however, which is set by setStateUpdateFrequency(). */
-  void updateSceneWithCurrentState();
+      The updates are throttled to a maximum update frequency however, which is set by setStateUpdateFrequency().
+      @param skip_update_if_locked causes the update to be skipped if the planning scene is locked. */
+  void updateSceneWithCurrentState(bool skip_update_if_locked = false);
 
   /** @brief Update the scene using the monitored state at a specified frequency, in Hz. This function has an effect
      only when updates from the CurrentStateMonitor are received at a higher frequency.

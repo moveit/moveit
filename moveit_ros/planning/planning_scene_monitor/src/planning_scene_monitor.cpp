@@ -1203,7 +1203,7 @@ void PlanningSceneMonitor::onStateUpdate(const sensor_msgs::JointStateConstPtr& 
   }
   // run the state update with state_pending_mutex_ unlocked
   if (update)
-    updateSceneWithCurrentState();
+    updateSceneWithCurrentState(true);
 }
 
 void PlanningSceneMonitor::stateUpdateTimerCallback(const ros::WallTimerEvent& /*unused*/)
@@ -1286,7 +1286,7 @@ void PlanningSceneMonitor::setStateUpdateFrequency(double hz)
     updateSceneWithCurrentState();
 }
 
-void PlanningSceneMonitor::updateSceneWithCurrentState()
+void PlanningSceneMonitor::updateSceneWithCurrentState(bool skip_update_if_locked)
 {
   if (current_state_monitor_)
   {
@@ -1300,7 +1300,13 @@ void PlanningSceneMonitor::updateSceneWithCurrentState()
     }
 
     {
-      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
+      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_, boost::defer_lock);
+      if (!skip_update_if_locked)
+        ulock.lock();
+      else if (!ulock.try_lock_for(boost::chrono::duration<double>(std::min(0.1, 0.1 * dt_state_update_.toSec()))))
+        // Return if we can't lock scene_update_mutex, thus not blocking CurrentStateMonitor
+        return;
+
       last_update_time_ = last_robot_motion_time_ = current_state_monitor_->getCurrentStateTime();
       ROS_DEBUG_STREAM_NAMED(LOGNAME, "robot state update " << fmod(last_robot_motion_time_.toSec(), 10.));
       current_state_monitor_->setToCurrentState(scene_->getCurrentStateNonConst());

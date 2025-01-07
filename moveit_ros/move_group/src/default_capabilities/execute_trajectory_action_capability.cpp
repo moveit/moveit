@@ -43,8 +43,16 @@
 
 namespace move_group
 {
-MoveGroupExecuteTrajectoryAction::MoveGroupExecuteTrajectoryAction() : MoveGroupCapability("ExecuteTrajectoryAction")
+MoveGroupExecuteTrajectoryAction::MoveGroupExecuteTrajectoryAction()
+  : MoveGroupCapability("ExecuteTrajectoryAction"), callback_queue_(), spinner_(1, &callback_queue_)
 {
+  root_node_handle_.setCallbackQueue(&callback_queue_);
+  spinner_.start();
+}
+
+MoveGroupExecuteTrajectoryAction::~MoveGroupExecuteTrajectoryAction()
+{
+  spinner_.stop();
 }
 
 void MoveGroupExecuteTrajectoryAction::initialize()

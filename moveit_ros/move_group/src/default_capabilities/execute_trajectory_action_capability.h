@@ -51,6 +51,7 @@ class MoveGroupExecuteTrajectoryAction : public MoveGroupCapability
 {
 public:
   MoveGroupExecuteTrajectoryAction();
+  ~MoveGroupExecuteTrajectoryAction();
 
   void initialize() override;
 
@@ -61,6 +62,9 @@ private:
   void preemptExecuteTrajectoryCallback();
   void setExecuteTrajectoryState(MoveGroupState state);
 
+  // Use our own callback queue and spinner to allow execution parallel to other capabilities
+  ros::CallbackQueue callback_queue_;
+  ros::AsyncSpinner spinner_;
   std::unique_ptr<actionlib::SimpleActionServer<moveit_msgs::ExecuteTrajectoryAction> > execute_action_server_;
 };
 
