@@ -226,7 +226,7 @@ void mesh_filter::DepthSelfFiltering::addMeshes(MeshFilter<StereoCameraModel>& m
 
       else
       {
-        ROS_WARN_STREAM_NAMED(LOGNAME,"Shape " << shape->type << " is not supported!");
+        ROS_WARN_STREAM_NAMED(LOGNAME, "Shape " << shape->type << " is not supported!");
       }
     }
   }
