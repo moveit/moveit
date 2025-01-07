@@ -557,7 +557,7 @@ private:
   // Lock for state_update_pending_ and dt_state_update_
   boost::mutex state_pending_mutex_;
 
-  /// True when we need to update the RobotState from current_state_monitor_
+  /// True if current_state_monitor_ has a newer RobotState than scene_
   // This field is protected by state_pending_mutex_
   volatile bool state_update_pending_;
 
@@ -571,7 +571,7 @@ private:
   ros::Duration shape_transform_cache_lookup_wait_time_;
 
   /// timer for state updates.
-  // Check if last_state_update_ is true and if so call updateSceneWithCurrentState()
+  // If state_update_pending_ is true, call updateSceneWithCurrentState()
   // Not safe to access from callback functions.
   ros::WallTimer state_update_timer_;
 

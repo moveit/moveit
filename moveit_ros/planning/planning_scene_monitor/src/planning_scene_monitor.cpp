@@ -932,14 +932,8 @@ bool PlanningSceneMonitor::waitForCurrentRobotState(const ros::Time& t, double w
        If waitForCurrentState failed, we didn't get any new state updates within wait_time. */
     if (success)
     {
-      boost::mutex::scoped_lock lock(state_pending_mutex_);
-      if (state_update_pending_)  // enforce state update
-      {
-        state_update_pending_ = false;
-        last_robot_state_update_wall_time_ = ros::WallTime::now();
-        lock.unlock();
+      if (state_update_pending_)  // perform state update
         updateSceneWithCurrentState();
-      }
       return true;
     }
 
@@ -1188,55 +1182,19 @@ void PlanningSceneMonitor::onStateUpdate(const sensor_msgs::JointStateConstPtr& 
   const ros::WallTime& n = ros::WallTime::now();
   ros::WallDuration dt = n - last_robot_state_update_wall_time_;
 
-  bool update = false;
   {
     boost::mutex::scoped_lock lock(state_pending_mutex_);
-
-    if (dt < dt_state_update_)
-    {
-      state_update_pending_ = true;
-    }
-    else
-    {
-      state_update_pending_ = false;
-      last_robot_state_update_wall_time_ = n;
-      update = true;
-    }
+    state_update_pending_ = true;
   }
   // run the state update with state_pending_mutex_ unlocked
-  if (update)
+  if (dt >= dt_state_update_)  // throttling condition
     updateSceneWithCurrentState(true);
 }
 
 void PlanningSceneMonitor::stateUpdateTimerCallback(const ros::WallTimerEvent& /*unused*/)
 {
-  if (state_update_pending_)
-  {
-    bool update = false;
-
-    const ros::WallTime& n = ros::WallTime::now();
-    ros::WallDuration dt = n - last_robot_state_update_wall_time_;
-
-    {
-      // lock for access to dt_state_update_ and state_update_pending_
-      boost::mutex::scoped_lock lock(state_pending_mutex_);
-      if (state_update_pending_ && dt >= dt_state_update_)
-      {
-        state_update_pending_ = false;
-        last_robot_state_update_wall_time_ = ros::WallTime::now();
-        update = true;
-        ROS_DEBUG_STREAM_NAMED(LOGNAME,
-                               "performPendingStateUpdate: " << fmod(last_robot_state_update_wall_time_.toSec(), 10));
-      }
-    }
-
-    // run the state update with state_pending_mutex_ unlocked
-    if (update)
-    {
-      updateSceneWithCurrentState();
-      ROS_DEBUG_NAMED(LOGNAME, "performPendingStateUpdate done");
-    }
-  }
+  if (state_update_pending_ && ros::WallTime::now() - last_robot_state_update_wall_time_ >= dt_state_update_)
+    updateSceneWithCurrentState();
 }
 
 void PlanningSceneMonitor::octomapUpdateCallback()
@@ -1314,6 +1272,13 @@ void PlanningSceneMonitor::updateSceneWithCurrentState(bool skip_update_if_locke
       current_state_monitor_->setToCurrentState(scene_->getCurrentStateNonConst());
       scene_->getCurrentStateNonConst().update();  // compute all transforms
     }
+
+    // Update state_pending_mutex_ and last_robot_state_update_wall_time_
+    boost::mutex::scoped_lock lock(state_pending_mutex_);
+    state_update_pending_ = false;
+    last_robot_state_update_wall_time_ = ros::WallTime::now();
+    lock.unlock();
+
     triggerSceneUpdateEvent(UPDATE_STATE);
   }
   else
