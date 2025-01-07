@@ -631,7 +631,7 @@ public:
     return planning_scene_monitor_ && planning_scene_monitor_->getPlanningScene();
   }
 
-  operator const planning_scene::PlanningSceneConstPtr&() const
+  operator const planning_scene::PlanningSceneConstPtr &() const
   {
     return static_cast<const PlanningSceneMonitor*>(planning_scene_monitor_.get())->getPlanningScene();
   }
@@ -712,7 +712,7 @@ public:
   {
   }
 
-  operator const planning_scene::PlanningScenePtr&()
+  operator const planning_scene::PlanningScenePtr &()
   {
     return planning_scene_monitor_->getPlanningScene();
   }
