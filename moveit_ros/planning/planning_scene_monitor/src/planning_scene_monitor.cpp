@@ -1195,7 +1195,7 @@ void PlanningSceneMonitor::onStateUpdate(const sensor_msgs::JointStateConstPtr& 
 void PlanningSceneMonitor::stateUpdateTimerCallback(const ros::WallTimerEvent& /*unused*/)
 {
   if (state_update_pending_ && ros::WallTime::now() - last_robot_state_update_wall_time_ >= dt_state_update_)
-    updateSceneWithCurrentState();
+    updateSceneWithCurrentState(true);
 }
 
 void PlanningSceneMonitor::octomapUpdateCallback()
