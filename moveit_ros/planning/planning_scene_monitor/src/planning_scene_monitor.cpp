@@ -253,7 +253,7 @@ void PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr& sc
 
   shape_transform_cache_lookup_wait_time_ = ros::Duration(temp_wait_time);
 
-  state_update_pending_ = false;
+  state_update_pending_.store(false);
   state_update_timer_ = nh_.createWallTimer(dt_state_update_, &PlanningSceneMonitor::stateUpdateTimerCallback, this,
                                             false,   // not a oneshot timer
                                             false);  // do not start the timer yet
@@ -932,7 +932,7 @@ bool PlanningSceneMonitor::waitForCurrentRobotState(const ros::Time& t, double w
        If waitForCurrentState failed, we didn't get any new state updates within wait_time. */
     if (success)
     {
-      if (state_update_pending_)  // perform state update
+      if (state_update_pending_.load())  // perform state update
         updateSceneWithCurrentState();
       return true;
     }
@@ -1144,7 +1144,7 @@ void PlanningSceneMonitor::startStateMonitor(const std::string& joint_states_top
     current_state_monitor_->startStateMonitor(joint_states_topic);
 
     {
-      boost::mutex::scoped_lock lock(state_pending_mutex_);
+      boost::mutex::scoped_lock lock(state_update_mutex_);
       if (!dt_state_update_.isZero())
         state_update_timer_.start();
     }
@@ -1169,32 +1169,26 @@ void PlanningSceneMonitor::stopStateMonitor()
   if (attached_collision_object_subscriber_)
     attached_collision_object_subscriber_.shutdown();
 
-  // stop must be called with state_pending_mutex_ unlocked to avoid deadlock
   state_update_timer_.stop();
-  {
-    boost::mutex::scoped_lock lock(state_pending_mutex_);
-    state_update_pending_ = false;
-  }
+  state_update_pending_.store(false);
 }
 
 void PlanningSceneMonitor::onStateUpdate(const sensor_msgs::JointStateConstPtr& /* joint_state */)
 {
-  bool update = false;
+  state_update_pending_.store(true);
 
-  {
-    boost::mutex::scoped_lock lock(state_pending_mutex_);
-    state_update_pending_ = true;
-    // only update every dt_state_update_ seconds
-    update = ros::WallTime::now() - last_robot_state_update_wall_time_ >= dt_state_update_;
-  }
-  // run the state update with state_pending_mutex_ unlocked
-  if (update)
+  // Read access to last_robot_state_update_wall_time_ and dt_state_update_ is unprotected here
+  // as reading invalid values is not critical (just postpones the next state update)
+  // only update every dt_state_update_ seconds
+  if (ros::WallTime::now() - last_robot_state_update_wall_time_ >= dt_state_update_)
     updateSceneWithCurrentState(true);
 }
 
 void PlanningSceneMonitor::stateUpdateTimerCallback(const ros::WallTimerEvent& /*unused*/)
 {
-  if (state_update_pending_ && ros::WallTime::now() - last_robot_state_update_wall_time_ >= dt_state_update_)
+  // Read access to last_robot_state_update_wall_time_ and dt_state_update_ is unprotected here
+  // as reading invalid values is not critical (just postpones the next state update)
+  if (state_update_pending_.load() && ros::WallTime::now() - last_robot_state_update_wall_time_ >= dt_state_update_)
     updateSceneWithCurrentState(true);
 }
 
@@ -1227,18 +1221,18 @@ void PlanningSceneMonitor::setStateUpdateFrequency(double hz)
   bool update = false;
   if (hz > std::numeric_limits<double>::epsilon())
   {
-    boost::mutex::scoped_lock lock(state_pending_mutex_);
+    boost::mutex::scoped_lock lock(state_update_mutex_);
     dt_state_update_.fromSec(1.0 / hz);
     state_update_timer_.setPeriod(dt_state_update_);
     state_update_timer_.start();
   }
   else
   {
-    // stop must be called with state_pending_mutex_ unlocked to avoid deadlock
+    // stop must be called with state_update_mutex_ unlocked to avoid deadlock
     state_update_timer_.stop();
-    boost::mutex::scoped_lock lock(state_pending_mutex_);
+    boost::mutex::scoped_lock lock(state_update_mutex_);
     dt_state_update_ = ros::WallDuration(0, 0);
-    if (state_update_pending_)
+    if (state_update_pending_.load())
       update = true;
   }
   ROS_INFO_NAMED(LOGNAME, "Updating internal planning scene state at most every %lf seconds", dt_state_update_.toSec());
@@ -1274,11 +1268,11 @@ void PlanningSceneMonitor::updateSceneWithCurrentState(bool skip_update_if_locke
       scene_->getCurrentStateNonConst().update();  // compute all transforms
     }
 
-    // Update state_pending_mutex_ and last_robot_state_update_wall_time_
+    // Update state_update_mutex_ and last_robot_state_update_wall_time_
     {
-      boost::mutex::scoped_lock lock(state_pending_mutex_);
-      state_update_pending_ = false;
+      boost::mutex::scoped_lock lock(state_update_mutex_);
       last_robot_state_update_wall_time_ = ros::WallTime::now();
+      state_update_pending_.store(false);
     }
 
     triggerSceneUpdateEvent(UPDATE_STATE);
