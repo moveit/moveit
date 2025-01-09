@@ -559,6 +559,20 @@ TEST(PlanningScene, UpdateACMAfterObjectRemoval)
     EXPECT_EQ(get_collision_objects_names(*ps), (std::set<std::string>{ object_name }));
   };
 
+  // Helper function to attach the object to the robot
+  auto attach_object = [&] {
+    const auto ps1 = create_planning_scene_diff(*ps, object_name, moveit_msgs::CollisionObject::ADD, true);
+    ps->usePlanningSceneMsg(ps1);
+    EXPECT_EQ(get_attached_collision_objects_names(*ps), (std::set<std::string>{ object_name }));
+  };
+
+  // Helper function to detach the object from the robot
+  auto detach_object = [&] {
+    const auto ps1 = create_planning_scene_diff(*ps, object_name, moveit_msgs::CollisionObject::REMOVE, true);
+    ps->usePlanningSceneMsg(ps1);
+    EXPECT_EQ(get_attached_collision_objects_names(*ps), (std::set<std::string>{}));
+  };
+
   // Modify the allowed collision matrix and make sure it is updated
   auto modify_acm = [&] {
     collision_detection::AllowedCollisionMatrix& acm = ps->getAllowedCollisionMatrixNonConst();
@@ -578,6 +592,11 @@ TEST(PlanningScene, UpdateACMAfterObjectRemoval)
   add_object();
   EXPECT_TRUE(check_collision());
   modify_acm();
+  EXPECT_FALSE(check_collision());
+  // Attach and detach the object from the robot to make sure that collision are still allowed
+  attach_object();
+  EXPECT_FALSE(check_collision());
+  detach_object();
   EXPECT_FALSE(check_collision());
   {
     const auto ps1 = create_planning_scene_diff(*ps, object_name, moveit_msgs::CollisionObject::REMOVE);
