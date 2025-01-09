@@ -46,7 +46,7 @@
 
 using namespace moveit::core;
 
-namespace JDotTestHelpers
+namespace
 {
 KDL::Chain setupKdlChain(const RobotModel& robot_model, const std::string& tip_link)
 {
@@ -61,7 +61,7 @@ KDL::Chain setupKdlChain(const RobotModel& robot_model, const std::string& tip_l
 
   if (!tree.getChain(root_model, tip_link, kdl_chain))
   {
-    ROS_ERROR_STREAM("Could not initialize chain object for base " << root_model << " tip " << tip_link);
+    ROS_ERROR_STREAM("Could not establish chain from base " << root_model << " to tip " << tip_link);
   }
   return kdl_chain;
 }
@@ -135,7 +135,7 @@ Eigen::MatrixXd calculateNumericalJDot(const RobotStatePtr& robot_state, const L
   robot_state->getJacobian(jmg, link_model, reference_point_position, jac_plus_dt);
   return (jac_plus_dt - jac) / dt;
 }
-}  // namespace JDotTestHelpers
+}  // namespace
 
 class SimpleRobot : public testing::Test
 {

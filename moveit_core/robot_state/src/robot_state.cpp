@@ -1412,11 +1412,9 @@ bool RobotState::getJacobianDerivative(const JointModelGroup* group, const LinkM
   jacobian_derivative.setZero(rows, columns);
 
   // Calculate the Jacobian with use_quaternion_representation = false
-  bool get_jacobian_success = getJacobian(group, link, reference_point_position, jacobian, false);
-
-  if (!get_jacobian_success)
+  if (!getJacobian(group, link, reference_point_position, jacobian, false))
   {
-    ROS_ERROR_NAMED(LOGNAME, "Jacobian compuatation failed");
+    ROS_ERROR_NAMED(LOGNAME, "Jacobian computation failed");
     return false;
   }
 
@@ -1444,7 +1442,7 @@ bool RobotState::getJacobianDerivative(const JointModelGroup* group, const LinkM
         }
       }
       else
-        ROS_ERROR_NAMED(LOGNAME, "Unknown type of joint in Jacobian derivative computation");
+        ROS_ERROR_NAMED(LOGNAME, "Unsupported type of joint in Jacobian derivative computation");
     }
     if (pjm == group->getJointModels()[0])
       break;
