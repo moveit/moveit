@@ -17,8 +17,8 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
-      - name: Install clang-format-10
-        run: sudo apt-get install clang-format-10
+      - name: Install clang-format-12
+        run: sudo apt-get install clang-format-12
       - uses: rhaschke/install-catkin_lint-action@v1.0
       - uses: pre-commit/action@v3.0.1
         id: precommit

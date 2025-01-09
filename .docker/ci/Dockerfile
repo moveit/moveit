@@ -26,7 +26,7 @@ RUN \
         wget git sudo \
         # Preferred build tools
         python$(test "${ROS_DISTRO}" = "noetic" && echo 3)-catkin-tools \
-        clang clang-format-10 clang-tidy clang-tools \
+        clang clang-format-12 clang-tidy clang-tools \
         ccache && \
     #
     # Download MoveIt sources, so that we can fetch all necessary dependencies

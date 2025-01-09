@@ -38,7 +38,7 @@ Nothing. This issue is meant to welcome you to Open Source :) We are happy to wa
 $DIFF
 ```
 
-- [ ] 🤖 **Apply `clang-format-10`** auto formatting, [following these instructions](https://moveit.ros.org//documentation/contributing/code/?#clang-format-auto-code-formatting)
+- [ ] 🤖 **Apply `clang-format-12`** auto formatting, [following these instructions](https://moveit.ros.org//documentation/contributing/code/?#clang-format-auto-code-formatting)
 
 - [ ] 💾 **Commit and Push** your changes
 
