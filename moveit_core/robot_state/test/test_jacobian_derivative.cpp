@@ -95,22 +95,6 @@ Eigen::MatrixXd calculateJacobianDerivativeKDL(const std::vector<double>& q, con
   return kdl_jacobian_dot.data;
 }
 
-Eigen::MatrixXd calculateJacobianKDL(const std::vector<double>& q, const RobotModel& robot_model,
-                                     const std::string& tip_link)
-{
-  KDL::Chain kdl_chain = setupKdlChain(robot_model, tip_link);
-
-  KDL::JntArray kdl_jnt_array(q.size());
-  kdl_jnt_array.data = Eigen::VectorXd::Map(q.data(), q.size());
-
-  KDL::ChainJntToJacSolver kdl_jacobian_solver(kdl_chain);
-  KDL::Jacobian kdl_jacobian(kdl_chain.getNrOfJoints());
-
-  kdl_jacobian_solver.JntToJac(kdl_jnt_array, kdl_jacobian);
-
-  return kdl_jacobian.data;
-}
-
 Eigen::MatrixXd calculateNumericalJDot(const RobotStatePtr& robot_state, const LinkModel* link_model,
                                        const JointModelGroup* jmg, const Eigen::Vector3d& reference_point_position,
                                        const std::vector<double>& q, const std::vector<double>& qdot,
