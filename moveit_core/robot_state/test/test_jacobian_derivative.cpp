@@ -183,8 +183,7 @@ TEST_F(SimpleRobot, testSimpleRobotJacobianDerivative)
                                       moveit_jacobian, moveit_jacobian_derivative);
 
   //-----------------------Calculate Jacobian Derivative with KDL-----------------------
-  Eigen::MatrixXd kdl_jacobian_derivative =
-      JDotTestHelpers::calculateJacobianDerivativeKDL(test_q, test_qdot, *robot_model_, "e");
+  Eigen::MatrixXd kdl_jacobian_derivative = calculateJacobianDerivativeKDL(test_q, test_qdot, *robot_model_, "e");
 
   //-----------------------Compare Jacobian Derivatives-----------------------
   std::cout << "MoveIt Jacobian Derivative\n" << moveit_jacobian_derivative << "\n\n";
@@ -259,11 +258,8 @@ TEST_F(PandaRobot, testPandaRobotJacobianDerivative)
   robot_state_->getJacobianDerivative(jmg_, robot_model_->getLinkModel("panda_link8"), reference_point_position,
                                       moveit_jacobian, moveit_jacobian_derivative);
   //-----------------------Calculate Jacobian Derivative with KDL-----------------------
-  Eigen::MatrixXd kdl_jacobian_derivative;
-  {
-    kdl_jacobian_derivative =
-        JDotTestHelpers::calculateJacobianDerivativeKDL(test_q, test_qdot, *robot_model_, "panda_link8");
-  }
+  Eigen::MatrixXd kdl_jacobian_derivative =
+      calculateJacobianDerivativeKDL(test_q, test_qdot, *robot_model_, "panda_link8");
 
   //-----------------------Compare Jacobian Derivatives-----------------------
   std::cout << "MoveIt Jacobian Derivative\n" << moveit_jacobian_derivative << "\n\n";
@@ -292,8 +288,8 @@ TEST_F(PandaRobot, testPandaRobotMidLinkJacobianDerivative)
                                       moveit_jacobian_derivative);
 
   //-----------------------Calculate Numerical Jacobian Derivative-----------------------
-  Eigen::MatrixXd numerical_jdot = JDotTestHelpers::calculateNumericalJDot(
-      robot_state_, robot_model_->getLinkModel(link), jmg_, reference_point_position, test_q, test_qdot);
+  Eigen::MatrixXd numerical_jdot = calculateNumericalJDot(robot_state_, robot_model_->getLinkModel(link), jmg_,
+                                                          reference_point_position, test_q, test_qdot);
 
   //-----------------------Compare Jacobian Derivatives-----------------------
   std::cout << "MoveIt Jacobian Derivative\n" << moveit_jacobian_derivative << "\n\n";
@@ -322,8 +318,8 @@ TEST_F(PandaRobot, testPandaRobotRefPointJacobianDerivative)
                                       moveit_jacobian_derivative);
 
   //-----------------------Calculate Numerical Jacobian Derivative-----------------------
-  Eigen::MatrixXd numerical_jdot = JDotTestHelpers::calculateNumericalJDot(
-      robot_state_, robot_model_->getLinkModel(link), jmg_, reference_point_position, test_q, test_qdot);
+  Eigen::MatrixXd numerical_jdot = calculateNumericalJDot(robot_state_, robot_model_->getLinkModel(link), jmg_,
+                                                          reference_point_position, test_q, test_qdot);
 
   //-----------------------Compare Jacobian Derivatives-----------------------
   std::cout << "MoveIt Jacobian Derivative\n" << moveit_jacobian_derivative << "\n\n";
