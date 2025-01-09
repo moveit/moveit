@@ -89,7 +89,8 @@ protected:
 protected:
   // ros stuff
   ros::NodeHandle ph_{ "~" };
-  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(GetParam()).getModel() };
+  robot_model_loader::RobotModelLoader robot_model_loader_{ GetParam() };
+  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader_.getModel() };
   planning_scene::PlanningSceneConstPtr planning_scene_{ new planning_scene::PlanningScene(robot_model_) };
 
   std::unique_ptr<TrajectoryGenerator> lin_generator_;
@@ -684,8 +685,8 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testNonLinearBlending)
 
     moveit_msgs::MoveItErrorCodes error_code;
     if (!generateJointTrajectory(planning_scene_, planner_limits_.getJointLimitContainer(), cart_traj, planning_group_,
-                                 target_link_, initial_joint_position, initial_joint_velocity, joint_traj, error_code,
-                                 true))
+                                 target_link_, Eigen::Translation3d::Identity(), initial_joint_position,
+                                 initial_joint_velocity, joint_traj, error_code, true))
     {
       std::runtime_error("Failed to generate trajectory.");
     }

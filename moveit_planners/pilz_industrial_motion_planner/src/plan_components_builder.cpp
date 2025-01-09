@@ -54,11 +54,15 @@ std::vector<robot_trajectory::RobotTrajectoryPtr> PlanComponentsBuilder::build()
 void PlanComponentsBuilder::appendWithStrictTimeIncrease(robot_trajectory::RobotTrajectory& result,
                                                          const robot_trajectory::RobotTrajectory& source)
 {
-  if (result.empty() ||
-      !pilz_industrial_motion_planner::isRobotStateEqual(result.getLastWayPoint(), source.getFirstWayPoint(),
-                                                         result.getGroupName(), ROBOT_STATE_EQUALITY_EPSILON))
+  if (result.empty())
   {
     result.append(source, 0.0);
+    return;
+  }
+  if (!pilz_industrial_motion_planner::isRobotStateEqual(result.getLastWayPoint(), source.getFirstWayPoint(),
+                                                         result.getGroupName(), ROBOT_STATE_EQUALITY_EPSILON))
+  {
+    result.append(source, source.getWayPointDurationFromStart(0));
     return;
   }
 
@@ -94,7 +98,8 @@ void PlanComponentsBuilder::blend(const planning_scene::PlanningSceneConstPtr& p
 
   // Append the new trajectory elements
   appendWithStrictTimeIncrease(*(traj_cont_.back()), *blend_response.first_trajectory);
-  traj_cont_.back()->append(*blend_response.blend_trajectory, 0.0);
+  appendWithStrictTimeIncrease(*(traj_cont_.back()), *blend_response.blend_trajectory);
+
   // Store the last new trajectory element for future processing
   traj_tail_ = blend_response.second_trajectory;  // first for next blending segment
 }

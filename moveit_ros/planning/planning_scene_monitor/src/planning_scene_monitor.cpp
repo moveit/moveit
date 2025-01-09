@@ -259,6 +259,10 @@ void PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr& sc
                                             false);  // do not start the timer yet
 
   reconfigure_impl_ = new DynamicReconfigureImpl(this);
+
+  std::vector<std::string> ignored_frames_vector;
+  nh_.param("planning_scene_monitor_options/ignored_frames", ignored_frames_vector, std::vector<std::string>());
+  ignored_frames_ = std::set<std::string>(ignored_frames_vector.begin(), ignored_frames_vector.end());
 }
 
 void PlanningSceneMonitor::monitorDiffs(bool flag)
@@ -580,7 +584,23 @@ bool PlanningSceneMonitor::newPlanningSceneMessage(const moveit_msgs::PlanningSc
                            "scene update " << fmod(last_update_time_.toSec(), 10.)
                                            << " robot stamp: " << fmod(last_robot_motion_time_.toSec(), 10.));
     old_scene_name = scene_->getName();
-    result = scene_->usePlanningSceneMsg(scene);
+
+    if (!scene.is_diff && parent_scene_)
+    {
+      // If there is no new robot_state, transfer RobotState from current scene to parent scene
+      if (scene.robot_state.is_diff)
+        parent_scene_->setCurrentState(scene_->getCurrentState());
+      scene_->clearDiffs();
+      result = parent_scene_->setPlanningSceneMsg(scene);
+      // There were no callbacks for individual object changes, so rebuild the octree masks
+      excludeAttachedBodiesFromOctree();
+      excludeWorldObjectsFromOctree();
+    }
+    else
+    {
+      result = scene_->usePlanningSceneMsg(scene);
+    }
+
     if (octomap_monitor_)
     {
       if (!scene.is_diff && scene.world.octomap.octomap.data.empty())
@@ -592,23 +612,6 @@ bool PlanningSceneMonitor::newPlanningSceneMessage(const moveit_msgs::PlanningSc
     }
     robot_model_ = scene_->getRobotModel();
 
-    // if we just reset the scene completely but we were maintaining diffs, we need to fix that
-    if (!scene.is_diff && parent_scene_)
-    {
-      // the scene is now decoupled from the parent, since we just reset it
-      scene_->setAttachedBodyUpdateCallback(moveit::core::AttachedBodyCallback());
-      scene_->setCollisionObjectUpdateCallback(collision_detection::World::ObserverCallbackFn());
-      parent_scene_ = scene_;
-      scene_ = parent_scene_->diff();
-      scene_const_ = scene_;
-      scene_->setAttachedBodyUpdateCallback([this](moveit::core::AttachedBody* body, bool attached) {
-        currentStateAttachedBodyUpdateCallback(body, attached);
-      });
-      scene_->setCollisionObjectUpdateCallback(
-          [this](const collision_detection::World::ObjectConstPtr& object, collision_detection::World::Action action) {
-            currentWorldObjectUpdateCallback(object, action);
-          });
-    }
     if (octomap_monitor_)
     {
       excludeAttachedBodiesFromOctree();  // in case updates have happened to the attached bodies, put them in
@@ -1202,7 +1205,7 @@ void PlanningSceneMonitor::onStateUpdate(const sensor_msgs::JointStateConstPtr& 
   }
   // run the state update with state_pending_mutex_ unlocked
   if (update)
-    updateSceneWithCurrentState();
+    updateSceneWithCurrentState(true);
 }
 
 void PlanningSceneMonitor::stateUpdateTimerCallback(const ros::WallTimerEvent& /*unused*/)
@@ -1285,7 +1288,7 @@ void PlanningSceneMonitor::setStateUpdateFrequency(double hz)
     updateSceneWithCurrentState();
 }
 
-void PlanningSceneMonitor::updateSceneWithCurrentState()
+void PlanningSceneMonitor::updateSceneWithCurrentState(bool skip_update_if_locked)
 {
   if (current_state_monitor_)
   {
@@ -1299,7 +1302,13 @@ void PlanningSceneMonitor::updateSceneWithCurrentState()
     }
 
     {
-      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
+      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_, boost::defer_lock);
+      if (!skip_update_if_locked)
+        ulock.lock();
+      else if (!ulock.try_lock_for(boost::chrono::duration<double>(std::min(0.1, 0.1 * dt_state_update_.toSec()))))
+        // Return if we can't lock scene_update_mutex, thus not blocking CurrentStateMonitor
+        return;
+
       last_update_time_ = last_robot_motion_time_ = current_state_monitor_->getCurrentStateTime();
       ROS_DEBUG_STREAM_NAMED(LOGNAME, "robot state update " << fmod(last_robot_motion_time_.toSec(), 10.));
       current_state_monitor_->setToCurrentState(scene_->getCurrentStateNonConst());
@@ -1339,7 +1348,7 @@ void PlanningSceneMonitor::getUpdatedFrameTransforms(std::vector<geometry_msgs::
   tf_buffer_->_getFrameStrings(all_frame_names);
   for (const std::string& all_frame_name : all_frame_names)
   {
-    if (all_frame_name == target || getRobotModel()->hasLinkModel(all_frame_name))
+    if (all_frame_name == target || getRobotModel()->hasLinkModel(all_frame_name) || checkFrameIgnored(all_frame_name))
       continue;
 
     geometry_msgs::TransformStamped f;
@@ -1473,5 +1482,10 @@ void PlanningSceneMonitor::configureDefaultPadding()
 
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Loaded " << default_robot_link_padd_.size() << " default link paddings");
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Loaded " << default_robot_link_scale_.size() << " default link scales");
+}
+
+bool PlanningSceneMonitor::checkFrameIgnored(const std::string& frame)
+{
+  return (ignored_frames_.find(frame) != ignored_frames_.end());
 }
 }  // namespace planning_scene_monitor

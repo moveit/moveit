@@ -3,9 +3,9 @@
 
 ARG ROS_DISTRO=noetic
 FROM ros:${ROS_DISTRO}-ros-base
-MAINTAINER Dave Coleman dave@picknik.ai
+LABEL org.opencontainers.image.authors="Robert Haschke <rhaschke@techfak.uni-bielefeld.de>"
 
-ENV TERM xterm
+ENV TERM=xterm
 
 # Setup (temporary) ROS workspace
 WORKDIR /root/ws_moveit
@@ -26,15 +26,15 @@ RUN \
         wget git sudo \
         # Preferred build tools
         python$(test "${ROS_DISTRO}" = "noetic" && echo 3)-catkin-tools \
-        clang clang-format-10 clang-tidy clang-tools \
+        clang clang-format-12 clang-tidy clang-tools \
         ccache && \
     #
     # Download MoveIt sources, so that we can fetch all necessary dependencies
     wstool init --shallow src src/moveit/.github/workflows/upstream.rosinstall && \
-    git clone --depth 1 --branch master https://github.com/ros-planning/moveit_resources src/moveit_resources && \
+    git clone --depth 1 --branch master https://github.com/moveit/moveit_resources src/moveit_resources && \
     #
     # Download all dependencies of MoveIt
-    rosdep update && \
+    rosdep update $(test "${ROS_DISTRO}" = "melodic" && echo "--include-eol-distros") && \
     DEBIAN_FRONTEND=noninteractive \
     rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false && \
     # Remove the source code from this container
@@ -47,4 +47,4 @@ RUN \
     git config --global --add safe.directory "*"
 
 # Continous Integration Setting
-ENV IN_DOCKER 1
+ENV IN_DOCKER=1

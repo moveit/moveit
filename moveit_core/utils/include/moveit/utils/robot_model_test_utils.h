@@ -126,6 +126,13 @@ public:
   RobotModelBuilder& addCollisionMesh(const std::string& link_name, const std::string& filename,
                                       geometry_msgs::Pose origin);
 
+  /** \brief Adds a collision sphere to a specific link.
+   *  \param[in] link_name The name of the link to which the sphere will be added. Must already be in the builder.
+   *  \param[in] radius The radius of the sphere
+   *  \param[in] origin The origin pose of this collision sphere relative to the link origin
+   */
+  RobotModelBuilder& addCollisionSphere(const std::string& link_name, double dims, geometry_msgs::Pose origin);
+
   /** \brief Adds a collision box to a specific link.
    *  \param[in] link_name The name of the link to which the box will be added. Must already be in the builder.
    *  \param[in] dims   The dimensions of the box

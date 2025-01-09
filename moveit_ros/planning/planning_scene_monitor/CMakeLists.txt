@@ -20,6 +20,9 @@ if (CATKIN_ENABLE_TESTING)
 
   add_rostest_gtest(current_state_monitor_test test/current_state_monitor.test test/current_state_monitor_test.cpp)
   target_link_libraries(current_state_monitor_test ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES})
+
+  add_rostest_gtest(planning_scene_monitor_test test/planning_scene_monitor.test test/planning_scene_monitor_test.cpp)
+  target_link_libraries(planning_scene_monitor_test ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES})
 endif()
 
 install(TARGETS ${MOVEIT_LIB_NAME}

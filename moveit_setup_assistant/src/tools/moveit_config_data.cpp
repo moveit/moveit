@@ -661,14 +661,10 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
   aps.addParameter("hybridize", "true", "Compute hybrid solution trajectories");
   aps.addParameter("max_hybrid_paths", "24", "Number of hybrid paths generated per iteration");
   aps.addParameter("num_planners", "4", "The number of default planners to use for planning");
-// TODO: remove when ROS Melodic and older are no longer supported
-#if OMPL_VERSION_VALUE >= 1005000
-  // This parameter was added in OMPL 1.5.0
-  aps.addParameter("planners", "",
+  aps.addParameter("planners", "",  // added in OMPL 1.5.0
                    "A comma-separated list of planner types (e.g., \"PRM,EST,RRTConnect\""
                    "Optionally, planner parameters can be passed to change the default:"
                    "\"PRM[max_nearest_neighbors=5],EST[goal_bias=.5],RRT[range=10. goal_bias=.1]\"");
-#endif
   planner_des.push_back(aps);
 
   OMPLPlannerDescription sbl("SBL", "geometric");
@@ -739,10 +735,10 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
   trrt.addParameter("temp_change_factor", "2.0", "how much to increase or decrease temp. default: 2.0");
   trrt.addParameter("min_temperature", "10e-10", "lower limit of temp change. default: 10e-10");
   trrt.addParameter("init_temperature", "10e-6", "initial temperature. default: 10e-6");
-  trrt.addParameter("frountier_threshold", "0.0",
+  trrt.addParameter("frontier_threshold", "0.0",
                     "dist new state to nearest neighbor to disqualify as frontier. "
                     "default: 0.0 set in setup()");
-  trrt.addParameter("frountierNodeRatio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
+  trrt.addParameter("frontier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
   trrt.addParameter("k_constant", "0.0", "value used to normalize expresssion. default: 0.0 set in setup()");
   planner_des.push_back(trrt);
 
@@ -813,10 +809,10 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
                        "setup()");
   bi_trrt.addParameter("temp_change_factor", "0.1", "how much to increase or decrease temp. default: 0.1");
   bi_trrt.addParameter("init_temperature", "100", "initial temperature. default: 100");
-  bi_trrt.addParameter("frountier_threshold", "0.0",
+  bi_trrt.addParameter("frontier_threshold", "0.0",
                        "dist new state to nearest neighbor to disqualify as frontier. "
                        "default: 0.0 set in setup()");
-  bi_trrt.addParameter("frountier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
+  bi_trrt.addParameter("frontier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
   bi_trrt.addParameter("cost_threshold", "1e300",
                        "the cost threshold. Any motion cost that is not better will not be "
                        "expanded. default: inf");
@@ -876,8 +872,6 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
   spar_stwo.addParameter("max_failures", "5000", "maximum consecutive failure limit. default: 5000");
   planner_des.push_back(spar_stwo);
 
-// TODO: remove when ROS Melodic and older are no longer supported
-#if OMPL_VERSION_VALUE >= 1005000
   OMPLPlannerDescription aitstar("AITstar", "geometric");
   aitstar.addParameter("use_k_nearest", "1",
                        "whether to use a k-nearest RGG connection model (1) or an r-disc model (0). Default: 1");
@@ -947,7 +941,6 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners() const
                        "sort edges in the queue at the end of the batch (0) or after each rewiring (1). Default: 0");
   bitstar.addParameter("find_approximate_solutions", "0", "track approximate solutions (1) or not (0). Default: 0");
   planner_des.push_back(bitstar);
-#endif
 
   return planner_des;
 }
@@ -1696,11 +1689,11 @@ bool MoveItConfigData::extractPackageNameFromPath(const std::string& path, std::
       ROS_DEBUG_STREAM("Found package.xml in " << sub_path.make_preferred().string());
       package_found = true;
       relative_filepath = relative_path.string();
-      package_name = sub_path.leaf().string();
+      package_name = sub_path.filename().string();
       break;
     }
-    relative_path = sub_path.leaf() / relative_path;
-    sub_path.remove_leaf();
+    relative_path = sub_path.filename() / relative_path;
+    sub_path.remove_filename();
   }
 
   // Assign data to moveit_config_data

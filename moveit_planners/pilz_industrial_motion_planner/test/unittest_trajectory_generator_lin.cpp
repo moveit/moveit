@@ -90,7 +90,8 @@ protected:
 protected:
   // ros stuff
   ros::NodeHandle ph_{ "~" };
-  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(GetParam()).getModel() };
+  robot_model_loader::RobotModelLoader robot_model_loader_{ GetParam() };
+  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader_.getModel() };
   planning_scene::PlanningSceneConstPtr planning_scene_{ new planning_scene::PlanningScene(robot_model_) };
 
   // lin trajectory generator using model without gripper
@@ -184,11 +185,6 @@ TEST(TrajectoryGeneratorLINTest, TestExceptionErrorCodeMapping)
   {
     std::shared_ptr<JointNumberMismatch> jnm_ex{ new JointNumberMismatch("") };
     EXPECT_EQ(jnm_ex->getErrorCode(), moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
-  }
-
-  {
-    std::shared_ptr<LinJointMissingInStartState> ljmiss_ex{ new LinJointMissingInStartState("") };
-    EXPECT_EQ(ljmiss_ex->getErrorCode(), moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
   }
 
   {
@@ -420,24 +416,6 @@ TEST_P(TrajectoryGeneratorLINTest, IncorrectJointNumber)
   planning_interface::MotionPlanResponse res;
   ASSERT_FALSE(lin_->generate(planning_scene_, lin_joint_req, res));
   EXPECT_TRUE(res.error_code_.val == moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
-}
-
-/**
- * @brief test invalid motion plan request with incomplete start state and
- * cartesian goal
- */
-TEST_P(TrajectoryGeneratorLINTest, cartGoalIncompleteStartState)
-{
-  // construct motion plan request
-  moveit_msgs::MotionPlanRequest lin_cart_req{ tdp_->getLinCart("lin2").toRequest() };
-  EXPECT_GT(lin_cart_req.start_state.joint_state.name.size(), 1u);
-  lin_cart_req.start_state.joint_state.name.resize(1);
-  lin_cart_req.start_state.joint_state.position.resize(1);  // prevent failing check for equal sizes
-
-  // generate lin trajectory
-  planning_interface::MotionPlanResponse res;
-  EXPECT_FALSE(lin_->generate(planning_scene_, lin_cart_req, res));
-  EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
 }
 
 /**

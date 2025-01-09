@@ -2,6 +2,28 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.16 (2024-10-07)
+-------------------
+
+1.1.15 (2024-09-09)
+-------------------
+* PSI: allow persistent connections for [get|apply]_planning_scene services (`#3628 <https://github.com/ros-planning/moveit/issues/3628>`_)
+* New implementation for computeCartesianPath (`#3618 <https://github.com/ros-planning/moveit/issues/3618>`_)
+* Contributors: Cesare Tonola, Robert Haschke
+
+1.1.14 (2024-05-27)
+-------------------
+* MoveGroupInterface: allow RobotState diffs as start state (`#3592 <https://github.com/ros-planning/moveit/issues/3592>`_)
+* Augment Python PlanningSceneInterface API (`#3534 <https://github.com/ros-planning/moveit/issues/3534>`_)
+* Add PlanningSceneInterface::clear() (`#3512 <https://github.com/ros-planning/moveit/issues/3512>`_)
+* PSI::getKnownObjectNamesInROI: consider collision object's pose (`#3477 <https://github.com/ros-planning/moveit/issues/3477>`_)
+* Contributors: Aaryan Murgunde, Jorge Santos Simón, Robert Haschke, Tom Noble
+
+1.1.13 (2023-07-28)
+-------------------
+* Add unittest for `#3467 <https://github.com/ros-planning/moveit/issues/3467>`_ (`#3470 <https://github.com/ros-planning/moveit/issues/3470>`_)
+* Contributors: Robert Haschke
+
 1.1.12 (2023-05-13)
 -------------------
 * Generalize RobotState::setFromIK() (`<https://github.com/ros-planning/moveit/issues/3388>`_)

@@ -442,6 +442,11 @@ void PlanningScene::pushDiffs(const PlanningScenePtr& scene)
         scene->world_->removeObject(it.first);
         scene->removeObjectColor(it.first);
         scene->removeObjectType(it.first);
+        // if object is attached, it should not be removed from the ACM
+        if (!scene->getCurrentState().hasAttachedBody(it.first))
+        {
+          scene->getAllowedCollisionMatrixNonConst().removeEntry(it.first);
+        }
       }
       else
       {
@@ -1318,6 +1323,7 @@ bool PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene& sc
 
 bool PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene& scene_msg)
 {
+  assert(scene_msg.is_diff == false);
   ROS_DEBUG_NAMED(LOGNAME, "Setting new planning scene: '%s'", scene_msg.name.c_str());
   name_ = scene_msg.name;
 
@@ -1416,6 +1422,7 @@ void PlanningScene::removeAllCollisionObjects()
       world_->removeObject(object_id);
       removeObjectColor(object_id);
       removeObjectType(object_id);
+      getAllowedCollisionMatrixNonConst().removeEntry(object_id);
     }
 }
 
@@ -1874,6 +1881,7 @@ bool PlanningScene::processCollisionObjectRemove(const moveit_msgs::CollisionObj
 
     removeObjectColor(object.id);
     removeObjectType(object.id);
+    getAllowedCollisionMatrixNonConst().removeEntry(object.id);
   }
   return true;
 }
@@ -1882,6 +1890,7 @@ bool PlanningScene::processCollisionObjectMove(const moveit_msgs::CollisionObjec
 {
   if (world_->hasObject(object.id))
   {
+    // update object pose
     if (!object.primitives.empty() || !object.meshes.empty() || !object.planes.empty())
       ROS_WARN_NAMED(LOGNAME, "Move operation for object '%s' ignores the geometry specified in the message.",
                      object.id.c_str());
@@ -1893,6 +1902,45 @@ bool PlanningScene::processCollisionObjectMove(const moveit_msgs::CollisionObjec
 
     const Eigen::Isometry3d object_frame_transform = world_to_object_header_transform * header_to_pose_transform;
     world_->setObjectPose(object.id, object_frame_transform);
+
+    // update shape poses
+    if (!object.primitive_poses.empty() || !object.mesh_poses.empty() || !object.plane_poses.empty())
+    {
+      auto world_object = world_->getObject(object.id);  // object exists, checked earlier
+
+      std::size_t shape_size = object.primitive_poses.size() + object.mesh_poses.size() + object.plane_poses.size();
+      if (shape_size != world_object->shape_poses_.size())
+      {
+        ROS_ERROR_NAMED(LOGNAME, "Move operation for object '%s' must have same number of geometry poses. Cannot move.",
+                        object.id.c_str());
+        return false;
+      }
+
+      // order matters -> primitive, mesh and plane
+      EigenSTL::vector_Isometry3d shape_poses;
+      for (const auto& shape_pose : object.primitive_poses)
+      {
+        shape_poses.emplace_back();
+        PlanningScene::poseMsgToEigen(shape_pose, shape_poses.back());
+      }
+      for (const auto& shape_pose : object.mesh_poses)
+      {
+        shape_poses.emplace_back();
+        PlanningScene::poseMsgToEigen(shape_pose, shape_poses.back());
+      }
+      for (const auto& shape_pose : object.plane_poses)
+      {
+        shape_poses.emplace_back();
+        PlanningScene::poseMsgToEigen(shape_pose, shape_poses.back());
+      }
+
+      if (!world_->moveShapesInObject(object.id, shape_poses))
+      {
+        ROS_ERROR_NAMED(LOGNAME, "Move operation for object '%s' internal world error. Cannot move.", object.id.c_str());
+        return false;
+      }
+    }
+
     return true;
   }
 

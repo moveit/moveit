@@ -56,9 +56,8 @@ protected:
   void SetUp() override;
 
 protected:
-  robot_model::RobotModelConstPtr robot_model_{
-    robot_model_loader::RobotModelLoader(ROBOT_DESCRIPTION_PARAM).getModel()
-  };
+  robot_model_loader::RobotModelLoader robot_model_loader_{ ROBOT_DESCRIPTION_PARAM };
+  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader_.getModel() };
 };
 
 void GetSolverTipFrameIntegrationTest::SetUp()

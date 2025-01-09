@@ -53,7 +53,7 @@
 TEST(PlanningScene, LoadRestore)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   planning_scene::PlanningScene ps(urdf_model, srdf_model);
   moveit_msgs::PlanningScene ps_msg;
   ps.getPlanningSceneMsg(ps_msg);
@@ -67,7 +67,7 @@ TEST(PlanningScene, LoadRestore)
 TEST(PlanningScene, LoadOctomap)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   planning_scene::PlanningScene ps(urdf_model, srdf_model);
 
   {  // check octomap before doing any operations on it
@@ -120,7 +120,7 @@ TEST(PlanningScene, LoadOctomap)
 TEST(PlanningScene, LoadRestoreDiff)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   auto ps = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
 
   collision_detection::World& world = *ps->getWorldNonConst();
@@ -180,7 +180,7 @@ TEST(PlanningScene, LoadRestoreDiff)
 TEST(PlanningScene, MakeAttachedDiff)
 {
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   auto ps = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
 
   /* add a single object to ps's world */
@@ -321,7 +321,7 @@ TEST_P(CollisionDetectorTests, ClearDiff)
   SCOPED_TRACE(plugin_name);
 
   urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  auto srdf_model = std::make_shared<srdf::Model>();
   // create parent scene
   planning_scene::PlanningScenePtr parent = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
 
@@ -540,6 +540,80 @@ TEST(PlanningScene, RobotStateDiffBug)
     EXPECT_TRUE(get_collision_objects_names(*ps).empty());
     EXPECT_EQ(get_attached_collision_objects_names(*ps), (std::set<std::string>{ "object1" }));
   }
+}
+
+TEST(PlanningScene, UpdateACMAfterObjectRemoval)
+{
+  auto robot_model = moveit::core::loadTestingRobotModel("panda");
+  auto ps = std::make_shared<planning_scene::PlanningScene>(robot_model);
+
+  const auto object_name = "object";
+  collision_detection::CollisionRequest collision_request;
+  collision_request.group_name = "hand";
+  collision_request.verbose = true;
+
+  // Helper function to add an object to the planning scene
+  auto add_object = [&] {
+    const auto ps1 = create_planning_scene_diff(*ps, object_name, moveit_msgs::CollisionObject::ADD);
+    ps->usePlanningSceneMsg(ps1);
+    EXPECT_EQ(get_collision_objects_names(*ps), (std::set<std::string>{ object_name }));
+  };
+
+  // Helper function to attach the object to the robot
+  auto attach_object = [&] {
+    const auto ps1 = create_planning_scene_diff(*ps, object_name, moveit_msgs::CollisionObject::ADD, true);
+    ps->usePlanningSceneMsg(ps1);
+    EXPECT_EQ(get_attached_collision_objects_names(*ps), (std::set<std::string>{ object_name }));
+  };
+
+  // Helper function to detach the object from the robot
+  auto detach_object = [&] {
+    const auto ps1 = create_planning_scene_diff(*ps, object_name, moveit_msgs::CollisionObject::REMOVE, true);
+    ps->usePlanningSceneMsg(ps1);
+    EXPECT_EQ(get_attached_collision_objects_names(*ps), (std::set<std::string>{}));
+  };
+
+  // Modify the allowed collision matrix and make sure it is updated
+  auto modify_acm = [&] {
+    collision_detection::AllowedCollisionMatrix& acm = ps->getAllowedCollisionMatrixNonConst();
+    acm.setEntry(object_name, ps->getRobotModel()->getJointModelGroup("hand")->getLinkModelNamesWithCollisionGeometry(),
+                 true);
+    EXPECT_TRUE(ps->getAllowedCollisionMatrix().hasEntry(object_name));
+  };
+
+  // Check collision
+  auto check_collision = [&] {
+    collision_detection::CollisionResult res;
+    ps->checkCollision(collision_request, res);
+    return res.collision;
+  };
+
+  // Test removing a collision object using a diff
+  add_object();
+  EXPECT_TRUE(check_collision());
+  modify_acm();
+  EXPECT_FALSE(check_collision());
+  // Attach and detach the object from the robot to make sure that collision are still allowed
+  attach_object();
+  EXPECT_FALSE(check_collision());
+  detach_object();
+  EXPECT_FALSE(check_collision());
+  {
+    const auto ps1 = create_planning_scene_diff(*ps, object_name, moveit_msgs::CollisionObject::REMOVE);
+    ps->usePlanningSceneMsg(ps1);
+    EXPECT_EQ(get_collision_objects_names(*ps), (std::set<std::string>{}));
+    EXPECT_FALSE(ps->getAllowedCollisionMatrix().hasEntry(object_name));
+  }
+
+  // Test removing all objects
+  add_object();
+  // This should report a collision since it's a completely new object
+  EXPECT_TRUE(check_collision());
+  modify_acm();
+  EXPECT_FALSE(check_collision());
+  ps->removeAllCollisionObjects();
+  EXPECT_EQ(get_collision_objects_names(*ps), (std::set<std::string>{}));
+  EXPECT_FALSE(ps->getAllowedCollisionMatrix().hasEntry(object_name));
 }
 
 #ifndef INSTANTIATE_TEST_SUITE_P  // prior to gtest 1.10

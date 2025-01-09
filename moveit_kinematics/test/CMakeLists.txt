@@ -33,6 +33,24 @@ if(CATKIN_ENABLE_TESTING)
     add_rostest(panda-ikfast.test ${DEPS})
   endif()
 
+  set(IK_TYPES translationxaxisangle4d
+              translationyaxisangle4d
+              translationzaxisangle4d
+              translationxaxisangleznorm4d
+              translationyaxisanglexnorm4d
+              translationzaxisangleynorm4d)
+  foreach(IK_TYPE IN LISTS IK_TYPES)
+    find_package(test_4dof_${IK_TYPE}_ikfast_plugin QUIET)
+    if (test_4dof_${IK_TYPE}_ikfast_plugin_FOUND)
+      # Setting a default value to IKFAST_PLUGIN_PATH for passing the catkin_lint test
+      set(IKFAST_PLUGIN_PATH "test_4dof")
+      exec_program(rospack ARGS find "test_4dof_${IK_TYPE}_ikfast_plugin" OUTPUT_VARIABLE IKFAST_PLUGIN_PATH RETURN_VALUE ROSPACK_RESULT)
+      if (NOT ROSPACK_RESULT)
+        add_rostest("${IKFAST_PLUGIN_PATH}/test_4dof-ikfast.test" ${DEPS})
+      endif()
+    endif()
+  endforeach()
+
   # Benchmarking program for cached_ik_kinematics
   add_executable(benchmark_ik benchmark_ik.cpp)
   target_link_libraries(benchmark_ik

@@ -50,7 +50,7 @@ const std::string ompl_interface::PoseModelStateSpace::PARAMETERIZATION_TYPE = "
 ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSpaceSpecification& spec)
   : ModelBasedStateSpace(spec)
 {
-  jump_factor_ = 3;  // \todo make this a param
+  jump_factor_ = 1.5;  // \todo make this a param
 
   if (spec.joint_model_group_->getGroupKinematics().first)
     poses_.emplace_back(spec.joint_model_group_, spec.joint_model_group_->getGroupKinematics().first);
@@ -73,10 +73,7 @@ ompl_interface::PoseModelStateSpace::~PoseModelStateSpace() = default;
 double ompl_interface::PoseModelStateSpace::distance(const ompl::base::State* state1,
                                                      const ompl::base::State* state2) const
 {
-  double total = 0;
-  for (std::size_t i = 0; i < poses_.size(); ++i)
-    total += poses_[i].state_space_->distance(state1->as<StateType>()->poses[i], state2->as<StateType>()->poses[i]);
-  return total;
+  return ModelBasedStateSpace::distance(state1, state2);
 }
 
 double ompl_interface::PoseModelStateSpace::getMaximumExtent() const
@@ -128,13 +125,13 @@ void ompl_interface::PoseModelStateSpace::sanityChecks() const
 void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State* from, const ompl::base::State* to,
                                                       const double t, ompl::base::State* state) const
 {
-  //  moveit::Profiler::ScopedBlock sblock("interpolate");
+  // moveit::Profiler::ScopedBlock sblock("interpolate");
 
-  // we want to interpolate in Cartesian space; we do not have a guarantee that from and to
-  // have their poses computed, but this is very unlikely to happen (depends how the planner gets its input states)
+  // we want to interpolate in Cartesian space to avoid rejection of path constraints
 
-  // interpolate in joint space
+  // interpolate in joint space to find a suitable seed for IK
   ModelBasedStateSpace::interpolate(from, to, t, state);
+  double d_joint = ModelBasedStateSpace::distance(from, state);
 
   // interpolate SE3 components
   for (std::size_t i = 0; i < poses_.size(); ++i)
@@ -144,24 +141,13 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State* f
   // the call above may reset all flags for state; but we know the pose we want flag should be set
   state->as<StateType>()->setPoseComputed(true);
 
-  /*
-  std::cout << "*********** interpolate\n";
-  printState(from, std::cout);
-  printState(to, std::cout);
-  printState(state, std::cout);
-  std::cout << "\n\n";
-  */
-
-  // after interpolation we cannot be sure about the joint values (we use them as seed only)
-  // so we recompute IK if needed
+  // compute IK for interpolated Cartesian state
   if (computeStateIK(state))
   {
-    double dj = jump_factor_ * ModelBasedStateSpace::distance(from, to);
-    double d_from = ModelBasedStateSpace::distance(from, state);
-    double d_to = ModelBasedStateSpace::distance(state, to);
+    double d_cart = ModelBasedStateSpace::distance(from, state);
 
-    // if the joint value jumped too much
-    if (d_from + d_to > std::max(0.2, dj))  // \todo make 0.2 a param
+    // reject if Cartesian interpolation yields much larger distance than joint interpolation
+    if (d_cart > jump_factor_ * d_joint)
       state->as<StateType>()->markInvalid();
   }
 }

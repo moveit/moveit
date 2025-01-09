@@ -2,6 +2,22 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.16 (2024-10-07)
+-------------------
+
+1.1.15 (2024-09-09)
+-------------------
+* RobotInteraction: Don't crash on unknown eef_group
+* Contributors: Robert Haschke
+
+1.1.14 (2024-05-27)
+-------------------
+* Consider distance field padding for spheres (`#3506 <https://github.com/ros-planning/moveit/issues/3506>`_)
+* Contributors: Robert Haschke
+
+1.1.13 (2023-07-28)
+-------------------
+
 1.1.12 (2023-05-13)
 -------------------
 

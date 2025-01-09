@@ -219,7 +219,7 @@ TEST_F(IntegrationTestCommandPlanning, PtpJointCart)
   Eigen::Isometry3d exp_iso3d_pose;
   tf2::fromMsg(expected_pose, exp_iso3d_pose);
 
-  EXPECT_TRUE(Eigen::Quaterniond(tf.rotation()).isApprox(Eigen::Quaterniond(exp_iso3d_pose.rotation()), EPSILON));
+  EXPECT_TRUE(Eigen::Quaterniond(tf.rotation()).isApprox(Eigen::Quaterniond(exp_iso3d_pose.rotation()), 2 * EPSILON));
 }
 
 /**

@@ -139,16 +139,22 @@ bool MoveItCpp::loadPlanningPipelines(const PlanningPipelineOptions& options)
     }
     ROS_INFO_NAMED(LOGNAME, "Loading planning pipeline '%s'", planning_pipeline_name.c_str());
     ros::NodeHandle child_nh(node_handle, planning_pipeline_name);
-    planning_pipeline::PlanningPipelinePtr pipeline;
-    pipeline = std::make_shared<planning_pipeline::PlanningPipeline>(getRobotModel(), child_nh, PLANNING_PLUGIN_PARAM);
 
-    if (!pipeline->getPlannerManager())
+    try
     {
-      ROS_ERROR_NAMED(LOGNAME, "Failed to initialize planning pipeline '%s'.", planning_pipeline_name.c_str());
-      continue;
-    }
+      auto pipeline =
+          std::make_shared<planning_pipeline::PlanningPipeline>(getRobotModel(), child_nh, PLANNING_PLUGIN_PARAM);
 
-    planning_pipelines_[planning_pipeline_name] = pipeline;
+      if (!pipeline->getPlannerManager())
+        throw std::runtime_error("Invalid planner manager");
+
+      planning_pipelines_[planning_pipeline_name] = pipeline;
+    }
+    catch (std::exception& ex)
+    {
+      ROS_ERROR_NAMED(LOGNAME, "Failed to initialize planning pipeline '%s':\n%s", planning_pipeline_name.c_str(),
+                      ex.what());
+    }
   }
 
   if (planning_pipelines_.empty())

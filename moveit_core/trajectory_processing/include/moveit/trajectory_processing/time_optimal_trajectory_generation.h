@@ -42,6 +42,7 @@
 #include <list>
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/trajectory_processing/time_parameterization.h>
+#include <unordered_map>
 
 namespace trajectory_processing
 {

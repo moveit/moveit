@@ -129,13 +129,11 @@ bool MotionPlanningFrame::computeCartesianPlan()
 
   // setup default params
   double cart_step_size = 0.01;
-  double cart_jump_thresh = 0.0;
   bool avoid_collisions = true;
 
   // compute trajectory
   moveit_msgs::RobotTrajectory trajectory;
-  double fraction =
-      move_group_->computeCartesianPath(waypoints, cart_step_size, cart_jump_thresh, trajectory, avoid_collisions);
+  double fraction = move_group_->computeCartesianPath(waypoints, cart_step_size, trajectory, avoid_collisions);
 
   if (fraction >= 1.0)
   {
@@ -253,10 +251,9 @@ void MotionPlanningFrame::onFinishedExecution(bool success)
   if (ui_->start_state_combo_box->currentText() == "<current>")
     startStateTextChanged(ui_->start_state_combo_box->currentText());
 
-  // auto-update goal to stored previous state (but only on success)
-  // on failure, the user must update the goal to the previous state himself
-  if (ui_->goal_state_combo_box->currentText() == "<previous>")
-    goalStateTextChanged(ui_->goal_state_combo_box->currentText());
+  // update query goal state (from previous or to current)
+  // also ensures that joints tab shows goal state model
+  goalStateTextChanged(ui_->goal_state_combo_box->currentText());
 }
 
 void MotionPlanningFrame::onNewPlanningSceneState()

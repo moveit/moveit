@@ -38,6 +38,7 @@
 #include <moveit/robot_state/conversions.h>
 #include <moveit/collision_detection/collision_tools.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
+#include <moveit/kinematic_constraints/utils.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <boost/tokenizer.hpp>
@@ -216,7 +217,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
 }
 
 bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                       const planning_interface::MotionPlanRequest& req,
+                                                       const planning_interface::MotionPlanRequest& request,
                                                        planning_interface::MotionPlanResponse& res,
                                                        std::vector<std::size_t>& adapter_added_state_index) const
 {
@@ -225,7 +226,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
 
   // broadcast the request we are about to work on, if needed
   if (publish_received_requests_)
-    received_request_publisher_.publish(req);
+    received_request_publisher_.publish(request);
   adapter_added_state_index.clear();
 
   if (!planner_instance_)
@@ -235,6 +236,12 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
     active_ = false;
     return false;
   }
+
+  // resolve constraint frames
+  planning_interface::MotionPlanRequest req = request;
+  kinematic_constraints::resolveConstraintFrames(planning_scene->getCurrentState(), req.path_constraints);
+  for (moveit_msgs::Constraints& constraint : req.goal_constraints)
+    kinematic_constraints::resolveConstraintFrames(planning_scene->getCurrentState(), constraint);
 
   bool solved = false;
   try

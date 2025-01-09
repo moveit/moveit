@@ -111,19 +111,22 @@ public:
 
 protected:
   /**
-   * @brief This class is used to extract needed information from motion plan
-   * request.
+   * @brief This class is used to extract needed information from motion plan request.
    */
   class MotionPlanInfo
   {
   public:
+    MotionPlanInfo(const planning_scene::PlanningSceneConstPtr& scene, const planning_interface::MotionPlanRequest& req);
+
     std::string group_name;
     std::string link_name;
+    Eigen::Translation3d ioffset;  // inverse offset from link_name to IK point
     Eigen::Isometry3d start_pose;
     Eigen::Isometry3d goal_pose;
     std::map<std::string, double> start_joint_position;
     std::map<std::string, double> goal_joint_position;
     std::pair<std::string, Eigen::Vector3d> circ_path_point;
+    planning_scene::PlanningSceneConstPtr start_scene;  // scene with updated start state
   };
 
   /**
@@ -134,8 +137,8 @@ protected:
    * The trap profile returns uses the longer distance of translational and
    * rotational motion.
    */
-  std::unique_ptr<KDL::VelocityProfile> cartesianTrapVelocityProfile(const double& max_velocity_scaling_factor,
-                                                                     const double& max_acceleration_scaling_factor,
+  std::unique_ptr<KDL::VelocityProfile> cartesianTrapVelocityProfile(const double max_velocity_scaling_factor,
+                                                                     const double max_acceleration_scaling_factor,
                                                                      const std::unique_ptr<KDL::Path>& path) const;
 
 private:
@@ -155,7 +158,7 @@ private:
 
   virtual void plan(const planning_scene::PlanningSceneConstPtr& scene,
                     const planning_interface::MotionPlanRequest& req, const MotionPlanInfo& plan_info,
-                    const double& sampling_time, trajectory_msgs::JointTrajectory& joint_trajectory) = 0;
+                    double sampling_time, trajectory_msgs::JointTrajectory& joint_trajectory) = 0;
 
 private:
   /**
@@ -199,7 +202,7 @@ private:
    * moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS on failure
    * @param req: motion plan request
    */
-  void validateRequest(const planning_interface::MotionPlanRequest& req) const;
+  void validateRequest(const planning_interface::MotionPlanRequest& req, const moveit::core::RobotState& rstate) const;
 
   /**
    * @brief set MotionPlanResponse from joint trajectory
@@ -226,13 +229,13 @@ private:
   void checkStartState(const moveit_msgs::RobotState& start_state, const std::string& group) const;
 
   void checkGoalConstraints(const moveit_msgs::MotionPlanRequest::_goal_constraints_type& goal_constraints,
-                            const std::vector<std::string>& expected_joint_names, const std::string& group_name) const;
+                            const std::string& group_name, const moveit::core::RobotState& rstate) const;
 
-  void checkJointGoalConstraint(const moveit_msgs::Constraints& constraint,
-                                const std::vector<std::string>& expected_joint_names,
-                                const std::string& group_name) const;
+  void checkJointGoalConstraint(const moveit_msgs::Constraints& constraint, const std::string& group_name) const;
 
-  void checkCartesianGoalConstraint(const moveit_msgs::Constraints& constraint, const std::string& group_name) const;
+  void checkCartesianGoalConstraint(const moveit_msgs::Constraints& constraint,
+                                    const moveit::core::RobotState& robot_state,
+                                    const moveit::core::JointModelGroup* const jmg) const;
 
 private:
   /**
@@ -243,9 +246,9 @@ private:
   /**
    * @return True if scaling factor is valid, otherwise false.
    */
-  static bool isScalingFactorValid(const double& scaling_factor);
-  static void checkVelocityScaling(const double& scaling_factor);
-  static void checkAccelerationScaling(const double& scaling_factor);
+  static bool isScalingFactorValid(const double scaling_factor);
+  static void checkVelocityScaling(const double scaling_factor);
+  static void checkAccelerationScaling(const double scaling_factor);
 
   /**
    * @return True if ONE position + ONE orientation constraint given,
@@ -272,7 +275,7 @@ protected:
   static constexpr double VELOCITY_TOLERANCE{ 1e-8 };
 };
 
-inline bool TrajectoryGenerator::isScalingFactorValid(const double& scaling_factor)
+inline bool TrajectoryGenerator::isScalingFactorValid(const double scaling_factor)
 {
   return (scaling_factor > MIN_SCALING_FACTOR && scaling_factor <= MAX_SCALING_FACTOR);
 }

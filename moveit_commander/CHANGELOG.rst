@@ -2,6 +2,26 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.16 (2024-10-07)
+-------------------
+* Fix type error
+* Contributors: Robert Haschke
+
+1.1.15 (2024-09-09)
+-------------------
+* New implementation for computeCartesianPath (`#3618 <https://github.com/ros-planning/moveit/issues/3618>`_)
+* Contributors: Robert Haschke
+
+1.1.14 (2024-05-27)
+-------------------
+* Fixed order of return values in doc string of compute_cartesian_path() (`#3574 <https://github.com/ros-planning/moveit/issues/3574>`_)
+* Augment Python PlanningSceneInterface API (`#3534 <https://github.com/ros-planning/moveit/issues/3534>`_)
+* Add PlanningSceneInterface::clear() (`#3512 <https://github.com/ros-planning/moveit/issues/3512>`_)
+* Contributors: Aaryan Murgunde, IrvingF7, Robert Haschke
+
+1.1.13 (2023-07-28)
+-------------------
+
 1.1.12 (2023-05-13)
 -------------------
 * Rename argument of execute() to trajectory (`#3392 <https://github.com/ros-planning/moveit/issues/3392>`_)

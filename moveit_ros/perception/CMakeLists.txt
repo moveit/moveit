@@ -24,6 +24,7 @@ endif(APPLE)
 
 find_package(catkin REQUIRED COMPONENTS
   cv_bridge
+  geometric_shapes
   moveit_core
   roscpp
   rosconsole

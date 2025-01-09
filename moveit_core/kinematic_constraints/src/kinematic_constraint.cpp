@@ -221,18 +221,18 @@ bool JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
         joint_position_ = bounds.min_position_;
         joint_tolerance_above_ = std::numeric_limits<double>::epsilon();
         ROS_WARN_NAMED("kinematic_constraints",
-                       "Joint %s is constrained to be below the minimum bounds. "
+                       "Joint %s is constrained to be below the minimum bound %g. "
                        "Assuming minimum bounds instead.",
-                       jc.joint_name.c_str());
+                       jc.joint_name.c_str(), bounds.min_position_);
       }
       else if (bounds.max_position_ < joint_position_ - joint_tolerance_below_)
       {
         joint_position_ = bounds.max_position_;
         joint_tolerance_below_ = std::numeric_limits<double>::epsilon();
         ROS_WARN_NAMED("kinematic_constraints",
-                       "Joint %s is constrained to be above the maximum bounds. "
+                       "Joint %s is constrained to be above the maximum bounds %g. "
                        "Assuming maximum bounds instead.",
-                       jc.joint_name.c_str());
+                       jc.joint_name.c_str(), bounds.max_position_);
       }
     }
 
@@ -555,10 +555,11 @@ bool OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& 
   // clearing out any old data
   clear();
 
-  link_model_ = robot_model_->getLinkModel(oc.link_name);
+  bool found;
+  link_model_ = robot_model_->getLinkModel(oc.link_name, &found);
   if (!link_model_)
   {
-    ROS_WARN_NAMED("kinematic_constraints", "Could not find link model for link name %s", oc.link_name.c_str());
+    ROS_WARN_NAMED("kinematic_constraints", "Could not find link model for link name '%s'", oc.link_name.c_str());
     return false;
   }
   Eigen::Quaterniond q;
@@ -576,6 +577,7 @@ bool OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& 
     ROS_WARN_NAMED("kinematic_constraints", "No frame specified for position constraint on link '%s'!",
                    oc.link_name.c_str());
 
+  desired_R_in_frame_id_ = Eigen::Quaterniond(q);  // desired rotation wrt. frame_id
   if (tf.isFixedFrame(oc.header.frame_id))
   {
     tf.transformQuaternion(oc.header.frame_id, q, q);
@@ -709,10 +711,8 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
   else if (parameterization_type_ == moveit_msgs::OrientationConstraint::ROTATION_VECTOR)
   {
     Eigen::AngleAxisd aa(diff.linear());
-    xyz_rotation = aa.axis() * aa.angle();
-    xyz_rotation(0) = fabs(xyz_rotation(0));
-    xyz_rotation(1) = fabs(xyz_rotation(1));
-    xyz_rotation(2) = fabs(xyz_rotation(2));
+    // transform rotation vector from target frame to frame_id and take absolute values
+    xyz_rotation = (desired_R_in_frame_id_ * (aa.axis() * aa.angle())).cwiseAbs();
   }
   else
   {

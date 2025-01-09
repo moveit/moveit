@@ -75,25 +75,15 @@ public:
     : ActionBasedControllerHandleBase(name), nh_("~"), done_(true), namespace_(ns)
   {
     controller_action_client_ = std::make_shared<actionlib::SimpleActionClient<T>>(getActionName(), true);
-    unsigned int attempts = 0;
     double timeout;
     nh_.param("trajectory_execution/controller_connection_timeout", timeout, 15.0);
 
-    if (timeout == 0.0)
+    ros::WallTime end_time = ros::WallTime::now() + ros::WallDuration(timeout);
+    while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(5.0)))
     {
-      while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(5.0)))
-      {
-        ROS_WARN_STREAM_NAMED("ActionBasedController", "Waiting for " << getActionName() << " to come up");
-        ros::Duration(1).sleep();
-      }
-    }
-    else
-    {
-      while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(timeout / 3)) && ++attempts < 3)
-      {
-        ROS_WARN_STREAM_NAMED("ActionBasedController", "Waiting for " << getActionName() << " to come up");
-        ros::Duration(1).sleep();
-      }
+      if (timeout != 0.0 && ros::WallTime::now() >= end_time)
+        break;
+      ROS_WARN_STREAM_NAMED("ActionBasedController", "Waiting for " << getActionName() << " to come up...");
     }
     if (!controller_action_client_->isServerConnected())
     {
@@ -127,12 +117,6 @@ public:
   {
     if (controller_action_client_ && !done_)
       return controller_action_client_->waitForResult(timeout);
-#if 1  // TODO: remove when https://github.com/ros/actionlib/issues/155 is fixed
-    // workaround for actionlib issue: waitForResult() might return before our doneCB finished
-    ros::Time deadline = ros::Time::now() + ros::Duration(0.1);  // limit waiting to 0.1s
-    while (!done_ && ros::ok() && ros::Time::now() < deadline)   // Check the done_ flag explicitly,
-      ros::Duration(0.0001).sleep();                             // which is eventually set in finishControllerExecution
-#endif
     return true;
   }
 

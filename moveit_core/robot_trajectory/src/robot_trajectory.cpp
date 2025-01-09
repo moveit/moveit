@@ -112,7 +112,7 @@ RobotTrajectory& RobotTrajectory::append(const RobotTrajectory& source, double d
                                  std::next(source.duration_from_previous_.begin(), start_index),
                                  std::next(source.duration_from_previous_.begin(), end_index));
   if (duration_from_previous_.size() > index)
-    duration_from_previous_[index] += dt;
+    duration_from_previous_[index] = dt;
 
   return *this;
 }
@@ -439,7 +439,7 @@ RobotTrajectory& RobotTrajectory::setRobotTrajectoryMsg(const moveit::core::Robo
   return setRobotTrajectoryMsg(st, trajectory);
 }
 
-void RobotTrajectory::findWayPointIndicesForDurationAfterStart(const double& duration, int& before, int& after,
+void RobotTrajectory::findWayPointIndicesForDurationAfterStart(const double duration, int& before, int& after,
                                                                double& blend) const
 {
   if (duration < 0.0)

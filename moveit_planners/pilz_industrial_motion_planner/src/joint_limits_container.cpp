@@ -105,13 +105,13 @@ std::map<std::string, JointLimit>::const_iterator JointLimitsContainer::end() co
   return container_.end();
 }
 
-bool JointLimitsContainer::verifyVelocityLimit(const std::string& joint_name, const double& joint_velocity) const
+bool JointLimitsContainer::verifyVelocityLimit(const std::string& joint_name, const double joint_velocity) const
 {
   return (!(hasLimit(joint_name) && getLimit(joint_name).has_velocity_limits &&
             fabs(joint_velocity) > getLimit(joint_name).max_velocity));
 }
 
-bool JointLimitsContainer::verifyPositionLimit(const std::string& joint_name, const double& joint_position) const
+bool JointLimitsContainer::verifyPositionLimit(const std::string& joint_name, const double joint_position) const
 {
   return (!(hasLimit(joint_name) && getLimit(joint_name).has_position_limits &&
             (joint_position < getLimit(joint_name).min_position || joint_position > getLimit(joint_name).max_position)));

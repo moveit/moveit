@@ -1,0 +1,9 @@
+<launch>
+
+  <include file="$(find moveit_resources_panda_moveit_config)/launch/test_environment.launch">
+    <arg name="pipeline" value="chomp" />
+  </include>
+
+  <test test-name="chomp_test_panda" pkg="moveit_planners_chomp" type="chomp_moveit_test_panda" time-limit="20.0"/>
+
+</launch>

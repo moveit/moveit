@@ -104,6 +104,12 @@ public:
     return py_bindings_tools::dictFromType(ser_aobjs);
   }
 
+  py_bindings_tools::ByteString getPlanningScenePython(const uint32_t components)
+  {
+    moveit_msgs::PlanningScene msg = getPlanningSceneMsg(components);
+    return py_bindings_tools::serializeMsg(msg);
+  }
+
   bool applyPlanningScenePython(const py_bindings_tools::ByteString& ps_str)
   {
     moveit_msgs::PlanningScene ps_msg;
@@ -123,7 +129,9 @@ static void wrap_planning_scene_interface()
   planning_scene_class.def("get_object_poses", &PlanningSceneInterfaceWrapper::getObjectPosesPython);
   planning_scene_class.def("get_objects", &PlanningSceneInterfaceWrapper::getObjectsPython);
   planning_scene_class.def("get_attached_objects", &PlanningSceneInterfaceWrapper::getAttachedObjectsPython);
+  planning_scene_class.def("get_planning_scene", &PlanningSceneInterfaceWrapper::getPlanningScenePython);
   planning_scene_class.def("apply_planning_scene", &PlanningSceneInterfaceWrapper::applyPlanningScenePython);
+  planning_scene_class.def("clear", &PlanningSceneInterfaceWrapper::clear);
 }
 }  // namespace planning_interface
 }  // namespace moveit

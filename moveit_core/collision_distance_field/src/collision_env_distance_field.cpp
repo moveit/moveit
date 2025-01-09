@@ -150,6 +150,14 @@ void CollisionEnvDistanceField::initialize(
         generateDistanceFieldCacheEntry(jm->getName(), state, &planning_scene_->getAllowedCollisionMatrix(), false);
     getGroupStateRepresentation(dfce, state, pregenerated_group_state_representation_map_[jm->getName()]);
   }
+  // add special case for empty group name
+  std::map<std::string, bool> updated_group_entry;
+  std::vector<std::string> links = robot_model_->getLinkModelNamesWithCollisionGeometry();
+  for (const std::string& link : links)
+  {
+    updated_group_entry[link] = true;
+  }
+  in_group_update_map_[""] = updated_group_entry;
 }
 
 void CollisionEnvDistanceField::generateCollisionCheckingStructures(
@@ -723,13 +731,13 @@ DistanceFieldCacheEntryPtr CollisionEnvDistanceField::generateDistanceFieldCache
 {
   DistanceFieldCacheEntryPtr dfce(new DistanceFieldCacheEntry());
 
-  if (robot_model_->getJointModelGroup(group_name) == nullptr)
-  {
-    ROS_WARN("No group %s", group_name.c_str());
-    return dfce;
-  }
-
   dfce->group_name_ = group_name;
+
+  if (group_name.empty())
+    dfce->link_names_ = robot_model_->getLinkModelNames();
+  else
+    dfce->link_names_ = robot_model_->getJointModelGroup(group_name)->getUpdatedLinkModelNames();
+
   dfce->state_ = std::make_shared<moveit::core::RobotState>(state);
   if (acm)
   {
@@ -742,7 +750,6 @@ DistanceFieldCacheEntryPtr CollisionEnvDistanceField::generateDistanceFieldCache
   }
 
   // generateAllowedCollisionInformation(dfce);
-  dfce->link_names_ = robot_model_->getJointModelGroup(group_name)->getUpdatedLinkModelNames();
   std::vector<const moveit::core::AttachedBody*> all_attached_bodies;
   dfce->state_->getAttachedBodies(all_attached_bodies);
   unsigned int att_count = 0;
@@ -751,7 +758,6 @@ DistanceFieldCacheEntryPtr CollisionEnvDistanceField::generateDistanceFieldCache
   std::vector<bool> all_true(dfce->link_names_.size() + all_attached_bodies.size(), true);
   std::vector<bool> all_false(dfce->link_names_.size() + all_attached_bodies.size(), false);
 
-  const std::vector<const moveit::core::LinkModel*>& lsv = state.getJointModelGroup(group_name)->getUpdatedLinkModels();
   dfce->self_collision_enabled_.resize(dfce->link_names_.size() + all_attached_bodies.size(), true);
   dfce->intra_group_collision_enabled_.resize(dfce->link_names_.size() + all_attached_bodies.size());
 
@@ -759,21 +765,15 @@ DistanceFieldCacheEntryPtr CollisionEnvDistanceField::generateDistanceFieldCache
   {
     std::string link_name = dfce->link_names_[i];
     const moveit::core::LinkModel* link_state = dfce->state_->getLinkModel(link_name);
-    bool found = false;
 
-    for (unsigned int j = 0; j < lsv.size(); j++)
+    auto pos = std::find(dfce->link_names_.begin(), dfce->link_names_.end(), link_name);
+    if (pos != dfce->link_names_.end())
     {
-      if (lsv[j]->getName() == link_name)
-      {
-        dfce->link_state_indices_.push_back(j);
-        found = true;
-        break;
-      }
+      dfce->link_state_indices_.push_back(pos - dfce->link_names_.begin());
     }
-
-    if (!found)
+    else
     {
-      ROS_DEBUG("No link state found for link %s", dfce->link_names_[i].c_str());
+      ROS_DEBUG("No link state found for link '%s'", link_name.c_str());
       continue;
     }
 
@@ -884,8 +884,13 @@ DistanceFieldCacheEntryPtr CollisionEnvDistanceField::generateDistanceFieldCache
   std::map<std::string, bool> updated_map;
   if (!dfce->link_names_.empty())
   {
-    const std::vector<const moveit::core::JointModel*>& child_joint_models =
-        dfce->state_->getJointModelGroup(dfce->group_name_)->getActiveJointModels();
+    const std::vector<const moveit::core::JointModel*>& child_joint_models = [&]() {
+      if (dfce->group_name_.empty())
+        return dfce->state_->getRobotModel()->getActiveJointModels();
+      else
+        return dfce->state_->getJointModelGroup(dfce->group_name_)->getActiveJointModels();
+    }();
+
     for (const moveit::core::JointModel* child_joint_model : child_joint_models)
     {
       updated_map[child_joint_model->getName()] = true;
@@ -1760,7 +1765,7 @@ void CollisionEnvDistanceField::updateDistanceObject(const std::string& id, Dist
   if (object)
   {
     ROS_DEBUG_STREAM("Updating/Adding Object '" << object->id_ << "' with " << object->shapes_.size()
-                                                << " shapes  to CollisionEnvDistanceField");
+                                                << " shape(s) to CollisionEnvDistanceField");
     std::vector<PosedBodyPointDecompositionPtr> shape_points;
     for (unsigned int i = 0; i < object->shapes_.size(); i++)
     {

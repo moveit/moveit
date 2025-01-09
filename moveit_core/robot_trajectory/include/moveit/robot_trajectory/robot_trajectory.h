@@ -283,7 +283,7 @@ public:
    *  @param after    The waypoint index after (or equal to) the supplied duration.
    *  @param blend    The progress (0 to 1) between the two waypoints, based on time (not based on joint distances).
    */
-  void findWayPointIndicesForDurationAfterStart(const double& duration, int& before, int& after, double& blend) const;
+  void findWayPointIndicesForDurationAfterStart(const double duration, int& before, int& after, double& blend) const;
 
   // TODO support visitor function for interpolation, or at least different types.
   /** @brief Gets a robot state corresponding to a supplied duration from start for the trajectory, using linear time

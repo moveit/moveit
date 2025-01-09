@@ -42,7 +42,11 @@ import rospy
 import rostest
 import os
 
-from moveit_msgs.msg import RobotState
+from moveit_msgs.msg import (
+    RobotState,
+    PlanningSceneComponents,
+    PlanningScene,
+)
 from sensor_msgs.msg import JointState
 
 from moveit_commander import (
@@ -172,8 +176,44 @@ class PythonMoveitCommanderTest(unittest.TestCase):
         current_pose = self.group.get_current_pose()
         self.assertTrue(self.group.go(current_pose))
 
-    def test_planning_scene_interface(self):
-        planning_scene = PlanningSceneInterface()
+
+class PythonPSITest(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.psi = PlanningSceneInterface()
+
+    def get_acm(self):
+        return self.psi.get_planning_scene(
+            PlanningSceneComponents.ALLOWED_COLLISION_MATRIX
+        ).allowed_collision_matrix
+
+    def apply_acm(self, acm):
+        scene = PlanningScene()
+        scene.allowed_collision_matrix = acm
+        scene.is_diff = True
+        scene.robot_state.is_diff = True
+        self.psi.apply_planning_scene(scene)
+
+    def test_add_remove_object(self):
+        self.assertEqual(len(self.psi.get_known_object_names()), 0)
+
+        self.psi.add_box("obj", [0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+        self.assertEqual(self.psi.get_known_object_names(), ["obj"])
+
+        self.psi.remove_world_object("obj")
+        self.assertEqual(len(self.psi.get_known_object_names()), 0)
+
+    def test_acm(self):
+        acm = self.get_acm()
+        self.assertFalse("obj" in acm.entry_names)
+        self.assertFalse("obj" in acm.default_entry_names)
+
+        acm.set_allowed("obj")
+        self.assertTrue("obj" in acm.default_entry_names)
+        self.apply_acm(acm)
+
+        acm = self.get_acm()
+        self.assertTrue("obj" in acm.default_entry_names)
 
 
 if __name__ == "__main__":

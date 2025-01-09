@@ -43,6 +43,8 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
 #include <cv_bridge/cv_bridge.h>
+#include <geometric_shapes/mesh_operations.h>
+#include <geometric_shapes/shapes.h>
 
 namespace enc = sensor_msgs::image_encodings;
 static const std::string LOGNAME = "depth_self_filter_nodelet";
@@ -194,6 +196,39 @@ void mesh_filter::DepthSelfFiltering::addMeshes(MeshFilter<StereoCameraModel>& m
         const shapes::Mesh& m = static_cast<const shapes::Mesh&>(*shape);
         MeshHandle mesh_handle = mesh_filter.addMesh(m);
         transform_provider_.addHandle(mesh_handle, link->getName());
+      }
+
+      else if (shape->type == shapes::BOX)
+      {
+        shapes::Mesh* mesh = shapes::createMeshFromShape(static_cast<const shapes::Box&>(*shape));
+        MeshHandle mesh_handle = mesh_filter.addMesh(*mesh);
+        transform_provider_.addHandle(mesh_handle, link->getName());
+      }
+
+      else if (shape->type == shapes::CONE)
+      {
+        shapes::Mesh* mesh = shapes::createMeshFromShape(static_cast<const shapes::Cone&>(*shape));
+        MeshHandle mesh_handle = mesh_filter.addMesh(*mesh);
+        transform_provider_.addHandle(mesh_handle, link->getName());
+      }
+
+      else if (shape->type == shapes::CYLINDER)
+      {
+        shapes::Mesh* mesh = shapes::createMeshFromShape(static_cast<const shapes::Cylinder&>(*shape));
+        MeshHandle mesh_handle = mesh_filter.addMesh(*mesh);
+        transform_provider_.addHandle(mesh_handle, link->getName());
+      }
+
+      else if (shape->type == shapes::SPHERE)
+      {
+        shapes::Mesh* mesh = shapes::createMeshFromShape(static_cast<const shapes::Sphere&>(*shape));
+        MeshHandle mesh_handle = mesh_filter.addMesh(*mesh);
+        transform_provider_.addHandle(mesh_handle, link->getName());
+      }
+
+      else
+      {
+        ROS_WARN_STREAM_NAMED(LOGNAME, "Shape " << shape->type << " is not supported!");
       }
     }
   }

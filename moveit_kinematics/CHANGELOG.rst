@@ -2,6 +2,27 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.16 (2024-10-07)
+-------------------
+
+1.1.15 (2024-09-09)
+-------------------
+
+1.1.14 (2024-05-27)
+-------------------
+* Addressing discrepancies in angle parameter definition between IKFast solvers and the plugin template (`#3489 <https://github.com/ros-planning/moveit/issues/3489>`_)
+* Constrain orocos_kdl to ROS Melodic
+* Contributors: Michael Görner, Robert Haschke, nothingstopsme
+
+1.1.13 (2023-07-28)
+-------------------
+* Improvements to create_ikfast_moveit_plugin.py (`#3449 <https://github.com/ros-planning/moveit/issues/3449>`_)
+  * Make SRDF sanity checks optional
+  * Provide hint how to change kinematics.yaml if automatic adaption fails
+  * Modernize string formatting to Python 3.x
+  * Create new planning group entry in kinematics.yaml if needed
+* Contributors: Robert Haschke
+
 1.1.12 (2023-05-13)
 -------------------
 * Fix deprecation warnings in Debian bookworm (`#3397 <https://github.com/ros-planning/moveit/issues/3397>`_)

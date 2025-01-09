@@ -37,6 +37,7 @@ from rosgraph.names import ns_join
 from . import conversions
 
 from moveit_msgs.msg import PlanningScene, CollisionObject, AttachedCollisionObject
+from moveit_msgs.msg import AllowedCollisionMatrix, AllowedCollisionEntry
 from moveit_ros_planning_interface import _moveit_planning_scene_interface
 from geometry_msgs.msg import Pose, Point
 from shape_msgs.msg import SolidPrimitive, Plane, Mesh, MeshTriangle
@@ -52,7 +53,7 @@ except:
     except:
         pyassimp = False
         print(
-            "Failed to import pyassimp, see https://github.com/ros-planning/moveit/issues/86 for more info"
+            "Failed to import pyassimp, see https://github.com/moveit/moveit/issues/86 for more info"
         )
 
 
@@ -64,16 +65,11 @@ class PlanningSceneInterface(object):
     See wrap_python_planning_scene_interface.cpp for the wrapped methods.
     """
 
-    def __init__(self, ns="", synchronous=True, service_timeout=5.0):
+    def __init__(self, ns="", synchronous=True):
         self._psi = _moveit_planning_scene_interface.PlanningSceneInterface(ns)
         self.__synchronous = synchronous
 
-        if self.__synchronous:
-            self._apply_planning_scene_diff = rospy.ServiceProxy(
-                ns_join(ns, "apply_planning_scene"), ApplyPlanningScene
-            )
-            self._apply_planning_scene_diff.wait_for_service(service_timeout)
-        else:
+        if not self.__synchronous:
             self._pub_co = rospy.Publisher(
                 ns_join(ns, "collision_object"), CollisionObject, queue_size=100
             )
@@ -85,8 +81,14 @@ class PlanningSceneInterface(object):
 
     def __submit(self, collision_object, attach=False):
         if self.__synchronous:
-            diff_req = self.__make_planning_scene_diff_req(collision_object, attach)
-            self._apply_planning_scene_diff.call(diff_req)
+            scene = PlanningScene()
+            scene.is_diff = True
+            scene.robot_state.is_diff = True
+            if attach:
+                scene.robot_state.attached_collision_objects = [collision_object]
+            else:
+                scene.world.collision_objects = [collision_object]
+            self._psi.apply_planning_scene(conversions.msg_to_string(scene))
         else:
             if attach:
                 self._pub_aco.publish(collision_object)
@@ -99,77 +101,88 @@ class PlanningSceneInterface(object):
 
     def add_sphere(self, name, pose, radius=1):
         """Add a sphere to the planning scene"""
-        co = self.__make_sphere(name, pose, radius)
+        co = self.make_sphere(name, pose, radius)
         self.__submit(co, attach=False)
 
     def add_cylinder(self, name, pose, height, radius):
         """Add a cylinder to the planning scene"""
-        co = self.__make_cylinder(name, pose, height, radius)
+        co = self.make_cylinder(name, pose, height, radius)
         self.__submit(co, attach=False)
 
     def add_cone(self, name, pose, height, radius):
         """Add a cylinder to the planning scene"""
-        co = self.__make_cone(name, pose, height, radius)
+        co = self.make_cone(name, pose, height, radius)
         self.__submit(co, attach=False)
 
     def add_mesh(self, name, pose, filename, size=(1, 1, 1)):
         """Add a mesh to the planning scene"""
-        co = self.__make_mesh(name, pose, filename, size)
+        co = self.make_mesh(name, pose, filename, size)
         self.__submit(co, attach=False)
 
     def add_box(self, name, pose, size=(1, 1, 1)):
         """Add a box to the planning scene"""
-        co = self.__make_box(name, pose, size)
+        co = self.make_box(name, pose, size)
         self.__submit(co, attach=False)
 
     def add_plane(self, name, pose, normal=(0, 0, 1), offset=0):
         """Add a plane to the planning scene"""
-        co = CollisionObject()
-        co.operation = CollisionObject.ADD
-        co.id = name
-        co.header = pose.header
-        p = Plane()
-        p.coef = list(normal)
-        p.coef.append(offset)
-        co.planes = [p]
-        co.plane_poses = [pose.pose]
+        co = self.make_plane(name, pose, normal, offset)
         self.__submit(co, attach=False)
 
-    def attach_object(self, attached_collision_object):
-        """Attach an object in the planning scene"""
-        self.__submit(attached_collision_object, attach=True)
+    def attach_object(self, object, link=None, touch_links=None):
+        """Attach an object to the given link"""
+        if isinstance(object, str):
+            object = self.__make_existing(object)
+        if isinstance(object, CollisionObject):
+            object = AttachedCollisionObject(object=object)
+
+        if link is not None:
+            object.link_name = link
+        object.touch_links = (
+            touch_links if touch_links is not None else [object.link_name]
+        )
+
+        self.__submit(object, attach=True)
 
     def attach_mesh(
-        self, link, name, pose=None, filename="", size=(1, 1, 1), touch_links=[]
+        self, link, name, pose=None, filename="", size=(1, 1, 1), touch_links=None
     ):
-        aco = AttachedCollisionObject()
+        """Create mesh and attach it to the given link"""
         if (pose is not None) and filename:
-            aco.object = self.__make_mesh(name, pose, filename, size)
+            co = self.make_mesh(name, pose, filename, size)
         else:
-            aco.object = self.__make_existing(name)
-        aco.link_name = link
-        aco.touch_links = [link]
-        if len(touch_links) > 0:
-            aco.touch_links = touch_links
-        self.__submit(aco, attach=True)
+            co = self.__make_existing(name)
+        self.attach_object(co, link, touch_links)
 
-    def attach_box(self, link, name, pose=None, size=(1, 1, 1), touch_links=[]):
-        aco = AttachedCollisionObject()
+    def attach_box(self, link, name, pose=None, size=(1, 1, 1), touch_links=None):
+        """Create box and attach it to the given link"""
         if pose is not None:
-            aco.object = self.__make_box(name, pose, size)
+            co = self.make_box(name, pose, size)
         else:
-            aco.object = self.__make_existing(name)
-        aco.link_name = link
-        if len(touch_links) > 0:
-            aco.touch_links = touch_links
+            co = self.__make_existing(name)
+        self.attach_object(co, link, touch_links)
+
+    def attach_sphere(self, link, name, pose=None, radius=1, touch_links=None):
+        """Create sphere and attach it to the given link"""
+        if pose is not None:
+            co = self.make_sphere(name, pose, radius)
         else:
-            aco.touch_links = [link]
-        self.__submit(aco, attach=True)
+            co = self.__make_existing(name)
+        self.attach_object(co, link, touch_links)
+
+    def attach_cylinder(
+        self, link, name, pose=None, height=1, radius=1, touch_links=None
+    ):
+        """Create cylinder and attach it to the given link"""
+        if pose is not None:
+            co = self.make_cylinder(name, pose, height, radius)
+        else:
+            co = self.__make_existing(name)
+        self.attach_object(co, link, touch_links)
 
     def clear(self):
         """Remove all objects from the planning scene"""
-        self.remove_attached_object()
-        self.remove_world_object()
+        self._psi.clear()
 
     def remove_world_object(self, name=None):
         """
@@ -250,6 +263,12 @@ class PlanningSceneInterface(object):
             aobjs[key] = msg
         return aobjs
 
+    def get_planning_scene(self, components):
+        """Get move_group's current planning scene"""
+        msg = PlanningScene()
+        conversions.msg_from_string(msg, self._psi.get_planning_scene(components))
+        return msg
+
     def apply_planning_scene(self, planning_scene_message):
         """
         Applies the planning scene message.
@@ -281,13 +300,13 @@ class PlanningSceneInterface(object):
         return co
 
     @staticmethod
-    def __make_box(name, pose, size):
+    def make_box(name, pose, size):
         return PlanningSceneInterface.__make_primitive(
             name, pose, SolidPrimitive.BOX, size
         )
 
     @staticmethod
-    def __make_mesh(name, pose, filename, scale=(1, 1, 1)):
+    def make_mesh(name, pose, filename, scale=(1, 1, 1)):
         co = CollisionObject()
         if pyassimp is False:
             raise MoveItCommanderException(
@@ -336,32 +355,66 @@ class PlanningSceneInterface(object):
         return co
 
     @staticmethod
-    def __make_sphere(name, pose, radius):
+    def make_sphere(name, pose, radius):
         return PlanningSceneInterface.__make_primitive(
             name, pose, SolidPrimitive.SPHERE, [radius]
         )
 
     @staticmethod
-    def __make_cylinder(name, pose, height, radius):
+    def make_cylinder(name, pose, height, radius):
         return PlanningSceneInterface.__make_primitive(
             name, pose, SolidPrimitive.CYLINDER, [height, radius]
         )
 
     @staticmethod
-    def __make_cone(name, pose, height, radius):
+    def make_cone(name, pose, height, radius):
         return PlanningSceneInterface.__make_primitive(
             name, pose, SolidPrimitive.CONE, [height, radius]
         )
 
-    @staticmethod
-    def __make_planning_scene_diff_req(collision_object, attach=False):
-        scene = PlanningScene()
-        scene.is_diff = True
-        scene.robot_state.is_diff = True
-        if attach:
-            scene.robot_state.attached_collision_objects = [collision_object]
-        else:
-            scene.world.collision_objects = [collision_object]
-        planning_scene_diff_req = ApplyPlanningSceneRequest()
-        planning_scene_diff_req.scene = scene
-        return planning_scene_diff_req
+    def make_plane(self, name, pose, normal=(0, 0, 1), offset=0):
+        co = CollisionObject()
+        co.operation = CollisionObject.ADD
+        co.id = name
+        co.header = pose.header
+        p = Plane()
+        p.coef = list(normal)
+        p.coef.append(offset)
+        co.planes = [p]
+        co.plane_poses = [pose.pose]
+        return co
+
+
+def acm_set_default(acm, obj, allow):
+    """Set default collision behavior for obj"""
+    if obj not in acm.default_entry_names:
+        acm.default_entry_names.append(obj)
+        acm.default_entry_values.append(allow)
+    else:
+        idx = acm.default_entry_names.index(obj)
+        acm.default_entry_values[idx] = allow
+
+
+def acm_set_allowed(acm, obj, other=None, allow=True):
+    """Allow collisions between obj and other"""
+    if other is None:
+        acm.set_default(obj, allow)
+        return
+
+    other_idx = acm.entry_names.index(other)
+    if obj not in acm.entry_names:
+        acm.entry_names.append(obj)
+        for entry in acm.entry_values:
+            entry.enabled.append(allow)
+        acm.entry_values.append(
+            AllowedCollisionEntry(enabled=[allow for i in range(len(acm.entry_names))])
+        )
+        acm.entry_values[-1].enabled[other_idx] = allow
+    else:
+        obj_idx = acm.entry_names.index(obj)
+        acm.entry_values[obj_idx].enabled[other_idx] = allow
+        acm.entry_values[other_idx].enabled[obj_idx] = allow
+
+
+AllowedCollisionMatrix.set_default = acm_set_default
+AllowedCollisionMatrix.set_allowed = acm_set_allowed

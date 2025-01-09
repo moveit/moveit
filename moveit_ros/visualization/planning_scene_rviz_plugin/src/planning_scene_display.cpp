@@ -96,7 +96,7 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
       new rviz::BoolProperty("Show Scene Geometry", true, "Indicates whether planning scenes should be displayed",
                              scene_category_, SLOT(changedSceneEnabled()), this);
 
-  scene_alpha_property_ = new rviz::FloatProperty("Scene Alpha", 0.9f, "Specifies the alpha for the scene geometry",
+  scene_alpha_property_ = new rviz::FloatProperty("Scene Alpha", 1.0f, "Specifies the alpha for the scene geometry",
                                                   scene_category_, SLOT(changedSceneAlpha()), this);
   scene_alpha_property_->setMin(0.0);
   scene_alpha_property_->setMax(1.0);

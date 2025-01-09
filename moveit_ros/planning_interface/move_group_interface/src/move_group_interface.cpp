@@ -117,6 +117,7 @@ public:
 
     joint_model_group_ = getRobotModel()->getJointModelGroup(opt.group_name_);
 
+    setStartStateToCurrentState();
     joint_state_target_ = std::make_shared<moveit::core::RobotState>(getRobotModel());
     joint_state_target_->setToDefaultValues();
     active_target_ = JOINT;
@@ -448,26 +449,30 @@ public:
     return *joint_state_target_;
   }
 
+  void setStartState(const moveit_msgs::RobotState& start_state)
+  {
+    considered_start_state_ = start_state;
+  }
+
   void setStartState(const moveit::core::RobotState& start_state)
   {
-    considered_start_state_ = std::make_shared<moveit::core::RobotState>(start_state);
+    considered_start_state_ = moveit_msgs::RobotState();
+    moveit::core::robotStateToRobotStateMsg(start_state, considered_start_state_, true);
   }
 
   void setStartStateToCurrentState()
   {
-    considered_start_state_.reset();
+    // set message to empty diff
+    considered_start_state_ = moveit_msgs::RobotState();
+    considered_start_state_.is_diff = true;
   }
 
   moveit::core::RobotStatePtr getStartState()
   {
-    if (considered_start_state_)
-      return considered_start_state_;
-    else
-    {
-      moveit::core::RobotStatePtr s;
-      getCurrentState(s);
-      return s;
-    }
+    moveit::core::RobotStatePtr s;
+    getCurrentState(s);
+    moveit::core::robotStateMsgToRobotState(considered_start_state_, *s, true);
+    return s;
   }
 
   bool setJointValueTarget(const geometry_msgs::Pose& eef_pose, const std::string& end_effector_link,
@@ -936,24 +941,19 @@ public:
     }
   }
 
-  double computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double step, double jump_threshold,
+  double computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double step,
                               moveit_msgs::RobotTrajectory& msg, const moveit_msgs::Constraints& path_constraints,
                               bool avoid_collisions, moveit_msgs::MoveItErrorCodes& error_code)
   {
     moveit_msgs::GetCartesianPath::Request req;
     moveit_msgs::GetCartesianPath::Response res;
 
-    if (considered_start_state_)
-      moveit::core::robotStateToRobotStateMsg(*considered_start_state_, req.start_state);
-    else
-      req.start_state.is_diff = true;
-
+    req.start_state = considered_start_state_;
     req.group_name = opt_.group_name_;
     req.header.frame_id = getPoseReferenceFrame();
     req.header.stamp = ros::Time::now();
     req.waypoints = waypoints;
     req.max_step = step;
-    req.jump_threshold = jump_threshold;
     req.path_constraints = path_constraints;
     req.avoid_collisions = avoid_collisions;
     req.link_name = getEndEffectorLink();
@@ -1091,11 +1091,7 @@ public:
     request.pipeline_id = planning_pipeline_id_;
     request.planner_id = planner_id_;
     request.workspace_parameters = workspace_parameters_;
-
-    if (considered_start_state_)
-      moveit::core::robotStateToRobotStateMsg(*considered_start_state_, request.start_state);
-    else
-      request.start_state.is_diff = true;
+    request.start_state = considered_start_state_;
 
     if (active_target_ == JOINT)
     {
@@ -1318,7 +1314,7 @@ private:
   std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::PlaceAction>> place_action_client_;
 
   // general planning params
-  moveit::core::RobotStatePtr considered_start_state_;
+  moveit_msgs::RobotState considered_start_state_;
   moveit_msgs::WorkspaceParameters workspace_parameters_;
   double allowed_planning_time_;
   std::string planning_pipeline_id_;
@@ -1598,22 +1594,20 @@ moveit::core::MoveItErrorCode MoveGroupInterface::place(const moveit_msgs::Place
 }
 
 double MoveGroupInterface::computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step,
-                                                double jump_threshold, moveit_msgs::RobotTrajectory& trajectory,
-                                                bool avoid_collisions, moveit_msgs::MoveItErrorCodes* error_code)
+                                                moveit_msgs::RobotTrajectory& trajectory, bool avoid_collisions,
+                                                moveit_msgs::MoveItErrorCodes* error_code)
 {
-  return computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, moveit_msgs::Constraints(),
-                              avoid_collisions, error_code);
+  return computeCartesianPath(waypoints, eef_step, trajectory, moveit_msgs::Constraints(), avoid_collisions, error_code);
 }
 
 double MoveGroupInterface::computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step,
-                                                double jump_threshold, moveit_msgs::RobotTrajectory& trajectory,
+                                                moveit_msgs::RobotTrajectory& trajectory,
                                                 const moveit_msgs::Constraints& path_constraints, bool avoid_collisions,
                                                 moveit_msgs::MoveItErrorCodes* error_code)
 {
   moveit_msgs::MoveItErrorCodes err_tmp;
   moveit_msgs::MoveItErrorCodes& err = error_code ? *error_code : err_tmp;
-  return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, path_constraints,
-                                     avoid_collisions, err);
+  return impl_->computeCartesianPath(waypoints, eef_step, trajectory, path_constraints, avoid_collisions, err);
 }
 
 void MoveGroupInterface::stop()
@@ -1623,16 +1617,7 @@ void MoveGroupInterface::stop()
 
 void MoveGroupInterface::setStartState(const moveit_msgs::RobotState& start_state)
 {
-  moveit::core::RobotStatePtr rs;
-  if (start_state.is_diff)
-    impl_->getCurrentState(rs);
-  else
-  {
-    rs = std::make_shared<moveit::core::RobotState>(getRobotModel());
-    rs->setToDefaultValues();  // initialize robot state values for conversion
-  }
-  moveit::core::robotStateMsgToRobotState(start_state, *rs);
-  setStartState(*rs);
+  impl_->setStartState(start_state);
 }
 
 void MoveGroupInterface::setStartState(const moveit::core::RobotState& start_state)

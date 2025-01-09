@@ -274,8 +274,6 @@ LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr
     */
   }
 
-  *progress = 100;  // end the status bar
-
   return link_pairs;
 }
 
@@ -610,7 +608,7 @@ void disableNeverInCollisionThread(ThreadComputation tc)
   // ROS_INFO_STREAM("Thread " << tc.thread_id_ << " running " << tc.num_trials_ << " trials");
 
   // User feedback vars
-  const unsigned int progress_interval = tc.num_trials_ / 20;  // show progress update every 5%
+  const unsigned int progress_interval = std::max(1u, tc.num_trials_ / 100);  // show progress update every 1%
 
   // Create a new kinematic state for this thread to work on
   moveit::core::RobotState robot_state(tc.scene_.getRobotModel());

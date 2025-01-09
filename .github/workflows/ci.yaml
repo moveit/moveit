@@ -30,14 +30,18 @@ jobs:
             IKFAST_TEST: true
             CATKIN_LINT: true
             CLANG_TIDY: pedantic
-          - IMAGE: master-ci # ROS Melodic with all dependencies required for master
-            CATKIN_LINT: true
+          - IMAGE: jammy-ci
+          - IMAGE: noble-ci
+            NAME: " Qt6"
+            UPSTREAM_WORKSPACE: github:ros-visualization/rviz#noetic-devel
+            UPSTREAM_CMAKE_ARGS: -DRVIZ_QT_VERSIONS=6
     env:
       CXXFLAGS: -Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls
-      CLANG_TIDY_ARGS: --fix --fix-errors --format-style=file
+      CLANG_TIDY_ARGS: -quiet -export-fixes ${{ github.workspace }}/.work/clang-tidy-fixes.yaml
+
       DOCKER_IMAGE: moveit/moveit:${{ matrix.env.IMAGE }}
-      UPSTREAM_WORKSPACE: .github/workflows/upstream.rosinstall
-      TARGET_WORKSPACE: $TARGET_REPO_PATH github:ros-planning/moveit_resources#master
+      UPSTREAM_WORKSPACE: .github/workflows/upstream.rosinstall ${{ matrix.env.UPSTREAM_WORKSPACE }}
+      TARGET_WORKSPACE: $TARGET_REPO_PATH github:moveit/moveit_resources#master
       DOWNSTREAM_WORKSPACE: .github/workflows/downstream.rosinstall
       # Pull any updates to the upstream workspace (after restoring it from cache)
       AFTER_SETUP_UPSTREAM_WORKSPACE: vcs pull $BASEDIR/upstream_ws/src
@@ -49,8 +53,8 @@ jobs:
       # Compile CCOV with Debug. Enable -Werror.
       TARGET_CMAKE_ARGS: >
         -DCMAKE_BUILD_TYPE=${{ matrix.env.CCOV && 'Debug' || 'Release'}}
-        -DCMAKE_CXX_FLAGS="-Werror $CXXFLAGS${{ matrix.env.CCOV && ' --coverage -O2 -fno-omit-frame-pointer'}}"
-      UPSTREAM_CMAKE_ARGS: "-DCMAKE_CXX_FLAGS=''"
+        -DCMAKE_CXX_FLAGS="-Werror $CXXFLAGS ${{ matrix.env.TARGET_CXXFLAGS }} ${{ matrix.env.CCOV && '--coverage -O2 -fno-omit-frame-pointer'}}"
+      UPSTREAM_CMAKE_ARGS: "-DCMAKE_CXX_FLAGS='' ${{ matrix.env.UPSTREAM_CMAKE_ARGS }}"
       DOWNSTREAM_CMAKE_ARGS: -DCMAKE_CXX_FLAGS="-Wall -Wextra"
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       BASEDIR: ${{ github.workspace }}/.work
@@ -63,8 +67,12 @@ jobs:
       BUILDER: ${{ matrix.env.BUILDER || 'catkin_tools' }}
       CC: ${{ matrix.env.CLANG_TIDY && 'clang' }}
       CXX: ${{ matrix.env.CLANG_TIDY && 'clang++' }}
+      # forward matrix.env
+      CATKIN_LINT: ${{ matrix.env.CATKIN_LINT }}
+      CLANG_TIDY: ${{ matrix.env.CLANG_TIDY }}
 
-    name: "${{ matrix.env.IMAGE }}${{ matrix.env.CATKIN_LINT && ' + catkin_lint' || ''}}${{ matrix.env.CCOV && ' + ccov' || ''}}${{ matrix.env.IKFAST_TEST && ' + ikfast' || ''}}${{ matrix.env.CLANG_TIDY && (github.event_name != 'workflow_dispatch' && ' + clang-tidy (delta)' || ' + clang-tidy (all)') || '' }}"
+
+    name: "${{ matrix.env.IMAGE }}${{ matrix.env.NAME }}${{ matrix.env.CATKIN_LINT && ' + catkin_lint' || ''}}${{ matrix.env.CCOV && ' + ccov' || ''}}${{ matrix.env.IKFAST_TEST && ' + ikfast' || ''}}${{ matrix.env.CLANG_TIDY && (github.event_name != 'workflow_dispatch' && ' + clang-tidy (delta)' || ' + clang-tidy (all)') || '' }}"
     runs-on: ubuntu-20.04
     steps:
       - name: "Free up disk space"
@@ -81,7 +89,7 @@ jobs:
           # free up a lot of stuff from /usr/local
           sudo rm -rf /usr/local
           df -h
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Cache upstream workspace
         uses: rhaschke/cache@main
         with:
@@ -127,13 +135,14 @@ jobs:
       - name: Generate ikfast packages
         if: matrix.env.IKFAST_TEST
         run: moveit_kinematics/test/test_ikfast_plugins.sh
+        env:
+          ROS_DISTRO: noetic
       - id: ici
         name: Run industrial_ci
-        uses: ros-industrial/industrial_ci@master
-        env: ${{ matrix.env }}
+        uses: rhaschke/industrial_ci@master
 
       - name: Upload test artifacts (on failure)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure() && (steps.ici.outputs.run_target_test || steps.ici.outputs.target_test_results)
         with:
           name: test-results-${{ matrix.env.IMAGE }}
@@ -146,16 +155,18 @@ jobs:
           workdir: ${{ env.BASEDIR }}/target_ws
           ignore: '"*/target_ws/build/*" "*/target_ws/install/*" "*/test/*"'
       - name: Upload codecov report
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         if: always() && matrix.env.CCOV && steps.ici.outputs.target_test_results == '0'
         with:
           files: ${{ env.BASEDIR }}/target_ws/coverage.info
-      - name: Upload clang-tidy changes
-        uses: rhaschke/upload-git-patch-action@main
-        if: always() && matrix.env.CLANG_TIDY
+
+      - name: Upload clang-tidy fixes (on failure)
+        uses: actions/upload-artifact@v4
+        if: failure() && steps.ici.outputs.clang_tidy_checks
         with:
-          name: clang-tidy
-          path: ${{ env.BASEDIR }}/target_ws/src/$(basename $(pwd))
+          name: clang-tidy-fixes.yaml
+          path: ${{ env.BASEDIR }}/clang-tidy-fixes.yaml
+
       - name: Prepare target_ws for cache
         if: always() && !matrix.env.CCOV
         run: |
@@ -168,11 +179,11 @@ jobs:
   sync-noetic-devel:
     runs-on: ubuntu-latest
     needs: default # only trigger on success of default build job
-    if: github.event_name == 'push' && github.repository_owner == 'ros-planning' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.repository_owner == 'moveit' && github.ref == 'refs/heads/master'
     permissions:
       contents: write # allow pushing
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Fast-forward noetic-devel to sync with master
         run: |
           # Configure push user+url

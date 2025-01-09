@@ -149,9 +149,10 @@ bool PlanningRequestAdapterChain::adaptAndPlan(const planning_interface::Planner
     bool result = fn(planning_scene, req, res);
     added_path_index.clear();
 
-    // merge the index values from each adapter
-    for (std::vector<std::size_t>& added_states_by_each_adapter : added_path_index_each)
-      for (std::size_t& added_index : added_states_by_each_adapter)
+    // merge the index values from each adapter (in reverse order)
+    for (auto added_state_by_each_adapter_it = added_path_index_each.rbegin();
+         added_state_by_each_adapter_it != added_path_index_each.rend(); ++added_state_by_each_adapter_it)
+      for (std::size_t added_index : *added_state_by_each_adapter_it)
       {
         for (std::size_t& index_in_path : added_path_index)
           if (added_index <= index_in_path)

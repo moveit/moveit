@@ -36,7 +36,7 @@
 /* Author: Felix von Drigalski, Jacob Aas, Tyler Weaver, Boston Cleek */
 
 /* This integration test is based on the tutorial for using subframes
- * https://ros-planning.github.io/moveit_tutorials/doc/subframes/subframes_tutorial.html
+ * https://moveit.github.io/moveit_tutorials/doc/subframes/subframes_tutorial.html
  */
 
 // C++
@@ -103,7 +103,7 @@ bool moveCartesianPath(const geometry_msgs::PoseStamped& pose, moveit::planning_
   std::vector<geometry_msgs::Pose> waypoints;
   waypoints.push_back(pose.pose);
   moveit_msgs::RobotTrajectory trajectory;
-  double percent = group.computeCartesianPath(waypoints, 0.01, 0, trajectory, true);
+  double percent = group.computeCartesianPath(waypoints, 0.01, trajectory, true);
   if (percent == 1.0)
   {
     group.execute(trajectory);

@@ -818,8 +818,20 @@ JointModel* RobotModel::buildRecursive(LinkModel* parent, const urdf::Link* urdf
   link->setParentJointModel(joint);
 
   // recursively build child links (and joints)
-  for (const urdf::LinkSharedPtr& child_link : urdf_link->child_links)
+  for (unsigned int i = 0; i < urdf_link->child_links.size(); ++i)
   {
+    const urdf::LinkSharedPtr& child_link{ urdf_link->child_links[i] };
+    const urdf::JointSharedPtr& child_joint{ urdf_link->child_joints[i] };
+
+    if (child_link->parent_joint->name != child_joint->name)
+    {
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "Found link '" << child_link->name << "' with multiple parent joints '"
+                                                     << child_link->parent_joint->name << "' and '" << child_joint->name
+                                                     << "'. Ignoring the latter joint because cycles in the kinematic "
+                                                        "structure are not supported.");
+      continue;
+    }
+
     JointModel* jm = buildRecursive(link, child_link.get(), srdf_model);
     if (jm)
       link->addChildJointModel(jm);
@@ -1265,10 +1277,13 @@ LinkModel* RobotModel::getLinkModel(const std::string& name, bool* has_link)
   return nullptr;
 }
 
-const LinkModel* RobotModel::getRigidlyConnectedParentLinkModel(const LinkModel* link, const JointModelGroup* jmg)
+const LinkModel* RobotModel::getRigidlyConnectedParentLinkModel(const LinkModel* link, Eigen::Isometry3d& transform,
+                                                                const JointModelGroup* jmg)
 {
   if (!link)
     return link;
+
+  transform.setIdentity();
   const moveit::core::LinkModel* parent_link = link->getParentLinkModel();
   const moveit::core::JointModel* joint = link->getParentJointModel();
   decltype(jmg->getJointModels().cbegin()) begin{}, end{};
@@ -1289,6 +1304,7 @@ const LinkModel* RobotModel::getRigidlyConnectedParentLinkModel(const LinkModel*
 
   while (parent_link && is_fixed_or_not_in_jmg(joint))
   {
+    transform = link->getJointOriginTransform() * transform;
     link = parent_link;
     joint = link->getParentJointModel();
     parent_link = joint->getParentLinkModel();

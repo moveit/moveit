@@ -2,6 +2,20 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.16 (2024-10-07)
+-------------------
+
+1.1.15 (2024-09-09)
+-------------------
+* New implementation for computeCartesianPath (`#3618 <https://github.com/ros-planning/moveit/issues/3618>`_)
+* Contributors: Robert Haschke
+
+1.1.14 (2024-05-27)
+-------------------
+
+1.1.13 (2023-07-28)
+-------------------
+
 1.1.12 (2023-05-13)
 -------------------
 

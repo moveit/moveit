@@ -22,16 +22,20 @@ find_package(catkin REQUIRED COMPONENTS
 moveit_build_options()
 
 find_package(ompl REQUIRED)
+if(TARGET ompl::ompl)
+  moveit_get_include_and_libs_from_target(OMPL ompl::ompl)
+endif()
+
 include_directories(SYSTEM ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${OMPL_INCLUDE_DIRS})
 include_directories(include)
 
 # Qt Stuff
-if(rviz_QT_VERSION VERSION_LESS "5")
-  find_package(Qt4 ${rviz_QT_VERSION} REQUIRED QtCore QtGui)
-  include(${QT_USE_FILE})
-else()
+if(rviz_QT_VERSION VERSION_LESS "6")
   find_package(Qt5 ${rviz_QT_VERSION} REQUIRED Core Widgets)
   set(QT_LIBRARIES Qt5::Widgets)
+else()
+  find_package(Qt6 ${rviz_QT_VERSION} REQUIRED Core Widgets)
+  set(QT_LIBRARIES Qt6::Widgets)
 endif()
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
