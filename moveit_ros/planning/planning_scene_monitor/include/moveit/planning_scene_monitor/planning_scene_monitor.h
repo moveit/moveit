@@ -554,15 +554,19 @@ private:
   bool getPlanningSceneServiceCallback(moveit_msgs::GetPlanningScene::Request& req,
                                        moveit_msgs::GetPlanningScene::Response& res);
 
-  // Lock for state_update_pending_ and dt_state_update_
-  boost::mutex state_pending_mutex_;
+  /// True if current_state_monitor_ has a newer RobotState than scene_
+  std::atomic<bool> state_update_pending_;
 
-  /// True when we need to update the RobotState from current_state_monitor_
-  // This field is protected by state_pending_mutex_
-  volatile bool state_update_pending_;
+  // Lock for writing last_robot_state_update_wall_time_ and dt_state_update_
+  boost::mutex state_update_mutex_;
+
+  /// Last time the state was updated from current_state_monitor_
+  // Only access this from callback functions (and constructor)
+  // This field is protected by state_update_mutex_
+  ros::WallTime last_robot_state_update_wall_time_;
 
   /// the amount of time to wait in between updates to the robot state
-  // This field is protected by state_pending_mutex_
+  // This field is protected by state_update_mutex_
   ros::WallDuration dt_state_update_;
 
   /// the amount of time to wait when looking up transforms
@@ -571,13 +575,9 @@ private:
   ros::Duration shape_transform_cache_lookup_wait_time_;
 
   /// timer for state updates.
-  // Check if last_state_update_ is true and if so call updateSceneWithCurrentState()
+  // If state_update_pending_ is true, call updateSceneWithCurrentState()
   // Not safe to access from callback functions.
   ros::WallTimer state_update_timer_;
-
-  /// Last time the state was updated from current_state_monitor_
-  // Only access this from callback functions (and constructor)
-  ros::WallTime last_robot_state_update_wall_time_;
 
   robot_model_loader::RobotModelLoaderPtr rm_loader_;
   moveit::core::RobotModelConstPtr robot_model_;
