@@ -111,7 +111,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     return false;
   }
 
-  if (not joint_model_group->satisfiesPositionBounds(start_joint_values.data()))
+  if (!joint_model_group->satisfiesPositionBounds(start_joint_values.data()))
   {
     ROS_ERROR_STREAM_NAMED(name_, "Start state violates joint limits");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
@@ -326,7 +326,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
              constraint.tolerance_above);
     constraints_are_ok = constraints_are_ok and joint_cnt.configure(constraint);
     constraints_are_ok = constraints_are_ok and joint_cnt.decide(last_state).satisfied;
-    if (not constraints_are_ok)
+    if (!constraints_are_ok)
     {
       ROS_ERROR_STREAM_NAMED("trajopt_planner", "Goal constraints are violated: " << constraint.joint_name);
       res.error_code.val = moveit_msgs::MoveItErrorCodes::GOAL_CONSTRAINTS_VIOLATED;

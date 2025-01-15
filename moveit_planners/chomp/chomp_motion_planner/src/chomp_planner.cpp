@@ -256,7 +256,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   res.processing_time_[0] = (ros::WallTime::now() - start_time).toSec();
 
   // report planning failure if path has collisions
-  if (not optimizer->isCollisionFree())
+  if (!optimizer->isCollisionFree())
   {
     ROS_ERROR_STREAM_NAMED("chomp_planner", "Motion plan is invalid.");
     res.error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
