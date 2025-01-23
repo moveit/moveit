@@ -202,6 +202,9 @@ public:
     return scene_const_;
   }
 
+  /** @brief Returns a copy of the current planning scene. */
+  planning_scene::PlanningScenePtr copyPlanningScene(const moveit_msgs::PlanningScene& diff);
+
   /** @brief Return true if the scene \e scene can be updated directly
       or indirectly by this monitor. This function will return true if
       the pointer of the scene is the same as the one maintained,
@@ -591,6 +594,31 @@ private:
   bool checkFrameIgnored(const std::string& frame);
 };
 
+MOVEIT_STRUCT_FORWARD(SingleUnlock);
+
+// we use this struct so that lock/unlock are called only once
+// even if the LockedPlanningScene instance is copied around
+struct SingleUnlock
+{
+  SingleUnlock(PlanningSceneMonitor* planning_scene_monitor, bool read_only)
+    : planning_scene_monitor_(planning_scene_monitor), read_only_(read_only)
+  {
+    if (read_only)
+      planning_scene_monitor_->lockSceneRead();
+    else
+      planning_scene_monitor_->lockSceneWrite();
+  }
+  ~SingleUnlock()
+  {
+    if (read_only_)
+      planning_scene_monitor_->unlockSceneRead();
+    else
+      planning_scene_monitor_->unlockSceneWrite();
+  }
+  PlanningSceneMonitor* planning_scene_monitor_;
+  bool read_only_;
+};
+
 /** \brief This is a convenience class for obtaining access to an
  *         instance of a locked PlanningScene.
  *
@@ -653,31 +681,6 @@ protected:
     if (planning_scene_monitor_)
       lock_ = std::make_shared<SingleUnlock>(planning_scene_monitor_.get(), read_only);
   }
-
-  MOVEIT_STRUCT_FORWARD(SingleUnlock);
-
-  // we use this struct so that lock/unlock are called only once
-  // even if the LockedPlanningScene instance is copied around
-  struct SingleUnlock
-  {
-    SingleUnlock(PlanningSceneMonitor* planning_scene_monitor, bool read_only)
-      : planning_scene_monitor_(planning_scene_monitor), read_only_(read_only)
-    {
-      if (read_only)
-        planning_scene_monitor_->lockSceneRead();
-      else
-        planning_scene_monitor_->lockSceneWrite();
-    }
-    ~SingleUnlock()
-    {
-      if (read_only_)
-        planning_scene_monitor_->unlockSceneRead();
-      else
-        planning_scene_monitor_->unlockSceneWrite();
-    }
-    PlanningSceneMonitor* planning_scene_monitor_;
-    bool read_only_;
-  };
 
   PlanningSceneMonitorPtr planning_scene_monitor_;
   SingleUnlockPtr lock_;
