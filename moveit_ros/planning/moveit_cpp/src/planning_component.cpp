@@ -127,14 +127,13 @@ planning_interface::MotionPlanResponse PlanningComponent::plan(const PlanRequest
   }
 
   // Clone current planning scene
-  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor =
-      moveit_cpp_->getPlanningSceneMonitorNonConst();
-  planning_scene_monitor->updateFrameTransforms();
-  planning_scene_monitor->lockSceneRead();  // LOCK planning scene
-  planning_scene::PlanningScenePtr planning_scene =
-      planning_scene::PlanningScene::clone(planning_scene_monitor->getPlanningScene());
-  planning_scene_monitor->unlockSceneRead();  // UNLOCK planning scene
-  planning_scene_monitor.reset();             // release this pointer
+  planning_scene::PlanningScenePtr planning_scene;
+  {
+    planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor =
+        moveit_cpp_->getPlanningSceneMonitorNonConst();
+    planning_scene_monitor->updateFrameTransforms();
+    planning_scene = planning_scene_monitor->copyPlanningScene();
+  }
 
   // Init MotionPlanRequest
   ::planning_interface::MotionPlanRequest req;
