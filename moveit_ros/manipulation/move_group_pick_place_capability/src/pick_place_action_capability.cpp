@@ -91,8 +91,7 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallbackPlanOnly(const m
   pick_place::PickPlanPtr plan;
   try
   {
-    planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
-    plan = pick_place_->planPick(ps, *goal);
+    plan = pick_place_->planPick(context_->planning_scene_monitor_->copyPlanningScene(), *goal);
   }
   catch (std::exception& ex)
   {
@@ -131,8 +130,7 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallbackPlanOnly(const mo
   pick_place::PlacePlanPtr plan;
   try
   {
-    planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
-    plan = pick_place_->planPlace(ps, *goal);
+    plan = pick_place_->planPlace(context_->planning_scene_monitor_->copyPlanningScene(), *goal);
   }
   catch (std::exception& ex)
   {
@@ -170,8 +168,6 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlacePickup(const moveit
                                                                     plan_execution::ExecutableMotionPlan& plan)
 {
   setPickupState(PLANNING);
-
-  planning_scene_monitor::LockedPlanningSceneRO ps(plan.planning_scene_monitor_);
 
   pick_place::PickPlanPtr pick_plan;
   try
@@ -213,8 +209,6 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlacePlace(const moveit_
                                                                    plan_execution::ExecutableMotionPlan& plan)
 {
   setPlaceState(PLANNING);
-
-  planning_scene_monitor::LockedPlanningSceneRO ps(plan.planning_scene_monitor_);
 
   pick_place::PlacePlanPtr place_plan;
   try
