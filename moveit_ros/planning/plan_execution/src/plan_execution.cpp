@@ -115,7 +115,7 @@ void plan_execution::PlanExecution::planAndExecute(ExecutableMotionPlan& plan,
 {
   plan.planning_scene_monitor_ = planning_scene_monitor_;
   plan.planning_scene_ = planning_scene_monitor_->copyPlanningScene(scene_diff);
-  planAndExecute(plan, opt);
+  planAndExecuteHelper(plan, opt);
 }
 
 void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan& plan, const Options& opt)
