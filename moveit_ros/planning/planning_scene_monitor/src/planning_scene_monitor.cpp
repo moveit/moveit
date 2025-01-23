@@ -181,6 +181,19 @@ PlanningSceneMonitor::~PlanningSceneMonitor()
   rm_loader_.reset();
 }
 
+planning_scene::PlanningScenePtr PlanningSceneMonitor::copyPlanningScene(const moveit_msgs::PlanningScene& diff)
+{
+  planning_scene::PlanningScenePtr scene;
+  {
+    SingleUnlock lock(this, true);
+    scene = getPlanningScene()->diff();
+  }
+
+  if (!moveit::core::isEmpty(diff))
+    scene->setPlanningSceneDiffMsg(diff);
+  return scene;
+}
+
 void PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr& scene)
 {
   moveit::tools::Profiler::ScopedStart prof_start;
