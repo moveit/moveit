@@ -203,7 +203,8 @@ public:
   }
 
   /** @brief Returns a copy of the current planning scene. */
-  planning_scene::PlanningScenePtr copyPlanningScene(const moveit_msgs::PlanningScene& diff);
+  planning_scene::PlanningScenePtr
+  copyPlanningScene(const moveit_msgs::PlanningScene& diff = moveit_msgs::PlanningScene());
 
   /** @brief Return true if the scene \e scene can be updated directly
       or indirectly by this monitor. This function will return true if

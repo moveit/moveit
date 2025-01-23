@@ -107,28 +107,15 @@ void plan_execution::PlanExecution::stop()
 
 void plan_execution::PlanExecution::planAndExecute(ExecutableMotionPlan& plan, const Options& opt)
 {
-  plan.planning_scene_monitor_ = planning_scene_monitor_;
-  plan.planning_scene_ = planning_scene_monitor_->getPlanningScene();
-  planAndExecuteHelper(plan, opt);
+  planAndExecute(plan, moveit_msgs::PlanningScene(), opt);
 }
 
 void plan_execution::PlanExecution::planAndExecute(ExecutableMotionPlan& plan,
                                                    const moveit_msgs::PlanningScene& scene_diff, const Options& opt)
 {
-  if (moveit::core::isEmpty(scene_diff))
-    planAndExecute(plan, opt);
-  else
-  {
-    plan.planning_scene_monitor_ = planning_scene_monitor_;
-    {
-      planning_scene_monitor::LockedPlanningSceneRO lscene(planning_scene_monitor_);  // lock the scene so that it does
-                                                                                      // not modify the world
-                                                                                      // representation while diff() is
-                                                                                      // called
-      plan.planning_scene_ = lscene->diff(scene_diff);
-    }
-    planAndExecuteHelper(plan, opt);
-  }
+  plan.planning_scene_monitor_ = planning_scene_monitor_;
+  plan.planning_scene_ = planning_scene_monitor_->copyPlanningScene(scene_diff);
+  planAndExecute(plan, opt);
 }
 
 void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan& plan, const Options& opt)
@@ -249,10 +236,6 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
       plan.plan_components_[path_segment.first].trajectory_monitoring_)  // If path_segment.second <= 0, the function
                                                                          // will fallback to check the entire trajectory
   {
-    planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_);  // lock the scene so that it
-                                                                                         // does not modify the world
-                                                                                         // representation while
-                                                                                         // isStateValid() is called
     const robot_trajectory::RobotTrajectory& t = *plan.plan_components_[path_segment.first].trajectory_;
     const collision_detection::AllowedCollisionMatrix* acm =
         plan.plan_components_[path_segment.first].allowed_collision_matrix_.get();
@@ -293,7 +276,7 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(E
   if (!plan.planning_scene_monitor_)
     plan.planning_scene_monitor_ = planning_scene_monitor_;
   if (!plan.planning_scene_)
-    plan.planning_scene_ = planning_scene_monitor_->getPlanningScene();
+    plan.planning_scene_ = planning_scene_monitor_->copyPlanningScene();
 
   moveit_msgs::MoveItErrorCodes result;
 
