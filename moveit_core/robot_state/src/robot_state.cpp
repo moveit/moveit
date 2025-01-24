@@ -1940,8 +1940,8 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
   {
     if (consistency_limits[i].size() != sub_groups[i]->getVariableCount())
     {
-      ROS_ERROR_NAMED(LOGNAME, "Number of joints in consistency_limits is %zu but it should be should be %u", i,
-                      sub_groups[i]->getVariableCount());
+      ROS_ERROR_NAMED(LOGNAME, "Number of joints in consistency_limits[%zu] is %zu but it should be should be %u", i,
+                      consistency_limits[i].size(), sub_groups[i]->getVariableCount());
       return false;
     }
   }
