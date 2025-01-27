@@ -73,7 +73,6 @@ struct ExecutableTrajectory
 struct ExecutableMotionPlan
 {
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
-  planning_scene::PlanningSceneConstPtr planning_scene_;
 
   std::vector<ExecutableTrajectory> plan_components_;
 

@@ -204,7 +204,8 @@ bool MoveGroupMoveAction::planUsingPlanningPipeline(const planning_interface::Mo
 
   try
   {
-    solved = planning_pipeline->generatePlan(plan.planning_scene_, req, res);
+    planning_scene::PlanningScenePtr scene = plan.planning_scene_monitor_->copyPlanningScene();
+    solved = planning_pipeline->generatePlan(scene, req, res);
   }
   catch (std::exception& ex)
   {
