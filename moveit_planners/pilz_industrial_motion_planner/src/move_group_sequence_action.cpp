@@ -255,7 +255,8 @@ bool MoveGroupSequenceAction::planUsingSequenceManager(const moveit_msgs::Motion
       return false;
     }
 
-    traj_vec = command_list_manager_->solve(plan.planning_scene_, planning_pipeline, req);
+    planning_scene::PlanningScenePtr scene = plan.planning_scene_monitor_->copyPlanningScene();
+    traj_vec = command_list_manager_->solve(scene, planning_pipeline, req);
   }
   catch (const MoveItErrorCodeException& ex)
   {
