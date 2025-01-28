@@ -186,7 +186,7 @@ planning_scene::PlanningScenePtr PlanningSceneMonitor::copyPlanningScene(const m
   planning_scene::PlanningScenePtr scene;
   {
     SingleUnlock lock(this, true);
-    scene = getPlanningScene()->diff();
+    scene = planning_scene::PlanningScene::clone(getPlanningScene());
   }
 
   if (!moveit::core::isEmpty(diff))
