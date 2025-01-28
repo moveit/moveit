@@ -86,7 +86,7 @@ struct ExecutableMotionPlan
   planning_scene::PlanningScenePtr copyPlanningScene()
   {
     planning_scene_monitor::LockedPlanningSceneRO ls(planning_scene_monitor_);
-    return planning_scene_->diff();
+    return planning_scene::PlanningScene::clone(planning_scene_);
   }
 };
 
