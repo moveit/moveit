@@ -73,6 +73,7 @@ struct ExecutableTrajectory
 struct ExecutableMotionPlan
 {
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+  planning_scene::PlanningSceneConstPtr planning_scene_;
 
   std::vector<ExecutableTrajectory> plan_components_;
 
@@ -81,6 +82,12 @@ struct ExecutableMotionPlan
 
   /// An error code reflecting what went wrong (if anything)
   moveit_msgs::MoveItErrorCodes error_code_;
+
+  planning_scene::PlanningScenePtr copyPlanningScene()
+  {
+    planning_scene_monitor::LockedPlanningSceneRO ls(planning_scene_monitor_);
+    return planning_scene_->diff();
+  }
 };
 
 /// The signature of a function that can compute a motion plan

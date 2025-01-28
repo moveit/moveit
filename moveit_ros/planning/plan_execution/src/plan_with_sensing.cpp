@@ -160,7 +160,7 @@ bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan& plan,
 
   // there can be a maximum number of looking attempts as well that lead to replanning, if the cost
   // of the path is above a maximum threshold.
-  planning_scene::PlanningScenePtr scene = plan.planning_scene_monitor_->copyPlanningScene();
+  planning_scene::PlanningScenePtr scene = plan.copyPlanningScene();
   do
   {
     bool solved = motion_planner(plan);

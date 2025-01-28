@@ -135,19 +135,17 @@ public:
 
       In case there is no \e planning_scene or \e planning_scene_monitor set in the \e plan they will be set at the
       start of the method. They are then used to monitor the execution. */
-  moveit_msgs::MoveItErrorCodes executeAndMonitor(ExecutableMotionPlan& plan, planning_scene::PlanningScenePtr scene,
-                                                  bool reset_preempted = true);
+  moveit_msgs::MoveItErrorCodes executeAndMonitor(ExecutableMotionPlan& plan, bool reset_preempted = true);
 
   void stop();
 
 private:
-  bool isRemainingPathValid(const ExecutableMotionPlan& plan, planning_scene::PlanningScenePtr scene,
-                            const std::pair<int, int>& path_segment);
+  void planAndExecuteHelper(ExecutableMotionPlan& plan, const Options& opt);
+  bool isRemainingPathValid(const ExecutableMotionPlan& plan, const std::pair<int, int>& path_segment);
 
   void planningSceneUpdatedCallback(const planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
   void doneWithTrajectoryExecution(const moveit_controller_manager::ExecutionStatus& status);
-  void successfulTrajectorySegmentExecution(const ExecutableMotionPlan& plan, planning_scene::PlanningScenePtr scene,
-                                            std::size_t index);
+  void successfulTrajectorySegmentExecution(const ExecutableMotionPlan& plan, std::size_t index);
 
   ros::NodeHandle node_handle_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
