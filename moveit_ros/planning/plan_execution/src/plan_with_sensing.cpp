@@ -160,7 +160,6 @@ bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan& plan,
 
   // there can be a maximum number of looking attempts as well that lead to replanning, if the cost
   // of the path is above a maximum threshold.
-  planning_scene::PlanningScenePtr scene = plan.copyPlanningScene();
   do
   {
     bool solved = motion_planner(plan);
@@ -170,12 +169,16 @@ bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan& plan,
     // determine the sources of cost for this path
     std::set<collision_detection::CostSource> cost_sources;
     {
+      planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_);  // it is ok if
+                                                                                           // planning_scene_monitor_ is
+                                                                                           // null; there just will be
+                                                                                           // no locking done
       for (std::size_t i = 0; i < plan.plan_components_.size(); ++i)
       {
         std::set<collision_detection::CostSource> cost_sources_i;
-        scene->getCostSources(*plan.plan_components_[i].trajectory_, max_cost_sources_,
-                              plan.plan_components_[i].trajectory_->getGroupName(), cost_sources_i,
-                              discard_overlapping_cost_sources_);
+        plan.planning_scene_->getCostSources(*plan.plan_components_[i].trajectory_, max_cost_sources_,
+                                             plan.plan_components_[i].trajectory_->getGroupName(), cost_sources_i,
+                                             discard_overlapping_cost_sources_);
         cost_sources.insert(cost_sources_i.begin(), cost_sources_i.end());
         if (cost_sources.size() > max_cost_sources_)
         {
@@ -192,7 +195,7 @@ bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan& plan,
     if (display_cost_sources_)
     {
       visualization_msgs::MarkerArray arr;
-      collision_detection::getCostMarkers(arr, scene->getPlanningFrame(), cost_sources);
+      collision_detection::getCostMarkers(arr, plan.planning_scene_->getPlanningFrame(), cost_sources);
       cost_sources_publisher_.publish(arr);
     }
 
@@ -207,7 +210,7 @@ bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan& plan,
                "%u) at looking around.",
                cost, max_safe_path_cost, look_attempts, max_look_attempts);
 
-      bool looked_at_result = lookAt(cost_sources, scene->getPlanningFrame());
+      bool looked_at_result = lookAt(cost_sources, plan.planning_scene_->getPlanningFrame());
       if (looked_at_result)
         ROS_INFO("Sensor was successfully actuated. Attempting to recompute a motion plan.");
       else
