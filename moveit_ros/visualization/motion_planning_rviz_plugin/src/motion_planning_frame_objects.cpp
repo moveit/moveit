@@ -356,8 +356,8 @@ void MotionPlanningFrame::updateCollisionObjectPose(bool update_marker_position)
     return;
   if (auto ps = planning_display_->getPlanningSceneRW())
   {
-    collision_detection::CollisionEnv::ObjectConstPtr obj = ps->getWorld()->getObject(current->text().toStdString());
-    if (obj)
+    const std::string object_id = current->text().toStdString();
+    if (ps->getWorld()->hasObject(object_id))
     {
       Eigen::Isometry3d p;
       p.translation()[0] = ui_->object_x->value();
@@ -369,7 +369,7 @@ void MotionPlanningFrame::updateCollisionObjectPose(bool update_marker_position)
            Eigen::AngleAxisd(ui_->object_ry->value(), Eigen::Vector3d::UnitY()) *
            Eigen::AngleAxisd(ui_->object_rz->value(), Eigen::Vector3d::UnitZ()));
 
-      ps->getWorldNonConst()->setObjectPose(obj->id_, p);
+      ps->getWorldNonConst()->setObjectPose(object_id, p);
       planning_display_->queueRenderSceneGeometry();
       setLocalSceneEdited();
 
