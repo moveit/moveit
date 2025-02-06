@@ -183,11 +183,9 @@ PlanningSceneMonitor::~PlanningSceneMonitor()
 
 planning_scene::PlanningScenePtr PlanningSceneMonitor::copyPlanningScene(const moveit_msgs::PlanningScene& diff)
 {
-  planning_scene::PlanningScenePtr scene;
-  {
-    SingleUnlock lock(this, true);
-    scene = planning_scene::PlanningScene::clone(getPlanningScene());
-  }
+  lockSceneRead();  // We cannot use LockedPlanningSceneRO as this requires a PSMPtr
+  planning_scene::PlanningScenePtr scene = planning_scene::PlanningScene::clone(getPlanningScene());
+  unlockSceneRead();
 
   if (!moveit::core::isEmpty(diff))
     scene->setPlanningSceneDiffMsg(diff);
