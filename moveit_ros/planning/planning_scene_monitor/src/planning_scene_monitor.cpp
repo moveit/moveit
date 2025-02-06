@@ -181,6 +181,17 @@ PlanningSceneMonitor::~PlanningSceneMonitor()
   rm_loader_.reset();
 }
 
+planning_scene::PlanningScenePtr PlanningSceneMonitor::copyPlanningScene(const moveit_msgs::PlanningScene& diff)
+{
+  lockSceneRead();  // We cannot use LockedPlanningSceneRO as this requires a PSMPtr
+  planning_scene::PlanningScenePtr scene = planning_scene::PlanningScene::clone(getPlanningScene());
+  unlockSceneRead();
+
+  if (!moveit::core::isEmpty(diff))
+    scene->setPlanningSceneDiffMsg(diff);
+  return scene;
+}
+
 void PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr& scene)
 {
   moveit::tools::Profiler::ScopedStart prof_start;

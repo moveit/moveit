@@ -82,6 +82,12 @@ struct ExecutableMotionPlan
 
   /// An error code reflecting what went wrong (if anything)
   moveit_msgs::MoveItErrorCodes error_code_;
+
+  planning_scene::PlanningScenePtr copyPlanningScene()
+  {
+    planning_scene_monitor::LockedPlanningSceneRO ls(planning_scene_monitor_);
+    return planning_scene::PlanningScene::clone(planning_scene_);
+  }
 };
 
 /// The signature of a function that can compute a motion plan
