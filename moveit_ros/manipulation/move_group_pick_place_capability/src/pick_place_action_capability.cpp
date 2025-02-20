@@ -172,8 +172,7 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlacePickup(const moveit
   pick_place::PickPlanPtr pick_plan;
   try
   {
-    planning_scene::PlanningScenePtr scene = plan.copyPlanningScene();
-    pick_plan = pick_place_->planPick(scene, goal);
+    pick_plan = pick_place_->planPick(plan.copyPlanningScene(), goal);
   }
   catch (std::exception& ex)
   {
@@ -214,8 +213,7 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlacePlace(const moveit_
   pick_place::PlacePlanPtr place_plan;
   try
   {
-    planning_scene::PlanningScenePtr scene = plan.copyPlanningScene();
-    place_plan = pick_place_->planPlace(scene, goal);
+    place_plan = pick_place_->planPlace(plan.copyPlanningScene(), goal);
   }
   catch (std::exception& ex)
   {
