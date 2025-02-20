@@ -85,6 +85,9 @@ struct ExecutableMotionPlan
 
   planning_scene::PlanningScenePtr copyPlanningScene()
   {
+    // planning_scene_ is based on the scene from this monitor
+    // (either it's the monitored scene or a diff on top of it)
+    // so in order to copy the scene, we must also lock the underlying monitor
     planning_scene_monitor::LockedPlanningSceneRO ls(planning_scene_monitor_);
     return planning_scene::PlanningScene::clone(planning_scene_);
   }
