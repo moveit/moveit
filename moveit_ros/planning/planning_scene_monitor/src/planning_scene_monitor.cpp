@@ -183,7 +183,9 @@ PlanningSceneMonitor::~PlanningSceneMonitor()
 
 planning_scene::PlanningScenePtr PlanningSceneMonitor::copyPlanningScene(const moveit_msgs::PlanningScene& diff)
 {
-  lockSceneRead();  // We cannot use LockedPlanningSceneRO as this requires a PSMPtr
+  // We cannot use LockedPlanningSceneRO for RAII because it requires a PSMPtr
+  // Instead assume clone will not throw
+  lockSceneRead();
   planning_scene::PlanningScenePtr scene = planning_scene::PlanningScene::clone(getPlanningScene());
   unlockSceneRead();
 
