@@ -99,7 +99,6 @@ void MoveGroupExecuteTrajectoryAction::executePath(const moveit_msgs::ExecuteTra
 {
   ROS_INFO_NAMED(getName(), "Execution request received");
 
-  context_->trajectory_execution_manager_->clear();
   if (context_->trajectory_execution_manager_->push(goal->trajectory))
   {
     setExecuteTrajectoryState(MONITOR);
