@@ -152,12 +152,6 @@ void MoveGroupMoveAction::executeMoveCallbackPlanOnly(const moveit_msgs::MoveGro
 {
   ROS_INFO_NAMED(getName(), "Planning request received for MoveGroup action. Forwarding to planning pipeline.");
 
-  // lock the scene so that it does not modify the world representation while diff() is called
-  planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
-  const planning_scene::PlanningSceneConstPtr& the_scene =
-      (moveit::core::isEmpty(goal->planning_options.planning_scene_diff)) ?
-          static_cast<const planning_scene::PlanningSceneConstPtr&>(lscene) :
-          lscene->diff(goal->planning_options.planning_scene_diff);
   planning_interface::MotionPlanResponse res;
 
   if (preempt_requested_)
@@ -177,7 +171,8 @@ void MoveGroupMoveAction::executeMoveCallbackPlanOnly(const moveit_msgs::MoveGro
 
   try
   {
-    planning_pipeline->generatePlan(the_scene, goal->request, res);
+    auto scene = context_->planning_scene_monitor_->copyPlanningScene(goal->planning_options.planning_scene_diff);
+    planning_pipeline->generatePlan(scene, goal->request, res);
   }
   catch (std::exception& ex)
   {
@@ -206,10 +201,9 @@ bool MoveGroupMoveAction::planUsingPlanningPipeline(const planning_interface::Mo
     return solved;
   }
 
-  planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_);
   try
   {
-    solved = planning_pipeline->generatePlan(plan.planning_scene_, req, res);
+    solved = planning_pipeline->generatePlan(plan.copyPlanningScene(), req, res);
   }
   catch (std::exception& ex)
   {
