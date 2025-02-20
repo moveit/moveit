@@ -71,10 +71,6 @@ bool MoveGroupSequenceService::plan(moveit_msgs::GetMotionSequence::Request& req
     return true;
   }
 
-  // TODO: Do we lock on the correct scene? Does the lock belong to the scene
-  // used for planning?
-  planning_scene::PlanningSceneConstPtr scene = context_->planning_scene_monitor_->copyPlanningScene();
-
   ros::Time planning_start = ros::Time::now();
   RobotTrajCont traj_vec;
   try
@@ -90,6 +86,7 @@ bool MoveGroupSequenceService::plan(moveit_msgs::GetMotionSequence::Request& req
       return false;
     }
 
+    planning_scene::PlanningSceneConstPtr scene = context_->planning_scene_monitor_->copyPlanningScene();
     traj_vec = command_list_manager_->solve(scene, planning_pipeline, req.request);
   }
   catch (const MoveItErrorCodeException& ex)

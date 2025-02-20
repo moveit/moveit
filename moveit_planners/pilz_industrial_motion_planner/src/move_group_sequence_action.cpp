@@ -181,9 +181,6 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const moveit_msgs::Mov
 {
   ROS_INFO("Planning request received for MoveGroupSequenceAction action.");
 
-  planning_scene::PlanningSceneConstPtr scene =
-      context_->planning_scene_monitor_->copyPlanningScene(goal->planning_options.planning_scene_diff);
-
   ros::Time planning_start = ros::Time::now();
   RobotTrajCont traj_vec;
   try
@@ -199,6 +196,8 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const moveit_msgs::Mov
       return;
     }
 
+    planning_scene::PlanningSceneConstPtr scene =
+        context_->planning_scene_monitor_->copyPlanningScene(goal->planning_options.planning_scene_diff);
     traj_vec = command_list_manager_->solve(scene, planning_pipeline, goal->request);
   }
   catch (const MoveItErrorCodeException& ex)

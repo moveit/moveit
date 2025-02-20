@@ -152,8 +152,6 @@ void MoveGroupMoveAction::executeMoveCallbackPlanOnly(const moveit_msgs::MoveGro
 {
   ROS_INFO_NAMED(getName(), "Planning request received for MoveGroup action. Forwarding to planning pipeline.");
 
-  planning_scene::PlanningScenePtr scene =
-      context_->planning_scene_monitor_->copyPlanningScene(goal->planning_options.planning_scene_diff);
   planning_interface::MotionPlanResponse res;
 
   if (preempt_requested_)
@@ -173,6 +171,8 @@ void MoveGroupMoveAction::executeMoveCallbackPlanOnly(const moveit_msgs::MoveGro
 
   try
   {
+    planning_scene::PlanningScenePtr scene =
+        context_->planning_scene_monitor_->copyPlanningScene(goal->planning_options.planning_scene_diff);
     planning_pipeline->generatePlan(scene, goal->request, res);
   }
   catch (std::exception& ex)
