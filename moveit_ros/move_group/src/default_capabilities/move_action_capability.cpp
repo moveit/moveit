@@ -171,8 +171,7 @@ void MoveGroupMoveAction::executeMoveCallbackPlanOnly(const moveit_msgs::MoveGro
 
   try
   {
-    planning_scene::PlanningScenePtr scene =
-        context_->planning_scene_monitor_->copyPlanningScene(goal->planning_options.planning_scene_diff);
+    auto scene = context_->planning_scene_monitor_->copyPlanningScene(goal->planning_options.planning_scene_diff);
     planning_pipeline->generatePlan(scene, goal->request, res);
   }
   catch (std::exception& ex)

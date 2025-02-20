@@ -186,7 +186,7 @@ planning_scene::PlanningScenePtr PlanningSceneMonitor::copyPlanningScene(const m
   // We cannot use LockedPlanningSceneRO for RAII because it requires a PSMPtr
   // Instead assume clone will not throw
   lockSceneRead();
-  planning_scene::PlanningScenePtr scene = planning_scene::PlanningScene::clone(getPlanningScene());
+  auto scene = planning_scene::PlanningScene::clone(getPlanningScene());
   unlockSceneRead();
 
   if (!moveit::core::isEmpty(diff))

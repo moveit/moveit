@@ -127,13 +127,9 @@ planning_interface::MotionPlanResponse PlanningComponent::plan(const PlanRequest
   }
 
   // Clone current planning scene
-  planning_scene::PlanningScenePtr planning_scene;
-  {
-    planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor =
-        moveit_cpp_->getPlanningSceneMonitorNonConst();
-    planning_scene_monitor->updateFrameTransforms();
-    planning_scene = planning_scene_monitor->copyPlanningScene();
-  }
+  auto psm = moveit_cpp_->getPlanningSceneMonitorNonConst();
+  psm->updateFrameTransforms();
+  auto planning_scene = psm->copyPlanningScene();
 
   // Init MotionPlanRequest
   ::planning_interface::MotionPlanRequest req;

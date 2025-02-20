@@ -86,7 +86,7 @@ bool MoveGroupSequenceService::plan(moveit_msgs::GetMotionSequence::Request& req
       return false;
     }
 
-    planning_scene::PlanningSceneConstPtr scene = context_->planning_scene_monitor_->copyPlanningScene();
+    auto scene = context_->planning_scene_monitor_->copyPlanningScene();
     traj_vec = command_list_manager_->solve(scene, planning_pipeline, req.request);
   }
   catch (const MoveItErrorCodeException& ex)

@@ -196,8 +196,7 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const moveit_msgs::Mov
       return;
     }
 
-    planning_scene::PlanningSceneConstPtr scene =
-        context_->planning_scene_monitor_->copyPlanningScene(goal->planning_options.planning_scene_diff);
+    auto scene = context_->planning_scene_monitor_->copyPlanningScene(goal->planning_options.planning_scene_diff);
     traj_vec = command_list_manager_->solve(scene, planning_pipeline, goal->request);
   }
   catch (const MoveItErrorCodeException& ex)
