@@ -42,6 +42,39 @@
 #include <moveit/profiler/profiler.h>
 #include <moveit/utils/robot_model_test_utils.h>
 
+constexpr double NEG_INF = -std::numeric_limits<double>::infinity();
+constexpr double POS_INF = std::numeric_limits<double>::infinity();
+
+void updateBounds(moveit::core::JointModel::Bounds& bounds,  //
+                  std::size_t bound_index,                   //
+                  double min_position,                       //
+                  double max_position,                       //
+                  double min_velocity,                       //
+                  double max_velocity,                       //
+                  double min_acceleration,                   //
+                  double max_acceleration,                   //
+                  bool position_bounded,                     //
+                  bool velocity_bounded,                     //
+                  bool acceleration_bounded)                 //
+{
+  ASSERT_TRUE(bound_index < bounds.size());
+
+  bounds[bound_index].min_position_ = min_position;
+  bounds[bound_index].max_position_ = max_position;
+  bounds[bound_index].min_velocity_ = min_velocity;
+  bounds[bound_index].max_velocity_ = max_velocity;
+  bounds[bound_index].min_acceleration_ = min_acceleration;
+  bounds[bound_index].max_acceleration_ = max_acceleration;
+
+  bounds[bound_index].position_bounded_ = position_bounded;
+  bounds[bound_index].velocity_bounded_ = velocity_bounded;
+  bounds[bound_index].acceleration_bounded_ = acceleration_bounded;
+}
+
+struct SatisfiesPositionBounds : testing::Test
+{
+};
+
 class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
@@ -80,6 +113,393 @@ TEST_F(LoadPlanningModelsPr2, Model)
     ASSERT_EQ(links[i]->getLinkIndex(), static_cast<int>(i));
   }
   moveit::tools::Profiler::Status();
+}
+
+void generateMotionBoundsTests(const moveit::core::JointModel& joint_model,
+                               const moveit::core::JointModel::Bounds& bounds)
+{
+  unsigned int dimensions = joint_model.getStateSpaceDimension();
+
+  static const std::size_t MOTION_TESTS = 6;
+  std::array<std::vector<double>, MOTION_TESTS> position_2d;
+  std::array<std::vector<double>, MOTION_TESTS> velocity_2d;
+  std::array<std::vector<double>, MOTION_TESTS> acceleration_2d;
+
+  for (std::size_t i = 0; i < position_2d.size(); ++i)
+  {
+    // initialize positions with default
+    position_2d[i].resize(dimensions);
+    joint_model.getVariableDefaultPositions(&position_2d[i][0], bounds);
+
+    // no need to initialize velocities or acceleration
+    velocity_2d[i].resize(dimensions);
+    acceleration_2d[i].resize(dimensions);
+  }
+
+  // fill motion values
+  bool compute_inner = true;
+  bool inf_min_bounded = false;
+  bool inf_max_bounded = false;
+  for (std::size_t i = 0; i < bounds.size(); ++i)
+  {
+    if (isinf(bounds[i].min_position_))
+      inf_min_bounded = true;
+    if (isinf(bounds[i].max_position_))
+      inf_max_bounded = true;
+
+    if (bounds[i].position_bounded_)
+    {
+      if (std::abs(bounds[i].max_position_ - bounds[i].min_position_) < 2.0)
+        compute_inner = false;
+
+      position_2d[0][i] = bounds[i].min_position_ - 1.0;
+      position_2d[1][i] = bounds[i].min_position_;
+      position_2d[2][i] = bounds[i].min_position_ + 1.0;
+      position_2d[3][i] = bounds[i].max_position_ - 1.0;
+      position_2d[4][i] = bounds[i].max_position_;
+      position_2d[5][i] = bounds[i].max_position_ + 1.0;
+    }
+    if (bounds[i].velocity_bounded_)
+    {
+      velocity_2d[0][i] = bounds[i].min_velocity_ - 1.0;
+      velocity_2d[1][i] = bounds[i].min_velocity_;
+      velocity_2d[2][i] = bounds[i].min_velocity_ + 1.0;
+      velocity_2d[3][i] = bounds[i].max_velocity_ - 1.0;
+      velocity_2d[4][i] = bounds[i].max_velocity_;
+      velocity_2d[5][i] = bounds[i].max_velocity_ + 1.0;
+    }
+    if (bounds[i].acceleration_bounded_)
+    {
+      acceleration_2d[0][i] = bounds[i].min_acceleration_ - 1.0;
+      acceleration_2d[1][i] = bounds[i].min_acceleration_;
+      acceleration_2d[2][i] = bounds[i].min_acceleration_ + 1.0;
+      acceleration_2d[3][i] = bounds[i].max_acceleration_ - 1.0;
+      acceleration_2d[4][i] = bounds[i].max_acceleration_;
+      acceleration_2d[5][i] = bounds[i].max_acceleration_ + 1.0;
+    }
+  }
+
+  //      X          |----------|-------------|----------|          |
+  //  (min - 1)     min     (min + 1)     (max - 1)     max     (max + 1)
+  if (inf_min_bounded)
+  {
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, 0));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, 0.9));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, 1));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, 1.1));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, -0.9));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, -1));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, -1.1));
+
+  }
+  else
+  {
+    ASSERT_FALSE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, 0));
+    ASSERT_FALSE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, 0.9));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, 1));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, 1.1));
+
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, -0.9));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, -1));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, -1.1));
+  }
+
+  //      |          X----------|-------------|----------|          |
+  //  (min - 1)     min     (min + 1)     (max - 1)     max     (max + 1)
+  ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[1][0], bounds, 0));
+  ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[1][0], bounds, 0.9));
+  ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[1][0], bounds, 1));
+  ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[1][0], bounds, 1.1));
+
+  ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[1][0], bounds, -0.9));
+  ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[1][0], bounds, -1));
+  ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[1][0], bounds, -1.1));
+
+  //      |          |----------X-------------|----------|          |
+  //  (min - 1)     min     (min + 1)     (max - 1)     max     (max + 1)
+  if (compute_inner)
+  {
+    std::cout << "compute inner" << std::endl;
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, 0));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, 0.9));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, 1));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, 1.1));
+
+    if (inf_min_bounded)
+    {
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, -0.9));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, -1));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, -1.1));
+    }
+    else
+    {
+      ASSERT_FALSE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, -0.9));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, -1));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, -1.1));
+    }
+  }
+
+  //      |          |----------|-------------X----------|          |
+  //  (min - 1)     min     (min + 1)     (max - 1)     max     (max + 1)
+  if (compute_inner)
+  {
+    std::cout << "compute inner" << std::endl;
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, 0));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, 0.9));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, 1));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, 1.1));
+
+    if (inf_max_bounded)
+    {
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, -0.9));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, -1));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, -1.1));
+    }
+    else
+    {
+      ASSERT_FALSE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, -0.9));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, -1));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, -1.1));
+    }
+  }
+
+  //      |          |----------|-------------|----------X          |
+  //  (min - 1)     min     (min + 1)     (max - 1)     max     (max + 1)
+  ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[4][0], bounds, 0));
+  ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[4][0], bounds, 0.9));
+  ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[4][0], bounds, 1));
+  ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[4][0], bounds, 1.1));
+
+  ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[4][0], bounds, -0.9));
+  ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[4][0], bounds, -1));
+  ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[4][0], bounds, -1.1));
+
+  //      |          |----------|-------------|----------|          X
+  //  (min - 1)     min     (min + 1)     (max - 1)     max     (max + 1)
+  if (inf_max_bounded)
+  {
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, 0));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, 0.9));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, 1));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, 1.1));
+
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, -0.9));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, -1));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, -1.1));
+  }
+  else
+  {
+    ASSERT_FALSE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, 0));
+    ASSERT_FALSE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, 0.9));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, 1));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, 1.1));
+
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, -0.9));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, -1));
+    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, -1.1));
+  }
+}
+
+TEST(SatisfiesPositionBounds, RevoluteJoint)
+{
+  moveit::core::RevoluteJointModel joint_model("revolute");
+  auto bounds = joint_model.getVariableBounds();
+  unsigned int dimensions = joint_model.getStateSpaceDimension();
+
+  std::vector<double> values;
+  values.resize(dimensions);
+  joint_model.getVariableDefaultPositions(&values[0], bounds);
+
+  {
+    updateBounds(bounds, 0, NEG_INF, NEG_INF, NEG_INF, NEG_INF, NEG_INF, NEG_INF, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, NEG_INF, POS_INF, NEG_INF, POS_INF, NEG_INF, POS_INF, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, NEG_INF, 0, NEG_INF, 0, NEG_INF, 0, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, 0, POS_INF, 0, POS_INF, 0, POS_INF, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, POS_INF, POS_INF, POS_INF, POS_INF, POS_INF, POS_INF, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, -4, -4, -4, -4, -4, -4, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, -4, 0, -4, 0, -4, 0, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, -2, 2, -2, 2, -2, 2, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, 0, 4, 0, 4, 0, 4, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+  }
+}
+
+TEST(SatisfiesPositionBounds, PrismaticJoint)
+{
+  moveit::core::PrismaticJointModel joint_model("prismatic");
+  auto bounds = joint_model.getVariableBounds();
+  unsigned int dimensions = joint_model.getStateSpaceDimension();
+
+  std::vector<double> values;
+  values.resize(dimensions);
+  joint_model.getVariableDefaultPositions(&values[0], bounds);
+
+  {
+    updateBounds(bounds, 0, NEG_INF, NEG_INF, NEG_INF, NEG_INF, NEG_INF, NEG_INF, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, NEG_INF, POS_INF, NEG_INF, POS_INF, NEG_INF, POS_INF, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, NEG_INF, 0, NEG_INF, 0, NEG_INF, 0, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, 0, POS_INF, 0, POS_INF, 0, POS_INF, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, POS_INF, POS_INF, POS_INF, POS_INF, POS_INF, POS_INF, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, -4, -4, -4, -4, -4, -4, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, -4, 0, -4, 0, -4, 0, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, -2, 2, -2, 2, -2, 2, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, 0, 4, 0, 4, 0, 4, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+  }
+}
+
+TEST(SatisfiesPositionBounds, PlanarJoint)
+{
+  moveit::core::PlanarJointModel joint_model("planar");
+  auto bounds = joint_model.getVariableBounds();
+  unsigned int dimensions = joint_model.getStateSpaceDimension();
+
+  std::vector<double> values;
+  values.resize(dimensions);
+  joint_model.getVariableDefaultPositions(&values[0], bounds);
+
+  {
+    updateBounds(bounds, 0, NEG_INF, NEG_INF, NEG_INF, NEG_INF, NEG_INF, NEG_INF, true, true, true);
+    updateBounds(bounds, 1, NEG_INF, NEG_INF, NEG_INF, NEG_INF, NEG_INF, NEG_INF, true, true, true);
+    updateBounds(bounds, 2, NEG_INF, NEG_INF, NEG_INF, NEG_INF, NEG_INF, NEG_INF, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, NEG_INF, POS_INF, NEG_INF, POS_INF, NEG_INF, POS_INF, true, true, true);
+    updateBounds(bounds, 1, NEG_INF, POS_INF, NEG_INF, POS_INF, NEG_INF, POS_INF, true, true, true);
+    updateBounds(bounds, 2, NEG_INF, POS_INF, NEG_INF, POS_INF, NEG_INF, POS_INF, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, NEG_INF, 0, NEG_INF, 0, NEG_INF, 0, true, true, true);
+    updateBounds(bounds, 1, NEG_INF, 0, NEG_INF, 0, NEG_INF, 0, true, true, true);
+    updateBounds(bounds, 2, NEG_INF, 0, NEG_INF, 0, NEG_INF, 0, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, 0, POS_INF, 0, POS_INF, 0, POS_INF, true, true, true);
+    updateBounds(bounds, 1, 0, POS_INF, 0, POS_INF, 0, POS_INF, true, true, true);
+    updateBounds(bounds, 2, 0, POS_INF, 0, POS_INF, 0, POS_INF, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, POS_INF, POS_INF, POS_INF, POS_INF, POS_INF, POS_INF, true, true, true);
+    updateBounds(bounds, 1, POS_INF, POS_INF, POS_INF, POS_INF, POS_INF, POS_INF, true, true, true);
+    updateBounds(bounds, 2, POS_INF, POS_INF, POS_INF, POS_INF, POS_INF, POS_INF, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, -4, -4, -4, -4, -4, -4, true, true, true);
+    updateBounds(bounds, 1, -4, -4, -4, -4, -4, -4, true, true, true);
+    updateBounds(bounds, 2, -4, -4, -4, -4, -4, -4, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, -4, 0, -4, 0, -4, 0, true, true, true);
+    updateBounds(bounds, 1, -4, 0, -4, 0, -4, 0, true, true, true);
+    updateBounds(bounds, 2, -4, 0, -4, 0, -4, 0, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, -2, 2, -2, 2, -2, 2, true, true, true);
+    updateBounds(bounds, 1, -2, 2, -2, 2, -2, 2, true, true, true);
+    updateBounds(bounds, 2, -2, 2, -2, 2, -2, 2, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, 0, 4, 0, 4, 0, 4, true, true, true);
+    updateBounds(bounds, 1, 0, 4, 0, 4, 0, 4, true, true, true);
+    updateBounds(bounds, 2, 0, 4, 0, 4, 0, 4, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+  }
+}
+
+TEST(SatisfiesPositionBounds, FloatingJoint)
+{
+  moveit::core::FloatingJointModel joint_model("floating");
+  auto bounds = joint_model.getVariableBounds();
+  unsigned int dimensions = joint_model.getStateSpaceDimension();
+
+  std::vector<double> values;
+  values.resize(dimensions);
+  joint_model.getVariableDefaultPositions(&values[0], bounds);
+
+  {
+    // do not update values for: rot_x, rot_y, rot_z, rot_w
+    bounds[3].position_bounded_ = false;
+    bounds[4].position_bounded_ = false;
+    bounds[5].position_bounded_ = false;
+    bounds[6].position_bounded_ = false;
+
+    updateBounds(bounds, 0, NEG_INF, NEG_INF, NEG_INF, NEG_INF, NEG_INF, NEG_INF, true, true, true);
+    updateBounds(bounds, 1, NEG_INF, NEG_INF, NEG_INF, NEG_INF, NEG_INF, NEG_INF, true, true, true);
+    updateBounds(bounds, 2, NEG_INF, NEG_INF, NEG_INF, NEG_INF, NEG_INF, NEG_INF, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, NEG_INF, POS_INF, NEG_INF, POS_INF, NEG_INF, POS_INF, true, true, true);
+    updateBounds(bounds, 1, NEG_INF, POS_INF, NEG_INF, POS_INF, NEG_INF, POS_INF, true, true, true);
+    updateBounds(bounds, 2, NEG_INF, POS_INF, NEG_INF, POS_INF, NEG_INF, POS_INF, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, NEG_INF, 0, NEG_INF, 0, NEG_INF, 0, true, true, true);
+    updateBounds(bounds, 1, NEG_INF, 0, NEG_INF, 0, NEG_INF, 0, true, true, true);
+    updateBounds(bounds, 2, NEG_INF, 0, NEG_INF, 0, NEG_INF, 0, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, 0, POS_INF, 0, POS_INF, 0, POS_INF, true, true, true);
+    updateBounds(bounds, 1, 0, POS_INF, 0, POS_INF, 0, POS_INF, true, true, true);
+    updateBounds(bounds, 2, 0, POS_INF, 0, POS_INF, 0, POS_INF, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, POS_INF, POS_INF, POS_INF, POS_INF, POS_INF, POS_INF, true, true, true);
+    updateBounds(bounds, 1, POS_INF, POS_INF, POS_INF, POS_INF, POS_INF, POS_INF, true, true, true);
+    updateBounds(bounds, 2, POS_INF, POS_INF, POS_INF, POS_INF, POS_INF, POS_INF, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, -4, -4, -4, -4, -4, -4, true, true, true);
+    updateBounds(bounds, 1, -4, -4, -4, -4, -4, -4, true, true, true);
+    updateBounds(bounds, 2, -4, -4, -4, -4, -4, -4, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, -4, 0, -4, 0, -4, 0, true, true, true);
+    updateBounds(bounds, 1, -4, 0, -4, 0, -4, 0, true, true, true);
+    updateBounds(bounds, 2, -4, 0, -4, 0, -4, 0, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, -2, 2, -2, 2, -2, 2, true, true, true);
+    updateBounds(bounds, 1, -2, 2, -2, 2, -2, 2, true, true, true);
+    updateBounds(bounds, 2, -2, 2, -2, 2, -2, 2, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+
+    updateBounds(bounds, 0, 0, 4, 0, 4, 0, 4, true, true, true);
+    updateBounds(bounds, 1, 0, 4, 0, 4, 0, 4, true, true, true);
+    updateBounds(bounds, 2, 0, 4, 0, 4, 0, 4, true, true, true);
+    generateMotionBoundsTests(joint_model, bounds);
+  }
 }
 
 TEST(SiblingAssociateLinks, SimpleYRobot)
