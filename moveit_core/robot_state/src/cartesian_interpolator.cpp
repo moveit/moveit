@@ -78,7 +78,11 @@ bool validateAndImproveInterval(const RobotState& start_state, const RobotState&
   }
 
   if (width < precision.max_resolution)
-    return false;  // failed to find linear interpolation within max_resolution
+  {
+    ROS_WARN_NAMED(LOGNAME, "Failed to find linear interpolation within max_resolution: %f < %f", width,
+                   precision.max_resolution);
+    return false;
+  }
 
   // otherwise subdivide interval further, computing IK for mid_pose
   if (!mid_state.setFromIK(group, mid_pose * link_offset.inverse(), link->getName(), 0.0, validCallback, options))
