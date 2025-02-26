@@ -191,6 +191,21 @@ void generateMotionBoundsTests(const moveit::core::JointModel& joint_model,
     ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, -1));
     ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, -1.1));
 
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[0][0], bounds, 0));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[0][0], bounds, 0.9));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[0][0], bounds, 1));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[0][0], bounds, 1.1));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[0][0], bounds, -0.9));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[0][0], bounds, -1));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[0][0], bounds, -1.1));
+
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[0][0], bounds, 0));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[0][0], bounds, 0.9));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[0][0], bounds, 1));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[0][0], bounds, 1.1));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[0][0], bounds, -0.9));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[0][0], bounds, -1));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[0][0], bounds, -1.1));
   }
   else
   {
@@ -198,10 +213,25 @@ void generateMotionBoundsTests(const moveit::core::JointModel& joint_model,
     ASSERT_FALSE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, 0.9));
     ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, 1));
     ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, 1.1));
-
     ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, -0.9));
     ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, -1));
     ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[0][0], bounds, -1.1));
+
+    ASSERT_FALSE(joint_model.satisfiesVelocityBounds(&velocity_2d[0][0], bounds, 0));
+    ASSERT_FALSE(joint_model.satisfiesVelocityBounds(&velocity_2d[0][0], bounds, 0.9));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[0][0], bounds, 1));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[0][0], bounds, 1.1));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[0][0], bounds, -0.9));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[0][0], bounds, -1));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[0][0], bounds, -1.1));
+
+    ASSERT_FALSE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[0][0], bounds, 0));
+    ASSERT_FALSE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[0][0], bounds, 0.9));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[0][0], bounds, 1));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[0][0], bounds, 1.1));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[0][0], bounds, -0.9));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[0][0], bounds, -1));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[0][0], bounds, -1.1));
   }
 
   //      |          X----------|-------------|----------|          |
@@ -210,32 +240,81 @@ void generateMotionBoundsTests(const moveit::core::JointModel& joint_model,
   ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[1][0], bounds, 0.9));
   ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[1][0], bounds, 1));
   ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[1][0], bounds, 1.1));
-
   ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[1][0], bounds, -0.9));
   ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[1][0], bounds, -1));
   ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[1][0], bounds, -1.1));
+
+  ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[1][0], bounds, 0));
+  ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[1][0], bounds, 0.9));
+  ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[1][0], bounds, 1));
+  ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[1][0], bounds, 1.1));
+  ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[1][0], bounds, -0.9));
+  ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[1][0], bounds, -1));
+  ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[1][0], bounds, -1.1));
+
+  ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[1][0], bounds, 0));
+  ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[1][0], bounds, 0.9));
+  ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[1][0], bounds, 1));
+  ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[1][0], bounds, 1.1));
+  ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[1][0], bounds, -0.9));
+  ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[1][0], bounds, -1));
+  ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[1][0], bounds, -1.1));
 
   //      |          |----------X-------------|----------|          |
   //  (min - 1)     min     (min + 1)     (max - 1)     max     (max + 1)
   if (compute_inner)
   {
-    std::cout << "compute inner" << std::endl;
-    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, 0));
-    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, 0.9));
-    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, 1));
-    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, 1.1));
-
     if (inf_min_bounded)
     {
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, 0));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, 0.9));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, 1));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, 1.1));
       ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, -0.9));
       ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, -1));
       ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, -1.1));
+
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[2][0], bounds, 0));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[2][0], bounds, 0.9));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[2][0], bounds, 1));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[2][0], bounds, 1.1));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[2][0], bounds, -0.9));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[2][0], bounds, -1));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[2][0], bounds, -1.1));
+
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[2][0], bounds, 0));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[2][0], bounds, 0.9));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[2][0], bounds, 1));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[2][0], bounds, 1.1));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[2][0], bounds, -0.9));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[2][0], bounds, -1));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[2][0], bounds, -1.1));
     }
     else
     {
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, 0));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, 0.9));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, 1));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, 1.1));
       ASSERT_FALSE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, -0.9));
       ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, -1));
       ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[2][0], bounds, -1.1));
+
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[2][0], bounds, 0));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[2][0], bounds, 0.9));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[2][0], bounds, 1));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[2][0], bounds, 1.1));
+      ASSERT_FALSE(joint_model.satisfiesVelocityBounds(&velocity_2d[2][0], bounds, -0.9));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[2][0], bounds, -1));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[2][0], bounds, -1.1));
+
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[2][0], bounds, 0));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[2][0], bounds, 0.9));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[2][0], bounds, 1));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[2][0], bounds, 1.1));
+      ASSERT_FALSE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[2][0], bounds, -0.9));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[2][0], bounds, -1));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[2][0], bounds, -1.1));
     }
   }
 
@@ -243,23 +322,57 @@ void generateMotionBoundsTests(const moveit::core::JointModel& joint_model,
   //  (min - 1)     min     (min + 1)     (max - 1)     max     (max + 1)
   if (compute_inner)
   {
-    std::cout << "compute inner" << std::endl;
-    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, 0));
-    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, 0.9));
-    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, 1));
-    ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, 1.1));
-
     if (inf_max_bounded)
     {
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, 0));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, 0.9));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, 1));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, 1.1));
       ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, -0.9));
       ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, -1));
       ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, -1.1));
+
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[3][0], bounds, 0));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[3][0], bounds, 0.9));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[3][0], bounds, 1));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[3][0], bounds, 1.1));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[3][0], bounds, -0.9));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[3][0], bounds, -1));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[3][0], bounds, -1.1));
+
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[3][0], bounds, 0));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[3][0], bounds, 0.9));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[3][0], bounds, 1));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[3][0], bounds, 1.1));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[3][0], bounds, -0.9));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[3][0], bounds, -1));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[3][0], bounds, -1.1));
     }
     else
     {
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, 0));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, 0.9));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, 1));
+      ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, 1.1));
       ASSERT_FALSE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, -0.9));
       ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, -1));
       ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[3][0], bounds, -1.1));
+
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[3][0], bounds, 0));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[3][0], bounds, 0.9));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[3][0], bounds, 1));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[3][0], bounds, 1.1));
+      ASSERT_FALSE(joint_model.satisfiesVelocityBounds(&velocity_2d[3][0], bounds, -0.9));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[3][0], bounds, -1));
+      ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[3][0], bounds, -1.1));
+
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[3][0], bounds, 0));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[3][0], bounds, 0.9));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[3][0], bounds, 1));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[3][0], bounds, 1.1));
+      ASSERT_FALSE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[3][0], bounds, -0.9));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[3][0], bounds, -1));
+      ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[3][0], bounds, -1.1));
     }
   }
 
@@ -269,10 +382,25 @@ void generateMotionBoundsTests(const moveit::core::JointModel& joint_model,
   ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[4][0], bounds, 0.9));
   ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[4][0], bounds, 1));
   ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[4][0], bounds, 1.1));
-
   ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[4][0], bounds, -0.9));
   ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[4][0], bounds, -1));
   ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[4][0], bounds, -1.1));
+
+  ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[4][0], bounds, 0));
+  ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[4][0], bounds, 0.9));
+  ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[4][0], bounds, 1));
+  ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[4][0], bounds, 1.1));
+  ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[4][0], bounds, -0.9));
+  ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[4][0], bounds, -1));
+  ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[4][0], bounds, -1.1));
+
+  ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[4][0], bounds, 0));
+  ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[4][0], bounds, 0.9));
+  ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[4][0], bounds, 1));
+  ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[4][0], bounds, 1.1));
+  ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[4][0], bounds, -0.9));
+  ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[4][0], bounds, -1));
+  ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[4][0], bounds, -1.1));
 
   //      |          |----------|-------------|----------|          X
   //  (min - 1)     min     (min + 1)     (max - 1)     max     (max + 1)
@@ -282,10 +410,25 @@ void generateMotionBoundsTests(const moveit::core::JointModel& joint_model,
     ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, 0.9));
     ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, 1));
     ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, 1.1));
-
     ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, -0.9));
     ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, -1));
     ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, -1.1));
+
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[5][0], bounds, 0));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[5][0], bounds, 0.9));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[5][0], bounds, 1));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[5][0], bounds, 1.1));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[5][0], bounds, -0.9));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[5][0], bounds, -1));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[5][0], bounds, -1.1));
+
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[5][0], bounds, 0));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[5][0], bounds, 0.9));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[5][0], bounds, 1));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[5][0], bounds, 1.1));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[5][0], bounds, -0.9));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[5][0], bounds, -1));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[5][0], bounds, -1.1));
   }
   else
   {
@@ -293,10 +436,25 @@ void generateMotionBoundsTests(const moveit::core::JointModel& joint_model,
     ASSERT_FALSE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, 0.9));
     ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, 1));
     ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, 1.1));
-
     ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, -0.9));
     ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, -1));
     ASSERT_TRUE(joint_model.satisfiesPositionBounds(&position_2d[5][0], bounds, -1.1));
+
+    ASSERT_FALSE(joint_model.satisfiesVelocityBounds(&velocity_2d[5][0], bounds, 0));
+    ASSERT_FALSE(joint_model.satisfiesVelocityBounds(&velocity_2d[5][0], bounds, 0.9));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[5][0], bounds, 1));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[5][0], bounds, 1.1));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[5][0], bounds, -0.9));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[5][0], bounds, -1));
+    ASSERT_TRUE(joint_model.satisfiesVelocityBounds(&velocity_2d[5][0], bounds, -1.1));
+
+    ASSERT_FALSE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[5][0], bounds, 0));
+    ASSERT_FALSE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[5][0], bounds, 0.9));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[5][0], bounds, 1));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[5][0], bounds, 1.1));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[5][0], bounds, -0.9));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[5][0], bounds, -1));
+    ASSERT_TRUE(joint_model.satisfiesAccelerationBounds(&acceleration_2d[5][0], bounds, -1.1));
   }
 }
 
