@@ -538,8 +538,6 @@ void TrajectoryVisualization::incomingDisplayTrajectory(const moveit_msgs::Displ
     ROS_WARN("Received a trajectory to display for model '%s' but model '%s' was expected", msg->model_id.c_str(),
              robot_model_->getName().c_str());
 
-  trajectory_message_to_display_.reset();
-
   robot_trajectory::RobotTrajectoryPtr t(new robot_trajectory::RobotTrajectory(robot_model_, ""));
   try
   {
