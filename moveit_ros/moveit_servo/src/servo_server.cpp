@@ -68,7 +68,20 @@ int main(int argc, char** argv)
       planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
       planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
       false /* skip octomap monitor */);
-  planning_scene_monitor->startStateMonitor();
+
+  // Read joint_topic; if default, subscribe now; else defer to Servo
+  std::string joint_topic;
+  nh.param<std::string>("joint_topic", joint_topic,
+                        planning_scene_monitor::PlanningSceneMonitor::DEFAULT_JOINT_STATES_TOPIC);
+  if (joint_topic == planning_scene_monitor::PlanningSceneMonitor::DEFAULT_JOINT_STATES_TOPIC)
+  {
+    planning_scene_monitor->startStateMonitor();
+  }
+  else
+  {
+    ROS_INFO_STREAM_NAMED(LOGNAME, "Custom joint_topic '"
+                                       << joint_topic << "' detected; deferring state monitor to Servo constructor.");
+  }
 
   // Create the servo server
   moveit_servo::Servo servo(nh, planning_scene_monitor);
