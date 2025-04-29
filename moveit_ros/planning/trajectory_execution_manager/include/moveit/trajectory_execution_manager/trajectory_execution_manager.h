@@ -183,9 +183,6 @@ public:
   /// Stop whatever executions are active, if any
   void stopExecution(bool auto_clear = true);
 
-  /// Clear the trajectories to execute
-  void clear();
-
   /// Enable or disable the monitoring of trajectory execution duration. If a controller takes
   /// longer than expected, the trajectory is canceled
   void enableExecutionDurationMonitoring(bool flag);
@@ -258,6 +255,8 @@ private:
                      bool auto_clear);
   bool executePart(std::size_t part_index);
   bool waitForRobotToStop(const TrajectoryExecutionContext& context, double wait_time = 1.0);
+
+  void clear();  // Clear the trajectories to execute
 
   void stopExecutionInternal();
 
