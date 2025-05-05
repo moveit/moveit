@@ -15,7 +15,7 @@ moveit_build_options()
 find_package(Boost REQUIRED COMPONENTS system thread)
 
 catkin_package(
-  INCLUDE_DIRS include
+  INCLUDE_DIRS
   LIBRARIES
     ${PROJECT_NAME}_plugin
     ${PROJECT_NAME}_trajectory_plugin
@@ -27,7 +27,6 @@ catkin_package(
   DEPENDS Boost
 )
 
-include_directories(include)
 include_directories(SYSTEM ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME}_plugin
@@ -59,10 +58,6 @@ LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
 )
 
-## Mark cpp header files for installation
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-)
 install(FILES moveit_core_plugins.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
