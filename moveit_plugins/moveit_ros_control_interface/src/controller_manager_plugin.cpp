@@ -38,8 +38,6 @@
 
 #include <moveit/macros/class_forward.h>
 
-#include <moveit_ros_control_interface/ControllerHandle.h>
-
 #include <moveit/controller_manager/controller_manager.h>
 #include <moveit_simple_controller_manager/follow_joint_trajectory_controller_handle.h>
 
