@@ -41,6 +41,7 @@
 #include <moveit_ros_control_interface/ControllerHandle.h>
 
 #include <moveit/controller_manager/controller_manager.h>
+#include <moveit_simple_controller_manager/follow_joint_trajectory_controller_handle.h>
 
 #include <controller_manager_msgs/ListControllers.h>
 #include <controller_manager_msgs/SwitchController.h>
@@ -84,12 +85,9 @@ MOVEIT_CLASS_FORWARD(MoveItControllerManager);  // Defines MoveItControllerManag
 class MoveItControllerManager : public moveit_controller_manager::MoveItControllerManager
 {
   const std::string ns_;
-  pluginlib::ClassLoader<ControllerHandleAllocator> loader_;
   typedef std::map<std::string, controller_manager_msgs::ControllerState> ControllersMap;
   ControllersMap managed_controllers_;
   ControllersMap active_controllers_;
-  typedef std::map<std::string, ControllerHandleAllocatorPtr> AllocatorsMap;
-  AllocatorsMap allocators_;
 
   typedef std::map<std::string, moveit_controller_manager::MoveItControllerHandlePtr> HandleMap;
   HandleMap handles_;
@@ -107,6 +105,17 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
     return s.state == std::string("running");
   }
 
+  static bool isFollowJointTrajectoryCtrl(const std::string& name, const ros::master::V_TopicInfo& all_topics)
+  {
+    const auto fullname = ros::names::append(name, "follow_joint_trajectory/result");
+    for (const ros::master::TopicInfo& topic : all_topics)
+    {
+      if (topic.name == fullname && topic.datatype == "control_msgs/FollowJointTrajectoryActionResult")
+        return true;
+    }
+    return false;
+  }
+
   /**
    * \brief  Call list_controllers and populate managed_controllers_ and active_controllers_. Allocates handles if
    * needed.
@@ -117,6 +126,9 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
   {
     if (!checkTimeout(controllers_stamp_, 1.0, force))
       return;
+
+    ros::master::V_TopicInfo all_topics;
+    ros::master::getTopics(all_topics);
 
     controller_manager_msgs::ListControllers srv;
     if (!ros::service::call(getAbsName("controller_manager/list_controllers"), srv))
@@ -131,11 +143,11 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
       {
         active_controllers_.insert(std::make_pair(controller.name, controller));  // without namespace
       }
-      if (loader_.isClassAvailable(controller.type))
+      std::string absname = getAbsName(controller.name);
+      if (isFollowJointTrajectoryCtrl(absname, all_topics))
       {
-        std::string absname = getAbsName(controller.name);
         managed_controllers_.insert(std::make_pair(absname, controller));  // with namespace
-        allocate(absname, controller);
+        allocate(absname);
       }
     }
   }
@@ -144,33 +156,14 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
    * \brief Allocates a MoveItControllerHandle instance for the given controller
    * Might create allocator object first.
    * @param name fully qualified name of the controller
-   * @param controller controller information
    */
-  void allocate(const std::string& name, const controller_manager_msgs::ControllerState& controller)
+  void allocate(const std::string& name)
   {
     if (handles_.find(name) == handles_.end())
     {
-      const std::string& type = controller.type;
-      AllocatorsMap::iterator alloc_it = allocators_.find(type);
-      if (alloc_it == allocators_.end())
-      {  // create allocator is needed
-        alloc_it = allocators_.insert(std::make_pair(type, loader_.createUniqueInstance(type))).first;
-      }
-
-      std::vector<std::string> resources;
-      // Collect claimed resources across different hardware interfaces
-      for (const controller_manager_msgs::HardwareInterfaceResources& claimed_resource : controller.claimed_resources)
-      {
-        for (const std::string& resource : claimed_resource.resources)
-        {
-          resources.push_back(resource);
-        }
-      }
-
-      moveit_controller_manager::MoveItControllerHandlePtr handle =
-          alloc_it->second->alloc(name, resources);  // allocate handle
-      if (handle)
-        handles_.insert(std::make_pair(name, handle));
+      auto handle = std::make_shared<moveit_simple_controller_manager::FollowJointTrajectoryControllerHandle>(
+          name, "follow_joint_trajectory");
+      handles_.insert(std::make_pair(name, handle));
     }
   }
 
@@ -188,9 +181,7 @@ public:
   /**
    * \brief The default constructor. Reads the namespace from ~ros_control_namespace param and defaults to /
    */
-  MoveItControllerManager()
-    : ns_(ros::NodeHandle("~").param("ros_control_namespace", std::string("/")))
-    , loader_("moveit_ros_control_interface", "moveit_ros_control_interface::ControllerHandleAllocator")
+  MoveItControllerManager() : ns_(ros::NodeHandle("~").param("ros_control_namespace", std::string("/")))
   {
     ROS_INFO_STREAM("Started moveit_ros_control_interface::MoveItControllerManager for namespace " << ns_);
   }
@@ -199,8 +190,7 @@ public:
    * \brief Configure interface with namespace
    * @param ns namespace of ros_control node (without /controller_manager/)
    */
-  MoveItControllerManager(const std::string& ns)
-    : ns_(ns), loader_("moveit_ros_control_interface", "moveit_ros_control_interface::ControllerHandleAllocator")
+  MoveItControllerManager(const std::string& ns) : ns_(ns)
   {
   }
 

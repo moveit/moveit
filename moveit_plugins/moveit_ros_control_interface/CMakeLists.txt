@@ -38,15 +38,6 @@ target_link_libraries(${PROJECT_NAME}_plugin
   ${catkin_LIBRARIES} ${Boost_LIBRARIES}
 )
 
-add_library(${PROJECT_NAME}_trajectory_plugin
-  src/joint_trajectory_controller_plugin.cpp
-)
-set_target_properties(${PROJECT_NAME}_trajectory_plugin PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-target_link_libraries(${PROJECT_NAME}_trajectory_plugin
-  ${catkin_LIBRARIES} ${Boost_LIBRARIES}
-)
-
-
 #############
 ## Install ##
 #############
@@ -62,7 +53,7 @@ target_link_libraries(${PROJECT_NAME}_trajectory_plugin
 # )
 
 ## Mark executables and/or libraries for installation
-install(TARGETS ${PROJECT_NAME}_plugin ${PROJECT_NAME}_trajectory_plugin
+install(TARGETS ${PROJECT_NAME}_plugin
 ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
@@ -72,7 +63,7 @@ RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
-install(FILES moveit_core_plugins.xml moveit_ros_control_interface_plugins.xml
+install(FILES moveit_core_plugins.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
