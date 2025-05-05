@@ -153,8 +153,7 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
   }
 
   /**
-   * \brief Allocates a MoveItControllerHandle instance for the given controller
-   * Might create allocator object first.
+   * \brief Allocates a FollowJointTrajectoryControllerHandle instance for the given controller
    * @param name fully qualified name of the controller
    */
   void allocate(const std::string& name)
