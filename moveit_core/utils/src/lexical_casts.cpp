@@ -73,7 +73,9 @@ OutType toRealImpl(const std::string& s)
   stream >> result;
   if (stream.fail() || !stream.eof())
   {
-    throw std::runtime_error("Failed converting string to real number");
+    std::stringstream ss;
+    ss << "Failed converting string '" << s << "' to real number";
+    throw std::runtime_error(ss.str());
   }
   return result;
 }
