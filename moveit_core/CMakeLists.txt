@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.3)
+cmake_minimum_required(VERSION 3.16)
 project(moveit_core)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
