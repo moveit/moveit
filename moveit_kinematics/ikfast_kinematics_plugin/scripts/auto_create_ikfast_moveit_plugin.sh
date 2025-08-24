@@ -148,8 +148,12 @@ function create_dae_file {
       echo "Failed. Converting urdf to Collada (in docker)"
       build_docker_image
       cp "$INPUT" "$TMP_DIR/robot.urdf"
-      run_quiet docker run --rm --user $(id -u):$(id -g) -v $TMP_DIR:/input --workdir /input -e HOME=/input \
-             fixed-openrave:latest rosrun collada_urdf urdf_to_collada robot.urdf robot.dae
+      run_quiet docker create --workdir /input -e HOME=/input --cidfile="$TMP_DIR/docker-collada.cid" \
+        fixed-openrave:latest rosrun collada_urdf urdf_to_collada robot.urdf robot.dae && \
+      docker cp "$TMP_DIR/." "$(cat $TMP_DIR/docker-collada.cid)":/input && \
+      docker start -ai "$(cat $TMP_DIR/docker-collada.cid)" && \
+      docker cp "$(cat $TMP_DIR/docker-collada.cid)":/input/. "$TMP_DIR"
+      docker rm "$(cat $TMP_DIR/docker-collada.cid)"
    fi
 }
 
@@ -171,9 +175,12 @@ EOF
    echo "Running $cmd"
 
    # run $cmd in docker as current user, outputting files to $TMP_DIR/.openrave
-   run_quiet docker run --rm --user $(id -u):$(id -g) \
-      -v $TMP_DIR:/input --workdir /input -e HOME=/input \
-      fixed-openrave:latest $cmd
+   run_quiet docker create --workdir /input -e HOME=/input --cidfile="$TMP_DIR/docker-solver.cid" \
+           fixed-openrave:latest $cmd && \
+   docker cp "$TMP_DIR/." "$(cat $TMP_DIR/docker-solver.cid)":/input && \
+   docker start -ai "$(cat $TMP_DIR/docker-solver.cid)" && \
+   docker cp "$(cat $TMP_DIR/docker-solver.cid)":/input/. "$TMP_DIR"
+   docker rm "$(cat $TMP_DIR/docker-solver.cid)"
 
    # update INPUT to generated .cpp
    INPUT=$(ls -1 $TMP_DIR/.openrave/*/*.cpp 2> /dev/null)
