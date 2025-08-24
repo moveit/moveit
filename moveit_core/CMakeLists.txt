@@ -1,11 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(moveit_core)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  # Silent these warnings. They are too often false-positives.
-  message("TODO: Analyse and fix gcc's maybe-uninitialized warnings")
-  add_compile_options(-Wno-maybe-uninitialized)
-endif()
 include(cmake/moveit.cmake)
 moveit_build_options()
 
