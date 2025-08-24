@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.3)
+cmake_minimum_required(VERSION 3.16)
 project(moveit_ros_planning_interface)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -19,8 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 moveit_build_options()
 
-find_package(PythonInterp REQUIRED)
-find_package(PythonLibs "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" REQUIRED)
+find_package(Python COMPONENTS Interpreter Development REQUIRED)
 
 find_package(Boost REQUIRED)
 if(Boost_VERSION LESS 106700)

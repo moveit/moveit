@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.3)
+cmake_minimum_required(VERSION 3.16)
 project(moveit_kinematics)
 
 find_package(Boost REQUIRED COMPONENTS program_options)

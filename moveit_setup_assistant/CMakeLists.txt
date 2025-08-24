@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.3)
+cmake_minimum_required(VERSION 3.16)
 project(moveit_setup_assistant)
 
 # definition needed for boost/math/constants/constants.hpp included by Ogre to compile

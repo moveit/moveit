@@ -34,7 +34,7 @@ RUN \
     git clone --depth 1 --branch master https://github.com/moveit/moveit_resources src/moveit_resources && \
     #
     # Download all dependencies of MoveIt
-    rosdep update $(test "${ROS_DISTRO}" = "melodic" && echo "--include-eol-distros") && \
+    rosdep update --rosdistro ${ROS_DISTRO} && \
     DEBIAN_FRONTEND=noninteractive \
     rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false && \
     # Remove the source code from this container

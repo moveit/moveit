@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.3)
+cmake_minimum_required(VERSION 3.16)
 project(moveit_planners_chomp)
 
 # find catkin in isolation so that CATKIN_ENABLE_TESTING is defined

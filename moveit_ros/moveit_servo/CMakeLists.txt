@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.3)
+cmake_minimum_required(VERSION 3.16)
 project(moveit_servo)
 
 set(SERVO_LIB_NAME moveit_servo_cpp_api)

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.3)
+cmake_minimum_required(VERSION 3.16)
 project(moveit_ros_warehouse)
 
 find_package(Boost REQUIRED thread system filesystem regex date_time program_options)
