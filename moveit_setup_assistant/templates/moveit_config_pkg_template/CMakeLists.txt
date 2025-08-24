@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.3)
+cmake_minimum_required(VERSION 3.16)
 project([GENERATED_PACKAGE_NAME])
 
 find_package(catkin REQUIRED)

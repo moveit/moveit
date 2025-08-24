@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.3)
+cmake_minimum_required(VERSION 3.16)
 project(pilz_industrial_motion_planner)
 
 find_package(catkin REQUIRED COMPONENTS

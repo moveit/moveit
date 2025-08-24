@@ -93,20 +93,20 @@ class PythonMsgSerializeTest(unittest.TestCase):
         self.assertEqual(tmp, Vector3(1.0, -2.0, 0.25))
 
     def test_rejectInt(self):
-        with self.assertRaisesRegexp(Exception, "Python argument types in"):
+        with self.assertRaisesRegex(Exception, "Python argument types in"):
             self.helper.compareEmbeddedZeros(4711)
 
     def test_rejectIntTuple(self):
-        with self.assertRaisesRegexp(Exception, "Python argument types in"):
+        with self.assertRaisesRegex(Exception, "Python argument types in"):
             self.helper.compareEmbeddedZeros((4711,))
 
     def test_rejectUnicode(self):
-        with self.assertRaisesRegexp(Exception, "Python argument types in"):
+        with self.assertRaisesRegex(Exception, "Python argument types in"):
             self.helper.compareEmbeddedZeros(u"kdasd")  # fmt: skip
 
     @unittest.skipIf(py_version_maj == 2, "does not trigger with python 2.7")
     def test_rejectUnicodeTuple(self):
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             RuntimeError, "Underlying python object is not a Bytes/String instance"
         ):
             self.helper.compareVectorTuple((u"kdasd",))  # fmt: skip
