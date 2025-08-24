@@ -21,6 +21,5 @@
 
   <export>
      <moveit_core plugin="${prefix}/moveit_core_plugins.xml" />
-     <moveit_ros_control_interface plugin="${prefix}/moveit_ros_control_interface_plugins.xml" />
   </export>
 </package>
