@@ -63,8 +63,6 @@ find_package(urdfdom_headers REQUIRED)
 
 find_package(catkin REQUIRED
 COMPONENTS
-  # pybind needs to be found earlier in Ubuntu 22.04 and similar https://github.com/pybind/pybind11/issues/3996
-  pybind11_catkin
   tf2_eigen
   tf2_geometry_msgs
   eigen_stl_containers
@@ -85,6 +83,7 @@ COMPONENTS
   urdf
   visualization_msgs
   xmlrpcpp
+  pybind11_catkin
   pluginlib
   angles
 )
