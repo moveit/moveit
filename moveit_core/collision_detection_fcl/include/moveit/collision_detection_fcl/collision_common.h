@@ -297,7 +297,8 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
 /** \brief Create new FCLGeometry object out of a world object.
  *
  *  A world object always consists only of a single shape, therefore we don't need the \e shape_index. */
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const World::Object* obj);
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const World::Object* obj,
+                                            fcl::CollisionGeometryd* cg_g = nullptr);
 
 /** \brief Create new scaled and / or padded FCLGeometry object out of robot link model. */
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
@@ -309,7 +310,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
 
 /** \brief Create new scaled and / or padded FCLGeometry object out of an world object. */
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
-                                            const World::Object* obj);
+                                            const World::Object* obj, fcl::CollisionGeometryd* cg_g = nullptr);
 
 /** \brief Increases the counter of the caches which can trigger the cleaning of expired entries from them. */
 void cleanCollisionGeometryCache();
