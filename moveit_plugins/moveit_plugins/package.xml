@@ -11,7 +11,7 @@
 
   <license>BSD</license>
 
-  <url type="website">http://moveit.ros.org</url>
+  <url type="website">http://moveit.ai</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
