@@ -4,7 +4,7 @@
 # All arguments to this script except "-c <container_name>" will be appended to a docker run command.
 # If a container name is specified, and this container already exists, the container is re-entered,
 # which easily allows entering the same persistent container from multiple terminals.
-# See documentation for detailed examples: https://moveit.ros.org/install/docker/
+# See documentation for detailed examples: https://moveit.ai/install/docker/
 
 # Example commands:
 # ./gui-docker --rm -it moveit/moveit:master-source /bin/bash     # Run a (randomly named) container that is removed on exit

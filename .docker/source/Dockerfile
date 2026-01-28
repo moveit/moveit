@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.authors="Robert Haschke <rhaschke@techfak.uni-bie
 ENV PYTHONIOENCODING=UTF-8
 # Export ROS_UNDERLAY for downstream docker containers
 ENV ROS_UNDERLAY=/root/ws_moveit/install
-# Environment variable used in instructions on moveit.ros.org website for running clang-tidy
+# Environment variable used in instructions on moveit.ai website for running clang-tidy
 ENV CATKIN_WS=$ROS_UNDERLAY/..
 WORKDIR $CATKIN_WS
 
