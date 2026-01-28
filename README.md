@@ -1,13 +1,13 @@
-<img src="http://moveit.ros.org/assets/logo/moveit_logo-black.png" alt="MoveIt Logo" width="200"/>
+<img src="http://moveit.ai/assets/logo/moveit_logo-black.png" alt="MoveIt Logo" width="200"/>
 
-The [MoveIt Motion Planning Framework for ROS](http://moveit.ros.org). For the ROS 2 repository see [MoveIt 2](https://github.com/moveit/moveit2). For the commercially supported version see [MoveIt Pro](http://picknik.ai/pro).
+The [MoveIt Motion Planning Framework for ROS](http://moveit.ai). For the ROS 2 repository see [MoveIt 2](https://github.com/moveit/moveit2). For the commercially supported version see [MoveIt Pro](http://picknik.ai/pro).
 
 *Easy-to-use open source robotics manipulation platform for developing commercial applications, prototyping designs, and benchmarking algorithms.*
 
-- [Overview of MoveIt](https://moveit.ros.org)
-- [Installation Instructions](https://moveit.ros.org/install/)
-- [Documentation](https://moveit.ros.org/documentation/source-code-api/)
-- [Get Involved](https://moveit.ros.org/about/get_involved/)
+- [Overview of MoveIt](https://moveit.ai)
+- [Installation Instructions](https://moveit.ai/install/)
+- [Documentation](https://moveit.ai/documentation/source-code-api/)
+- [Get Involved](https://moveit.ai/about/get_involved/)
 
 ## Branches Policy
 

@@ -28,7 +28,7 @@ Nothing. This issue is meant to welcome you to Open Source :) We are happy to wa
 
 - [ ] 🙋 **Claim this issue**: Comment below. If someone else has claimed it, ask if they've opened a pull request already and if they're stuck -- maybe you can help them solve a problem or move it along!
 
-- [ ] 🗄️ **Create a local workspace** for making your changes and testing [following these instructions](https://moveit.ros.org/install/source/)
+- [ ] 🗄️ **Create a local workspace** for making your changes and testing [following these instructions](https://moveit.ai/install/source/)
 
 - [ ] 🍴 **Fork the repository** using the handy button at the top of the repository page and **clone** it into `~/ws_moveit/src/moveit`, [here is a guide that you can follow](https://guides.github.com/activities/forking/) (You will have to remove or empty the existing `moveit` folder before cloning your own fork)
 
@@ -38,7 +38,7 @@ Nothing. This issue is meant to welcome you to Open Source :) We are happy to wa
 $DIFF
 ```
 
-- [ ] 🤖 **Apply `clang-format-12`** auto formatting, [following these instructions](https://moveit.ros.org//documentation/contributing/code/?#clang-format-auto-code-formatting)
+- [ ] 🤖 **Apply `clang-format-12`** auto formatting, [following these instructions](https://moveit.ai//documentation/contributing/code/?#clang-format-auto-code-formatting)
 
 - [ ] 💾 **Commit and Push** your changes
 
@@ -61,9 +61,9 @@ Don’t hesitate to ask questions or to get help if you feel like you are gettin
 💬️ - You can even ping us by using an `@mention` in the comments.
 
 Furthermore, you find helpful resources here:
-* [MoveIt FAQ](https://moveit.ros.org/documentation/faqs/)
+* [MoveIt FAQ](https://moveit.ai/documentation/faqs/)
 * [MoveIt Tutorials](https://moveit.github.io/moveit_tutorials/)
-* [MoveIt contribution guide](https://moveit.ros.org/documentation/contributing/)
+* [MoveIt contribution guide](https://moveit.ai/documentation/contributing/)
 * [ROS Tutorials](https://wiki.ros.org/ROS/Tutorials)
 * [ROS Answers](https://answers.ros.org/questions/)
 

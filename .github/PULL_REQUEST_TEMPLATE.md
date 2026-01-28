@@ -3,8 +3,8 @@
 Please explain the changes you made, including a reference to the related issue if applicable
 
 ### Checklist
-- [ ] **Required by CI**: Code is auto formatted using [clang-format](http://moveit.ros.org/documentation/contributing/code)
-- [ ] Extend the tutorials / documentation [reference](http://moveit.ros.org/documentation/contributing/)
+- [ ] **Required by CI**: Code is auto formatted using [clang-format](http://moveit.ai/documentation/contributing/code)
+- [ ] Extend the tutorials / documentation [reference](http://moveit.ai/documentation/contributing/)
 - [ ] Document API changes relevant to the user in the [MIGRATION.md](https://github.com/moveit/moveit/blob/master/MIGRATION.md) notes
 - [ ] Create tests, which fail without this PR [reference](https://moveit.github.io/moveit_tutorials/doc/tests/tests_tutorial.html)
 - [ ] Include a screenshot if changing a GUI

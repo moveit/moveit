@@ -8,7 +8,7 @@
   <maintainer email="gm130s@gmail.com">Isaac I. Y. Saito</maintainer>
 
   <license>BSD</license>
-  <url type="website">http://moveit.ros.org</url>
+  <url type="website">http://moveit.ai</url>
   <url type="website">http://wiki.ros.org/moveit_runtime</url>
 
   <buildtool_depend>catkin</buildtool_depend>
