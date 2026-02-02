@@ -653,7 +653,21 @@ void PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_ms
     scene_msg.fixed_frame_transforms.clear();
 
   if (robot_state_)
+  {
     moveit::core::robotStateToRobotStateMsg(*robot_state_, scene_msg.robot_state);
+    // only include attached objects if they changed
+    if (parent_)
+    {
+      std::vector<const moveit::core::AttachedBody*> ab;
+      robot_state_->getAttachedBodies(ab);
+      std::vector<const moveit::core::AttachedBody*> pab;
+      parent_->robot_state_->getAttachedBodies(pab);
+      if (pab == ab)
+      {
+        scene_msg.robot_state.attached_collision_objects.clear();
+      }
+    }
+  }
   else
     scene_msg.robot_state = moveit_msgs::RobotState();
   scene_msg.robot_state.is_diff = true;
