@@ -111,6 +111,9 @@ protected:
   /** \brief Construct an FCL collision object from MoveIt's World::Object. */
   void constructFCLObjectWorld(const World::Object* obj, FCLObject& fcl_obj) const;
 
+  /** \brief Update an FCL collision object from MoveIt's World::Object. */
+  void updateFCLObjectWorld(const World::Object* obj, FCLObject& fcl_obj) const;
+
   /** \brief Updates the specified object in \c fcl_objs_ and in the manager from new data available in the World.
    *
    *  If it does not exist in world, it is deleted. If it's not existing in \c fcl_objs_ yet, it's added there. */
