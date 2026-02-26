@@ -402,18 +402,35 @@ def acm_set_allowed(acm, obj, other=None, allow=True):
         return
 
     other_idx = acm.entry_names.index(other)
-    if obj not in acm.entry_names:
-        acm.entry_names.append(obj)
-        for entry in acm.entry_values:
-            entry.enabled.append(allow)
-        acm.entry_values.append(
-            AllowedCollisionEntry(enabled=[allow for i in range(len(acm.entry_names))])
-        )
-        acm.entry_values[-1].enabled[other_idx] = allow
-    else:
+
+    try:
         obj_idx = acm.entry_names.index(obj)
-        acm.entry_values[obj_idx].enabled[other_idx] = allow
-        acm.entry_values[other_idx].enabled[obj_idx] = allow
+    except ValueError:
+        # obj is not yet in ACM, add it with known default values
+        new_entry = AllowedCollisionEntry()
+        try:
+            obj_default = acm.default_entry_values[acm.default_entry_names.index(obj)]
+            new_entry.enabled = [obj_default] * len(acm.entry_names)
+        except ValueError:
+
+            def value(name):
+                try:
+                    return acm.default_entry_values[acm.default_entry_names.index(name)]
+                except ValueError:
+                    return False
+
+            new_entry.enabled = [value(name) for name in acm.entry_names]
+
+        acm.entry_names.append(obj)
+        acm.entry_values.append(new_entry)
+        # keep matrix symmetric with new entry
+        for entry, enabled in zip(acm.entry_values, new_entry.enabled + [False]):
+            entry.enabled.append(enabled)
+
+        obj_idx = acm.entry_names.index(obj)
+
+    acm.entry_values[obj_idx].enabled[other_idx] = allow
+    acm.entry_values[other_idx].enabled[obj_idx] = allow
 
 
 AllowedCollisionMatrix.set_default = acm_set_default
