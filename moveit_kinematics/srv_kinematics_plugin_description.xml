@@ -1,7 +1,13 @@
 <library path="libmoveit_srv_kinematics_plugin">
   <class name="srv_kinematics_plugin/SrvKinematicsPlugin" type="srv_kinematics_plugin::SrvKinematicsPlugin" base_class_type="kinematics::KinematicsBase">
     <description>
-      A implementation of kinematics as a plugin that uses a ROS service layer to communicate with an external IK solver
+      This plugin provides an implementation of kinematics as a plugin that uses a ROS service layer to communicate with an external inverse kinematics solver. It supports communication with IK solvers that follow the ROS service message format, and can handle both position and orientation constraints. The plugin is designed to work with MoveIt! motion planning framework, and can be used with various robotic manipulators and end effectors.
     </description>
+      <license>
+      BSD 3-Clause License
+    </license>
+    <maintainer email="johndoe@example.com">
+      John Doe, Robotics Engineer at XYZ Corporation
+    </maintainer>
   </class>
 </library>
