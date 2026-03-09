@@ -41,7 +41,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name != 'schedule' || steps.apt.outputs.no_cache }}
       - name: Login to Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -85,7 +85,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name != 'schedule' || steps.apt.outputs.no_cache }}
       - name: Login to Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -130,7 +130,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name != 'schedule' || steps.apt.outputs.no_cache }}
       - name: Login to Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -166,7 +166,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
