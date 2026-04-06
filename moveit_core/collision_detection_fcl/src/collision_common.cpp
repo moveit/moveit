@@ -692,7 +692,8 @@ FCLShapeCache& GetShapeCache()
  *  It assigns a thread-local cache for each type of shape and minimizes memory usage and copying through utilizing the
  *  cache. */
 template <typename BV, typename T>
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const T* data, int shape_index)
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const T* data, int shape_index,
+                                            fcl::CollisionGeometryd* cg_g)
 {
   using ShapeKey = shapes::ShapeConstWeakPtr;
   using ShapeMap = std::map<ShapeKey, FCLGeometryConstPtr, std::owner_less<ShapeKey>>;
@@ -791,73 +792,76 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
     }
   }
 
-  fcl::CollisionGeometryd* cg_g = nullptr;
-  // handle cases individually
-  switch (shape->type)
+  // only create the collision geometry when empty
+  if (!cg_g)
   {
-    case shapes::PLANE:
+    // handle cases individually
+    switch (shape->type)
     {
-      const shapes::Plane* p = static_cast<const shapes::Plane*>(shape.get());
-      cg_g = new fcl::Planed(p->a, p->b, p->c, p->d);
-    }
-    break;
-    case shapes::SPHERE:
-    {
-      const shapes::Sphere* s = static_cast<const shapes::Sphere*>(shape.get());
-      cg_g = new fcl::Sphered(s->radius);
-    }
-    break;
-    case shapes::BOX:
-    {
-      const shapes::Box* s = static_cast<const shapes::Box*>(shape.get());
-      const double* size = s->size;
-      cg_g = new fcl::Boxd(size[0], size[1], size[2]);
-    }
-    break;
-    case shapes::CYLINDER:
-    {
-      const shapes::Cylinder* s = static_cast<const shapes::Cylinder*>(shape.get());
-      cg_g = new fcl::Cylinderd(s->radius, s->length);
-    }
-    break;
-    case shapes::CONE:
-    {
-      const shapes::Cone* s = static_cast<const shapes::Cone*>(shape.get());
-      cg_g = new fcl::Coned(s->radius, s->length);
-    }
-    break;
-    case shapes::MESH:
-    {
-      auto g = new fcl::BVHModel<BV>();
-      const shapes::Mesh* mesh = static_cast<const shapes::Mesh*>(shape.get());
-      if (mesh->vertex_count > 0 && mesh->triangle_count > 0)
+      case shapes::PLANE:
       {
-        std::vector<fcl::Triangle> tri_indices(mesh->triangle_count);
-        for (unsigned int i = 0; i < mesh->triangle_count; ++i)
-          tri_indices[i] =
-              fcl::Triangle(mesh->triangles[3 * i], mesh->triangles[3 * i + 1], mesh->triangles[3 * i + 2]);
-
-        std::vector<fcl::Vector3d> points(mesh->vertex_count);
-        for (unsigned int i = 0; i < mesh->vertex_count; ++i)
-          points[i] = fcl::Vector3d(mesh->vertices[3 * i], mesh->vertices[3 * i + 1], mesh->vertices[3 * i + 2]);
-
-        g->beginModel();
-        g->addSubModel(points, tri_indices);
-        g->endModel();
+        const shapes::Plane* p = static_cast<const shapes::Plane*>(shape.get());
+        cg_g = new fcl::Planed(p->a, p->b, p->c, p->d);
       }
-      cg_g = g;
+      break;
+      case shapes::SPHERE:
+      {
+        const shapes::Sphere* s = static_cast<const shapes::Sphere*>(shape.get());
+        cg_g = new fcl::Sphered(s->radius);
+      }
+      break;
+      case shapes::BOX:
+      {
+        const shapes::Box* s = static_cast<const shapes::Box*>(shape.get());
+        const double* size = s->size;
+        cg_g = new fcl::Boxd(size[0], size[1], size[2]);
+      }
+      break;
+      case shapes::CYLINDER:
+      {
+        const shapes::Cylinder* s = static_cast<const shapes::Cylinder*>(shape.get());
+        cg_g = new fcl::Cylinderd(s->radius, s->length);
+      }
+      break;
+      case shapes::CONE:
+      {
+        const shapes::Cone* s = static_cast<const shapes::Cone*>(shape.get());
+        cg_g = new fcl::Coned(s->radius, s->length);
+      }
+      break;
+      case shapes::MESH:
+      {
+        auto g = new fcl::BVHModel<BV>();
+        const shapes::Mesh* mesh = static_cast<const shapes::Mesh*>(shape.get());
+        if (mesh->vertex_count > 0 && mesh->triangle_count > 0)
+        {
+          std::vector<fcl::Triangle> tri_indices(mesh->triangle_count);
+          for (unsigned int i = 0; i < mesh->triangle_count; ++i)
+            tri_indices[i] =
+                fcl::Triangle(mesh->triangles[3 * i], mesh->triangles[3 * i + 1], mesh->triangles[3 * i + 2]);
+
+          std::vector<fcl::Vector3d> points(mesh->vertex_count);
+          for (unsigned int i = 0; i < mesh->vertex_count; ++i)
+            points[i] = fcl::Vector3d(mesh->vertices[3 * i], mesh->vertices[3 * i + 1], mesh->vertices[3 * i + 2]);
+
+          g->beginModel();
+          g->addSubModel(points, tri_indices);
+          g->endModel();
+        }
+        cg_g = g;
+      }
+      break;
+      case shapes::OCTREE:
+      {
+        const shapes::OcTree* g = static_cast<const shapes::OcTree*>(shape.get());
+        cg_g = new fcl::OcTreed(g->octree);
+      }
+      break;
+      default:
+        ROS_ERROR_NAMED("collision_detection.fcl", "This shape type (%d) is not supported using FCL yet",
+                        (int)shape->type);
+        cg_g = nullptr;
     }
-    break;
-    case shapes::OCTREE:
-    {
-      const shapes::OcTree* g = static_cast<const shapes::OcTree*>(shape.get());
-      cg_g = new fcl::OcTreed(g->octree);
-    }
-    break;
-    default:
-      ROS_ERROR_NAMED("collision_detection.fcl", "This shape type (%d) is not supported using FCL yet",
-                      (int)shape->type);
-      cg_g = nullptr;
   }
 
   if (cg_g)
@@ -874,18 +878,19 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const moveit::core::LinkModel* link,
                                             int shape_index)
 {
-  return createCollisionGeometry<fcl::OBBRSSd, moveit::core::LinkModel>(shape, link, shape_index);
+  return createCollisionGeometry<fcl::OBBRSSd, moveit::core::LinkModel>(shape, link, shape_index, nullptr);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const moveit::core::AttachedBody* ab,
                                             int shape_index)
 {
-  return createCollisionGeometry<fcl::OBBRSSd, moveit::core::AttachedBody>(shape, ab, shape_index);
+  return createCollisionGeometry<fcl::OBBRSSd, moveit::core::AttachedBody>(shape, ab, shape_index, nullptr);
 }
 
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const World::Object* obj)
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const World::Object* obj,
+                                            fcl::CollisionGeometryd* cg_g)
 {
-  return createCollisionGeometry<fcl::OBBRSSd, World::Object>(shape, obj, 0);
+  return createCollisionGeometry<fcl::OBBRSSd, World::Object>(shape, obj, 0, cg_g);
 }
 
 /** \brief Templated helper function creating new collision geometry out of general object using an arbitrary bounding
@@ -896,12 +901,12 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
 {
   if (fabs(scale - 1.0) <= std::numeric_limits<double>::epsilon() &&
       fabs(padding) <= std::numeric_limits<double>::epsilon())
-    return createCollisionGeometry<BV, T>(shape, data, shape_index);
+    return createCollisionGeometry<BV, T>(shape, data, shape_index, nullptr);
   else
   {
     shapes::ShapePtr scaled_shape(shape->clone());
     scaled_shape->scaleAndPadd(scale, padding);
-    return createCollisionGeometry<BV, T>(scaled_shape, data, shape_index);
+    return createCollisionGeometry<BV, T>(scaled_shape, data, shape_index, nullptr);
   }
 }
 
