@@ -163,7 +163,12 @@ bool RevoluteJointModel::satisfiesPositionBounds(const double* values, const Bou
   if (continuous_)
     return true;
   else
-    return !(values[0] < bounds[0].min_position_ - margin || values[0] > bounds[0].max_position_ + margin);
+  {
+    if (margin >= 0.0)
+      return !(values[0] < bounds[0].min_position_ - margin || values[0] > bounds[0].max_position_ + margin);
+    else
+      return (values[0] <= bounds[0].min_position_ - margin || values[0] >= bounds[0].max_position_ + margin);
+  }
 }
 
 bool RevoluteJointModel::harmonizePosition(double* values, const JointModel::Bounds& other_bounds) const

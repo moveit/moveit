@@ -280,6 +280,15 @@ public:
   }
 
   /** \brief Check if the set of position values for the variables of this joint are within bounds, up to some margin.
+   *  Inner bounds: margin >= 0.0
+   *
+   *        |   False   |   True   |   True   |   True   |   False   |
+   *      -inf        margin      min        max       margin      +inf
+   *
+   *  Outer bounds: margin < 0.0
+   *
+   *        |   True   |   True   |   False   |   True   |   True   |
+   *      -inf        min       margin      margin      max       +inf
    */
   virtual bool satisfiesPositionBounds(const double* values, const Bounds& other_bounds, double margin) const = 0;
 
