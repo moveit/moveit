@@ -954,8 +954,14 @@ bool MoveItConfigData::outputSimpleControllersYAML(const std::string& file_path)
   emitter << YAML::BeginMap;
   emitter << YAML::Key << "controller_list";
   emitter << YAML::Value << YAML::BeginSeq;
+
+  // Preven duplicate
+  std::set<std::string> written_checker;
+
   for (const auto& controller : controller_configs_)
   {
+    if  (!written_checker.insert(controller.name_).second)
+      continue;
     // Only process FollowJointTrajectory types
     std::string type = controller.type_;
     if (boost::ends_with(type, "/JointTrajectoryController"))
@@ -970,8 +976,8 @@ bool MoveItConfigData::outputSimpleControllersYAML(const std::string& file_path)
       emitter << YAML::Key << "type";
       emitter << YAML::Value << type;
       emitter << YAML::Key << "default";
-      emitter << YAML::Value << "True";
-
+      emitter << YAML::Value << true;
+      
       // Write joints
       emitter << YAML::Key << "joints";
       emitter << YAML::Value << YAML::BeginSeq;
