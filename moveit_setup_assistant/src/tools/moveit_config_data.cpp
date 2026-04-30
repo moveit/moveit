@@ -954,6 +954,10 @@ bool MoveItConfigData::outputSimpleControllersYAML(const std::string& file_path)
   emitter << YAML::BeginMap;
   emitter << YAML::Key << "controller_list";
   emitter << YAML::Value << YAML::BeginSeq;
+
+  // Preven duplicate
+  std::set<std::string> written_checker;
+
   for (const auto& controller : controller_configs_)
   {
     // Only process FollowJointTrajectory types
@@ -962,6 +966,8 @@ bool MoveItConfigData::outputSimpleControllersYAML(const std::string& file_path)
       type = "FollowJointTrajectory";
     if (type == "FollowJointTrajectory" || type == "GripperCommand")
     {
+      if (!written_checker.insert(controller.name_).second) // FIX
+        continue;
       emitter << YAML::BeginMap;
       emitter << YAML::Key << "name";
       emitter << YAML::Value << controller.name_;
@@ -970,8 +976,8 @@ bool MoveItConfigData::outputSimpleControllersYAML(const std::string& file_path)
       emitter << YAML::Key << "type";
       emitter << YAML::Value << type;
       emitter << YAML::Key << "default";
-      emitter << YAML::Value << "True";
-
+      emitter << YAML::Value << true;
+      
       // Write joints
       emitter << YAML::Key << "joints";
       emitter << YAML::Value << YAML::BeginSeq;
