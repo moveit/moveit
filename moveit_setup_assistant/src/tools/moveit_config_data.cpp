@@ -960,14 +960,14 @@ bool MoveItConfigData::outputSimpleControllersYAML(const std::string& file_path)
 
   for (const auto& controller : controller_configs_)
   {
-    if  (!written_checker.insert(controller.name_).second)
-      continue;
     // Only process FollowJointTrajectory types
     std::string type = controller.type_;
     if (boost::ends_with(type, "/JointTrajectoryController"))
       type = "FollowJointTrajectory";
     if (type == "FollowJointTrajectory" || type == "GripperCommand")
     {
+      if (!written_checker.insert(controller.name_).second) // FIX
+        continue;
       emitter << YAML::BeginMap;
       emitter << YAML::Key << "name";
       emitter << YAML::Value << controller.name_;
