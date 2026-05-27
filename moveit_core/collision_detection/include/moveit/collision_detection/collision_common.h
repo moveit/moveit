@@ -97,8 +97,8 @@ struct Contact
 
   /** \brief The distance percentage between casted poses until collision.
    *
-   *  If the value is 0, then the collision occured in the start pose. If the value is 1, then the collision occured in
-   *  the end pose. */
+   *  If the value is 0, then the collision occurred in the start pose. If the value is 1, then the collision occurred
+   *  in the end pose. */
   double percent_interpolation;
 
   /** \brief The two nearest points connecting the two bodies */

@@ -145,7 +145,7 @@ inline collision_detection::Contact* processResult(ContactTestData& cdata, colli
  *                units towards the center along its normal).
  * @param (input) shrinkClamp If positive, "shrink" is clamped to not exceed "shrinkClamp * innerRadius", where
  *                "innerRadius" is the minimum distance of a face to the center of the convex hull.
- * @return The number of faces. If less than zero an error occured when trying to create the convex hull
+ * @return The number of faces. If less than zero an error occurred when trying to create the convex hull
  */
 inline int createConvexHull(AlignedVector<Eigen::Vector3d>& vertices, std::vector<int>& faces,
                             const AlignedVector<Eigen::Vector3d>& input, double shrink = -1, double shrinkClamp = -1)

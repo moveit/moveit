@@ -1151,7 +1151,7 @@ bool ConfigurationFilesWidget::generatePackage()
     // Run the generate function
     if (!file->gen_func_(absolute_path))
     {
-      // Error occured
+      // Error occurred
       QMessageBox::critical(this, "Error Generating File",
                             QString("Failed to generate folder or file: '")
                                 .append(file->rel_path_.c_str())

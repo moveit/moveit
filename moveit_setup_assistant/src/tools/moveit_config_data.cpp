@@ -1814,7 +1814,7 @@ bool MoveItConfigData::inputSetupAssistantYAML(const std::string& file_path)
     ROS_ERROR_STREAM(e.what());
   }
 
-  return false;  // if it gets to this point an error has occured
+  return false;  // if it gets to this point an error has occurred
 }
 
 // ******************************************************************************************
@@ -1909,9 +1909,8 @@ srdf::Model::Group* MoveItConfigData::findGroupByName(const std::string& name)
 
   // Check if subgroup was found
   if (searched_group == nullptr)  // not found
-    ROS_FATAL_STREAM("An internal error has occured while searching for groups. Group '" << name
-                                                                                         << "' was not found "
-                                                                                            "in the SRDF.");
+    ROS_FATAL_STREAM("An internal error has occurred while searching for groups. Group '"
+                     << name << "' was not found in the SRDF.");
 
   return searched_group;
 }

@@ -99,7 +99,7 @@ public:
    *  @param solver An instance of a kinematics solver
    *  @param kinematic_model An instance of a kinematic model
    *  @param opt Parameters needed for defining the cache workspace
-   *  @return False if any error occured during initialization
+   *  @return False if any error occurred during initialization
    */
   bool initialize(kinematics::KinematicsBaseConstPtr& solver, const moveit::core::RobotModelConstPtr& kinematic_model,
                   const KinematicsCache::Options& opt);

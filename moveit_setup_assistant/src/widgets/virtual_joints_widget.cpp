@@ -369,7 +369,7 @@ srdf::Model::VirtualJoint* VirtualJointsWidget::findVJointByName(const std::stri
   // Check if vjoint was found
   if (searched_group == nullptr)  // not found
   {
-    QMessageBox::critical(this, "Error Saving", "An internal error has occured while saving. Quitting.");
+    QMessageBox::critical(this, "Error Saving", "An internal error has occurred while saving. Quitting.");
     QApplication::quit();
   }
 

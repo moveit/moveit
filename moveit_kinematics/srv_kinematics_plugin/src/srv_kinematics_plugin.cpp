@@ -324,7 +324,7 @@ bool SrvKinematicsPlugin::searchPositionIK(const std::vector<geometry_msgs::Pose
   if (!moveit::core::robotStateMsgToRobotState(ik_srv.response.solution, *robot_state_))
   {
     ROS_ERROR_STREAM_NAMED("srv",
-                           "An error occured converting received robot state message into internal robot state.");
+                           "An error occurred converting received robot state message into internal robot state.");
     error_code.val = error_code.FAILURE;
     return false;
   }

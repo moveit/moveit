@@ -777,7 +777,7 @@ void ControllersWidget::editSelected()
   }
   else
   {
-    QMessageBox::critical(this, "Error Loading", "An internal error has occured while loading.");
+    QMessageBox::critical(this, "Error Loading", "An internal error has occurred while loading.");
   }
 }
 

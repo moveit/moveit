@@ -377,18 +377,18 @@ bool StartScreenWidget::loadExistingFiles()
 
   // Get the URDF path using the loaded .setup_assistant data and check it
   if (!createFullURDFPath())
-    return false;  // error occured
+    return false;  // error occurred
 
   // use xacro args from GUI
   config_data_->xacro_args_ = stack_path_->getArgs().toStdString();
 
   // Load the URDF
   if (!loadURDFFile(config_data_->urdf_path_, config_data_->xacro_args_))
-    return false;  // error occured
+    return false;  // error occurred
 
   // Get the SRDF path using the loaded .setup_assistant data and check it
   if (!createFullSRDFPath(config_data_->config_pkg_path_))
-    return false;  // error occured
+    return false;  // error occurred
 
   // Progress Indicator
   progress_bar_->setValue(50);
@@ -396,7 +396,7 @@ bool StartScreenWidget::loadExistingFiles()
 
   // Load the SRDF
   if (!loadSRDFFile(config_data_->srdf_path_, config_data_->xacro_args_))
-    return false;  // error occured
+    return false;  // error occurred
 
   // Progress Indicator
   progress_bar_->setValue(60);
