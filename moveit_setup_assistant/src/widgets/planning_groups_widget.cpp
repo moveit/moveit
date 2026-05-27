@@ -484,7 +484,7 @@ void PlanningGroupsWidget::editSelected()
       loadGroupScreen(plan_group.group_);
       break;
     default:
-      QMessageBox::critical(this, "Error Loading", "An internal error has occured while loading.");
+      QMessageBox::critical(this, "Error Loading", "An internal error has occurred while loading.");
       return;
   }
   return_screen_ = 0;  // return to main screen directly

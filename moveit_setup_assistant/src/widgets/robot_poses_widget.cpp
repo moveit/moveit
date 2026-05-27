@@ -823,7 +823,7 @@ SliderWidget::SliderWidget(QWidget* parent, const moveit::core::JointModel* join
   const std::vector<moveit_msgs::JointLimits>& limits = joint_model_->getVariableBoundsMsg();
   if (limits.empty())
   {
-    QMessageBox::critical(this, "Error Loading", "An internal error has occured while loading the joints");
+    QMessageBox::critical(this, "Error Loading", "An internal error has occurred while loading the joints");
     return;
   }
 
