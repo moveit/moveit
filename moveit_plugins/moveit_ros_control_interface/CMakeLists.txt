@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
 moveit_build_options()
 
 ## System dependencies are found with CMake's conventions
-find_package(Boost REQUIRED COMPONENTS system thread)
+find_package(Boost REQUIRED COMPONENTS thread)
 
 catkin_package(
   INCLUDE_DIRS

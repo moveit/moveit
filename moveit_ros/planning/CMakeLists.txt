@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(moveit_ros_planning)
 
-find_package(Boost REQUIRED system filesystem date_time program_options thread chrono)
+find_package(Boost REQUIRED filesystem date_time program_options thread chrono)
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_msgs

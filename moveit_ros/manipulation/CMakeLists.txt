@@ -16,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
 moveit_build_options()
 
 find_package(Eigen3 REQUIRED)
-find_package(Boost REQUIRED thread system filesystem date_time program_options)
+find_package(Boost REQUIRED thread filesystem date_time program_options)
 
 generate_dynamic_reconfigure_options("pick_place/cfg/PickPlaceDynamicReconfigure.cfg")
 

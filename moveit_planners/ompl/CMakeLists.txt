@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(moveit_planners_ompl)
 
-find_package(Boost REQUIRED system filesystem date_time thread serialization)
+find_package(Boost REQUIRED filesystem date_time thread serialization)
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_ros_planning

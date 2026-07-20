@@ -8,7 +8,7 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-find_package(Boost REQUIRED COMPONENTS thread filesystem system program_options)
+find_package(Boost REQUIRED COMPONENTS thread filesystem program_options)
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_ros_planning

@@ -33,7 +33,6 @@ find_package(Boost REQUIRED COMPONENTS
   filesystem
   program_options
   ${BOOST_PYTHON_COMPONENT}
-  system
   thread
 )
 find_package(Eigen3 REQUIRED)

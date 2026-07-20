@@ -4,7 +4,7 @@ project(moveit_core)
 include(cmake/moveit.cmake)
 moveit_build_options()
 
-find_package(Boost REQUIRED system filesystem date_time thread iostreams regex ${EXTRA_BOOST_COMPONENTS})
+find_package(Boost REQUIRED filesystem date_time thread iostreams regex ${EXTRA_BOOST_COMPONENTS})
 find_package(Eigen3 REQUIRED)
 
 # TODO: Move collision detection into separate packages
