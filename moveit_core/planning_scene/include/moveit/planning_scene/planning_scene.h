@@ -42,6 +42,7 @@
 #include <moveit/collision_detection/collision_detector_allocator.h>
 #include <moveit/collision_detection/world_diff.h>
 #include <moveit/collision_detection/collision_env.h>
+#include <moveit/collision_detection/occupancy_map.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
@@ -837,7 +838,7 @@ public:
 
   void processOctomapMsg(const octomap_msgs::OctomapWithPose& map);
   void processOctomapMsg(const octomap_msgs::Octomap& map);
-  void processOctomapPtr(const std::shared_ptr<const octomap::OcTree>& octree, const Eigen::Isometry3d& t);
+  void processOctomapPtr(const std::shared_ptr<collision_detection::OccMapTree>& octree, const Eigen::Isometry3d& t);
 
   /**
    * \brief Clear all collision objects in planning scene

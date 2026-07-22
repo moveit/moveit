@@ -57,6 +57,35 @@ const std::string PlanningScene::DEFAULT_SCENE_NAME = "(noname)";
 
 const std::string LOGNAME = "planning_scene";
 
+/// Override shapes::OcTree to enforce
+/// a lockable collision_detection::OccMapTree,
+/// and to lock in print()
+class OccMapTreeShape : public shapes::OcTree
+{
+public:
+  OccMapTreeShape(const std::shared_ptr<collision_detection::OccMapTree>& t) : shapes::OcTree{ t }, occ_map_tree{ t }
+  {
+  }
+
+  OccMapTreeShape* clone() const override
+  {
+    return new OccMapTreeShape{ occ_map_tree };
+  }
+
+  void print(std::ostream& out) const override
+  {
+    auto read_lock = occ_map_tree->reading();
+    shapes::OcTree::print(out);
+  }
+
+  // The other methods of Shape don't read the octomap.
+
+  std::shared_ptr<collision_detection::OccMapTree> occ_map_tree;
+
+private:
+  using shapes::OcTree::octree;
+};
+
 class SceneTransforms : public moveit::core::Transforms
 {
 public:
@@ -856,8 +885,9 @@ bool PlanningScene::getOctomapMsg(octomap_msgs::OctomapWithPose& octomap) const
   {
     if (map->shapes_.size() == 1)
     {
-      const shapes::OcTree* o = static_cast<const shapes::OcTree*>(map->shapes_[0].get());
-      octomap_msgs::fullMapToMsg(*o->octree, octomap.octomap);
+      const OccMapTreeShape* o = static_cast<const OccMapTreeShape*>(map->shapes_[0].get());
+      auto read_lock = o->occ_map_tree->reading();
+      octomap_msgs::fullMapToMsg(*o->occ_map_tree, octomap.octomap);
       octomap.origin = tf2::toMsg(map->shape_poses_[0]);
       return true;
     }
@@ -1405,11 +1435,11 @@ void PlanningScene::processOctomapMsg(const octomap_msgs::Octomap& map)
   if (!map.header.frame_id.empty())
   {
     const Eigen::Isometry3d& t = getFrameTransform(map.header.frame_id);
-    world_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(om)), t);
+    world_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new OccMapTreeShape(om)), t);
   }
   else
   {
-    world_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(om)), Eigen::Isometry3d::Identity());
+    world_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new OccMapTreeShape(om)), Eigen::Isometry3d::Identity());
   }
 }
 
@@ -1446,10 +1476,11 @@ void PlanningScene::processOctomapMsg(const octomap_msgs::OctomapWithPose& map)
   Eigen::Isometry3d p;
   PlanningScene::poseMsgToEigen(map.origin, p);
   p = t * p;
-  world_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(om)), p);
+  world_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new OccMapTreeShape(om)), p);
 }
 
-void PlanningScene::processOctomapPtr(const std::shared_ptr<const octomap::OcTree>& octree, const Eigen::Isometry3d& t)
+void PlanningScene::processOctomapPtr(const std::shared_ptr<collision_detection::OccMapTree>& octree,
+                                      const Eigen::Isometry3d& t)
 {
   collision_detection::CollisionEnv::ObjectConstPtr map = world_->getObject(OCTOMAP_NS);
   if (map)
@@ -1457,8 +1488,8 @@ void PlanningScene::processOctomapPtr(const std::shared_ptr<const octomap::OcTre
     if (map->shapes_.size() == 1)
     {
       // check to see if we have the same octree pointer & pose.
-      const shapes::OcTree* o = static_cast<const shapes::OcTree*>(map->shapes_[0].get());
-      if (o->octree == octree)
+      const OccMapTreeShape* o = static_cast<const OccMapTreeShape*>(map->shapes_[0].get());
+      if (o->occ_map_tree == octree)
       {
         // if the pose changed, we update it
         if (map->shape_poses_[0].isApprox(t, std::numeric_limits<double>::epsilon() * 100.0))
@@ -1479,7 +1510,7 @@ void PlanningScene::processOctomapPtr(const std::shared_ptr<const octomap::OcTre
   }
   // if the octree pointer changed, update the structure
   world_->removeObject(OCTOMAP_NS);
-  world_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(octree)), t);
+  world_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new OccMapTreeShape(octree)), t);
 }
 
 bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject& object)
