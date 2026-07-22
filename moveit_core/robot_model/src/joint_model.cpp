@@ -120,10 +120,17 @@ bool JointModel::satisfiesVelocityBounds(const double* values, const Bounds& oth
     {
       continue;
     }
-    if (other_bounds[i].max_velocity_ + margin < values[i])
-      return false;
-    else if (other_bounds[i].min_velocity_ - margin > values[i])
-      return false;
+
+    if (margin >= 0.0)
+    {
+      if (values[i] < other_bounds[i].min_velocity_ - margin || values[i] > other_bounds[i].max_velocity_ + margin)
+        return false;
+    }
+    else
+    {
+      if (!(values[i] <= other_bounds[i].min_velocity_ - margin || values[i] >= other_bounds[i].max_velocity_ + margin))
+        return false;
+    }
   }
   return true;
 }
@@ -136,10 +143,18 @@ bool JointModel::satisfiesAccelerationBounds(const double* values, const Bounds&
     {
       continue;
     }
-    if (other_bounds[i].max_acceleration_ + margin < values[i])
-      return false;
-    else if (other_bounds[i].min_acceleration_ - margin > values[i])
-      return false;
+
+    if (margin >= 0.0)
+    {
+      if (values[i] < other_bounds[i].min_acceleration_ - margin || values[i] > other_bounds[i].max_velocity_ + margin)
+        return false;
+    }
+    else
+    {
+      if (!(values[i] <= other_bounds[i].min_acceleration_ - margin ||
+            values[i] >= other_bounds[i].max_velocity_ + margin))
+        return false;
+    }
   }
   return true;
 }
